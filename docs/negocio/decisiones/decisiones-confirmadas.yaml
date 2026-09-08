@@ -1,0 +1,207 @@
+schema: spec-driven
+
+context: |
+  Proyecto: Sys-Inventario
+  Producto: sistema web de gestión integral para un taller automotriz.
+  Idioma de la documentación y de los artefactos OpenSpec: español.
+  Zona horaria operativa: America/Guayaquil.
+
+  Fuentes de verdad y precedencia:
+  1. Las decisiones confirmadas incluidas en este archivo.
+  2. docs/producto/: visión, alcance V1, reglas de negocio y glosario.
+  3. docs/requisitos/: actores, requisitos, casos de uso, interfaz y trazabilidad.
+  4. docs/arquitectura/: arquitectura objetivo y modelo de datos conceptual.
+  5. docs/plan/: auditoría del estado actual y análisis de brechas.
+  6. El código existente solo demuestra el estado actual; no define el comportamiento correcto.
+  Si una fuente inferior contradice una superior, aplicar la superior y registrar la brecha.
+  Los documentos continúan como borradores; las decisiones confirmadas de este archivo
+  sustituyen cualquier marca anterior que todavía las muestre como pendientes.
+
+  Objetivo de V1:
+  - Aplicación web para varios usuarios y dispositivos en la red local del taller.
+  - Frontend React 19 + TypeScript 6 + Vite.
+  - Backend Django 5 + Django REST Framework.
+  - PostgreSQL como fuente de verdad.
+  - Arquitectura objetivo de monolito modular; no introducir microservicios en V1.
+  - API HTTP JSON bajo /api/v1/ y contrato OpenAPI versionado conforme se estabilice.
+  - Preparar la arquitectura para una publicación futura en Internet, sin incluirla en V1.
+
+  Separación fiscal obligatoria:
+  - Existen dos contribuyentes/RUC legalmente independientes.
+  - El RUC comercial gestiona proveedores, ingresos, inventario y ventas de repuestos.
+  - El RUC artesanal gestiona mantenimientos, reparaciones, servicios y mano de obra.
+  - Clientes, vehículos y usuarios son compartidos.
+  - Documentos, series, impuestos, pagos, saldos, anulaciones, facturación y reportes
+    permanecen separados por entidad fiscal.
+  - Una operación económica pertenece exactamente a una entidad fiscal.
+  - Un mantenimiento con repuestos debe vincular una venta comercial independiente.
+  - Repuestos y servicios nunca se mezclan en un mismo documento económico o cobro.
+
+  Decisiones funcionales confirmadas:
+  - DP-001: V1 opera con una sola bodega. No incluir transferencias ni gestión multibodega.
+  - DP-002: no se permite stock negativo. La confirmación debe fallar de forma atómica
+    cuando la existencia sea insuficiente.
+  - DP-003: los medios de pago iniciales son EFECTIVO y TRANSFERENCIA, combinables en
+    una misma operación. CREDITO es una condición de venta, no un medio de pago; se
+    maneja de forma sencilla, sin fecha de vencimiento, cuotas ni cronograma.
+  - DP-004: V1 no permite descuentos. No mostrar ni aceptar descuentos en proformas,
+    ventas, servicios ni mantenimientos.
+  - DP-007: un mantenimiento finalizado puede reabrirse mediante una acción explícita,
+    autorizada y auditada; no mediante edición genérica del estado.
+  - DP-008: Cliente exige nombre completo, tipo de identificación, identificación,
+    teléfono, email y dirección. Los tipos admitidos son CI de exactamente 10 caracteres
+    y RUC de exactamente 13 caracteres, con validación en frontend y backend.
+  - DP-008: Vehículo exige placa, modelo, propietario, marca y color. Marca es un catálogo
+    administrable por el usuario. Propietario referencia a un Cliente registrado.
+  - CT-001: un usuario debe tener uno o más de los tres roles fijos y puede acumularlos.
+    Los únicos roles son ADMINISTRADOR, VENDEDOR y ENCARGADO_TALLER. No existen roles
+    adicionales, permisos personalizados ni un rol Contador en V1.
+  - Interpretación V1 de DM-003: cada vehículo tiene un solo propietario actual, que es
+    un Cliente. No modelar copropiedad ni un responsable distinto del propietario.
+    Un cambio de propietario no puede alterar el historial de mantenimientos.
+
+  Reglas esenciales de negocio:
+  - Las proformas no reservan ni descuentan stock.
+  - El stock se descuenta únicamente al confirmar una venta comercial.
+  - Confirmar una operación económica no implica marcarla pagada o facturada.
+  - Estado del documento, estado de pago y estado de facturación son independientes.
+  - Los pagos y abonos se registran con medios reales y pertenecen a una sola entidad fiscal.
+  - Ingresos confirmados requieren un Proveedor registrado y actualizan el costo promedio
+    ponderado dentro de la misma transacción.
+  - Todo cambio de inventario genera un movimiento de Kardex trazable e inmutable.
+  - Documentos confirmados no se editan ni eliminan físicamente mediante CRUD ordinario.
+  - Anulaciones, devoluciones y correcciones conservan el original, el motivo, el usuario
+    y los movimientos compensatorios.
+  - Importes y cantidades usan Decimal; nunca punto flotante binario para cálculos.
+  - Secuenciales se asignan dentro de la transacción y deben ser seguros ante concurrencia.
+  - Acciones críticas deben ser atómicas, idempotentes cuando corresponda y auditables.
+  - Los kits se administran como productos completos; no se descomponen automáticamente.
+  - Los valores económicos e impuestos aplicados se conservan como datos históricos.
+
+  Roles y responsabilidades:
+  - Administrador: usuarios, configuración, entidades fiscales, catálogos, proveedores,
+    ingresos, inventario, ajustes, reportes, auditoría, respaldos y acciones críticas.
+  - Vendedor: clientes, proformas, ventas y cobros comerciales; confirma la venta de
+    repuestos vinculada a un mantenimiento.
+  - Encargado del taller: clientes, vehículos, servicios, mantenimientos, fotografías,
+    repuestos utilizados y cobros artesanales.
+  - El backend es la autoridad de autorización. Ocultar acciones en el frontend solo es
+    una ayuda de interfaz y nunca sustituye la validación del servidor.
+
+  Límites de V1:
+  - No incluir facturación electrónica real ni conexión con el SRI.
+  - No migrar automáticamente los pocos registros de la aplicación Flutter anterior.
+  - No asignar trabajos a mecánicos.
+  - No incluir presupuestos ni aprobación previa del cliente para mantenimientos.
+  - No incluir garantías, copropiedad vehicular, permisos personalizados, microservicios
+    ni acceso público por Internet.
+
+  Decisiones todavía no cerradas:
+  - DP-005: tratamiento detallado de reembolsos, devoluciones y saldos a favor.
+  - DP-006: formato visible, prefijos y series de los secuenciales.
+  - DA-001: mecanismo definitivo de autenticación web.
+  - DA-002: límites, almacenamiento y conservación de fotografías.
+  - DA-003: empaquetado, instalación, actualización, respaldo y restauración local.
+  - DM-001: estructura técnica común o separada de documentos económicos.
+  - DM-002: si un mantenimiento puede vincular una o varias ventas comerciales.
+  Cuando un cambio dependa de una decisión abierta, su proposal debe recomendar la opción
+  más sencilla y segura para V1, explicar impactos y alternativas, y detenerse para obtener
+  aprobación. No convertir una decisión abierta en migración, spec o código silenciosamente.
+
+  Arquitectura y desarrollo:
+  - Mantener fronteras explícitas entre identidad, configuración fiscal, clientes y
+    vehículos, catálogos, proveedores e ingresos, inventario, proformas, ventas y pagos,
+    taller, reportes y auditoría.
+  - Coordinar reglas complejas mediante servicios de aplicación/dominio; mantener views,
+    ViewSets y serializers delgados.
+  - El frontend no decide permisos, stock, totales, impuestos, secuenciales ni transiciones.
+  - Las escrituras entre módulos pasan por servicios explícitos, no por mutaciones directas
+    de modelos ajenos.
+  - Usar transacciones, bloqueos de filas, restricciones únicas e idempotencia para dinero,
+    inventario, pagos, confirmaciones, anulaciones y secuenciales.
+  - Cambios de esquema requieren migraciones versionadas y un plan para datos existentes.
+  - Preservar cambios del usuario y no ampliar el alcance para refactorizaciones no solicitadas.
+
+  Estado actual relevante:
+  - El código está en repo-review/Back-Inventario y repo-review/Front-Inventario.
+  - El frontend actual no compila y no hay pruebas automatizadas.
+  - El backend actual usa un solo RUC, JWT en localStorage, un rol por usuario, proformas
+    que reservan stock y secuenciales inseguros ante concurrencia.
+  - No existen todavía el módulo completo de taller, vehículos de clientes, proveedores,
+    costo promedio, cuentas por cobrar, auditoría ni devoluciones completas.
+  - No preservar compatibilidad con esos comportamientos cuando contradigan la línea objetivo.
+
+  Calidad y verificación:
+  - Todo comportamiento nuevo o corregido debe incluir pruebas automatizadas.
+  - Reglas de dominio: pruebas unitarias.
+  - API, persistencia y coordinación entre módulos: pruebas de integración.
+  - Dinero, stock y secuenciales: pruebas transaccionales y de concurrencia.
+  - Permisos: casos positivos y negativos para cada rol relevante y combinaciones de roles.
+  - Errores corregidos: prueba de regresión.
+  - Frontend: build y lint sin errores introducidos; probar flujos críticos de interfaz.
+  - No afirmar que una verificación pasó si no se ejecutó; registrar bloqueos del entorno.
+
+rules:
+  proposal:
+    - Leer primero la documentación objetivo y los hallazgos EA/BR relacionados con el cambio.
+    - Indicar problema, objetivo, alcance, no objetivos, usuarios afectados, dependencias y riesgos.
+    - Referenciar las reglas RN, requisitos RF/RNF, casos de uso UC y brechas BR aplicables.
+    - Mantener cada propuesta enfocada en una capacidad o conjunto cohesivo de brechas.
+    - Distinguir explícitamente reutilización, modificación y sustitución del código actual.
+    - Incluir impacto esperado en datos, permisos, API, frontend y operación cuando aplique.
+    - Identificar decisiones abiertas y solicitar aprobación de la recomendación antes de specs.
+    - No incluir detalles de implementación propios del design ni crear código.
+    - Incluir siempre una sección "Fuera de alcance".
+    - Detenerse después del proposal y esperar aprobación explícita del usuario.
+
+  specs:
+    - Generar specs únicamente después de la aprobación explícita del proposal.
+    - Redactar requisitos y criterios de aceptación en español y sin acoplarlos a Django o React.
+    - Usar escenarios Dado/Cuando/Entonces para el comportamiento observable.
+    - Cada requisito normativo debe contener al menos un escenario verificable.
+    - Cubrir flujo principal, validaciones, errores, permisos y transiciones de estado.
+    - Para dinero, stock, pagos o secuenciales, cubrir atomicidad, reintentos y concurrencia.
+    - Mantener separados RUC comercial y artesanal en todos los escenarios económicos.
+    - No introducir descuentos, stock negativo, reservas de proforma ni crédito como medio de pago.
+    - Referenciar los identificadores RN/RF/RNF/UC que justifican el comportamiento.
+    - No adelantar design, tasks ni implementación.
+    - Detenerse después de las specs y esperar aprobación explícita del usuario.
+
+  design:
+    - Generar design únicamente después de la aprobación explícita de las specs.
+    - Inspeccionar el código real antes de proponer archivos, modelos, endpoints o migraciones.
+    - Explicar impactos en backend, frontend, datos, API, seguridad, permisos y operación.
+    - Definir límites transaccionales, estrategia de concurrencia e idempotencia cuando aplique.
+    - Incluir estrategia de migración y compatibilidad de datos para cambios de esquema.
+    - Incluir estrategia de pruebas vinculada a los criterios de aceptación.
+    - Usar diagramas C4 o UML solo cuando aclaren arquitectura, relaciones o secuencias complejas.
+    - Crear o actualizar un ADR cuando la decisión sea duradera, transversal o costosa de revertir.
+    - No resolver silenciosamente decisiones abiertas; usar solo decisiones aprobadas.
+    - No crear tasks ni modificar código.
+    - Detenerse después del design y esperar aprobación explícita del usuario.
+
+  tasks:
+    - Generar tasks únicamente después de la aprobación explícita del design.
+    - Dividir el trabajo en tareas pequeñas, ordenadas, implementables y verificables.
+    - Separar tareas de backend, frontend, datos/migraciones, pruebas y documentación.
+    - Nombrar rutas o módulos reales cuando hayan sido confirmados mediante inspección.
+    - Añadir criterio de finalización y comando o evidencia de verificación para cada tarea.
+    - Incluir pruebas antes o junto con cada cambio de comportamiento, no como tarea opcional final.
+    - Incluir migraciones y tratamiento de datos existentes cuando cambie el modelo.
+    - Incluir actualización de OpenAPI, trazabilidad y documentación afectada.
+    - Ordenar dependencias para no implementar pantallas sobre contratos o modelos inestables.
+    - Detenerse después de tasks y esperar aprobación explícita antes de aplicar cambios.
+
+operations:
+  apply:
+    guidance:
+      - Aplicar únicamente tasks aprobadas y marcar progreso con evidencia verificable.
+      - Preservar cambios ajenos y evitar refactorizaciones fuera del alcance aprobado.
+      - Ejecutar primero pruebas enfocadas y después la verificación completa disponible.
+      - No realizar operaciones destructivas sobre datos ni historial sin autorización explícita.
+      - Si aparece una contradicción o decisión no resuelta, detener la implementación y documentarla.
+  archive:
+    guidance:
+      - Archivar solo después de verificar criterios de aceptación y tasks completadas.
+      - Sincronizar las specs finales y actualizar trazabilidad, documentación y brechas afectadas.
+      - Registrar pruebas ejecutadas, resultados, limitaciones y trabajo pendiente real.
