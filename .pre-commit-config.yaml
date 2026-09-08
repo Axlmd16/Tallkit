@@ -1,0 +1,23 @@
+repos:
+  - repo: local
+    hooks:
+      - id: backend-ruff
+        name: backend ruff
+        entry: uv run --directory backend --frozen ruff check .
+        language: system
+        pass_filenames: false
+      - id: backend-ruff-format
+        name: backend ruff format
+        entry: uv run --directory backend --frozen ruff format --check .
+        language: system
+        pass_filenames: false
+      - id: frontend-lint
+        name: frontend lint
+        entry: npm --prefix frontend run lint
+        language: system
+        pass_filenames: false
+      - id: frontend-format
+        name: frontend format
+        entry: npm --prefix frontend run format:check
+        language: system
+        pass_filenames: false

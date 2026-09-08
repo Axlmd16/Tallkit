@@ -1,0 +1,55 @@
+name: sys-taller-production
+
+services:
+  db:
+    image: postgres:17.11-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      target: production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?required}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?required}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:?required}
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-America/Guayaquil}
+    command: ["sh", "-c", "python manage.py migrate --noinput && gunicorn --chdir src --bind 0.0.0.0:8000 --workers 1 --threads 4 --access-logfile - config.wsgi:application"]
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      target: production
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
