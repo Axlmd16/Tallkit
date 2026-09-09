@@ -1,20 +1,86 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Proyecto: Sys-Inventario, sistema web de gestión para un taller automotriz mediano.
+  Idioma de documentación y artefactos OpenSpec: español.
+  Zona horaria del negocio: America/Guayaquil.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Lectura obligatoria antes de crear o modificar artefactos:
+  1. Leer completo docs/negocio/decisiones/decisiones-confirmadas.yaml.
+  2. Leer completo docs/arquitectura/modelo-dominio.md.
+  3. Leer la spec principal y los documentos de producto y requisitos relacionados con
+     la capacidad afectada:
+     - openspec/specs/
+     - docs/negocio/producto/
+     - docs/negocio/requisitos/
+  4. Cuando el cambio afecte diseño técnico, leer docs/tecnico/, docs/architecture/ y
+     los ADR aplicables de docs/adr/.
+  5. Si existe un cambio activo, leer todos sus artefactos anteriores antes de continuar.
+
+  Precedencia:
+  - Las decisiones confirmadas tienen máxima precedencia.
+  - El modelo de dominio aprobado y las specs principales concretan el comportamiento
+    sin contradecir las decisiones confirmadas.
+  - Después aplican producto, requisitos, arquitectura y código existente, en ese orden.
+  - Registrar toda contradicción; no ajustar requisitos al código solo porque ya existe.
+  - docs/negocio/historico/ y la aplicación Flutter anterior son referencia histórica,
+    nunca arquitectura objetivo ni requisitos vigentes.
+
+  Límites de dominio que todo cambio debe preservar:
+  - RUC comercial y RUC artesanal son entidades fiscales independientes; clientes,
+    vehículos y usuarios son compartidos, pero operaciones, documentos, pagos,
+    impuestos, secuencias, cierres y reportes económicos no se mezclan.
+  - Productos y servicios son catálogos distintos. Los repuestos usados en un
+    mantenimiento salen mediante una venta comercial independiente.
+  - V1 usa una bodega, prohíbe existencia y disponibilidad negativas y exige Kardex
+    trazable. Solo la venta abierta de un mantenimiento reserva existencias.
+  - Crédito es condición de venta; efectivo y transferencia son medios de pago.
+  - Los documentos internos de V1 no son facturas electrónicas autorizadas por el SRI.
+  - No inventar decisiones tributarias, contables, de autorización o propiedad.
+
+  Arquitectura y estado actual:
+  - Monorepositorio con backend Django/DRF, frontend React/TypeScript/Vite y PostgreSQL.
+  - Arquitectura objetivo: monolito modular, API /api/v1/, sesiones Django, CSRF y mismo origen.
+  - El backend es la autoridad para permisos, invariantes, dinero, inventario y transiciones.
+  - La infraestructura inicial existe, pero el dominio funcional todavía debe implementarse
+    capacidad por capacidad mediante OpenSpec y TDD.
+  - El modelo de dominio es conceptual; no inferir automáticamente tablas, modelos Django
+    ni un módulo por cada entidad.
+
+  Referencia terminológica: openspec/config-glossary-reference.md.
+
+rules:
+  proposal:
+    - Leer las fuentes obligatorias y enumerar las consultadas.
+    - Usar grill-me cuando una ambigüedad de negocio cambie de forma material el comportamiento; no repetir preguntas ya respondidas.
+    - Distinguir decisiones confirmadas, recomendaciones, contradicciones, pendientes e información insuficiente.
+    - Incluir problema, objetivo, alcance, fuera de alcance, usuarios afectados, dependencias y riesgos.
+    - Referenciar decisiones, reglas RN, requisitos RF/RNF, casos CU y specs existentes aplicables.
+    - No incluir diseño técnico ni código y esperar aprobación explícita antes de crear specs.
+
+  specs:
+    - Crear specs solo después de la aprobación explícita del proposal.
+    - Usar gherkin-authoring y redactar requisitos y escenarios observables en español.
+    - Mantener los requisitos independientes de Django, React y del diseño de persistencia.
+    - Trazar cada requisito hacia decisiones y documentación vigente.
+    - Cubrir flujo principal, errores, permisos, estados y correcciones; para dinero, inventario y secuencias cubrir también atomicidad, idempotencia y concurrencia.
+    - Preservar la separación fiscal y no introducir decisiones pendientes silenciosamente.
+    - Esperar aprobación explícita antes de crear design.
+
+  design:
+    - Crear design solo después de la aprobación explícita de las specs.
+    - Inspeccionar el código real y los ADR antes de proponer módulos, archivos o integraciones.
+    - Explicar impactos en backend, frontend, datos, API, seguridad, permisos y operación.
+    - Definir límites transaccionales, concurrencia, idempotencia, migración y estrategia de pruebas cuando apliquen.
+    - Usar C4, UML y ADR únicamente cuando aclaren una decisión significativa.
+    - No resolver silenciosamente asuntos de negocio, fiscales o contables pendientes.
+    - Esperar aprobación explícita antes de crear tasks.
+
+  tasks:
+    - Crear tasks solo después de la aprobación explícita del design.
+    - Dividir el trabajo en pasos pequeños, ordenados, verificables y con rutas reales.
+    - Aplicar TDD mediante una prueba que falla, implementación mínima y refactorización.
+    - Separar tareas de backend, frontend, datos o migraciones, pruebas y documentación cuando existan.
+    - Incluir actualización de OpenAPI, trazabilidad, glosarios y ADR afectados.
+    - Añadir para cada grupo la evidencia o comando de finalización correspondiente.
+    - Esperar aprobación explícita antes de aplicar el cambio.

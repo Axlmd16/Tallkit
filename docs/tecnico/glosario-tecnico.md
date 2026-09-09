@@ -6,6 +6,10 @@ Este glosario complementa, sin sustituir, el glosario del negocio.
 
 Registro de una decisión arquitectónica duradera, su contexto, alternativas y consecuencias.
 
+## Atomicidad
+
+Propiedad por la que una operación compuesta se completa totalmente o no produce ningún efecto.
+
 ## API versionada
 
 Interfaz HTTP cuyo prefijo (`/api/v1/`) identifica una versión estable del contrato.
@@ -17,6 +21,14 @@ Base ejecutable, reproducible y verificada sobre la que se construirán capacida
 ## Contrato OpenAPI
 
 Descripción legible por herramientas de las rutas, entradas y respuestas de la API HTTP.
+
+## Concurrencia
+
+Ejecución simultánea de operaciones que deben coordinarse para preservar las reglas del sistema.
+
+## Idempotencia
+
+Propiedad que evita repetir los efectos de una misma solicitud procesada más de una vez.
 
 ## Lockfile
 
