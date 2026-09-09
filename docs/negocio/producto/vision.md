@@ -4,9 +4,9 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.2 |
-| Estado | Borrador para revisión |
-| Fecha | 2026-08-04 |
+| Versión del documento | 0.3 |
+| Estado | Alineado con el modelo de dominio aprobado |
+| Fecha | 2026-09-08 |
 
 > Este documento describe el sistema objetivo. El comportamiento del código existente no modifica esta visión ni se considera automáticamente correcto.
 
@@ -32,6 +32,7 @@ Cuando un mantenimiento requiere repuestos del negocio comercial, el sistema deb
 La información operativa se encuentra fragmentada entre procesos manuales, una aplicación anterior y módulos incompletos del sistema actual. Esta situación dificulta:
 
 - Conocer existencias y movimientos reales de los repuestos.
+- Distinguir existencia física, reservas para mantenimientos y disponibilidad para venta.
 - Relacionar compras, costos, ventas y devoluciones.
 - Consultar el historial de un cliente y sus vehículos.
 - Dar seguimiento ordenado a los mantenimientos.
@@ -53,7 +54,7 @@ Desarrollar una aplicación web segura y trazable que integre la gestión de inv
 ## 6. Objetivos específicos
 
 1. Centralizar los datos compartidos de clientes, vehículos, usuarios y catálogos.
-2. Controlar productos, proveedores, ingresos, existencias y Kardex del RUC comercial.
+2. Controlar productos, proveedores, ingresos, existencias y **Kardex** del RUC comercial.
 3. Gestionar proformas, ventas, devoluciones, pagos, abonos y saldos de repuestos.
 4. Registrar mantenimientos, servicios, diagnóstico, kilometraje, observaciones y evidencias fotográficas.
 5. Vincular los repuestos utilizados en un mantenimiento con una venta comercial independiente.
@@ -67,17 +68,18 @@ Desarrollar una aplicación web segura y trazable que integre la gestión de inv
 | Parte interesada | Necesidad principal |
 |---|---|
 | Administrador | Control general, usuarios, configuración, catálogos, inventario, auditoría, reportes, respaldos y operaciones de alto impacto. |
-| Vendedor | Consultar productos, preparar proformas, registrar ventas y pagos autorizados. |
-| Encargado del taller | Registrar clientes, vehículos, mantenimientos, servicios, repuestos y evidencias. |
+| Vendedor | Consultar productos, preparar proformas, registrar ventas, consumos internos y pagos comerciales. |
+| Encargado del taller | Registrar clientes, vehículos, mantenimientos, servicios, repuestos reservados, correcciones y evidencias. |
 | Cliente | Recibir información clara y documentos separados por repuestos y servicios. |
 
-Los únicos roles internos de V1 son **Administrador**, **Vendedor** y **Encargado del taller**. El cliente es una parte interesada, pero no accede al sistema en esta versión. Los permisos definitivos de los tres roles se detallan en `docs/requisitos/actores-y-roles.md`.
+Los únicos roles internos de V1 son **Administrador**, **Vendedor** y **Encargado del taller**. El cliente es una parte interesada, pero no accede al sistema en esta versión. Los permisos definitivos de los tres roles se detallan en `../requisitos/actores-y-roles.md`.
 
 ## 8. Propuesta de valor
 
 - Una única fuente confiable para los datos compartidos del negocio.
 - Separación fiscal explícita sin perder la relación entre venta y mantenimiento.
 - Existencias explicables mediante un Kardex, no mediante cambios manuales sin origen.
+- Disponibilidad protegida mediante **reservas de mantenimiento** exclusivas para repuestos asignados.
 - Historial de vehículos y trabajos accesible para la atención futura.
 - Seguimiento de créditos, abonos y saldos sin confundirlos con formas de pago.
 - Menor riesgo de duplicar secuenciales o descontar stock de forma incorrecta.
@@ -90,14 +92,14 @@ El producto se organiza en las siguientes capacidades:
 1. Identidad, usuarios y tres roles fijos con permisos por acción.
 2. Entidades fiscales y configuración del negocio.
 3. Clientes y vehículos compartidos.
-4. Catálogo de productos, categorías, marcas y compatibilidad vehicular.
+4. Catálogo de productos, presentaciones, unidades, categorías, marcas y compatibilidad vehicular.
 5. Proveedores, compras e ingresos de mercadería.
-6. Bodegas, existencias, movimientos y Kardex.
+6. Bodega, existencias, reservas de mantenimiento, disponibilidad, movimientos y Kardex.
 7. Proformas.
-8. Ventas, devoluciones, pagos, abonos y crédito.
-9. Catálogo de servicios y mantenimientos.
+8. Ventas, devoluciones, reembolsos, pagos, abonos y crédito simple.
+9. Catálogo de servicios, mantenimientos, intervenciones y correcciones sin cargo.
 10. Relación entre mantenimientos y ventas de repuestos.
-11. Reportes, comprobantes internos y auditoría.
+11. Consumos internos, reportes, cierres diarios, comprobantes internos y auditoría.
 
 El contenido comprometido para la primera versión se define en `alcance-v1.md`.
 
@@ -142,20 +144,20 @@ Los indicadores cuantitativos y sus valores objetivo se establecerán durante el
 - Interpretar como requisito correcto un comportamiento incompleto del código existente.
 - Mezclar operaciones o reportes de los dos RUC por compartir clientes y usuarios.
 - Alterar existencias sin un movimiento trazable.
-- Generar secuenciales duplicados o vender el mismo stock en operaciones concurrentes.
+- Generar secuenciales duplicados, sobreasignar reservas o vender la misma disponibilidad en operaciones concurrentes.
 - Perder fotografías o datos si no se respaldan conjuntamente.
-- Ampliar la primera versión con facturación electrónica, garantías u otros procesos antes de estabilizar el núcleo operativo.
+- Confundir la corrección simple de un trabajo atribuible al taller con un módulo completo de garantías.
+- Ampliar la primera versión con facturación electrónica u otros procesos antes de estabilizar el núcleo operativo.
 
 ## 14. Decisiones pendientes de validación
 
-Antes de cerrar la línea base de requisitos se debe confirmar:
+Las decisiones operativas principales ya fueron confirmadas. Permanecen pendientes:
 
-1. Si la primera versión operará exclusivamente con una bodega principal o habilitará varias bodegas.
-2. Si se prohibirá totalmente el stock negativo o existirá una excepción autorizada.
-3. Las formas de pago disponibles y las reglas para pagos combinados.
-4. El límite de descuento ordinario del Vendedor; los excesos serán autorizados por el Administrador.
-5. El tratamiento exacto de devoluciones parciales y saldos a favor.
-6. Los secuenciales internos requeridos para cada tipo de documento.
+1. Los formatos visibles, prefijos y series de los secuenciales internos.
+2. Los límites y la conservación definitiva de fotografías.
+3. El tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos RUC.
+4. Las tarifas y clasificaciones tributarias reales, las reglas de redondeo y los requisitos futuros de consumidor final.
+5. El diseño de la futura facturación electrónica, que no forma parte de V1.
 
 ## 15. Documentos relacionados
 
@@ -164,3 +166,4 @@ Antes de cerrar la línea base de requisitos se debe confirmar:
 - `glosario.md`
 - `../requisitos/requisitos-funcionales.md`
 - `../requisitos/actores-y-roles.md`
+- `../../arquitectura/modelo-dominio.md`

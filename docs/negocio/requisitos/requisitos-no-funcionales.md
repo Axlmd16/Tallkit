@@ -4,9 +4,9 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.2 |
-| Estado | Borrador para revisión |
-| Fecha | 2026-08-04 |
+| Versión del documento | 0.3 |
+| Estado | Alineado con el modelo de dominio aprobado |
+| Fecha | 2026-09-08 |
 
 > Estos requisitos fijan cualidades verificables del sistema objetivo. Los valores marcados como **objetivo provisional** deben validarse durante el diseño y la prueba piloto antes de aprobar la línea base.
 
@@ -31,8 +31,8 @@
 
 | ID | Requisito verificable | Prioridad |
 |---|---|---|
-| RNF-INT-001 | Confirmar ingresos, ventas, devoluciones, anulaciones, pagos y ajustes debe ejecutarse en transacciones de base de datos: todos sus efectos se confirman o ninguno. | Debe |
-| RNF-INT-002 | La confirmación concurrente no debe producir existencias contrarias a `DP-002`, incluso si dos usuarios venden el último producto al mismo tiempo. | Debe |
+| RNF-INT-001 | Confirmar ingresos, reservas, ventas, devoluciones, anulaciones, pagos, ajustes, desarmes, consumos y reposiciones debe ser atómico: todos sus efectos se confirman o ninguno. | Debe |
+| RNF-INT-002 | La concurrencia no debe producir existencias o disponibilidades negativas, incluso si dos usuarios reservan o venden el último producto al mismo tiempo. | Debe |
 | RNF-INT-003 | La generación concurrente de secuenciales debe garantizar unicidad por entidad fiscal, tipo de documento y serie. | Debe |
 | RNF-INT-004 | Las operaciones críticas deben ser idempotentes o detectar reintentos para evitar documentos, cobros o movimientos duplicados. | Debe |
 | RNF-INT-005 | Las restricciones críticas de unicidad —códigos, identificaciones, placas, VIN y secuenciales— deben reforzarse en la base de datos cuando sea técnicamente aplicable. | Debe |
@@ -41,6 +41,8 @@
 | RNF-INT-008 | Las fechas y horas deben almacenarse con una estrategia uniforme y presentarse en la zona horaria del negocio `America/Guayaquil`, salvo decisión arquitectónica documentada que preserve el mismo resultado. | Debe |
 | RNF-INT-009 | Una falla a mitad de una operación crítica no debe dejar documentos confirmados sin sus movimientos, secuenciales o saldos correspondientes. | Debe |
 | RNF-INT-010 | Las migraciones y actualizaciones de esquema deben preservar datos o incluir un procedimiento de recuperación probado antes de aplicarse en producción. | Debe |
+| RNF-INT-011 | Crear, cambiar o liberar una reserva de mantenimiento debe mantener coherentes la venta abierta, la cantidad reservada y la disponibilidad. | Debe |
+| RNF-INT-012 | El desarme de un kit debe conservar exactamente el costo total distribuido aun con redondeos decimales. | Debe |
 
 ## 3. Rendimiento y capacidad
 
@@ -81,7 +83,7 @@ Los siguientes valores son objetivos provisionales para una instalación local d
 | RNF-USA-006 | Los estados deben comunicarse mediante texto o iconografía además del color; el color no puede ser el único indicador. | Debe |
 | RNF-USA-007 | La navegación y los formularios esenciales deben ser utilizables con teclado, con foco visible y etiquetas asociadas a controles. | Debería |
 | RNF-USA-008 | El contraste y componentes esenciales deben orientarse al nivel AA de WCAG 2.2, sujeto a validación en pruebas de interfaz. | Debería |
-| RNF-USA-009 | La terminología visible debe seguir `glosario.md` y distinguir crédito, forma de pago, venta, mantenimiento y operación de servicios. | Debe |
+| RNF-USA-009 | La terminología visible debe seguir `../producto/glosario.md` y distinguir crédito, forma de pago, venta, mantenimiento, intervención y operación de servicios. | Debe |
 | RNF-USA-010 | La entidad fiscal debe mostrarse claramente en documentos, cobros, reportes y operaciones donde exista riesgo de confusión. | Debe |
 | RNF-USA-011 | Las búsquedas principales deben permitir iniciar con teclado, limpiar filtros y conservar contexto al volver desde una ficha. | Debería |
 | RNF-USA-012 | Los comprobantes internos deben ser legibles en impresión A4 y no presentarse como facturas electrónicas. | Debe |

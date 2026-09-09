@@ -11,4 +11,7 @@ C4Context
 ```
 
 En V1 no existen usuarios públicos ni integraciones externas. La aplicación anterior y el SRI
-quedan fuera del sistema. Consulte la [referencia terminológica](c4-context-glossary-reference.md).
+quedan fuera del sistema. El personal opera información compartida de clientes y vehículos, pero
+las operaciones económicas de los RUC comercial y artesanal permanecen separadas. El detalle se
+define en el [modelo conceptual del dominio](../arquitectura/modelo-dominio.md). Consulte la
+[referencia terminológica](c4-context-glossary-reference.md).

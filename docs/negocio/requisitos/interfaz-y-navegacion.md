@@ -4,9 +4,9 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.2 |
-| Estado | Borrador para revisión |
-| Fecha | 2026-08-04 |
+| Versión del documento | 0.3 |
+| Estado | Alineado con el modelo de dominio aprobado |
+| Fecha | 2026-09-08 |
 
 > Este documento define estructura, pantallas y comportamiento esperado, no un diseño visual definitivo. Los prototipos deberán validar estos requisitos antes de implementar componentes finales.
 
@@ -14,8 +14,8 @@
 
 1. Mostrar solo módulos y acciones permitidos, sin sustituir la autorización del backend.
 2. Usar los términos definidos en `../producto/glosario.md`.
-3. Identificar claramente el RUC comercial o artesanal en toda operación económica.
-4. Mantener separados estado de venta, estado de pago y estado de facturación.
+3. Identificar claramente la **entidad fiscal**, comercial o artesanal, en toda operación económica.
+4. Mantener separados estado de venta, estado de pago, estado del documento interno y eventual referencia fiscal.
 5. Favorecer búsqueda y selección rápida en los flujos diarios.
 6. Evitar la edición destructiva de documentos confirmados; mostrar las acciones de corrección disponibles.
 7. Ser adaptable a computadora, tableta y teléfono.
@@ -135,46 +135,50 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-020 | Lista de clientes | Búsqueda por nombre, identificación y contacto; estado; acceso a ficha y creación. |
 | UI-021 | Ficha de cliente | Datos, vehículos, saldos separados por RUC e historial permitido. |
 | UI-022 | Formulario de cliente | Tipo de persona, identificación y datos definidos por `DP-008`; advertencias de duplicado. |
-| UI-023 | Lista de vehículos | Placa, marca, modelo, cliente responsable, estado y último kilometraje. |
-| UI-024 | Ficha de vehículo | Datos, responsable vigente, historial cronológico y accesos a mantenimientos. |
-| UI-025 | Formulario de vehículo | Placa, VIN y datos definidos; búsqueda previa de duplicados y selección de responsable. |
+| UI-023 | Lista de vehículos | Placa, marca, modelo, propietario vigente, estado y último kilometraje. |
+| UI-024 | Ficha de vehículo | Datos, propietario vigente, períodos de propiedad, historial cronológico y accesos a mantenimientos. |
+| UI-025 | Formulario de vehículo | Placa, VIN y datos definidos; búsqueda previa de duplicados y selección del propietario. |
 
 ### 6.3 Productos, servicios y proveedores
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
-| UI-030 | Lista de productos | Código, nombre, categoría, marca, precio, existencia autorizada, stock bajo y estado. |
-| UI-031 | Ficha de producto | Datos, existencias por bodega, Kardex, precio y costos según permiso, compatibilidades. |
-| UI-032 | Formulario de producto | Código, descripción, clasificación, unidad, precios, umbral, tipo kit y compatibilidades. |
-| UI-033 | Categorías, marcas y unidades | Gestión de valores maestros y estado. |
+| UI-030 | Lista de productos | Código, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. |
+| UI-031 | Ficha de producto | Datos, existencia de la bodega principal, reserva, disponibilidad, Kardex, precio y costos según permiso, compatibilidades y opción de desarme si es kit. |
+| UI-032 | Formulario de producto | Código, descripción, categoría, cantidad y unidad de la presentación cerrada, precio final, umbral, marca de producto, tipo kit y compatibilidades informativas. |
+| UI-033 | Categorías, marcas y unidades | Gestión separada de categorías, marcas de producto, marcas de vehículo y unidades de medida. |
 | UI-034 | Lista de servicios | Nombre, precio referencial y estado. |
 | UI-035 | Formulario de servicio | Nombre, descripción opcional, precio referencial y estado. |
-| UI-036 | Lista de proveedores | Identificación, nombre, contacto y estado. |
-| UI-037 | Formulario de proveedor | Datos obligatorios y validación de duplicados pertinentes. |
+| UI-036 | Lista de proveedores | Nombre, identificación opcional, contacto opcional y estado. |
+| UI-037 | Formulario de proveedor | Nombre obligatorio, datos opcionales y advertencias de coincidencias pertinentes. |
 
 ### 6.4 Ingresos e inventario
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-040 | Lista de ingresos | Secuencial, proveedor, fecha, estado, total, usuario; crear, abrir y filtrar. |
-| UI-041 | Editor de ingreso | Encabezado, proveedor, bodega y tabla editable de productos, cantidades y costos; guardar borrador y confirmar. |
+| UI-041 | Editor de ingreso | Encabezado, proveedor, bodega principal, referencia externa y evidencia opcionales, y tabla editable de productos, cantidades y costos; guardar borrador y confirmar. |
 | UI-042 | Detalle de ingreso | Datos históricos, movimientos generados, costos aplicados y acción de anulación autorizada. |
-| UI-043 | Existencias | Producto, bodega, existencia, umbral y estado de stock; búsqueda y exportación. |
+| UI-043 | Existencias | Producto, bodega principal, existencia, reserva, disponibilidad, umbral y estado de stock; búsqueda y exportación. |
 | UI-044 | Kardex | Filtros, saldo inicial, movimientos, saldo final y enlaces al origen. |
 | UI-045 | Ajuste de inventario | Producto, bodega, existencia actual, sentido, cantidad, resultado previsto y motivo. |
 | UI-046 | Alertas de stock bajo | Productos bajo umbral y acceso a ficha o historial de ingresos. |
+| UI-047 | Desarme de kit | Kit y cantidad, componentes obtenidos, cantidades, distribución propuesta del costo y total de control. |
+| UI-048 | Salida especial | Tipo: consumo interno o reposición por corrección; producto, cantidad, solicitante, motivo y mantenimiento/intervención cuando corresponda. |
+| UI-049 | Devolución a proveedor | Ingreso original, cantidades ingresadas y ya devueltas, selección, motivo y efecto de inventario. |
 
 ### 6.5 Proformas y ventas
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-050 | Lista de proformas | Número, cliente, emisión, vigencia, total, estado; crear, abrir, convertir o anular según permiso. |
-| UI-051 | Editor de proforma | Cliente, vigencia, líneas, precios, descuentos, impuestos y disponibilidad informativa; guardar e imprimir. |
+| UI-051 | Editor de proforma | Cliente, vigencia, líneas, precios finales, impuestos y disponibilidad informativa; guardar e imprimir. |
 | UI-052 | Detalle de proforma | Valores históricos, estado, venta generada y acciones permitidas. |
-| UI-053 | Lista de ventas | Secuencial, cliente, origen, fecha, estado de venta, estado de pago, estado de facturación y total. |
-| UI-054 | Editor de venta | Cliente, origen, condición, líneas, permisos de precio/descuento, totales; guardar borrador y confirmar. |
-| UI-055 | Detalle de venta | Tres estados independientes, saldos, pagos, Kardex, origen, mantenimiento vinculado y correcciones. |
-| UI-056 | Devolución | Venta original, cantidades vendidas y ya devueltas, selección de devolución, motivo y efectos previstos. |
+| UI-053 | Lista de ventas | Secuencial, cliente, origen, fecha, estado de venta, estado de pago, estado del documento interno y total. |
+| UI-054 | Editor de venta | Cliente, origen, condición, líneas, precios finales, impuestos y totales; guardar borrador y confirmar. Una venta vinculada a mantenimiento muestra y administra sus reservas. |
+| UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado y correcciones. Una futura referencia fiscal aparecerá separada. |
+| UI-056 | Devolución | Venta original, cantidades vendidas y ya devueltas, aptitud para reventa por línea, motivo, efecto de inventario y exceso pagado por reembolsar. |
+| UI-057 | Corrección comercial | Venta o devolución original, motivo, operación compensatoria y reembolso trazable cuando corresponda. |
 | UI-058 | Comprobante interno comercial | Vista imprimible con RUC comercial, cliente, líneas, totales, estado y aviso fiscal correspondiente. |
 
 ### 6.6 Pagos y cuentas por cobrar
@@ -184,7 +188,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-060 | Registro de pago | Documento, entidad fiscal destacada, total, pagado, saldo, fecha, formas e importes. |
 | UI-061 | Historial de pagos | Pagos válidos y corregidos, forma, importe, usuario y relaciones de anulación. |
 | UI-062 | Cuentas por cobrar | Pestañas o filtros independientes Comercial y Artesanal; cliente, documento, antigüedad y saldo. |
-| UI-063 | Corrección de pago | Pago original, motivo, efecto y acción trazable; opciones definitivas sujetas a `DP-005`. |
+| UI-063 | Corrección de pago | Pago original, motivo, efecto y operación compensatoria trazable; no crea saldo a favor. |
 
 Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dinero entre los dos RUC. Si un mantenimiento tiene servicios y repuestos pendientes, se mostrarán dos operaciones claramente separadas.
 
@@ -193,13 +197,14 @@ Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dine
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-070 | Lista de mantenimientos | Identificador, fecha, cliente, vehículo, kilometraje, estado y saldos artesanales permitidos. |
-| UI-071 | Editor de mantenimiento | Cliente, vehículo, fecha, kilometraje, diagnóstico, observaciones, servicios, fotografías y repuestos usados. |
-| UI-072 | Selector de servicios | Búsqueda en catálogo, precio referencial, cantidad y precio aplicado sujeto a permiso. |
+| UI-071 | Editor de mantenimiento | Cliente, vehículo, fecha, kilometraje, diagnóstico, observaciones, intervenciones, servicios, fotografías y repuestos usados. Una observación puede indicar que el cliente aportó un repuesto, sin modelarlo en inventario. |
+| UI-072 | Selector de servicios | Búsqueda en catálogo, precio referencial, cantidad y precio aplicado libremente por el Encargado o Administrador antes de confirmar, sin exigir motivo. |
 | UI-073 | Fotografías | Carga, miniaturas, descripción opcional, vista ampliada y retiro autorizado. |
-| UI-074 | Repuestos utilizados | Selección de productos y cantidades; estado de la venta comercial vinculada; sin descuento directo. |
-| UI-075 | Detalle de mantenimiento | Resumen operativo y dos bloques económicos separados: servicios artesanales y repuestos comerciales. |
-| UI-076 | Finalizar o cancelar | Lista de validaciones, documentos vinculados, motivo para cancelación y efecto explícito. |
+| UI-074 | Repuestos utilizados | Selección de productos y cantidades; existencia, reserva y disponibilidad; una sola venta comercial abierta y ventas confirmadas previas. Agregar reserva y retirar libera. |
+| UI-075 | Detalle de mantenimiento | Resumen e intervenciones operativas; dos bloques económicos separados: servicios artesanales y repuestos comerciales; historial de reaperturas y correcciones. |
+| UI-076 | Finalizar, cancelar o reabrir | Validaciones y documentos vinculados; impide finalizar con líneas comerciales pendientes; cancelación solo para duplicado/error/sin trabajo cobrable; reapertura por falla atribuible. |
 | UI-077 | Comprobante interno artesanal | RUC artesanal, cliente, vehículo, servicios, importes, pagos y aviso fiscal correspondiente. |
+| UI-078 | Intervención correctiva | Causa, trabajo realizado, servicios sin cargo y solicitud de repuestos asumidos por el taller. |
 
 Disposición conceptual del detalle:
 
@@ -224,6 +229,7 @@ flowchart TD
 | UI-081 | Visor de reporte | Filtros, período, entidad fiscal, tabla, totales, enlace a origen y exportación. |
 | UI-082 | Estado operativo | Versión, conectividad de servicios y último respaldo, sin mostrar secretos. |
 | UI-083 | Historial de respaldos | Fecha, tipo, resultado, responsable y verificación. |
+| UI-084 | Cierres diarios | RUC, fecha, forma de pago, importe registrado, importe calculado, diferencia, estado y correcciones. |
 
 ## 7. Flujos de navegación críticos
 
@@ -241,7 +247,7 @@ flowchart TD
 
 ### 7.4 Mantenimiento con repuestos
 
-`Mantenimientos → Nuevo → Datos y servicios → Repuestos utilizados → Venta comercial en borrador → Confirmación independiente → Finalizar mantenimiento`
+`Mantenimientos → Nuevo → Intervención y servicios → Repuestos utilizados/reservados → Confirmar venta o retirar líneas → Finalizar mantenimiento`
 
 ### 7.5 Corrección
 
@@ -257,6 +263,9 @@ flowchart TD
 - Ajustar inventario.
 - Anular ingreso, venta, pago u operación de servicios.
 - Registrar devolución.
+- Confirmar desarme de kit, consumo interno o reposición por corrección.
+- Confirmar devolución a proveedor.
+- Confirmar cierre diario.
 - Cancelar mantenimiento.
 - Cambiar series o secuenciales.
 - Desactivar usuarios.
@@ -282,16 +291,17 @@ La confirmación debe indicar el objeto, entidad fiscal, efecto principal y moti
 | Ingreso | Borrador | Editar, confirmar, descartar si no tiene efectos. |
 | Ingreso | Confirmado | Consultar, imprimir, anular con permiso. |
 | Proforma | Editable/vigente | Editar, imprimir, convertir, anular. |
-| Proforma | Vencida | Consultar, renovar si se aprueba, anular. |
+| Proforma | Vencida | Consultar, crear nueva proforma vinculada o anular. |
 | Proforma | Convertida | Consultar y abrir venta; no convertir otra vez. |
 | Venta | Borrador | Editar, confirmar, descartar. |
 | Venta | Confirmada | Consultar, cobrar, devolver, anular, imprimir. |
 | Venta | Anulada | Consultar original y compensaciones. |
-| Mantenimiento | Registrado | Editar, añadir servicios/fotos/repuestos, finalizar o cancelar. |
-| Mantenimiento | Finalizado | Consultar y gestionar documentos económicos permitidos; no editar operación. |
+| Mantenimiento | Registrado | Editar, añadir intervenciones/servicios/fotos/repuestos, finalizar si no quedan líneas comerciales pendientes o cancelar en los casos limitados. |
+| Mantenimiento | Finalizado | Consultar y reabrir por corrección atribuible con permiso; no alterar la intervención inicial. |
+| Mantenimiento | Reabierto | Añadir intervención correctiva sin cargo, solicitar reposición y volver a finalizar. |
 | Mantenimiento | Cancelado | Consultar historial; no generar nuevos cobros. |
 
-Los estados exactos de proforma y facturación interna se cerrarán antes de diseñar la API.
+El formato exacto de secuenciales internos y el ciclo de una futura referencia fiscal se definirán en cambios posteriores; no alterarán estos estados de negocio.
 
 ## 10. Comportamiento adaptable
 
@@ -327,14 +337,8 @@ Los estados exactos de proforma y facturación interna se cerrarán antes de dis
 
 | Decisión | Pantallas afectadas |
 |---|---|
-| `DP-001` Una o varias bodegas | UI-041, UI-043, UI-044, UI-045. |
-| `DP-002` Stock negativo | UI-054, UI-056, UI-074 y mensajes de conflicto. |
-| `DP-003` Formas de pago | UI-017, UI-060, UI-061. |
-| `DP-004` Descuentos | UI-051, UI-054, UI-072 y flujo de autorización. |
-| `DP-005` Reembolsos y saldos a favor | UI-056, UI-057, UI-063. |
 | `DP-006` Formatos de secuencial | UI-016 y todos los documentos imprimibles. |
-| `DP-007` Reapertura | UI-075, UI-076 y acciones por estado. |
-| `DP-008` Campos obligatorios | UI-022 y UI-025. |
+| Tratamiento fiscal de reposiciones por corrección | UI-048, UI-075 y UI-078; requiere validación contable o normativa ecuatoriana. |
 
 ## 13. Validación mediante prototipos
 
@@ -343,6 +347,8 @@ Antes de cerrar el diseño visual se deben prototipar y revisar al menos:
 1. Venta directa con cobro y con crédito.
 2. Mantenimiento con servicios y repuestos separados.
 3. Confirmación de ingreso y visualización de costo promedio.
-4. Devolución parcial y anulación con pagos existentes.
+4. Devolución parcial, inspección, reembolso y anulación con pagos existentes.
 5. Uso de las pantallas principales en 360 px, tableta y escritorio.
 6. Visibilidad y navegación correctas para Administrador, Vendedor y Encargado del taller.
+7. Reserva de repuestos de mantenimiento y bloqueo de finalización con líneas pendientes.
+8. Reapertura con intervención correctiva y reposición sin cargo.

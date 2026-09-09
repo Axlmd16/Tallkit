@@ -8,6 +8,8 @@ CSRF, pruebas y empaquetado; no define el dominio ni crea modelos propios.
 
 Los diagramas C4 de [contexto](../architecture/c4-context.md) y
 [contenedores](../architecture/c4-containers.md) muestran el alcance y las unidades desplegables.
+El [modelo conceptual aprobado](../arquitectura/modelo-dominio.md) define el lenguaje, las
+relaciones y las invariantes del negocio que deberán respetar las futuras capacidades.
 
 ## Estructura y fronteras
 
@@ -60,19 +62,20 @@ autorización cuando existan roles. No se habilita CORS ni JWT.
 5. Toda dependencia entre capacidades debe ser explícita, unidireccional y probada.
 6. Un cambio de frontera, autenticación, despliegue o persistencia requiere OpenSpec y ADR.
 
-## Contradicciones documentales observadas
+## Estado documental del dominio
 
-- La fuente de precedencia menciona `docs/producto`, `docs/requisitos`, `docs/arquitectura` y
-  `docs/plan`, pero los documentos disponibles de producto y requisitos están bajo `docs/negocio` y
-  no existen todavía las dos últimas carpetas de negocio.
 - `DP-008` identifica dos decisiones diferentes: campos de Cliente y campos de Vehículo.
-- Documentos inferiores aún describen como pendientes decisiones ya cerradas (por ejemplo bodega,
-  stock negativo, medios de pago y descuentos). Por precedencia se aplican `DP-001` a `DP-004`.
-- El estado histórico cita `repo-review/Back-Inventario` y `repo-review/Front-Inventario`, ausentes en
-  este árbol. No se tomó código legado como fuente.
-- `DA-001` figuraba abierta. La aprobación expresa de este bootstrap confirma sesiones de Django y
-  mismo origen; queda registrada en ADR-0003 sin alterar el documento del negocio.
+- Las decisiones de bodega, stock negativo, medios de pago, descuentos, reapertura y datos mínimos
+  ya están confirmadas y se consolidan en el modelo conceptual.
+- Los documentos bajo `docs/negocio/historico/` y el antiguo sistema Flutter no son arquitectura
+  objetivo ni requisitos vigentes.
+- Continúan pendientes `DP-006`, `DA-002`, `DA-003`, `DM-001` y las validaciones fiscales externas
+  enumeradas en el modelo conceptual.
+- Las reglas de negocio no requieren un ADR individual. La futura coordinación transaccional de
+  reservas, confirmación de ventas y Kardex será candidata a ADR cuando el diseño técnico compare
+  alternativas concretas.
 
-No se encontró una contradicción que obligue a diseñar dominio durante este bootstrap.
+El backend y el frontend siguen sin implementar el dominio funcional; esta documentación no
+autoriza todavía modelos, migraciones, API ni pantallas.
 
 Consulte la [referencia terminológica](arquitectura-inicial-glossary-reference.md).

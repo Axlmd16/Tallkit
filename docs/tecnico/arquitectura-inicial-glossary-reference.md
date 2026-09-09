@@ -5,4 +5,5 @@ Términos aplicables: [API versionada](glosario-tecnico.md#api-versionada),
 [mismo origen](glosario-tecnico.md#mismo-origen),
 [monolito modular](glosario-tecnico.md#monolito-modular),
 [OpenSpec](glosario-tecnico.md#openspec) y
-[proxy de desarrollo](glosario-tecnico.md#proxy-de-desarrollo).
+[proxy de desarrollo](glosario-tecnico.md#proxy-de-desarrollo). El término de negocio
+[modelo de dominio](../negocio/producto/glosario.md#modelo-de-dominio) se usa como fuente conceptual.

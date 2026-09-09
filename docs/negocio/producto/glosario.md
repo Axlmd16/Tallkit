@@ -3,9 +3,9 @@
 | Campo | Valor |
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
-| Versión del documento | 0.2 |
-| Estado | Borrador para revisión |
-| Fecha | 2026-08-04 |
+| Versión del documento | 0.3 |
+| Estado | Alineado con el modelo de dominio aprobado |
+| Fecha | 2026-09-08 |
 
 > Las definiciones de este glosario son las que deben utilizarse en requisitos, pantallas, API, diagramas y conversaciones del proyecto. Cuando un término tributario requiera precisión legal, deberá validarse con el responsable contable.
 
@@ -13,7 +13,7 @@
 
 ### Abono
 
-Pago parcial realizado después o durante una operación a crédito. Un abono utiliza una forma de pago real y disminuye el saldo pendiente; no es por sí mismo una forma de pago.
+Pago parcial aplicado a una operación confirmada a crédito. Utiliza una forma de pago real y disminuye el saldo pendiente; no es por sí mismo una forma de pago.
 
 ### Administrador
 
@@ -29,11 +29,19 @@ Proceso controlado que deja sin efecto una operación sin eliminar su historial.
 
 ### Bodega
 
-Ubicación lógica o física donde se controlan existencias de productos. La instalación inicial tendrá al menos una bodega principal.
+Ubicación lógica o física donde se controlan existencias de productos. V1 opera con una sola bodega, sin impedir una ampliación futura.
 
-### Cantidad disponible
+### Cantidad
 
-Cantidad que puede utilizarse en una operación según la existencia y la política de stock aprobada. En V1 las proformas no reducen esta cantidad.
+Objeto de valor formado por un valor numérico y una unidad de medida compatible. En V1 la existencia se controla por presentaciones completas vendibles.
+
+### Disponibilidad
+
+Existencia actual menos las reservas activas de mantenimientos. Las proformas y ventas directas en borrador no reducen esta cantidad.
+
+### Cierre diario
+
+Conciliación lógica de cobros por fecha, entidad fiscal y forma de pago, sin modificar los pagos originales.
 
 ### Catálogo de servicios
 
@@ -41,13 +49,17 @@ Lista de trabajos que presta el taller, cada uno con nombre, estado y precio ref
 
 ### Cliente
 
-Persona natural o jurídica que adquiere repuestos, solicita servicios o es responsable de un vehículo. Es un dato compartido por las dos entidades fiscales.
+Persona natural o jurídica que adquiere repuestos, solicita servicios o es propietaria de un vehículo. Es un dato compartido por las dos entidades fiscales.
 
 ### Compatibilidad vehicular
 
 Información que relaciona un producto con marcas, modelos, años u otras características de vehículos compatibles. En V1 sirve como referencia y no reemplaza la verificación del usuario.
 
-### Comprobante interno
+### Consumo interno
+
+Salida de una presentación completa entregada para uso operativo del taller, sin venta ni deuda para el cliente.
+
+### Documento interno
 
 Documento generado por el sistema para respaldar o comunicar una operación. No equivale necesariamente a una factura electrónica autorizada por el SRI.
 
@@ -65,15 +77,11 @@ Método de valoración que recalcula el costo unitario promedio al ingresar merc
 
 ### Crédito
 
-Condición de venta que permite pagar total o parcialmente después de confirmar la operación. No es una forma de pago.
+Condición de venta que permite pagar total o parcialmente después de confirmar la operación. No es una forma de pago y en V1 no incluye vencimientos, cuotas, intereses ni cronogramas.
 
 ### Cuenta por cobrar
 
-Importe pendiente que un cliente debe pagar a una entidad fiscal por una operación confirmada.
-
-### Descuento
-
-Reducción autorizada aplicada al precio o subtotal. Sus límites y permisos deben definirse antes de cerrar los requisitos.
+Consulta calculada del importe que un cliente debe pagar a una entidad fiscal por una operación confirmada; no es una deuda duplicada independiente.
 
 ### Devolución
 
@@ -95,13 +103,13 @@ Contribuyente legal identificado por un RUC bajo el cual se registran operacione
 
 Rol responsable de clientes, vehículos, mantenimientos, servicios, fotografías, pagos artesanales y preparación de los repuestos utilizados. No confirma ni cobra la venta comercial vinculada.
 
-### Estado de facturación
+### Estado de facturación futura
 
-Situación del proceso de emisión o anulación del comprobante fiscal. Es independiente del estado de la venta y del estado del pago.
+Situación del futuro proceso de emisión o anulación del comprobante fiscal autorizado. Está fuera de V1 y es independiente del estado de la venta, del documento interno y del pago.
 
 ### Estado de mantenimiento
 
-Situación operativa de un mantenimiento. En V1 puede ser `registrado`, `finalizado` o `cancelado`.
+Situación operativa de un mantenimiento. En V1 puede ser `registrado`, `finalizado`, `reabierto` o `cancelado`.
 
 ### Estado de pago
 
@@ -125,7 +133,7 @@ Proceso de generación, firma, autorización y entrega de comprobantes electrón
 
 ### Forma de pago
 
-Medio real utilizado para entregar o recibir dinero, por ejemplo efectivo, transferencia o tarjeta. La lista definitiva será configurable o se definirá en requisitos.
+Medio real utilizado para entregar o recibir dinero. En V1 los medios habilitados son efectivo y transferencia y pueden combinarse dentro del pago de una operación.
 
 ### Historial de vehículo
 
@@ -149,11 +157,19 @@ Registro cronológico de los movimientos de inventario de un producto, incluyend
 
 ### Kit
 
-Producto comercial formado conceptualmente por varias piezas, pero gestionado en V1 como una unidad completa, sin descomposición automática en componentes.
+Producto comprado como conjunto y controlado como una unidad completa. Puede venderse intacto o desarmarse mediante una operación explícita; nunca se descompone automáticamente al vender.
+
+### Intervención
+
+Período de atención del vehículo dentro de un mantenimiento. Puede ser la atención inicial o una intervención correctiva posterior.
+
+### Intervención correctiva
+
+Nueva atención dentro del mismo mantenimiento por una falla atribuible al trabajo anterior, sin constituir un módulo completo de garantías.
 
 ### Mantenimiento
 
-Registro operativo del trabajo realizado o previsto sobre un vehículo bajo el RUC artesanal. Contiene diagnóstico, kilometraje, servicios, observaciones y evidencias.
+Caso operativo completo del trabajo realizado sobre un vehículo bajo el RUC artesanal. Contiene una o más intervenciones con diagnóstico, kilometraje, servicios, observaciones y evidencias.
 
 ### Movimiento de inventario
 
@@ -162,6 +178,10 @@ Registro inmutable de una entrada o salida que modifica la existencia de un prod
 ### Movimiento inverso
 
 Movimiento que compensa el efecto de otro movimiento sin borrarlo, utilizado en anulaciones, devoluciones o correcciones autorizadas.
+
+### Modelo de dominio
+
+Representación conceptual de responsabilidades, reglas y relaciones del negocio, independiente del diseño de base de datos.
 
 ### Operación de servicios
 
@@ -181,7 +201,15 @@ Precio efectivamente utilizado en una línea de venta o servicio. Se conserva en
 
 ### Precio referencial
 
-Precio sugerido en el catálogo de servicios que se copia como punto de partida al mantenimiento y puede modificarse con autorización.
+Precio sugerido en el catálogo de servicios que se copia como punto de partida al mantenimiento. El Encargado del taller puede cambiarlo antes de confirmar, sin motivo obligatorio.
+
+### Precio final de catálogo
+
+Valor que pagará el cliente por un producto, con impuesto incluido cuando aplique. La operación conserva por separado base, tarifa, impuesto y total.
+
+### Presentación
+
+Forma completa y cerrada en que un producto se controla y vende, por ejemplo un envase de un galón o uno de medio galón; presentaciones diferentes son productos distintos.
 
 ### Producto
 
@@ -193,7 +221,19 @@ Oferta de productos con precios y vigencia. No representa una venta confirmada, 
 
 ### Proveedor
 
-Persona o empresa que suministra productos al RUC comercial y con la que se relacionan los ingresos de mercadería.
+Persona o empresa que suministra productos al RUC comercial y con la que se relacionan los ingresos de mercadería. Para un proveedor ocasional solo el nombre es obligatorio.
+
+### Reembolso
+
+Devolución trazable de dinero al cliente cuando una anulación o devolución produce un importe pagado en exceso; V1 no conserva saldos a favor.
+
+### Reposición por corrección
+
+Salida de inventario sin cargo al cliente para reemplazar una pieza dañada por responsabilidad del taller; requiere confirmación del Administrador.
+
+### Reserva de mantenimiento
+
+Asignación temporal de un producto a la venta abierta de un mantenimiento. Reduce disponibilidad, pero no existencia ni Kardex.
 
 ### RUC artesanal
 
@@ -245,7 +285,7 @@ Automotor relacionado con un cliente y utilizado como referencia para mantenimie
 
 ### Vendedor
 
-Rol responsable de clientes, proformas, ventas de repuestos, descuentos ordinarios y pagos del RUC comercial.
+Rol responsable de clientes, proformas, ventas de repuestos, consumos internos y pagos del RUC comercial.
 
 ### Venta de repuestos
 
@@ -262,8 +302,12 @@ Operación económica del RUC comercial que contiene productos vendidos. Puede s
 | Servicio / Producto | El servicio pertenece al RUC artesanal; el producto pertenece al RUC comercial. |
 | Anulación / Eliminación | La anulación conserva el historial; la eliminación lo borra y no se permite en operaciones transaccionales. |
 | Existencia / Movimiento | La existencia es el resultado acumulado; el movimiento explica cada variación. |
-| Estado de venta / Estado de pago / Estado de facturación | Son dimensiones independientes y no deben representarse con un único estado. |
+| Existencia / Reserva / Disponibilidad | La existencia es física; la reserva asigna temporalmente; la disponibilidad resta las reservas activas. |
+| Estado de venta / Estado de pago / Documento interno / Facturación futura | Son dimensiones independientes y no deben representarse con un único estado. |
 | Precio referencial / Precio aplicado | El referencial proviene del catálogo; el aplicado queda registrado en la operación. |
+| Documento interno / Factura electrónica | El documento interno respalda la operación en V1; la factura electrónica futura requiere autorización del SRI. |
+| Venta / Pago | La venta crea el importe exigible; el pago registra cómo se cubre una operación confirmada. |
+| Mantenimiento / Intervención | El mantenimiento es el caso completo; cada intervención representa una atención inicial o correctiva. |
 
 ## Abreviaturas
 

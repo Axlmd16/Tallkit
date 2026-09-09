@@ -1,3 +1,4 @@
 # Referencia de glosario del contexto C4
 
-No introduce términos técnicos adicionales; el nombre del producto sigue el glosario del negocio.
+Términos aplicables: [entidad fiscal](../negocio/producto/glosario.md#entidad-fiscal) y
+[modelo de dominio](../negocio/producto/glosario.md#modelo-de-dominio).

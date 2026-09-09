@@ -8,10 +8,10 @@ context: |
 
   Fuentes de verdad y precedencia:
   1. Las decisiones confirmadas incluidas en este archivo.
-  2. docs/producto/: visión, alcance V1, reglas de negocio y glosario.
-  3. docs/requisitos/: actores, requisitos, casos de uso, interfaz y trazabilidad.
-  4. docs/arquitectura/: arquitectura objetivo y modelo de datos conceptual.
-  5. docs/plan/: auditoría del estado actual y análisis de brechas.
+  2. docs/negocio/producto/: visión, alcance V1, reglas de negocio y glosario.
+  3. docs/negocio/requisitos/: actores, requisitos, casos de uso, interfaz y trazabilidad.
+  4. docs/arquitectura/ y docs/architecture/: arquitectura objetivo vigente.
+  5. docs/tecnico/: decisiones y restricciones técnicas vigentes.
   6. El código existente solo demuestra el estado actual; no define el comportamiento correcto.
   Si una fuente inferior contradice una superior, aplicar la superior y registrar la brecha.
   Los documentos continúan como borradores; las decisiones confirmadas de este archivo
@@ -59,10 +59,50 @@ context: |
   - Interpretación V1 de DM-003: cada vehículo tiene un solo propietario actual, que es
     un Cliente. No modelar copropiedad ni un responsable distinto del propietario.
     Un cambio de propietario no puede alterar el historial de mantenimientos.
+  - DP-009: los productos se controlan y venden por presentaciones completas. Cantidad
+    conserva valor y unidad de medida, pero presentaciones diferentes tienen código,
+    existencia, costo y precio propios. No se venden fracciones de envases abiertos.
+  - DP-010: un kit comprado es un producto vendible completo. Puede desarmarse mediante
+    una operación explícita que consume el kit, registra los componentes reales y
+    distribuye exactamente su costo entre ellos. V1 no arma kits de inventario con piezas sueltas.
+  - DP-011: un ingreso confirmado requiere proveedor, incluso si es una persona ocasional.
+    Para un proveedor ocasional solo el nombre es obligatorio; identificación y contacto
+    son opcionales. V1 no gestiona cuentas por pagar ni pagos a proveedores.
+  - DP-012: solo la venta abierta vinculada a un mantenimiento reserva existencias. La
+    reserva reduce disponibilidad, no existencia, y no genera Kardex. Proformas y ventas
+    directas en borrador no reservan.
+  - DP-013: cada pago o abono se aplica a una sola operación elegida por el usuario. Un
+    importe destinado a varias ventas se registra como pagos separados. V1 no admite
+    anticipos, sobrepagos ni distribución automática entre deudas.
+  - DP-014: una devolución de cliente reduce primero el importe exigible; si produce un
+    exceso pagado se registra un reembolso trazable, no saldo a favor. Solo los productos
+    que el Administrador declare aptos para reventa regresan al inventario.
+  - DP-015: un retorno atribuible a un trabajo anterior reabre el mismo mantenimiento y
+    agrega una intervención correctiva. No existe módulo de garantías, plazos ni pólizas.
+    El trabajo correctivo no se cobra y la reposición de inventario requiere confirmación
+    del Administrador como salida sin cargo asumida por el taller.
+  - DP-016: materiales propios entregados para uso del taller salen por consumo interno,
+    por presentación completa y sin venta al cliente. Los repuestos aportados por el
+    cliente no entran al inventario y solo pueden mencionarse en observaciones.
+  - DP-017: los precios editados y mostrados en catálogo son valores finales para el
+    cliente, con impuesto incluido cuando aplique. Cada operación confirmada conserva
+    precio final, base, tarifa, impuesto y total históricos.
+  - DP-018: V1 emite documentos internos, no facturas electrónicas autorizadas por el SRI.
+    La futura referencia fiscal tendrá identidad y estado independientes de la operación.
+  - DP-019: existen cierres diarios y cajas lógicas separados por entidad fiscal, aun si
+    una misma persona maneja físicamente el dinero. Se desglosan efectivo y transferencia.
+  - DP-020: el precio del catálogo de servicios es referencial. El Encargado del taller
+    puede definir sin motivo obligatorio el precio aplicado antes de confirmar la operación
+    artesanal; el valor confirmado queda histórico.
+  - DP-021: un mantenimiento no puede finalizar mientras su venta comercial abierta tenga
+    líneas. El Vendedor o Administrador debe confirmar la venta o retirar las líneas no
+    utilizadas; finalizar nunca confirma automáticamente la venta.
 
   Reglas esenciales de negocio:
-  - Las proformas no reservan ni descuentan stock.
-  - El stock se descuenta únicamente al confirmar una venta comercial.
+  - Las proformas y ventas directas en borrador no reservan ni descuentan stock.
+  - La venta de mantenimiento en borrador reserva disponibilidad sin descontar existencia.
+  - La existencia disminuye al confirmar una venta o una operación explícita de salida,
+    como devolución a proveedor, consumo interno, ajuste, desarme o reposición correctiva.
   - Confirmar una operación económica no implica marcarla pagada o facturada.
   - Estado del documento, estado de pago y estado de facturación son independientes.
   - Los pagos y abonos se registran con medios reales y pertenecen a una sola entidad fiscal.
@@ -75,16 +115,17 @@ context: |
   - Importes y cantidades usan Decimal; nunca punto flotante binario para cálculos.
   - Secuenciales se asignan dentro de la transacción y deben ser seguros ante concurrencia.
   - Acciones críticas deben ser atómicas, idempotentes cuando corresponda y auditables.
-  - Los kits se administran como productos completos; no se descomponen automáticamente.
+  - Los kits se administran como productos completos y solo se descomponen mediante un
+    desarme explícito, atómico y trazable; nunca automáticamente al vender.
   - Los valores económicos e impuestos aplicados se conservan como datos históricos.
 
   Roles y responsabilidades:
   - Administrador: usuarios, configuración, entidades fiscales, catálogos, proveedores,
     ingresos, inventario, ajustes, reportes, auditoría, respaldos y acciones críticas.
   - Vendedor: clientes, proformas, ventas y cobros comerciales; confirma la venta de
-    repuestos vinculada a un mantenimiento.
+    repuestos vinculada a un mantenimiento y registra consumos internos solicitados.
   - Encargado del taller: clientes, vehículos, servicios, mantenimientos, fotografías,
-    repuestos utilizados y cobros artesanales.
+    repuestos utilizados, solicitudes de consumo interno, reaperturas y cobros artesanales.
   - El backend es la autoridad de autorización. Ocultar acciones en el frontend solo es
     una ayuda de interfaz y nunca sustituye la validación del servidor.
 
@@ -93,17 +134,19 @@ context: |
   - No migrar automáticamente los pocos registros de la aplicación Flutter anterior.
   - No asignar trabajos a mecánicos.
   - No incluir presupuestos ni aprobación previa del cliente para mantenimientos.
-  - No incluir garantías, copropiedad vehicular, permisos personalizados, microservicios
-    ni acceso público por Internet.
+  - No incluir un módulo de garantías, copropiedad vehicular, permisos personalizados,
+    microservicios ni acceso público por Internet. La intervención correctiva simple
+    confirmada en DP-015 no constituye un módulo de garantías.
 
   Decisiones todavía no cerradas:
-  - DP-005: tratamiento detallado de reembolsos, devoluciones y saldos a favor.
   - DP-006: formato visible, prefijos y series de los secuenciales.
-  - DA-001: mecanismo definitivo de autenticación web.
   - DA-002: límites, almacenamiento y conservación de fotografías.
   - DA-003: empaquetado, instalación, actualización, respaldo y restauración local.
   - DM-001: estructura técnica común o separada de documentos económicos.
-  - DM-002: si un mantenimiento puede vincular una o varias ventas comerciales.
+  - Validación contable y tributaria de consumos internos y reposiciones sin cargo entre
+    las dos entidades fiscales.
+  - Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos futuros
+    de consumidor final y facturación electrónica.
   Cuando un cambio dependa de una decisión abierta, su proposal debe recomendar la opción
   más sencilla y segura para V1, explicar impactos y alternativas, y detenerse para obtener
   aprobación. No convertir una decisión abierta en migración, spec o código silenciosamente.
@@ -123,13 +166,10 @@ context: |
   - Preservar cambios del usuario y no ampliar el alcance para refactorizaciones no solicitadas.
 
   Estado actual relevante:
-  - El código está en repo-review/Back-Inventario y repo-review/Front-Inventario.
-  - El frontend actual no compila y no hay pruebas automatizadas.
-  - El backend actual usa un solo RUC, JWT en localStorage, un rol por usuario, proformas
-    que reservan stock y secuenciales inseguros ante concurrencia.
-  - No existen todavía el módulo completo de taller, vehículos de clientes, proveedores,
-    costo promedio, cuentas por cobrar, auditoría ni devoluciones completas.
-  - No preservar compatibilidad con esos comportamientos cuando contradigan la línea objetivo.
+  - Backend y frontend contienen infraestructura inicial, pero todavía no implementan el
+    dominio funcional descrito en este documento.
+  - El comportamiento de la aplicación Flutter anterior es histórico y no define requisitos.
+  - No preservar compatibilidad con comportamientos históricos que contradigan la línea objetivo.
 
   Calidad y verificación:
   - Todo comportamiento nuevo o corregido debe incluir pruebas automatizadas.

@@ -4,9 +4,9 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.2 |
-| Estado | Borrador para revisión |
-| Fecha | 2026-08-04 |
+| Versión del documento | 0.3 |
+| Estado | Alineado con el modelo de dominio aprobado |
+| Fecha | 2026-09-08 |
 
 > Este documento define el límite funcional de la primera versión. Una capacidad no mencionada como incluida no debe asumirse como comprometida.
 
@@ -34,6 +34,7 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 - Migración automática de datos desde la aplicación Flutter.
 - Sustitución de un sistema contable completo.
 - Emisión electrónica real ante el SRI en esta versión.
+- Descuentos, anticipos, sobrepagos, planes de pago y saldos a favor.
 
 ## 3. Módulos incluidos
 
@@ -51,18 +52,19 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 
 - Registro, edición, búsqueda y consulta de clientes.
 - Tipos de identificación y datos de contacto.
-- Registro de uno o varios vehículos por cliente.
+- Registro de uno o varios vehículos por cliente y conservación de sus períodos de propiedad.
 - Placa, marca, modelo, año, color, kilometraje y datos técnicos necesarios.
 - Consulta del historial de mantenimientos y operaciones relacionadas.
 - Uso compartido de clientes y vehículos por las dos entidades fiscales.
 
 ### 3.3 Productos y catálogo
 
-- Productos y repuestos con código, nombre, descripción, categoría, marca, unidad y estado.
-- Precios de venta e información de costo.
-- Búsqueda y filtros.
+- Productos y repuestos con código, nombre, descripción, categoría, marca de producto, presentación, unidad y estado.
+- **Presentaciones** completas vendibles; una presentación diferente tiene producto, existencia, costo y precio propios.
+- Precios finales para el cliente, con impuesto incluido cuando aplique, e información de costo separada.
+- Búsqueda y filtros combinables por marca de producto y marca de vehículo.
 - Compatibilidad vehicular como información de apoyo.
-- Kits registrados y vendidos como productos completos.
+- **Kits** comprados registrados y vendidos como productos completos, con desarme manual explícito cuando corresponda.
 - Piezas vendidas individualmente registradas como productos independientes.
 - Activación o desactivación sin eliminar el historial transaccional.
 
@@ -72,26 +74,31 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 - Ingresos de mercadería en borrador y confirmados.
 - Detalles con cantidades y costos unitarios.
 - Asociación obligatoria del ingreso confirmado con un proveedor.
+- Proveedor ocasional con nombre obligatorio e identificación y contacto opcionales.
+- Referencia externa y fotografías o PDF opcionales como evidencia de compra.
 - Incremento de existencias al confirmar.
 - Actualización del costo promedio ponderado.
 - Anulación controlada mediante movimientos inversos.
+- Devolución a proveedor vinculada al ingreso original, sin cuentas por pagar ni seguimiento del reembolso del proveedor.
 
 ### 3.5 Inventario y Kardex
 
-- Una bodega principal como mínimo para la instalación inicial.
+- Una sola bodega operativa en V1.
 - Existencia actual por producto y bodega habilitada.
 - Kardex con entradas, salidas, ajustes y movimientos inversos.
 - Consulta por producto, fecha, tipo de movimiento y documento de origen.
 - Ajustes autorizados con motivo obligatorio.
+- Reservas exclusivas para ventas abiertas vinculadas a mantenimientos; reducen disponibilidad, no existencia.
+- Consumos internos, reposiciones por corrección y desarmes como operaciones explícitas de inventario.
 - Alertas de stock bajo configurables.
 - Validaciones transaccionales para evitar resultados inconsistentes entre usuarios.
 
-La operación con múltiples bodegas queda pendiente de confirmación; el modelo no debe impedir su incorporación futura.
+La operación multibodega queda fuera de V1, pero el modelo no debe impedir su incorporación futura.
 
 ### 3.6 Proformas
 
 - Creación y edición de proformas de repuestos.
-- Selección de cliente, productos, cantidades, precios, descuentos e impuestos autorizados.
+- Selección de cliente, productos, cantidades, precios finales e impuestos aplicables, sin descuentos.
 - Fecha de emisión y vigencia.
 - Impresión o exportación de un documento interno.
 - Conversión a venta sin duplicar manualmente los datos.
@@ -103,9 +110,9 @@ La operación con múltiples bodegas queda pendiente de confirmación; el modelo
 - Venta directa o generada desde una proforma.
 - Venta vinculada a un mantenimiento cuando se utilizan repuestos.
 - Borrador, confirmación y anulación controlada.
-- Descuento de stock únicamente al confirmar.
+- Reserva previa únicamente cuando la venta está vinculada a un mantenimiento; la existencia se descuenta al confirmar.
 - Secuenciales seguros y separados por entidad y tipo de documento.
-- Cálculo de subtotal, descuentos, impuestos y total.
+- Cálculo de base, impuesto y total, sin descuentos.
 - Devolución total o parcial de repuestos con movimiento inverso y trazabilidad.
 - Impresión o exportación de comprobantes internos.
 
@@ -113,12 +120,14 @@ La operación con múltiples bodegas queda pendiente de confirmación; el modelo
 
 - Condición de venta al contado o a crédito.
 - Registro de pagos con formas de pago reales.
-- Pagos combinados en una misma operación, una vez definidas las formas permitidas.
+- Pagos combinados con efectivo y transferencia dentro de una misma operación.
 - Abonos posteriores para ventas a crédito.
 - Cálculo del saldo pendiente.
 - Estados de pago independientes del estado de la venta.
 - Consulta de cuentas por cobrar.
 - Pagos de repuestos separados de los pagos por servicios.
+- Un pago se aplica a una sola operación; un importe destinado a dos ventas se registra como dos pagos.
+- Sin anticipos, sobrepagos, vencimientos, cuotas, intereses ni cronogramas.
 
 ### 3.9 Servicios y mantenimientos
 
@@ -127,10 +136,14 @@ La operación con múltiples bodegas queda pendiente de confirmación; el modelo
 - Fecha, kilometraje, diagnóstico, observaciones y fotografías.
 - Servicios realizados con cantidad y precio aplicado.
 - Modificación del precio aplicado sin cambiar el catálogo.
-- Estados: registrado, finalizado y cancelado.
+- Estados: registrado, finalizado, reabierto y cancelado.
 - Registro de la operación económica de servicios bajo el RUC artesanal.
 - Pagos y saldos de servicios independientes de las ventas de repuestos.
 - Selección de repuestos utilizados y generación de una venta comercial vinculada.
+- Bloqueo de la finalización mientras la venta abierta tenga líneas pendientes.
+- Intervenciones correctivas sin cargo dentro del mismo mantenimiento cuando la falla sea atribuible al taller.
+- Reposición de repuestos dañados por responsabilidad del taller mediante salida confirmada por el Administrador.
+- Consumo interno de materiales por presentaciones completas, sin venta al cliente.
 - Consulta del historial por cliente y vehículo.
 
 ### 3.10 Reportes y consultas
@@ -142,6 +155,8 @@ La operación con múltiples bodegas queda pendiente de confirmación; el modelo
 - Mantenimientos, servicios, pagos y saldos del RUC artesanal.
 - Historial de cliente y vehículo.
 - Operaciones anuladas y ajustes de inventario.
+- Consumos internos, reposiciones por corrección y margen bruto histórico, sin presentarlo como ganancia neta.
+- Cierres diarios separados por RUC, efectivo y transferencia.
 - Filtros por entidad fiscal, fecha, estado y usuario cuando corresponda.
 - Exportación en un formato tabular común; el formato definitivo se especificará en requisitos de interfaz.
 
@@ -160,8 +175,8 @@ La operación con múltiples bodegas queda pendiente de confirmación; el modelo
 | Actor | Responsabilidad general en V1 |
 |---|---|
 | Administrador | Configura el sistema, administra usuarios y ejecuta operaciones de alto impacto. |
-| Vendedor | Gestiona clientes, proformas, ventas y pagos comerciales según permisos. |
-| Encargado del taller | Gestiona vehículos, mantenimientos, servicios, repuestos utilizados y evidencias. |
+| Vendedor | Gestiona clientes, proformas, ventas, consumos internos y pagos comerciales según permisos. |
+| Encargado del taller | Gestiona vehículos, mantenimientos, servicios, reservas de repuestos, correcciones y evidencias. |
 
 Cada usuario tendrá al menos uno de estos tres roles y podrá reunir varios cuando cumpla más de una función. El Administrador asumirá también la consulta global de reportes, la auditoría y las tareas de respaldo, restauración y actualización. V1 no permitirá crear roles adicionales ni asignar permisos personalizados por usuario.
 
@@ -201,9 +216,10 @@ Cada usuario tendrá al menos uno de estos tres roles y podrá reunir varios cua
 
 1. Se ejecuta el flujo del mantenimiento.
 2. El encargado selecciona los repuestos utilizados.
-3. El sistema crea una venta de repuestos vinculada bajo el RUC comercial.
-4. La venta se confirma con sus propias validaciones, secuencial, impuestos y pago.
-5. El mantenimiento y la venta pueden consultarse juntos, pero mantienen estados y documentos independientes.
+3. El sistema crea o reutiliza una venta abierta del RUC comercial y reserva las cantidades seleccionadas.
+4. El encargado ajusta sus líneas hasta reflejar lo realmente utilizado.
+5. El Vendedor o Administrador confirma la venta o retira todas sus líneas; la finalización queda bloqueada mientras existan líneas pendientes.
+6. El mantenimiento se finaliza por separado y ambos documentos conservan estados y pagos independientes.
 
 ### 5.6 Anulación o devolución
 
@@ -224,9 +240,9 @@ Las siguientes capacidades no forman parte del compromiso de la versión 1:
 - Integración automática con bancos, datáfonos o pasarelas de pago.
 - Contabilidad general, conciliación bancaria y declaraciones tributarias.
 - Presupuesto de mantenimiento y aprobación previa del cliente.
-- Gestión de garantías.
+- Gestión completa de garantías, plazos, pólizas o reclamaciones; solo se incluye la corrección simple atribuible al taller.
 - Asignación de trabajos, agenda, productividad o comisiones de mecánicos.
-- Descomposición automática de kits en componentes.
+- Descomposición automática de kits al vender y armado de kits de inventario con piezas sueltas.
 - Compras con órdenes, aprobaciones multinivel o importaciones.
 - Gestión avanzada de múltiples sucursales.
 - Fidelización, puntos, campañas y marketing.
@@ -268,18 +284,14 @@ La versión 1 podrá considerarse funcionalmente completa cuando:
 8. Los reportes distingan claramente la entidad fiscal y el período consultado.
 9. Las exclusiones permanezcan fuera de la implementación o estén aisladas como trabajos futuros.
 
-## 10. Decisiones pendientes antes de aprobar V1
+## 10. Decisiones pendientes de configuración o validación externa
 
 | ID | Decisión | Impacto |
 |---|---|---|
-| DP-001 | Confirmar una o varias bodegas operativas. | Modelo de existencias, transferencias y pantallas. |
-| DP-002 | Definir la política de stock negativo. | Confirmación de ventas y ajustes. |
-| DP-003 | Definir formas de pago y pagos combinados. | Pagos, cierres y reportes. |
-| DP-004 | Definir el límite ordinario de descuento del Vendedor; el Administrador autorizará los excesos. | Proformas y ventas. |
-| DP-005 | Precisar devoluciones, reembolsos y saldos a favor. | Inventario, pagos y documentos. |
 | DP-006 | Definir los secuenciales internos por documento. | Configuración, concurrencia e impresión. |
-| DP-007 | Confirmar si el mantenimiento finalizado puede reabrirse. | Estados, permisos y auditoría. |
-| DP-008 | Definir los datos obligatorios de cliente y vehículo. | Formularios, duplicados y calidad de datos. |
+| EXT-001 | Validar tratamiento fiscal y contable de consumos internos y reposiciones sin cargo. | Contabilidad y obligaciones de ambos RUC. |
+| EXT-002 | Confirmar tarifas, clasificaciones tributarias y redondeo aplicables. | Configuración de impuestos y documentos. |
+| FUT-001 | Especificar facturación electrónica y reglas de consumidor final. | Integración futura con el SRI, fuera de V1. |
 
 ## 11. Control de cambios de alcance
 
