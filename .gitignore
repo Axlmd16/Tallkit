@@ -24,6 +24,8 @@ frontend/*.tsbuildinfo
 frontend/playwright-report/
 frontend/test-results/
 
+.impeccable/questions/
+
 *.log
 *.sqlite3
 *.sql
