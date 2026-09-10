@@ -1,8 +1,18 @@
 from typing import Any
 
+from rest_framework import serializers
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
+
+class ProblemSerializer(serializers.Serializer[dict[str, object]]):
+    type = serializers.CharField()
+    title = serializers.CharField()
+    status = serializers.IntegerField()
+    detail = serializers.CharField()
+    code = serializers.CharField()
+    request_id = serializers.CharField(allow_null=True)
 
 
 def problem_response(

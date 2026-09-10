@@ -1,0 +1,11 @@
+[
+  {"model":"identity.user","pk":1,"fields":{"password":"pbkdf2_sha256$1000000$yG6KxL4EUd24n27VDAOkq5$EyvB64LslN5Mcf0WZFbh5T2ybIhMOE1gEd8BAQTEZK8=","last_login":null,"is_superuser":false,"username":"admin_e2e","first_name":"Ada","last_name":"Admin","email":"","is_staff":false,"is_active":true,"date_joined":"2026-09-09T12:00:00Z","must_change_password":false,"authorization_version":1,"groups":[],"user_permissions":[]}},
+  {"model":"identity.user","pk":2,"fields":{"password":"pbkdf2_sha256$1000000$yG6KxL4EUd24n27VDAOkq5$EyvB64LslN5Mcf0WZFbh5T2ybIhMOE1gEd8BAQTEZK8=","last_login":null,"is_superuser":false,"username":"vendedor_e2e","first_name":"Vera","last_name":"Ventas","email":"","is_staff":false,"is_active":true,"date_joined":"2026-09-09T12:00:00Z","must_change_password":false,"authorization_version":1,"groups":[],"user_permissions":[]}},
+  {"model":"identity.user","pk":3,"fields":{"password":"pbkdf2_sha256$1000000$yG6KxL4EUd24n27VDAOkq5$EyvB64LslN5Mcf0WZFbh5T2ybIhMOE1gEd8BAQTEZK8=","last_login":null,"is_superuser":false,"username":"taller_e2e","first_name":"Tomás","last_name":"Taller","email":"","is_staff":false,"is_active":true,"date_joined":"2026-09-09T12:00:00Z","must_change_password":false,"authorization_version":1,"groups":[],"user_permissions":[]}},
+  {"model":"identity.user","pk":4,"fields":{"password":"pbkdf2_sha256$1000000$yG6KxL4EUd24n27VDAOkq5$EyvB64LslN5Mcf0WZFbh5T2ybIhMOE1gEd8BAQTEZK8=","last_login":null,"is_superuser":false,"username":"multirrol_e2e","first_name":"Mila","last_name":"Mixta","email":"","is_staff":false,"is_active":true,"date_joined":"2026-09-09T12:00:00Z","must_change_password":false,"authorization_version":1,"groups":[],"user_permissions":[]}},
+  {"model":"identity.userrole","pk":1,"fields":{"user":1,"role":"ADMINISTRADOR"}},
+  {"model":"identity.userrole","pk":2,"fields":{"user":2,"role":"VENDEDOR"}},
+  {"model":"identity.userrole","pk":3,"fields":{"user":3,"role":"ENCARGADO_TALLER"}},
+  {"model":"identity.userrole","pk":4,"fields":{"user":4,"role":"VENDEDOR"}},
+  {"model":"identity.userrole","pk":5,"fields":{"user":4,"role":"ENCARGADO_TALLER"}}
+]

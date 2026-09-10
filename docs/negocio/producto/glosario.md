@@ -247,6 +247,22 @@ Entidad fiscal responsable de compras, inventario y ventas de productos o repues
 
 Conjunto fijo de permisos asignado a un usuario. V1 define únicamente Administrador, Vendedor y Encargado del taller; un usuario puede reunir varios de esos tres.
 
+### Credencial temporal
+
+Contraseña generada durante un restablecimiento administrativo, mostrada una sola vez y almacenada únicamente en forma protegida. Obliga al usuario a establecer una contraseña personal antes de utilizar funciones internas.
+
+### Permiso efectivo
+
+Acción concreta concedida por al menos uno de los roles vigentes de un usuario. Se calcula como unión de permisos y el backend la comprueba aunque la interfaz oculte la acción.
+
+### Sesión invalidada
+
+Sesión que dejó de ser válida porque el usuario fue desactivado, se restableció su contraseña o se redujeron sus roles. Debe volver al inicio de sesión sin conservar permisos anteriores.
+
+### Evento de auditoría de identidad
+
+Registro inmutable de una acción relevante sobre acceso, usuarios, roles o credenciales. Conserva actor cuando está confirmado, resultado, momento, objetivo y correlación, pero nunca contraseñas ni secretos de sesión.
+
 ### Saldo pendiente
 
 Importe de una operación que aún no ha sido cubierto por pagos válidos.

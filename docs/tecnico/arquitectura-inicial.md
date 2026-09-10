@@ -4,7 +4,8 @@
 
 La solución es una aplicación web de red local preparada para publicarse posteriormente. El
 bootstrap comprueba React, Django, PostgreSQL, estilos, navegación, contrato OpenAPI, sesiones,
-CSRF, pruebas y empaquetado; no define el dominio ni crea modelos propios.
+CSRF, pruebas y empaquetado. La primera capacidad funcional implementada es identidad y acceso;
+las demás partes del dominio continúan sin implementación.
 
 Los diagramas C4 de [contexto](../architecture/c4-context.md) y
 [contenedores](../architecture/c4-containers.md) muestran el alcance y las unidades desplegables.
@@ -13,8 +14,9 @@ relaciones y las invariantes del negocio que deberán respetar las futuras capac
 
 ## Estructura y fronteras
 
-El backend es un monolito modular. `config` contiene composición, settings y la API técnica;
-`shared` solo contiene infraestructura transversal comprobada. Las futuras aplicaciones se crearán
+El backend es un monolito modular. `config` contiene composición y settings; `shared` solo contiene
+infraestructura transversal comprobada. `identity` contiene usuarios, asignaciones de roles,
+credenciales, autorización y auditoría de identidad. Las futuras aplicaciones se crearán
 por capacidad del negocio después de su OpenSpec, no por tabla. Cuando aporten valor, separarán
 `api`, `application`, `domain` e `infrastructure`; no se crearán capas vacías.
 
@@ -22,15 +24,17 @@ Un módulo puede consultar interfaces públicas de otro, pero no mutar directame
 La coordinación con efectos económicos o de inventario pertenecerá a servicios de aplicación con
 límites transaccionales explícitos. Las vistas y serializers traducen HTTP y no deciden reglas.
 
-El frontend compone providers y router en `app`, pantallas en `pages`, futuras capacidades en
-`features` y piezas transversales en `shared`. El acceso HTTP no vive dentro de componentes de
+El frontend compone providers, guards, navegación y router en `app`, pantallas en `pages`, capacidades en
+`features` y piezas transversales en `shared`. `features/auth`, `features/users` y `features/audit`
+implementan el estado remoto y contratos de identidad. El acceso HTTP no vive dentro de componentes de
 presentación. TanStack Query gestiona estado remoto; React Router gestiona navegación. No hay un
 almacén global de estado añadido por defecto.
 
 ## Configuración por entorno
 
-Django comparte `settings/base.py` y aplica diferencias en `development.py`, `test.py` y
-`production.py`. PostgreSQL se usa en desarrollo, pruebas y producción. Las variables de entorno
+Django comparte `settings/base.py` y aplica diferencias en `development.py`, `test.py`, `e2e.py` y
+`production.py`. `e2e.py` solo amplía el límite de login durante recorridos automatizados aislados.
+PostgreSQL se usa en desarrollo, pruebas y producción. Las variables de entorno
 controlan conexión, hosts, orígenes confiables, idioma, zona horaria y logging. Producción exige una
 clave explícita, activa cookies seguras, HSTS y Gunicorn; WhiteNoise sirve los estáticos de Django.
 
@@ -49,9 +53,11 @@ JSON estructurado y correlacionado.
 
 La autenticación usa sesiones de Django. La cookie de sesión es `HttpOnly` y `SameSite=Lax`, y es
 `Secure` con HTTPS. Login y escrituras exigen CSRF; el token rota al autenticar. El login se limita a
-cinco intentos por minuto mediante el cache configurado. Solo health, esquema y endpoints técnicos
-de establecimiento/consulta de sesión son públicos. El backend seguirá siendo autoridad de
-autorización cuando existan roles. No se habilita CORS ni JWT.
+cinco intentos por minuto mediante el cache configurado. Solo health, esquema, CSRF, login y la
+consulta mínima de sesión son públicos. El backend calcula la unión de permisos de los roles fijos
+y deniega por defecto. Una versión de autorización invalida sesiones tras desactivar, restablecer
+credenciales o reducir roles; la interfaz únicamente adapta navegación y acciones. No se habilita
+CORS ni JWT.
 
 ## Reglas de dependencia
 
@@ -75,7 +81,8 @@ autorización cuando existan roles. No se habilita CORS ni JWT.
   reservas, confirmación de ventas y Kardex será candidata a ADR cuando el diseño técnico compare
   alternativas concretas.
 
-El backend y el frontend siguen sin implementar el dominio funcional; esta documentación no
-autoriza todavía modelos, migraciones, API ni pantallas.
+Identidad y acceso se implementaron mediante `gestion-usuarios-autenticacion-roles`. El resto del
+dominio funcional sigue sin implementarse y requiere su propio flujo OpenSpec antes de crear
+modelos, migraciones, API o pantallas.
 
 Consulte la [referencia terminológica](arquitectura-inicial-glossary-reference.md).

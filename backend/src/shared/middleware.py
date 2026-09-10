@@ -1,8 +1,11 @@
 from collections.abc import Callable
 from uuid import uuid4
 
+import structlog
 import structlog.contextvars
 from django.http import HttpRequest, HttpResponse
+
+logger = structlog.get_logger(__name__)
 
 
 class RequestIdMiddleware:
@@ -16,5 +19,11 @@ class RequestIdMiddleware:
         structlog.contextvars.bind_contextvars(request_id=request_id)
         response = self.get_response(request)
         response["X-Request-ID"] = request_id
+        logger.info(
+            "request_completed",
+            method=request.method,
+            path=request.path,
+            status_code=response.status_code,
+        )
         structlog.contextvars.clear_contextvars()
         return response

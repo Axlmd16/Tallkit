@@ -41,6 +41,7 @@ ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/config/settings/*.py" = ["F403", "F405"]
+"src/**/migrations/*.py" = ["E501", "RUF012"]
 "tests/**/*.py" = ["S105", "S106"]
 
 [tool.pytest.ini_options]

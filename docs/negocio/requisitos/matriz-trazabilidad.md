@@ -4,11 +4,11 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.3 |
-| Estado | Alineado con el modelo de dominio aprobado |
-| Fecha | 2026-09-08 |
+| Versión del documento | 0.4 |
+| Estado | Identidad implementada; demás capacidades en análisis |
+| Fecha | 2026-09-09 |
 
-> Esta matriz conecta decisiones, reglas, requisitos, casos de uso, interfaz y el modelo conceptual. No representa diseño de datos ni evidencia de implementación.
+> Esta matriz conecta decisiones, reglas, requisitos, casos de uso, interfaz y el modelo conceptual. La evidencia de identidad está detallada en [cobertura de identidad](cobertura-identidad.md); las demás capacidades no se consideran implementadas.
 
 ## 1. Convenciones
 
@@ -29,7 +29,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 
 | Capacidad | Decisiones | Reglas | Requisitos | Casos de uso | Interfaz | Modelo |
 |---|---|---|---|---|---|---|
-| Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol |
+| Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009; RF-AUD-001, 003, 005 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol; implementado por `gestion-usuarios-autenticacion-roles` |
 | Separación de los dos RUC | CT-001 | RN-FIS-001…010 | RF-ACC-010…014; RF-PAG-004, RF-PAG-009…010; RF-REP-008 | CU-003, CU-012…013, CU-017…020, CU-026 | UI-014…017, UI-053…063, UI-070…084 | EntidadFiscal, DocumentoInterno, CierreDiario |
 | Clientes compartidos | DP-008 | RN-CLI-001…003, RN-CLI-008 | RF-CLI-001…005, RF-CLI-012 | CU-004 | UI-020…022 | Cliente |
 | Vehículos y propiedad | DP-008; DM-003 V1 | RN-CLI-004…009 | RF-CLI-006…011 | CU-005 | UI-021, UI-023…025 | Vehiculo, PeriodoPropiedad |
@@ -72,11 +72,11 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Pendientes | DP-006, DA-002, DA-003, DM-001 | Se conservan sin inventar una solución técnica o de formato. |
 | Validación externa | tratamiento fiscal de consumos y reposiciones; tarifas, clasificación, redondeo y facturación futura | Debe resolverlo un contador o la normativa ecuatoriana aplicable antes de especificar el comportamiento fiscal. |
 
-## 5. Capacidades OpenSpec futuras
+## 5. Capacidades OpenSpec
 
 | Código | Capacidad | Cobertura principal |
 |---|---|---|
-| SPEC-IDENTIDAD | Identidad y acceso | RF-ACC-001…009 |
+| SPEC-IDENTIDAD | Identidad y acceso (implementada; pendiente de verificación final y archivo) | RF-ACC-001…009; RF-AUD-001, 003, 005 |
 | SPEC-CONFIG | Entidades y parámetros | RF-ACC-010…014 |
 | SPEC-CLIENTES | Clientes y vehículos | RF-CLI-001…012 |
 | SPEC-CATALOGOS | Productos, servicios y proveedores | RF-CAT-001…016 |
@@ -88,7 +88,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-REPORTES | Reportes, documentos y cierres | RF-REP-001…014 |
 | SPEC-AUDITORIA | Auditoría y correcciones | RF-AUD-001…006 |
 
-El cambio documental actual es `openspec/changes/consolidar-modelo-dominio-taller/`; no constituye la implementación de estas capacidades.
+El cambio activo `openspec/changes/gestion-usuarios-autenticacion-roles/` implementa únicamente identidad, autenticación, roles, autorización y su auditoría. No constituye implementación de clientes, catálogos, inventario, ventas ni mantenimiento.
 
 ## 6. Controles de cobertura
 

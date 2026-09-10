@@ -4,8 +4,9 @@ Bootstrap técnico del sistema web de gestión integral para un taller automotri
 monorepositorio con una SPA React y una API Django, desplegadas como monolito modular y con
 PostgreSQL como única base de datos relacional.
 
-Este bootstrap no contiene modelos, migraciones ni funcionalidades del dominio. Las tablas que
-aparecen al migrar pertenecen exclusivamente a Django (`auth`, sesiones y administración).
+El repositorio incluye la primera capacidad funcional: identidad, autenticación por sesión,
+roles fijos, autorización y auditoría administrativa. Los módulos de clientes, inventario, ventas
+y mantenimientos todavía no están implementados.
 
 ## Inicio rápido con Docker
 
@@ -48,13 +49,23 @@ make check            # formato, lint, tipos, migraciones, pruebas y build
 make test             # pruebas de ambos stacks
 make audit            # vulnerabilidades Python y npm
 make migrate          # migraciones dentro de Compose
-make admin            # crea un superusuario de Django
+make admin            # crea un superusuario y le asigna el rol Administrador del negocio
 make compose-check    # valida compose.yaml
 ```
 
 Las pruebas backend necesitan PostgreSQL disponible en `127.0.0.1:55432`. La cobertura mínima es
-85 % en backend y 85 % de líneas/funciones/sentencias y 80 % de ramas en frontend. Playwright está
-configurado, pero las pruebas E2E se incorporarán con el primer flujo funcional real.
+85 % en backend y 85 % de líneas/funciones/sentencias y 80 % de ramas en frontend. Playwright
+ejecuta identidad contra un `testserver` de Django y una base PostgreSQL de prueba aislada; requiere
+Chromium instalado mediante `cd frontend && npx playwright install chromium`.
+
+`make admin` es el procedimiento de arranque para el primer Administrador. El comando conserva
+las banderas técnicas de Django para entrar al panel administrativo y, además, asigna
+explícitamente el rol `ADMINISTRADOR`. Los permisos funcionales se calculan desde ese rol y nunca
+desde `is_superuser`.
+
+Una base creada antes del usuario personalizado no debe migrarse directamente. Consulte el
+[procedimiento de transición de identidad](docs/tecnico/transicion-base-identidad.md); cualquier
+recreación o traslado exige respaldo y autorización explícita.
 
 ## Sesiones y CSRF
 
