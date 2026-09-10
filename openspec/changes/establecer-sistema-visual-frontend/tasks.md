@@ -1,74 +1,99 @@
-## 1. Línea base y recursos locales
+## 1. Línea base y reconciliación del intento rechazado
 
-- [ ] 1.1 Ejecutar `make frontend-check` y `cd frontend && npm run test:e2e` antes de modificar la interfaz; registrar cualquier fallo previo sin acomodar el cambio a un comportamiento incorrecto.
-- [ ] 1.2 Instalar con versiones exactas `@fontsource-variable/ibm-plex-sans@5.3.0`, `@fontsource/ibm-plex-mono@5.3.0`, `@phosphor-icons/react@2.1.10` y `@axe-core/playwright@4.13.0`; actualizar juntos `frontend/package.json` y su **lockfile** y conservar evidencia de sus licencias compatibles.
-- [ ] 1.3 Incorporar desde `frontend/src/shared/styles/index.css` únicamente los pesos y subconjuntos tipográficos utilizados, definir las pilas de respaldo y demostrar mediante el build que no existen solicitudes obligatorias a fuentes o iconos externos.
-- [ ] 1.4 Sustituir la paleta oscura provisional por tokens semánticos de color, tipografía, espacio, forma, elevación, foco y movimiento; añadir estilos base para lienzo claro, selección, controles táctiles y `prefers-reduced-motion`.
+- [ ] 1.1 Ejecutar `make frontend-check` y `cd frontend && npm run test:e2e`; registrar por separado fallos previos, fallos de entorno y regresiones sin marcar como válida la apariencia actual.
+- [ ] 1.2 Inventariar el diff no comprometido de `frontend/`, `DESIGN.md` y `docs/` y clasificar cada cambio como comportamiento reutilizable, prueba reutilizable o decisión visual que debe sustituirse; no descartar cambios ajenos ni usar el código actual como autoridad estética.
+- [ ] 1.3 Convertir los requisitos visuales del Figma en un checklist verificable para acceso, marco autenticado, usuarios, auditoría y estado técnico: lienzo, navegación, tipografía, violeta, radios, elevación, densidad, estados y adaptación.
 
-**Evidencia:** `cd frontend && npm run typecheck && npm run build`; inspección del paquete generado y de las licencias declaradas.
+**Evidencia:** resultados iniciales conservados, inventario del diff revisado y checklist trazable a `design.md` y las dos specs.
 
-## 2. Primitivas de interacción y estados
+## 2. Tipografía, tokens y recursos locales
 
-- [ ] 2.1 Escribir pruebas inicialmente fallidas para `Button`, `IconButton`, `ButtonGroup`, `Field`, `Input`, `Select`, `Checkbox` y `FieldError`, cubriendo variantes, nombres accesibles, asociación de ayuda/error y estado pendiente o deshabilitado.
-- [ ] 2.2 Implementar en `frontend/src/shared/ui/` las primitivas mínimas de controles y campos hasta hacer pasar las pruebas, usando variantes cerradas y tokens semánticos en lugar de colores directos.
-- [ ] 2.3 Escribir pruebas inicialmente fallidas para `StatusBadge`, `FiscalScopeBadge`, `InlineNotice`, `LoadingState` y `EmptyState`, verificando que estado, **RUC comercial** y **RUC artesanal** sean comprensibles sin depender del color.
-- [ ] 2.4 Implementar las primitivas de estado y ámbito, usando Phosphor Icons con tamaño y peso coherentes, texto visible donde sea necesario y regiones vivas con prioridad apropiada.
-- [ ] 2.5 Refactorizar las primitivas, centralizar sus exportaciones y eliminar APIs genéricas que permitan combinaciones visuales no aprobadas.
+- [ ] 2.1 Escribir primero una prueba o comprobación fallida que detecte la ausencia de Poppins local, los tokens nuevos y la permanencia de dependencias tipográficas rechazadas.
+- [ ] 2.2 Sustituir `@fontsource-variable/ibm-plex-sans` y `@fontsource/ibm-plex-mono` por `@fontsource/poppins@5.3.0`; actualizar juntos `frontend/package.json` y `frontend/package-lock.json` y conservar la licencia OFL-1.1.
+- [ ] 2.3 Actualizar `frontend/src/shared/styles/index.css` con Poppins 400, 500 y 600, cifras tabulares y la pila de respaldo local; eliminar IBM Plex únicamente cuando no queden consumidores.
+- [ ] 2.4 Sustituir los tokens de “Hoja de taller de precisión” por el lienzo gris lavanda, superficies blancas, tinta azul marino, violeta `#635BFF`, estados pastel, radios y tres niveles de elevación definidos en `design.md`.
+- [ ] 2.5 Definir estilos base de selección, foco, controles táctiles y movimiento reducido; comprobar que los recursos esenciales no generan solicitudes a fuentes, iconos o activos externos.
 
-**Evidencia:** `cd frontend && npm test -- src/shared/ui` y revisión de consultas por rol, etiqueta y descripción accesible.
+**Evidencia:** la comprobación de 2.1 pasa; `cd frontend && npm run typecheck && npm run build`; inspección del paquete generado, lockfile y licencias.
 
-## 3. Diálogos, datos y composición de página
+## 3. Controles, formularios y estados compartidos
 
-- [ ] 3.1 Escribir pruebas inicialmente fallidas para `Dialog`: foco inicial, contención mientras está abierto, cierre seguro con teclado, retorno del foco y descripción de acciones críticas.
-- [ ] 3.2 Implementar `Dialog` y reemplazar las dependencias directas de `window.confirm` necesarias para que las confirmaciones del cambio compartan semántica y gestión de foco.
-- [ ] 3.3 Escribir pruebas inicialmente fallidas para `PageHeader`, `Toolbar`, `FilterPanel`, `ResponsiveDataView`, `Pagination` y `RowActions`, incluyendo prioridad de datos y expansión accesible en pantalla estrecha.
-- [ ] 3.4 Implementar las primitivas de composición y datos: tabla comparable en escritorio, detalle progresivo en teléfono y desplazamiento confinado a la región de datos cuando resulte indispensable.
+- [ ] 3.1 Actualizar primero `frontend/src/shared/ui/controls.test.tsx` con casos fallidos para variantes primaria, secundaria, discreta y destructiva, estados hover/foco/activo/deshabilitado/carga, nombres accesibles y errores asociados.
+- [ ] 3.2 Adaptar `Button`, `IconButton`, `ButtonGroup`, `Field`, `Input`, `Select`, `Checkbox` y `FieldError` en `frontend/src/shared/ui/controls.tsx` a la nueva tipografía, geometría y jerarquía, conservando HTML semántico y APIs cerradas.
+- [ ] 3.3 Actualizar primero `frontend/src/shared/ui/states.test.tsx` con casos fallidos para insignias pastel, texto redundante al color, carga, vacío, error recuperable, **RUC comercial** y **RUC artesanal**.
+- [ ] 3.4 Adaptar `StatusBadge`, `FiscalScopeBadge`, `InlineNotice`, `LoadingState` y `EmptyState` en `frontend/src/shared/ui/states.tsx`, usando Phosphor como única familia de iconos.
+- [ ] 3.5 Refactorizar exportaciones de `frontend/src/shared/ui/index.ts` y eliminar variantes, colores directos o APIs genéricas que permitan reconstruir la estética descartada.
 
-**Evidencia:** `cd frontend && npm test -- src/shared/ui`; pruebas de teclado y aserción de que la página no adquiere desbordamiento horizontal.
+**Evidencia:** `cd frontend && npm test -- src/shared/ui/controls.test.tsx src/shared/ui/states.test.tsx`; revisión mediante consultas por rol, etiqueta y descripción accesible.
 
-## 4. Marco autenticado y navegación adaptable
+## 4. Superficies, datos y superposiciones
 
-- [ ] 4.1 Ampliar primero `frontend/src/app/AuthenticatedShell.test.tsx` con pruebas fallidas para ruta activa, navegación derivada exclusivamente del **permiso efectivo**, apertura/cierre del panel móvil, retorno del foco y conservación del cierre de sesión sin envíos duplicados.
-- [ ] 4.2 Reestructurar `AuthenticatedShell` con navegación lateral persistente desde escritorio, modo contraído para tableta y panel modal etiquetado bajo 768 px, sin cambiar rutas ni reglas de visibilidad.
-- [ ] 4.3 Aplicar el encabezado de página, identidad textual reemplazable, información del usuario y roles; asegurar que ninguna opción no autorizada aparezca en cualquier ancho.
-- [ ] 4.4 Añadir pruebas de orientación y redimensionamiento que comprueben conservación de la ruta activa, orden de teclado y cierre del panel móvil después de navegar.
+- [ ] 4.1 Escribir primero pruebas fallidas en `frontend/src/shared/ui/layout.test.tsx` para `PageHeader`, `Toolbar`, `FilterPanel`, `Surface`, `StatCard`, `ElevatedDataList`, `ResponsiveDataView`, `Pagination` y `RowActions`.
+- [ ] 4.2 Implementar o adaptar las primitivas de composición en `frontend/src/shared/ui/layout.tsx`: superficies blancas, elevación jerarquizada y filas separadas que mantengan encabezados y retícula comparable.
+- [ ] 4.3 Escribir primero pruebas fallidas para que `Drawer` gestione foco inicial, contención, Escape, retorno al disparador, advertencia de cambios sin guardar y transformación a ancho completo bajo 768 px.
+- [ ] 4.4 Implementar `Drawer` en `frontend/src/shared/ui/` sin biblioteca adicional, usando portal o capa superior para evitar recortes por `overflow`.
+- [ ] 4.5 Revisar y adaptar las pruebas de `Dialog` para foco, cierre seguro y acciones críticas; conservarlo separado de `Drawer` y reservarlo para decisiones bloqueantes.
+- [ ] 4.6 Añadir pruebas para datos largos y comprobar que las listas se convierten en composición priorizada a 360 px sin desbordamiento horizontal de la página.
 
-**Evidencia:** `cd frontend && npm test -- src/app/AuthenticatedShell.test.tsx` y recorrido manual a 360, 768, 1024 y 1440 px con los tres roles.
+**Evidencia:** `cd frontend && npm test -- src/shared/ui`; pruebas de teclado y aserciones de desbordamiento para drawer, diálogo y datos.
 
-## 5. Acceso, contraseña y formularios
+## 5. Marco autenticado y navegación por permisos
 
-- [ ] 5.1 Ampliar primero las pruebas de autenticación con casos fallidos para resumen de errores, asociación con campos, conservación de valores válidos, foco visible y verbo de progreso durante un envío bloqueado.
-- [ ] 5.2 Migrar `LoginPage`, `ChangePasswordPage` y `AuthForms` a la composición y primitivas aprobadas, manteniendo contratos, validaciones, credenciales y prevención de doble envío.
-- [ ] 5.3 Ampliar primero `UserForm.test.tsx` con casos fallidos para una columna en teléfono, orden lógico al crecer a dos columnas, roles táctiles, errores asociados y advertencia de cambios sin guardar.
-- [ ] 5.4 Migrar `UserForm` a las nuevas primitivas sin alterar el contenido enviado ni las reglas funcionales existentes.
+- [ ] 5.1 Actualizar primero `frontend/src/app/AuthenticatedShell.test.tsx` con casos fallidos para sidebar completa ≥1200 px, rail entre 768–1199 px, drawer móvil <768 px, ruta activa, retorno del foco y cierre de sesión sin doble envío.
+- [ ] 5.2 Reestructurar `frontend/src/app/AuthenticatedShell.tsx` con navegación blanca, identidad reemplazable, selección violeta suave y perfil/cierre de sesión al pie, sin cambiar rutas ni cálculo de permisos.
+- [ ] 5.3 Garantizar que el rail conserva nombres accesibles y que el drawer móvil muestra etiquetas completas, se cierra después de navegar y no altera la ruta al redimensionar.
+- [ ] 5.4 Ampliar pruebas positivas y negativas de `PermissionGuard` y del menú para Administrador, Vendedor, Encargado del taller y combinaciones de roles.
 
-**Evidencia:** `cd frontend && npm test -- src/features/auth src/pages/login src/pages/change-password src/features/users/UserForm.test.tsx`.
+**Evidencia:** `cd frontend && npm test -- src/app/AuthenticatedShell.test.tsx src/app/PermissionGuard.test.tsx`; recorrido a 360, 768, 1024 y 1440 px.
 
-## 6. Pantallas administrativas existentes
+## 6. Acceso y credenciales
 
-- [ ] 6.1 Ampliar primero `UsersPage.test.tsx` con escenarios fallidos para carga, vacío, error recuperable, éxito, acciones según permiso, diálogo de confirmación, credencial temporal y datos largos en escritorio y teléfono.
-- [ ] 6.2 Migrar `UsersPage` a encabezado, filtros, vista de datos, paginación, avisos y diálogos compartidos, conservando la misma autorización y resultados funcionales.
-- [ ] 6.3 Ampliar primero `AuditPage.test.tsx` con escenarios fallidos para filtros, estados, detalle accesible, contenido largo, paginación y prioridad móvil; después migrar `AuditPage` a las primitivas aprobadas.
-- [ ] 6.4 Migrar `HomePage` y `TechnicalStatusPage` a la hoja operativa, usando estados de carga, resultado y error coherentes sin añadir capacidades ni métricas inexistentes.
-- [ ] 6.5 Confirmar mediante las pruebas de cada pantalla que las acciones visibles continúan dependiendo de permisos y que el frontend no asume autoridad del backend.
+- [ ] 6.1 Actualizar primero las pruebas de `LoginPage` y `AuthForms` para exigir la composición dividida en pantalla amplia, formulario prioritario en teléfono, etiquetas visibles, errores asociados y ausencia de registro público o acceso social.
+- [ ] 6.2 Crear un SVG local original relacionado con diagnóstico, vehículo y herramientas, usando la paleta aprobada, sin copiar personajes ni activos del kit; marcarlo como decorativo y documentar su procedencia.
+- [ ] 6.3 Migrar `frontend/src/pages/login/LoginPage.tsx` a la composición de dos regiones y su variante móvil sin alterar autenticación, mensajes genéricos ni prevención de doble envío.
+- [ ] 6.4 Adaptar `frontend/src/features/auth/AuthForms.tsx` y `frontend/src/pages/change-password/ChangePasswordPage.tsx` a los controles nuevos, conservando contratos, validaciones y credenciales.
+- [ ] 6.5 Verificar que acceso y cambio de contraseña funcionan sin Internet y sin cambios en sesiones Django, CSRF o API.
 
-**Evidencia:** `cd frontend && npm test -- src/pages` con cobertura de todas las superficies modificadas.
+**Evidencia:** `cd frontend && npm test -- src/pages/login src/pages/change-password src/features/auth`; inspección de red local sin solicitudes visuales externas.
 
-## 7. Adaptación, accesibilidad y evidencia visual
+## 7. Usuarios y formularios contextuales
 
-- [ ] 7.1 Integrar axe en los recorridos Playwright y crear una ayuda de verificación que falle ante infracciones de accesibilidad de impacto serio o crítico en las rutas representativas.
-- [ ] 7.2 Añadir primero recorridos E2E fallidos para navegación autorizada, panel móvil, formularios, filtros, datos, diálogos y cierre de sesión en 360 × 800, 768 × 1024, 1024 × 768 y 1440 × 900.
-- [ ] 7.3 Corregir las superficies hasta que los recorridos E2E no presenten pérdida de contenido, superposición, acciones dependientes de hover ni desplazamiento horizontal de la página.
-- [ ] 7.4 Crear capturas Playwright estables para acceso, inicio, usuarios, auditoría y estado técnico con contenido representativo; revisar estados de carga, vacío, error y texto largo donde correspondan.
-- [ ] 7.5 Realizar revisión manual con teclado, zoom al 200 %, orientación de tableta, contraste, movimiento reducido y lector de pantalla básico; registrar los resultados y corregir las incidencias del alcance.
+- [ ] 7.1 Actualizar primero `frontend/src/pages/users/UsersPage.test.tsx` con casos fallidos para cabecera, búsqueda, filtros, filas elevadas, carga, vacío, error, datos largos, acciones por permiso y transformación móvil.
+- [ ] 7.2 Actualizar primero `frontend/src/features/users/UserForm.test.tsx` con casos fallidos para apertura en drawer, una columna en teléfono, orden lógico, selección táctil de roles, errores y cambios sin guardar.
+- [ ] 7.3 Migrar `frontend/src/pages/users/UsersPage.tsx` a `ElevatedDataList`, paginación, avisos, drawer y diálogos, conservando la misma autorización y resultados funcionales.
+- [ ] 7.4 Migrar `frontend/src/features/users/UserForm.tsx` a las primitivas nuevas sin alterar el contenido enviado ni las reglas de roles.
+- [ ] 7.5 Verificar que crear, editar, desactivar, restaurar y restablecer credencial identifican claramente al usuario y que las acciones no autorizadas permanecen ocultas y denegadas por backend.
 
-**Evidencia:** `cd frontend && npm run test:e2e`; capturas aprobadas en los cuatro tamaños y lista de revisión manual sin incidencias abiertas de severidad alta.
+**Evidencia:** `cd frontend && npm test -- src/pages/users/UsersPage.test.tsx src/features/users/UserForm.test.tsx`; pruebas E2E de usuarios por permiso.
 
-## 8. Documentación, limpieza y cierre
+## 8. Inicio, auditoría y estado técnico
 
-- [ ] 8.1 Buscar y retirar estilos provisionales `slate/cyan`, colores directos, iconos aislados y patrones duplicados que hayan quedado en las superficies migradas; conservar excepciones solo si están documentadas.
-- [ ] 8.2 Crear `DESIGN.md` con los tokens y patrones realmente construidos, actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md`, su trazabilidad y las referencias terminológicas afectadas sin convertir decisiones visuales en reglas del dominio.
-- [ ] 8.3 Comprobar que `frontend/package.json` y `frontend/package-lock.json` permanecen sincronizados, que los activos funcionan sin Internet y que no se incorporaron cambios de backend, API, datos o migraciones.
-- [ ] 8.4 Ejecutar `make frontend-check`, `cd frontend && npm run test:e2e`, `make compose-check` y `make audit`; corregir todo fallo introducido por el cambio y conservar los resultados reales para la verificación OpenSpec.
+- [ ] 8.1 Escribir o actualizar primero pruebas fallidas de `HomePage` para jerarquía de página y accesos reales según permiso, sin añadir métricas ni módulos todavía inexistentes.
+- [ ] 8.2 Actualizar primero `frontend/src/pages/audit/AuditPage.test.tsx` con casos fallidos para filtros compactos, filas elevadas, detalle accesible, paginación, contenido largo y prioridad móvil.
+- [ ] 8.3 Migrar `frontend/src/pages/audit/AuditPage.tsx` a las superficies y datos aprobados sin introducir acciones que modifiquen auditoría.
+- [ ] 8.4 Actualizar primero las pruebas de `TechnicalStatusPage` para carga, resultado y error; después migrar `HomePage` y `TechnicalStatusPage` sin inventar datos ni exponer secretos.
+- [ ] 8.5 Confirmar que todas las páginas usan títulos, acciones y vocabulario coherentes y que ninguna conserva IBM Plex, azul técnico, divisores dominantes o sombras del diseño rechazado.
 
-**Evidencia:** todos los comandos del grupo terminan con código cero, `git diff --check` no informa errores y la documentación coincide con la implementación final.
+**Evidencia:** `cd frontend && npm test -- src/pages`; revisión de acceso, inicio, auditoría y estado técnico con datos representativos.
+
+## 9. Adaptación, accesibilidad y fidelidad visual
+
+- [ ] 9.1 Actualizar primero `frontend/e2e/responsive.spec.ts` con recorridos fallidos en 360 × 800, 768 × 1024, 1024 × 768 y 1440 × 900 para navegación, formularios, listas, drawer y diálogo.
+- [ ] 9.2 Mantener `frontend/e2e/accessibility.ts` y axe configurados para fallar ante infracciones serias o críticas en las rutas representativas.
+- [ ] 9.3 Corregir las superficies hasta que no exista pérdida de contenido, solapamiento, acción dependiente de hover ni desplazamiento horizontal de la página en los cuatro tamaños.
+- [ ] 9.4 Actualizar `frontend/e2e/visual-evidence.spec.ts` para capturar acceso, inicio, usuarios, auditoría y estado técnico con datos y animaciones estables.
+- [ ] 9.5 Comparar en una ronda conjunta las capturas de escritorio, tableta y teléfono con el checklist del Figma; corregir en un solo lote los desvíos de lienzo, navegación, tipografía, violeta, radios, elevación, densidad y adaptación, y confirmar con una segunda ronda como máximo.
+- [ ] 9.6 Realizar revisión manual de teclado, foco, zoom al 200 %, orientación de tableta, contraste, movimiento reducido y lector de pantalla básico; resolver toda incidencia alta del alcance.
+
+**Evidencia:** `cd frontend && npm run test:e2e`; capturas aprobadas en los cuatro tamaños y lista manual sin incidencias altas abiertas.
+
+## 10. Documentación, limpieza y verificación final
+
+- [ ] 10.1 Sustituir el contenido rechazado de `DESIGN.md` por los tokens y patrones realmente construidos, incluida la atribución a SAAS Dashboard de Jiangyu bajo CC BY 4.0 y la procedencia del SVG propio.
+- [ ] 10.2 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md`, `docs/negocio/requisitos/matriz-trazabilidad.md`, `docs/tecnico/revision-visual-frontend.md` y referencias terminológicas afectadas para eliminar “Hoja de taller de precisión”.
+- [ ] 10.3 Buscar y retirar dependencias IBM Plex, tokens azul técnico, colores directos, estilos duplicados y componentes sin consumidores; confirmar que `package.json` y `package-lock.json` permanecen sincronizados.
+- [ ] 10.4 Verificar mediante diff que no existen cambios de backend, API, modelos, migraciones, autenticación, permisos ni reglas del dominio dentro de este cambio visual.
+- [ ] 10.5 Ejecutar `cd frontend && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e` y corregir todo fallo introducido.
+- [ ] 10.6 Ejecutar `make frontend-check`, `make compose-check`, `make audit`, `git diff --check` y `openspec validate establecer-sistema-visual-frontend --strict`; conservar resultados reales y limitaciones del entorno para la verificación OpenSpec.
+
+**Evidencia:** todos los comandos aplicables terminan con código cero, la documentación coincide con la implementación y el checklist visual no conserva desvíos materiales abiertos.
