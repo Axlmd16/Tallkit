@@ -43,12 +43,27 @@ beforeEach(() => {
 it('shows the business timezone and sanitized event detail', async () => {
   const user = userEvent.setup()
   render(<AuditPage />)
-  expect(screen.getByText(/9 sept 2026/)).toBeInTheDocument()
-  await user.click(screen.getByRole('button', { name: 'Ver' }))
-  expect(screen.getByRole('dialog')).toHaveTextContent('request-id')
+  expect(screen.getAllByText(/9 sept 2026/)).not.toHaveLength(0)
+  await user.click(screen.getAllByRole('button', { name: 'Ver' })[0]!)
+  expect(
+    screen.getByRole('dialog', { name: 'Detalle del evento' }),
+  ).toHaveTextContent('request-id')
   expect(screen.getByRole('dialog')).toHaveTextContent('changed_fields')
   await user.click(screen.getByRole('button', { name: 'Cerrar detalle' }))
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+it('offers comparable desktop data and prioritized narrow-screen detail', () => {
+  render(<AuditPage />)
+
+  expect(
+    screen.getByRole('table', { name: 'Eventos de auditoría' }),
+  ).toBeInTheDocument()
+  expect(
+    screen.getByRole('list', {
+      name: 'Eventos de auditoría en pantalla estrecha',
+    }),
+  ).toBeInTheDocument()
 })
 
 it('applies filters and pagination controls', async () => {
@@ -58,8 +73,8 @@ it('applies filters and pagination controls', async () => {
   await user.type(screen.getByLabelText('Acción'), 'login')
   await user.selectOptions(screen.getByLabelText('Resultado'), 'DENIED')
   await user.type(screen.getByLabelText('Tipo de objeto'), 'user')
-  await user.click(screen.getByRole('button', { name: 'Anterior' }))
-  await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+  await user.click(screen.getByRole('button', { name: 'Página anterior' }))
+  await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
   expect(mocks.filters.at(-1)).toMatchObject({
     user: '2',
     action: 'login',

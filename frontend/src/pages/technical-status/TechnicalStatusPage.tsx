@@ -2,6 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getHealth } from '@/shared/api/health'
 import { environment } from '@/shared/config/env'
+import {
+  Button,
+  InlineNotice,
+  LoadingState,
+  PageHeader,
+  Surface,
+} from '@/shared/ui'
 
 export function TechnicalStatusPage() {
   const health = useQuery({
@@ -11,42 +18,37 @@ export function TechnicalStatusPage() {
   })
 
   return (
-    <section className="mx-auto max-w-3xl rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl sm:p-10">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-400">
-        {environment.appName}
-      </p>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
-        Estado técnico
-      </h1>
-      <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
-        Base técnica del sistema de gestión para el taller automotriz.
-      </p>
-
-      <div
-        aria-live="polite"
-        className="mt-8 rounded-2xl border border-slate-700 bg-slate-950/60 p-5"
-      >
-        {health.isPending && <p>Comprobando backend y PostgreSQL…</p>}
+    <section>
+      <PageHeader
+        description={`Disponibilidad de la base técnica de ${environment.appName}.`}
+        title="Estado técnico"
+      />
+      <Surface className="mt-6 max-w-3xl">
+        {health.isPending && (
+          <LoadingState label="Comprobando backend y PostgreSQL…" />
+        )}
         {health.isSuccess && (
-          <p className="font-medium text-emerald-300">
-            Backend y PostgreSQL disponibles
-          </p>
+          <InlineNotice title="Backend y PostgreSQL disponibles" tone="success">
+            El sistema respondió correctamente a la comprobación técnica.
+          </InlineNotice>
         )}
         {health.isError && (
-          <p className="font-medium text-rose-300">
-            Backend o PostgreSQL no disponible
-          </p>
+          <InlineNotice
+            title="Backend o PostgreSQL no disponible"
+            tone="danger"
+          >
+            Compruebe los servicios antes de continuar con tareas operativas.
+          </InlineNotice>
         )}
-      </div>
-
-      <button
-        className="mt-6 min-h-11 rounded-xl bg-cyan-400 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300 disabled:cursor-wait disabled:opacity-60"
-        disabled={health.isFetching}
-        onClick={() => void health.refetch()}
-        type="button"
-      >
-        Comprobar nuevamente
-      </button>
+        <Button
+          className="mt-5"
+          pending={health.isFetching}
+          pendingLabel="Comprobando…"
+          onClick={() => void health.refetch()}
+        >
+          Comprobar nuevamente
+        </Button>
+      </Surface>
     </section>
   )
 }

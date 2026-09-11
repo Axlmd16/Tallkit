@@ -1,6 +1,6 @@
 ## ADDED Requirements
 
-### Requirement: Lenguaje visual inspirado en SAAS Dashboard y adaptado al taller
+### Requirement: Fidelidad estructural a los frames Figma y adaptación al taller
 La interfaz SHALL aplicar de forma coherente el lenguaje visual aprobado a la navegación, las páginas, los controles y los mensajes: lienzo neutro gris lavanda muy claro, superficies blancas, texto principal azul marino oscuro, violeta como acento primario y acentos pastel para estados o categorías. La adaptación SHALL conservar la identidad y terminología de Sys-Taller y SHALL NOT copiar la marca Base, su logotipo, ilustraciones, textos ni datos demostrativos.
 
 **Trazabilidad:** `RNF-USA-004`, `RNF-USA-006`, `RNF-USA-008`, `RNF-USA-009`, `RNF-MAN-003`; principios 1, 2 y 8 de `interfaz-y-navegacion.md`; referencia visual SAAS Dashboard aprobada en `proposal.md`.
@@ -14,7 +14,7 @@ La interfaz SHALL aplicar de forma coherente el lenguaje visual aprobado a la na
 - **THEN** SHALL presentar la marca, el vocabulario, los permisos y los datos propios de Sys-Taller sin mostrar elementos demostrativos de la plantilla
 
 ### Requirement: Jerarquía mediante lienzo y superficies elevadas
-La interfaz SHALL organizar el contenido sobre un lienzo claro mediante superficies blancas de bordes redondeados, separación generosa y elevación suave. Las superficies SHALL agrupar contenido relacionado y facilitar el escaneo sin convertir cada texto o control en una tarjeta ni depender de divisores oscuros o decoración industrial.
+La interfaz SHALL organizar el contenido sobre un lienzo claro mediante superficies blancas de bordes redondeados, separación medida en Figma y elevación únicamente donde la referencia la declara. Las superficies SHALL agrupar contenido relacionado y facilitar el escaneo sin convertir cada texto o control en una tarjeta ni depender de divisores oscuros o decoración industrial.
 
 **Trazabilidad:** `RNF-USA-001`, `RNF-USA-002`, `RNF-USA-008`; secciones 1, 4, 5 y 8 de `interfaz-y-navegacion.md`; referencia visual aprobada en `proposal.md`.
 
@@ -40,7 +40,7 @@ El violeta SHALL identificar la acción principal, la selección activa y el foc
 - **THEN** ambas SHALL conservar un tratamiento visual e interactivo equivalente
 
 ### Requirement: Tipografía amable, legible y jerarquizada
-La interfaz SHALL usar una familia tipográfica sans serif de apariencia geométrica y amable, con una escala limitada que distinga títulos, contenido, etiquetas y datos operativos. El texto ordinario SHALL conservar un tamaño legible y los códigos, secuenciales, fechas e importes SHALL poder compararse sin confusión entre caracteres.
+La interfaz SHALL usar Nunito local en los pesos 400, 600, 700 y 800 extraídos de Figma, con una escala limitada que distinga títulos, contenido, etiquetas y datos operativos. El texto ordinario SHALL conservar un tamaño legible y los códigos, secuenciales, fechas e importes SHALL poder compararse sin confusión entre caracteres.
 
 **Trazabilidad:** `RNF-USA-008`, `RNF-USA-009`; secciones 1, 4 y 5 de `interfaz-y-navegacion.md`.
 
@@ -129,3 +129,31 @@ Las pantallas existentes de acceso, cambio de contraseña, inicio, usuarios, aud
 #### Scenario: Usuario sin permiso
 - **WHEN** un **Usuario** carece del permiso necesario para una opción de navegación o acción
 - **THEN** el nuevo sistema visual SHALL NOT hacerla visible ni alterar la denegación obligatoria del backend
+
+
+### Requirement: Referencias estructuradas y mapeo obligatorio
+La corrección SHALL usar las propiedades estructuradas del archivo `GRvgnODulXXrLTz4BsaToK`, consultando individualmente `4:344`, `4:660`, `4:1140`, `4:2803`, `4:3258`, `4:4567`, `4:4981`, `4:8584`, `4:9302` y `4:9333`. Antes del código SHALL presentar la comparación entre valores actuales y extraídos y enumerar componentes afectados.
+
+**Trazabilidad:** instrucción correctiva del usuario del 2026-09-10; `RNF-USA-002`, `RNF-USA-008`; `UI-001`, `UI-002`, `UI-010`, `UI-011`, `UI-018`.
+
+#### Scenario: Mapeo de las superficies existentes
+- **GIVEN** los diez frames consultados y sus propiedades disponibles
+- **WHEN** se corrigen las pantallas existentes
+- **THEN** Inicio SHALL reproducir la retícula de `4:344`; Usuarios y Auditoría las filas y columnas de `4:660` y `4:2803`; el drawer de usuario `4:3258`; el acceso `4:8584`; el restablecimiento administrativo y su resultado `4:9302` y `4:9333`
+- **AND** SHALL preservar rutas, permisos, API, validaciones y pruebas de comportamiento; Recover SHALL NOT introducir envío de correo ni recuperación pública
+
+#### Scenario: Sustitución del contenido demostrativo
+- **GIVEN** una región de la referencia cuyo módulo todavía no existe en Sys-Taller
+- **WHEN** se reproduce su composición
+- **THEN** SHALL conservar sus dimensiones, densidad y proporciones con contenido real disponible o placeholders neutrales identificados como sin datos, sin inventar métricas, personas, productos ni rutas
+
+### Requirement: Aceptación visual explícita y evidencia por etapa
+La corrección SHALL ejecutarse en ocho etapas: fuente/tokens; shell/sidebar/fondo; controles/tarjetas/filas; dashboard; usuarios/drawer; auditoría; acceso/recuperación/confirmación; responsive/accesibilidad. Cada etapa SHALL ejecutar pruebas, capturar con Playwright y comparar contra Figma antes de continuar. Las pruebas técnicas SHALL NOT equivaler a aprobación visual.
+
+**Trazabilidad:** instrucción correctiva del usuario del 2026-09-10; `RNF-USA-008`, `RNF-MAN-005`.
+
+#### Scenario: Revisión final por el usuario
+- **GIVEN** las pruebas y capturas de todas las etapas
+- **WHEN** se presenta el resultado visual
+- **THEN** SHALL mostrar capturas comparativas de Figma y la aplicación al mismo viewport y registrar diferencias o adaptaciones de contenido
+- **AND** el cambio SHALL permanecer sin aceptación visual, commit, merge ni archivo hasta recibir aprobación visual explícita del usuario

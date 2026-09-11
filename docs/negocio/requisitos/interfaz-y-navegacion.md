@@ -4,11 +4,11 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.3 |
-| Estado | Alineado con el modelo de dominio aprobado |
-| Fecha | 2026-09-08 |
+| Versión del documento | 0.4 |
+| Estado | Modelo de dominio aprobado; corrección visual pendiente de aceptación |
+| Fecha | 2026-09-10 |
 
-> Este documento define estructura, pantallas y comportamiento esperado, no un diseño visual definitivo. Los prototipos deberán validar estos requisitos antes de implementar componentes finales.
+> Este documento define estructura, pantallas y comportamiento esperado. La dirección visual vigente, basada en una adaptación del kit **SAAS Dashboard**, sus tokens y componentes se documentan en [`../../../DESIGN.md`](../../../DESIGN.md).
 
 ## 1. Principios de interfaz
 
@@ -29,12 +29,14 @@
 
 La aplicación autenticada tendrá:
 
-- Encabezado con nombre del producto, usuario actual, acceso a perfil y cierre de sesión.
-- Navegación principal lateral en escritorio y contraíble en tableta o teléfono.
-- Título de página y ruta de navegación.
+- Identidad textual reemplazable, usuario actual, roles y cierre de sesión. El acceso a perfil se incorporará cuando exista esa capacidad.
+- Navegación principal blanca de iconos, 80 px desde 768 px, margen exterior de 30 px en escritorio y drawer bajo 768 px; referencia 4:344.
+- Título de página y contexto breve cuando resulte útil.
 - Área principal de contenido.
 - Indicador visible de entidad fiscal cuando la pantalla tenga ámbito económico.
-- Zona de notificaciones para confirmaciones, advertencias y errores.
+- Zona de notificaciones para confirmaciones, advertencias y errores mediante texto y color redundantes.
+
+Los recursos tipográficos e iconográficos esenciales se sirven desde el paquete local. Los controles táctiles esenciales tienen al menos 44 px; el foco es visible y el movimiento respeta `prefers-reduced-motion`. Las tablas comparables se mantienen en computadora y tableta, mientras el teléfono prioriza identificación, estado y acciones sin provocar desplazamiento horizontal de la página.
 
 ### 2.2 Navegación principal propuesta
 

@@ -18,7 +18,7 @@ La aplicación SHALL ser utilizable desde 360 px de ancho hasta pantallas de esc
 - **THEN** SHALL poder completar los flujos esenciales mediante una sola columna y sin que un control quede fuera del área visible de la página
 
 ### Requirement: Navegación lateral adaptable y autorizada
-La navegación principal SHALL presentarse como barra lateral completa en escritorio, como barra lateral compacta cuando el ancho de tableta lo requiera y como panel temporal en teléfono. En todos los tamaños SHALL conservar la ruta activa, el acceso a inicio, la identidad del usuario y únicamente las opciones permitidas por sus roles.
+La navegación principal SHALL presentarse como barra lateral compacta de iconos en escritorio y tableta, usando la variante de 80 px del frame `4:344` y como panel temporal en teléfono. En todos los tamaños SHALL conservar la ruta activa, el acceso a inicio, la identidad del usuario y únicamente las opciones permitidas por sus roles.
 
 **Trazabilidad:** `CT-001`, `RNF-SEG-003`, `RNF-USA-001`, `RNF-USA-007`; sección 2 de `interfaz-y-navegacion.md`.
 
@@ -150,3 +150,14 @@ Cada superficie modificada SHALL verificarse al menos en 360 px, 768 px, 1024 px
 #### Scenario: Revisión de una superficie modificada
 - **WHEN** una pantalla queda preparada para integrar el cambio
 - **THEN** SHALL existir evidencia de que sus flujos esenciales no presentan pérdida de contenido, solapamientos ni desplazamiento horizontal de página en los cuatro tamaños representativos
+
+
+### Requirement: Comparación al tamaño nativo de la referencia
+Las capturas de aceptación SHALL usar el mismo viewport CSS que el frame comparado: 1366 × 1047 para Inicio, 1440 × 1016 para Invoice List y su menú, 1440 × 900 para Customer List, Product y drawers, y 1440 × 1112 para acceso, recuperación y confirmación. La matriz adaptable de 360, 768, 1024 y 1440 px SHALL complementarlas.
+
+**Trazabilidad:** instrucción correctiva del usuario; `RNF-USA-001`, `RNF-USA-008`.
+
+#### Scenario: Revisión de proporciones y densidad
+- **GIVEN** el frame exportado a escala 1 y datos locales estables
+- **WHEN** se captura la pantalla equivalente con Playwright
+- **THEN** ambas imágenes SHALL tener las mismas dimensiones, sin estirar la referencia para ocultar diferencias de geometría

@@ -68,30 +68,33 @@ Los colores se declararán como propiedades CSS en `frontend/src/shared/styles/i
 
 | Rol | Valor inicial | Uso |
 |---|---:|---|
-| `canvas` | `#F7F7FB` | Fondo general gris lavanda. |
+| `canvas` | `#FAFAFB` | Fondo general gris frío extraído del archivo. |
 | `surface` | `#FFFFFF` | Navegación, tarjetas, filas y paneles. |
-| `surface-muted` | `#F3F3F8` | Campos, barras y agrupaciones secundarias. |
+| `surface-muted` | `#F7F7F8` | Campos, barras y agrupaciones secundarias. |
 | `surface-selected` | `#EFEEFF` | Navegación, pestañas y filas seleccionadas. |
-| `ink` | `#171936` | Títulos y texto principal azul marino. |
-| `ink-muted` | `#77798F` | Texto secundario sobre fondos claros. |
-| `line` | `#ECECF3` | Separadores discretos y contornos necesarios. |
-| `primary` | `#635BFF` | Acción principal y selección activa. |
-| `primary-hover` | `#5148E8` | Hover y énfasis del violeta. |
-| `focus` | `#5046E5` | Anillo de foco visible. |
-| `info` | `#5892F8` | Información complementaria. |
-| `success` | `#2E914B` | Resultado satisfactorio. |
-| `warning` | `#D88916` | Atención o estado pendiente. |
-| `danger` | `#D83B4B` | Error o acción destructiva. |
+| `ink` | `#030229` | Títulos y texto principal del archivo Figma. |
+| `ink-muted` | `rgb(3 2 41 / 0.5)` | Texto secundario sobre fondos claros. |
+| `line` | `rgb(3 2 41 / 0.08)` | Separadores discretos y contornos necesarios. |
+| `primary` | `#605BFF` | Acción principal y selección activa. |
+| `primary-hover` | `#4F4AE8` | Hover y énfasis del violeta. |
+| `focus` | `#504AEF` | Anillo de foco visible. |
+| `info` | `#5B93FF` | Información complementaria. |
+| `cyan` | `#26C0E2` | Estado auxiliar y acento de datos. |
+| `yellow` | `#FFD66B` | Estado auxiliar y acento de datos. |
+| `coral` | `#FF8F6B` | Estado auxiliar y acento de datos. |
+| `success` | `#3A974C` | Resultado satisfactorio. |
+| `warning` | `#F29339` | Atención o estado pendiente. |
+| `danger` | `#D11A2A` | Error o acción destructiva. |
 
 Cada estado tendrá una superficie pastel propia, por ejemplo violeta `#EFEEFF`, azul `#EAF2FF`, verde `#EAF7EE`, amarillo `#FFF6DF` y rojo `#FDECEF`. Texto e icono mantendrán el significado cuando el fondo semántico no se distinga.
 
-Las capturas muestreadas sitúan el violeta principal alrededor de `#615CFF`–`#6763FF`; se adopta `#635BFF` como token estable y se verificará visualmente antes de cerrar la implementación. Los valores finales deberán superar los contrastes exigibles; la semejanza cromática no justifica texto ilegible.
+El inspector conectado al archivo Figma identifica `#605BFF` como violeta principal. Los valores de tinta con opacidad se materializarán como colores semánticos legibles; la semejanza cromática no justifica texto que incumpla el contraste requerido.
 
 **Alternativas consideradas:** el azul `#1D4ED8` de la implementación anterior no reproduce la referencia; copiar colores como utilidades directas impediría ajustar fidelidad y contraste de forma centralizada.
 
-### 3. Tipografía Poppins local y una sola voz de producto
+### 3. Tipografía Nunito local y una sola voz de producto
 
-La interfaz usará **Poppins** en pesos 400, 500 y 600, servida localmente mediante `@fontsource/poppins@5.3.0` con licencia OFL-1.1. Se retirarán IBM Plex Sans y IBM Plex Mono cuando ya no tengan consumidores.
+El inspector conectado identifica **Nunito** como la familia dominante del kit. La interfaz usará Nunito en pesos 400, 600, 700 y 800, servida localmente mediante `@fontsource/nunito@5.3.0` con licencia OFL-1.1. Se retirarán IBM Plex Sans y IBM Plex Mono cuando ya no tengan consumidores.
 
 La elección sigue la construcción geométrica, redondeada y amable de la referencia. La misma familia atenderá títulos, controles y datos; códigos, fechas, secuenciales e importes usarán `font-variant-numeric: tabular-nums` y alineación consistente, no una voz monoespaciada ajena al kit.
 
@@ -107,22 +110,21 @@ Escala base:
 
 El cuerpo ordinario no bajará de 14 px. Las etiquetas permanecerán en sentence case; no se añadirán rótulos en mayúsculas con espaciado artificial.
 
-**Alternativas consideradas:** IBM Plex conserva la estética técnica rechazada; Inter sería neutral pero se aleja del carácter redondeado observado; cargar fuentes remotas incumpliría la operación en red local.
+**Alternativas consideradas:** IBM Plex conserva la estética técnica rechazada; Poppins fue una estimación anterior a disponer del inspector y no coincide con la familia declarada por el archivo; cargar fuentes remotas incumpliría la operación en red local. Algunos frames aislados declaran Google Sans, pero se normalizan a Nunito para mantener una sola voz local y reproducible.
 
 ### 4. Geometría, elevación y ritmo reproducen el carácter del kit
 
 La escala espacial conservará una base de 4 px: 4, 8, 12, 16, 20, 24, 32 y 40 px. Se usarán radios diferenciados:
 
-- 8 px en campos y controles compactos;
-- 10 px en botones y distintivos amplios;
-- 12 px en filas elevadas;
-- 16 px en tarjetas y paneles;
-- 20 px en diálogos o composiciones destacadas.
+- 5 px en campos y controles compactos;
+- 10 px en botones, tarjetas, filas y paneles;
+- radios completos solo en distintivos y controles pequeños que el kit presenta como píldoras.
 
 La elevación será suave y azulada, nunca gris pesada:
 
-- `shadow-row`: `0 4px 14px rgb(35 39 94 / 0.05)`;
-- `shadow-card`: `0 10px 30px rgb(35 39 94 / 0.07)`;
+- `shadow-row`: `1px 17px 44px 0 rgb(3 2 41 / 0.07)`;
+- `shadow-card`: `0 10px 30px rgb(3 2 41 / 0.05)`;
+- `shadow-overlay`: `-14px 30px 20px 0 rgb(0 0 0 / 0.05)`.
 - `shadow-overlay`: `0 24px 60px rgb(25 27 66 / 0.16)`.
 
 No todos los elementos serán tarjetas. La elevación identifica registros, grupos funcionales o capas; texto, filtros sencillos y acciones no recibirán un contenedor adicional sin necesidad.
@@ -220,7 +222,7 @@ Las transiciones de color y sombra durarán 140–180 ms. Drawer y diálogo usar
 
 ### 14. Dependencias y activos reproducibles
 
-La migración tipográfica sustituirá los paquetes IBM Plex por `@fontsource/poppins@5.3.0`; `package.json` y `package-lock.json` deberán cambiar juntos conforme al ADR-0002. Phosphor y axe se conservan. No se añadirán bibliotecas para drawer, diálogo, animación o gráficos.
+La migración tipográfica sustituirá los paquetes IBM Plex por `@fontsource/nunito@5.3.0`; `package.json` y `package-lock.json` deberán cambiar juntos conforme al ADR-0002. Phosphor y axe se conservan. No se añadirán bibliotecas para drawer, diálogo, animación o gráficos.
 
 El SVG del acceso y cualquier activo futuro vivirán bajo el frontend y serán servidos por Vite/Nginx sin conexión externa. La atribución a **SAAS Dashboard**, Jiangyu y su licencia CC BY 4.0 se conservará en la documentación de diseño o avisos de terceros aplicables, sin sugerir que el autor respalda Sys-Taller.
 
@@ -243,7 +245,7 @@ Los comandos finales serán `npm run format:check`, `npm run lint`, `npm run typ
 ## Risks / Trade-offs
 
 - **[La fidelidad al kit puede producir una interfaz SaaS genérica]** → conservar composición y acabado, pero usar contenido, jerarquías, iconografía y activo visual propios del taller.
-- **[Poppins puede no coincidir exactamente con la familia interna del archivo Figma]** → validar una muestra lado a lado; si la inspección del archivo revela otra familia redistribuible, actualizar el design antes de aplicar, no durante una corrección silenciosa.
+- **[Nunito puede variar ligeramente entre el render de Figma y el navegador]** → usar los pesos identificados por el inspector, servirlos localmente y validar jerarquía y ajuste de texto en los cuatro tamaños objetivo.
 - **[El violeta o los tonos pastel pueden fallar contraste]** → usar tonos oscuros para texto y reservar los pasteles para superficies; verificar combinaciones antes de aprobar tokens.
 - **[Las sombras repetidas pueden crear ruido o afectar rendimiento]** → limitar tres niveles, evitar blur excesivo y no elevar controles ordinarios.
 - **[Las filas separadas pueden perder comparación]** → mantener una retícula compartida y encabezados alineados en computadora y tableta.
@@ -256,7 +258,7 @@ Los comandos finales serán `npm run format:check`, `npm run lint`, `npm run typ
 ## Migration Plan
 
 1. Reconciliar las tareas existentes con este diseño y volver a abrir todas las tareas visuales afectadas.
-2. Sustituir IBM Plex por Poppins con versiones exactas y actualizar ambos archivos npm.
+2. Sustituir IBM Plex por Nunito con versiones exactas y actualizar ambos archivos npm.
 3. Reemplazar tokens globales y estados base; verificar contraste antes de migrar páginas.
 4. Adaptar las primitivas compartidas y añadir `Surface`, `ElevatedDataList` y `Drawer` mediante pruebas.
 5. Migrar el marco autenticado y validar navegación activa, permisos, cierre de sesión y los tres modos responsive.
@@ -272,13 +274,13 @@ No existe migración de datos ni coordinación de despliegue con el backend. El 
 
 No existen preguntas bloqueantes para crear las tareas.
 
-Antes de cerrar la implementación se deberá confirmar mediante comparación visual si Poppins reproduce suficientemente la tipografía del archivo o si el inspector conectado permite identificar otra familia compatible. El nombre comercial, el logotipo definitivo, las fotografías, el tema oscuro y la personalización visual permanecen aplazados.
+El inspector conectado confirmó Nunito como familia dominante. El nombre comercial, el logotipo definitivo, las fotografías, el tema oscuro y la personalización visual permanecen aplazados.
 
 ## Trazabilidad
 
 | Decisión | Especificaciones y fuentes |
 |---|---|
-| Autoridad visual y tokens | `sistema-visual-frontend`: lenguaje inspirado en SAAS Dashboard, jerarquía de superficies y acciones. |
+| Autoridad visual y tokens | `sistema-visual-frontend`: reproducción fiel de las propiedades estructuradas de SAAS Dashboard, jerarquía de superficies y acciones. |
 | Marco y adaptación | `experiencia-adaptable-frontend`: dispositivos objetivo, navegación lateral, acciones y controles táctiles. |
 | Formularios, drawer y diálogo | Ambas specs: formularios adaptables, paneles laterales, teclado y foco. |
 | Filas elevadas | `experiencia-adaptable-frontend`: listas y tablas adaptables con filas elevadas; `RNF-USA-002`, `RNF-REN-005`. |
@@ -287,3 +289,21 @@ Antes de cerrar la implementación se deberá confirmar mediante comparación vi
 | Ámbito fiscal | Decisiones confirmadas, modelo de dominio y requisito de estados y ámbitos sin depender del color. |
 | Recursos locales | Requisito de recursos visuales locales; `RNF-DIS-001`, `RNF-COM-004`, `RNF-COM-005`; ADR-0002. |
 | Preservación funcional | `CT-001`, ADR-0003 y escenarios de adopción y usuario sin permiso. |
+
+
+## Corrección normativa del 2026-09-10
+
+La instrucción correctiva del usuario sustituye las estimaciones anteriores de este diseño. La ejecución previa no tiene aceptación visual. Se consultaron individualmente los diez frames mediante get_design_context; Login requirió además subcapas `4:8585`, `4:9216`, `4:9228`, `4:9248`, `4:9285`. Una lectura programática adicional verificó dimensiones, colores y efectos sin modificar Figma.
+
+- Inicio: frame 1366 × 1047; sidebar x/y 30, ancho 80, alto 987 y radio 10; contenido x 140; tarjetas superiores y 98, alto 116; paneles x 140/889, ancho 719/447, y 242/682 y alto 408/335; separación 30.
+- Listas: filas 70 px en Invoice List y 60 px en Customer List, separación 10, texto 14, encabezado 12 y título 24/700. Sombras solo en fila destacada, hover/foco o menú. Las tarjetas del dashboard no declaran sombra. Menú: 0 10px 20px rgb(0 0 0 / 0.1).
+- Sidebar: se usa la variante estrecha de Inicio también en listas, conforme a la petición, aunque los frames de listas declaran 218 px. Los nombres y roles permanecen accesibles y las etiquetas se conservan para tecnologías de asistencia; el título nativo identifica cada enlace al puntero.
+- Nunito 400/600/700/800 ya está en el árbol; no se cambia una dependencia que ya coincide. No hay Poppins ni serif en los consumidores actuales. Títulos 24/700; secciones 18/700; datos 12–14/400–600; indicadores 22/800; espaciado tipográfico cero.
+- Acentos originales: #5B93FF, #26C0E2, #FFD66B, #FF8F6B, #F29339, #EF37FF, #3A974C, #D11A2A; se conservan variantes de texto oscuras para contraste. Blanco y #F7F7F8 completan superficies.
+- Drawer: variante Add Customer 409 px, padding 30 px, campos 349 × 50, radio 5, botón radio 10. Una columna aunque el formulario existente declarase dos. Su contenido y validaciones se conservan.
+- Login: frame 1440 × 1112, columna blanca 448, margen interior 50, marca 92, controles 348 × 50, título 25/600. Las posiciones de las zonas sociales se sustituyen por texto neutral de acceso local; no se crean proveedores, registro ni funcionalidades.
+- Recover y Confirm: se aplican a los diálogos administrativos existentes. Superficies centrales de 658 y 726 px, radio 10, fondo #F7F7F8. Se conserva la credencial temporal de una sola visualización y todos los textos y botones funcionales existentes.
+- Dashboard: las regiones de información no disponible mantienen estructura con placeholders neutrales explícitos; no muestran cifras, series o porcentajes inventados ni nuevas llamadas API. Los accesos efectivos existentes se conservan por permiso.
+- Pruebas de comportamiento existentes: se conservan byte a byte durante esta corrección. Se añaden verificaciones de geometría independientes y capturas por etapa. La aceptación humana queda pendiente.
+
+Las fuentes de negocio, modelo conceptual, spec principal, producto, interfaz, RNF y ADR-0002/0003 se consultaron para preservar límites. Brechas detectadas: design anterior prescribe sidebar ancha y sombras generalizadas, specs usan “inspirado” y “separación generosa”, tasks confunden ejecución con aprobación, y Recover/Confirm no son rutas públicas de V1. Esta corrección registra y resuelve esas discrepancias dentro del alcance visual solicitado.
