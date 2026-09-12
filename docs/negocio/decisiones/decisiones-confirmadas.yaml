@@ -48,11 +48,24 @@ context: |
     ventas, servicios ni mantenimientos.
   - DP-007: un mantenimiento finalizado puede reabrirse mediante una acción explícita,
     autorizada y auditada; no mediante edición genérica del estado.
-  - DP-008: Cliente exige nombre completo, tipo de identificación, identificación,
-    teléfono, email y dirección. Los tipos admitidos son CI de exactamente 10 caracteres
-    y RUC de exactamente 13 caracteres, con validación en frontend y backend.
-  - DP-008: Vehículo exige placa, modelo, propietario, marca y color. Marca es un catálogo
-    administrable por el usuario. Propietario referencia a un Cliente registrado.
+  - DP-008 (Cliente, revisión aprobada 2026-09-11): exige nombre o razón social,
+    tipo de identificación, identificación y teléfono. Email y dirección son opcionales
+    durante el registro. Una funcionalidad futura de facturación podrá exigir completar
+    los datos fiscales necesarios antes de emitir un comprobante. Los tipos admitidos
+    siguen siendo CI de exactamente 10 caracteres y RUC de exactamente 13 caracteres,
+    con validación en frontend y backend. V1 no registra clientes sin identificación.
+  - DP-008 (Vehículo, revisión aprobada 2026-09-11): exige placa, marca, modelo y
+    propietario, que referencia a un Cliente registrado. Color y año son opcionales.
+    V1 no registra vehículos sin placa. Marca es un catálogo administrable.
+  - DP-008 (Marcas, aprobación 2026-09-11): los tres roles pueden consultar marcas
+    de vehículo. Administrador y Encargado del taller pueden crearlas y editarlas;
+    solo Administrador puede desactivarlas y reactivarlas.
+  - La revisión DP-008 del 2026-09-11 sustituye cualquier obligatoriedad anterior
+    diferente, incluidos email y dirección del Cliente y color del Vehículo. Fuente:
+    aprobación del usuario y proposal de gestionar-clientes-y-vehiculos. Antes de
+    aplicar ese cambio deben estar verificados y cerrados los cambios de identidad
+    (gestion-usuarios-autenticacion-roles) y sistema visual
+    (establecer-sistema-visual-frontend); esta decisión no los declara cerrados.
   - CT-001: un usuario debe tener uno o más de los tres roles fijos y puede acumularlos.
     Los únicos roles son ADMINISTRADOR, VENDEDOR y ENCARGADO_TALLER. No existen roles
     adicionales, permisos personalizados ni un rol Contador en V1.
