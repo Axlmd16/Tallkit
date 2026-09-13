@@ -12,8 +12,12 @@ Comandos: desde raíz, make frontend-check; desde frontend, npm test -- <archivo
 
 Dependencia: aprobación futura. Requisitos CVR-01/03/11.
 
-- [ ] 1.1 Verificar aprobación, git status, rama e incorporación exacta de estos artefactos en master; comparar inventario con checkout recibido y preservar cambios ajenos. Evidencia: estado Git y referencias verificadas, sin crear commits.
-- [ ] 1.2 Releer fuentes obligatorias y artefactos completos; confirmar que gestionar-clientes-y-vehiculos no requiere modificar el alcance del catálogo. Registrar brechas nuevas sin editar ese cambio.
+- [x] 1.1 Verificar aprobación, git status, rama e incorporación exacta de estos artefactos en master; comparar inventario con checkout recibido y preservar cambios ajenos. Evidencia: estado Git y referencias verificadas, sin crear commits.
+
+  Evidencia de aplicación: el usuario autorizó explícitamente el 2026-09-13 continuar en `develop` aunque los artefactos no estén en `master`. Checkout limpio inicial en `develop` (`1b879e3`), `master` en `2c68d51`; no se cambió de rama ni se creó commit, merge o reversión.
+- [x] 1.2 Releer fuentes obligatorias y artefactos completos; confirmar que gestionar-clientes-y-vehiculos no requiere modificar el alcance del catálogo. Registrar brechas nuevas sin editar ese cambio.
+
+  Evidencia: se revisaron las decisiones confirmadas, modelo de dominio, specs visual y adaptable, producto, requisitos de interfaz/no funcionales/trazabilidad, arquitectura, ADR-0001/0002/0003, C4, `DESIGN.md`, fuentes del repositorio y todos los artefactos de este cambio. `gestionar-clientes-y-vehiculos` permanece independiente y no exige ampliar el catálogo. Brechas preexistentes: README aún describe clientes/vehículos como ausentes y la matriz conserva aceptación visual pendiente, mientras el checkout y `revision-visual-frontend.md` registran implementación/aceptación posteriores; no se editaron esos documentos ni el otro cambio.
 - [ ] 1.3 Ejecutar make frontend-check y E2E actuales como línea base; registrar bloqueos de entorno sin atribuirlos al catálogo. Obtener capturas protegidas de acceso, inicio, usuarios, auditoría, clientes y vehículos.
 - [ ] 1.4 Registrar checksum de frontend/src/app, pages, features, shared/styles/index.css, backend, contratos y lockfiles. Crear fuera del repo registro de evidencia y referencias escala1, excluyendo contenido de plantilla de los ejemplos.
 
