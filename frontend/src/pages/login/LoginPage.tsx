@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router'
+import { Clock, ShieldCheck, Wrench } from '@phosphor-icons/react'
 
+import workshopDiagnostic from '@/assets/workshop-diagnostic.svg'
 import { LoginForm } from '@/features/auth/AuthForms'
 import { useLogin } from '@/features/auth/hooks'
 import { environment } from '@/shared/config/env'
@@ -8,21 +10,52 @@ export function LoginPage() {
   const login = useLogin()
   const navigate = useNavigate()
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-950 px-5 text-slate-100">
-      <section className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-7 shadow-2xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-400">
-          {environment.appName}
-        </p>
-        <h1 className="mt-3 text-3xl font-bold">Iniciar sesión</h1>
-        <p className="mb-7 mt-3 text-slate-300">
-          Acceso exclusivo para el personal del taller.
-        </p>
-        <LoginForm
-          onLogin={async (username, password) => {
-            await login.mutateAsync({ username, password })
-            void navigate('/')
-          }}
-        />
+    <main
+      className="login-page grid min-h-screen bg-canvas text-ink lg:grid-cols-[28rem_minmax(0,1fr)]"
+      data-testid="login-layout"
+    >
+      <section className="login-column">
+        <div className="login-content">
+          <span className="auth-logo" aria-hidden="true">
+            <Wrench size={46} weight="bold" />
+          </span>
+          <h1>Iniciar sesión</h1>
+          <div className="login-context">
+            <span>{environment.appName}</span>
+            <span>Acceso interno</span>
+          </div>
+          <div className="login-divider">
+            <span>Cuenta local</span>
+          </div>
+          <LoginForm
+            onLogin={async (username, password) => {
+              await login.mutateAsync({ username, password })
+              void navigate('/')
+            }}
+          />
+          <p className="login-footnote">
+            Acceso exclusivo para el personal del taller.
+          </p>
+        </div>
+      </section>
+      <section
+        aria-hidden="true"
+        className="login-art hidden lg:grid"
+        data-testid="login-visual"
+      >
+        <div className="login-art-scene">
+          <span className="scene-clock">
+            <Clock size={70} weight="light" />
+          </span>
+          <img alt="" className="login-illustration" src={workshopDiagnostic} />
+          <span className="scene-toolbox">
+            <Wrench size={52} weight="duotone" />
+          </span>
+          <span className="scene-access">
+            <ShieldCheck size={48} weight="duotone" />
+          </span>
+          <span className="scene-ground" />
+        </div>
       </section>
     </main>
   )

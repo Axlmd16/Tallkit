@@ -30,6 +30,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Capacidad | Decisiones | Reglas | Requisitos | Casos de uso | Interfaz | Modelo |
 |---|---|---|---|---|---|---|
 | Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009; RF-AUD-001, 003, 005 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol; implementado por `gestion-usuarios-autenticacion-roles` |
+| Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001 | Sin cambio funcional | Recorridos existentes | UI-001, UI-002, UI-010, UI-011, UI-018 | Implementado por `establecer-sistema-visual-frontend`; referencia en `DESIGN.md` |
 | Separación de los dos RUC | CT-001 | RN-FIS-001…010 | RF-ACC-010…014; RF-PAG-004, RF-PAG-009…010; RF-REP-008 | CU-003, CU-012…013, CU-017…020, CU-026 | UI-014…017, UI-053…063, UI-070…084 | EntidadFiscal, DocumentoInterno, CierreDiario |
 | Clientes compartidos | DP-008 | RN-CLI-001…003, RN-CLI-008 | RF-CLI-001…005, RF-CLI-012 | CU-004 | UI-020…022 | Cliente |
 | Vehículos y propiedad | DP-008; DM-003 V1 | RN-CLI-004…009 | RF-CLI-006…011 | CU-005 | UI-021, UI-023…025 | Vehiculo, PeriodoPropiedad |
@@ -99,3 +100,10 @@ Antes de implementar una capacidad:
 3. dinero, inventario y secuencias deben cubrir atomicidad, concurrencia e idempotencia;
 4. no debe quedar una decisión de negocio abierta que cambie materialmente el flujo;
 5. la futura API, el modelo de datos y las pruebas deben trazarse sin cambiar el significado conceptual aprobado.
+
+
+## Corrección visual pendiente de aceptación
+
+| Requisitos | Cambio activo | Evidencia requerida |
+|---|---|---|
+| RNF-USA-001/002/007/008, UI-001/002/010/011/018 | establecer-sistema-visual-frontend, tareas 11.1–11.10 | Propiedades estructuradas de diez frames, pruebas conservadas, capturas por etapa al mismo viewport, aprobación visual explícita pendiente |

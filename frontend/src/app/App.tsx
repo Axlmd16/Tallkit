@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import {
   createBrowserRouter,
   Navigate,
@@ -16,6 +16,7 @@ import { UsersPage } from '@/pages/users/UsersPage'
 
 import { RemoteAuthenticatedShell } from './AuthenticatedShell'
 import { PermissionGuard } from './PermissionGuard'
+import { createAppQueryClient } from './query-client'
 
 export const appRoutes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -58,11 +59,7 @@ export const appRoutes: RouteObject[] = [
   },
 ]
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { refetchOnWindowFocus: false, staleTime: 30_000 },
-  },
-})
+const queryClient = createAppQueryClient()
 
 const browserRouter = createBrowserRouter(appRoutes)
 type AppRouter = ReturnType<typeof createBrowserRouter>

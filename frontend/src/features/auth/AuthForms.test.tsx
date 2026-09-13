@@ -48,6 +48,31 @@ it('shows a generic login error and keeps the entered identifier', async () => {
   expect(screen.getByLabelText('Identificación de acceso')).toHaveValue(
     'operador',
   )
+  expect(screen.getByLabelText('Identificación de acceso')).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+  expect(screen.getByLabelText('Contraseña')).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+})
+
+it('associates required login errors with each affected field', async () => {
+  const user = userEvent.setup()
+  render(<LoginForm onLogin={vi.fn()} />)
+
+  await user.click(screen.getByRole('button', { name: 'Ingresar' }))
+
+  const identifier = screen.getByLabelText('Identificación de acceso')
+  const password = screen.getByLabelText('Contraseña')
+  expect(screen.getByRole('alert')).toHaveTextContent(
+    'Revise los campos señalados',
+  )
+  expect(identifier).toHaveAccessibleDescription(
+    'Use la identificación asignada por el administrador. Ingrese su identificación.',
+  )
+  expect(password).toHaveAccessibleDescription('Ingrese su contraseña.')
 })
 
 it('validates confirmation before changing a password', async () => {
@@ -69,5 +94,13 @@ it('validates confirmation before changing a password', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent(
     'Las contraseñas nuevas no coinciden.',
   )
+  expect(screen.getByLabelText('Contraseña actual')).toHaveValue('anterior')
+  expect(screen.getByLabelText('Nueva contraseña')).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+  expect(
+    screen.getByLabelText('Confirmar nueva contraseña'),
+  ).toHaveAccessibleDescription('Las contraseñas nuevas no coinciden.')
   expect(onChangePassword).not.toHaveBeenCalled()
 })

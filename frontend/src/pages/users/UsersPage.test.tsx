@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -69,7 +69,7 @@ beforeEach(() => {
 it('shows states and hides every administrative action without permission', () => {
   render(<UsersPage />)
 
-  expect(screen.getByText('ana')).toBeInTheDocument()
+  expect(screen.getAllByText('ana')).not.toHaveLength(0)
   expect(
     screen.queryByRole('button', { name: 'Crear usuario' }),
   ).not.toBeInTheDocument()
@@ -100,16 +100,18 @@ it('explains the last active administrator conflict', async () => {
   mocks.deactivate.mockRejectedValue(
     new ProblemError('Conflicto.', 409, 'last_active_administrator'),
   )
-  Object.defineProperty(window, 'confirm', {
-    configurable: true,
-    value: vi.fn(() => true),
-  })
   const user = userEvent.setup()
   render(<UsersPage />)
 
-  await user.click(screen.getByRole('button', { name: 'Desactivar' }))
+  await user.click(screen.getAllByRole('button', { name: 'Desactivar' })[0]!)
+  expect(
+    screen.getByRole('dialog', { name: 'Desactivar usuario' }),
+  ).toHaveTextContent('ana')
+  await user.click(
+    screen.getByRole('button', { name: 'Confirmar desactivación' }),
+  )
 
-  expect(await screen.findByRole('status')).toHaveTextContent(
+  expect(await screen.findByRole('alert')).toHaveTextContent(
     'No se puede desactivar el último Administrador activo.',
   )
 })
@@ -117,15 +119,14 @@ it('explains the last active administrator conflict', async () => {
 it('shows a reset credential once and removes it when acknowledged', async () => {
   mocks.permissions = ['usuarios.restablecer_clave']
   mocks.resetPassword.mockResolvedValue({ temporary_password: 'Temporal-2026' })
-  Object.defineProperty(window, 'confirm', {
-    configurable: true,
-    value: vi.fn(() => true),
-  })
   const user = userEvent.setup()
   render(<UsersPage />)
 
   await user.click(
-    screen.getByRole('button', { name: 'Restablecer contraseña' }),
+    screen.getAllByRole('button', { name: 'Restablecer contraseña' })[0]!,
+  )
+  await user.click(
+    screen.getByRole('button', { name: 'Confirmar restablecimiento' }),
   )
   expect(await screen.findByRole('dialog')).toHaveTextContent('Temporal-2026')
   await user.click(screen.getByRole('button', { name: 'Ya la copié' }))
@@ -151,10 +152,6 @@ it('covers filters, creation, editing, activation and pagination', async () => {
       total_pages: 3,
     },
   }
-  Object.defineProperty(window, 'confirm', {
-    configurable: true,
-    value: vi.fn(() => true),
-  })
   const user = userEvent.setup()
   render(<UsersPage />)
 
@@ -163,10 +160,11 @@ it('covers filters, creation, editing, activation and pagination', async () => {
   await user.selectOptions(screen.getByLabelText('Estado'), '')
   await user.selectOptions(screen.getByLabelText('Rol'), 'VENDEDOR')
   await user.selectOptions(screen.getByLabelText('Rol'), '')
-  await user.click(screen.getByRole('button', { name: 'Anterior' }))
-  await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+  await user.click(screen.getByRole('button', { name: 'Página anterior' }))
+  await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
   await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
+  expect(screen.getByRole('dialog', { name: 'Nuevo usuario' })).toBeVisible()
   await user.type(screen.getByLabelText('Identificación de acceso'), ' nueva ')
   await user.type(screen.getByLabelText('Nombres'), 'Nueva')
   await user.type(screen.getByLabelText('Apellidos'), 'Persona')
@@ -175,21 +173,29 @@ it('covers filters, creation, editing, activation and pagination', async () => {
   await user.click(screen.getByRole('button', { name: 'Guardar usuario' }))
   expect(mocks.create).toHaveBeenCalled()
 
-  const activeRow = screen.getByRole('row', { name: /ana/ })
+  const table = screen.getByRole('table', { name: 'Usuarios' })
+  const activeRow = within(table).getByRole('row', { name: /ana/ })
   await user.click(activeRow.getElementsByTagName('button')[0]!)
+  expect(screen.getByRole('dialog', { name: 'Editar usuario' })).toBeVisible()
   await user.clear(screen.getByLabelText('Nombres'))
   await user.type(screen.getByLabelText('Nombres'), 'Editada')
   await user.click(screen.getByRole('button', { name: 'Guardar usuario' }))
   expect(mocks.update).toHaveBeenCalled()
 
   await user.click(
-    screen.getByRole('row', { name: /ana/ }).getElementsByTagName('button')[1]!,
+    within(table)
+      .getByRole('row', { name: /ana/ })
+      .getElementsByTagName('button')[1]!,
   )
   await user.click(
-    screen
+    screen.getByRole('button', { name: 'Confirmar desactivación' }),
+  )
+  await user.click(
+    within(table)
       .getByRole('row', { name: /inactiva/ })
       .getElementsByTagName('button')[1]!,
   )
+  await user.click(screen.getByRole('button', { name: 'Confirmar activación' }))
   expect(mocks.deactivate).toHaveBeenCalledWith(2)
   expect(mocks.activate).toHaveBeenCalledWith(3)
 })

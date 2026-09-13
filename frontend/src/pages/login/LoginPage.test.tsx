@@ -13,6 +13,23 @@ import { LoginPage } from './LoginPage'
 
 beforeEach(() => mutateAsync.mockReset())
 
+it('uses a split workshop composition without public registration or social access', () => {
+  render(
+    <MemoryRouter>
+      <LoginPage />
+    </MemoryRouter>,
+  )
+
+  expect(screen.getByTestId('login-layout')).toBeVisible()
+  expect(screen.getByTestId('login-visual')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  )
+  expect(
+    screen.queryByText(/Google|Facebook|Crear cuenta/i),
+  ).not.toBeInTheDocument()
+})
+
 it('navigates to the authenticated start after a successful login', async () => {
   mutateAsync.mockResolvedValue(undefined)
   const user = userEvent.setup()

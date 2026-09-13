@@ -1,6 +1,22 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { User } from '@phosphor-icons/react'
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react'
 
 import type { Role } from '@/features/auth/types'
+import {
+  Button,
+  ButtonGroup,
+  Checkbox,
+  Field,
+  InlineNotice,
+  Input,
+} from '@/shared/ui'
 
 import type { UserSummary, UserWrite } from './types'
 
@@ -10,7 +26,6 @@ const roleLabels: Record<Role, string> = {
   ENCARGADO_TALLER: 'Encargado del taller',
 }
 const allRoles = Object.keys(roleLabels) as Role[]
-
 const empty: UserWrite = {
   username: '',
   first_name: '',
@@ -23,23 +38,33 @@ export function UserForm({
   user,
   onSubmit,
   onCancel,
+  onDirtyChange,
 }: {
   user?: UserSummary
   onSubmit: (data: UserWrite) => Promise<void>
   onCancel?: () => void
+  onDirtyChange?: (dirty: boolean) => void
 }) {
-  const initial = user
-    ? {
-        username: user.username,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        roles: user.roles,
-      }
-    : empty
+  const initial = useMemo<UserWrite>(
+    () =>
+      user
+        ? {
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            roles: user.roles,
+          }
+        : empty,
+    [user],
+  )
   const [draft, setDraft] = useState<UserWrite>(initial)
-  const [error, setError] = useState('')
+  const [summary, setSummary] = useState('')
+  const [usernameError, setUsernameError] = useState('')
+  const [rolesError, setRolesError] = useState('')
   const [pending, setPending] = useState(false)
+  const locked = useRef(false)
+  const rolesErrorId = useId()
   const dirty = JSON.stringify(draft) !== JSON.stringify(initial)
 
   useEffect(() => {
@@ -50,121 +75,166 @@ export function UserForm({
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
 
+  useEffect(() => {
+    onDirtyChange?.(dirty)
+  }, [dirty, onDirtyChange])
+
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!draft.username.trim())
-      return setError('Ingrese la identificación de acceso.')
-    if (draft.roles.length === 0) return setError('Seleccione al menos un rol.')
+    if (locked.current) return
+    const missingUsername = !draft.username.trim()
+    const missingRoles = draft.roles.length === 0
+    setUsernameError(
+      missingUsername ? 'Ingrese la identificación de acceso.' : '',
+    )
+    setRolesError(missingRoles ? 'Seleccione al menos un rol.' : '')
+    if (missingUsername || missingRoles) {
+      setSummary(
+        missingUsername && missingRoles
+          ? 'Revise los campos señalados.'
+          : missingUsername
+            ? 'Ingrese la identificación de acceso.'
+            : 'Seleccione al menos un rol.',
+      )
+      return
+    }
+
+    locked.current = true
     setPending(true)
-    setError('')
+    setSummary('')
     try {
       await onSubmit({ ...draft, username: draft.username.trim() })
     } catch (caught) {
-      setError(
+      const message =
         caught instanceof Error
           ? caught.message
-          : 'No fue posible guardar el usuario.',
-      )
+          : 'No fue posible guardar el usuario.'
+      setSummary(message)
+      setUsernameError(message)
     } finally {
+      locked.current = false
       setPending(false)
     }
   }
 
   return (
     <form
-      className="space-y-4"
+      className="user-form space-y-6"
       noValidate
       onSubmit={(event) => void submit(event)}
     >
-      <label className="block">
-        Identificación de acceso
-        <input
-          className="mt-1 min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3"
-          onChange={(event) =>
-            setDraft({ ...draft, username: event.target.value })
-          }
-          value={draft.username}
-        />
-      </label>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label>
-          Nombres
-          <input
-            className="mt-1 min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3"
+      <div className="user-form-avatar" aria-hidden="true">
+        {user ? (
+          `${user.first_name[0] ?? user.username[0]}${user.last_name[0] ?? ''}`.toUpperCase()
+        ) : (
+          <User size={62} weight="fill" />
+        )}
+      </div>
+      {summary && <InlineNotice title={summary} tone="danger" />}
+
+      <div
+        className="grid grid-cols-1 gap-5 md:grid-cols-2"
+        data-testid="user-fields"
+      >
+        <Field
+          className="md:col-span-2"
+          error={usernameError || undefined}
+          id="user-username"
+          label="Identificación de acceso"
+        >
+          <Input
+            data-autofocus
+            onChange={(event) =>
+              setDraft({ ...draft, username: event.target.value })
+            }
+            value={draft.username}
+          />
+        </Field>
+        <Field id="user-first-name" label="Nombres">
+          <Input
+            autoComplete="given-name"
             onChange={(event) =>
               setDraft({ ...draft, first_name: event.target.value })
             }
             value={draft.first_name}
           />
-        </label>
-        <label>
-          Apellidos
-          <input
-            className="mt-1 min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3"
+        </Field>
+        <Field id="user-last-name" label="Apellidos">
+          <Input
+            autoComplete="family-name"
             onChange={(event) =>
               setDraft({ ...draft, last_name: event.target.value })
             }
             value={draft.last_name}
           />
-        </label>
+        </Field>
+        <Field
+          className="md:col-span-2"
+          id="user-email"
+          label="Correo opcional"
+        >
+          <Input
+            autoComplete="email"
+            onChange={(event) =>
+              setDraft({ ...draft, email: event.target.value })
+            }
+            type="email"
+            value={draft.email}
+          />
+        </Field>
       </div>
-      <label className="block">
-        Correo opcional
-        <input
-          className="mt-1 min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3"
-          onChange={(event) =>
-            setDraft({ ...draft, email: event.target.value })
-          }
-          type="email"
-          value={draft.email}
-        />
-      </label>
-      <fieldset>
-        <legend className="font-medium">Roles</legend>
-        <div className="mt-2 flex flex-wrap gap-4">
+
+      <fieldset
+        aria-describedby={rolesError ? rolesErrorId : undefined}
+        aria-invalid={Boolean(rolesError)}
+        className="rounded-group bg-surface-muted p-4"
+      >
+        <legend className="px-1 font-semibold text-ink">Roles</legend>
+        <p className="mt-1 text-sm text-ink-muted">
+          Puede asignar uno o varios roles según las funciones de la persona.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
           {allRoles.map((role) => (
-            <label key={role}>
-              <input
-                checked={draft.roles.includes(role)}
-                className="mr-2"
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    roles: event.target.checked
-                      ? [...draft.roles, role]
-                      : draft.roles.filter((item) => item !== role),
-                  })
-                }
-                type="checkbox"
-              />
-              {roleLabels[role]}
-            </label>
+            <Checkbox
+              checked={draft.roles.includes(role)}
+              key={role}
+              label={roleLabels[role]}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  roles: event.target.checked
+                    ? [...draft.roles, role]
+                    : draft.roles.filter((item) => item !== role),
+                })
+              }
+            />
           ))}
         </div>
+        {rolesError && (
+          <p
+            className="mt-2 text-sm font-semibold text-danger"
+            id={rolesErrorId}
+          >
+            {rolesError}
+          </p>
+        )}
       </fieldset>
-      {error && (
-        <p className="text-rose-300" role="alert">
-          {error}
+
+      {dirty && (
+        <p className="text-sm text-warning" role="status">
+          Hay cambios sin guardar.
         </p>
       )}
-      <div className="flex gap-3">
-        <button
-          className="min-h-11 rounded-lg bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60"
-          disabled={pending}
-          type="submit"
-        >
-          {pending ? 'Guardando…' : 'Guardar usuario'}
-        </button>
+      <ButtonGroup label="Acciones del formulario">
+        <Button pending={pending} pendingLabel="Guardando…" type="submit">
+          Guardar usuario
+        </Button>
         {onCancel && (
-          <button
-            className="min-h-11 rounded-lg border border-slate-600 px-4"
-            onClick={onCancel}
-            type="button"
-          >
+          <Button onClick={onCancel} variant="secondary">
             Cancelar
-          </button>
+          </Button>
         )}
-      </div>
+      </ButtonGroup>
     </form>
   )
 }

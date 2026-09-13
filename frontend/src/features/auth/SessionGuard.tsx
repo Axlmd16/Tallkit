@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router'
 
 import { useSession } from './hooks'
 import { anonymousSession, type Session } from './types'
+import { LoadingState } from '@/shared/ui'
 
 export type SessionState =
   | { status: 'loading' }
@@ -11,8 +12,8 @@ export function SessionGuard({ state }: { state: SessionState }) {
   const location = useLocation()
   if (state.status === 'loading') {
     return (
-      <main className="grid min-h-screen place-items-center bg-slate-950 text-slate-100">
-        <p aria-live="polite">Comprobando sesión…</p>
+      <main className="grid min-h-screen place-items-center bg-canvas text-ink">
+        <LoadingState label="Comprobando sesión…" />
       </main>
     )
   }

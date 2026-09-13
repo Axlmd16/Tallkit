@@ -12,18 +12,30 @@ for (const username of [
     page,
   }) => {
     await login(page, username)
-    await expect(page.getByText(username, { exact: false })).toBeVisible()
+    await expect(
+      page.locator('p:visible').filter({ hasText: username }).first(),
+    ).toBeVisible()
     if (username === 'admin_e2e') {
-      await expect(page.getByRole('link', { name: 'Usuarios' })).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Auditoría' })).toBeVisible()
+      await expect(
+        page.getByRole('link', { name: 'Usuarios', exact: true }),
+      ).toBeVisible()
+      await expect(
+        page.getByRole('link', { name: 'Auditoría', exact: true }),
+      ).toBeVisible()
     } else {
-      await expect(page.getByRole('link', { name: 'Usuarios' })).toHaveCount(0)
+      await expect(
+        page.getByRole('link', { name: 'Usuarios', exact: true }),
+      ).toHaveCount(0)
     }
     if (username === 'multirrol_e2e') {
       await expect(
-        page.getByText(
-          /(Vendedor.*Encargado del taller|Encargado del taller.*Vendedor)/,
-        ),
+        page
+          .locator('p:visible')
+          .filter({
+            hasText:
+              /(Vendedor.*Encargado del taller|Encargado del taller.*Vendedor)/,
+          })
+          .first(),
       ).toBeVisible()
     }
     await logout(page)

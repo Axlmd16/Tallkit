@@ -4,7 +4,7 @@ import { fixturePassword, login, logout } from './helpers'
 
 test.beforeEach(async ({ page }) => {
   await login(page, 'admin_e2e')
-  await page.getByRole('link', { name: 'Usuarios' }).click()
+  await page.getByRole('link', { name: 'Usuarios', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Usuarios' })).toBeVisible()
 })
 
@@ -26,11 +26,11 @@ test('creates, edits, combines roles, deactivates and reactivates a user', async
   await expect(row).toContainText('Vendedor')
   await expect(row).toContainText('Encargado del taller')
 
-  page.once('dialog', (dialog) => dialog.accept())
   await row.getByRole('button', { name: 'Desactivar' }).click()
+  await page.getByRole('button', { name: 'Confirmar desactivación' }).click()
   await expect(row).toContainText('Inactivo')
-  page.once('dialog', (dialog) => dialog.accept())
   await row.getByRole('button', { name: 'Activar' }).click()
+  await page.getByRole('button', { name: 'Confirmar activación' }).click()
   await expect(row).toContainText('Activo')
 })
 
@@ -38,9 +38,9 @@ test('rejects deactivation of the last active administrator', async ({
   page,
 }) => {
   const row = page.getByRole('row').filter({ hasText: 'admin_e2e' })
-  page.once('dialog', (dialog) => dialog.accept())
   await row.getByRole('button', { name: 'Desactivar' }).click()
-  await expect(page.getByRole('status')).toContainText(
+  await page.getByRole('button', { name: 'Confirmar desactivación' }).click()
+  await expect(page.getByRole('alert')).toContainText(
     'No se puede desactivar el último Administrador activo.',
   )
 })
@@ -69,9 +69,9 @@ test('shows a temporary credential once and forces its replacement', async ({
   page,
 }) => {
   const row = page.getByRole('row').filter({ hasText: 'vendedor_e2e' })
-  page.once('dialog', (dialog) => dialog.accept())
   await row.getByRole('button', { name: 'Restablecer contraseña' }).click()
-  const dialog = page.getByRole('dialog')
+  await page.getByRole('button', { name: 'Confirmar restablecimiento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Credencial temporal' })
   const temporary = (await dialog.locator('code').textContent()) ?? ''
   expect(temporary).not.toBe('')
   await dialog.getByRole('button', { name: 'Ya la copié' }).click()

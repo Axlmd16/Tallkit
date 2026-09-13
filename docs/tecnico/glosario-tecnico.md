@@ -26,6 +26,11 @@ Descripción legible por herramientas de las rutas, entradas y respuestas de la 
 
 Ejecución simultánea de operaciones que deben coordinarse para preservar las reglas del sistema.
 
+## Drawer
+
+Panel contextual superpuesto que entra desde un borde de la interfaz. Conserva el contexto de la
+pantalla de origen y ocupa el ancho completo cuando el espacio disponible es estrecho.
+
 ## Idempotencia
 
 Propiedad que evita repetir los efectos de una misma solicitud procesada más de una vez.

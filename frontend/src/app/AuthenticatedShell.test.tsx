@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { expect, it, vi } from 'vitest'
@@ -114,4 +114,43 @@ it('keeps logout available and prevents duplicate submissions', async () => {
   expect(onLogout).toHaveBeenCalledTimes(1)
   expect(button).toBeDisabled()
   finish()
+})
+
+it('marks the current location in the authorized navigation', () => {
+  render(
+    <MemoryRouter initialEntries={['/users']}>
+      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+})
+
+it('opens compact navigation and closes it after choosing a route', async () => {
+  const user = userEvent.setup()
+  render(
+    <MemoryRouter>
+      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  const opener = screen.getByRole('button', { name: 'Abrir navegación' })
+  await user.click(opener)
+  const dialog = screen.getByRole('dialog', { name: 'Navegación principal' })
+  expect(
+    within(dialog).getByRole('button', { name: 'Cerrar panel' }),
+  ).toBeEnabled()
+  await user.click(within(dialog).getByRole('link', { name: 'Auditoría' }))
+
+  expect(
+    screen.queryByRole('dialog', { name: 'Navegación principal' }),
+  ).not.toBeInTheDocument()
+  expect(opener).toHaveFocus()
 })
