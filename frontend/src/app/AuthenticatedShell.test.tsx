@@ -154,3 +154,24 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   ).not.toBeInTheDocument()
   expect(opener).toHaveFocus()
 })
+
+it('shows Clientes navigation when session includes clientes.ver permission', () => {
+  render(
+    <MemoryRouter>
+      <AuthenticatedShell
+        onLogout={vi.fn()}
+        session={{
+          authenticated: true,
+          username: 'vendedor',
+          roles: ['VENDEDOR'],
+          permissions: ['clientes.ver'],
+          must_change_password: false,
+        }}
+      >
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  expect(screen.getByRole('link', { name: 'Clientes' })).toBeInTheDocument()
+})

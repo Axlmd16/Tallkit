@@ -1,9 +1,12 @@
 import {
+  AddressBook,
+  Car,
   ClipboardText,
   House,
   List,
   Pulse,
   SignOut,
+  Tag,
   Users,
   Wrench,
 } from '@phosphor-icons/react'
@@ -27,6 +30,24 @@ const roleLabels: Record<Role, string> = {
 
 const navigation = [
   { icon: House, label: 'Inicio', to: '/', permission: null },
+  {
+    icon: AddressBook,
+    label: 'Clientes',
+    to: '/customers',
+    permission: 'clientes.ver',
+  },
+  {
+    icon: Tag,
+    label: 'Marcas',
+    to: '/vehicle-brands',
+    permission: 'marcas_vehiculo.ver',
+  },
+  {
+    icon: Car,
+    label: 'Vehículos',
+    to: '/vehicles',
+    permission: 'vehiculos.ver',
+  },
   { icon: Users, label: 'Usuarios', to: '/users', permission: 'usuarios.ver' },
   {
     icon: ClipboardText,
@@ -64,7 +85,7 @@ function NavigationItems({
           title={item.label}
           to={item.to}
         >
-          {item.to === '/users' ? (
+          {item.to === '/users' || item.to === '/customers' ? (
             <Icon
               aria-hidden="true"
               className="shrink-0"

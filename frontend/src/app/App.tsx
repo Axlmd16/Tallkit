@@ -9,10 +9,15 @@ import {
 import { RemoteSessionGuard } from '@/features/auth/SessionGuard'
 import { ChangePasswordPage } from '@/pages/change-password/ChangePasswordPage'
 import { AuditPage } from '@/pages/audit/AuditPage'
+import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
+import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { TechnicalStatusPage } from '@/pages/technical-status/TechnicalStatusPage'
 import { UsersPage } from '@/pages/users/UsersPage'
+import { VehicleBrandsPage } from '@/pages/vehicle-brands/VehicleBrandsPage'
+import { VehicleDetailPage } from '@/pages/vehicles/VehicleDetailPage'
+import { VehiclesPage } from '@/pages/vehicles/VehiclesPage'
 
 import { RemoteAuthenticatedShell } from './AuthenticatedShell'
 import { PermissionGuard } from './PermissionGuard'
@@ -33,6 +38,46 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="usuarios.ver">
                 <UsersPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/customers',
+            element: (
+              <PermissionGuard permission="clientes.ver">
+                <CustomersPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/customers/:id',
+            element: (
+              <PermissionGuard permission="clientes.ver">
+                <CustomerDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/vehicle-brands',
+            element: (
+              <PermissionGuard permission="marcas_vehiculo.ver">
+                <VehicleBrandsPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/vehicles',
+            element: (
+              <PermissionGuard permission="vehiculos.ver">
+                <VehiclesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/vehicles/:id',
+            element: (
+              <PermissionGuard permission="vehiculos.ver">
+                <VehicleDetailPage />
               </PermissionGuard>
             ),
           },

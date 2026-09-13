@@ -62,6 +62,9 @@ El cliente es una parte interesada y un dato del negocio, pero no es un usuario 
 | `clientes.ver` | Consultar clientes e historial permitido. | Administrador, Vendedor, Encargado del taller |
 | `clientes.gestionar` | Crear y editar clientes. | Administrador, Vendedor, Encargado del taller |
 | `clientes.desactivar` | Desactivar clientes sin eliminar historial. | Administrador |
+| `marcas_vehiculo.ver` | Consultar el catálogo de marcas de vehículo. | Administrador, Vendedor, Encargado del taller |
+| `marcas_vehiculo.gestionar` | Crear y editar marcas de vehículo. | Administrador, Encargado del taller |
+| `marcas_vehiculo.desactivar` | Activar o desactivar marcas de vehículo. | Administrador |
 | `vehiculos.ver` | Consultar vehículos e historial. | Administrador, Vendedor, Encargado del taller |
 | `vehiculos.gestionar` | Crear, editar y cambiar el propietario vigente conservando sus períodos históricos. | Administrador, Encargado del taller |
 | `vehiculos.desactivar` | Desactivar vehículos sin eliminar historial. | Administrador |

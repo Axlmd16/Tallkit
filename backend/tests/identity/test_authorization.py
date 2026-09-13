@@ -30,6 +30,9 @@ ADMINISTRATOR_PERMISSIONS = {
     "mantenimientos.gestionar_repuestos",
     "mantenimientos.reabrir",
     "mantenimientos.ver",
+    "marcas_vehiculo.desactivar",
+    "marcas_vehiculo.gestionar",
+    "marcas_vehiculo.ver",
     "operacion.actualizar",
     "operacion.respaldar",
     "operacion.restaurar",
@@ -96,6 +99,7 @@ EXPECTED_PERMISSIONS = {
         "reportes.comerciales",
         "reportes.inventario",
         "servicios.ver",
+        "marcas_vehiculo.ver",
         "vehiculos.ver",
         "ventas.confirmar",
         "ventas.crear",
@@ -113,6 +117,8 @@ EXPECTED_PERMISSIONS = {
         "mantenimientos.gestionar_repuestos",
         "mantenimientos.reabrir",
         "mantenimientos.ver",
+        "marcas_vehiculo.gestionar",
+        "marcas_vehiculo.ver",
         "pagos_artesanales.registrar",
         "pagos_artesanales.ver",
         "productos.ver",
@@ -173,3 +179,38 @@ def test_no_roles_and_unknown_permissions_are_denied_by_default() -> None:
 )
 def test_linked_access_is_not_granted_as_a_global_permission(role: Role, permission: str) -> None:
     assert permission not in effective_permissions({role})
+
+
+def test_vehicle_brand_permissions_grants_and_denials() -> None:
+    admin_perms = effective_permissions({Role.ADMINISTRADOR})
+    vendedor_perms = effective_permissions({Role.VENDEDOR})
+    encargado_perms = effective_permissions({Role.ENCARGADO_TALLER})
+
+    # Consulta permitida a los tres roles
+    assert "marcas_vehiculo.ver" in admin_perms
+    assert "marcas_vehiculo.ver" in vendedor_perms
+    assert "marcas_vehiculo.ver" in encargado_perms
+
+    # Gestionar (crear/editar) permitido a Administrador y Encargado del taller
+    assert "marcas_vehiculo.gestionar" in admin_perms
+    assert "marcas_vehiculo.gestionar" in encargado_perms
+    assert "marcas_vehiculo.gestionar" not in vendedor_perms
+
+    # Desactivar/reactivar permitido únicamente a Administrador
+    assert "marcas_vehiculo.desactivar" in admin_perms
+    assert "marcas_vehiculo.desactivar" not in encargado_perms
+    assert "marcas_vehiculo.desactivar" not in vendedor_perms
+
+
+def test_vehicle_brand_permissions_in_role_combinations() -> None:
+    # Vendedor + Encargado adquiere ver y gestionar, pero no desactivar
+    combo = effective_permissions({Role.VENDEDOR, Role.ENCARGADO_TALLER})
+    assert "marcas_vehiculo.ver" in combo
+    assert "marcas_vehiculo.gestionar" in combo
+    assert "marcas_vehiculo.desactivar" not in combo
+
+    # Unión con Administrador adquiere los tres permisos
+    combo_admin = effective_permissions({Role.VENDEDOR, Role.ADMINISTRADOR})
+    assert "marcas_vehiculo.ver" in combo_admin
+    assert "marcas_vehiculo.gestionar" in combo_admin
+    assert "marcas_vehiculo.desactivar" in combo_admin

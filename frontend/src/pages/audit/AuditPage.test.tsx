@@ -73,6 +73,7 @@ it('applies filters and pagination controls', async () => {
   await user.type(screen.getByLabelText('Acción'), 'login')
   await user.selectOptions(screen.getByLabelText('Resultado'), 'DENIED')
   await user.type(screen.getByLabelText('Tipo de objeto'), 'user')
+  await user.type(screen.getByLabelText('ID del objeto'), '42')
   await user.click(screen.getByRole('button', { name: 'Página anterior' }))
   await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
   expect(mocks.filters.at(-1)).toMatchObject({
@@ -80,8 +81,53 @@ it('applies filters and pagination controls', async () => {
     action: 'login',
     result: 'DENIED',
     targetType: 'user',
+    targetId: '42',
     page: 1,
   })
+})
+
+it('displays registry events with transfer metadata in detail modal', async () => {
+  const user = userEvent.setup()
+  const transferEvent = {
+    id: 10,
+    actor: { id: 3, username: 'encargado' },
+    action: 'registry.vehicle_owner_changed',
+    target_type: 'vehicle',
+    target_id: '42',
+    result: 'SUCCESS',
+    occurred_at: '2026-09-09T16:00:00-05:00',
+    reason: null,
+    request_id: 'req-transfer-123',
+    operation_id: null,
+    metadata: {
+      previous_owner_id: 101,
+      new_owner_id: 102,
+      path: '/api/v1/vehicles/42/transfer/',
+    },
+  }
+  mocks.state = {
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+    data: { results: [transferEvent], page: 1, total_pages: 1 },
+  }
+  render(<AuditPage />)
+
+  // Shows friendly action label in table
+  expect(screen.getAllByText('Transferencia de propiedad')).not.toHaveLength(0)
+  expect(
+    screen.getAllByText('registry.vehicle_owner_changed'),
+  ).not.toHaveLength(0)
+
+  // Open detail
+  await user.click(screen.getAllByRole('button', { name: 'Ver' })[0]!)
+  const dialog = screen.getByRole('dialog', { name: 'Detalle del evento' })
+  expect(dialog).toHaveTextContent('Vehículo #42')
+  expect(dialog).toHaveTextContent('Propietario anterior (ID)')
+  expect(dialog).toHaveTextContent('101')
+  expect(dialog).toHaveTextContent('Nuevo propietario (ID)')
+  expect(dialog).toHaveTextContent('102')
+  expect(dialog).toHaveTextContent('/api/v1/vehicles/42/transfer/')
 })
 
 it.each([

@@ -84,3 +84,171 @@ test('keeps keyboard focus and reduced motion usable at enlarged content', async
     .evaluate((element) => getComputedStyle(element).transitionDuration)
   expect(transitionDuration).toBe('1e-05s')
 })
+
+for (const viewport of viewports) {
+  test(`customers, brands and vehicles adapt without page overflow: ${viewport.name}`, async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000)
+    await page.setViewportSize(viewport)
+    await login(page, 'admin_e2e')
+
+    const navigateTo = async (name: string) => {
+      if (viewport.width < 768) {
+        await page.getByRole('button', { name: 'Abrir navegación' }).click()
+        const dialog = page.getByRole('dialog', {
+          name: 'Navegación principal',
+        })
+        await dialog.getByRole('link', { name, exact: true }).click()
+        await expect(dialog).toHaveCount(0)
+      } else {
+        await page.getByRole('link', { name, exact: true }).click()
+      }
+    }
+
+    const checkOverflow = async () => {
+      const hasHorizontalOverflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      )
+      expect(hasHorizontalOverflow).toBe(false)
+    }
+
+    // 1. Clientes
+    await navigateTo('Clientes')
+    await expect(page.getByRole('heading', { name: 'Clientes' })).toBeVisible()
+    await checkOverflow()
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await expect(customerDrawer).toBeVisible()
+    await checkOverflow()
+    await page.keyboard.press('Escape')
+    await expect(customerDrawer).not.toBeVisible()
+
+    // 2. Marcas
+    await navigateTo('Marcas')
+    await expect(
+      page.getByRole('heading', { name: 'Marcas', exact: true }),
+    ).toBeVisible()
+    await checkOverflow()
+    await page.getByRole('button', { name: 'Nueva marca' }).first().click()
+    const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
+    await expect(brandDrawer).toBeVisible()
+    await checkOverflow()
+    await page.keyboard.press('Escape')
+    await expect(brandDrawer).not.toBeVisible()
+
+    // 3. Vehículos
+    await navigateTo('Vehículos')
+    await expect(page.getByRole('heading', { name: 'Vehículos' })).toBeVisible()
+    await checkOverflow()
+    await page
+      .getByRole('button', { name: 'Registrar vehículo' })
+      .first()
+      .click()
+    const vehicleDrawer = page.getByRole('dialog', {
+      name: 'Registrar vehículo',
+    })
+    await expect(vehicleDrawer).toBeVisible()
+    await checkOverflow()
+    await page.keyboard.press('Escape')
+    await expect(vehicleDrawer).not.toBeVisible()
+
+    await expectNoSeriousAccessibilityViolations(page)
+    await page.screenshot({
+      animations: 'disabled',
+      fullPage: true,
+      path: testInfo.outputPath(`registry-${viewport.name}.png`),
+    })
+  })
+}
+
+test('vehicle transfer adapts to narrow 360px viewport without overflow', async ({
+  page,
+}, testInfo) => {
+  test.setTimeout(90_000)
+  await page.setViewportSize({ width: 360, height: 800 })
+  await login(page, 'admin_e2e')
+
+  // Navigate to Clientes and ensure at least one customer exists
+  await page.getByRole('button', { name: 'Abrir navegación' }).click()
+  let navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
+  await navDialog.getByRole('link', { name: 'Clientes', exact: true }).click()
+  await expect(navDialog).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Nuevo cliente' }).click()
+  const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+  await customerDrawer
+    .getByLabel('Nombres y apellidos')
+    .fill('Dueño Transferencia')
+  await customerDrawer.getByLabel('Número de identificación').fill('0912345678')
+  await customerDrawer.getByLabel('Teléfono').fill('0987654321')
+  await customerDrawer.getByRole('button', { name: 'Guardar cliente' }).click()
+  await expect(customerDrawer).not.toBeVisible()
+
+  // Ensure brand exists
+  await page.getByRole('button', { name: 'Abrir navegación' }).click()
+  navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
+  await navDialog.getByRole('link', { name: 'Marcas', exact: true }).click()
+  await expect(navDialog).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Nueva marca' }).click()
+  const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
+  await brandDrawer.getByLabel('Nombre de la marca').fill('Nissan Responsive')
+  await brandDrawer.getByRole('button', { name: 'Guardar marca' }).click()
+  await expect(brandDrawer).not.toBeVisible()
+
+  // Create vehicle
+  await page.getByRole('button', { name: 'Abrir navegación' }).click()
+  navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
+  await navDialog.getByRole('link', { name: 'Vehículos', exact: true }).click()
+  await expect(navDialog).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Registrar vehículo' }).first().click()
+  const vehicleDrawer = page.getByRole('dialog', {
+    name: 'Registrar vehículo',
+  })
+  await vehicleDrawer
+    .getByLabel('Propietario')
+    .selectOption({ label: 'Dueño Transferencia (0912345678)' })
+  await vehicleDrawer
+    .getByLabel('Marca de vehículo')
+    .selectOption({ label: 'Nissan Responsive' })
+  await vehicleDrawer.getByLabel('Placa').fill('PBX-9988')
+  await vehicleDrawer.getByLabel('Modelo').fill('Sentra')
+  await vehicleDrawer.getByRole('button', { name: 'Guardar vehículo' }).click()
+  await expect(vehicleDrawer).not.toBeVisible()
+
+  // Open vehicle detail
+  const vehicleRow = page
+    .getByRole('listitem')
+    .filter({ hasText: 'PBX-9988' })
+    .or(page.getByRole('row').filter({ hasText: 'PBX-9988' }))
+  await vehicleRow.getByRole('link', { name: 'Ver ficha' }).click()
+  await expect(page.getByRole('heading', { name: 'PBX-9988' })).toBeVisible()
+
+  // Open transfer dialog
+  await page.getByRole('button', { name: 'Cambiar propietario' }).click()
+  const transferDialog = page.getByRole('dialog', {
+    name: 'Cambiar propietario',
+  })
+  await expect(transferDialog).toBeVisible()
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  )
+  expect(hasHorizontalOverflow).toBe(false)
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.screenshot({
+    animations: 'disabled',
+    fullPage: true,
+    path: testInfo.outputPath('vehicle-transfer-360px.png'),
+  })
+
+  await page.keyboard.press('Escape')
+  await expect(transferDialog).not.toBeVisible()
+})

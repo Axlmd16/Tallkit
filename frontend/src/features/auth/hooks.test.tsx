@@ -36,15 +36,19 @@ it('stores the authenticated session after login', async () => {
   expect(queryClient.getQueryData(sessionQueryKey)).toEqual(session)
 })
 
-it('replaces session state after logout', async () => {
+it('replaces session state and clears protected query cache after logout', async () => {
   const api = {
     logout: vi.fn().mockResolvedValue(undefined),
   } as unknown as AuthApi
   const { queryClient, wrapper } = setup()
   queryClient.setQueryData(sessionQueryKey, { authenticated: true })
+  queryClient.setQueryData(['customers'], [{ id: 1, name: 'Privado' }])
+  queryClient.setQueryData(['vehicles'], [{ id: 1, plate: 'ABC-1234' }])
   const { result } = renderHook(() => useLogout(api), { wrapper })
 
   await result.current.mutateAsync()
 
   expect(queryClient.getQueryData(sessionQueryKey)).toEqual(anonymousSession)
+  expect(queryClient.getQueryData(['customers'])).toBeUndefined()
+  expect(queryClient.getQueryData(['vehicles'])).toBeUndefined()
 })

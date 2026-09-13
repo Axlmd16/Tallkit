@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "identity.apps.IdentityConfig",
+    "customer_registry.apps.CustomerRegistryConfig",
 ]
 
 MIDDLEWARE = [

@@ -65,3 +65,78 @@ def test_discards_secrets_and_unnecessary_metadata_before_persisting() -> None:
     serialized = json.dumps(event.metadata)
     assert event.metadata == {"changed_fields": ["password"]}
     assert all(secret not in serialized for secret in secret_values)
+
+
+def test_ownership_transfer_metadata_admits_only_integer_owner_ids() -> None:
+    event = record_audit_event(
+        actor=None,
+        action="registry.vehicle_owner_changed",
+        target_type="vehicle",
+        target_id="100",
+        result=AuditResult.SUCCESS,
+        metadata={
+            "previous_owner_id": 5,
+            "new_owner_id": 12,
+            "invalid_owner_id": "text-value",
+        },
+    )
+
+    assert event.metadata == {
+        "previous_owner_id": 5,
+        "new_owner_id": 12,
+    }
+
+    # Probar que valores no enteros en previous_owner_id o new_owner_id sean descartados
+    invalid_event = record_audit_event(
+        actor=None,
+        action="registry.vehicle_owner_changed",
+        target_type="vehicle",
+        target_id="101",
+        result=AuditResult.SUCCESS,
+        metadata={
+            "previous_owner_id": "not-an-int",
+            "new_owner_id": True,  # booleano no debe admitirse como entero
+        },
+    )
+    assert invalid_event.metadata == {}
+
+
+def test_path_metadata_strips_query_string() -> None:
+    event = record_audit_event(
+        actor=None,
+        action="authorization.permission_denied",
+        target_type="permission",
+        target_id="clientes.ver",
+        result=AuditResult.DENIED,
+        metadata={
+            "path": "/api/v1/customers/?search=0999999999&filter=secret",
+            "method": "GET",
+        },
+    )
+
+    assert event.metadata == {
+        "path": "/api/v1/customers/",
+        "method": "GET",
+    }
+
+
+def test_contacts_and_bodies_are_excluded_from_metadata() -> None:
+    event = record_audit_event(
+        actor=None,
+        action="registry.customer_created",
+        target_type="customer",
+        target_id="1",
+        result=AuditResult.SUCCESS,
+        metadata={
+            "phone": "0991234567",
+            "email": "cliente@example.com",
+            "address": "Calle Falsa 123",
+            "body": {"raw": "data"},
+            "query": "search_term",
+            "changed_fields": ["phone", "email"],
+        },
+    )
+
+    assert event.metadata == {
+        "changed_fields": ["phone", "email"],
+    }

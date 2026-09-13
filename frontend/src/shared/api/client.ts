@@ -1,9 +1,16 @@
+export interface ProblemConflict {
+  type: string
+  id: number
+}
+
 export class ProblemError extends Error {
   constructor(
     message: string,
     public readonly status: number,
     public readonly code: string,
     public readonly requestId?: string,
+    public readonly errors?: Record<string, string[]>,
+    public readonly conflict?: ProblemConflict,
   ) {
     super(message)
   }
@@ -100,6 +107,28 @@ export class ApiClient {
     }
     if (typeof payload === 'object' && payload !== null) {
       const problem = payload as Record<string, unknown>
+      let errors: Record<string, string[]> | undefined
+      if (
+        typeof problem.errors === 'object' &&
+        problem.errors !== null &&
+        !Array.isArray(problem.errors)
+      ) {
+        errors = Object.fromEntries(
+          Object.entries(problem.errors as Record<string, unknown>).map(
+            ([field, msgs]) => [
+              field,
+              Array.isArray(msgs) ? msgs.map(String) : [String(msgs)],
+            ],
+          ),
+        )
+      }
+      let conflict: ProblemConflict | undefined
+      if (typeof problem.conflict === 'object' && problem.conflict !== null) {
+        const c = problem.conflict as Record<string, unknown>
+        if (typeof c.type === 'string' && typeof c.id === 'number') {
+          conflict = { type: c.type, id: c.id }
+        }
+      }
       throw new ProblemError(
         typeof problem.detail === 'string'
           ? problem.detail
@@ -107,6 +136,8 @@ export class ApiClient {
         response.status,
         typeof problem.code === 'string' ? problem.code : 'request_failed',
         typeof problem.request_id === 'string' ? problem.request_id : undefined,
+        errors,
+        conflict,
       )
     }
     throw new ProblemError(

@@ -1,4 +1,4 @@
-from django.urls import URLPattern, URLResolver, path
+from django.urls import URLPattern, URLResolver, include, path
 from drf_spectacular.views import SpectacularAPIView
 
 from config.api.health import HealthView
@@ -31,6 +31,9 @@ urlpatterns: list[URLPattern | URLResolver] = [
         name="change-password",
     ),
     path("users/", UserListCreateView.as_view(), name="user-list"),
+    path("customers/", include("customer_registry.api.urls")),
+    path("vehicle-brands/", include("customer_registry.api.brands_urls")),
+    path("vehicles/", include("customer_registry.api.vehicles_urls")),
     path("roles/", RoleListView.as_view(), name="role-list"),
     path("audit/", AuditEventListView.as_view(), name="audit-list"),
     path("audit/<int:event_id>/", AuditEventDetailView.as_view(), name="audit-detail"),

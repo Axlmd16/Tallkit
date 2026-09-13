@@ -20,10 +20,15 @@ class HasBusinessPermission(BasePermission):
     message = "No tiene permiso para realizar esta acción."
 
     def has_permission(self, request: Request, view: Any) -> bool:
+        method = request.method
+        if method is None:
+            return True
+        if not hasattr(view, method.lower()):
+            return True
         required_permission = getattr(view, "required_business_permission", None)
         permission_map = getattr(view, "business_permissions", None)
         if isinstance(permission_map, dict):
-            required_permission = permission_map.get(request.method)
+            required_permission = permission_map.get(method)
         user = request.user
         if (
             not isinstance(required_permission, str)
@@ -38,12 +43,12 @@ class HasBusinessPermission(BasePermission):
         audited_methods: frozenset[str] = getattr(
             view, "audited_permission_denial_methods", frozenset()
         )
-        if not allowed and request.method in audited_methods:
+        if not allowed and method in audited_methods:
             record_permission_denial(
                 actor=user,
                 permission=required_permission,
                 request_id=request_id_from(request),
-                method=request.method,
+                method=method,
                 path=request.path,
             )
         return allowed

@@ -86,3 +86,18 @@ it('keeps technical diagnostics inaccessible without its permission', async () =
     screen.queryByRole('heading', { name: 'Estado técnico' }),
   ).not.toBeInTheDocument()
 })
+
+it('keeps customer registry inaccessible without clientes.ver permission', async () => {
+  currentSession = {
+    authenticated: true,
+    username: 'operador',
+    roles: ['VENDEDOR'],
+    permissions: ['ventas.ver'],
+    must_change_password: false,
+  }
+  renderPath('/customers')
+
+  expect(
+    await screen.findByRole('heading', { name: 'Acceso no permitido' }),
+  ).toBeInTheDocument()
+})
