@@ -24,3 +24,7 @@ Los 23 requisitos y 53 escenarios completos permanecen en las cuatro specs del c
 - La conservación y purga de auditoría (`RNF-DAT-004`, `RNF-AUD-006`) sigue pendiente antes de producción; no se ejecutan purgas silenciosas.
 - La base local existente tiene migraciones estándar previas al usuario personalizado. No se modificó: debe seguirse el [procedimiento de transición de identidad](../../tecnico/transicion-base-identidad.md).
 - Ninguna evidencia implica que clientes, productos, inventario, ventas o mantenimiento estén implementados.
+
+## Corrección de revocación sin recarga
+
+La verificación del 2026-09-12 detectó que el recorrido anterior recargaba la página. Se añadió `frontend/e2e/session-revocation.spec.ts`, que verifica la respuesta 403 y el retorno al acceso desde una búsqueda en una pantalla ya abierta; falló antes de corregir y pasó después. `frontend/src/app/query-client.test.ts` cubre consultas/mutaciones rechazadas y validaciones que no invalidan sesión. La batería completa posterior aprobó 98 pruebas backend, 92 frontend y 26 E2E.

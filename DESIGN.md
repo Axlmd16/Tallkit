@@ -2,8 +2,6 @@
 
 ## Propósito
 
-**Estado: corrección técnica en revisión; aceptación visual del usuario pendiente.**
-
 Esta guía define el lenguaje visual implementado en el frontend de Sys-Taller. Mantiene una experiencia luminosa, amable y operativa en computadora, tableta y teléfono. No define reglas del negocio ni sustituye las especificaciones OpenSpec.
 
 ## Dirección visual y atribución

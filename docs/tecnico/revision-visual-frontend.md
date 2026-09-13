@@ -141,3 +141,7 @@ La región decorativa del acceso se ajustó finalmente a (636,255), 647 × 602 p
 Las capturas y registros generados se conservan fuera del repositorio, en el directorio de revisión de Codex `figma-sys-taller/comparacion.html`. No se versionan imágenes, trazas, resultados ni fixtures generados. La galería registra explícitamente las adaptaciones de contenido requeridas para conservar funcionalidad.
 
 **Estado final de esta ronda: implementación y verificación técnica realizadas; aprobación visual explícita del usuario pendiente. El cambio permanece abierto. No se realizó commit, merge ni archivado.**
+
+## Aceptación visual del 2026-09-12
+
+El usuario aprobó explícitamente la galería comparativa actual con «si, continua ya con las tareas». Quedan aceptadas las adaptaciones enumeradas en este registro y completadas las tareas 9.5 y 11.10. Las menciones anteriores a aceptación pendiente describen rondas previas y quedan sustituidas por esta decisión. La revisión y corrección de sesión se documentan en [verificación de dependencias](verificacion-dependencias-clientes.md).

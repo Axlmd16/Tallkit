@@ -82,7 +82,7 @@
 - [x] 9.2 Mantener `frontend/e2e/accessibility.ts` y axe configurados para fallar ante infracciones serias o críticas en las rutas representativas.
 - [x] 9.3 Corregir las superficies hasta que no exista pérdida de contenido, solapamiento, acción dependiente de hover ni desplazamiento horizontal de la página en los cuatro tamaños.
 - [x] 9.4 Actualizar `frontend/e2e/visual-evidence.spec.ts` para capturar acceso, inicio, usuarios, auditoría y estado técnico con datos y animaciones estables.
-- [ ] 9.5 Comparar en una ronda conjunta las capturas de escritorio, tableta y teléfono con el checklist del Figma; corregir por etapas los desvíos de lienzo, navegación, tipografía, violeta, radios, elevación, densidad y adaptación, y repetir hasta resolver las diferencias.
+- [x] 9.5 Comparar en una ronda conjunta las capturas de escritorio, tableta y teléfono con el checklist del Figma; corregir por etapas los desvíos de lienzo, navegación, tipografía, violeta, radios, elevación, densidad y adaptación, y repetir hasta resolver las diferencias.
 - [x] 9.6 Realizar revisión manual de teclado, foco, zoom al 200 %, orientación de tableta, contraste, movimiento reducido y lector de pantalla básico; resolver toda incidencia alta del alcance.
 
 **Evidencia:** `cd frontend && npm run test:e2e`; capturas técnicas en los cuatro tamaños; aprobación visual del usuario pendiente y lista manual sin incidencias altas abiertas.
@@ -112,6 +112,10 @@ Las marcas anteriores registran ejecución técnica histórica, no aceptación v
 - [x] 11.7 Login, recuperación administrativa y confirmación: 4:8584/4:9302/4:9333, sin rutas nuevas. Evidencia obligatoria: prueba de regresión visual fallida antes de corregir, `npm test`, capturas Playwright al viewport del frame, comparación y corrección antes de la siguiente etapa.
 - [x] 11.8 Responsive y accesibilidad: cuatro tamaños, teclado, zoom, contraste y recursos locales. Evidencia obligatoria: prueba de regresión visual fallida antes de corregir, `npm test`, capturas Playwright al viewport del frame, comparación y corrección antes de la siguiente etapa.
 - [x] 11.9 Sincronizar DESIGN.md, interfaz, trazabilidad y registro de evidencia; ejecutar make check, make test, make audit, validación OpenSpec estricta y revisión de hashes de comportamiento.
-- [ ] 11.10 Mostrar las comparativas finales y recibir aprobación visual explícita del usuario. No marcar esta tarea por resultado de pruebas.
+- [x] 11.10 Mostrar las comparativas finales y recibir aprobación visual explícita del usuario. No marcar esta tarea por resultado de pruebas.
 
 Las etapas 11.1–11.8 registran implementación y comprobación técnica con capturas revisadas, no aprobación del usuario. La tabla de diferencias documenta las adaptaciones funcionales conservadas. La tarea 11.10 permanece pendiente hasta recibir aceptación visual explícita.
+
+## Aceptación final
+
+El 2026-09-12, tras presentar la galería comparativa actual y sus adaptaciones, el usuario respondió «si, continua ya con las tareas». Queda registrada la aceptación visual explícita de la ronda final, incluidas las adaptaciones de contenido documentadas. Esta aprobación completa 9.5 y 11.10; sustituye los estados de aceptación pendiente anteriores.
