@@ -14,7 +14,7 @@ La aplicación de `gestionar-clientes-y-vehiculos` permanece detenida en su cond
 
 ## Hallazgo bloqueante de identidad
 
-En `openspec/changes/gestion-usuarios-autenticacion-roles/specs/autorizacion-y-navegacion/spec.md`, el escenario «Permiso retirado durante el uso» exige abandonar la experiencia autenticada cuando se invalida la sesión.
+En `openspec/changes/archive/2026-09-13-gestion-usuarios-autenticacion-roles/specs/autorizacion-y-navegacion/spec.md`, el escenario «Permiso retirado durante el uso» exige abandonar la experiencia autenticada cuando se invalida la sesión.
 
 Reproducción con dos contextos Chromium y datos aislados de prueba:
 
@@ -63,3 +63,7 @@ El usuario aprobó explícitamente la comparación visual con «si, continua ya 
 La regresión se incorporó a `frontend/e2e/session-revocation.spec.ts`: falló nuevamente antes de corregir producción y pasó después. `frontend/src/app/query-client.ts` consulta de nuevo la sesión ante errores 401/403 de consultas y mutaciones, sin reintentar solicitudes ya rechazadas por autorización. El guard existente decide la navegación desde la respuesta del backend, conservando una sesión vigente ante una mera denegación de permiso. Los errores de validación no invalidan la sesión. No se cambiaron contratos backend ni estilos.
 
 Verificación posterior: `make check` aprobó 98 pruebas backend y 92 frontend, con formato, lint, tipos, migraciones, cobertura y build correctos; cobertura frontend 89,19 % sentencias y 90,74 % líneas. Playwright completo aprobó 26/26 recorridos sin reintentos. `make audit` no encontró vulnerabilidades conocidas. La tarea correctiva 11.4 deja identidad en 55/55. Esta evidencia sustituye el bloqueo funcional descrito en la revisión inicial y habilita la integración y archivo de ambas dependencias desde `master`.
+
+## Cierre de dependencias
+
+Ambas aplicaciones se integraron en `master` mediante `617ec59`. OpenSpec sincronizó sus seis capacidades principales y archivó los cambios bajo `openspec/changes/archive/2026-09-13-*` (fecha UTC generada por la CLI). Todas sus tareas estaban completas: identidad 55/55 y visual 60/60. `make test` posterior aprobó 98 pruebas backend y 92 frontend. La tarea 1.2 de clientes y vehículos queda cumplida.
