@@ -89,7 +89,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-REPORTES | Reportes, documentos y cierres | RF-REP-001…014 |
 | SPEC-AUDITORIA | Auditoría y correcciones | RF-AUD-001…006 |
 
-El cambio activo `openspec/changes/gestion-usuarios-autenticacion-roles/` implementa únicamente identidad, autenticación, roles, autorización y su auditoría. No constituye implementación de clientes, catálogos, inventario, ventas ni mantenimiento.
+El cambio activo `openspec/changes/archive/2026-09-13-gestion-usuarios-autenticacion-roles/` implementa únicamente identidad, autenticación, roles, autorización y su auditoría. No constituye implementación de clientes, catálogos, inventario, ventas ni mantenimiento.
 
 ## 6. Controles de cobertura
 

@@ -1,16 +1,18 @@
 ## 1. Aprobación, dependencias y preparación documental
 
-**Estado:** tareas aprobadas por el usuario mediante `/opsx:apply` y confirmación posterior para registrarlas en `master`. La implementación sigue condicionada al cierre verificado de las dos dependencias de 1.2. El usuario aprobó el diseño al solicitar su commit y continuación; su contenido está en `master` y `develop`. La comprobación documental 1.1 está realizada; la condición de cierre 1.2 y la implementación permanecen pendientes.
+**Estado:** tareas aprobadas por el usuario mediante `/opsx:apply` y confirmación posterior para registrarlas en `master`. La implementación sigue condicionada al cierre verificado de las dos dependencias de 1.2. El usuario aprobó el diseño al solicitar su commit y continuación; su contenido está en `master` y `develop`. Las comprobaciones documentales 1.1 y 1.2 están realizadas; la implementación continúa desde 1.3.
 
 **Fuentes:** propuesta, tres specs (22 requisitos y 69 escenarios), diseño aprobado, DP-008 revisada, modelo/diagrama de dominio, configuración OpenSpec, ADR-0001/0002/0003 y documentos de producto/requisitos consultados durante el cambio. Las rutas nuevas citadas abajo son las propuestas por el diseño; las rutas de identidad, configuración, UI y comandos oficiales fueron inspeccionadas en el repositorio.
 
 - [x] 1.1 Antes de cualquier implementación, comprobar aprobación explícita de estas tareas y presencia de propuesta, specs, diseño y tareas aprobados en `master`. Registrar rama, commits y estado del árbol, preservando cambios ajenos; no crear commits, ramas ni merges adicionales sin autorización.
 **Evidencia 1.1 (2026-09-12):** rama `develop`, commit `8d98e62`; tareas aprobadas registradas en `master` mediante `78ba5bf`. `git diff master develop -- openspec/changes/gestionar-clientes-y-vehiculos` no presenta diferencias. Se conserva la modificación ajena de `DESIGN.md`.
 
-- [ ] 1.2 Verificar que `gestion-usuarios-autenticacion-roles` y `establecer-sistema-visual-frontend` estén verificados, integrados y cerrados/archivados mediante sus respectivos flujos, incluida aceptación visual explícita. Si falta alguno, detener apply sin marcar la condición cumplida; no ejecutar su cierre como parte implícita de estas tareas.
+- [x] 1.2 Verificar que `gestion-usuarios-autenticacion-roles` y `establecer-sistema-visual-frontend` estén verificados, integrados y cerrados/archivados mediante sus respectivos flujos, incluida aceptación visual explícita. Si falta alguno, detener apply sin marcar la condición cumplida; no ejecutar su cierre como parte implícita de estas tareas.
 - [ ] 1.3 Reinspeccionar las interfaces de identidad, auditoría, errores, cliente HTTP y primitivas visuales después del cierre; comparar con `design.md` y registrar cualquier divergencia que requiera revisar el diseño antes de código.
 - [ ] 1.4 Crear `docs/arquitectura/modelo-datos.md` y su referencia terminológica a partir del diseño aprobado: Customer, VehicleBrand, Vehicle, OwnershipPeriod, restricciones, versiones, nulos, índices, relaciones protegidas y migración. No añadir tablas económicas ni alterar el modelo conceptual para ajustarlo a persistencia.
 - [ ] 1.5 Crear `docs/negocio/requisitos/cobertura-clientes-vehiculos.md` y su referencia terminológica, inventariando individualmente los 69 escenarios por título y capacidad; distinguir cobertura pendiente de evidencia ejecutada y asociar cada escenario con el grupo vertical correspondiente.
+
+**Cierre 1.2:** identidad y sistema visual integrados en `master` (`617ec59`), verificados y archivados por OpenSpec en `archive/2026-09-13-*` (fecha UTC de la CLI). Identidad 55/55 y sistema visual 60/60; aceptación visual explícita del usuario y 26 E2E aprobados.
 
 **Evidencia de salida:** estado Git, referencias aprobadas presentes en `master`, registros de cierre de dependencias, inventario de diferencias y revisión de los dos documentos. La creación de tareas por la CLI no satisface este grupo.
 
