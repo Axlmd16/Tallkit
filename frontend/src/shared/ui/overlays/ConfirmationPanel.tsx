@@ -102,7 +102,7 @@ export function ConfirmationPanel({
 
         {children && <div className="mb-6 text-sm text-ink">{children}</div>}
 
-        <footer className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-border-subtle">
+        <footer className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-line">
           <Button onClick={onCancel} variant="secondary">
             {cancelLabel}
           </Button>

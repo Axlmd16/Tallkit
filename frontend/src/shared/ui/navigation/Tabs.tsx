@@ -88,7 +88,7 @@ export function Tabs({
       <div
         aria-label={ariaLabel}
         aria-orientation="horizontal"
-        className={`flex items-center gap-2 border-b border-border-subtle ${
+        className={`flex items-center gap-2 border-b border-line ${
           variant === 'pill'
             ? 'border-b-0 gap-1 bg-surface-muted p-1 rounded-group'
             : ''
@@ -104,7 +104,7 @@ export function Tabs({
             variant === 'line'
               ? isSelected
                 ? 'border-b-2 border-primary text-primary font-semibold'
-                : 'border-b-2 border-transparent text-ink-muted hover:text-ink hover:border-border'
+                : 'border-b-2 border-transparent text-ink-muted hover:text-ink hover:border-line'
               : isSelected
                 ? 'bg-surface text-ink shadow-sm font-semibold'
                 : 'text-ink-muted hover:text-ink hover:bg-surface-selected/30'

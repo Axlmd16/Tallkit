@@ -53,6 +53,7 @@ describe('CatalogApp - Aislamiento e independencia', () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText(/primario/i).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/secundario/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Pendiente')).toBeInTheDocument()
   })
 
   it('permite captura aislada cuando se define el hash con isolate=true e id', () => {

@@ -47,7 +47,7 @@ export function DetailCard({
       {media && <div className="w-full">{media}</div>}
 
       {metadata && metadata.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 border-t border-border-subtle pt-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-3">
           {metadata.map((item, idx) => (
             <div className="min-w-0" key={`${item.label}-${idx}`}>
               <span className="block text-xs font-semibold text-ink-muted">

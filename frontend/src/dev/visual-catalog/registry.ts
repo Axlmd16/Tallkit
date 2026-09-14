@@ -18,7 +18,17 @@ export type ComponentCategory =
 export type Priority = 'P0' | 'P1' | 'P2' | 'P3'
 export type Classification = 1 | 2 | 3 | 4
 export type EvidenceKind = 'E' | 'A'
-export type EvidenceStatus = 'pending' | 'in-progress' | 'verified'
+export type EvidenceStatus =
+  | 'pending'
+  | 'in-progress'
+  | 'divergent'
+  | 'verified'
+
+export interface VisualEvidence {
+  figma: string
+  actual: string
+  diff: string
+}
 
 export interface ComponentEntry {
   id: string
@@ -33,6 +43,7 @@ export interface ComponentEntry {
   kind: EvidenceKind
   evidenceStatus: EvidenceStatus
   evidenceRefs: string[]
+  visualEvidence?: VisualEvidence
   description: string
 }
 
@@ -1208,7 +1219,9 @@ const EVIDENCE_SUITE_BY_COMPONENT: Readonly<Record<string, string>> = {
 export const COMPONENT_REGISTRY: ComponentEntry[] = COMPONENT_DEFINITIONS.map(
   (component) => ({
     ...component,
-    evidenceStatus: 'verified',
+    evidenceStatus: !component.visualEvidence
+      ? 'pending'
+      : component.evidenceStatus,
     evidenceRefs: [EVIDENCE_SUITE_BY_COMPONENT[component.id] ?? ''],
   }),
 )

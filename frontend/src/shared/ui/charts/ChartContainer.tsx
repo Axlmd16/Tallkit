@@ -30,10 +30,10 @@ export function ChartContainer({
 
   return (
     <div
-      className={`bg-surface border border-border-subtle rounded-panel p-5 shadow-card flex flex-col gap-4 text-ink ${className}`.trim()}
+      className={`bg-surface border border-line rounded-dialog p-5 shadow-card flex flex-col gap-4 text-ink ${className}`.trim()}
       data-testid="chart-container-root"
     >
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-subtle">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold text-ink truncate">{title}</h3>
           {subtitle && (
@@ -69,7 +69,7 @@ export function ChartContainer({
       </div>
 
       {legend && !empty && !showTable && (
-        <footer className="pt-2 border-t border-border-subtle">{legend}</footer>
+        <footer className="pt-2 border-t border-line">{legend}</footer>
       )}
     </div>
   )

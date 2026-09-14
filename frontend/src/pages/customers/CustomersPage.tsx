@@ -1,9 +1,11 @@
 import {
-  Eye,
+  EnvelopeSimple,
   MagnifyingGlass,
+  MapPin,
   PencilSimple,
   Plus,
   Power,
+  Phone,
   XCircle,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
@@ -20,21 +22,22 @@ import type {
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
-  Dialog,
+  ConfirmationPanel,
   Drawer,
   ElevatedDataList,
   EmptyState,
   Field,
   FilterPanel,
   InlineNotice,
-  Input,
   LoadingState,
   PageHeader,
   Pagination,
   RowActions,
+  SearchInput,
   Select,
   StatusBadge,
   Toolbar,
+  Avatar,
 } from '@/shared/ui'
 
 type Confirmation = {
@@ -43,6 +46,9 @@ type Confirmation = {
 }
 
 type Notice = { text: string; tone: 'success' | 'danger' }
+
+const primaryButtonLinkClass =
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomersPage() {
   const navigate = useNavigate()
@@ -68,6 +74,7 @@ export function CustomersPage() {
   const [formDirty, setFormDirty] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const [previewing, setPreviewing] = useState<CustomerSummary | null>(null)
 
   const filters: CustomerFilters = {
     search: searchParam || undefined,
@@ -162,18 +169,26 @@ export function CustomersPage() {
       key: 'name' as const,
       priority: 'primary' as const,
       render: (row: CustomerSummary) => (
-        <div>
-          <Link
-            className="font-bold text-primary hover:underline"
-            to={`/customers/${row.id}`}
-          >
-            {row.name}
-          </Link>
-          <span className="block text-xs text-ink-muted">
-            {row.person_type === 'JURIDICA'
-              ? 'Persona jurídica'
-              : 'Persona natural'}
-          </span>
+        <div className="user-identity">
+          <Avatar
+            className={`person-avatar avatar-${row.id % 4}`}
+            name={row.name}
+            size="36"
+          />
+          <div className="min-w-0">
+            <button
+              className="break-words font-semibold text-primary hover:underline"
+              onClick={() => setPreviewing(row)}
+              type="button"
+            >
+              {row.name}
+            </button>
+            <p className="break-words text-sm text-ink-muted">
+              {row.person_type === 'JURIDICA'
+                ? 'Persona jurídica'
+                : 'Persona natural'}
+            </p>
+          </div>
         </div>
       ),
     },
@@ -182,16 +197,32 @@ export function CustomersPage() {
       key: 'identification' as const,
       priority: 'primary' as const,
       render: (row: CustomerSummary) => (
-        <span>
-          <span className="font-semibold">{row.identification_type}:</span>{' '}
-          {row.identification}
-        </span>
+        <div className="space-y-1">
+          <p>{row.identification}</p>
+          <StatusBadge
+            kind="category"
+            label={row.identification_type === 'RUC' ? 'RUC' : 'Cédula'}
+            shape="rectangle"
+            showIcon={false}
+            tone={row.identification_type === 'RUC' ? 'info' : 'neutral'}
+          />
+        </div>
       ),
     },
     {
       header: 'Teléfono',
       key: 'phone' as const,
       priority: 'secondary' as const,
+    },
+    {
+      header: 'Correo',
+      key: 'email' as const,
+      priority: 'secondary' as const,
+      render: (row: CustomerSummary) => (
+        <span className={row.email ? 'user-email' : 'italic text-ink-muted'}>
+          {row.email || 'Sin correo electrónico'}
+        </span>
+      ),
     },
     {
       header: 'Estado',
@@ -212,7 +243,7 @@ export function CustomersPage() {
   const currentPage = customersQuery.data?.page ?? pageParam
 
   return (
-    <div className="customers-page space-y-6">
+    <section className="customers-page list-page">
       <PageHeader
         actions={
           canManage ? (
@@ -230,15 +261,19 @@ export function CustomersPage() {
 
       <FilterPanel label="Filtros de búsqueda de clientes">
         <form
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-4 md:grid-cols-3"
           onSubmit={(e) => {
             e.preventDefault()
             updateFilters({ search: searchInput })
           }}
         >
           <Field id="customer-search-input" label="Buscar cliente">
-            <Input
+            <SearchInput
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => {
+                setSearchInput('')
+                updateFilters({ search: '' })
+              }}
               placeholder="Nombre, identificación o teléfono…"
               value={searchInput}
             />
@@ -255,7 +290,7 @@ export function CustomersPage() {
             </Select>
           </Field>
 
-          <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
+          <div className="flex items-end gap-2">
             <Toolbar label="Acciones de filtro">
               <Button type="submit" variant="secondary">
                 <MagnifyingGlass aria-hidden="true" size={18} />
@@ -313,31 +348,33 @@ export function CustomersPage() {
           <ElevatedDataList
             actions={(row) => (
               <RowActions>
-                <Link
-                  className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border px-4 py-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:translate-y-px border-transparent bg-transparent text-ink-muted hover:bg-surface-selected hover:text-primary"
-                  to={`/customers/${row.id}`}
-                >
-                  <Eye aria-hidden="true" size={18} />
-                  Ver ficha
-                </Link>
                 {canManage && (
-                  <Button onClick={() => setEditing(row)} variant="quiet">
+                  <Button
+                    aria-label="Editar"
+                    className="record-action"
+                    onClick={() => setEditing(row)}
+                    title="Editar"
+                    variant="quiet"
+                  >
                     <PencilSimple aria-hidden="true" size={18} />
-                    Editar
+                    <span>Editar</span>
                   </Button>
                 )}
                 {canDeactivate && (
                   <Button
+                    aria-label={row.is_active ? 'Desactivar' : 'Activar'}
+                    className="record-action"
                     onClick={() =>
                       setConfirmation({
                         kind: row.is_active ? 'deactivate' : 'activate',
                         customer: row,
                       })
                     }
+                    title={row.is_active ? 'Desactivar' : 'Activar'}
                     variant={row.is_active ? 'danger' : 'secondary'}
                   >
                     <Power aria-hidden="true" size={18} />
-                    {row.is_active ? 'Desactivar' : 'Activar'}
+                    <span>{row.is_active ? 'Desactivar' : 'Activar'}</span>
                   </Button>
                 )}
               </RowActions>
@@ -345,6 +382,7 @@ export function CustomersPage() {
             columns={columns}
             getRowKey={(row) => row.id}
             label="Clientes"
+            onRowClick={setPreviewing}
             rows={results}
           />
 
@@ -358,6 +396,143 @@ export function CustomersPage() {
       )}
 
       <Drawer
+        className="customer-preview-drawer"
+        description="Información disponible del cliente seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle del cliente"
+      >
+        {previewing && (
+          <div className="space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <Avatar
+                className={`person-avatar avatar-${previewing.id % 4}`}
+                name={previewing.name}
+                size="70"
+              />
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.name}
+              </h3>
+              <p className="mt-1 text-sm text-ink-muted">
+                {previewing.person_type === 'JURIDICA'
+                  ? 'Persona jurídica'
+                  : 'Persona natural'}
+              </p>
+              <div className="mt-3">
+                <StatusBadge
+                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
+                  tone={previewing.is_active ? 'success' : 'neutral'}
+                />
+              </div>
+            </div>
+
+            <section aria-labelledby="customer-contact-title">
+              <h3
+                className="text-base font-bold text-ink"
+                id="customer-contact-title"
+              >
+                Información de contacto
+              </h3>
+              <div className="mt-3 divide-y divide-line border-y border-line">
+                <div className="flex items-start gap-3 py-4">
+                  <EnvelopeSimple
+                    aria-hidden="true"
+                    className="mt-0.5 shrink-0 text-ink-muted"
+                    size={20}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-ink-muted">
+                      Correo electrónico
+                    </p>
+                    <p className="mt-1 break-words text-sm text-ink">
+                      {previewing.email || 'No registrado'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 py-4">
+                  <Phone
+                    aria-hidden="true"
+                    className="mt-0.5 shrink-0 text-ink-muted"
+                    size={20}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-ink-muted">
+                      Teléfono
+                    </p>
+                    <p className="mt-1 text-sm text-ink">{previewing.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 py-4">
+                  <MapPin
+                    aria-hidden="true"
+                    className="mt-0.5 shrink-0 text-ink-muted"
+                    size={20}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-ink-muted">
+                      Dirección
+                    </p>
+                    <p className="mt-1 break-words text-sm text-ink">
+                      {previewing.address || 'No registrada'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section aria-labelledby="customer-identification-title">
+              <h3
+                className="text-base font-bold text-ink"
+                id="customer-identification-title"
+              >
+                Identificación
+              </h3>
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-group bg-surface-subtle p-3">
+                <span className="text-sm text-ink">
+                  {previewing.identification}
+                </span>
+                <StatusBadge
+                  kind="category"
+                  label={
+                    previewing.identification_type === 'RUC' ? 'RUC' : 'Cédula'
+                  }
+                  shape="rectangle"
+                  showIcon={false}
+                  tone={
+                    previewing.identification_type === 'RUC'
+                      ? 'info'
+                      : 'neutral'
+                  }
+                />
+              </div>
+            </section>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className={primaryButtonLinkClass}
+                to={`/customers/${previewing.id}`}
+              >
+                Ver ficha completa
+              </Link>
+              {canManage && (
+                <Button
+                  onClick={() => {
+                    setEditing(previewing)
+                    setPreviewing(null)
+                  }}
+                  variant="secondary"
+                >
+                  <PencilSimple aria-hidden="true" size={18} />
+                  Editar cliente
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Drawer>
+
+      <Drawer
+        className="customer-drawer"
         description={
           editing
             ? 'Actualice los datos del cliente.'
@@ -390,34 +565,28 @@ export function CustomersPage() {
         />
       </Drawer>
 
-      <Dialog
+      <ConfirmationPanel
+        cancelLabel="Cancelar"
+        confirmLabel={
+          confirmation?.kind === 'deactivate'
+            ? 'Confirmar desactivación'
+            : 'Confirmar activación'
+        }
         description={
           confirmation?.kind === 'deactivate'
             ? `Al desactivar a «${confirmation.customer.name}», no podrá ser seleccionado como propietario en nuevas operaciones. Su historial y vehículos vigentes se conservarán.`
             : `Al reactivar a «${confirmation?.customer.name}», volverá a estar disponible para nuevas asociaciones con su misma información.`
         }
-        onClose={() => setConfirmation(null)}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => void runConfirmation()}
         open={confirmation !== null}
         title={
           confirmation?.kind === 'deactivate'
             ? 'Desactivar cliente'
             : 'Activar cliente'
         }
-      >
-        <Toolbar label="Confirmación de estado">
-          <Button
-            onClick={() => void runConfirmation()}
-            variant={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
-          >
-            {confirmation?.kind === 'deactivate'
-              ? 'Confirmar desactivación'
-              : 'Confirmar activación'}
-          </Button>
-          <Button onClick={() => setConfirmation(null)} variant="secondary">
-            Cancelar
-          </Button>
-        </Toolbar>
-      </Dialog>
-    </div>
+        tone={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
+      />
+    </section>
   )
 }

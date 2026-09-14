@@ -73,6 +73,13 @@ it('renders customer list and restricts management actions without permission', 
   expect(screen.getAllByText('Carlos Vera')).not.toHaveLength(0)
   expect(screen.getAllByText('0912345678')).not.toHaveLength(0)
   expect(screen.getAllByText('0991234567')).not.toHaveLength(0)
+  expect(screen.getAllByText('carlos@example.com')).not.toHaveLength(0)
+  expect(screen.getAllByLabelText('Categoría: Cédula')).not.toHaveLength(0)
+  expect(screen.getAllByRole('img', { name: 'Carlos Vera' })).not.toHaveLength(
+    0,
+  )
+  expect(document.querySelector('.customers-page')).toHaveClass('list-page')
+  expect(screen.queryAllByRole('link', { name: /ver ficha$/i })).toHaveLength(0)
 
   // With only clientes.ver, creation and edition are hidden
   expect(
@@ -82,6 +89,84 @@ it('renders customer list and restricts management actions without permission', 
   expect(
     screen.queryAllByRole('button', { name: /^desactivar$/i }),
   ).toHaveLength(0)
+})
+
+it('shows an explicit muted label when a customer has no email', () => {
+  mocks.customers = {
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+    data: {
+      count: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      results: [{ ...sampleCustomer, email: '' }],
+    },
+  }
+
+  render(
+    <MemoryRouter>
+      <CustomersPage />
+    </MemoryRouter>,
+  )
+
+  expect(screen.getAllByText('Sin correo electrónico')).not.toHaveLength(0)
+  expect(screen.getAllByText('Sin correo electrónico')[0]).toHaveClass('italic')
+})
+
+it('identifies RUC customers with the reusable category badge', () => {
+  mocks.customers = {
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+    data: {
+      count: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      results: [
+        {
+          ...sampleCustomer,
+          identification: '0999999999001',
+          identification_type: 'RUC',
+        },
+      ],
+    },
+  }
+
+  render(
+    <MemoryRouter>
+      <CustomersPage />
+    </MemoryRouter>,
+  )
+
+  expect(screen.getAllByLabelText('Categoría: RUC')).not.toHaveLength(0)
+})
+
+it('opens an overlaid customer preview when selecting a row', async () => {
+  const user = userEvent.setup()
+
+  render(
+    <MemoryRouter>
+      <CustomersPage />
+    </MemoryRouter>,
+  )
+
+  await user.click(screen.getAllByText('Carlos Vera')[0]!)
+
+  const preview = screen.getByRole('dialog', { name: 'Detalle del cliente' })
+  expect(preview).toBeInTheDocument()
+  expect(
+    within(preview).getByRole('heading', { name: 'Carlos Vera' }),
+  ).toBeInTheDocument()
+  expect(
+    within(preview).getByText('Información de contacto'),
+  ).toBeInTheDocument()
+  expect(within(preview).getByText('Correo electrónico')).toBeInTheDocument()
+  expect(within(preview).getByText('Teléfono')).toBeInTheDocument()
+  expect(within(preview).getByText('Dirección')).toBeInTheDocument()
+  expect(within(preview).getByText('carlos@example.com')).toBeInTheDocument()
 })
 
 it('renders an empty state when the catalog has no customers', () => {
@@ -140,6 +225,7 @@ it('allows authorized user to open new customer drawer and save', async () => {
 
   const drawer = screen.getByRole('dialog', { name: /nuevo cliente/i })
   expect(drawer).toBeInTheDocument()
+  expect(drawer).toHaveClass('customer-drawer')
 
   await user.type(
     within(drawer).getByLabelText(/nombres y apellidos/i),
@@ -236,9 +322,7 @@ it('allows editing an existing customer via edit drawer', async () => {
   await user.click(
     within(drawer).getByRole('button', { name: /guardar cliente/i }),
   )
-  expect(mocks.update).toHaveBeenCalledWith(
-    expect.objectContaining({ id: 1 }),
-  )
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
 })
 
 it('allows administrator to activate an inactive customer', async () => {

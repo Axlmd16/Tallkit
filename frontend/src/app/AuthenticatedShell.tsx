@@ -77,7 +77,7 @@ function NavigationItems({
       return (
         <NavLink
           className={({ isActive }) =>
-            `relative flex min-h-11 items-center gap-3 rounded-r-control px-3 py-2 text-sm font-semibold transition-colors ${isActive ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'}`
+            `relative flex min-h-11 items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors ${isActive ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'}`
           }
           end={item.to === '/'}
           key={item.to}
@@ -98,7 +98,7 @@ function NavigationItems({
               className={`nav-glyph ${item.to === '/' ? 'nav-home' : item.to === '/audit' ? 'nav-audit' : 'nav-technical'}`}
             />
           )}
-          <span className="md:sr-only">{item.label}</span>
+          <span className="app-nav-label truncate">{item.label}</span>
         </NavLink>
       )
     })
@@ -189,7 +189,7 @@ export function AuthenticatedShell({
             variant="quiet"
           >
             <SignOut aria-hidden="true" size={20} />
-            <span className="md:sr-only">Cerrar sesión</span>
+            <span className="app-logout-label">Cerrar sesión</span>
           </Button>
         </div>
       </aside>

@@ -19,13 +19,13 @@ export function AppFrame({
 }: AppFrameProps) {
   return (
     <div
-      className={`flex min-h-screen w-full bg-surface-ground text-ink ${className}`.trim()}
+      className={`flex min-h-screen w-full bg-canvas text-ink ${className}`.trim()}
     >
       {sidebar && <div className="shrink-0 flex">{sidebar}</div>}
 
       <div className="flex min-w-0 flex-1 flex-col">
         {header && (
-          <header className="border-b border-border-subtle bg-surface px-4 py-3 sm:px-6">
+          <header className="border-b border-line bg-surface px-4 py-3 sm:px-6">
             {header}
           </header>
         )}
@@ -38,7 +38,7 @@ export function AppFrame({
         </main>
 
         {footer && (
-          <footer className="border-t border-border-subtle bg-surface px-4 py-3 sm:px-6 text-xs text-ink-muted">
+          <footer className="border-t border-line bg-surface px-4 py-3 sm:px-6 text-xs text-ink-muted">
             {footer}
           </footer>
         )}

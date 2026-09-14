@@ -63,7 +63,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
       >
         <div
           data-testid="isolated-view"
-          className="p-4 border border-dashed border-border rounded-lg bg-surface"
+          className="p-4 border border-dashed border-line rounded-lg bg-surface"
         >
           <div className="mb-2 text-xs font-mono text-ink-muted">
             Vista aislada para captura:{' '}
@@ -89,7 +89,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
       data-visual-catalog
       className="catalog-container min-h-screen bg-surface-muted text-ink flex flex-col font-sans"
     >
-      <header className="border-b border-border bg-surface px-6 py-4 shadow-sm flex items-center justify-between">
+      <header className="border-b border-line bg-surface px-6 py-4 shadow-sm flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-ink">
             Catálogo Visual Reutilizable
@@ -100,7 +100,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs font-mono bg-surface-muted px-2.5 py-1 rounded border border-border text-ink-muted">
+          <div className="text-xs font-mono bg-surface-muted px-2.5 py-1 rounded border border-line text-ink-muted">
             Modo DEV — Sin llamadas API
           </div>
         </div>
@@ -108,20 +108,20 @@ export function CatalogApp({ children }: CatalogAppProps) {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar explorer */}
-        <aside className="w-80 border-r border-border bg-surface flex flex-col">
-          <div className="p-4 border-b border-border space-y-3">
+        <aside className="w-80 border-r border-line bg-surface flex flex-col">
+          <div className="p-4 border-b border-line space-y-3">
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Buscar componentes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs px-3 py-1.5 border border-border rounded bg-surface-muted focus:bg-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full text-xs px-3 py-1.5 border border-line rounded bg-surface-muted focus:bg-surface focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs px-2.5 py-1.5 border border-border rounded bg-surface hover:bg-surface-muted text-ink-muted"
+                className="text-xs px-2.5 py-1.5 border border-line rounded bg-surface hover:bg-surface-muted text-ink-muted"
                 title="Limpiar filtros"
               >
                 Limpiar
@@ -133,7 +133,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto divide-y divide-border">
+          <div className="flex-1 overflow-y-auto divide-y divide-line">
             {filteredComponents.map((comp) => {
               const isSelected = selectedComponent?.id === comp.id
               return (
@@ -164,7 +164,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
         <main className="flex-1 p-6 overflow-y-auto bg-canvas">
           {selectedComponent ? (
             <div className="max-w-4xl space-y-6">
-              <div className="rounded-lg border border-border bg-surface p-6 shadow-sm space-y-4">
+              <div className="rounded-lg border border-line bg-surface p-6 shadow-sm space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-bold text-ink">
@@ -175,13 +175,13 @@ export function CatalogApp({ children }: CatalogAppProps) {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-border">
+                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-line">
                       {selectedComponent.priority}
                     </span>
-                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-border">
+                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-line">
                       Clase {selectedComponent.classification}
                     </span>
-                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-border">
+                    <span className="text-xs font-mono px-2 py-1 bg-surface-muted rounded border border-line">
                       {selectedComponent.kind === 'E'
                         ? 'Figma E'
                         : 'Adaptación A'}
@@ -189,7 +189,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-line text-xs">
                   <div>
                     <span className="text-ink-muted block">Categoría:</span>
                     <span className="font-semibold">
@@ -227,9 +227,14 @@ export function CatalogApp({ children }: CatalogAppProps) {
                       Estado de evidencia:
                     </span>
                     <span className="font-semibold">
-                      {selectedComponent.evidenceStatus === 'verified'
-                        ? 'Verificada'
-                        : 'En revisión'}
+                      {
+                        {
+                          divergent: 'Divergente',
+                          'in-progress': 'En revisión',
+                          pending: 'Pendiente',
+                          verified: 'Verificada',
+                        }[selectedComponent.evidenceStatus]
+                      }
                     </span>
                   </div>
                   <div>
@@ -242,7 +247,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-border">
+                <div className="pt-4 border-t border-line">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                     Variantes registradas ({selectedComponent.variants.length})
                   </h3>
@@ -250,7 +255,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
                     {selectedComponent.variants.map((v) => (
                       <span
                         key={v}
-                        className="px-2.5 py-1 text-xs rounded-full bg-surface-muted border border-border text-ink"
+                        className="px-2.5 py-1 text-xs rounded-full bg-surface-muted border border-line text-ink"
                       >
                         {v}
                       </span>
@@ -260,11 +265,11 @@ export function CatalogApp({ children }: CatalogAppProps) {
               </div>
 
               {/* Component preview / demonstration slot */}
-              <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+              <div className="rounded-lg border border-line bg-surface p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-ink mb-4">
                   Demostración interactiva
                 </h3>
-                <div className="p-8 border border-dashed border-border rounded bg-canvas flex items-center justify-center min-h-[160px]">
+                <div className="p-8 border border-dashed border-line rounded bg-canvas flex items-center justify-center min-h-[160px]">
                   {children ?? renderComponentPreview(selectedComponent.id) ?? (
                     <div className="text-xs text-ink-muted text-center space-y-1">
                       <p>
@@ -281,7 +286,7 @@ export function CatalogApp({ children }: CatalogAppProps) {
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+            <div className="rounded-lg border border-line bg-surface p-6 shadow-sm">
               <p className="text-sm text-ink-muted">
                 No se encontró ningún componente que coincida con los criterios
                 de búsqueda.

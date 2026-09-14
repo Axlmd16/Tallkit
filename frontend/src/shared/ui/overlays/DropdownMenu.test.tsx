@@ -150,6 +150,10 @@ describe('DropdownMenu (C17)', () => {
       />,
     )
 
-    expect(screen.getByRole('menu')).toBeInTheDocument()
+    const menu = screen.getByRole('menu')
+    expect(menu).toBeInTheDocument()
+    expect(menu.className).toContain('rounded-group')
+    expect(menu.className).toContain('shadow-menu')
+    expect(menu.className).not.toContain('border')
   })
 })

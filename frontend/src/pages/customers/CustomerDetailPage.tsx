@@ -1,11 +1,4 @@
-import {
-  ArrowLeft,
-  Car,
-  PencilSimple,
-  Plus,
-  Power,
-  User,
-} from '@phosphor-icons/react'
+import { ArrowLeft, PencilSimple, Plus, Power } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
@@ -22,19 +15,23 @@ import { VehicleForm } from '@/features/vehicles/VehicleForm'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
-  Dialog,
+  ConfirmationPanel,
+  DetailCard,
   Drawer,
   EmptyState,
   InlineNotice,
   LoadingState,
   PageHeader,
   StatusBadge,
-  Surface,
   Toolbar,
 } from '@/shared/ui'
 
 type Confirmation = 'activate' | 'deactivate'
 type Notice = { text: string; tone: 'success' | 'danger' }
+
+// Clases del catálogo para <Link> que actúa visualmente como Button variant="primary"
+const primaryButtonLinkClass =
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -134,10 +131,7 @@ export function CustomerDetailPage() {
         </Link>
         <EmptyState
           action={
-            <Link
-              className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border px-4 py-2 text-sm font-semibold border-primary bg-primary text-white"
-              to="/customers"
-            >
+            <Link className={primaryButtonLinkClass} to="/customers">
               Volver al listado
             </Link>
           }
@@ -191,106 +185,60 @@ export function CustomerDetailPage() {
       {notice && <InlineNotice title={notice.text} tone={notice.tone} />}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Surface className="space-y-4 lg:col-span-2">
-          <div className="flex items-center gap-3 border-b border-surface-muted pb-4">
-            <span className="grid size-12 place-items-center rounded-full bg-primary-soft text-primary">
-              <User aria-hidden="true" size={26} weight="fill" />
-            </span>
-            <div>
-              <h2 className="text-lg font-bold text-ink">
-                Datos de identificación y contacto
-              </h2>
-              <div className="mt-1 flex items-center gap-2">
-                <StatusBadge
-                  label={customer.is_active ? 'Activo' : 'Inactivo'}
-                  tone={customer.is_active ? 'success' : 'neutral'}
-                />
-                <span className="text-xs text-ink-muted">
-                  Versión: {customer.version}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="text-xs font-semibold text-ink-muted uppercase">
-                Tipo de persona
-              </dt>
-              <dd className="mt-1 text-sm font-semibold text-ink">
-                {customer.person_type === 'JURIDICA'
+        <DetailCard
+          badge={
+            <StatusBadge
+              label={customer.is_active ? 'Activo' : 'Inactivo'}
+              tone={customer.is_active ? 'success' : 'neutral'}
+            />
+          }
+          className="lg:col-span-2"
+          metadata={[
+            {
+              label: 'Tipo de persona',
+              value:
+                customer.person_type === 'JURIDICA'
                   ? 'Persona jurídica'
-                  : 'Persona natural'}
-              </dd>
-            </div>
+                  : 'Persona natural',
+            },
+            {
+              label: customer.identification_type,
+              value: customer.identification,
+            },
+            { label: 'Teléfono de contacto', value: customer.phone },
+            {
+              label: 'Correo electrónico',
+              value: customer.email || (
+                <span className="text-ink-muted">No registrado</span>
+              ),
+            },
+            {
+              label: 'Dirección',
+              value: customer.address || (
+                <span className="text-ink-muted">No registrada</span>
+              ),
+            },
+            { label: 'Versión de registro', value: String(customer.version) },
+          ]}
+          title="Datos de identificación y contacto"
+        />
 
-            <div>
-              <dt className="text-xs font-semibold text-ink-muted uppercase">
-                {customer.identification_type}
-              </dt>
-              <dd className="mt-1 text-sm font-semibold text-ink">
-                {customer.identification}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-semibold text-ink-muted uppercase">
-                Teléfono de contacto
-              </dt>
-              <dd className="mt-1 text-sm font-semibold text-ink">
-                {customer.phone}
-              </dd>
-            </div>
-
-            <div>
-              <dt className="text-xs font-semibold text-ink-muted uppercase">
-                Correo electrónico
-              </dt>
-              <dd className="mt-1 text-sm font-semibold text-ink">
-                {customer.email || (
-                  <span className="text-ink-muted">No registrado</span>
-                )}
-              </dd>
-            </div>
-
-            <div className="sm:col-span-2">
-              <dt className="text-xs font-semibold text-ink-muted uppercase">
-                Dirección
-              </dt>
-              <dd className="mt-1 text-sm font-semibold text-ink">
-                {customer.address || (
-                  <span className="text-ink-muted">No registrada</span>
-                )}
-              </dd>
-            </div>
-          </dl>
-        </Surface>
-
-        <Surface className="space-y-4">
-          <div className="flex items-center justify-between border-b border-surface-muted pb-4">
-            <div className="flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-full bg-primary-soft text-primary">
-                <Car aria-hidden="true" size={26} weight="fill" />
-              </span>
-              <div>
-                <h2 className="text-lg font-bold text-ink">
-                  Vehículos asociados
-                </h2>
-                <p className="text-xs text-ink-muted">Propiedad actual</p>
-              </div>
-            </div>
-            {canManageVehicles && (
+        <DetailCard
+          actions={
+            canManageVehicles ? (
               <Button
-                variant="secondary"
+                className="text-xs"
                 onClick={() => setVehicleDrawerOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs"
+                variant="secondary"
               >
                 <Plus aria-hidden="true" size={16} />
-                <span>Registrar vehículo</span>
+                Registrar vehículo
               </Button>
-            )}
-          </div>
-
+            ) : undefined
+          }
+          subtitle="Propiedad actual"
+          title="Vehículos asociados"
+        >
           {vehiclesQuery.isPending ? (
             <p className="text-sm text-ink-muted">Cargando vehículos…</p>
           ) : vehiclesQuery.isError ? (
@@ -334,7 +282,7 @@ export function CustomerDetailPage() {
               ))}
             </div>
           )}
-        </Surface>
+        </DetailCard>
       </div>
 
       <Drawer
@@ -392,34 +340,26 @@ export function CustomerDetailPage() {
         />
       </Drawer>
 
-      <Dialog
+      <ConfirmationPanel
+        cancelLabel="Cancelar"
+        confirmLabel={
+          confirmation === 'deactivate'
+            ? 'Confirmar desactivación'
+            : 'Confirmar activación'
+        }
         description={
           confirmation === 'deactivate'
             ? `Al desactivar a «${customer.name}», no podrá ser seleccionado como propietario en nuevas operaciones. Su historial y vehículos vigentes se conservarán.`
             : `Al reactivar a «${customer.name}», volverá a estar disponible para nuevas asociaciones con su misma información.`
         }
-        onClose={() => setConfirmation(null)}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => void runConfirmation()}
         open={confirmation !== null}
         title={
-          confirmation === 'deactivate'
-            ? 'Desactivar cliente'
-            : 'Activar cliente'
+          confirmation === 'deactivate' ? 'Desactivar cliente' : 'Activar cliente'
         }
-      >
-        <Toolbar label="Confirmación de estado">
-          <Button
-            onClick={() => void runConfirmation()}
-            variant={confirmation === 'deactivate' ? 'danger' : 'primary'}
-          >
-            {confirmation === 'deactivate'
-              ? 'Confirmar desactivación'
-              : 'Confirmar activación'}
-          </Button>
-          <Button onClick={() => setConfirmation(null)} variant="secondary">
-            Cancelar
-          </Button>
-        </Toolbar>
-      </Dialog>
+        tone={confirmation === 'deactivate' ? 'danger' : 'primary'}
+      />
     </div>
   )
 }

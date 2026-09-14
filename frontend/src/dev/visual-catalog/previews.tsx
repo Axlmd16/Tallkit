@@ -128,7 +128,7 @@ function TabsPreview() {
         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
           Pestañas estilo línea con contadores (F13 4:6443)
         </h4>
-        <div className="p-4 rounded-group bg-surface border border-border">
+        <div className="p-4 rounded-group bg-surface border border-line">
           <Tabs
             activeId={lineTab}
             aria-label="Vistas de elementos sintéticos"
@@ -172,7 +172,7 @@ function TabsPreview() {
         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
           Pestañas estilo píldora (F22 4:7590)
         </h4>
-        <div className="p-4 rounded-group bg-surface border border-border">
+        <div className="p-4 rounded-group bg-surface border border-line">
           <Tabs
             activeId={pillTab}
             aria-label="Categorías de elementos"
@@ -358,7 +358,7 @@ function PaginationPreview() {
         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
           Control de paginación con total de registros y navegación accesible
         </h4>
-        <div className="p-4 rounded-group bg-surface border border-border">
+        <div className="p-4 rounded-group bg-surface border border-line">
           <Pagination
             onNext={() => setPage((p) => Math.min(p + 1, 5))}
             onPrevious={() => setPage((p) => Math.max(p - 1, 1))}
@@ -390,8 +390,8 @@ function DetailPanelPreview() {
             {open ? 'Ocultar panel lateral' : 'Mostrar panel lateral'}
           </Button>
         </div>
-        <div className="flex flex-col lg:flex-row gap-4 items-start border border-border rounded-panel p-4 bg-canvas min-h-[400px]">
-          <div className="flex-1 bg-surface p-6 rounded-card border border-border-subtle w-full">
+        <div className="flex flex-col lg:flex-row gap-4 items-start border border-line rounded-dialog p-4 bg-canvas min-h-[400px]">
+          <div className="flex-1 bg-surface p-6 rounded-group border border-line w-full">
             <h5 className="font-bold text-ink text-base mb-2">
               Contenido principal de trabajo
             </h5>
@@ -531,7 +531,7 @@ function DrawerPreview() {
               Variante compacta de 369px de ancho con overlay tenue del 30%
               (overlay=&quot;30&quot;).
             </p>
-            <div className="p-3 bg-canvas rounded-card border border-border-subtle">
+            <div className="p-3 bg-canvas rounded-group border border-line">
               <span className="text-xs text-ink-muted block">
                 Diagnóstico inicial
               </span>
@@ -659,7 +659,7 @@ function ConfirmationPanelPreview() {
           tone="danger"
           width="658"
         >
-          <div className="p-4 bg-feedback-danger-subtle rounded-card border border-feedback-danger-muted text-sm text-feedback-danger">
+          <div className="p-4 bg-feedback-danger-subtle rounded-group border border-feedback-danger-muted text-sm text-feedback-danger">
             <p className="font-medium">
               Atención: La orden tiene repuestos asignados en almacén.
             </p>
@@ -681,7 +681,7 @@ function ConfirmationPanelPreview() {
           tone="primary"
           width="726"
         >
-          <div className="p-4 bg-canvas rounded-card border border-border-subtle text-sm space-y-2">
+          <div className="p-4 bg-canvas rounded-group border border-line text-sm space-y-2">
             <div className="flex justify-between">
               <span className="text-ink-muted">Total liquidado:</span>
               <span className="font-semibold text-ink font-mono">
@@ -765,7 +765,7 @@ function PreviewLayoutPreview() {
           }
           preview={
             <div className="space-y-6">
-              <div className="border-b border-border-subtle pb-4">
+              <div className="border-b border-line pb-4">
                 <span className="text-xs font-bold text-primary uppercase tracking-wider block">
                   Vista preliminar
                 </span>
@@ -781,16 +781,16 @@ function PreviewLayoutPreview() {
                 <h6 className="text-xs font-bold text-ink uppercase tracking-wider">
                   Conceptos de servicio
                 </h6>
-                <div className="overflow-x-auto border border-border-subtle rounded-card">
+                <div className="overflow-x-auto border border-line rounded-group">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-surface-ground border-b border-border-subtle text-ink font-semibold">
+                    <thead className="bg-canvas border-b border-line text-ink font-semibold">
                       <tr>
                         <th className="p-2.5">Concepto</th>
                         <th className="p-2.5 text-center">Cant.</th>
                         <th className="p-2.5 text-right">Referencia</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border-subtle text-ink-muted">
+                    <tbody className="divide-y divide-line text-ink-muted">
                       <tr>
                         <td className="p-2.5 font-medium text-ink">
                           Diagnóstico electrónico computarizado
@@ -810,7 +810,7 @@ function PreviewLayoutPreview() {
                 </div>
               </div>
 
-              <div className="p-3 bg-canvas rounded-card border border-border-subtle text-xs text-ink-muted">
+              <div className="p-3 bg-canvas rounded-group border border-line text-xs text-ink-muted">
                 <span className="font-semibold text-ink block mb-1">
                   Notas registradas:
                 </span>
@@ -870,7 +870,7 @@ function AuthLayoutPreview() {
           </Button>
         </div>
 
-        <div className="border border-border rounded-panel overflow-hidden">
+        <div className="border border-line rounded-dialog overflow-hidden">
           <AuthLayout
             footer={
               <div className="space-y-2">
@@ -1029,7 +1029,7 @@ function CalendarDemoPreview() {
         title={getTitle()}
       />
 
-      <div className="p-1 bg-surface-ground rounded-xl border border-border/40 overflow-hidden">
+      <div className="p-1 bg-canvas rounded-xl border border-line/40 overflow-hidden">
         {currentView === 'month' && (
           <MonthCalendar
             currentMonth={currentMonth}
@@ -1211,7 +1211,7 @@ function MonthCalendarPreview() {
         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
           Calendario mensual estructurado de 7 columnas (F21 4:5474)
         </h4>
-        <div className="rounded-xl border border-border/40 bg-surface-ground p-1 overflow-hidden">
+        <div className="rounded-xl border border-line/40 bg-canvas p-1 overflow-hidden">
           <MonthCalendar
             currentMonth="2026-09"
             events={events}
@@ -1253,7 +1253,7 @@ function YearCalendarPreview() {
         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
           Visión anual panorámica 12 meses (Retícula 3x4 nativa)
         </h4>
-        <div className="rounded-xl border border-border/40 bg-surface-ground p-3 overflow-hidden">
+        <div className="rounded-xl border border-line/40 bg-canvas p-3 overflow-hidden">
           <YearCalendar
             onSelectDate={setSelectedDate}
             onSelectMonth={setActiveMonth}
@@ -1336,7 +1336,7 @@ function DayCalendarPreview() {
           Vista de día con eje horario 08:00–18:00 y solapamientos en columnas
           (F16 4:3943)
         </h4>
-        <div className="rounded-xl border border-border/40 bg-surface-ground p-2 overflow-hidden">
+        <div className="rounded-xl border border-line/40 bg-canvas p-2 overflow-hidden">
           <DayCalendar
             date="2026-09-13"
             endHour={18}
@@ -1650,7 +1650,7 @@ export function renderComponentPreview(id: string): ReactNode {
                 .map((name) => (
                   <div
                     key={name}
-                    className="flex flex-col items-center gap-1.5 p-3 rounded border border-border bg-surface text-center"
+                    className="flex flex-col items-center gap-1.5 p-3 rounded border border-line bg-surface text-center"
                   >
                     <Icon name={name} size={20} className="text-ink" />
                     <span className="text-[10px] font-mono text-ink-muted truncate w-full">
@@ -1665,7 +1665,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Modo accesible (con aria-label)
             </h4>
-            <div className="flex items-center gap-3 p-3 rounded bg-surface border border-border">
+            <div className="flex items-center gap-3 p-3 rounded bg-surface border border-line">
               <Icon
                 name="document"
                 size={20}
@@ -1962,7 +1962,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Mensaje de error accesible independiente
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border space-y-2">
+            <div className="p-4 rounded-group bg-surface border border-line space-y-2">
               <p className="text-sm text-ink">
                 Estado de validación de formulario:
               </p>
@@ -2145,7 +2145,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Tooltip contextual con captura estática (F02 4:157)
             </h4>
-            <div className="flex items-center gap-6 p-8 rounded-group bg-surface border border-border">
+            <div className="flex items-center gap-6 p-8 rounded-group bg-surface border border-line">
               <Tooltip
                 content="Descargar informe consolidado (PDF)"
                 open
@@ -2180,7 +2180,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Menú desplegable con acciones y opción destructiva (F04 4:1497)
             </h4>
-            <div className="p-8 pb-32 rounded-group bg-surface border border-border">
+            <div className="p-8 pb-32 rounded-group bg-surface border border-line">
               <DropdownMenu
                 align="left"
                 items={[
@@ -2213,7 +2213,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Encabezado completo con descripción y acciones (F08 4:3259)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <PageHeader
                 actions={<Button variant="primary">Nueva orden</Button>}
                 description="Gestión general de mantenimientos, diagnósticos y entregas de vehículos."
@@ -2225,7 +2225,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Encabezado simple solo título
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <PageHeader title="Inventario de Repuestos" />
             </div>
           </div>
@@ -2239,7 +2239,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Barra de herramientas para filtros y comandos (F03 4:1017)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <Toolbar label="Barra de herramientas de órdenes">
                 <div className="w-64">
                   <SearchInput
@@ -2267,7 +2267,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Panel de filtros modular con limpieza (F06 4:2247 / F03 4:1024)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <FilterPanel
                 clearLabel="Restablecer"
                 label="Filtros de inventario"
@@ -2421,7 +2421,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">
               Tamaños circulares (36px, 70px, 134px) e iniciales accesibles
             </h4>
-            <div className="flex flex-wrap items-center gap-6 p-4 rounded-group bg-surface border border-border">
+            <div className="flex flex-wrap items-center gap-6 p-4 rounded-group bg-surface border border-line">
               <div className="flex flex-col items-center gap-2">
                 <Avatar name="Carlos Mendoza" size="36" />
                 <span className="text-xs text-ink-muted">36px</span>
@@ -2445,7 +2445,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">
               Variante rectangular 45x43 (F01 4:580) y fallback de icono neutral
             </h4>
-            <div className="flex items-center gap-6 p-4 rounded-group bg-surface border border-border">
+            <div className="flex items-center gap-6 p-4 rounded-group bg-surface border border-line">
               <div className="flex flex-col items-center gap-2">
                 <Avatar name="Empresa Aliada" size="45x43" />
                 <span className="text-xs text-ink-muted">45x43px</span>
@@ -2466,7 +2466,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-3">
               Grupo de avatares solapados con contador residual (F06 4:2647)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border flex items-center justify-between">
+            <div className="p-4 rounded-group bg-surface border border-line flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-ink">
                   Mecánicos Asignados
@@ -2498,7 +2498,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Divisor horizontal estándar
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <p className="text-sm text-ink">Sección superior</p>
               <Divider />
               <p className="text-sm text-ink">Sección inferior</p>
@@ -2509,7 +2509,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Divisor con texto intercalado (F17 4:9255)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <Divider label="o continuar con" />
             </div>
           </div>
@@ -2518,7 +2518,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Divisor vertical
             </h4>
-            <div className="flex items-center h-10 p-4 rounded-group bg-surface border border-border">
+            <div className="flex items-center h-10 p-4 rounded-group bg-surface border border-line">
               <span className="text-sm text-ink">Elemento A</span>
               <Divider orientation="vertical" />
               <span className="text-sm text-ink">Elemento B</span>
@@ -2535,7 +2535,7 @@ export function renderComponentPreview(id: string): ReactNode {
               Barra lateral expandida (218px) y colapsada (80px) (F01 4:575 /
               F02 4:233)
             </h4>
-            <div className="flex gap-6 h-[420px] rounded-group border border-border overflow-hidden bg-surface-ground">
+            <div className="flex gap-6 h-[420px] rounded-group border border-line overflow-hidden bg-canvas">
               <Sidebar
                 activeId="orders"
                 header={
@@ -2611,7 +2611,7 @@ export function renderComponentPreview(id: string): ReactNode {
               Elementos de navegación (Activo, inactivo, con badge y colapsado,
               F01 4:643)
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border space-y-2">
+            <div className="p-4 rounded-group bg-surface border border-line space-y-2">
               <NavigationItem
                 active
                 badge={12}
@@ -2630,7 +2630,7 @@ export function renderComponentPreview(id: string): ReactNode {
                 id="c28-disabled"
                 label="Ajustes Restringidos (Deshabilitado)"
               />
-              <div className="pt-2 border-t border-border-subtle flex items-center gap-3">
+              <div className="pt-2 border-t border-line flex items-center gap-3">
                 <NavigationItem
                   active
                   collapsed
@@ -2658,7 +2658,7 @@ export function renderComponentPreview(id: string): ReactNode {
               AppFrame estructural con navegación, cabecera y cuerpo (F01 4:344
               / F02 4:2)
             </h4>
-            <div className="h-[460px] rounded-group border border-border overflow-hidden">
+            <div className="h-[460px] rounded-group border border-line overflow-hidden">
               <AppFrame
                 className="h-full min-h-0"
                 footer={
@@ -2675,12 +2675,12 @@ export function renderComponentPreview(id: string): ReactNode {
                   </div>
                 }
                 sidebar={
-                  <div className="w-48 bg-surface p-4 border-r border-border-subtle text-xs text-ink-muted">
+                  <div className="w-48 bg-surface p-4 border-r border-line text-xs text-ink-muted">
                     Slot de Sidebar
                   </div>
                 }
               >
-                <div className="p-4 rounded-control bg-surface border border-border">
+                <div className="p-4 rounded-control bg-surface border border-line">
                   <h3 className="font-bold text-ink text-base mb-1">
                     Contenido Principal de la Aplicación
                   </h3>
@@ -2703,7 +2703,7 @@ export function renderComponentPreview(id: string): ReactNode {
               DashboardLayout con 4 métricas y retícula de paneles (F01 4:344 /
               F02 4:164)
             </h4>
-            <div className="p-4 rounded-group bg-surface-ground border border-border">
+            <div className="p-4 rounded-group bg-canvas border border-line">
               <DashboardLayout
                 metrics={
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2750,7 +2750,7 @@ export function renderComponentPreview(id: string): ReactNode {
               MasterDetailLayout para lista/tabla y panel de detalle (F07 4:2804
               / F22 4:7439)
             </h4>
-            <div className="p-4 rounded-group bg-surface-ground border border-border">
+            <div className="p-4 rounded-group bg-canvas border border-line">
               <MasterDetailLayout
                 detail={
                   <Surface aria-label="Detalle del elemento seleccionado">
@@ -2788,7 +2788,7 @@ export function renderComponentPreview(id: string): ReactNode {
               FormLayout en dos columnas con barra de acciones (F09 4:4315 / F08
               4:3262)
             </h4>
-            <div className="p-6 rounded-group bg-surface border border-border">
+            <div className="p-6 rounded-group bg-surface border border-line">
               <FormLayout
                 actions={
                   <>
@@ -2906,7 +2906,7 @@ export function renderComponentPreview(id: string): ReactNode {
               Acciones de fila con botones directos y menú contextual (F05
               4:2009 / F04 4:1497)
             </h4>
-            <div className="p-6 rounded-group bg-surface border border-border flex items-center justify-between">
+            <div className="p-6 rounded-group bg-surface border border-line flex items-center justify-between">
               <div>
                 <p className="font-bold text-ink">Orden #OT-2026-089</p>
                 <p className="text-xs text-ink-muted">
@@ -3009,7 +3009,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Estado de carga con spinner y reduced-motion accesible
             </h4>
-            <div className="p-4 rounded-group bg-surface border border-border">
+            <div className="p-4 rounded-group bg-surface border border-line">
               <LoadingState label="Cargando historial del vehículo…" />
             </div>
           </div>
@@ -3107,29 +3107,29 @@ export function renderComponentPreview(id: string): ReactNode {
               tableAlternative={
                 <table className="w-full text-xs text-left">
                   <thead>
-                    <tr className="border-b border-border-subtle">
+                    <tr className="border-b border-line">
                       <th className="py-2 font-semibold">Día</th>
                       <th className="py-2 font-semibold">Órdenes</th>
                       <th className="py-2 font-semibold">Completadas</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-border-subtle/50">
+                    <tr className="border-b border-line/50">
                       <td className="py-1.5">Lun</td>
                       <td>12</td>
                       <td>10</td>
                     </tr>
-                    <tr className="border-b border-border-subtle/50">
+                    <tr className="border-b border-line/50">
                       <td className="py-1.5">Mar</td>
                       <td>15</td>
                       <td>14</td>
                     </tr>
-                    <tr className="border-b border-border-subtle/50">
+                    <tr className="border-b border-line/50">
                       <td className="py-1.5">Mié</td>
                       <td>18</td>
                       <td>16</td>
                     </tr>
-                    <tr className="border-b border-border-subtle/50">
+                    <tr className="border-b border-line/50">
                       <td className="py-1.5">Jue</td>
                       <td>22</td>
                       <td>20</td>
@@ -3181,7 +3181,7 @@ export function renderComponentPreview(id: string): ReactNode {
               LineAreaChart con relleno de área y puntos accesibles (F02 4:123,
               4:148)
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4">
+            <div className="rounded-xl border border-line/40 bg-surface p-4">
               <LineAreaChart
                 data={[
                   { label: 'Sem 1', value: 24 },
@@ -3202,7 +3202,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               LineAreaChart con valores en cero y valores nulos
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4">
+            <div className="rounded-xl border border-line/40 bg-surface p-4">
               <LineAreaChart
                 data={[
                   { label: 'Ene', value: 15 },
@@ -3227,7 +3227,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               DonutChart con segmentos y total central (F02 4:104, F11 4:4581)
             </h4>
-            <div className="flex flex-col sm:flex-row items-center gap-6 rounded-xl border border-border/40 bg-surface p-6">
+            <div className="flex flex-col sm:flex-row items-center gap-6 rounded-xl border border-line/40 bg-surface p-6">
               <DonutChart
                 data={[
                   {
@@ -3281,7 +3281,7 @@ export function renderComponentPreview(id: string): ReactNode {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col items-center rounded-xl border border-border/40 bg-surface p-4">
+            <div className="flex flex-col items-center rounded-xl border border-line/40 bg-surface p-4">
               <h5 className="text-xs font-semibold text-ink-muted mb-2">
                 Total en Cero
               </h5>
@@ -3295,7 +3295,7 @@ export function renderComponentPreview(id: string): ReactNode {
                 strokeWidth={16}
               />
             </div>
-            <div className="flex flex-col items-center rounded-xl border border-border/40 bg-surface p-4">
+            <div className="flex flex-col items-center rounded-xl border border-line/40 bg-surface p-4">
               <h5 className="text-xs font-semibold text-ink-muted mb-2">
                 Sin Datos
               </h5>
@@ -3317,7 +3317,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               BarChart vertical con rejilla y etiquetas (F07 4:2819)
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4">
+            <div className="rounded-xl border border-line/40 bg-surface p-4">
               <BarChart
                 data={[
                   { id: 'b1', label: 'Lun', value: 45, color: '#605bff' },
@@ -3339,7 +3339,7 @@ export function renderComponentPreview(id: string): ReactNode {
               BarChart horizontal con barras proporcionales y valores (F11
               4:4729)
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4">
+            <div className="rounded-xl border border-line/40 bg-surface p-4">
               <BarChart
                 data={[
                   { id: 'h1', label: 'Frenos', value: 34, color: '#605bff' },
@@ -3367,7 +3367,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               ChartLegend horizontal con valores numéricos (F02 4:94)
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4">
+            <div className="rounded-xl border border-line/40 bg-surface p-4">
               <ChartLegend
                 orientation="horizontal"
                 items={[
@@ -3398,7 +3398,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               ChartLegend vertical estructurada (F11 4:4571)
             </h4>
-            <div className="rounded-xl border border-border/40 bg-surface p-4 max-w-xs">
+            <div className="rounded-xl border border-line/40 bg-surface p-4 max-w-xs">
               <ChartLegend
                 orientation="vertical"
                 items={[
@@ -3434,7 +3434,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Progress lineal por tonos y tamaños (F07 4:2877)
             </h4>
-            <div className="space-y-4 rounded-xl border border-border/40 bg-surface p-4">
+            <div className="space-y-4 rounded-xl border border-line/40 bg-surface p-4">
               <Progress
                 label="Capacidad de taller (sm - primary)"
                 size="sm"
@@ -3475,7 +3475,7 @@ export function renderComponentPreview(id: string): ReactNode {
             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2">
               Progress circular por tamaños (F11 4:4732)
             </h4>
-            <div className="flex items-center justify-around rounded-xl border border-border/40 bg-surface p-6">
+            <div className="flex items-center justify-around rounded-xl border border-line/40 bg-surface p-6">
               <Progress
                 variant="circular"
                 size="sm"

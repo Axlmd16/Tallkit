@@ -37,7 +37,7 @@ const toneClasses: Record<TimelineTone, string> = {
   success: 'border-success bg-success/15 text-success',
   warning: 'border-warning bg-warning/15 text-ink',
   info: 'border-info bg-info/15 text-ink',
-  neutral: 'border-border bg-surface-muted text-ink',
+  neutral: 'border-line bg-surface-muted text-ink',
 }
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -77,7 +77,7 @@ export function Timeline({
         tabIndex={0}
       >
         <div className="min-w-[640px] p-4">
-          <div className="grid grid-cols-[10rem_minmax(28rem,1fr)] gap-3 border-b border-border pb-2 text-xs text-ink-muted">
+          <div className="grid grid-cols-[10rem_minmax(28rem,1fr)] gap-3 border-b border-line pb-2 text-xs text-ink-muted">
             <span>Elemento</span>
             <div className="relative h-5" aria-hidden="true">
               {ticks.map((tick) => (
@@ -92,7 +92,7 @@ export function Timeline({
             </div>
           </div>
 
-          <div className="divide-y divide-border/60">
+          <div className="divide-y divide-line/60">
             {rows.map((row) => {
               const left = percentage(row.start)
               const right = percentage(row.end)
@@ -112,7 +112,7 @@ export function Timeline({
                       </p>
                     )}
                   </div>
-                  <div className="relative h-10 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px)] bg-[size:25%_100%]">
+                  <div className="relative h-10 bg-[linear-gradient(to_right,var(--color-line)_1px,transparent_1px)] bg-[size:25%_100%]">
                     <button
                       aria-label={`${row.label}: ${row.start} a ${row.end}`}
                       aria-pressed={selected}

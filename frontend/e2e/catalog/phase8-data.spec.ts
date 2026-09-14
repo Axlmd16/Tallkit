@@ -55,7 +55,7 @@ test.describe('Fase 8: Datos Tabulares y Listas (C34–C36, C38)', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/visual-catalog.html#isolate=true&id=C34')
 
-    const table = page.getByRole('table', { name: 'Órdenes de Trabajo' })
+    const table = page.getByRole('table', { name: 'Elementos sintéticos' })
 
     // Verificar orden
     const codeHeader = table.getByRole('columnheader', { name: /Código/ })
@@ -73,10 +73,10 @@ test.describe('Fase 8: Datos Tabulares y Listas (C34–C36, C38)', () => {
     await selectAll.click()
 
     const row1 = table.getByRole('checkbox', {
-      name: 'Seleccionar fila ORD-001',
+      name: 'Seleccionar fila ROW-001',
     })
     const row2 = table.getByRole('checkbox', {
-      name: 'Seleccionar fila ORD-002',
+      name: 'Seleccionar fila ROW-002',
     })
     await expect(row1).toBeChecked()
     await expect(row2).toBeChecked()
@@ -90,7 +90,7 @@ test.describe('Fase 8: Datos Tabulares y Listas (C34–C36, C38)', () => {
     // DataTable a 360px muestra la lista de tarjetas
     await page.goto('/visual-catalog.html#isolate=true&id=C34')
     const narrowList = page.getByRole('list', {
-      name: 'Órdenes de Trabajo en pantalla estrecha',
+      name: 'Elementos sintéticos en pantalla estrecha',
     })
     await expect(narrowList).toBeVisible()
 

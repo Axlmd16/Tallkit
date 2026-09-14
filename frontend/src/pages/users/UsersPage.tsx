@@ -211,6 +211,7 @@ export function UsersPage() {
         title="Usuarios"
       />
 
+      
       <FilterPanel label="Filtros de usuarios">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Field id="user-search" label="Buscar">

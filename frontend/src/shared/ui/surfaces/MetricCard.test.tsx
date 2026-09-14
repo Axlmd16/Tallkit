@@ -4,6 +4,16 @@ import { describe, expect, it } from 'vitest'
 import { MetricCard } from './MetricCard'
 
 describe('MetricCard (C22)', () => {
+  it('presents the primary value before its supporting label', () => {
+    render(<MetricCard label="Vehículos en Taller" value="48" />)
+
+    const value = screen.getByText('48')
+    const label = screen.getByText('Vehículos en Taller')
+    expect(
+      value.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
   it('renders standard dimensions with 116px min-height, 60px icon and 22px value', () => {
     render(
       <MetricCard

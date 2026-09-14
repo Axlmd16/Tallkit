@@ -24,7 +24,7 @@ export function NavigationItem({
   className = '',
 }: NavigationItemProps) {
   const activeClasses = active
-    ? 'bg-primary/10 text-primary-strong font-semibold'
+    ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary font-semibold'
     : 'text-ink-muted hover:bg-surface-selected/50 hover:text-ink'
 
   const sizeClasses = collapsed
@@ -34,12 +34,12 @@ export function NavigationItem({
   return (
     <button
       aria-current={active ? 'page' : undefined}
-      aria-label={collapsed ? label : undefined}
+      aria-label={label}
       className={`min-h-[44px] flex items-center rounded-control text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 ${sizeClasses} ${activeClasses} ${className}`.trim()}
       data-item-id={id}
       disabled={disabled}
       onClick={onClick}
-      title={collapsed ? label : undefined}
+      title={label}
       type="button"
     >
       <span className="shrink-0 text-current flex items-center justify-center size-5">

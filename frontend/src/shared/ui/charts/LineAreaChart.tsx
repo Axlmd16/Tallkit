@@ -245,7 +245,7 @@ export function LineAreaChart({
       {/* Tooltip dinámico al hacer foco o hover */}
       {activePointIndex !== null && data[activePointIndex] && (
         <div
-          className="absolute z-10 -translate-x-1/2 -translate-y-full px-2.5 py-1 bg-ink text-surface text-xs font-semibold rounded-card shadow-overlay pointer-events-none transition-all duration-75"
+          className="absolute z-10 -translate-x-1/2 -translate-y-full px-2.5 py-1 bg-ink text-surface text-xs font-semibold rounded-group shadow-overlay pointer-events-none transition-all duration-75"
           role="tooltip"
           style={{
             left: `${(getX(activePointIndex) / width) * 100}%`,

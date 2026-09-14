@@ -88,9 +88,35 @@ describe('Registry - Catálogo C01-C66 y F01-F22', () => {
         ),
         component.id,
       ).toBe(true)
-      expect(component.evidenceStatus, component.id).not.toBe('pending')
       expect(renderComponentPreview(component.id), component.id).not.toBeNull()
     }
+  })
+
+  it('no presenta evidencia exacta como verificada sin referencia, captura y diff comparables', () => {
+    for (const component of COMPONENT_REGISTRY) {
+      const visualEvidence = (
+        component as typeof component & {
+          visualEvidence?: { actual?: string; diff?: string; figma?: string }
+        }
+      ).visualEvidence
+
+      if (component.kind === 'E' && component.evidenceStatus === 'verified') {
+        expect(visualEvidence?.figma, component.id).toBeTruthy()
+        expect(visualEvidence?.actual, component.id).toBeTruthy()
+        expect(visualEvidence?.diff, component.id).toBeTruthy()
+      }
+    }
+
+    expect(findComponentById('C22')?.evidenceStatus).toBe('pending')
+  })
+
+  it('no preaprueba adaptaciones antes de revisar su evidencia', () => {
+    const adaptation = COMPONENT_REGISTRY.find(
+      (component) => component.kind === 'A' && !component.visualEvidence,
+    )
+
+    expect(adaptation).toBeDefined()
+    expect(adaptation?.evidenceStatus).toBe('pending')
   })
 })
 

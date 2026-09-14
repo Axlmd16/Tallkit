@@ -47,7 +47,7 @@ export function BarChart({
   if (isEmpty) {
     return (
       <div
-        className={`flex min-h-[160px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-border/40 p-6 text-center ${className}`}
+        className={`flex min-h-[160px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-line/40 p-6 text-center ${className}`}
       >
         <span className="text-xs font-medium text-ink-muted">
           {emptyMessage}

@@ -67,12 +67,12 @@ export function Sidebar({
   return (
     <>
       <aside
-        className={`flex flex-col bg-surface border-r border-border-subtle h-full transition-[width] duration-200 shrink-0 ${
+        className={`flex flex-col bg-surface h-full transition-[width] duration-200 shrink-0 ${
           collapsed ? 'w-20' : 'w-[218px]'
         } ${className}`.trim()}
       >
         {header && (
-          <div className="p-4 border-b border-border-subtle flex items-center justify-center min-h-[56px]">
+          <div className="p-4 border-b border-line flex items-center justify-center min-h-[56px]">
             {header}
           </div>
         )}
@@ -82,7 +82,7 @@ export function Sidebar({
         </nav>
 
         {footer && (
-          <div className="p-3 border-t border-border-subtle min-h-[56px] flex items-center justify-center">
+          <div className="p-3 border-t border-line min-h-[56px] flex items-center justify-center">
             {footer}
           </div>
         )}

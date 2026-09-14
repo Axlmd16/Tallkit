@@ -32,7 +32,7 @@ export function BoardCard({
       className={`border p-4 transition-colors ${
         selected
           ? 'border-primary bg-primary-soft'
-          : 'border-border bg-surface hover:border-primary/40'
+          : 'border-line bg-surface hover:border-primary/40'
       } ${className}`.trim()}
       role="listitem"
     >
@@ -63,7 +63,7 @@ export function BoardCard({
           {indicators && <div className="shrink-0">{indicators}</div>}
         </div>
         {avatars.length > 0 && (
-          <div className="mt-4 border-t border-border pt-3">
+          <div className="mt-4 border-t border-line pt-3">
             <AvatarGroup
               aria-label={`Participantes sintéticos de ${title}`}
               items={avatars}
@@ -72,7 +72,7 @@ export function BoardCard({
         )}
       </button>
       {actions && (
-        <footer className="mt-3 flex min-h-11 items-center justify-end gap-3 border-t border-border pt-3">
+        <footer className="mt-3 flex min-h-11 items-center justify-end gap-3 border-t border-line pt-3">
           <div className="flex items-center gap-2">{actions}</div>
         </footer>
       )}

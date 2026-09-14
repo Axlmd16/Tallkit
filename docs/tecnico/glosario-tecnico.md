@@ -31,6 +31,16 @@ Ejecución simultánea de operaciones que deben coordinarse para preservar las r
 Panel contextual superpuesto que entra desde un borde de la interfaz. Conserva el contexto de la
 pantalla de origen y ocupa el ancho completo cuando el espacio disponible es estrecho.
 
+## Evidencia visual
+
+Conjunto reproducible de referencia, captura actual, diferencia y metadatos que permite revisar
+la fidelidad de una interfaz sin deducir estilos a partir de la imagen.
+
+## Referencia Figma
+
+Frame o nodo identificado de forma estable en Figma y consultado mediante sus propiedades
+estructuradas. Una captura complementa la revisión, pero no sustituye esas propiedades.
+
 ## Idempotencia
 
 Propiedad que evita repetir los efectos de una misma solicitud procesada más de una vez.

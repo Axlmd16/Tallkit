@@ -38,7 +38,7 @@ export function YearCalendar({
           return (
             <div
               key={monthStr}
-              className="flex flex-col bg-surface rounded-xl border border-border/40 p-3 shadow-xs hover:border-border transition-colors"
+              className="flex flex-col bg-surface rounded-xl border border-line/40 p-3 shadow-xs hover:border-line transition-colors"
             >
               {/* Encabezado de mes con enlace/botón de apertura */}
               <div className="flex items-center justify-between mb-2 px-1">

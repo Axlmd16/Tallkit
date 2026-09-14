@@ -30,7 +30,7 @@ const toneClassMap: Record<string, string> = {
     'bg-amber-500/15 border-amber-600 text-amber-950 dark:text-amber-200 hover:bg-amber-500/25 focus:ring-amber-500/40',
   info: 'bg-sky-500/15 border-sky-600 text-sky-950 dark:text-sky-200 hover:bg-sky-500/25 focus:ring-sky-500/40',
   neutral:
-    'bg-surface-muted border-border/80 text-ink hover:bg-surface-selected focus:ring-primary/40',
+    'bg-surface-muted border-line/80 text-ink hover:bg-surface-selected focus:ring-primary/40',
 }
 
 function timeToMinutes(timeStr: string, startHour: number): number {
@@ -140,7 +140,7 @@ export function DayCalendar({
   return (
     <div
       aria-label={resolvedAriaLabel}
-      className={`w-full overflow-x-auto rounded-xl border border-border/40 bg-surface text-ink shadow-sm select-none ${className}`}
+      className={`w-full overflow-x-auto rounded-xl border border-line/40 bg-surface text-ink shadow-sm select-none ${className}`}
       role="region"
     >
       <div
@@ -148,7 +148,7 @@ export function DayCalendar({
         style={{ height: totalHours * rowHeight + 32 }}
       >
         {/* Eje de tiempo a la izquierda */}
-        <div className="w-16 shrink-0 border-r border-border/40 pt-2 bg-surface-muted/30">
+        <div className="w-16 shrink-0 border-r border-line/40 pt-2 bg-surface-muted/30">
           {hours.map((h, i) => (
             <div
               key={h}
@@ -168,7 +168,7 @@ export function DayCalendar({
             return (
               <div
                 key={h}
-                className="group relative border-b border-border/25 transition-colors hover:bg-surface-selected/30"
+                className="group relative border-b border-line/25 transition-colors hover:bg-surface-selected/30"
                 style={{ height: rowHeight }}
               >
                 <button

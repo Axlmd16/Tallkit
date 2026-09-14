@@ -30,7 +30,7 @@ export function PreviewLayout({
       data-testid="preview-layout-root"
     >
       {toolbar && (
-        <header className="w-full flex items-center justify-between gap-3 pb-2 border-b border-border-subtle">
+        <header className="w-full flex items-center justify-between gap-3 pb-2 border-b border-line">
           {toolbar}
         </header>
       )}
@@ -39,7 +39,7 @@ export function PreviewLayout({
         {/* Panel de edición / parámetros */}
         <section
           aria-label={editorLabel}
-          className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 bg-surface border border-border-subtle rounded-panel p-5 shadow-card ${
+          className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 bg-surface border border-line rounded-dialog p-5 shadow-card ${
             isEditorHiddenOnMobile ? 'max-lg:hidden' : ''
           }`.trim()}
           role="region"
@@ -50,7 +50,7 @@ export function PreviewLayout({
         {/* Panel de visualización / documento previo (con escala accesible, mínimo text-xs) */}
         <section
           aria-label={previewLabel}
-          className={`flex-1 w-full bg-surface border border-border-subtle rounded-panel p-6 shadow-card overflow-x-auto ${
+          className={`flex-1 w-full bg-surface border border-line rounded-dialog p-6 shadow-card overflow-x-auto ${
             isPreviewHiddenOnMobile ? 'max-lg:hidden' : ''
           }`.trim()}
           role="region"

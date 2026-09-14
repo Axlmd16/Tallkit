@@ -153,6 +153,7 @@ type DataViewProps<T extends object> = {
   getRowKey: (row: T) => Key
   label: string
   rows: T[]
+  onRowClick?: ((row: T) => void) | undefined
 }
 
 export function ElevatedDataList<T extends object>({
@@ -160,6 +161,7 @@ export function ElevatedDataList<T extends object>({
   columns,
   getRowKey,
   label,
+  onRowClick,
   rows,
 }: DataViewProps<T>) {
   return (
@@ -168,6 +170,7 @@ export function ElevatedDataList<T extends object>({
       columns={columns}
       getRowKey={getRowKey}
       label={label}
+      onRowClick={onRowClick}
       rows={rows}
       variant="elevated"
     />

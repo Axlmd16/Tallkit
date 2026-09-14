@@ -33,7 +33,7 @@ export function CalendarToolbar({
   return (
     <div
       aria-label="Barra de herramientas de calendario"
-      className={`flex flex-wrap items-center justify-between gap-3 bg-surface p-3 sm:p-4 rounded-xl border border-border/40 text-ink shadow-sm ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-3 bg-surface p-3 sm:p-4 rounded-xl border border-line/40 text-ink shadow-sm ${className}`}
       role="toolbar"
     >
       {/* Título y navegación previa/siguiente/hoy */}
@@ -45,7 +45,7 @@ export function CalendarToolbar({
         <div className="flex items-center gap-1">
           <button
             aria-label="Periodo anterior"
-            className="inline-flex items-center justify-center size-8 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-selected transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-selected hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
             onClick={onPrevious}
             type="button"
           >
@@ -53,7 +53,7 @@ export function CalendarToolbar({
           </button>
           <button
             aria-label="Periodo siguiente"
-            className="inline-flex items-center justify-center size-8 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-selected transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-selected hover:text-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
             onClick={onNext}
             type="button"
           >
@@ -63,7 +63,7 @@ export function CalendarToolbar({
 
         {onToday && (
           <button
-            className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-border/60 text-ink hover:bg-surface-selected transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="min-h-11 min-w-11 rounded-lg border border-line/60 px-2.5 py-1 text-xs font-semibold text-ink transition-colors hover:bg-surface-selected focus:outline-none focus:ring-2 focus:ring-primary/40"
             onClick={onToday}
             type="button"
           >
@@ -76,7 +76,7 @@ export function CalendarToolbar({
       <div className="flex items-center gap-3 ml-auto">
         <div
           aria-label="Cambiar vista de calendario"
-          className="inline-flex items-center p-0.5 rounded-lg bg-surface-muted border border-border/40 text-xs font-medium"
+          className="inline-flex items-center p-0.5 rounded-lg bg-surface-muted border border-line/40 text-xs font-medium"
           role="group"
         >
           {views.map((v) => {
@@ -85,7 +85,7 @@ export function CalendarToolbar({
               <button
                 key={v.id}
                 aria-pressed={isActive}
-                className={`px-3 py-1 rounded-md transition-all ${
+                className={`min-h-11 min-w-11 rounded-md px-3 py-1 transition-all ${
                   isActive
                     ? 'bg-surface text-ink font-semibold shadow-xs'
                     : 'text-ink-muted hover:text-ink'

@@ -6,6 +6,7 @@ import {
   Button,
   ButtonGroup,
   Field,
+  FormLayout,
   InlineNotice,
   Input,
   Select,
@@ -254,9 +255,10 @@ export function CustomerForm({
         </InlineNotice>
       )}
 
-      <div
-        className="grid grid-cols-1 gap-5 md:grid-cols-2"
-        data-testid="customer-fields"
+      <FormLayout
+        className="customer-form-layout"
+        columns={2}
+        fieldsClassName="customer-fields"
       >
         <Field
           error={fieldErrors.person_type}
@@ -322,11 +324,11 @@ export function CustomerForm({
           error={fieldErrors.identification}
           id="customer-identification"
           label="Número de identificación"
-          hint={
-            draft.identification_type === 'CI'
-              ? 'Exactamente 10 dígitos'
-              : 'Exactamente 13 dígitos'
-          }
+          // hint={
+          //   draft.identification_type === 'CI'
+          //     ? 'Exactamente 10 dígitos'
+          //     : 'Exactamente 13 dígitos'
+          // }
         >
           <Input
             onChange={(event) => {
@@ -380,7 +382,7 @@ export function CustomerForm({
             value={draft.address}
           />
         </Field>
-      </div>
+      </FormLayout>
 
       {dirty && (
         <p className="text-sm text-warning" role="status">

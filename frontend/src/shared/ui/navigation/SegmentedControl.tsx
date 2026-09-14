@@ -96,7 +96,7 @@ export function SegmentedControl({
   return (
     <div
       aria-label={ariaLabel}
-      className={`inline-flex items-center gap-1 rounded-group bg-surface-muted p-1 border border-border-subtle ${className}`}
+      className={`inline-flex items-center gap-1 rounded-group bg-surface-muted p-1 border border-line ${className}`}
       role="radiogroup"
     >
       {options.map((option, index) => {

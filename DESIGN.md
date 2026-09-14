@@ -1,14 +1,14 @@
-# Sistema visual de Sys-Taller
+# Sistema visual de Sys-Inventario
 
 ## Propósito
 
-Esta guía define el lenguaje visual implementado en el frontend de Sys-Taller. Mantiene una experiencia luminosa, amable y operativa en computadora, tableta y teléfono. No define reglas del negocio ni sustituye las especificaciones OpenSpec.
+Esta guía define el lenguaje visual implementado en el frontend de Sys-Inventario. Mantiene una experiencia luminosa, amable y operativa en computadora, tableta y teléfono. No define reglas del negocio ni sustituye las especificaciones OpenSpec.
 
 ## Dirección visual y atribución
 
 El sistema adapta la composición y el lenguaje visual de [SAAS Dashboard (Community)](https://www.figma.com/community/file/1065510379888107603/saas-dashboard), creado por Jiangyu y publicado bajo CC BY 4.0. La plantilla es referencia para color, tipografía, espaciado, geometría, elevación y patrones de interacción.
 
-Sys-Taller no reutiliza la marca, el logotipo, los textos demostrativos, nombres, datos, fotografías ni funcionalidades de la plantilla. Conserva los iconos de navegación y la ilustración neutral de confirmación exportados del archivo Figma; el resto del contenido corresponde a Sys-Taller. Todo contenido visible responde al producto y a sus permisos reales. El gráfico de acceso `frontend/src/assets/workshop-diagnostic.svg` es un recurso original del proyecto. Se compone con formas neutras e iconos locales dentro de la región 647 × 602 px del frame, conservando la paleta y evitando datos demostrativos.
+Sys-Inventario no reutiliza la marca, el logotipo, los textos demostrativos, nombres, datos, fotografías ni funcionalidades de la plantilla. Conserva los iconos de navegación y la ilustración neutral de confirmación exportados del archivo Figma; el resto del contenido corresponde al producto. Todo contenido visible responde al sistema y a sus permisos reales. El gráfico de acceso `frontend/src/assets/workshop-diagnostic.svg` es un recurso original del proyecto. Se compone con formas neutras e iconos locales dentro de la región 647 × 602 px del frame, conservando la paleta y evitando datos demostrativos.
 
 ## Recursos locales
 
@@ -48,14 +48,24 @@ La retícula principal usa márgenes y separaciones de 30 px, con 32 px entre la
 
 ## Composición adaptable
 
-- Desde 768 px: sidebar de 80 px, margen exterior de 30 px, contenido desde x=140. Es la variante del dashboard solicitada también para listas; estas últimas tienen sidebar de 218 px en sus frames originales.
 - Bajo 768 px: encabezado compacto y navegación en drawer con etiquetas completas.
-- Inicio a 1366 × 1047: cuatro tarjetas de 116 px; paneles de 719/447 px, alturas 408/335 px, coordenadas y=242/682.
+- Entre 768 y 1279 px: rail de 80 px, margen exterior de 30 px y contenido desde x=140, basado en `4:344`.
+- Desde 1280 px: sidebar desplegado blanco de 218 px desde x=0 y contenido desde x=248, basado en `4:2`, `4:233`, `4:234`, `4:329` y `4:330`. El umbral de 1280 px es una adaptación de la aplicación, no una medida atribuida a Figma.
+- Inicio a 1440 × 1047: cuatro tarjetas de 116 px; paneles superiores de 702/430 px, altura 408 px y separación de 30 px, según `4:117`/`4:118` y `4:92`/`4:93`.
 - Usuarios: filas de 60 px y separación de 10 px, según Customer List. Auditoría: filas de 70 px según Invoice List. En tableta la tabla conserva un ancho legible y desplazamiento local accesible por teclado; en teléfono se convierte en tarjetas.
 - Drawer: 409 px con márgenes de 30 px y campos de 349 × 50 px; una columna. En móvil ocupa todo el ancho. Los roles y la advertencia de cambios conservan su comportamiento.
 - Acceso a 1440 × 1112: región blanca de 448 px; contenido desde x=50; marca de 92 px en y=200; título 25/600 en y=332; campos en y=557/657; botón en y=791.
 - Recover: diálogo administrativo cuadrado de 658 px, radio 10; marca en y=331, campo informativo en y=603, botón en y=678 a 1440 × 1112. Confirm: superficie cuadrada de 726 px e ilustración de 184 px. Los avisos y la credencial temporal existentes requieren contenido adicional respecto al frame y se conservan antes de la acción de cierre.
-- No hay rutas públicas de recuperación/confirmación nuevas. Los diez frames del archivo `GRvgnODulXXrLTz4BsaToK` fueron consultados individualmente mediante propiedades estructuradas; la comparación y aceptación se registran en `docs/tecnico/revision-visual-frontend.md`.
+- No hay rutas públicas de recuperación/confirmación nuevas. Las 22 raíces Figma del catálogo se consultan mediante `get_design_context`; la comparación y aceptación se registran en `docs/tecnico/revision-visual-frontend.md`.
+
+## Política de evidencia visual
+
+- La fuente estructurada es el archivo Figma `GRvgnODulXXrLTz4BsaToK`. Las raíces utilizadas son `4:344`, `4:2`, `4:660`, `4:1140`, `4:1635`, `4:2246`, `4:2803`, `4:3258`, `4:4239`, `4:4567`, `4:4981`, `4:5455`, `4:5816`, `4:6241`, `4:6577`, `4:3637`, `4:3942`, `4:8584`, `4:7725`, `4:9302`, `4:9333` y `4:7438`.
+- `registry.ts` conserva para cada C01–C66 su `frameRef`, nodos exactos o marca de adaptación `A`, prueba y estado real: `pending`, `in-progress`, `divergent` o `verified`.
+- Las referencias Figma se exportan a escala 1. Las capturas de Chromium usan DPR 1 y 360, 768, 1024 y 1440 px; la navegación añade 1279, 1280 y 1366 px para probar el cambio de variante.
+- La evidencia generada vive fuera del repositorio, separada en `figma/`, `actual/`, `diff/` y `approved/`, con manifiesto y checksums SHA-256. No se infieren estilos desde capturas ni se enmascaran componentes completos.
+- Las propiedades estructuradas exactas son bloqueantes. Para regresión de píxeles, Playwright usa umbral por canal `0.2` y máximo `0.5 %` de píxeles distintos sobre regiones equivalentes.
+- Una captura solo pasa a `approved/` y una entrada solo pasa a `verified` después de aceptación visual explícita. Una ejecución sin fallos no equivale por sí sola a aprobación.
 
 ## Componentes base
 
@@ -147,9 +157,11 @@ Los índices re-exportan solo los componentes del nivel de `shared/ui`, no los i
 | CVR-10 Conversación | C63–C65 | `phase14-conversation.spec.ts` | `phase14-conversation/` |
 | CVR-11 Verificación final | C01–C66 | `phase15-final.spec.ts` | `phase15-final/` |
 
-### Limitaciones registradas
+### Adaptaciones registradas
 
-- **Inputs nativos de checkbox** (C08): `<input type="checkbox">` mide 20×44px en el DOM pero su área real de activación incluye la etiqueta adyacente, que supera los 44×44px.
-- **Botones de navegación de calendario** (C55): ancho de 32px × alto de 44px. La altura cumple el mínimo; el ancho es una limitación del diseño compacto de la barra de calendario.
+- **Inputs nativos de checkbox** (C08): la prueba mide la etiqueta activable completa, no solo el dibujo interno del `<input>`, y exige al menos 44×44 px.
+- **Botones de navegación de calendario** (C55): los controles anterior/siguiente y de vista conservan la composición del frame, con área activable mínima de 44×44 px.
 - **Vista semanal de calendario**: fuera del alcance de este catálogo; no implementada en C55–C59.
 - **Drag-and-drop en tablero**: fuera del alcance; C61–C62 son presentacionales.
+
+Este ajuste no cambia OpenAPI, migraciones, ADR ni diagramas C4. Tampoco altera permisos, sesión, CSRF, rutas o contratos del backend.
