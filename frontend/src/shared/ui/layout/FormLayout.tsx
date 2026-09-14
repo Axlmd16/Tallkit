@@ -40,7 +40,7 @@ export function FormLayout({
 
   const actionsBar = actions ? (
     <div
-      className={`flex flex-wrap items-center gap-3 border-t border-border-subtle pt-4 ${alignmentClasses[actionsAlignment]}`}
+      className={`flex flex-wrap items-center gap-3 border-t border-line pt-4 ${alignmentClasses[actionsAlignment]}`}
     >
       {actions}
     </div>

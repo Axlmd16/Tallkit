@@ -102,8 +102,8 @@ Antes de implementar una capacidad:
 5. la futura API, el modelo de datos y las pruebas deben trazarse sin cambiar el significado conceptual aprobado.
 
 
-## Corrección visual pendiente de aceptación
+## Corrección del catálogo visual pendiente de aceptación
 
 | Requisitos | Cambio activo | Evidencia requerida |
 |---|---|---|
-| RNF-USA-001/002/007/008, UI-001/002/010/011/018 | establecer-sistema-visual-frontend, tareas 11.1–11.10 | Propiedades estructuradas de diez frames, pruebas conservadas, capturas por etapa al mismo viewport, aprobación visual explícita pendiente |
+| RNF-USA-001/002/007/008, RNF-COM-001…005, UI-001/002/010/011/018 | aplicar-catalogo-visual-frontend | `get_design_context` de F01–F22, procedencia C01–C66, capturas Chromium con DPR 1, comparación externa y aprobación visual explícita pendiente |

@@ -262,10 +262,14 @@ test('áreas de interacción ≥ 44×44px en componentes con coarse pointer', as
     {
       id: 'C08',
       name: 'checkbox',
-      selector: '[role="checkbox"], input[type="checkbox"]',
+      selector: 'label:has(input[type="checkbox"])',
     },
     { id: 'C13', name: 'tabs', selector: '[role="tab"]' },
-    { id: 'C55', name: 'calendar-toolbar', selector: 'button' },
+    {
+      id: 'C55',
+      name: 'calendar-toolbar',
+      selector: '[role="toolbar"] button',
+    },
   ]
 
   for (const comp of touchComponents) {
@@ -291,12 +295,10 @@ test('áreas de interacción ≥ 44×44px en componentes con coarse pointer', as
       return violations.slice(0, 5)
     }, comp.selector)
 
-    if (smallControls.length > 0) {
-      console.warn(
-        `Componente ${comp.id} tiene controles < 44×44px:`,
-        smallControls,
-      )
-    }
+    expect(
+      smallControls,
+      `Componente ${comp.id} tiene controles < 44×44px`,
+    ).toEqual([])
 
     await page.screenshot({
       animations: 'disabled',

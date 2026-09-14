@@ -16,7 +16,9 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:catalog": "playwright test --config=playwright.catalog.config.ts",
+    "evidence:index": "node scripts/index-catalog-evidence.mjs"
   },
   "dependencies": {
     "@fontsource/nunito": "5.3.0",

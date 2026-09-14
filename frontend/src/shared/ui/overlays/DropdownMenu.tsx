@@ -209,7 +209,7 @@ export function DropdownMenu({
       {isOpen && (
         <div
           aria-labelledby={triggerId}
-          className={`absolute z-50 mt-1.5 min-w-[180px] rounded-group border border-border-subtle bg-surface p-1 shadow-card outline-none ${alignmentClass}`}
+          className={`absolute z-50 mt-1.5 min-w-[180px] rounded-group bg-surface p-1 shadow-menu outline-none ${alignmentClass}`}
           id={menuId}
           onKeyDown={handleMenuKeyDown}
           ref={menuRef}
@@ -220,7 +220,7 @@ export function DropdownMenu({
             if (item.divider) {
               return (
                 <div
-                  className="my-1 border-t border-border-subtle"
+                  className="my-1 border-t border-line"
                   key={item.id}
                   role="separator"
                 />

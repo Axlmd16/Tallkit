@@ -15,14 +15,22 @@ describe('C01: Icon - Componente y mapa de iconos accesibles', () => {
 
   it('renderiza como decorativo por defecto (aria-hidden=true)', () => {
     const { container } = render(<Icon name="category" />)
-    const svg = container.querySelector('svg')
-    expect(svg).not.toBeNull()
-    expect(svg).toHaveAttribute('aria-hidden', 'true')
+    const image = container.querySelector('img')
+    expect(image).not.toBeNull()
+    expect(image?.getAttribute('src')).toMatch(/^data:image\/svg\+xml/)
+    expect(decodeURIComponent(image?.getAttribute('src') ?? '')).toContain(
+      "id='Category'",
+    )
+    expect(image).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('renderiza como accesible cuando se especifica aria-label', () => {
     render(<Icon name="document" aria-label="Ver documento" />)
     const icon = screen.getByLabelText('Ver documento')
+    expect(icon.tagName).toBe('IMG')
+    expect(decodeURIComponent(icon.getAttribute('src') ?? '')).toContain(
+      "id='Document'",
+    )
     expect(icon).toBeInTheDocument()
     expect(icon).toHaveAttribute('role', 'img')
     expect(icon).toHaveAttribute('aria-hidden', 'false')
@@ -30,9 +38,12 @@ describe('C01: Icon - Componente y mapa de iconos accesibles', () => {
 
   it('soporta tamaño personalizado conservando dimensiones cuadradas', () => {
     const { container } = render(<Icon name="chart" size={24} />)
-    const svg = container.querySelector('svg')
-    expect(svg).toHaveAttribute('width', '24')
-    expect(svg).toHaveAttribute('height', '24')
+    const image = container.querySelector('img')
+    expect(decodeURIComponent(image?.getAttribute('src') ?? '')).toContain(
+      "id='Chart'",
+    )
+    expect(image).toHaveAttribute('width', '24')
+    expect(image).toHaveAttribute('height', '24')
   })
 
   it('renderiza correctamente sin errores todos los iconos del mapa', () => {
@@ -40,7 +51,7 @@ describe('C01: Icon - Componente y mapa de iconos accesibles', () => {
     expect(names.length).toBeGreaterThanOrEqual(10)
     for (const name of names) {
       const { container } = render(<Icon name={name} />)
-      expect(container.querySelector('svg')).not.toBeNull()
+      expect(container.querySelector('img, svg')).not.toBeNull()
     }
   })
 })

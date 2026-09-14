@@ -9,3 +9,5 @@
 | Intervención correctiva | `docs/negocio/producto/glosario.md` | Corrección atribuible al taller sin cargo. |
 | Documento interno | `docs/negocio/producto/glosario.md` | Documento distinto de una factura electrónica autorizada. |
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación por RUC y medio de pago. |
+| Evidencia visual | `docs/tecnico/glosario-tecnico.md` | Demostración reproducible de la implementación del sistema visual. |
+| Referencia Figma | `docs/tecnico/glosario-tecnico.md` | Fuente estructurada de los patrones visuales trazados. |

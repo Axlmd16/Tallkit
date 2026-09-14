@@ -30,11 +30,11 @@ export function DetailPanel({
   return (
     <aside
       aria-label={accessibleLabel}
-      className={`w-full md:w-[302px] shrink-0 bg-surface border border-border rounded-group flex flex-col overflow-hidden shadow-card ${className}`.trim()}
+      className={`w-full md:w-[302px] shrink-0 bg-surface border border-line rounded-group flex flex-col overflow-hidden shadow-card ${className}`.trim()}
       role="complementary"
     >
       {(title || onClose) && (
-        <header className="p-4 border-b border-border-subtle flex items-start justify-between gap-3 bg-surface-ground">
+        <header className="p-4 border-b border-line flex items-start justify-between gap-3 bg-canvas">
           <div className="min-w-0 flex-1">
             {title && (
               <h3 className="text-sm font-bold text-ink truncate">{title}</h3>

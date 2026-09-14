@@ -15,7 +15,7 @@ __pycache__/
 backend/.venv/
 backend/htmlcov/
 backend/src/staticfiles/
-media/
+/media/
 
 frontend/coverage/
 frontend/dist/

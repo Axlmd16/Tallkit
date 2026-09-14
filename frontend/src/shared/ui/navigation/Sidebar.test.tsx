@@ -72,6 +72,10 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
 
     const dashboardBtn = screen.getByRole('button', { name: /Tablero/ })
     expect(dashboardBtn).toHaveAttribute('aria-current', 'page')
+    expect(dashboardBtn.className).toContain('linear-gradient')
+
+    const aside = nav.closest('aside')
+    expect(aside?.className).not.toContain('border-r')
 
     const ordersBtn = screen.getByRole('button', { name: /Órdenes/ })
     expect(ordersBtn).not.toHaveAttribute('aria-current')
@@ -79,6 +83,25 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
 
     await user.click(ordersBtn)
     expect(handleSelect).toHaveBeenCalledWith('orders')
+  })
+
+  it('keeps the full label available when expanded text is truncated', () => {
+    render(
+      <NavigationItem
+        icon={<span>⭐</span>}
+        id="long"
+        label="Configuración administrativa extraordinariamente larga"
+      />,
+    )
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Configuración administrativa extraordinariamente larga',
+      }),
+    ).toHaveAttribute(
+      'title',
+      'Configuración administrativa extraordinariamente larga',
+    )
   })
 
   it('renders Sidebar collapsed (80px) and omits visible text while preserving accessibility', () => {

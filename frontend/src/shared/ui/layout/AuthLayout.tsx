@@ -29,13 +29,13 @@ export function AuthLayout({
         }`}
       >
         {hero && (
-          <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-8 rounded-panel bg-surface-ground border border-border-subtle">
+          <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-8 rounded-dialog bg-canvas border border-line">
             {hero}
           </div>
         )}
 
         <main
-          className={`w-full max-w-[448px] bg-surface border border-border-subtle rounded-panel shadow-card flex flex-col justify-center ${
+          className={`w-full max-w-[448px] bg-surface border border-line rounded-dialog shadow-card flex flex-col justify-center ${
             isExtended ? 'py-12 px-6 sm:px-10' : 'py-8 px-6 sm:px-8'
           } ${className}`.trim()}
           role="main"

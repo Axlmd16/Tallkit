@@ -192,6 +192,18 @@ samp {
   display: none;
 }
 @media (min-width: 768px) {
+  .app-nav-label,
+  .app-logout-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .app-shell {
     display: block;
     padding: 30px 30px 30px 140px;
@@ -262,6 +274,71 @@ samp {
   }
 }
 
+/* Frame 4:2 / group 4:233: 218px sidebar and content origin x=248.
+   The 1280px breakpoint is an application adaptation, not a Figma value. */
+@media (min-width: 1280px) {
+  .app-shell {
+    padding: 30px 30px 30px 248px;
+  }
+  .app-rail {
+    inset: 0 auto 0 0;
+    width: 218px;
+    height: 100dvh;
+    padding: 50px 0 30px;
+    border-radius: 0;
+  }
+  .app-rail > div:first-child {
+    flex-direction: row;
+    padding: 0 50px;
+    gap: 15px;
+  }
+  .app-rail > div:first-child > p {
+    display: block;
+    overflow: visible;
+  }
+  .app-rail nav {
+    margin-top: 32px;
+  }
+  .app-rail nav a {
+    height: 48px;
+    justify-content: flex-start;
+    gap: 15px;
+    margin-bottom: 6px;
+    padding: 0 30px 0 50px;
+    border-radius: 0;
+  }
+  .app-nav-label {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    clip: auto;
+    white-space: nowrap;
+  }
+  .rail-profile {
+    display: grid;
+    grid-template-columns: 45px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+    text-align: left;
+  }
+  .rail-profile > div {
+    display: block;
+  }
+  .rail-avatar {
+    margin: 0;
+  }
+  .rail-profile > button {
+    width: 44px;
+    min-width: 44px;
+    margin: 0;
+    justify-content: center;
+  }
+}
+
 .nav-glyph {
   width: 24px;
   height: 24px;
@@ -280,7 +357,7 @@ samp {
   line-height: 20px;
 }
 
-/* Frame 4:344: 116px summary cards; panels 719/447, 408/335, gutters 30/32. */
+/* Frame 4:2: 116px summary cards; panels 702/430, 408/335, gutters 30/32. */
 .dashboard-page > .page-header {
   height: 40px;
 }
@@ -338,7 +415,7 @@ samp {
 }
 .dashboard-panels {
   display: grid;
-  grid-template-columns: minmax(0, 719fr) minmax(0, 447fr);
+  grid-template-columns: minmax(0, 702fr) minmax(0, 430fr);
   grid-template-rows: 408px 335px;
   gap: 32px 30px;
   margin-top: 28px;
@@ -894,7 +971,8 @@ samp {
   .audit-filters {
     grid-template-columns:
       minmax(80px, 0.7fr) minmax(100px, 1fr) minmax(100px, 0.8fr)
-      minmax(190px, 1.4fr) minmax(190px, 1.4fr) minmax(100px, 0.9fr);
+      minmax(170px, 1.4fr) minmax(170px, 1.4fr) minmax(100px, 0.9fr)
+      minmax(90px, 0.8fr);
   }
   .audit-filters input[type='datetime-local'] {
     padding-inline: 10px;

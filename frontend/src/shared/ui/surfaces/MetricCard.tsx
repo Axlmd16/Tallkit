@@ -38,7 +38,7 @@ export function MetricCard({
 
   return (
     <article
-      className={`flex items-center rounded-group bg-surface border border-border-subtle shadow-card ${cardSizeClass} ${className}`.trim()}
+      className={`flex items-center rounded-group bg-surface ${cardSizeClass} ${className}`.trim()}
     >
       {icon && (
         <span
@@ -49,12 +49,12 @@ export function MetricCard({
       )}
 
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-ink-muted">{label}</p>
         <p
-          className={`numeric mt-0.5 font-extrabold leading-tight text-ink ${valueSizeClass}`}
+          className={`numeric font-extrabold leading-tight text-ink ${valueSizeClass}`}
         >
           {value}
         </p>
+        <p className="mt-0.5 text-sm font-semibold text-ink-muted">{label}</p>
         {detail && <div className="mt-1 text-xs text-ink-muted">{detail}</div>}
       </div>
     </article>

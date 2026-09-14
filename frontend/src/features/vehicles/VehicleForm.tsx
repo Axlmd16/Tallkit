@@ -284,7 +284,7 @@ export function VehicleForm({
 
       {/* Propietario */}
       {isEditing ? (
-        <div className="rounded-card border border-ink/10 bg-surface-muted p-4">
+        <div className="rounded-group border border-ink/10 bg-surface-muted p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
             Propietario actual
           </p>
@@ -298,7 +298,7 @@ export function VehicleForm({
           </p>
         </div>
       ) : defaultOwnerId && defaultOwnerName ? (
-        <div className="rounded-card border border-ink/10 bg-surface-muted p-4">
+        <div className="rounded-group border border-ink/10 bg-surface-muted p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
             Propietario asignado
           </p>

@@ -45,8 +45,7 @@ const toneClassMap: Record<string, string> = {
   warning:
     'bg-amber-500/15 text-amber-950 dark:text-amber-200 border-amber-600/30 hover:bg-amber-500/25',
   info: 'bg-sky-500/15 text-sky-950 dark:text-sky-200 border-sky-600/30 hover:bg-sky-500/25',
-  neutral:
-    'bg-surface-muted text-ink border-border/50 hover:bg-surface-selected',
+  neutral: 'bg-surface-muted text-ink border-line/50 hover:bg-surface-selected',
 }
 
 export function MonthCalendar({
@@ -139,12 +138,12 @@ export function MonthCalendar({
   return (
     <div
       aria-label={ariaLabel}
-      className={`w-full overflow-hidden rounded-xl border border-border/40 bg-surface text-ink shadow-sm select-none ${className}`}
+      className={`w-full overflow-hidden rounded-xl border border-line/40 bg-surface text-ink shadow-sm select-none ${className}`}
       role="grid"
     >
       {/* Encabezado con los 7 días de la semana */}
       <div
-        className="grid grid-cols-7 border-b border-border/40 bg-surface-muted text-center text-xs font-semibold text-ink-muted"
+        className="grid grid-cols-7 border-b border-line/40 bg-surface-muted text-center text-xs font-semibold text-ink-muted"
         role="row"
       >
         {WEEKDAYS_FULL_ES.map((dayName) => (
@@ -160,11 +159,11 @@ export function MonthCalendar({
       </div>
 
       {/* Retícula de celdas dividida en filas de semana */}
-      <div className="divide-y divide-border/30 bg-border/20">
+      <div className="divide-y divide-line/30 bg-border/20">
         {weeks.map((week, wIdx) => (
           <div
             key={wIdx}
-            className="grid grid-cols-7 divide-x divide-border/30"
+            className="grid grid-cols-7 divide-x divide-line/30"
             role="row"
           >
             {week.map((cell) => {

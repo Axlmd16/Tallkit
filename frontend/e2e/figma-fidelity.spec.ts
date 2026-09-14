@@ -131,11 +131,11 @@ test('stage1: local Nunito and complete accent palette', async ({ page }) => {
   ).toBe('#ef37ff')
 })
 
-test('stage2: dashboard rail and content match frame coordinates', async ({
+test('stage2: expanded dashboard sidebar and content match frame coordinates', async ({
   page,
 }) => {
   await fixtures(page)
-  await page.setViewportSize({ width: 1366, height: 1047 })
+  await page.setViewportSize({ width: 1440, height: 1047 })
   await page.goto('/')
   await capture(page, 'home')
   await expect(page.locator('aside .nav-glyph').first()).not.toHaveCSS(
@@ -143,9 +143,9 @@ test('stage2: dashboard rail and content match frame coordinates', async ({
     'none',
   )
   const rail = await page.locator('aside').boundingBox()
-  expect(rail).toMatchObject({ x: 30, y: 30, width: 80, height: 987 })
+  expect(rail).toMatchObject({ x: 0, y: 0, width: 218, height: 1047 })
   const main = await page.locator('main').boundingBox()
-  expect(main?.x).toBe(140)
+  expect(main?.x).toBe(248)
   await expect(
     page.getByRole('link', { name: 'Usuarios', exact: true }),
   ).toBeVisible()
@@ -176,7 +176,7 @@ test('stage4: dashboard preserves panel geometry without fabricated metrics', as
   page,
 }) => {
   await fixtures(page)
-  await page.setViewportSize({ width: 1366, height: 1047 })
+  await page.setViewportSize({ width: 1440, height: 1047 })
   await page.goto('/')
   await capture(page, 'home')
   const cards = page.locator('.dashboard-stats > article')
@@ -186,7 +186,7 @@ test('stage4: dashboard preserves panel geometry without fabricated metrics', as
   expect(first?.height).toBe(116)
   expect(
     await page.locator('.dashboard-panels > section').first().boundingBox(),
-  ).toMatchObject({ x: 140, y: 242, width: 719, height: 408 })
+  ).toMatchObject({ x: 248, y: 242, width: 702, height: 408 })
   await expect(
     page.getByText('Sin datos disponibles', { exact: true }).first(),
   ).toBeVisible()

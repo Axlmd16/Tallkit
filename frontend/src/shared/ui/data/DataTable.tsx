@@ -83,11 +83,11 @@ export function DataTable<T extends object>({
     rows.some((row) => selectedSet.has(getRowKey(row))) && !allSelected
 
   const tableLayoutClasses = isContained
-    ? 'w-full border-collapse text-left text-sm divide-y divide-border-subtle bg-surface rounded-group border border-border overflow-hidden'
+    ? 'w-full border-collapse text-left text-sm divide-y divide-line bg-surface rounded-group border border-line overflow-hidden'
     : 'w-full border-separate border-spacing-y-[10px] text-left text-sm'
 
   const theadClasses = isContained
-    ? 'bg-surface-ground border-b border-border text-xs text-ink-muted'
+    ? 'bg-canvas border-b border-line text-xs text-ink-muted'
     : 'text-xs text-ink-muted'
 
   const rowBaseClasses = isContained
@@ -180,7 +180,7 @@ export function DataTable<T extends object>({
             </tr>
           </thead>
 
-          <tbody className={isContained ? 'divide-y divide-border-subtle' : ''}>
+          <tbody className={isContained ? 'divide-y divide-line' : ''}>
             {rows.map((row) => {
               const rowKey = getRowKey(row)
               const isSelected = selectedSet.has(rowKey)
@@ -245,7 +245,7 @@ export function DataTable<T extends object>({
               key={rowKey}
             >
               {isSelectionActive && (
-                <div className="mb-3 pb-2 border-b border-border-subtle flex items-center gap-2">
+                <div className="mb-3 pb-2 border-b border-line flex items-center gap-2">
                   <label className="inline-flex items-center gap-2 text-sm font-semibold text-ink cursor-pointer">
                     <input
                       checked={isSelected}
@@ -278,7 +278,7 @@ export function DataTable<T extends object>({
               </dl>
 
               {actions && (
-                <div className="mt-4 pt-2 border-t border-border-subtle">
+                <div className="mt-4 pt-2 border-t border-line">
                   {actions(row)}
                 </div>
               )}

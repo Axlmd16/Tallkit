@@ -23,7 +23,7 @@ export function DataList<T>({
     return (
       <div
         aria-label={label}
-        className={`p-6 text-center text-sm text-ink-muted bg-surface rounded-group border border-border ${className}`.trim()}
+        className={`p-6 text-center text-sm text-ink-muted bg-surface rounded-group border border-line ${className}`.trim()}
         role="region"
       >
         <p>{emptyText}</p>
@@ -65,7 +65,7 @@ export function DataList<T>({
               <ul className="space-y-2.5">
                 {groupItems.map((item) => (
                   <li
-                    className="p-4 rounded-group bg-surface border border-border shadow-card transition-shadow hover:shadow-row"
+                    className="p-4 rounded-group bg-surface border border-line shadow-card transition-shadow hover:shadow-row"
                     key={keyExtractor(item)}
                   >
                     {renderItem(item)}
@@ -83,7 +83,7 @@ export function DataList<T>({
     <ul aria-label={label} className={`space-y-2.5 ${className}`.trim()}>
       {items.map((item) => (
         <li
-          className="p-4 rounded-group bg-surface border border-border shadow-card transition-shadow hover:shadow-row"
+          className="p-4 rounded-group bg-surface border border-line shadow-card transition-shadow hover:shadow-row"
           key={keyExtractor(item)}
         >
           {renderItem(item)}

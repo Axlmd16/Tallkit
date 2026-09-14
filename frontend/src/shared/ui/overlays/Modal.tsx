@@ -77,7 +77,7 @@ export function Modal({
         role="dialog"
         tabIndex={-1}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-border-subtle pb-3 mb-4">
+        <header className="flex items-start justify-between gap-4 border-b border-line pb-3 mb-4">
           <div className="min-w-0 flex-1">
             <h2 className="text-lg font-bold text-ink" id={titleId}>
               {title}
@@ -100,7 +100,7 @@ export function Modal({
         <div className="modal-content text-sm text-ink mb-6">{children}</div>
 
         {actions && (
-          <footer className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-border-subtle">
+          <footer className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-line">
             {actions}
           </footer>
         )}

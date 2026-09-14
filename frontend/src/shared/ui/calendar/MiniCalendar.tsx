@@ -133,7 +133,7 @@ export function MiniCalendar({
   return (
     <div
       aria-label={ariaLabel}
-      className={`w-full ${compact ? 'max-w-[240px] p-2' : 'max-w-[289px] p-3.5'} bg-surface rounded-xl border border-border/40 text-ink shadow-sm select-none ${className}`}
+      className={`w-full ${compact ? 'max-w-[240px] p-2' : 'max-w-[289px] p-3.5'} bg-surface rounded-xl border border-line/40 text-ink shadow-sm select-none ${className}`}
     >
       {/* Cabecera de mes y controles de navegación */}
       {showHeader && (

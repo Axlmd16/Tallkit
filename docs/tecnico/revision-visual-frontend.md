@@ -145,3 +145,32 @@ Las capturas y registros generados se conservan fuera del repositorio, en el dir
 ## Aceptación visual del 2026-09-12
 
 El usuario aprobó explícitamente la galería comparativa actual con «si, continua ya con las tareas». Quedan aceptadas las adaptaciones enumeradas en este registro y completadas las tareas 9.5 y 11.10. Las menciones anteriores a aceptación pendiente describen rondas previas y quedan sustituidas por esta decisión. La revisión y corrección de sesión se documentan en [verificación de dependencias](verificacion-dependencias-clientes.md).
+
+## Auditoría del catálogo reutilizable del 2026-09-14
+
+La aceptación anterior cubrió las páginas funcionales de `establecer-sistema-visual-frontend`; no certificó individualmente los 66 componentes creados después por `catalogo-visual-reutilizable`. El cambio activo `aplicar-catalogo-visual-frontend` vuelve a abrir únicamente esa auditoría de componentes y su integración visual.
+
+### Fuentes estructuradas consultadas
+
+Se ejecutó `get_design_context` sobre las 22 raíces indicadas por el usuario: `4:344`, `4:2`, `4:660`, `4:1140`, `4:1635`, `4:2246`, `4:2803`, `4:3258`, `4:4239`, `4:4567`, `4:4981`, `4:5455`, `4:5816`, `4:6241`, `4:6577`, `4:3637`, `4:3942`, `4:8584`, `4:7725`, `4:9302`, `4:9333` y `4:7438`. Para las correcciones confirmadas también se consultaron `4:233`, `4:234`, `4:329`, `4:330`, `4:508`, `4:1498`, `4:117` y `4:92`.
+
+Cada componente conserva su fuente concreta en `frontend/src/dev/visual-catalog/registry.ts`: `frameRef`, nodos exactos o marca `A`, y suite de prueba. No se asignan node IDs a adaptaciones.
+
+### Correcciones aplicadas
+
+- El sidebar queda como drawer bajo 768 px, rail de 80 px entre 768 y 1279 px y variante desplegada de 218 px desde 1280 px. El breakpoint es adaptación de la aplicación; la geometría desplegada procede de `4:2`/`4:233`.
+- Se migraron consumidores de aliases inexistentes a `canvas`, `surface`, `line`, `radius-group`, `radius-dialog`, `shadow-row` y `shadow-menu`; se retiraron bordes no declarados.
+- `MetricCard` presenta valor antes de etiqueta, 22 px y superficie plana (`4:508`); `DropdownMenu` usa radio de 10 px y sombra de menú (`4:1498`).
+- `category`, `chart` y `document` consumen los SVG locales exportados de Figma. Los demás iconos Phosphor permanecen como adaptaciones registradas.
+- `CalendarToolbar` y el wrapper activable del checkbox cumplen 44×44 px; `DataTable` usa el ejemplo neutral accesible “Elementos sintéticos”.
+- El dashboard desplegado usa a 1440 px paneles de 702 y 430 px según `4:117`/`4:118` y `4:92`/`4:93`. Los siete filtros reales de auditoría permanecen visibles en una sola fila amplia.
+
+### Evidencia y estado
+
+Las exportaciones Figma a escala 1, capturas, diferencias, baselines aprobados y manifiesto viven en un directorio externo con carpetas `figma/`, `actual/`, `diff/` y `approved/`; no se versionan. Chromium se fija a DPR 1. Las capturas cubren 360, 768, 1024 y 1440 px; el sidebar añade 1279, 1280 y 1366 px. El comparador propone umbral por canal `0.2` y máximo `0.5 %` de píxeles distintos, pero una propiedad estructurada exacta siempre bloquea.
+
+La primera corrida integral del catálogo aprobó 111/112 casos y agotó 30 s al capturar C58 `YearCalendar`; su repetición aislada aprobó 1/1 en 28,5 s. Se registra como demora ocasional y no se oculta mediante reintentos. Después de los ajustes finales, la corrida completa aprobó 112/112 validaciones activas en 6,3 minutos; las 66 comparaciones contra baselines aprobados quedaron omitidas intencionalmente. La aceptación visual de esta nueva galería sigue pendiente: ninguna evidencia se promoverá a `approved/` ni a estado `verified` antes de la confirmación del usuario.
+
+La regresión funcional se ejecutó primero contra el servidor E2E persistente encontrado en el puerto 8001 y después contra una base temporal independiente con fixtures frescos. En la segunda corrida aprobaron 33/43 recorridos. Los diez fallos restantes no proceden del cambio visual: el `POST /auth/logout/` responde 204, pero el estado de React Query no redirige a Login; además, un recorrido móvil de vehículos no cierra el drawer tras crear un cliente. Las líneas funcionales implicadas no fueron modificadas por este cambio y los fallos se conservan separados para una corrección OpenSpec propia. Los recorridos visuales, de permisos, geometría, tablas y accesibilidad restantes aprobaron.
+
+No cambian OpenAPI, migraciones, ADR, diagramas C4, backend, permisos, sesión, CSRF ni reglas de negocio. La identidad visible conserva el nombre técnico confirmado **Sys-Inventario**; no copia “Base” ni los datos demostrativos de la plantilla.

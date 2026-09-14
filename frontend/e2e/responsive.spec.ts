@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { expect, test } from '@playwright/test'
 
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
@@ -9,6 +11,75 @@ const viewports = [
   { name: 'tablet-landscape', width: 1024, height: 768 },
   { name: 'desktop', width: 1440, height: 900 },
 ] as const
+
+const navigationVariants = [
+  { width: 768, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
+  { width: 1024, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
+  { width: 1279, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
+  { width: 1280, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
+  { width: 1366, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
+  { width: 1440, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
+] as const
+
+test('sidebar uses the approved navigation variant at 360px', async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 360, height: 800 })
+  await login(page, 'admin_e2e')
+  await expect(page.locator('.app-rail')).toBeHidden()
+  await page.getByRole('button', { name: 'Abrir navegación' }).click()
+  await expect(
+    page.getByRole('dialog', { name: 'Navegación principal' }),
+  ).toBeVisible()
+  await page.screenshot({
+    animations: 'disabled',
+    fullPage: true,
+    path: process.env.CATALOG_EVIDENCE_DIR
+      ? path.join(process.env.CATALOG_EVIDENCE_DIR, 'actual', 'sidebar-360.png')
+      : testInfo.outputPath('sidebar-360.png'),
+  })
+})
+
+for (const variant of navigationVariants) {
+  test(`sidebar uses the approved navigation variant at ${variant.width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width: variant.width, height: 900 })
+    await login(page, 'admin_e2e')
+
+    const sidebar = page.locator('.app-rail')
+    const box = await sidebar.boundingBox()
+    expect(box).not.toBeNull()
+    expect(Math.round(box!.width)).toBe(variant.expectedWidth)
+    expect(Math.round(box!.x)).toBe(variant.expectedLeft)
+
+    const homeLabel = sidebar
+      .getByRole('link', { name: 'Inicio' })
+      .getByText('Inicio')
+    await expect(homeLabel).toHaveCSS(
+      'position',
+      variant.labelsVisible ? 'static' : 'absolute',
+    )
+
+    const contentLeft = await page
+      .locator('.app-main')
+      .evaluate((element) => element.getBoundingClientRect().left)
+    expect(contentLeft).toBeGreaterThanOrEqual(
+      variant.labelsVisible ? 248 : 140,
+    )
+    await page.screenshot({
+      animations: 'disabled',
+      fullPage: true,
+      path: process.env.CATALOG_EVIDENCE_DIR
+        ? path.join(
+            process.env.CATALOG_EVIDENCE_DIR,
+            'actual',
+            `sidebar-${variant.width}.png`,
+          )
+        : testInfo.outputPath(`sidebar-${variant.width}.png`),
+    })
+  })
+}
 
 for (const viewport of viewports) {
   test(`authorized navigation adapts without page overflow: ${viewport.name}`, async ({
