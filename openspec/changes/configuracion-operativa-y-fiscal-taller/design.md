@@ -1,12 +1,12 @@
 ## Context
 
-Diseño para `configuracion-operativa-y-fiscal`, basado en `proposal.md`, su referencia terminológica y `specs/configuracion-operativa-y-fiscal/spec.md`. Estado: borrador técnico revisable; la discrepancia de vigencias indicada abajo requiere reconciliación antes de implementar esa parte.
+Diseño para `configuracion-operativa-y-fiscal`, basado en `proposal.md`, su referencia terminológica y `specs/configuracion-operativa-y-fiscal/spec.md`. Estado: reconciliación técnica aprobada explícitamente el 2026-09-14; debe quedar disponible en `master` antes de implementar.
 
 El código inspeccionado contiene `identity` y `customer_registry` en `backend/src/`. `identity.application.authorization` valida permisos y `identity.application.audit.record_audit_event` registra eventos con metadatos filtrados. `customer_registry.application.brands` ya combina transacciones, bloqueo de filas y `expected_version`. La composición HTTP está en `backend/src/config/api/urls.py`; React compone rutas en `frontend/src/app/App.tsx`, con `PermissionGuard`, TanStack Query y componentes de `shared/ui`.
 
 Fuentes consultadas: decisiones confirmadas, modelo de dominio, spec principal `modelo-dominio-taller`, alcance V1, reglas de negocio, requisitos funcionales y no funcionales, CU-003, actores y permisos, interfaz y trazabilidad; arquitectura inicial, C4 de contenedores y ADR-0001, ADR-0002 y ADR-0003. Se reutilizan los glosarios de producto y técnico. Estas fuentes se consultaron durante este cambio; el código aporta evidencia de integración, no requisitos fiscales.
 
-La entrevista aprobó `COM-ING`, `COM-PRO`, `COM-VEN` y `ART-SER`, contador inicial 1, representación con al menos seis dígitos y protección después del primer uso. El proposal y la fuente de decisiones todavía describen DP-006 como pendiente: es una brecha documental que debe sincronizarse con esos acuerdos antes de aplicar. No se interpreta la aprobación como validación de tarifas tributarias reales.
+La entrevista aprobó `COM-ING`, `COM-PRO`, `COM-VEN` y `ART-SER`, contador inicial 1, representación con al menos seis dígitos y protección después del primer uso. `DP-006`, el proposal y los documentos afectados se sincronizan con esos acuerdos en esta reconciliación. No se interpreta la aprobación como validación de tarifas tributarias reales.
 
 ## Goals / Non-Goals
 
@@ -43,7 +43,9 @@ Los nombres siguientes son nuevos elementos de diseño, no archivos ni modelos e
 
 Aplicar CHECK para tipos admitidos, longitud de RUC, tarifas, contadores no negativos y singleton; claves foráneas protegidas en referencias históricas. La ausencia de API de borrado y los servicios preservan las invariantes que necesitan comparar estados previos. No se afirma que la validación de longitud certifique un RUC ante el SRI.
 
-La tarifa viaja como cadena decimal en JSON y se procesa con Decimal; el diseño no redondea silenciosamente una entrada. La precisión admitida deberá quedar explícita en el contrato y sus errores. Los identificadores fiscales nunca son números JavaScript.
+La tarifa viaja como cadena decimal JSON y se procesa con Decimal: acepta de 0 a 100 inclusive, hasta cuatro decimales, sin exponente ni coma. Un valor con mayor precisión se rechaza; nunca se redondea ni trunca silenciosamente. En PostgreSQL se representa con `numeric(7,4)`. Los identificadores fiscales nunca son números JavaScript: el RUC acepta exactamente 13 dígitos ASCII y se conserva como texto.
+
+Límites de texto: razón social y nombre comercial 200; dirección 300; teléfono 32; correo 254; nombre de bodega 120; código y nombre de impuesto 20 y 120; código de serie entre 3 y 20. Los códigos de impuesto se normalizan a mayúsculas y admiten letras ASCII, dígitos, `_` y `-`, comenzando por letra; las series admiten letras ASCII mayúsculas, dígitos y `-`, comenzando por letra. Los opcionales vacíos se convierten a `NULL`; ningún texto excedido se trunca. La API responde 400 con errores por campo antes de abrir una escritura.
 
 ### 3. Inicialización atómica
 
@@ -51,15 +53,15 @@ Una migración crea únicamente el registro singleton de instalación. `initiali
 
 Antes de inicializar existen cero entidades operativas; después existen exactamente dos. La interfaz informa configuración pendiente y las funciones dependientes rechazan su uso. Repetir el mismo comando devuelve el resultado previo; intentar reinicializar con datos diferentes produce conflicto. Una inicialización fallida revierte todo.
 
-### 4. Vigencias y discrepancia normativa
+### 4. Vigencias y sucesión prospectiva
 
 Usar fechas de negocio, interpretadas en `America/Guayaquil`, con inicio y fin inclusivos. El siguiente período puede comenzar al día siguiente del fin anterior. Cada escritura bloquea TaxDefinition, comprueba el intervalo y luego persiste; dos altas simultáneas sobre un calendario vacío también bloquean el mismo padre. La resolución para confirmación utiliza ese mismo bloqueo para evitar una carrera entre selección y modificación.
 
 Registrar uso y copia histórica en la transacción del consumidor. El bloqueo de TaxDefinition serializa también la comprobación de uso frente a una edición. No seleccionar automáticamente cualquier impuesto configurado: el consumidor solicita explícitamente sus códigos aplicables; si falta uno, falla antes de numerar.
 
-**Contradicción encontrada:** el escenario «Cambio futuro de tarifa» permite cerrar el período anterior, mientras «Intento de editar una tarifa utilizada» prohíbe modificar sus fechas. Una vigencia abierta utilizada no puede sustituirse bajo ambas reglas literales sin solaparse.
+La reconciliación distingue la edición genérica de la acción explícita `schedule_successor`. PATCH nunca cambia tarifa, inicio ni fin de una vigencia utilizada. `schedule_successor` bloquea TaxDefinition y la vigencia abierta; exige que el inicio sucesor sea posterior a la fecha local actual y a toda fecha de `ConfigurationUse`; establece como fin anterior el día inmediatamente previo y crea la sucesora dentro de la misma transacción. Las copias históricas no cambian. Una fecha incompatible produce 409 sin mutaciones.
 
-**Recomendación para reconciliar la spec:** distinguir la edición genérica de una acción explícita `schedule_successor`. Esta acción, atómica y auditada, solo cierra prospectivamente la vigencia abierta y crea la sucesora, sin tocar tarifa, inicio ni copias históricas. Debe rechazar una fecha que invalide usos ya registrados. Esta excepción necesita reflejarse en la spec; no se considera resuelta solo por escribir este diseño. Mientras no se reconcilie, no implementar esa acción ni presentar la gestión de vigencias como completa.
+Dos sucesiones concurrentes se serializan mediante el mismo bloqueo: solo la primera puede cerrar la vigencia que seguía abierta; la segunda observa la versión/estado nuevo y responde 409. La acción exitosa se audita dentro de la transacción y el rechazo después del rollback. Esta regla reemplaza la contradicción anterior y fue aprobada explícitamente el 2026-09-14; no se implementará hasta que la spec y este diseño estén disponibles en `master`.
 
 Alternativa: exigir fin obligatorio antes del primer uso evita la contradicción pero cambia el requisito de fin opcional y complica la operación. Revisiones completas de calendarios añadirían mayor complejidad sin necesidad actual.
 
@@ -90,7 +92,7 @@ Prefijo propuesto `/api/v1/workshop-configuration/`:
 | series/ y series/{id}/ | GET, PATCH previo al uso | parametros.gestionar |
 | series/{id}/replace/ | POST | parametros.gestionar |
 
-La sustitución de vigencias se añade al contrato solo tras reconciliar el punto anterior. No se exponen DELETE ni edición de contador. PATCH incluye `expected_version`; si otro usuario guardó primero, responder 409 conservando su cambio. POST administrativo usa clave lógica persistida junto al resultado; misma clave y entrada devuelve resultado previo, misma clave y otra entrada devuelve 409. La inicialización bloqueada garantiza unicidad incluso con claves distintas.
+La sucesión de vigencias se expone como `POST periods/{id}/schedule-successor/` solo después de aprobar esta reconciliación. No se exponen DELETE ni edición de contador. PATCH incluye `expected_version`; si otro usuario guardó primero, responder 409 conservando su cambio. Todo POST administrativo exige `Idempotency-Key` de 8 a 128 caracteres en `[A-Za-z0-9._:-]`. Su unicidad se aplica a `(actor, action, key)` y se compara una huella SHA-256 del JSON canónico que incluye todos los campos semánticos. Misma clave y huella devuelve el estado y cuerpo persistidos; otra huella o un comando aún en curso devuelve 409. En V1 los registros no caducan automáticamente. La inicialización bloqueada garantiza unicidad incluso con claves distintas.
 
 Mantener sesiones, CSRF y mismo origen según ADR-0003. Errores siguen `application/problem+json` y X-Request-ID: 400 validación, 403 permisos, 404 recurso inexistente, 409 versión o estado conflictivo. Publicar entradas, salidas y errores con drf-spectacular. No exponer datos fiscales mediante status público.
 
@@ -114,7 +116,7 @@ Frontend: guards, errores de campos, versiones obsoletas, vigencias por RUC, ser
 
 ## Risks / Trade-offs
 
-- Contradicción de vigencias → reconciliar los dos escenarios antes de implementar la sustitución; no esconder la excepción en persistencia.
+- Sucesión de vigencias → aplicar únicamente la reconciliación aprobada; no esconder la excepción en persistencia.
 - RUC de 13 caracteres no garantiza validez tributaria → respetar el alcance de validación documentado y cargar datos oficiales; sin consulta SRI.
 - Serialización de numeración → bloqueo corto por ámbito; mantener cálculos y llamadas externas fuera de la sección crítica.
 - Historial usado por capacidades futuras → contratos públicos, copias persistidas y pruebas de rollback; evitar mutación directa desde consumidores.
@@ -127,10 +129,10 @@ Después de aprobar este diseño, generar migraciones aditivas para el módulo y
 
 Respaldar antes de desplegar y comprobar conservación de registros existentes. Mientras no haya uso, una reversión ensayada puede retirar las tablas nuevas si están vacías. Después de crear configuración o numerar documentos, revertir código conservando tablas y datos; corregir hacia adelante. Nunca eliminar asignaciones para resolver un despliegue fallido. Verificar respaldo y restauración según el procedimiento vigente antes de producción.
 
-Sincronizar DP-006, proposal y trazabilidad con la entrevista; registrar en master los artefactos aprobados conforme al flujo del repositorio antes de apply. Esta invocación redacta el diseño en develop y no crea commits ni merges.
+Registrar en `master` los artefactos reconciliados y aprobados conforme al flujo del repositorio antes de implementar. Esta invocación redacta la reconciliación en `develop` y no crea commits ni merges.
 
 ## Open Questions
 
-La única discrepancia de comportamiento detectada es el cierre prospectivo de vigencias utilizadas, con recomendación concreta en la decisión 4. Las tarifas reales y reglas de redondeo siguen como validación externa fuera del alcance. La precisión decimal aceptada por el formulario debe concretarse y probarse en el contrato sin atribuirle carácter tributario.
+La sucesión prospectiva descrita en la decisión 4 fue aprobada explícitamente el 2026-09-14. Las tarifas reales, su clasificación y las reglas tributarias de redondeo siguen como validación externa fuera del alcance; la precisión de entrada aquí definida es una restricción técnica de almacenamiento y transporte, no una afirmación de validez tributaria.
 
 El contrato transaccional entre consumidores y numeración es una decisión duradera: deberá extraerse a un ADR propuesto junto con la reconciliación documental, antes de apply. No requiere sustituir ADR-0001 ni ADR-0003.

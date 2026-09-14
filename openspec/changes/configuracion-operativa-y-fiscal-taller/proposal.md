@@ -11,10 +11,10 @@ El sistema todavía no dispone de la configuración mínima que permita iniciar 
 - Presentar fichas separadas de entidades fiscales, vigencias tributarias, bodega y numeración, reutilizando autorización, auditoría y componentes visuales existentes (`UI-014…016`).
 - Reutilizar los roles, permisos efectivos, sesiones, auditoría y estructura visual vigentes; introducir una capacidad funcional nueva para configuración, sin sustituir comportamiento histórico del sistema Flutter ni modificar las reglas aprobadas del **modelo de dominio**.
 
-### Recomendaciones sujetas a aprobación
+### Recomendaciones y decisiones confirmadas
 
 - Para IVA y otros impuestos, registrar una tarifa decimal y su fecha de inicio por entidad fiscal; rechazar solapamientos ambiguos y exigir que el responsable del negocio cargue valores previamente validados. No se propone codificar una tasa legal, una clasificación tributaria ni una regla de redondeo no confirmadas.
-- Para `DP-006`, usar en V1 una sola serie activa por entidad fiscal y tipo de documento, seguida por un número positivo monotónico con longitud visible estable. Una serie retirada no se reutiliza y el valor confirmado nunca se reduce ni reasigna. La denominación de las series y la cantidad exacta de dígitos deberán aprobarse antes de redactar las specs.
+- Para `DP-006`, la entrevista confirmó `COM-ING`, `COM-PRO` y `COM-VEN` para el **RUC comercial**, y `ART-SER` para el **RUC artesanal**. Cada ámbito usa una sola serie activa; el contador comienza en 1, se muestra con al menos seis dígitos y no se reinicia. Una serie usada se sustituye explícitamente, su código no se reutiliza y un número confirmado nunca se reduce, reasigna ni reutiliza. El formato visible es `<SERIE>-<SECUENCIAL>` y siempre se identifica como número interno, no como autorización del SRI.
 - Para `DP-001`, permitir identificar y activar la única bodega de V1, conservando el concepto de bodega en el dominio; no exponer creación de bodegas adicionales ni transferencias.
 
 ### Fuera de alcance
@@ -37,7 +37,7 @@ El sistema todavía no dispone de la configuración mínima que permita iniciar 
 - Es prerrequisito funcional para inventario, ingresos, ventas, operaciones artesanales y documentos internos; esas capacidades no deben inventar valores predeterminados si falta una configuración aplicable.
 - Una tarifa, vigencia, entidad, bodega o serie incorrecta puede afectar documentos posteriores; se requieren validaciones, confirmaciones y trazabilidad de cambios.
 - La generación concurrente o la edición manual insegura de un secuencial puede duplicar documentos o dejar huecos engañosos; las garantías observables se especificarán antes del diseño técnico.
-- No se encontraron contradicciones directas entre las fuentes vigentes. Continúan abiertas `DP-006` y la validación externa de tarifas, clasificación tributaria y redondeo; la propuesta no las presenta como decisiones ya confirmadas.
+- La sincronización de `DP-006` corrige la contradicción documental entre la aprobación de la entrevista y las fuentes que todavía la mostraban pendiente. Continúan abiertas la validación externa de tarifas, clasificación tributaria y redondeo; esta propuesta no las presenta como decisiones confirmadas.
 
 ## Capabilities
 

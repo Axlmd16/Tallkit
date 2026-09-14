@@ -153,11 +153,10 @@ Los indicadores cuantitativos y sus valores objetivo se establecerán durante el
 
 Las decisiones operativas principales ya fueron confirmadas. Permanecen pendientes:
 
-1. Los formatos visibles, prefijos y series de los secuenciales internos.
-2. Los límites y la conservación definitiva de fotografías.
-3. El tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos RUC.
-4. Las tarifas y clasificaciones tributarias reales, las reglas de redondeo y los requisitos futuros de consumidor final.
-5. El diseño de la futura facturación electrónica, que no forma parte de V1.
+1. Los límites y la conservación definitiva de fotografías.
+2. El tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos RUC.
+3. Las tarifas y clasificaciones tributarias reales, las reglas de redondeo y los requisitos futuros de consumidor final.
+4. El diseño de la futura facturación electrónica, que no forma parte de V1.
 
 ## 15. Documentos relacionados
 
