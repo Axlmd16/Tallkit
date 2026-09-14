@@ -88,3 +88,68 @@ Las variantes son cerradas y semánticas. El frontend oculta opciones según el 
 ## Uso futuro del ámbito fiscal
 
 `FiscalScopeBadge` identifica explícitamente “RUC comercial” o “RUC artesanal” con texto, icono y color redundantes. Debe aparecer junto al título o identificador de toda operación económica cuando esas capacidades se implementen; nunca se inferirá únicamente por el color.
+
+## Catálogo visual reutilizable
+
+El cambio **`catalogo-visual-reutilizable`** implementó 66 componentes compartidos (C01–C66) bajo `frontend/src/shared/ui/`, organizados en 14 categorías: `icons`, `actions`, `forms`, `navigation`, `overlays`, `layout`, `surfaces`, `media`, `data`, `feedback`, `charts`, `calendar`, `timeline`, `board` y `conversation`.
+
+### Principio opt-in
+
+Los componentes de `shared/ui` son **opt-in**: las páginas y features existentes (`pages/`, `features/`) no importan estos componentes a menos que lo haga una tarea OpenSpec aprobada. El catálogo visual (`frontend/visual-catalog.html`, puerto 55175) los muestra de forma aislada para desarrollo y revisión sin afectar la aplicación principal.
+
+### Consumo futuro
+
+Para usar un componente en una nueva capacidad:
+
+```ts
+// Importar desde el índice de la subcategoría correspondiente
+import { Button, IconButton } from '@/shared/ui/actions'
+import { DataTable, Pagination } from '@/shared/ui/data'
+import { Modal, Drawer } from '@/shared/ui/overlays'
+import { MonthCalendar } from '@/shared/ui/calendar'
+```
+
+Los índices re-exportan solo los componentes del nivel de `shared/ui`, no los internos de `pages/` o `features/`. Las props, variantes y tokens de cada componente están documentados en el registry (`frontend/src/dev/visual-catalog/registry.ts`) y en las evidencias de cada fase.
+
+### Catálogos por categoría
+
+| Categoría | IDs | Archivo índice |
+|---|---|---|
+| icons | C01 | `shared/ui/icons/index.ts` |
+| actions | C02–C04 | `shared/ui/actions/index.ts` |
+| forms | C05–C12 | `shared/ui/forms/index.ts` |
+| navigation | C13–C16, C27–C28 | `shared/ui/navigation/index.ts` |
+| overlays | C17, C39–C42 | `shared/ui/overlays/index.ts` |
+| layout | C18–C21, C29–C33, C43 | `shared/ui/layout/index.ts` |
+| surfaces | C22–C24, C37 | `shared/ui/surfaces/index.ts` |
+| media | C25–C26, C66 | `shared/ui/media/index.ts` |
+| data | C34–C36, C38, C54 | `shared/ui/data/index.ts` |
+| feedback | C44–C48 | `shared/ui/feedback/index.ts` |
+| charts | C49–C53 | `shared/ui/charts/index.ts` |
+| calendar | C55–C59 | `shared/ui/calendar/index.ts` |
+| timeline | C60 | `shared/ui/timeline/index.ts` |
+| board | C61–C62 | `shared/ui/board/index.ts` |
+| conversation | C63–C65 | `shared/ui/conversation/index.ts` |
+
+### Trazabilidad CVR → C → prueba → evidencia
+
+| Requisito | Componentes | Suite de pruebas | Evidencia |
+|---|---|---|---|
+| CVR-01 Tokens y sistema visual | C01–C04, C22 | `catalog-tokens.test.ts`, `phase3-actions.spec.ts` | `phase3-actions/` |
+| CVR-02 Formularios | C05–C12 | `phase4-forms.spec.ts` | `phase4-forms/` |
+| CVR-03 Layouts de acceso/previa | C33, C43 | `phase10-layouts.spec.ts` | `phase10-layouts/` |
+| CVR-04 Navegación y composición | C13–C16, C27–C32, C66 | `phase6-selection.spec.ts`, `phase7-navigation.spec.ts` | `phase7-navigation/` |
+| CVR-05 Estados y feedback | C44–C48 | `phase5-primitives.spec.ts` | `phase5-primitives/` |
+| CVR-06 Datos tabulares y listas | C34–C36, C38 | `phase8-data.spec.ts` | `phase8-data/` |
+| CVR-07 Paneles y superposiciones | C17, C39–C42 | `phase9-overlays.spec.ts` | `phase9-overlays/` |
+| CVR-08 Gráficos, calendarios, tableros | C49–C62 | `phase11-charts.spec.ts`, `phase12-calendar.spec.ts`, `phase13-timeline-board.spec.ts` | `phase11-charts/`, `phase12-calendar/`, `phase13-timeline-board/` |
+| CVR-09 Medios y avatares | C25–C26, C66 | `phase7-navigation.spec.ts` | `phase7-navigation/` |
+| CVR-10 Conversación | C63–C65 | `phase14-conversation.spec.ts` | `phase14-conversation/` |
+| CVR-11 Verificación final | C01–C66 | `phase15-final.spec.ts` | `phase15-final/` |
+
+### Limitaciones registradas
+
+- **Inputs nativos de checkbox** (C08): `<input type="checkbox">` mide 20×44px en el DOM pero su área real de activación incluye la etiqueta adyacente, que supera los 44×44px.
+- **Botones de navegación de calendario** (C55): ancho de 32px × alto de 44px. La altura cumple el mínimo; el ancho es una limitación del diseño compacto de la barra de calendario.
+- **Vista semanal de calendario**: fuera del alcance de este catálogo; no implementada en C55–C59.
+- **Drag-and-drop en tablero**: fuera del alcance; C61–C62 son presentacionales.

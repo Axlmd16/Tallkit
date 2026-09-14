@@ -24,7 +24,7 @@ export default defineConfig({
       reportsDirectory: process.env.COVERAGE_DIR ?? 'coverage',
       reporter: ['text', 'html'],
       thresholds: { lines: 85, functions: 85, branches: 80, statements: 85 },
-      exclude: ['src/main.tsx', 'src/test-setup.ts'],
+      exclude: ['src/main.tsx', 'src/test-setup.ts', 'src/dev/**'],
     },
   },
 })

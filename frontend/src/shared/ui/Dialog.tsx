@@ -3,7 +3,6 @@ import confirmBg from '@/assets/figma/confirm-bg.svg'
 import confirmHand from '@/assets/figma/confirm-hand.svg'
 import confirmSpark from '@/assets/figma/confirm-spark.svg'
 import {
-  useEffect,
   useId,
   useRef,
   type KeyboardEvent,
@@ -11,14 +10,7 @@ import {
   type RefObject,
 } from 'react'
 
-const focusableSelector = [
-  'button:not([disabled])',
-  'a[href]',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',')
+import { trapFocus, useModalOpen } from './overlays/modal-utils'
 
 export function Dialog({
   children,
@@ -38,61 +30,25 @@ export function Dialog({
   appearance?: 'default' | 'recover' | 'confirm'
 }) {
   const dialogRef = useRef<HTMLDivElement>(null)
-  const wasOpen = useRef(false)
   const titleId = useId()
   const descriptionId = useId()
 
-  useEffect(() => {
-    if (open) {
-      wasOpen.current = true
-      const previousOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      const frame = requestAnimationFrame(() => {
-        const preferred =
-          dialogRef.current?.querySelector<HTMLElement>('[data-autofocus]')
-        const first =
-          preferred ??
-          dialogRef.current?.querySelector<HTMLElement>(focusableSelector)
-        first?.focus()
-      })
-      return () => {
-        cancelAnimationFrame(frame)
-        document.body.style.overflow = previousOverflow
-      }
-    }
-
-    if (wasOpen.current) {
-      wasOpen.current = false
-      returnFocusRef?.current?.focus()
-    }
-  }, [open, returnFocusRef])
+  useModalOpen({
+    containerRef: dialogRef,
+    open,
+    returnFocusRef,
+  })
 
   if (!open) return null
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
       event.preventDefault()
+      event.stopPropagation()
       onClose()
       return
     }
-    if (event.key !== 'Tab') return
-
-    const controls = Array.from(
-      dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-    )
-    if (controls.length === 0) {
-      event.preventDefault()
-      return
-    }
-    const first = controls[0]!
-    const last = controls.at(-1)!
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
+    trapFocus(event, dialogRef.current)
   }
 
   return (
@@ -110,6 +66,7 @@ export function Dialog({
         onKeyDown={handleKeyDown}
         ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         {appearance === 'recover' && (
           <span className="auth-logo" aria-hidden="true">

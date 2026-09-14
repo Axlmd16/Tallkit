@@ -1,6 +1,7 @@
 import type { HTMLAttributes, Key, ReactNode } from 'react'
 
-import { Button, ButtonGroup } from './controls'
+import { Button } from './controls'
+import { DataTable } from './data/DataTable'
 
 export function PageHeader({
   actions,
@@ -46,16 +47,51 @@ export function Toolbar({
   )
 }
 
+export type FilterPanelLayout = 'stacked' | 'inline' | 'compact'
+
+export interface FilterPanelProps {
+  children: ReactNode
+  label: string
+  layout?: FilterPanelLayout
+  onClear?: () => void
+  clearLabel?: string
+  className?: string
+}
+
 export function FilterPanel({
   children,
   label,
-}: {
-  children: ReactNode
-  label: string
-}) {
+  layout = 'stacked',
+  onClear,
+  clearLabel = 'Limpiar filtros',
+  className = '',
+}: FilterPanelProps) {
+  const layoutClasses =
+    layout === 'inline'
+      ? 'flex flex-wrap items-end gap-3'
+      : layout === 'compact'
+        ? 'grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3'
+        : ''
+
   return (
-    <div aria-label={label} className="filter-panel mt-5" role="search">
+    <div
+      aria-label={label}
+      className={`filter-panel mt-5 ${layoutClasses} ${className}`.trim()}
+      role="search"
+    >
       {children}
+      {onClear && (
+        <div className="flex items-center">
+          <Button
+            className="min-h-[40px]"
+            onClick={onClear}
+            type="button"
+            variant="secondary"
+          >
+            {clearLabel}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
@@ -111,12 +147,6 @@ type DataColumn<T> = {
   render?: (row: T) => ReactNode
 }
 
-function cellValue<T>(column: DataColumn<T>, row: T): ReactNode {
-  if (column.render) return column.render(row)
-  const value = row[column.key]
-  return value == null ? '—' : String(value)
-}
-
 type DataViewProps<T extends object> = {
   actions?: (row: T) => ReactNode
   columns: Array<DataColumn<T>>
@@ -133,87 +163,14 @@ export function ElevatedDataList<T extends object>({
   rows,
 }: DataViewProps<T>) {
   return (
-    <div className="data-list mt-4 min-w-0">
-      <div
-        className="hidden overflow-x-auto md:block"
-        role="region"
-        aria-label={`${label}: tabla desplazable`}
-        tabIndex={0}
-      >
-        <table
-          aria-label={label}
-          className="w-full border-separate border-spacing-y-[10px] text-left text-sm"
-        >
-          <thead className="text-xs text-ink-muted">
-            <tr>
-              {columns.map((column) => (
-                <th
-                  className="px-5 py-2 font-normal"
-                  key={String(column.key)}
-                  scope="col"
-                >
-                  {column.header}
-                </th>
-              ))}
-              {actions && (
-                <th className="px-5 py-2 font-normal" scope="col">
-                  Acciones
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr
-                className="align-middle transition-shadow duration-150 hover:shadow-row focus-within:shadow-row [&>td:first-child]:rounded-l-group [&>td:last-child]:rounded-r-group"
-                key={getRowKey(row)}
-              >
-                {columns.map((column) => (
-                  <td className="bg-surface px-5 py-3" key={String(column.key)}>
-                    {cellValue(column, row)}
-                  </td>
-                ))}
-                {actions && (
-                  <td className="bg-surface px-5 py-2">{actions(row)}</td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <ul
-        aria-label={`${label} en pantalla estrecha`}
-        className="space-y-3 md:hidden"
-      >
-        {rows.map((row) => (
-          <li
-            className="min-w-0 rounded-group bg-surface p-4 shadow-row"
-            key={getRowKey(row)}
-          >
-            <dl className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 gap-y-2 text-sm">
-              {columns.map((column) => (
-                <div className="contents" key={String(column.key)}>
-                  <dt className="font-semibold text-ink-muted">
-                    {column.header}
-                  </dt>
-                  <dd
-                    className={
-                      column.priority === 'primary'
-                        ? 'min-w-0 break-words font-semibold text-ink'
-                        : 'min-w-0 break-words text-ink'
-                    }
-                  >
-                    {cellValue(column, row)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            {actions && <div className="mt-4 pt-2">{actions(row)}</div>}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <DataTable
+      actions={actions}
+      columns={columns}
+      getRowKey={getRowKey}
+      label={label}
+      rows={rows}
+      variant="elevated"
+    />
   )
 }
 
@@ -221,46 +178,38 @@ export function ResponsiveDataView<T extends object>(props: DataViewProps<T>) {
   return <ElevatedDataList {...props} />
 }
 
-export function Pagination({
-  onNext,
-  onPrevious,
-  page,
-  totalPages,
-}: {
-  onNext: () => void
-  onPrevious: () => void
-  page: number
-  totalPages: number
-}) {
-  const normalizedTotal = Math.max(totalPages, 1)
-  return (
-    <nav
-      aria-label="Paginación"
-      className="mt-4 flex flex-wrap items-center justify-between gap-3"
-    >
-      <Button
-        aria-label="Página anterior"
-        disabled={page <= 1}
-        onClick={onPrevious}
-        variant="secondary"
-      >
-        Anterior
-      </Button>
-      <span className="numeric text-sm text-ink-muted">
-        Página {page} de {normalizedTotal}
-      </span>
-      <Button
-        aria-label="Página siguiente"
-        disabled={page >= normalizedTotal}
-        onClick={onNext}
-        variant="secondary"
-      >
-        Siguiente
-      </Button>
-    </nav>
-  )
-}
+export { Pagination, type PaginationProps } from './data/Pagination'
 
-export function RowActions({ children }: { children: ReactNode }) {
-  return <ButtonGroup label="Acciones del registro">{children}</ButtonGroup>
-}
+export { RowActions, type RowActionsProps } from './data/RowActions'
+
+export { AppFrame, type AppFrameProps } from './layout/AppFrame'
+
+export {
+  DashboardLayout,
+  type DashboardLayoutProps,
+} from './layout/DashboardLayout'
+
+export {
+  MasterDetailLayout,
+  type MasterDetailLayoutProps,
+  type MasterDetailWidth,
+} from './layout/MasterDetailLayout'
+
+export {
+  FormLayout,
+  type FormActionsAlignment,
+  type FormLayoutColumns,
+  type FormLayoutProps,
+} from './layout/FormLayout'
+
+export {
+  AuthLayout,
+  type AuthLayoutProps,
+  type AuthLayoutVariant,
+} from './layout/AuthLayout'
+
+export {
+  PreviewLayout,
+  type PreviewLayoutProps,
+  type PreviewMobileView,
+} from './layout/PreviewLayout'

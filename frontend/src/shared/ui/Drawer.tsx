@@ -1,6 +1,5 @@
 import { X } from '@phosphor-icons/react'
 import {
-  useEffect,
   useId,
   useRef,
   useState,
@@ -11,64 +10,62 @@ import {
 import { createPortal } from 'react-dom'
 
 import { Button, IconButton } from './controls'
+import { trapFocus, useModalOpen } from './overlays/modal-utils'
 
-const focusableSelector = [
-  'button:not([disabled])',
-  'a[href]',
-  'input:not([disabled])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',')
+export type DrawerWidth = 'default' | '409' | '369'
+export type DrawerOverlay = 'default' | '30' | 'none'
+
+export interface DrawerProps {
+  children: ReactNode
+  description: string
+  title: string
+  open: boolean
+  onClose: () => void
+  hasUnsavedChanges?: boolean | undefined
+  returnFocusRef?: RefObject<HTMLElement | null> | undefined
+  width?: DrawerWidth | undefined
+  overlay?: DrawerOverlay | undefined
+  portalContainer?: HTMLElement | null | undefined
+  tokenScope?: string | undefined
+  className?: string | undefined
+}
+
+const widthClasses: Record<DrawerWidth, string> = {
+  default: 'md:w-[30rem]',
+  409: 'md:w-[409px]',
+  369: 'md:w-[369px]',
+}
+
+const overlayClasses: Record<DrawerOverlay, string> = {
+  default: 'bg-ink/35',
+  30: 'bg-ink/30',
+  none: 'bg-transparent pointer-events-none',
+}
 
 export function Drawer({
   children,
+  className = '',
   description,
   hasUnsavedChanges = false,
   onClose,
   open,
+  overlay = 'default',
+  portalContainer,
   returnFocusRef,
   title,
-}: {
-  children: ReactNode
-  description: string
-  hasUnsavedChanges?: boolean
-  onClose: () => void
-  open: boolean
-  returnFocusRef?: RefObject<HTMLElement | null>
-  title: string
-}) {
+  tokenScope = '',
+  width = 'default',
+}: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null)
-  const wasOpen = useRef(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const titleId = useId()
   const descriptionId = useId()
 
-  useEffect(() => {
-    if (open) {
-      wasOpen.current = true
-      const previousOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      const frame = requestAnimationFrame(() => {
-        const preferred =
-          panelRef.current?.querySelector<HTMLElement>('[data-autofocus]')
-        const first =
-          preferred ??
-          panelRef.current?.querySelector<HTMLElement>(focusableSelector)
-        first?.focus()
-      })
-      return () => {
-        cancelAnimationFrame(frame)
-        document.body.style.overflow = previousOverflow
-      }
-    }
-
-    if (wasOpen.current) {
-      wasOpen.current = false
-      setConfirmClose(false)
-      returnFocusRef?.current?.focus()
-    }
-  }, [open, returnFocusRef])
+  useModalOpen({
+    containerRef: panelRef,
+    open,
+    returnFocusRef,
+  })
 
   if (!open) return null
 
@@ -83,32 +80,24 @@ export function Drawer({
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
       event.preventDefault()
+      event.stopPropagation()
       requestClose()
       return
     }
-    if (event.key !== 'Tab') return
-
-    const controls = Array.from(
-      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-    )
-    if (controls.length === 0) {
-      event.preventDefault()
-      return
-    }
-    const first = controls[0]!
-    const last = controls.at(-1)!
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault()
-      first.focus()
-    }
+    trapFocus(event, panelRef.current)
   }
+
+  const targetContainer =
+    portalContainer ?? (typeof document !== 'undefined' ? document.body : null)
+
+  if (!targetContainer) return null
+
+  const backdropClass = overlayClasses[overlay]
+  const panelWidthClass = widthClasses[width]
 
   return createPortal(
     <div
-      className="drawer-backdrop fixed inset-0 z-50 bg-ink/35"
+      className={`drawer-backdrop fixed inset-0 z-50 ${backdropClass} ${tokenScope}`.trim()}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) requestClose()
       }}
@@ -117,10 +106,11 @@ export function Drawer({
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="drawer-panel ml-auto flex h-full w-full flex-col overflow-y-auto bg-surface p-5 text-ink shadow-overlay md:w-[30rem] md:p-8"
+        className={`drawer-panel ml-auto flex h-full w-full flex-col overflow-y-auto bg-surface p-5 text-ink shadow-overlay md:p-8 pointer-events-auto ${panelWidthClass} ${className}`.trim()}
         onKeyDown={handleKeyDown}
         ref={panelRef}
         role="dialog"
+        tabIndex={-1}
       >
         <header className="flex items-start justify-between gap-4">
           <div>
@@ -164,6 +154,6 @@ export function Drawer({
         <div className="drawer-content mt-7 flex-1">{children}</div>
       </div>
     </div>,
-    document.body,
+    targetContainer,
   )
 }

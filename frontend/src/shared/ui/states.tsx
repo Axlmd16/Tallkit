@@ -27,21 +27,37 @@ const toneIcons = {
   danger: XCircle,
 } as const
 
+export type StatusBadgeShape = 'pill' | 'rectangle'
+export type StatusBadgeKind = 'status' | 'category'
+
+export interface StatusBadgeProps {
+  label: string
+  tone?: Tone
+  shape?: StatusBadgeShape
+  kind?: StatusBadgeKind
+  showIcon?: boolean
+  className?: string
+}
+
 export function StatusBadge({
   label,
   tone = 'neutral',
-}: {
-  label: string
-  tone?: Tone
-}) {
+  shape = 'pill',
+  kind = 'status',
+  showIcon = kind === 'status',
+  className = '',
+}: StatusBadgeProps) {
   const Icon = toneIcons[tone]
+  const shapeClass = shape === 'rectangle' ? 'rounded-control' : 'rounded-full'
+  const isStatus = kind === 'status'
+
   return (
     <span
-      aria-label={`Estado: ${label}`}
-      className={`inline-flex min-h-7 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${toneClasses[tone]}`}
-      role="status"
+      aria-label={isStatus ? `Estado: ${label}` : `Categoría: ${label}`}
+      className={`inline-flex min-h-7 items-center gap-1.5 ${shapeClass} px-3 py-1 text-xs font-bold ${toneClasses[tone]} ${className}`}
+      {...(isStatus ? { role: 'status' } : {})}
     >
-      <Icon aria-hidden="true" size={16} weight="regular" />
+      {showIcon && <Icon aria-hidden="true" size={16} weight="regular" />}
       {label}
     </span>
   )
@@ -96,7 +112,11 @@ export function LoadingState({ label = 'Cargando…' }: { label?: string }) {
       className="flex min-h-28 items-center justify-center gap-3 text-ink-muted"
       role="status"
     >
-      <SpinnerGap aria-hidden="true" className="animate-spin" size={22} />
+      <SpinnerGap
+        aria-hidden="true"
+        className="animate-spin motion-reduce:animate-none"
+        size={22}
+      />
       <span>{label}</span>
     </div>
   )

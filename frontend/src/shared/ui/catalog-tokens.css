@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Tokens y variables aisladas para el Catálogo Visual Reutilizable
+   Ámbito restringido a [data-visual-catalog] — No contamina la aplicación
+   ========================================================================== */
+
+[data-visual-catalog] {
+  /* K1: Variaciones cromáticas y acentos observados */
+  --catalog-color-accent-orange: #f29339;
+  --catalog-color-menu-danger: #e71d36;
+  --catalog-color-status-tint: 0.1;
+  --catalog-color-menu-tint: 0.05;
+
+  /* K2: Espaciado y cuadrículas observadas */
+  --catalog-space-10: 10px;
+  --catalog-space-20: 20px;
+  --catalog-space-30: 30px;
+  --catalog-space-32: 32px;
+
+  /* K3: Radios de esquina observados en Figma */
+  --catalog-radius-2: 2px;
+  --catalog-radius-5: 5px;
+  --catalog-radius-10: 10px;
+  --catalog-radius-12: 12px;
+  --catalog-radius-pill: 22.5px;
+
+  /* K4: Sombras observadas en nodos específicos */
+  --catalog-shadow-row: 1px 17px 44px rgba(3, 2, 41, 0.07);
+  --catalog-shadow-menu: 0 10px 20px rgba(0, 0, 0, 0.1);
+  --catalog-shadow-modal: -14px 30px 20px rgba(0, 0, 0, 0.05);
+
+  /* K5: Geometrías y anchos nativos observados */
+  --catalog-rail-width: 80px;
+  --catalog-sidebar-expanded: 218px;
+  --catalog-metric-height: 116px;
+  --catalog-metric-icon: 60px;
+  --catalog-row-height-70: 70px;
+  --catalog-row-height-60: 60px;
+  --catalog-detail-panel-width: 302px;
+  --catalog-drawer-width-409: 409px;
+  --catalog-drawer-width-369: 369px;
+  --catalog-modal-width: 466.468px;
+  --catalog-modal-height: 567px;
+  --catalog-panel-width-658: 658px;
+  --catalog-panel-width-726: 726px;
+  --catalog-auth-col-width: 448px;
+  --catalog-auth-control-width: 348px;
+}
+
+/* Clases de contenedor del catálogo aisladas */
+.catalog-container {
+  min-height: 100vh;
+}
+
+.catalog-isolated {
+  min-height: 100vh;
+}
