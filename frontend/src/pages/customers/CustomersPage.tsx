@@ -20,18 +20,18 @@ import type {
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
-  Dialog,
+  ConfirmationPanel,
   Drawer,
   ElevatedDataList,
   EmptyState,
   Field,
   FilterPanel,
   InlineNotice,
-  Input,
   LoadingState,
   PageHeader,
   Pagination,
   RowActions,
+  SearchInput,
   Select,
   StatusBadge,
   Toolbar,
@@ -43,6 +43,10 @@ type Confirmation = {
 }
 
 type Notice = { text: string; tone: 'success' | 'danger' }
+
+// Clases del catálogo para <Link> que actúa visualmente como Button variant="quiet"
+const quietButtonLinkClass =
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-transparent bg-transparent px-4 py-2 text-sm font-semibold text-ink-muted transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:bg-surface-selected hover:text-primary active:translate-y-px'
 
 export function CustomersPage() {
   const navigate = useNavigate()
@@ -237,8 +241,12 @@ export function CustomersPage() {
           }}
         >
           <Field id="customer-search-input" label="Buscar cliente">
-            <Input
+            <SearchInput
               onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => {
+                setSearchInput('')
+                updateFilters({ search: '' })
+              }}
               placeholder="Nombre, identificación o teléfono…"
               value={searchInput}
             />
@@ -314,7 +322,7 @@ export function CustomersPage() {
             actions={(row) => (
               <RowActions>
                 <Link
-                  className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border px-4 py-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:translate-y-px border-transparent bg-transparent text-ink-muted hover:bg-surface-selected hover:text-primary"
+                  className={quietButtonLinkClass}
                   to={`/customers/${row.id}`}
                 >
                   <Eye aria-hidden="true" size={18} />
@@ -390,34 +398,28 @@ export function CustomersPage() {
         />
       </Drawer>
 
-      <Dialog
+      <ConfirmationPanel
+        cancelLabel="Cancelar"
+        confirmLabel={
+          confirmation?.kind === 'deactivate'
+            ? 'Confirmar desactivación'
+            : 'Confirmar activación'
+        }
         description={
           confirmation?.kind === 'deactivate'
             ? `Al desactivar a «${confirmation.customer.name}», no podrá ser seleccionado como propietario en nuevas operaciones. Su historial y vehículos vigentes se conservarán.`
             : `Al reactivar a «${confirmation?.customer.name}», volverá a estar disponible para nuevas asociaciones con su misma información.`
         }
-        onClose={() => setConfirmation(null)}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => void runConfirmation()}
         open={confirmation !== null}
         title={
           confirmation?.kind === 'deactivate'
             ? 'Desactivar cliente'
             : 'Activar cliente'
         }
-      >
-        <Toolbar label="Confirmación de estado">
-          <Button
-            onClick={() => void runConfirmation()}
-            variant={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
-          >
-            {confirmation?.kind === 'deactivate'
-              ? 'Confirmar desactivación'
-              : 'Confirmar activación'}
-          </Button>
-          <Button onClick={() => setConfirmation(null)} variant="secondary">
-            Cancelar
-          </Button>
-        </Toolbar>
-      </Dialog>
+        tone={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
+      />
     </div>
   )
 }
