@@ -793,6 +793,10 @@ samp {
     width: 409px;
     padding: 40px 30px 20px;
   }
+  .drawer-panel.customer-drawer {
+    width: 600px;
+    max-width: calc(100vw - 40px);
+  }
   .drawer-panel > header {
     align-items: center;
   }
@@ -819,6 +823,37 @@ samp {
     width: 134px;
     height: 134px;
     margin: 0 auto;
+  }
+  .customer-form-avatar {
+    width: 134px;
+    height: 134px;
+    margin: 0 auto;
+  }
+  .customer-form .customer-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 43px;
+    gap: 15px;
+  }
+  .customer-form .ui-field > label {
+    min-height: 26px;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 400;
+  }
+  .customer-form-layout > [role='group'] {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .customer-form-layout > [role='group'] button {
+    width: 100%;
+    height: 50px;
+  }
+  .customer-form-layout > [role='group'] button + button {
+    height: 30px;
+    min-height: 30px;
+    background: transparent;
   }
   .user-form [data-testid='user-fields'] {
     grid-template-columns: minmax(0, 1fr);
@@ -879,11 +914,27 @@ samp {
   color: #9b9ba8;
   font-size: 36px;
 }
+.customer-form-avatar {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+  color: #9b9ba8;
+  font-size: 36px;
+}
 .user-form .ui-field > label {
+  font-weight: 400;
+}
+.customer-form .ui-field > label {
   font-weight: 400;
 }
 @media (max-width: 767px) {
   .user-form-avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+  }
+  .customer-form-avatar {
     width: 80px;
     height: 80px;
     margin: 0 auto 24px;
@@ -919,38 +970,12 @@ samp {
   .users-page .data-list {
     margin-top: 20px;
   }
-  body:has(.drawer-panel .user-form) .app-main {
-    padding-right: 409px;
-  }
-  body:has(.drawer-panel .user-form) .users-page .filter-panel {
-    position: static;
-    margin-top: 20px;
-  }
-  body:has(.drawer-panel .user-form) .users-page td,
-  body:has(.drawer-panel .user-form) .users-page th {
-    padding-inline: 12px;
-  }
-  body:has(.drawer-panel .user-form) .users-page .role-tag {
-    max-width: 100px;
-  }
 }
 .users-page table tbody tr {
   height: 60px;
 }
 .users-page table td {
   padding-block: 8px;
-}
-.drawer-backdrop:has(.user-form) {
-  background: transparent;
-}
-.drawer-panel:has(.user-form) {
-  border-radius: 10px 0 0 10px;
-  box-shadow: none;
-}
-@media (max-width: 1199px) {
-  .drawer-backdrop:has(.user-form) {
-    background: rgb(250 250 251 / 0.8);
-  }
 }
 
 /* Invoice List 4:660: 70px rows, 10px gaps, 12px headers, 14px body. */

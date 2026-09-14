@@ -255,7 +255,11 @@ export function CustomerForm({
         </InlineNotice>
       )}
 
-      <FormLayout columns={2}>
+      <FormLayout
+        className="customer-form-layout"
+        columns={2}
+        fieldsClassName="customer-fields"
+      >
         <Field
           error={fieldErrors.person_type}
           id="customer-person-type"
@@ -320,11 +324,11 @@ export function CustomerForm({
           error={fieldErrors.identification}
           id="customer-identification"
           label="Número de identificación"
-          hint={
-            draft.identification_type === 'CI'
-              ? 'Exactamente 10 dígitos'
-              : 'Exactamente 13 dígitos'
-          }
+          // hint={
+          //   draft.identification_type === 'CI'
+          //     ? 'Exactamente 10 dígitos'
+          //     : 'Exactamente 13 dígitos'
+          // }
         >
           <Input
             onChange={(event) => {

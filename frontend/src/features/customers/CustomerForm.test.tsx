@@ -61,6 +61,12 @@ it('validates required fields, changes name label by person type, and preserves 
   })
 })
 
+it('uses the compact two-column field layout for the customer drawer', () => {
+  render(<CustomerForm api={dummyApi} onSubmit={vi.fn()} />)
+
+  expect(document.querySelector('.customer-fields')).toBeInTheDocument()
+})
+
 it('validates CI length of 10 and RUC length of 13', async () => {
   const save = vi.fn()
   const user = userEvent.setup()

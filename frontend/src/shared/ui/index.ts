@@ -6,10 +6,15 @@ export * from './states'
 export * from './timeline'
 export * from './board'
 export * from './conversation'
+export * from './media'
 
 // Forms — nuevos controles del catálogo
 export { SearchInput, type SearchInputProps } from './forms/SearchInput'
-export { Textarea, type TextareaProps, type TextareaResize } from './forms/Textarea'
+export {
+  Textarea,
+  type TextareaProps,
+  type TextareaResize,
+} from './forms/Textarea'
 export { PasswordInput, type PasswordInputProps } from './forms/PasswordInput'
 export { DateControl, type DateControlProps } from './forms/DateControl'
 

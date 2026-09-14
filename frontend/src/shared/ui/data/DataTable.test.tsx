@@ -121,6 +121,38 @@ describe('DataTable (C34) - Fase 8.1', () => {
     expect(screen.getAllByText('TAG-1')[0]).toBeVisible()
   })
 
+  it('opens a row through click or keyboard without hijacking row actions', async () => {
+    const user = userEvent.setup()
+    const handleRowClick = vi.fn()
+
+    render(
+      <DataTable
+        actions={(row) => <button type="button">Editar {row.plate}</button>}
+        columns={columns}
+        getRowKey={(row) => row.id}
+        label="Tabla seleccionable"
+        onRowClick={handleRowClick}
+        rows={mockRows}
+      />,
+    )
+
+    await user.click(screen.getAllByRole('cell', { name: 'P-1234' })[0]!)
+    expect(handleRowClick).toHaveBeenCalledWith(mockRows[0])
+
+    await user.click(
+      screen.getAllByRole('button', { name: 'Editar P-1234' })[0]!,
+    )
+    expect(handleRowClick).toHaveBeenCalledTimes(1)
+
+    const row = screen
+      .getAllByRole('row')
+      .find((candidate) => candidate.textContent?.includes('P-1234'))
+    expect(row).toBeDefined()
+    row?.focus()
+    await user.keyboard('{Enter}')
+    expect(handleRowClick).toHaveBeenCalledTimes(2)
+  })
+
   it('handles controlled row selection and indeterminate header state', async () => {
     const user = userEvent.setup()
     const handleSelectRow = vi.fn()

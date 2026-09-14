@@ -32,6 +32,7 @@ export interface DataTableProps<T extends object> {
     | undefined
   className?: string | undefined
   tableClassName?: string | undefined
+  onRowClick?: ((row: T) => void) | undefined
 }
 
 function cellValue<T extends object>(column: DataColumn<T>, row: T): ReactNode {
@@ -65,6 +66,7 @@ export function DataTable<T extends object>({
   sortColumn,
   sortDirection = 'none',
   onSort,
+  onRowClick,
 }: DataTableProps<T>) {
   const isContained = variant === 'contained'
   const isSelectionActive = Boolean(onSelectRow || onSelectAll)
@@ -187,8 +189,19 @@ export function DataTable<T extends object>({
 
               return (
                 <tr
-                  className={`${rowBaseClasses} ${isSelected ? 'bg-surface-selected/40' : ''}`.trim()}
+                  className={`${rowBaseClasses} ${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'bg-surface-selected/40' : ''}`.trim()}
+                  onClick={() => onRowClick?.(row)}
+                  onKeyDown={(event) => {
+                    if (
+                      onRowClick &&
+                      (event.key === 'Enter' || event.key === ' ')
+                    ) {
+                      event.preventDefault()
+                      onRowClick(row)
+                    }
+                  }}
                   key={rowKey}
+                  tabIndex={onRowClick ? 0 : undefined}
                 >
                   {isSelectionActive && (
                     <td
@@ -218,6 +231,7 @@ export function DataTable<T extends object>({
                   {actions && (
                     <td
                       className={`px-5 ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
+                      onClick={(event) => event.stopPropagation()}
                     >
                       {actions(row)}
                     </td>
@@ -241,8 +255,9 @@ export function DataTable<T extends object>({
             <li
               className={`min-w-0 rounded-group bg-surface p-4 shadow-row border ${
                 isSelected ? 'border-primary' : 'border-transparent'
-              }`}
+              } ${onRowClick ? 'cursor-pointer' : ''}`}
               key={rowKey}
+              onClick={() => onRowClick?.(row)}
             >
               {isSelectionActive && (
                 <div className="mb-3 pb-2 border-b border-line flex items-center gap-2">
@@ -279,7 +294,9 @@ export function DataTable<T extends object>({
 
               {actions && (
                 <div className="mt-4 pt-2 border-t border-line">
-                  {actions(row)}
+                  <div onClick={(event) => event.stopPropagation()}>
+                    {actions(row)}
+                  </div>
                 </div>
               )}
             </li>
