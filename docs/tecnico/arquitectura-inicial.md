@@ -75,7 +75,7 @@ CORS ni JWT.
   ya están confirmadas y se consolidan en el modelo conceptual.
 - Los documentos bajo `docs/negocio/historico/` y el antiguo sistema Flutter no son arquitectura
   objetivo ni requisitos vigentes.
-- Continúan pendientes `DP-006`, `DA-002`, `DA-003`, `DM-001` y las validaciones fiscales externas
+- Continúan pendientes `DA-002`, `DA-003`, `DM-001` y las validaciones fiscales externas
   enumeradas en el modelo conceptual.
 - Las reglas de negocio no requieren un ADR individual. La futura coordinación transaccional de
   reservas, confirmación de ventas y Kardex será candidata a ADR cuando el diseño técnico compare

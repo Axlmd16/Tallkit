@@ -46,6 +46,14 @@ context: |
     maneja de forma sencilla, sin fecha de vencimiento, cuotas ni cronograma.
   - DP-004: V1 no permite descuentos. No mostrar ni aceptar descuentos en proformas,
     ventas, servicios ni mantenimientos.
+  - DP-006 (revisión aprobada 2026-09-14): los números internos usan el formato
+    `<SERIE>-<SECUENCIAL>`. Las series iniciales son COM-ING, COM-PRO y COM-VEN para
+    el RUC comercial, y ART-SER para el RUC artesanal. Cada ámbito mantiene una sola
+    serie activa; el contador comienza en 1, se presenta con al menos seis dígitos
+    completados con ceros y continúa creciendo sin reinicio anual. Una serie usada se
+    sustituye de forma explícita, su código no se reutiliza y los números confirmados
+    nunca se reducen, reasignan ni reutilizan. Son números internos y no acreditan una
+    factura electrónica ni autorización del SRI.
   - DP-007: un mantenimiento finalizado puede reabrirse mediante una acción explícita,
     autorizada y auditada; no mediante edición genérica del estado.
   - DP-008 (Cliente, revisión aprobada 2026-09-11): exige nombre o razón social,
@@ -152,7 +160,6 @@ context: |
     confirmada en DP-015 no constituye un módulo de garantías.
 
   Decisiones todavía no cerradas:
-  - DP-006: formato visible, prefijos y series de los secuenciales.
   - DA-002: límites, almacenamiento y conservación de fotografías.
   - DA-003: empaquetado, instalación, actualización, respaldo y restauración local.
   - DM-001: estructura técnica común o separada de documentos económicos.

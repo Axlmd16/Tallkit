@@ -200,7 +200,7 @@ La existencia actual puede mantenerse como saldo operativo por concurrencia y re
 
 ### 11.1 Decisiones adoptadas
 
-Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-007` a `DP-021`, `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo obligatorio, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
+Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, numeración interna con series y formato definidos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo obligatorio, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
 
 ### 11.2 Recomendaciones todavía no aprobadas
 
@@ -223,7 +223,6 @@ Estas recomendaciones no autorizan implementación.
 
 ### 11.4 Decisiones aplazadas
 
-- `DP-006`: formato visible, prefijos y series exactas de secuenciales internos.
 - `DA-002`: límites, almacenamiento y conservación de fotografías.
 - `DA-003`: instalación, actualización, respaldo y restauración local.
 - `DM-001`: estructura técnica común o separada de documentos económicos.

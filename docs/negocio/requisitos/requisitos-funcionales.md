@@ -34,7 +34,7 @@
 | RF-ACC-009 | El administrador debe poder consultar la actividad crítica por usuario, fecha, acción, entidad afectada y resultado. | Debe | La consulta filtra los eventos registrados y muestra su origen trazable. |
 | RF-ACC-010 | El sistema debe permitir configurar los datos de las dos entidades fiscales y mantenerlas diferenciadas. | Debe | Cada entidad conserva su RUC, tipo, datos de identificación y parámetros propios. |
 | RF-ACC-011 | El sistema debe permitir configurar impuestos y tarifas por entidad fiscal con período de vigencia. | Debe | Un cambio futuro no altera los valores conservados en documentos históricos. |
-| RF-ACC-012 | El sistema debe permitir configurar series y secuenciales por entidad fiscal y tipo de documento. | Debe | Dos documentos confirmados del mismo ámbito no reciben el mismo secuencial. |
+| RF-ACC-012 | El sistema debe permitir configurar series y secuenciales por entidad fiscal y tipo de documento. | Debe | La configuración inicial crea COM-ING, COM-PRO y COM-VEN para el RUC comercial y ART-SER para el artesanal; cada ámbito conserva una serie activa y números `<SERIE>-<SECUENCIAL>` no reutilizables, con al menos seis dígitos. |
 | RF-ACC-013 | El sistema debe permitir configurar umbrales de stock bajo por producto. | Debería | El umbral guardado determina cuándo el producto aparece en la alerta. |
 | RF-ACC-014 | El sistema debe habilitar EFECTIVO y TRANSFERENCIA como formas de pago de V1. | Debe | Solo esas formas pueden utilizarse y combinarse en pagos nuevos. |
 
@@ -216,7 +216,6 @@
 
 | Decisión | Requisitos afectados | Regla provisional |
 |---|---|---|
-| `DP-006` Secuenciales | RF-ACC-012, RF-INV-004, RF-VEN-006, RF-TAL-008 | Deben ser únicos por entidad, tipo y serie; formatos pendientes. |
 | Validación fiscal externa | RF-CAT-015, RF-INV-017, RF-INV-018, RF-REP-014 | Un contador debe confirmar tratamiento, tarifas, clasificación y redondeo antes de la operación real. |
 
 ## 13. Exclusiones funcionales expresas

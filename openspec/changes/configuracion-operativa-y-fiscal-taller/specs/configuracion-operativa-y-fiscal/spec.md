@@ -14,7 +14,7 @@ El sistema SHALL permitir consultar y modificar la configuración operativa y fi
 
 ### Requirement: Dos entidades fiscales obligatorias y diferenciadas
 
-El sistema SHALL mantener exactamente dos **entidades fiscales**: una de tipo **RUC comercial** y otra de tipo **RUC artesanal**. Cada entidad SHALL tener un RUC único de 13 caracteres, razón social obligatoria y datos de identificación opcionales; su tipo SHALL NOT cambiar después de creada. Trazabilidad: `CT-001`, `RN-FIS-001…005`, `RF-ACC-010`, `CU-003`.
+El sistema SHALL mantener exactamente dos **entidades fiscales**: una de tipo **RUC comercial** y otra de tipo **RUC artesanal**. Cada entidad SHALL tener un RUC único formado por exactamente 13 dígitos ASCII, razón social obligatoria de 1 a 200 caracteres después de quitar espacios exteriores y, opcionalmente, nombre comercial de hasta 200 caracteres, dirección de hasta 300, teléfono de hasta 32 y correo de hasta 254; un opcional vacío SHALL conservarse como ausencia. Estos límites no certifican la validez tributaria del RUC. Su tipo SHALL NOT cambiar después de creada. Trazabilidad: `CT-001`, `RN-FIS-001…005`, `RF-ACC-010`, `CU-003`.
 
 #### Scenario: Configuración inicial válida
 - **WHEN** el Administrador registra RUC distintos y razones sociales para las entidades comercial y artesanal
@@ -23,6 +23,10 @@ El sistema SHALL mantener exactamente dos **entidades fiscales**: una de tipo **
 #### Scenario: RUC inválido o repetido
 - **WHEN** el Administrador intenta guardar un RUC que no tiene 13 caracteres o que ya pertenece a la otra entidad fiscal
 - **THEN** el sistema SHALL rechazar la configuración y SHALL indicar el campo que debe corregirse
+
+#### Scenario: Identificación excedida o no numérica
+- **WHEN** el Administrador envía un RUC con caracteres no numéricos, una razón social vacía o un dato de identificación que excede su límite
+- **THEN** el sistema SHALL rechazar la entrada completa sin truncarla y SHALL NOT cambiar la configuración
 
 #### Scenario: Intento de cambiar el tipo fiscal
 - **WHEN** el Administrador intenta convertir el RUC comercial en artesanal o el artesanal en comercial
@@ -42,7 +46,7 @@ El sistema SHALL aplicar los cambios de identificación de una entidad fiscal so
 
 ### Requirement: Tarifas tributarias por entidad y vigencia
 
-El sistema SHALL permitir al Administrador registrar uno o más **impuestos**, incluido IVA, para cada entidad fiscal mediante código, nombre, tarifa decimal, fecha de inicio y fecha de fin opcional. La tarifa SHALL estar entre 0 y 100 inclusive y el sistema SHALL NOT incorporar una tasa legal predeterminada no validada por el responsable del negocio. Trazabilidad: `RN-FIS-010`, `RN-CON-001`, `RF-ACC-011`, `CU-003`.
+El sistema SHALL permitir al Administrador registrar uno o más **impuestos**, incluido IVA, para cada entidad fiscal mediante código de 1 a 20 caracteres, nombre de 1 a 120, tarifa decimal, fecha de inicio y fecha de fin opcional. El código SHALL normalizarse a mayúsculas y admitir únicamente letras ASCII, dígitos, guion y guion bajo, comenzando por una letra. La tarifa SHALL viajar como cadena decimal ordinaria, sin exponente ni coma, entre 0 y 100 inclusive y con hasta cuatro decimales. El sistema SHALL NOT redondear ni truncar entradas y SHALL NOT incorporar una tasa legal predeterminada no validada por el responsable del negocio. Trazabilidad: `RN-FIS-010`, `RN-CON-001`, `RF-ACC-011`, `CU-003`.
 
 #### Scenario: Registro de una tarifa validada
 - **WHEN** el Administrador registra para una entidad fiscal una tarifa válida con fecha de inicio
@@ -56,6 +60,10 @@ El sistema SHALL permitir al Administrador registrar uno o más **impuestos**, i
 - **WHEN** el Administrador intenta registrar una tarifa menor que 0 o mayor que 100
 - **THEN** el sistema SHALL rechazarla y SHALL NOT crear la vigencia
 
+#### Scenario: Tarifa con precisión o representación no admitida
+- **WHEN** el Administrador envía una tarifa con más de cuatro decimales, notación exponencial, coma decimal o como número JSON
+- **THEN** el sistema SHALL rechazar la entrada sin redondearla ni crear la vigencia
+
 ### Requirement: Vigencias tributarias no ambiguas
 
 Para una misma entidad fiscal y código de impuesto, el sistema SHALL impedir períodos de vigencia solapados. La configuración aplicable SHALL resolverse por la fecha operativa en la zona `America/Guayaquil`; si no existe una única vigencia aplicable, una operación económica dependiente SHALL fallar sin efectos parciales. Trazabilidad: `RN-FIS-010`, `RN-CON-001`, `RF-ACC-011`, `CU-003`, `RNF-INT-001`, `RNF-INT-008…009`.
@@ -64,9 +72,17 @@ Para una misma entidad fiscal y código de impuesto, el sistema SHALL impedir pe
 - **WHEN** el Administrador intenta registrar un período que se solapa con otra vigencia del mismo impuesto y entidad fiscal
 - **THEN** el sistema SHALL rechazarlo y SHALL mostrar los períodos en conflicto
 
-#### Scenario: Cambio futuro de tarifa
-- **WHEN** el Administrador registra una nueva tarifa con inicio posterior al período vigente
-- **THEN** el sistema SHALL permitir cerrar el período anterior sin alterar operaciones confirmadas y SHALL aplicar la nueva tarifa desde su fecha de inicio
+#### Scenario: Sucesión prospectiva válida
+- **WHEN** el Administrador programa mediante la acción explícita de sucesión una nueva tarifa con inicio futuro, posterior a todo uso registrado de la vigencia abierta
+- **THEN** el sistema SHALL cerrar la vigencia anterior el día previo, crear la sucesora atómicamente y SHALL aplicar la nueva tarifa desde su fecha de inicio sin alterar usos ni copias históricas
+
+#### Scenario: Fecha de sucesión incompatible
+- **WHEN** la fecha propuesta no es futura en `America/Guayaquil` o cerraría la vigencia antes de una operación que ya la utilizó
+- **THEN** el sistema SHALL rechazar toda la sucesión y SHALL conservar sin cambios la vigencia abierta y sus usos
+
+#### Scenario: Dos sucesiones concurrentes
+- **WHEN** dos solicitudes intentan sustituir simultáneamente la misma vigencia abierta
+- **THEN** el sistema SHALL confirmar una sola sucesora y SHALL rechazar la otra por conflicto sin crear solapamientos
 
 #### Scenario: Ausencia de tarifa aplicable
 - **WHEN** una operación económica intenta confirmarse en una fecha para la que no existe una única vigencia aplicable
@@ -74,11 +90,11 @@ Para una misma entidad fiscal y código de impuesto, el sistema SHALL impedir pe
 
 ### Requirement: Configuración tributaria histórica inmutable
 
-Una vigencia tributaria utilizada por al menos una operación confirmada SHALL NOT poder editarse ni eliminarse. Toda corrección SHALL crear una nueva vigencia sin recalcular bases, tarifas, impuestos o totales históricos. Trazabilidad: `DP-017`, `RN-CON-001…002`, `RF-ACC-011`, `RF-VEN-004`.
+Una vigencia tributaria utilizada por al menos una operación confirmada SHALL NOT poder editarse ni eliminarse mediante modificación genérica. La única mutación admitida sobre una vigencia abierta utilizada SHALL ser su cierre prospectivo dentro de la acción explícita, atómica y auditada de sucesión descrita en esta especificación. Esa acción SHALL NOT cambiar tarifa ni inicio y SHALL NOT invalidar usos existentes. Toda corrección SHALL crear una nueva vigencia sin recalcular bases, tarifas, impuestos o totales históricos. Trazabilidad: `DP-017`, `RN-CON-001…002`, `RF-ACC-011`, `RF-VEN-004`.
 
 #### Scenario: Intento de editar una tarifa utilizada
 - **WHEN** el Administrador intenta cambiar la tarifa o las fechas de una vigencia ya utilizada
-- **THEN** el sistema SHALL rechazar la edición y SHALL orientar a crear una nueva vigencia
+- **THEN** el sistema SHALL rechazar la edición genérica y SHALL orientar a usar la acción de sucesión cuando corresponda
 
 #### Scenario: Cambio de tarifa sin efecto retroactivo
 - **WHEN** entra en vigor una nueva tarifa
@@ -86,7 +102,7 @@ Una vigencia tributaria utilizada por al menos una operación confirmada SHALL N
 
 ### Requirement: Bodega única de V1
 
-El sistema SHALL crear y mantener una única **bodega** operativa para V1, identificada inicialmente como “Bodega principal”. El Administrador SHALL poder actualizar sus datos descriptivos, pero SHALL NOT poder crear una segunda bodega, eliminar la existente ni dejar al sistema sin una bodega activa. Trazabilidad: `DP-001`, `RN-INV-016`, `RF-INV-013`, `UI-017`.
+El sistema SHALL crear y mantener una única **bodega** operativa para V1, identificada inicialmente como “Bodega principal”. Su nombre SHALL tener entre 1 y 120 caracteres después de quitar espacios exteriores. El Administrador SHALL poder actualizar sus datos descriptivos, pero SHALL NOT poder crear una segunda bodega, eliminar la existente ni dejar al sistema sin una bodega activa. Trazabilidad: `DP-001`, `RN-INV-016`, `RF-INV-013`, `UI-017`.
 
 #### Scenario: Configuración inicial de la bodega
 - **WHEN** se completa la configuración inicial del taller
@@ -102,7 +118,7 @@ El sistema SHALL crear y mantener una única **bodega** operativa para V1, ident
 
 ### Requirement: Series internas iniciales de V1
 
-El sistema SHALL crear las series internas `COM-ING`, `COM-PRO`, `COM-VEN` y `ART-SER`, asociadas respectivamente a ingresos de mercadería, proformas, ventas de repuestos y operaciones económicas de servicios. Cada serie SHALL pertenecer a una sola entidad fiscal y tipo de documento, y su primer **secuencial** asignable SHALL ser `000001`. Trazabilidad: aprobación de `DP-006` para este cambio, `RN-FIS-008`, `RN-VEN-018`, `RF-ACC-012`, `RF-INV-004`, `RF-VEN-006`, `RF-TAL-008`.
+El sistema SHALL crear las series internas `COM-ING`, `COM-PRO`, `COM-VEN` y `ART-SER`, asociadas respectivamente a ingresos de mercadería, proformas, ventas de repuestos y operaciones económicas de servicios. Cada código SHALL tener entre 3 y 20 caracteres, comenzar por una letra y admitir únicamente letras ASCII mayúsculas, dígitos y guion. Cada serie SHALL pertenecer a una sola entidad fiscal y tipo de documento, y su primer **secuencial** asignable SHALL ser `000001`. Trazabilidad: aprobación de `DP-006` para este cambio, `RN-FIS-008`, `RN-VEN-018`, `RF-ACC-012`, `RF-INV-004`, `RF-VEN-006`, `RF-TAL-008`.
 
 #### Scenario: Creación de series iniciales
 - **WHEN** el Administrador completa la configuración inicial
@@ -207,3 +223,19 @@ El sistema SHALL auditar cada creación, modificación, rechazo, cierre o sustit
 #### Scenario: Cambio rechazado
 - **WHEN** el sistema rechaza un cambio por falta de permiso, solapamiento, duplicidad o protección histórica
 - **THEN** el sistema SHALL conservar un evento de auditoría con el resultado rechazado y SHALL NOT registrar valores sensibles innecesarios
+
+### Requirement: Idempotencia de comandos administrativos
+
+Toda escritura administrativa basada en comando SHALL exigir una clave de idempotencia de 8 a 128 caracteres ASCII, formada por letras, dígitos, punto, guion, guion bajo o dos puntos. Su alcance SHALL ser el usuario actor y la acción. El sistema SHALL comparar una huella canónica de toda la entrada relevante y SHALL conservar el resultado sin caducidad automática en V1. Trazabilidad: `RNF-INT-003…005`, `RNF-INT-009`, `RF-AUD-006`.
+
+#### Scenario: Repetición compatible de un comando
+- **WHEN** el mismo actor repite la misma acción con igual clave e igual entrada
+- **THEN** el sistema SHALL devolver el resultado persistido sin repetir efectos
+
+#### Scenario: Reutilización incompatible de una clave
+- **WHEN** el mismo actor y acción reutilizan una clave con una entrada diferente
+- **THEN** el sistema SHALL responder conflicto y SHALL NOT ejecutar ni ocultar la nueva entrada
+
+#### Scenario: Entrada que excede un límite contractual
+- **WHEN** cualquier campo excede su longitud o precisión admitida
+- **THEN** el sistema SHALL responder validación de campo sin truncar ni redondear y SHALL NOT persistir efectos parciales

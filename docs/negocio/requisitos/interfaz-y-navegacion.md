@@ -126,7 +126,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-011 | Formulario de usuario | Identificación de acceso, datos básicos, estado y selección de uno o más roles entre Administrador, Vendedor y Encargado del taller. |
 | UI-014 | Entidades fiscales | Pestañas o fichas independientes para RUC comercial y artesanal; nunca un formulario económico combinado. |
 | UI-015 | Impuestos y vigencias | Lista cronológica por entidad fiscal, tarifa, fecha inicial y final; crear nueva vigencia. |
-| UI-016 | Series y secuenciales | Entidad, tipo, serie, valor actual y estado; edición controlada con advertencia. |
+| UI-016 | Series y secuenciales | Entidad, tipo, serie, valor actual y estado; muestra COM-ING, COM-PRO y COM-VEN bajo el RUC comercial y ART-SER bajo el artesanal, con vista `<SERIE>-<SECUENCIAL>` de al menos seis dígitos y sustitución explícita de una serie usada. |
 | UI-017 | Parámetros | Formas de pago, umbrales y valores configurables aprobados. |
 | UI-018 | Auditoría | Filtros por usuario, fecha, acción, tipo, identificador y resultado; detalle de evento. |
 
@@ -339,7 +339,6 @@ El formato exacto de secuenciales internos y el ciclo de una futura referencia f
 
 | Decisión | Pantallas afectadas |
 |---|---|
-| `DP-006` Formatos de secuencial | UI-016 y todos los documentos imprimibles. |
 | Tratamiento fiscal de reposiciones por corrección | UI-048, UI-075 y UI-078; requiere validación contable o normativa ecuatoriana. |
 
 ## 13. Validación mediante prototipos

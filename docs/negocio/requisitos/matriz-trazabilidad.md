@@ -69,8 +69,8 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 
 | Clasificación | Elementos | Consecuencia documental |
 |---|---|---|
-| Confirmadas | DP-001…004, DP-007…021, CT-001 y DM-003 V1 | Se aplican como línea base; no deben figurar como preguntas abiertas. |
-| Pendientes | DP-006, DA-002, DA-003, DM-001 | Se conservan sin inventar una solución técnica o de formato. |
+| Confirmadas | DP-001…004, DP-006…021, CT-001 y DM-003 V1 | Se aplican como línea base; no deben figurar como preguntas abiertas. |
+| Pendientes | DA-002, DA-003, DM-001 | Se conservan sin inventar una solución técnica. |
 | Validación externa | tratamiento fiscal de consumos y reposiciones; tarifas, clasificación, redondeo y facturación futura | Debe resolverlo un contador o la normativa ecuatoriana aplicable antes de especificar el comportamiento fiscal. |
 
 ## 5. Capacidades OpenSpec

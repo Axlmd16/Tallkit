@@ -288,7 +288,6 @@ La versión 1 podrá considerarse funcionalmente completa cuando:
 
 | ID | Decisión | Impacto |
 |---|---|---|
-| DP-006 | Definir los secuenciales internos por documento. | Configuración, concurrencia e impresión. |
 | EXT-001 | Validar tratamiento fiscal y contable de consumos internos y reposiciones sin cargo. | Contabilidad y obligaciones de ambos RUC. |
 | EXT-002 | Confirmar tarifas, clasificaciones tributarias y redondeo aplicables. | Configuración de impuestos y documentos. |
 | FUT-001 | Especificar facturación electrónica y reglas de consumidor final. | Integración futura con el SRI, fuera de V1. |

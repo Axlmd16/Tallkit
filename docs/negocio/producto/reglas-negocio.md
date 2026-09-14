@@ -149,7 +149,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-VEN-015 | La devolución de un repuesto debe relacionarse con la venta original, limitarse a la cantidad todavía devolvible e identificar el resultado de la inspección. |
 | RN-VEN-016 | Anular una venta no debe borrar sus pagos; estos deben anularse o reembolsarse mediante un procedimiento trazable. |
 | RN-VEN-017 | V1 no admite descuentos en proformas, ventas, servicios ni mantenimientos. |
-| RN-VEN-018 | Los secuenciales deben ser únicos por entidad fiscal, tipo de documento y serie, y generarse de forma segura ante concurrencia. |
+| RN-VEN-018 | Los secuenciales deben ser únicos por entidad fiscal, tipo de documento y serie, y generarse de forma segura ante concurrencia. V1 inicia COM-ING, COM-PRO y COM-VEN para el RUC comercial y ART-SER para el RUC artesanal; usa `<SERIE>-<SECUENCIAL>`, con contador desde 1 y al menos seis dígitos visibles, sin reinicio, reducción ni reutilización. |
 | RN-VEN-019 | V1 no admite anticipos, sobrepagos ni saldos a favor; una devolución que produzca exceso pagado requiere un reembolso trazable. |
 | RN-VEN-020 | Un producto devuelto solo reingresa al inventario si el Administrador lo declara apto para reventa; de lo contrario, la devolución económica no aumenta existencia. |
 | RN-VEN-021 | El costo del reingreso apto debe ser el costo histórico de la salida original. |
@@ -219,7 +219,6 @@ Estas condiciones nunca deben romperse:
 
 ## 12. Decisiones abiertas relacionadas
 
-- Formatos visibles, prefijos y series de los secuenciales internos.
 - Límites y conservación definitiva de fotografías.
 - Tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre RUC.
 - Tarifas, clasificaciones tributarias y reglas de redondeo aplicables.
