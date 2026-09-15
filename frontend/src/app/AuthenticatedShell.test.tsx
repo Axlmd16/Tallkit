@@ -131,6 +131,28 @@ it('marks the current location in the authorized navigation', () => {
   )
 })
 
+it('keeps the brand title constrained and aligns expanded navigation to the rail edge', () => {
+  render(
+    <MemoryRouter>
+      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  const navigationLink = screen.getByRole('link', { name: 'Inicio' })
+
+  expect(navigationLink).toHaveClass('app-rail-nav-item')
+  expect(screen.getByTestId('brand-logo-expanded')).toHaveAttribute(
+    'src',
+    '/src/assets/brand/secundario.svg',
+  )
+  expect(screen.getByTestId('brand-logo-compact')).toHaveAttribute(
+    'src',
+    '/src/assets/brand/isotipo.svg',
+  )
+})
+
 it('opens compact navigation and closes it after choosing a route', async () => {
   const user = userEvent.setup()
   render(

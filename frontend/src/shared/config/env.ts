@@ -7,7 +7,7 @@ export function parseEnvironment(
   _values: Record<string, unknown>,
 ): AppEnvironment {
   const apiBaseUrl = _values.VITE_API_BASE_URL ?? '/api/v1'
-  const appName = _values.VITE_APP_NAME ?? 'Sys-Inventario'
+  const appName = _values.VITE_APP_NAME ?? 'Tallkit'
 
   if (
     typeof apiBaseUrl !== 'string' ||

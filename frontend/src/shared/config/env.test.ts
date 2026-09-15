@@ -6,7 +6,7 @@ describe('parseEnvironment', () => {
   it('uses a same-origin API path', () => {
     expect(parseEnvironment({ VITE_API_BASE_URL: '/api/v1' })).toEqual({
       apiBaseUrl: '/api/v1',
-      appName: 'Sys-Inventario',
+      appName: 'Tallkit',
     })
   })
 

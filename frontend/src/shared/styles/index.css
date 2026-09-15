@@ -228,6 +228,20 @@ samp {
   .app-rail > div:first-child > p {
     display: none;
   }
+  .app-mobile-brand-logo {
+    width: 64px;
+    height: 48px;
+    object-fit: contain;
+  }
+  .app-brand-compact {
+    display: block;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+  .app-brand-expanded {
+    display: none;
+  }
   .app-rail nav {
     margin-top: 66px;
   }
@@ -289,22 +303,27 @@ samp {
   }
   .app-rail > div:first-child {
     flex-direction: row;
-    padding: 0 50px;
+    padding: 0 30px;
     gap: 15px;
   }
-  .app-rail > div:first-child > p {
+  .app-brand-compact {
+    display: none;
+  }
+  .app-brand-expanded {
     display: block;
-    overflow: visible;
+    width: 150px;
+    height: 108px;
+    object-fit: contain;
   }
   .app-rail nav {
     margin-top: 32px;
   }
-  .app-rail nav a {
+  .app-rail .app-rail-nav-item {
     height: 48px;
     justify-content: flex-start;
     gap: 15px;
     margin-bottom: 6px;
-    padding: 0 30px 0 50px;
+    padding: 0 30px;
     border-radius: 0;
   }
   .app-nav-label {
@@ -1025,8 +1044,15 @@ samp {
   color: white;
   margin-inline: auto;
 }
+.login-brand-logo {
+  display: block;
+  width: min(100%, 300px);
+  height: 112px;
+  object-fit: contain;
+  margin-inline: auto;
+}
 .login-content h1 {
-  margin-top: 40px;
+  margin-top: 24px;
   text-align: center;
   font-size: 25px;
   line-height: 34px;

@@ -13,13 +13,14 @@ import {
 import { useRef, useState, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router'
 
+import compactBrand from '@/assets/brand/isotipo.svg'
+import expandedBrand from '@/assets/brand/secundario.svg'
 import { useLogout, useSession } from '@/features/auth/hooks'
 import {
   anonymousSession,
   type Role,
   type Session,
 } from '@/features/auth/types'
-import { environment } from '@/shared/config/env'
 import { Button, Drawer, IconButton, InlineNotice } from '@/shared/ui'
 
 const roleLabels: Record<Role, string> = {
@@ -83,7 +84,7 @@ function NavigationItems({
       return (
         <NavLink
           className={({ isActive }) =>
-            `relative flex min-h-11 items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors ${isActive ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'}`
+            `app-rail-nav-item relative flex min-h-11 items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors ${isActive ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'}`
           }
           end={item.to === '/'}
           key={item.to}
@@ -146,15 +147,11 @@ export function AuthenticatedShell({
     <div className="app-shell min-h-screen bg-canvas text-ink md:grid md:grid-cols-[5rem_minmax(0,1fr)] xl:grid-cols-[13.625rem_minmax(0,1fr)]">
       <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between bg-surface px-4 shadow-card md:hidden">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-white">
-            <Wrench aria-hidden="true" size={20} weight="bold" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate font-extrabold">{environment.appName}</p>
-            <p className="truncate text-xs text-ink-muted">
-              {session.username}
-            </p>
-          </div>
+          <img
+            alt="Tallkit"
+            className="app-mobile-brand-logo"
+            src={expandedBrand}
+          />
         </div>
         <IconButton
           icon={<List size={24} />}
@@ -165,13 +162,19 @@ export function AuthenticatedShell({
       </header>
 
       <aside className="app-rail sticky top-0 hidden h-screen flex-col bg-surface px-3 py-5 md:flex xl:px-5">
-        <div className="flex min-h-12 items-center gap-3 px-1 xl:px-2">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-white">
-            <Wrench aria-hidden="true" size={20} weight="bold" />
-          </span>
-          <p className="hidden truncate text-lg font-extrabold xl:block">
-            {environment.appName}
-          </p>
+        <div className="app-brand-mark flex min-h-12 items-center justify-center">
+          <img
+            alt="Tallkit"
+            className="app-brand-compact"
+            data-testid="brand-logo-compact"
+            src={compactBrand}
+          />
+          <img
+            alt="Tallkit"
+            className="app-brand-expanded"
+            data-testid="brand-logo-expanded"
+            src={expandedBrand}
+          />
         </div>
         <nav aria-label="Navegación principal" className="mt-8 space-y-2">
           <NavigationItems permissions={permissions} />

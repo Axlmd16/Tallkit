@@ -28,6 +28,10 @@ it('uses a split workshop composition without public registration or social acce
   expect(
     screen.queryByText(/Google|Facebook|Crear cuenta/i),
   ).not.toBeInTheDocument()
+  expect(screen.getByTestId('login-brand-logo')).toHaveAttribute(
+    'src',
+    '/src/assets/brand/principal.svg',
+  )
 })
 
 it('navigates to the authenticated start after a successful login', async () => {
