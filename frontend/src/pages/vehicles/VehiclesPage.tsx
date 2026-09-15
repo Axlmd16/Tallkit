@@ -1,6 +1,9 @@
 import {
+  CalendarBlank,
+  CarSimple,
   Eye,
   MagnifyingGlass,
+  Palette,
   PencilSimple,
   Plus,
   Power,
@@ -22,21 +25,22 @@ import { VehicleForm } from '@/features/vehicles/VehicleForm'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
-  Dialog,
+  ConfirmationPanel,
   Drawer,
   ElevatedDataList,
   EmptyState,
   Field,
   FilterPanel,
   InlineNotice,
-  Input,
   LoadingState,
   PageHeader,
   Pagination,
   RowActions,
+  SearchInput,
   Select,
   StatusBadge,
   Toolbar,
+  Avatar,
 } from '@/shared/ui'
 
 type Confirmation = {
@@ -222,7 +226,7 @@ export function VehiclesPage() {
     Boolean(searchParam) || isActiveParam !== null || brandIdParam !== null
 
   return (
-    <div className="space-y-6">
+    <section className="vehicles-page list-page">
       <PageHeader
         title="Vehículos"
         description="Gestión y consulta del catálogo de vehículos registrados y sus propietarios."
@@ -249,83 +253,73 @@ export function VehiclesPage() {
         </InlineNotice>
       )}
 
-      <Toolbar label="Herramientas de búsqueda y filtros de vehículos">
-        <FilterPanel label="Filtros de búsqueda de vehículos">
-          <form
-            onSubmit={handleSearchSubmit}
-            className="flex flex-1 flex-wrap items-end gap-3"
-          >
-            <div className="min-w-[240px] flex-1">
-              <Field
-                label="Buscar vehículos"
-                hint="Por placa, modelo, VIN o propietario"
-              >
-                <div className="relative">
-                  <Input
-                    aria-label="Buscar vehículos"
-                    placeholder="Placa, modelo, VIN o propietario…"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    aria-label="Ejecutar búsqueda"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
-                  >
-                    <MagnifyingGlass size={18} />
-                  </button>
-                </div>
-              </Field>
-            </div>
+      <FilterPanel label="Filtros de búsqueda de vehículos">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-[minmax(20rem,30rem)_12rem_10rem_auto]"
+        >
+          <Field label="Buscar vehículos">
+            <SearchInput
+              aria-label="Buscar vehículos"
+              onChange={(e) => setSearchInput(e.target.value)}
+              onClear={() => {
+                setSearchInput('')
+                updateFilters({ search: '' })
+              }}
+              placeholder="Placa, modelo, VIN o propietario…"
+              value={searchInput}
+            />
+          </Field>
 
-            <div className="w-44">
-              <Field label="Marca">
-                <Select
-                  aria-label="Filtrar por marca"
-                  value={brandIdParam ?? ''}
-                  onChange={(e) =>
-                    updateFilters({ brand_id: e.target.value || '' })
-                  }
-                >
-                  <option value="">Todas las marcas</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
+          <Field label="Marca">
+            <Select
+              aria-label="Filtrar por marca"
+              value={brandIdParam ?? ''}
+              onChange={(e) =>
+                updateFilters({ brand_id: e.target.value || '' })
+              }
+            >
+              <option value="">Todas las marcas</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
 
-            <div className="w-36">
-              <Field label="Estado">
-                <Select
-                  aria-label="Filtrar por estado"
-                  value={isActiveParam ?? ''}
-                  onChange={(e) =>
-                    updateFilters({ is_active: e.target.value || '' })
-                  }
-                >
-                  <option value="">Todos</option>
-                  <option value="true">Activos</option>
-                  <option value="false">Inactivos</option>
-                </Select>
-              </Field>
-            </div>
+          <Field label="Estado">
+            <Select
+              aria-label="Filtrar por estado"
+              value={isActiveParam ?? ''}
+              onChange={(e) =>
+                updateFilters({ is_active: e.target.value || '' })
+              }
+            >
+              <option value="">Todos</option>
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </Select>
+          </Field>
 
+          <Toolbar label="Acciones de filtro">
+            <Button type="submit" variant="secondary">
+              <MagnifyingGlass aria-hidden="true" size={18} />
+              Buscar
+            </Button>
             {hasActiveFilters && (
               <Button
                 variant="quiet"
                 onClick={handleClearFilters}
                 className="inline-flex items-center gap-1.5"
               >
-                <XCircle size={16} />
+                <XCircle aria-hidden="true" size={16} />
                 <span>Limpiar filtros</span>
               </Button>
             )}
-          </form>
-        </FilterPanel>
-      </Toolbar>
+          </Toolbar>
+        </form>
+      </FilterPanel>
 
       {vehiclesQuery.isLoading ? (
         <LoadingState label="Cargando vehículos…" />
@@ -342,7 +336,11 @@ export function VehiclesPage() {
               : 'Aún no hay vehículos registrados en el taller.'
           }
           action={
-            canManage && !hasActiveFilters ? (
+            hasActiveFilters ? (
+              <Button variant="secondary" onClick={handleClearFilters}>
+                Limpiar filtros
+              </Button>
+            ) : canManage ? (
               <Button variant="primary" onClick={handleOpenCreate}>
                 Registrar primer vehículo
               </Button>
@@ -361,7 +359,7 @@ export function VehiclesPage() {
                 key: 'plate',
                 priority: 'primary',
                 render: (v) => (
-                  <span className="font-mono font-bold text-ink">
+                  <span className="inline-flex rounded-control bg-surface-subtle px-2.5 py-1 font-mono text-sm font-bold tracking-wide text-ink">
                     {v.plate}
                   </span>
                 ),
@@ -371,15 +369,51 @@ export function VehiclesPage() {
                 key: 'model',
                 priority: 'primary',
                 render: (v) => (
-                  <div>
-                    <p className="font-medium text-ink">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                      <CarSimple aria-hidden="true" size={17} weight="fill" />
+                    </span>
+                    <p className="min-w-0 truncate font-semibold text-ink">
                       {v.brand.name} {v.model}
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      {v.color || 'Sin color'} {v.year ? `• Año ${v.year}` : ''}
                     </p>
                   </div>
                 ),
+              },
+              {
+                header: 'Color',
+                key: 'color',
+                priority: 'secondary',
+                render: (v) =>
+                  v.color ? (
+                    <span className="inline-flex items-center gap-2 text-ink">
+                      <Palette
+                        aria-hidden="true"
+                        className="text-ink-muted"
+                        size={17}
+                      />
+                      {v.color}
+                    </span>
+                  ) : (
+                    <span className="italic text-ink-muted">No registrado</span>
+                  ),
+              },
+              {
+                header: 'Año',
+                key: 'year',
+                priority: 'secondary',
+                render: (v) =>
+                  v.year ? (
+                    <span className="inline-flex items-center gap-2 font-semibold tabular-nums text-ink">
+                      <CalendarBlank
+                        aria-hidden="true"
+                        className="text-ink-muted"
+                        size={17}
+                      />
+                      <span>{v.year}</span>
+                    </span>
+                  ) : (
+                    <span className="italic text-ink-muted">No registrado</span>
+                  ),
               },
               {
                 header: 'Propietario',
@@ -387,25 +421,27 @@ export function VehiclesPage() {
                 priority: 'secondary',
                 render: (v) =>
                   v.current_owner ? (
-                    <Link
-                      to={`/customers/${v.current_owner.id}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {v.current_owner.name}
-                    </Link>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar
+                        className={`person-avatar avatar-${v.current_owner.id % 4}`}
+                        name={v.current_owner.name}
+                        size="36"
+                      />
+                      <div className="min-w-0">
+                        <Link
+                          to={`/customers/${v.current_owner.id}`}
+                          className="block wrap-break-word font-semibold text-primary hover:underline"
+                        >
+                          {v.current_owner.name}
+                        </Link>
+                        <p className="mt-0.5 wrap-break-word text-xs text-ink-muted">
+                          {v.current_owner.identification}
+                        </p>
+                      </div>
+                    </div>
                   ) : (
                     <span className="text-ink-muted">Sin propietario</span>
                   ),
-              },
-              {
-                header: 'VIN / Chasis',
-                key: 'vin',
-                priority: 'secondary',
-                render: (v) => (
-                  <span className="font-mono text-xs text-ink-muted">
-                    {v.vin || '—'}
-                  </span>
-                ),
               },
               {
                 header: 'Estado',
@@ -420,19 +456,23 @@ export function VehiclesPage() {
               },
             ]}
             actions={(v) => (
-              <RowActions>
+              <RowActions className="flex-nowrap">
                 <Link
                   to={`/vehicles/${v.id}`}
-                  className="ui-button inline-flex min-h-10 items-center justify-center gap-1.5 rounded-group border border-transparent bg-transparent px-3 py-1.5 text-xs font-semibold text-ink-muted hover:bg-surface-selected hover:text-primary"
+                  aria-label="Ver ficha"
+                  className="ui-button record-action inline-flex min-h-10 items-center justify-center gap-1.5 rounded-group border border-transparent bg-transparent px-3 py-1.5 text-xs font-semibold text-ink-muted hover:bg-surface-selected hover:text-primary"
+                  title="Ver ficha"
                 >
                   <Eye size={16} />
                   <span>Ver ficha</span>
                 </Link>
                 {canManage && (
                   <Button
+                    aria-label="Editar"
+                    title="Editar"
                     variant="quiet"
                     onClick={() => handleOpenEdit(v)}
-                    className="inline-flex items-center gap-1.5 text-xs"
+                    className="record-action inline-flex items-center gap-1.5 text-xs"
                   >
                     <PencilSimple size={16} />
                     <span>Editar</span>
@@ -440,6 +480,8 @@ export function VehiclesPage() {
                 )}
                 {canDeactivate && (
                   <Button
+                    aria-label={v.is_active ? 'Desactivar' : 'Activar'}
+                    title={v.is_active ? 'Desactivar' : 'Activar'}
                     variant={v.is_active ? 'danger' : 'secondary'}
                     onClick={() =>
                       setConfirmation({
@@ -447,7 +489,7 @@ export function VehiclesPage() {
                         vehicle: v,
                       })
                     }
-                    className="inline-flex items-center gap-1.5 text-xs"
+                    className="record-action inline-flex items-center gap-1.5 text-xs"
                   >
                     <Power size={16} />
                     <span>{v.is_active ? 'Desactivar' : 'Activar'}</span>
@@ -476,6 +518,7 @@ export function VehiclesPage() {
 
       {/* Drawer para registro y edición */}
       <Drawer
+        className="vehicle-drawer"
         open={drawerOpen}
         onClose={handleCloseDrawer}
         title={editingVehicle ? 'Editar vehículo' : 'Registrar vehículo'}
@@ -494,9 +537,8 @@ export function VehiclesPage() {
       </Drawer>
 
       {/* Diálogo para confirmación de cambio de estado */}
-      <Dialog
+      <ConfirmationPanel
         open={confirmation !== null}
-        onClose={() => setConfirmation(null)}
         title={
           confirmation?.kind === 'deactivate'
             ? 'Desactivar vehículo'
@@ -507,21 +549,16 @@ export function VehiclesPage() {
             ? `Al desactivar el vehículo «${confirmation.vehicle.plate}», conservará su historial de propietarios pero no podrá ser utilizado en nuevas operaciones activas.`
             : `Al reactivar el vehículo «${confirmation?.vehicle.plate}», volverá a estar disponible para operaciones activas.`
         }
-      >
-        <Toolbar label="Confirmación de estado de vehículo">
-          <Button
-            variant={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
-            onClick={() => void handleConfirmStateChange()}
-          >
-            {confirmation?.kind === 'deactivate'
-              ? 'Confirmar desactivación'
-              : 'Confirmar activación'}
-          </Button>
-          <Button variant="secondary" onClick={() => setConfirmation(null)}>
-            Cancelar
-          </Button>
-        </Toolbar>
-      </Dialog>
-    </div>
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => void handleConfirmStateChange()}
+        confirmLabel={
+          confirmation?.kind === 'deactivate'
+            ? 'Confirmar desactivación'
+            : 'Confirmar activación'
+        }
+        cancelLabel="Cancelar"
+        tone={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
+      />
+    </section>
   )
 }

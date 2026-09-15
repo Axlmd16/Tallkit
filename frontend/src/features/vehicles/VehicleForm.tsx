@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { CarSimple } from '@phosphor-icons/react'
 
 import { useSession } from '@/features/auth/hooks'
 import { useCustomers } from '@/features/customers/hooks'
@@ -12,6 +13,7 @@ import {
   Button,
   ButtonGroup,
   Field,
+  FormLayout,
   InlineNotice,
   Input,
   Select,
@@ -275,61 +277,69 @@ export function VehicleForm({
   }
 
   return (
-    <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+    <form className="vehicle-form space-y-6" onSubmit={handleSubmit} noValidate>
+      <div className="vehicle-form-avatar" aria-label="Vehículo" role="img">
+        <CarSimple aria-hidden="true" size={62} weight="fill" />
+      </div>
+
       {formError && (
         <InlineNotice tone="danger" title="Error en el formulario">
           {formError}
         </InlineNotice>
       )}
 
-      {/* Propietario */}
-      {isEditing ? (
-        <div className="rounded-group border border-ink/10 bg-surface-muted p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            Propietario actual
-          </p>
-          <p className="mt-1 font-medium text-ink">
-            {vehicle?.current_owner?.name ?? 'Sin propietario asignado'} (
-            {vehicle?.current_owner?.identification})
-          </p>
-          <p className="mt-1 text-xs text-ink-muted">
-            El cambio de propietario se realiza mediante la opción de
-            transferencia.
-          </p>
-        </div>
-      ) : defaultOwnerId && defaultOwnerName ? (
-        <div className="rounded-group border border-ink/10 bg-surface-muted p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            Propietario asignado
-          </p>
-          <p className="mt-1 font-medium text-ink">{defaultOwnerName}</p>
-        </div>
-      ) : (
-        <Field
-          label="Propietario *"
-          hint="Seleccione el cliente propietario del vehículo."
-          error={fieldErrors.owner_id}
-        >
-          <Select
-            aria-label="Propietario"
-            value={ownerId}
-            onChange={(e) => setOwnerId(e.target.value)}
+      <FormLayout
+        className="vehicle-form-layout"
+        columns={2}
+        fieldsClassName="vehicle-fields"
+      >
+        {/* Propietario */}
+        {isEditing ? (
+          <div className="md:col-span-2 rounded-group border border-ink/10 bg-surface-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+              Propietario actual
+            </p>
+            <p className="mt-1 font-medium text-ink">
+              {vehicle?.current_owner?.name ?? 'Sin propietario asignado'} (
+              {vehicle?.current_owner?.identification})
+            </p>
+            <p className="mt-1 text-xs text-ink-muted">
+              El cambio de propietario se realiza mediante la opción de
+              transferencia.
+            </p>
+          </div>
+        ) : defaultOwnerId && defaultOwnerName ? (
+          <div className="md:col-span-2 rounded-group border border-ink/10 bg-surface-muted p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+              Propietario asignado
+            </p>
+            <p className="mt-1 font-medium text-ink">{defaultOwnerName}</p>
+          </div>
+        ) : (
+          <Field
+            className="md:col-span-2"
+            label="Propietario *"
+            error={fieldErrors.owner_id}
           >
-            <option value="">Seleccione un cliente…</option>
-            {customers.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.identification})
-              </option>
-            ))}
-          </Select>
-        </Field>
-      )}
+            <Select
+              aria-label="Propietario"
+              value={ownerId}
+              onChange={(e) => setOwnerId(e.target.value)}
+            >
+              <option value="">Seleccione el cliente propietario del vehículo.</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.identification})
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
 
-      {/* Marca con opción de crear si falta */}
-      <div className="space-y-2">
+        {/* Marca con opción de crear si falta */}
         <Field
+          className="md:col-span-2"
           label="Marca de vehículo *"
-          hint="Seleccione la marca del catálogo de marcas."
           error={fieldErrors.brand_id}
         >
           <div className="flex gap-2">
@@ -362,13 +372,10 @@ export function VehicleForm({
             )}
           </div>
         </Field>
-      </div>
 
-      {/* Placa y Modelo */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Placa y Modelo */}
         <Field
           label="Placa *"
-          hint="Ejemplo: ABC-1234 o ABC-123"
           error={fieldErrors.plate}
         >
           <Input
@@ -382,52 +389,51 @@ export function VehicleForm({
 
         <Field
           label="Modelo *"
-          hint="Ejemplo: Corolla, Hilux, Yaris"
           error={fieldErrors.model}
         >
           <Input
             aria-label="Modelo"
-            placeholder="Modelo del vehículo"
+            placeholder="Ejemplo: K7, T800, Cascadia"
             value={model}
             onChange={(e) => setModel(e.target.value)}
             autoComplete="off"
           />
         </Field>
-      </div>
 
-      {/* Color, Año, VIN opcionales */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Field label="Color (opcional)" error={fieldErrors.color}>
-          <Input
-            aria-label="Color"
-            placeholder="Ejemplo: Blanco, Gris"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            autoComplete="off"
-          />
-        </Field>
+        {/* Color, Año, VIN opcionales */}
+        <div className="md:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Field label="Color (opcional)" error={fieldErrors.color}>
+            <Input
+              aria-label="Color"
+              placeholder="Ejemplo: Blanco, Gris"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              autoComplete="off"
+            />
+          </Field>
 
-        <Field label="Año (opcional)" error={fieldErrors.year}>
-          <Input
-            aria-label="Año"
-            type="number"
-            placeholder="Ejemplo: 2023"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            autoComplete="off"
-          />
-        </Field>
+          <Field label="Año (opcional)" error={fieldErrors.year}>
+            <Input
+              aria-label="Año"
+              type="number"
+              placeholder="Ejemplo: 2023"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              autoComplete="off"
+            />
+          </Field>
 
-        <Field label="VIN (opcional)" error={fieldErrors.vin}>
-          <Input
-            aria-label="VIN"
-            placeholder="Número de chasis (17 caracteres)"
-            value={vin}
-            onChange={(e) => setVin(e.target.value.toUpperCase())}
-            autoComplete="off"
-          />
-        </Field>
-      </div>
+          <Field label="VIN (opcional)" error={fieldErrors.vin}>
+            <Input
+              aria-label="VIN"
+              placeholder="Número de chasis (17 caracteres)"
+              value={vin}
+              onChange={(e) => setVin(e.target.value.toUpperCase())}
+              autoComplete="off"
+            />
+          </Field>
+        </div>
+      </FormLayout>
 
       <ButtonGroup label="Acciones del formulario">
         <Button

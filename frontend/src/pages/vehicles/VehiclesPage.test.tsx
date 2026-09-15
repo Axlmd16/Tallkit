@@ -62,13 +62,13 @@ const sampleVehicle: VehicleSummary = {
   },
 }
 
-function renderComponent() {
+function renderComponent(initialEntries: string[] = ['/vehicles']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>
         <VehiclesPage />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -123,8 +123,11 @@ describe('VehiclesPage', () => {
     ).toBeInTheDocument()
     expect(screen.getAllByText('ABC-1234')[0]).toBeInTheDocument()
     expect(screen.getAllByText('Toyota Corolla')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('Blanco')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('2023')[0]).toBeInTheDocument()
+    expect(screen.queryByText('Placa registrada')).not.toBeInTheDocument()
     expect(screen.getAllByText('Carlos Vera')[0]).toBeInTheDocument()
-    expect(screen.getAllByText('1HGCR2F83HA000001')[0]).toBeInTheDocument()
+    expect(screen.queryByText('1HGCR2F83HA000001')).not.toBeInTheDocument()
     expect(screen.getAllByText('Activo')[0]).toBeInTheDocument()
     expect(
       screen.getAllByRole('link', { name: /Ver ficha/i })[0],
@@ -132,6 +135,71 @@ describe('VehiclesPage', () => {
     expect(
       screen.getAllByRole('button', { name: /Editar/i })[0],
     ).toBeInTheDocument()
+  })
+
+  it('uses the shared list search pattern with an explicit search action', () => {
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'encargado',
+        roles: ['ENCARGADO_TALLER'],
+        permissions: ['vehiculos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+
+    renderComponent()
+
+    expect(
+      screen.getByRole('searchbox', { name: 'Buscar vehículos' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Buscar' })).toBeInTheDocument()
+  })
+
+  it('shows owner identity details in the vehicle row', () => {
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'encargado',
+        roles: ['ENCARGADO_TALLER'],
+        permissions: ['vehiculos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+
+    renderComponent()
+
+    expect(screen.getAllByRole('img', { name: 'Carlos Vera' })).toHaveLength(2)
+    expect(screen.getAllByText('0912345678')).toHaveLength(2)
+  })
+
+  it('offers to clear filters when the filtered vehicle list is empty', () => {
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'encargado',
+        roles: ['ENCARGADO_TALLER'],
+        permissions: ['vehiculos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+    vi.spyOn(vehicleHooks, 'useVehicles').mockReturnValue({
+      data: {
+        count: 0,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+        results: [],
+      },
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof vehicleHooks.useVehicles>)
+
+    renderComponent(['/vehicles?search=ABC'])
+
+    expect(
+      screen.getAllByRole('button', { name: 'Limpiar filtros' }),
+    ).toHaveLength(2)
   })
 
   it('does NOT show creation or editing controls to Vendedor role', async () => {
@@ -187,6 +255,7 @@ describe('VehiclesPage', () => {
     expect(
       screen.getByRole('dialog', { name: 'Registrar vehículo' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toHaveClass('vehicle-drawer')
 
     await user.selectOptions(screen.getByLabelText('Propietario'), '10')
     await user.selectOptions(screen.getByLabelText('Marca de vehículo'), '1')

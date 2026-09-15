@@ -79,6 +79,7 @@ describe('VehicleForm', () => {
     expect(
       screen.getByRole('button', { name: 'Guardar vehículo' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Vehículo' })).toBeInTheDocument()
 
     // Click submit with empty form
     await user.click(screen.getByRole('button', { name: 'Guardar vehículo' }))
