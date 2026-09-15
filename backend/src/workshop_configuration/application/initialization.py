@@ -3,7 +3,7 @@
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -140,14 +140,11 @@ def initialize_workshop(
         installation = WorkshopConfiguration.objects.select_for_update().get(pk=1)
 
         # Comprobar idempotencia primero (se aplica antes que la verificación de estado)
-        existing_cmd = (
-            ConfigurationCommand.objects.filter(
-                actor=actor,
-                action=_ACTION,
-                idempotency_key=idempotency_key,
-            )
-            .first()
-        )
+        existing_cmd = ConfigurationCommand.objects.filter(
+            actor=actor,
+            action=_ACTION,
+            idempotency_key=idempotency_key,
+        ).first()
         if existing_cmd is not None:
             if existing_cmd.input_fingerprint != fingerprint:
                 raise IdempotencyConflictError(
@@ -200,7 +197,7 @@ def initialize_workshop(
 
         # Marcar instalación como completada
         installation.is_initialized = True
-        installation.initialized_at = datetime.now(tz=timezone.utc)
+        installation.initialized_at = datetime.now(tz=UTC)
         installation.version += 1
         installation.save(update_fields=["is_initialized", "initialized_at", "version"])
 

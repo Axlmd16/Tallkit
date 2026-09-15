@@ -34,6 +34,23 @@ export const ACTION_LABELS: Record<string, string> = {
   'authentication.logout': 'Cierre de sesión',
   'authorization.denied': 'Acceso denegado',
   'authorization.permission_denied': 'Permiso denegado',
+
+  // Configuración operativa y fiscal
+  'workshop_configuration.initialized': 'Inicialización del taller',
+  'workshop_configuration.entity_updated': 'Actualización de entidad fiscal',
+  'workshop_configuration.warehouse_updated': 'Actualización de bodega',
+  'workshop_configuration.tax_definition_created':
+    'Creación de definición de impuesto',
+  'workshop_configuration.tax_period_created':
+    'Creación de vigencia de impuesto',
+  'workshop_configuration.tax_period_updated':
+    'Actualización de vigencia de impuesto',
+  'workshop_configuration.successor_scheduled':
+    'Sucesión de vigencia de impuesto programada',
+  'workshop_configuration.series_code_updated':
+    'Actualización de código de serie',
+  'workshop_configuration.series_replaced':
+    'Sustitución de serie de documentos',
 }
 
 export function formatAction(action: string): string {
@@ -47,6 +64,12 @@ export const TARGET_TYPE_LABELS: Record<string, string> = {
   user: 'Usuario',
   authentication: 'Autenticación',
   authorization: 'Autorización',
+  workshop_configuration: 'Instalación',
+  fiscal_entity: 'Entidad fiscal',
+  warehouse: 'Bodega',
+  tax_definition: 'Impuesto',
+  tax_period: 'Vigencia de impuesto',
+  document_series: 'Serie de documentos',
 }
 
 export function formatTargetType(targetType: string): string {

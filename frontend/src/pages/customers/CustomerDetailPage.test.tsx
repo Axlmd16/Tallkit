@@ -408,7 +408,5 @@ it('allows authorized user to open edit drawer from customer detail', async () =
   await user.click(
     within(drawer).getByRole('button', { name: /guardar cliente/i }),
   )
-  expect(mocks.update).toHaveBeenCalledWith(
-    expect.objectContaining({ id: 1 }),
-  )
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
 })

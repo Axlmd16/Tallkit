@@ -112,9 +112,7 @@ def test_get_fiscal_entity_raises_not_found(admin: User, db: None) -> None:
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_requires_edit_permission(
-    seller: User, initialized: dict
-) -> None:
+def test_update_fiscal_entity_requires_edit_permission(seller: User, initialized: dict) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         update_fiscal_entity(
             actor=seller,
@@ -190,10 +188,7 @@ def test_update_fiscal_entity_no_deletion(admin: User, initialized: dict) -> Non
     from workshop_configuration import application as app_pkg
     import pkgutil
 
-    app_files = [
-        name
-        for _, name, _ in pkgutil.iter_modules(app_pkg.__path__)
-    ]
+    app_files = [name for _, name, _ in pkgutil.iter_modules(app_pkg.__path__)]
     # El módulo no debe exponer ninguna función de borrado en entity_warehouse
     from workshop_configuration.application import entity_warehouse as ew
 

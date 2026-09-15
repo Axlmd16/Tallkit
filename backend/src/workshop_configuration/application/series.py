@@ -164,11 +164,7 @@ def update_series_code(
             target_type="document_series",
             target_id=str(series_id),
             result=AuditResult.FAILURE,
-            reason=(
-                "stale_record"
-                if isinstance(exc, StaleRecordError)
-                else "series_already_used"
-            ),
+            reason=("stale_record" if isinstance(exc, StaleRecordError) else "series_already_used"),
             request_id=request_id,
         )
         raise
@@ -259,11 +255,7 @@ def replace_series(
             target_type="document_series",
             target_id=str(series_id),
             result=AuditResult.FAILURE,
-            reason=(
-                "stale_record"
-                if isinstance(exc, StaleRecordError)
-                else "code_conflict"
-            ),
+            reason=("stale_record" if isinstance(exc, StaleRecordError) else "code_conflict"),
             request_id=request_id,
         )
         raise

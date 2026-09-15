@@ -125,3 +125,22 @@ Registra el intervalo temporal durante el cual un **cliente** es o ha sido **pro
    - `0002_vehiclebrand.py` en la aplicación `customer_registry` (`VehicleBrand`).
    - `0003_vehicle_ownershipperiod_and_more.py` en la aplicación `customer_registry` (`Vehicle`, `OwnershipPeriod`).
    - Las migraciones son independientes de las tablas de negocio futuras y respetan el esquema de identidad vigente.
+
+## Módulo: workshop_configuration
+
+Este módulo almacena la configuración de operaciones y reglas fiscales del taller.
+
+### Tablas Principales
+- **workshop_configuration_workshopconfiguration**: Estado global de inicialización (singleton pk=1) y su instalación.
+- **workshop_configuration_fiscalentity**: Entidades fiscales (RUC comercial y artesanal). Inmutables por tipo.
+- **workshop_configuration_warehouse**: Bodegas operativas (bodega principal).
+- **workshop_configuration_taxdefinition**: Catálogo de impuestos (código, nombre).
+- **workshop_configuration_taxperiod**: Vigencias de impuestos (`starts_on`, `ends_on`, `rate`), evita superposiciones temporales.
+- **workshop_configuration_numberingscope**: Ámbitos de numeración (ej: Facturas).
+- **workshop_configuration_documentseries**: Series de documentos asignadas a un ámbito (`code`, `last_number`, `is_active`).
+- **workshop_configuration_configurationuse**: Registro de consumo de entidades o tasas en transacciones foráneas (garantiza idempotencia/inmutabilidad si están en uso).
+- **workshop_configuration_configurationcommand**: Comandos de numeración para garantizar idempotencia por clave externa.
+
+### Consideraciones de Integridad
+- Todo registro expuesto tiene versión (`version` con control de concurrencia optimista).
+- Asignación de secuencias utiliza bloqueos (`FOR UPDATE` con aislamiento repetible) para asegurar consistencia en concurrencia.

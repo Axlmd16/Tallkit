@@ -1,0 +1,3288 @@
+openapi: 3.0.3
+info:
+  title: Sys-Inventario API
+  version: 1.0.0
+  description: Contrato técnico inicial de la API.
+paths:
+  /api/v1/audit/:
+    get:
+      operationId: identity_audit_list
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+      - in: query
+        name: from
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: result
+        schema:
+          type: string
+          enum:
+          - DENIED
+          - FAILURE
+          - SUCCESS
+      - in: query
+        name: target_id
+        schema:
+          type: string
+      - in: query
+        name: target_type
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: user
+        schema:
+          type: integer
+      tags:
+      - audit
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEventPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/audit/{event_id}/:
+    get:
+      operationId: identity_audit_retrieve
+      parameters:
+      - in: path
+        name: event_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - audit
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEventRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Contraseña actualizada
+  /api/v1/auth/csrf/:
+    get:
+      operationId: auth_csrf_retrieve
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '204':
+          description: Cookie CSRF emitida
+  /api/v1/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Sesión cerrada
+  /api/v1/auth/session/:
+    get:
+      operationId: auth_session_retrieve
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /api/v1/customers/:
+    get:
+      operationId: customers_retrieve
+      summary: Buscar y listar clientes
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: Filtrar por estado activo
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Número de página
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Tamaño de página
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Término de búsqueda parcial (nombre, identificación, teléfono)
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: customers_create
+      summary: Registrar cliente
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerCreate'
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/customers/{customer_id}/:
+    get:
+      operationId: customers_retrieve_2
+      summary: Obtener ficha de cliente
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Customers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: customers_partial_update
+      summary: Editar ficha de cliente
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/customers/{customer_id}/activate/:
+    post:
+      operationId: customers_activate_create
+      summary: Reactivar cliente
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/customers/{customer_id}/deactivate/:
+    post:
+      operationId: customers_deactivate_create
+      summary: Desactivar cliente
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/customers/{customer_id}/vehicles/:
+    get:
+      operationId: customers_vehicles_retrieve
+      summary: Listar vehículos de un cliente
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Número de página.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Tamaño de página.
+      tags:
+      - Customers
+      - Vehicles
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclePage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/customers/matches/:
+    post:
+      operationId: customers_matches_create
+      summary: Consultar advertencias de coincidencia de clientes
+      tags:
+      - Customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerMatchQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerMatchQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerMatchQuery'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/health/:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          description: Aplicación y PostgreSQL disponibles
+  /api/v1/roles/:
+    get:
+      operationId: roles_list
+      tags:
+      - roles
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleRead'
+          description: ''
+  /api/v1/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: identity_users_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: role
+        schema:
+          type: string
+          enum:
+          - ADMINISTRADOR
+          - ENCARGADO_TALLER
+          - VENDEDOR
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: identity_users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/users/{user_id}/:
+    get:
+      operationId: identity_users_retrieve
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: identity_users_update
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserWrite'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/users/{user_id}/activate/:
+    post:
+      operationId: users_activate_create
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/users/{user_id}/deactivate/:
+    post:
+      operationId: users_deactivate_create
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/users/{user_id}/reset-password/:
+    post:
+      operationId: identity_users_reset_password
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordReset'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemporaryPassword'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicle-brands/:
+    get:
+      operationId: vehicle_brands_retrieve
+      summary: Listar marcas de vehículo
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: Filtrar por estado activo/inactivo.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Número de página.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Tamaño de página.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Término de búsqueda por nombre.
+      tags:
+      - Brands
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: vehicle_brands_create
+      summary: Crear marca de vehículo
+      tags:
+      - Brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicle-brands/{id}/:
+    get:
+      operationId: vehicle_brands_retrieve_2
+      summary: Consultar detalle de marca de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Brands
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: vehicle_brands_partial_update
+      summary: Actualizar marca de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleBrandUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleBrandUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleBrandUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicle-brands/{id}/activate/:
+    post:
+      operationId: vehicle_brands_activate_create
+      summary: Reactivar marca de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicle-brands/{id}/deactivate/:
+    post:
+      operationId: vehicle_brands_deactivate_create
+      summary: Desactivar marca de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleBrandState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleBrandRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/:
+    get:
+      operationId: vehicles_retrieve
+      summary: Listar y buscar vehículos
+      parameters:
+      - in: query
+        name: brand_id
+        schema:
+          type: integer
+        description: Filtrar por ID de la marca de vehículo.
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: Filtrar por estado activo o inactivo.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Número de página.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Tamaño de página.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Término de búsqueda por placa, modelo, VIN o nombre del propietario.
+      tags:
+      - Vehicles
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclePage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: vehicles_create
+      summary: Registrar vehículo
+      tags:
+      - Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/{id}/:
+    get:
+      operationId: vehicles_retrieve_2
+      summary: Consultar detalle de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Vehicles
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: vehicles_partial_update
+      summary: Actualizar datos de vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/{id}/activate/:
+    post:
+      operationId: vehicles_activate_create
+      summary: Reactivar vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/{id}/change-owner/:
+    post:
+      operationId: vehicles_change_owner_create
+      summary: Cambiar propietario del vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleChangeOwner'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleChangeOwner'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleChangeOwner'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/{id}/deactivate/:
+    post:
+      operationId: vehicles_deactivate_create
+      summary: Desactivar vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleRead'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/vehicles/{id}/ownership/:
+    get:
+      operationId: vehicles_ownership_retrieve
+      summary: Listar períodos de propiedad de un vehículo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Número de página.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Tamaño de página.
+      tags:
+      - Vehicles
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnershipPeriodPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/entities/:
+    get:
+      operationId: workshop_configuration_entities_list
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalEntity'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/entities/{entity_id}/:
+    get:
+      operationId: workshop_configuration_entities_get
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEntity'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: workshop_configuration_entities_update
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalEntityUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalEntityUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalEntityUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEntity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/initialize/:
+    post:
+      operationId: workshop_configuration_initialize
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Initialize'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Initialize'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Initialize'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializeResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/periods/{period_id}/:
+    patch:
+      operationId: workshop_configuration_periods_update
+      parameters:
+      - in: path
+        name: period_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTaxPeriodUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTaxPeriodUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTaxPeriodUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxPeriod'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/periods/{period_id}/schedule-successor/:
+    post:
+      operationId: workshop_configuration_periods_schedule_successor
+      parameters:
+      - in: path
+        name: period_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleSuccessor'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScheduleSuccessor'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ScheduleSuccessor'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxPeriod'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/series/:
+    get:
+      operationId: workshop_configuration_series_list
+      parameters:
+      - in: query
+        name: scope_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentSeries'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/series/{series_id}/:
+    get:
+      operationId: workshop_configuration_series_get
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSeries'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: workshop_configuration_series_update
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSeriesCodeUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSeriesCodeUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSeriesCodeUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSeries'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/series/{series_id}/replace/:
+    post:
+      operationId: workshop_configuration_series_replace
+      parameters:
+      - in: path
+        name: series_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeriesReplace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SeriesReplace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SeriesReplace'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSeries'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/status/:
+    get:
+      operationId: workshop_configuration_status
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/taxes/:
+    get:
+      operationId: workshop_configuration_taxes_list
+      parameters:
+      - in: query
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxDefinition'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: workshop_configuration_taxes_create
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxDefinitionCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TaxDefinitionCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TaxDefinitionCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxDefinition'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/taxes/{tax_def_id}/periods/:
+    get:
+      operationId: workshop_configuration_periods_list
+      parameters:
+      - in: path
+        name: tax_def_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxPeriod'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: workshop_configuration_periods_create
+      parameters:
+      - in: path
+        name: tax_def_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxPeriodCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TaxPeriodCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TaxPeriodCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxPeriod'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/warehouse/:
+    get:
+      operationId: workshop_configuration_warehouse_get
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: workshop_configuration_warehouse_update
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWarehouseUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWarehouseUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWarehouseUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+components:
+  schemas:
+    AuditActor:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+      required:
+      - id
+      - username
+    AuditEventPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEventRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    AuditEventRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        actor:
+          allOf:
+          - $ref: '#/components/schemas/AuditActor'
+          nullable: true
+        action:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: string
+        result:
+          $ref: '#/components/schemas/ResultEnum'
+        occurred_at:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          nullable: true
+        request_id:
+          type: string
+          format: uuid
+          nullable: true
+        operation_id:
+          type: string
+          format: uuid
+          nullable: true
+        metadata: {}
+      required:
+      - action
+      - actor
+      - id
+      - metadata
+      - occurred_at
+      - operation_id
+      - reason
+      - request_id
+      - result
+      - target_id
+      - target_type
+    ConflictInfo:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: integer
+      required:
+      - id
+      - type
+    CustomerCreate:
+      type: object
+      properties:
+        person_type:
+          type: string
+          default: ''
+        name:
+          type: string
+          default: ''
+        identification_type:
+          type: string
+          default: ''
+        identification:
+          type: string
+          default: ''
+        phone:
+          type: string
+          default: ''
+        email:
+          type: string
+          default: ''
+        address:
+          type: string
+          default: ''
+    CustomerMatchQuery:
+      type: object
+      properties:
+        name:
+          type: string
+          default: ''
+        phone:
+          type: string
+          default: ''
+        exclude_customer_id:
+          type: integer
+          nullable: true
+    CustomerPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    CustomerRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        person_type:
+          type: string
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - address
+      - created_at
+      - email
+      - id
+      - identification
+      - identification_type
+      - is_active
+      - name
+      - person_type
+      - phone
+      - updated_at
+      - version
+    CustomerState:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+    DocumentSeries:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        is_active:
+          type: boolean
+        last_number:
+          type: integer
+        version:
+          type: integer
+      required:
+      - code
+      - id
+      - is_active
+      - last_number
+      - version
+    FiscalEntity:
+      type: object
+      properties:
+        id:
+          type: integer
+        entity_type:
+          type: string
+        ruc:
+          type: string
+        legal_name:
+          type: string
+        trade_name:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        version:
+          type: integer
+      required:
+      - address
+      - email
+      - entity_type
+      - id
+      - legal_name
+      - phone
+      - ruc
+      - trade_name
+      - version
+    IdentityRoleEnum:
+      enum:
+      - ADMINISTRADOR
+      - VENDEDOR
+      - ENCARGADO_TALLER
+      type: string
+      description: |-
+        * `ADMINISTRADOR` - ADMINISTRADOR
+        * `VENDEDOR` - VENDEDOR
+        * `ENCARGADO_TALLER` - ENCARGADO_TALLER
+    Initialize:
+      type: object
+      properties:
+        commercial_ruc:
+          type: string
+          maxLength: 13
+        commercial_legal_name:
+          type: string
+          maxLength: 200
+        artisanal_ruc:
+          type: string
+          maxLength: 13
+        artisanal_legal_name:
+          type: string
+          maxLength: 200
+        warehouse_name:
+          type: string
+          maxLength: 120
+        idempotency_key:
+          type: string
+          maxLength: 128
+      required:
+      - artisanal_legal_name
+      - artisanal_ruc
+      - commercial_legal_name
+      - commercial_ruc
+      - idempotency_key
+      - warehouse_name
+    InitializeResponse:
+      type: object
+      properties:
+        installation_id:
+          type: integer
+      required:
+      - installation_id
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    OwnershipPeriodPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OwnershipPeriodRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    OwnershipPeriodRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        vehicle_id:
+          type: integer
+        customer:
+          $ref: '#/components/schemas/VehicleOwnerSummary'
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_current:
+          type: boolean
+      required:
+      - customer
+      - ended_at
+      - id
+      - is_current
+      - started_at
+      - vehicle_id
+    PasswordChange:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+      required:
+      - current_password
+      - new_password
+    PasswordReset:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+      required:
+      - operation_id
+    PatchedCustomerUpdate:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        person_type:
+          type: string
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+    PatchedFiscalEntityUpdate:
+      type: object
+      properties:
+        legal_name:
+          type: string
+          maxLength: 200
+        ruc:
+          type: string
+          maxLength: 13
+        trade_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        address:
+          type: string
+          nullable: true
+          maxLength: 300
+        phone:
+          type: string
+          nullable: true
+          maxLength: 32
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        entity_type:
+          type: string
+        expected_version:
+          type: integer
+    PatchedSeriesCodeUpdate:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 20
+        expected_version:
+          type: integer
+    PatchedTaxPeriodUpdate:
+      type: object
+      properties:
+        rate:
+          type: string
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        expected_version:
+          type: integer
+    PatchedUserWrite:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+            maxLength: 32
+    PatchedVehicleBrandUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        expected_version:
+          type: integer
+          minimum: 1
+    PatchedVehicleUpdate:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        brand_id:
+          type: integer
+        plate:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        vin:
+          type: string
+          nullable: true
+    PatchedWarehouseUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        expected_version:
+          type: integer
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        request_id:
+          type: string
+          nullable: true
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          nullable: true
+        conflict:
+          allOf:
+          - $ref: '#/components/schemas/ConflictInfo'
+          nullable: true
+      required:
+      - code
+      - detail
+      - request_id
+      - status
+      - title
+      - type
+    ResultEnum:
+      enum:
+      - SUCCESS
+      - FAILURE
+      - DENIED
+      type: string
+      description: |-
+        * `SUCCESS` - Exitoso
+        * `FAILURE` - Fallido
+        * `DENIED` - Denegado
+    RoleRead:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/IdentityRoleEnum'
+        permissions:
+          type: array
+          items:
+            type: string
+      required:
+      - code
+      - permissions
+    ScheduleSuccessor:
+      type: object
+      properties:
+        new_rate:
+          type: string
+        successor_starts_on:
+          type: string
+          format: date
+        expected_version:
+          type: integer
+      required:
+      - expected_version
+      - new_rate
+      - successor_starts_on
+    SeriesReplace:
+      type: object
+      properties:
+        new_code:
+          type: string
+          maxLength: 20
+        expected_version:
+          type: integer
+      required:
+      - expected_version
+      - new_code
+    Session:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        username:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentityRoleEnum'
+        permissions:
+          type: array
+          items:
+            type: string
+        must_change_password:
+          type: boolean
+      required:
+      - authenticated
+      - must_change_password
+      - permissions
+      - roles
+      - username
+    Status:
+      type: object
+      properties:
+        is_initialized:
+          type: boolean
+      required:
+      - is_initialized
+    TaxDefinition:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+      required:
+      - code
+      - id
+      - name
+    TaxDefinitionCreate:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        code:
+          type: string
+          maxLength: 20
+        name:
+          type: string
+          maxLength: 120
+      required:
+      - code
+      - entity_id
+      - name
+    TaxPeriod:
+      type: object
+      properties:
+        id:
+          type: integer
+        rate:
+          type: string
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        version:
+          type: integer
+      required:
+      - ends_on
+      - id
+      - rate
+      - starts_on
+      - version
+    TaxPeriodCreate:
+      type: object
+      properties:
+        rate:
+          type: string
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - rate
+      - starts_on
+    TemporaryPassword:
+      type: object
+      properties:
+        temporary_password:
+          type: string
+      required:
+      - temporary_password
+    UserPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    UserRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        is_active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+      required:
+      - email
+      - first_name
+      - id
+      - is_active
+      - last_name
+      - roles
+      - username
+    UserWrite:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          oneOf:
+          - type: string
+            format: email
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+            maxLength: 32
+      required:
+      - roles
+      - username
+    VehicleBrandCreate:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
+    VehicleBrandPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleBrandRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    VehicleBrandRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - created_at
+      - id
+      - is_active
+      - name
+      - updated_at
+      - version
+    VehicleBrandState:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+    VehicleBrandSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - is_active
+      - name
+    VehicleChangeOwner:
+      type: object
+      properties:
+        owner_id:
+          type: integer
+        expected_version:
+          type: integer
+          minimum: 1
+        version:
+          type: integer
+          minimum: 1
+      required:
+      - owner_id
+    VehicleCreate:
+      type: object
+      properties:
+        owner_id:
+          type: integer
+        brand_id:
+          type: integer
+        plate:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+          default: ''
+        year:
+          type: integer
+          nullable: true
+        vin:
+          type: string
+          nullable: true
+      required:
+      - brand_id
+      - model
+      - owner_id
+      - plate
+    VehicleOwnerSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - identification
+      - is_active
+      - name
+    VehiclePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleRead'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    VehicleRead:
+      type: object
+      properties:
+        id:
+          type: integer
+        plate:
+          type: string
+        model:
+          type: string
+        color:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        vin:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        brand:
+          $ref: '#/components/schemas/VehicleBrandSummary'
+        current_owner:
+          allOf:
+          - $ref: '#/components/schemas/VehicleOwnerSummary'
+          nullable: true
+      required:
+      - brand
+      - color
+      - created_at
+      - current_owner
+      - id
+      - is_active
+      - model
+      - plate
+      - updated_at
+      - version
+      - vin
+      - year
+    VehicleState:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+      required:
+      - id
+      - is_active
+      - name
+      - version
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

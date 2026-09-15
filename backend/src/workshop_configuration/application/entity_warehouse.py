@@ -155,9 +155,7 @@ def update_fiscal_entity(
 
             # Validar que el RUC no coincida con la otra entidad
             if ruc_v is not None and ruc_v != entity.ruc:
-                other_exists = (
-                    FiscalEntity.objects.exclude(pk=entity_id).filter(ruc=ruc_v).exists()
-                )
+                other_exists = FiscalEntity.objects.exclude(pk=entity_id).filter(ruc=ruc_v).exists()
                 if other_exists:
                     raise ConfigurationValidationError(
                         "El RUC ya pertenece a la otra entidad fiscal.",

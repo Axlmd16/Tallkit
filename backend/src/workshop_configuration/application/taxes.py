@@ -128,9 +128,7 @@ def list_tax_definitions(
         target_type="tax_definition",
         target_id=f"entity:{entity_id}",
     )
-    return list(
-        TaxDefinition.objects.filter(fiscal_entity_id=entity_id).order_by("code", "id")
-    )
+    return list(TaxDefinition.objects.filter(fiscal_entity_id=entity_id).order_by("code", "id"))
 
 
 def get_tax_definition(
@@ -181,8 +179,7 @@ def _check_no_overlap(
         new_covers_existing_start = new_end is None or new_end >= p_start
         if existing_covers_new_start and new_covers_existing_start:
             raise TaxPeriodOverlapError(
-                f"El período [{new_start}, {new_end}] se solapa con "
-                f"[{p_start}, {p_end}]."
+                f"El período [{new_start}, {new_end}] se solapa con [{p_start}, {p_end}]."
             )
 
 
@@ -212,9 +209,7 @@ def create_tax_period(
         with transaction.atomic():
             td = TaxDefinition.objects.select_for_update().filter(pk=tax_definition_id).first()
             if td is None:
-                raise TaxDefinitionNotFoundError(
-                    f"Impuesto {tax_definition_id} no encontrado."
-                )
+                raise TaxDefinitionNotFoundError(f"Impuesto {tax_definition_id} no encontrado.")
 
             _check_no_overlap(tax_definition_id, starts_on_v, ends_on_v)
 
@@ -412,9 +407,9 @@ def schedule_successor(
             TaxDefinition.objects.select_for_update().get(pk=period.tax_definition_id)
 
             # El inicio sucesor debe ser > a toda fecha de uso existente del período
-            max_use_date = ConfigurationUse.objects.filter(
-                tax_period=period
-            ).aggregate(max_date=Max("operation_date"))["max_date"]
+            max_use_date = ConfigurationUse.objects.filter(tax_period=period).aggregate(
+                max_date=Max("operation_date")
+            )["max_date"]
 
             if max_use_date is not None and successor_starts_on <= max_use_date:
                 raise SuccessionDateError(

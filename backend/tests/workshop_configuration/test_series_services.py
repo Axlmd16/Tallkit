@@ -228,9 +228,7 @@ def test_replace_series_creates_successor_and_deactivates_predecessor(
 
 
 @pytest.mark.django_db
-def test_replace_series_rejects_reused_prefix(
-    admin: User, used_series: DocumentSeries
-) -> None:
+def test_replace_series_rejects_reused_prefix(admin: User, used_series: DocumentSeries) -> None:
     """Un prefijo retirado no puede reutilizarse."""
     replace_series(
         actor=admin,
@@ -239,7 +237,9 @@ def test_replace_series_rejects_reused_prefix(
         new_code="COM-VEN-2",
     )
     # El código COM-VEN ya está retirado; intentar usarlo de nuevo debe fallar
-    successor = DocumentSeries.objects.get(is_active=True, numbering_scope=used_series.numbering_scope)
+    successor = DocumentSeries.objects.get(
+        is_active=True, numbering_scope=used_series.numbering_scope
+    )
     with pytest.raises(SeriesScopeConflictError):
         replace_series(
             actor=admin,
@@ -250,9 +250,7 @@ def test_replace_series_rejects_reused_prefix(
 
 
 @pytest.mark.django_db
-def test_replace_series_rejects_stale_version(
-    admin: User, used_series: DocumentSeries
-) -> None:
+def test_replace_series_rejects_stale_version(admin: User, used_series: DocumentSeries) -> None:
     with pytest.raises(StaleRecordError):
         replace_series(
             actor=admin,
@@ -263,9 +261,7 @@ def test_replace_series_rejects_stale_version(
 
 
 @pytest.mark.django_db
-def test_replace_series_requires_permission(
-    seller: User, used_series: DocumentSeries
-) -> None:
+def test_replace_series_requires_permission(seller: User, used_series: DocumentSeries) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         replace_series(
             actor=seller,

@@ -113,14 +113,16 @@ def allocate_number(
             )
 
         # Obtener la serie activa (bloqueo ya adquirido por scope)
-        series = DocumentSeries.objects.select_for_update().filter(
-            numbering_scope=scope,
-            is_active=True,
-        ).first()
-        if series is None:
-            raise NumberingError(
-                f"No existe una serie activa en el ámbito {scope_id}."
+        series = (
+            DocumentSeries.objects.select_for_update()
+            .filter(
+                numbering_scope=scope,
+                is_active=True,
             )
+            .first()
+        )
+        if series is None:
+            raise NumberingError(f"No existe una serie activa en el ámbito {scope_id}.")
 
         next_number = series.last_number + 1
         if next_number > MAX_SEQUENCE_VALUE:

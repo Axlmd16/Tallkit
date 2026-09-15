@@ -356,7 +356,9 @@ export function CustomerDetailPage() {
         onConfirm={() => void runConfirmation()}
         open={confirmation !== null}
         title={
-          confirmation === 'deactivate' ? 'Desactivar cliente' : 'Activar cliente'
+          confirmation === 'deactivate'
+            ? 'Desactivar cliente'
+            : 'Activar cliente'
         }
         tone={confirmation === 'deactivate' ? 'danger' : 'primary'}
       />

@@ -8,8 +8,9 @@ export interface DetailCardMetadataItem {
 }
 
 export interface DetailCardProps {
-  title: string
+  title: ReactNode
   subtitle?: string
+  icon?: ReactNode
   badge?: ReactNode
   actions?: ReactNode
   media?: ReactNode
@@ -21,6 +22,7 @@ export interface DetailCardProps {
 export function DetailCard({
   title,
   subtitle,
+  icon,
   badge,
   actions,
   media,
@@ -31,14 +33,17 @@ export function DetailCard({
   return (
     <Surface className={`flex flex-col gap-4 ${className}`.trim()}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="text-lg font-bold leading-snug text-ink">{title}</h3>
-            {badge && <span className="shrink-0">{badge}</span>}
+        <div className="min-w-0 flex items-center gap-3">
+          {icon && <div className="shrink-0">{icon}</div>}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h3 className="text-lg font-bold leading-snug text-ink">{title}</h3>
+              {badge && <span className="shrink-0">{badge}</span>}
+            </div>
+            {subtitle && (
+              <p className="mt-0.5 text-sm text-ink-muted">{subtitle}</p>
+            )}
           </div>
-          {subtitle && (
-            <p className="mt-0.5 text-sm text-ink-muted">{subtitle}</p>
-          )}
         </div>
 
         {actions && <div className="shrink-0">{actions}</div>}

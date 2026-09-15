@@ -191,9 +191,7 @@ def test_confirmed_number_not_reused_after_void(scope_series: dict) -> None:
         request_fingerprint=fp1,
     )
     # Simular anulación: el NumberAllocation permanece (número conservado)
-    assert NumberAllocation.objects.filter(
-        numbering_scope=scope, number=r1.number
-    ).exists()
+    assert NumberAllocation.objects.filter(numbering_scope=scope, number=r1.number).exists()
 
     # El siguiente documento obtiene el número 2
     fp2 = _fp({"consumer_id": "sale-002"})
@@ -306,7 +304,6 @@ def test_two_simultaneous_initializations_only_one_succeeds() -> None:
         assert FiscalEntity.objects.count() == 2
 
 
-
 @pytest.mark.django_db(transaction=True)
 def test_concurrent_period_creation_prevents_overlap(db: None) -> None:
     """Dos creaciones concurrentes de períodos solapados: solo una tiene éxito."""
@@ -361,4 +358,3 @@ def test_concurrent_period_creation_prevents_overlap(db: None) -> None:
     assert len(errors) == 1
     assert isinstance(errors[0], TaxPeriodOverlapError)
     assert TaxPeriod.objects.filter(tax_definition=tax_def).count() == 1
-

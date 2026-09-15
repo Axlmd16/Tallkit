@@ -419,9 +419,7 @@ describe('VehiclesPage', () => {
     } as unknown as ReturnType<typeof authHooks.useSession>)
 
     renderComponent()
-    expect(
-      screen.getByText(/Error de conexión/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Error de conexión/i)).toBeInTheDocument()
   })
 
   it('shows empty state when no vehicles exist', () => {
@@ -461,7 +459,9 @@ describe('VehiclesPage', () => {
       deactivateVehicle: { mutateAsync: vi.fn() },
     }
     vi.spyOn(vehicleHooks, 'useVehicleMutations').mockReturnValue(
-      mutations as unknown as ReturnType<typeof vehicleHooks.useVehicleMutations>,
+      mutations as unknown as ReturnType<
+        typeof vehicleHooks.useVehicleMutations
+      >,
     )
     vi.spyOn(authHooks, 'useSession').mockReturnValue({
       data: {

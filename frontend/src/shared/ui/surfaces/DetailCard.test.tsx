@@ -49,4 +49,18 @@ describe('DetailCard (C23)', () => {
 
     expect(screen.getByText(longText.trim())).toBeInTheDocument()
   })
+
+  it('renders leading icon beside title when provided', () => {
+    render(
+      <DetailCard
+        icon={<span data-testid="test-icon">icon</span>}
+        title="Ficha con Icono"
+      />,
+    )
+
+    expect(screen.getByTestId('test-icon')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Ficha con Icono' }),
+    ).toBeInTheDocument()
+  })
 })

@@ -99,7 +99,7 @@ it('allows creating and editing when user has marcas_vehiculo.gestionar', async 
     'Chevrolet',
   )
   await user.click(
-    within(drawer).getByRole('button', { name: /guardar marca/i }),
+    within(drawer).getByRole('button', { name: /guardar cambios/i }),
   )
 
   expect(mocks.create).toHaveBeenCalledWith({ name: 'Chevrolet' })
@@ -182,9 +182,7 @@ it('shows error state when brands fail to load', () => {
     </MemoryRouter>,
   )
 
-  expect(
-    screen.getByText(/No fue posible cargar/i),
-  ).toBeInTheDocument()
+  expect(screen.getByText(/No fue posible cargar/i)).toBeInTheDocument()
 })
 
 it('allows editing an existing brand via edit drawer', async () => {
@@ -207,9 +205,7 @@ it('allows editing an existing brand via edit drawer', async () => {
   await user.click(
     within(drawer).getByRole('button', { name: /guardar marca/i }),
   )
-  expect(mocks.update).toHaveBeenCalledWith(
-    expect.objectContaining({ id: 1 }),
-  )
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
 })
 
 it('allows administrator to activate an inactive brand', async () => {
@@ -244,7 +240,7 @@ it('allows administrator to activate an inactive brand', async () => {
 
   const dialog = screen.getByRole('dialog', { name: /activar marca/i })
   await user.click(
-    within(dialog).getByRole('button', { name: /confirmar activación/i }),
+    within(dialog).getByRole('button', { name: /confirmar reactivación/i }),
   )
   expect(mocks.activate).toHaveBeenCalledWith({ id: 1, expectedVersion: 1 })
 })

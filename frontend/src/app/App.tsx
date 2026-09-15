@@ -23,6 +23,8 @@ import { RemoteAuthenticatedShell } from './AuthenticatedShell'
 import { PermissionGuard } from './PermissionGuard'
 import { createAppQueryClient } from './query-client'
 
+import { WorkshopConfigurationPage } from '@/pages/workshop-configuration/WorkshopConfigurationPage'
+
 export const appRoutes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
   {
@@ -94,6 +96,14 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="operacion.ver_estado">
                 <TechnicalStatusPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/configuration',
+            element: (
+              <PermissionGuard permission="parametros.gestionar">
+                <WorkshopConfigurationPage />
               </PermissionGuard>
             ),
           },

@@ -34,6 +34,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("customers/", include("customer_registry.api.urls")),
     path("vehicle-brands/", include("customer_registry.api.brands_urls")),
     path("vehicles/", include("customer_registry.api.vehicles_urls")),
+    path("workshop-configuration/", include("workshop_configuration.api.urls")),
     path("roles/", RoleListView.as_view(), name="role-list"),
     path("audit/", AuditEventListView.as_view(), name="audit-list"),
     path("audit/<int:event_id>/", AuditEventDetailView.as_view(), name="audit-detail"),

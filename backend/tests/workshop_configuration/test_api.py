@@ -147,9 +147,7 @@ def test_initialize_success(admin_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
-def test_initialize_conflict_if_already_done(
-    admin_client: APIClient, initialized: dict
-) -> None:
+def test_initialize_conflict_if_already_done(admin_client: APIClient, initialized: dict) -> None:
     resp = admin_client.post(
         f"{BASE}/initialize/",
         {
@@ -352,9 +350,7 @@ def test_create_tax_def(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_create_tax_def_seller_denied(
-    seller_client: APIClient, initialized: dict
-) -> None:
+def test_create_tax_def_seller_denied(seller_client: APIClient, initialized: dict) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = seller_client.post(
         f"{BASE}/taxes/",
@@ -501,9 +497,7 @@ def test_update_series_code(admin_client: APIClient, scope_series: dict) -> None
 
 
 @pytest.mark.django_db
-def test_update_series_code_after_use(
-    admin_client: APIClient, scope_series: dict
-) -> None:
+def test_update_series_code_after_use(admin_client: APIClient, scope_series: dict) -> None:
     series: DocumentSeries = scope_series["series"]
     series.last_number = 1
     series.save()
@@ -555,9 +549,7 @@ def test_error_response_has_problem_json_content_type(
 
 
 @pytest.mark.django_db
-def test_rate_is_always_string_in_response(
-    admin_client: APIClient, period: TaxPeriod
-) -> None:
+def test_rate_is_always_string_in_response(admin_client: APIClient, period: TaxPeriod) -> None:
     """La tarifa NUNCA viene como float/decimal JSON, siempre como cadena."""
     td_id = period.tax_definition_id
     resp = admin_client.get(f"{BASE}/taxes/{td_id}/periods/")

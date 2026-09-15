@@ -61,6 +61,12 @@ const navigation = [
     to: '/technical-status',
     permission: 'operacion.ver_estado',
   },
+  {
+    icon: Wrench,
+    label: 'Configuración',
+    to: '/configuration',
+    permission: 'parametros.gestionar',
+  },
 ] as const
 
 function NavigationItems({

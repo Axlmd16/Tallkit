@@ -181,9 +181,7 @@ def test_update_entity_type_creates_failure_audit(admin: User, initialized: dict
 
 
 @pytest.mark.django_db
-def test_multi_role_admin_can_update_warehouse(
-    multi_role_admin: User, initialized: dict
-) -> None:
+def test_multi_role_admin_can_update_warehouse(multi_role_admin: User, initialized: dict) -> None:
     """Usuario con roles acumulados tiene permisos administrativos."""
     wh = update_warehouse(
         actor=multi_role_admin,

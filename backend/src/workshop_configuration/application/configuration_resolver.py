@@ -66,11 +66,7 @@ def resolve_configuration(
     """
     with transaction.atomic():
         # Resolver entidad fiscal con bloqueo (orden: entity_type)
-        entity = (
-            FiscalEntity.objects.select_for_update()
-            .filter(entity_type=entity_type)
-            .first()
-        )
+        entity = FiscalEntity.objects.select_for_update().filter(entity_type=entity_type).first()
         if entity is None:
             raise MissingConfigurationError(
                 f"No existe una entidad fiscal de tipo '{entity_type}'."
@@ -85,8 +81,7 @@ def resolve_configuration(
             ).first()
             if tax_def is None:
                 raise MissingConfigurationError(
-                    f"No existe la definición de impuesto '{code}' para la entidad "
-                    f"'{entity_type}'."
+                    f"No existe la definición de impuesto '{code}' para la entidad '{entity_type}'."
                 )
 
             # Buscar vigencia única para la fecha de operación
@@ -104,15 +99,12 @@ def resolve_configuration(
             )
             # Filtrar los que también cumplen el ends_on
             applicable = [
-                p
-                for p in matching_periods
-                if p.ends_on is None or p.ends_on >= operation_date
+                p for p in matching_periods if p.ends_on is None or p.ends_on >= operation_date
             ]
 
             if len(applicable) == 0:
                 raise MissingConfigurationError(
-                    f"No existe vigencia del impuesto '{code}' para la fecha "
-                    f"{operation_date}."
+                    f"No existe vigencia del impuesto '{code}' para la fecha {operation_date}."
                 )
             if len(applicable) > 1:
                 raise AmbiguousConfigurationError(
