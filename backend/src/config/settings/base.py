@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "identity.apps.IdentityConfig",
     "customer_registry.apps.CustomerRegistryConfig",
+    "workshop_configuration.apps.WorkshopConfigurationConfig",
 ]
 
 MIDDLEWARE = [

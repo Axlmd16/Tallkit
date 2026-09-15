@@ -12,30 +12,30 @@ Fuentes: `proposal.md`, `specs/configuracion-operativa-y-fiscal/spec.md`, `desig
 
 Aplicar **TDD** en cada tarea de comportamiento: observar fallo por la causa esperada, implementar y refactorizar. Comando enfocado, desde `backend/`: `uv run --frozen pytest tests/workshop_configuration/`. Registrar resultados reales por tarea y mantener trazabilidad a Requirement/Scenario.
 
-- [ ] 2.1 Crear pruebas puras de tipos fiscales, RUC textual de 13 caracteres, razón social, tarifas decimales, intervalos y formato de **secuencial**; implementar validaciones en `backend/src/workshop_configuration/domain/`. Finalización: casos válidos, límites y rechazos pasan sin depender de HTTP ni persistencia.
-- [ ] 2.2 Añadir pruebas de unicidad y restricciones para instalación, **entidad fiscal** y **bodega**; implementar sus registros y migraciones aditivas en `backend/src/workshop_configuration/`, registrando la aplicación en `backend/src/config/settings/base.py`. Finalización: singleton de instalación creado sin RUC ficticios; duplicados y tipos inválidos rechazados.
-- [ ] 2.3 Añadir pruebas y persistencia de TaxDefinition, TaxPeriod y ConfigurationUse según el diseño reconciliado. Finalización: restricciones de tarifa e intervalos, referencias protegidas y conservación de copias históricas verificadas.
-- [ ] 2.4 Añadir pruebas y persistencia de NumberingScope, DocumentSeries, NumberAllocation y ConfigurationCommand. Finalización: unicidades de ámbito, serie activa, código, número y documento consumidor verificadas; migraciones reproducibles con `uv run --frozen python manage.py makemigrations --check --dry-run`.
+- [x] 2.1 Crear pruebas puras de tipos fiscales, RUC textual de 13 caracteres, razón social, tarifas decimales, intervalos y formato de **secuencial**; implementar validaciones en `backend/src/workshop_configuration/domain/`. Finalización: casos válidos, límites y rechazos pasan sin depender de HTTP ni persistencia.
+- [x] 2.2 Añadir pruebas de unicidad y restricciones para instalación, **entidad fiscal** y **bodega**; implementar sus registros y migraciones aditivas en `backend/src/workshop_configuration/`, registrando la aplicación en `backend/src/config/settings/base.py`. Finalización: singleton de instalación creado sin RUC ficticios; duplicados y tipos inválidos rechazados.
+- [x] 2.3 Añadir pruebas y persistencia de TaxDefinition, TaxPeriod y ConfigurationUse según el diseño reconciliado. Finalización: restricciones de tarifa e intervalos, referencias protegidas y conservación de copias históricas verificadas.
+- [x] 2.4 Añadir pruebas y persistencia de NumberingScope, DocumentSeries, NumberAllocation y ConfigurationCommand. Finalización: unicidades de ámbito, serie activa, código, número y documento consumidor verificadas; migraciones reproducibles con `uv run --frozen python manage.py makemigrations --check --dry-run`.
 
 ## 3. Servicios administrativos
 
 Dependencia: grupo 2. Evidencia: pruebas enfocadas PostgreSQL y auditoría persistida, ejecutadas con el comando del grupo 2.
 
-- [ ] 3.1 Probar e implementar `initialize_workshop` en `application/`: permisos, ambos RUC, bodega principal y cuatro series dentro de una transacción. Finalización: repetición devuelve resultado previo, entradas incompatibles generan conflicto y falla intermedia no deja configuración parcial.
-- [ ] 3.2 Probar e implementar consulta y actualización de entidades y bodega con `expected_version`. Finalización: versiones obsoletas rechazadas, tipo fiscal inmutable y ausencia de borrado/desactivación ordinarios; identidad y copias anteriores conservadas.
-- [ ] 3.3 Probar e implementar impuestos, calendarios y acción de sucesión aprobada, bloqueando TaxDefinition. Finalización: no hay solapamientos, los límites de fechas son reproducibles y se rechaza cualquier cambio que invalide usos históricos.
-- [ ] 3.4 Probar e implementar edición previa al uso y sustitución atómica de series. Finalización: código utilizado protegido, contador no editable, prefijo retirado no reutilizable y una sola serie activa por ámbito.
-- [ ] 3.5 Integrar auditoría mediante `identity.application.audit` y autorización mediante su servicio público. Finalización: éxitos atómicos con cambios, rechazos conservados tras rollback, metadatos limitados y pruebas de roles acumulados y denegaciones.
+- [x] 3.1 Probar e implementar `initialize_workshop` en `application/`: permisos, ambos RUC, bodega principal y cuatro series dentro de una transacción. Finalización: repetición devuelve resultado previo, entradas incompatibles generan conflicto y falla intermedia no deja configuración parcial.
+- [x] 3.2 Probar e implementar consulta y actualización de entidades y bodega con `expected_version`. Finalización: versiones obsoletas rechazadas, tipo fiscal inmutable y ausencia de borrado/desactivación ordinarios; identidad y copias anteriores conservadas.
+- [x] 3.3 Probar e implementar impuestos, calendarios y acción de sucesión aprobada, bloqueando TaxDefinition. Finalización: no hay solapamientos, los límites de fechas son reproducibles y se rechaza cualquier cambio que invalide usos históricos.
+- [x] 3.4 Probar e implementar edición previa al uso y sustitución atómica de series. Finalización: código utilizado protegido, contador no editable, prefijo retirado no reutilizable y una sola serie activa por ámbito.
+- [x] 3.5 Integrar auditoría mediante `identity.application.audit` y autorización mediante su servicio público. Finalización: éxitos atómicos con cambios, rechazos conservados tras rollback, metadatos limitados y pruebas de roles acumulados y denegaciones.
 
 ## 4. Contratos internos, idempotencia y concurrencia
 
 Dependencia: grupo 3. Usar conexiones PostgreSQL independientes y barreras en `backend/tests/workshop_configuration/`; los consumidores de prueba no implementan ventas ni inventario reales.
 
-- [ ] 4.1 Probar e implementar resolución explícita de entidad, códigos de impuesto y configuración aplicable en la transacción del consumidor. Finalización: falta o ambigüedad rechaza antes de efectos, uso y copia se guardan juntos y edición concurrente no altera la selección.
-- [ ] 4.2 Probar e implementar `allocate_number` como servicio interno con bloqueo del ámbito y deduplicación por documento y solicitud. Finalización: llamadas fuera del contexto transaccional requerido se rechazan, reintentos conservan número y entradas incompatibles no se aceptan bajo una clave repetida.
-- [ ] 4.3 Probar dos confirmaciones concurrentes, reintentos simultáneos y sustitución de serie contra asignación. Finalización: números distintos consecutivos para operaciones distintas, una asignación por documento y ámbito fiscal correcto.
-- [ ] 4.4 Probar rollback del consumidor después de numerar, anulación posterior, paso de seis a siete dígitos y agotamiento del entero. Finalización: no hay efectos parciales, números confirmados no se reutilizan y agotamiento genera rechazo atómico.
-- [ ] 4.5 Probar carreras de inicialización, creación de períodos y edición frente a primer uso. Finalización: resultados deterministas sin duplicados ni solapamientos, mediante el comando de pruebas enfocadas; documentar orden de bloqueos demostrado.
+- [x] 4.1 Probar e implementar resolución explícita de entidad, códigos de impuesto y configuración aplicable en la transacción del consumidor. Finalización: falta o ambigüedad rechaza antes de efectos, uso y copia se guardan juntos y edición concurrente no altera la selección.
+- [x] 4.2 Probar e implementar `allocate_number` como servicio interno con bloqueo del ámbito y deduplicación por documento y solicitud. Finalización: llamadas fuera del contexto transaccional requerido se rechazan, reintentos conservan número y entradas incompatibles no se aceptan bajo una clave repetida.
+- [x] 4.3 Probar dos confirmaciones concurrentes, reintentos simultáneos y sustitución de serie contra asignación. Finalización: números distintos consecutivos para operaciones distintas, una asignación por documento y ámbito fiscal correcto.
+- [x] 4.4 Probar rollback del consumidor después de numerar, anulación posterior, paso de seis a siete dígitos y agotamiento del entero. Finalización: no hay efectos parciales, números confirmados no se reutilizan y agotamiento genera rechazo atómico.
+- [x] 4.5 Probar carreras de inicialización, creación de períodos y edición frente a primer uso. Finalización: resultados deterministas sin duplicados ni solapamientos, mediante el comando de pruebas enfocadas; documentar orden de bloqueos demostrado.
 
 ## 5. API y contrato OpenAPI
 
