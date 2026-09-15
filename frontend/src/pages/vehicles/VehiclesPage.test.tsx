@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -130,8 +130,8 @@ describe('VehiclesPage', () => {
     expect(screen.queryByText('1HGCR2F83HA000001')).not.toBeInTheDocument()
     expect(screen.getAllByText('Activo')[0]).toBeInTheDocument()
     expect(
-      screen.getAllByRole('link', { name: /Ver ficha/i })[0],
-    ).toBeInTheDocument()
+      screen.queryByRole('link', { name: /Ver ficha/i }),
+    ).not.toBeInTheDocument()
     expect(
       screen.getAllByRole('button', { name: /Editar/i })[0],
     ).toBeInTheDocument()
@@ -221,11 +221,47 @@ describe('VehiclesPage', () => {
     expect(
       screen.queryByRole('button', { name: /Editar/i }),
     ).not.toBeInTheDocument()
-    // But data and ficha link are visible
+    // But data is visible
     expect(screen.getAllByText('ABC-1234')[0]).toBeInTheDocument()
     expect(
-      screen.getAllByRole('link', { name: /Ver ficha/i })[0],
+      screen.queryByRole('link', { name: /Ver ficha/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('opens a vehicle preview drawer from the row', async () => {
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'encargado',
+        roles: ['ENCARGADO_TALLER'],
+        permissions: ['vehiculos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+
+    const user = userEvent.setup()
+    renderComponent()
+
+    await user.click(screen.getAllByText('ABC-1234')[0]!)
+
+    expect(
+      screen.getByRole('dialog', { name: 'Detalle del vehículo' }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: /foto del vehículo/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByAltText('Foto de ejemplo del vehículo')).toHaveAttribute(
+      'src',
+      expect.stringContaining('ejemplo'),
+    )
+    expect(
+      within(
+        screen.getByRole('dialog', { name: 'Detalle del vehículo' }),
+      ).getByText('Toyota Corolla'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Ver ficha completa' }),
+    ).toHaveAttribute('href', '/vehicles/100')
   })
 
   it('opens registration drawer and submits new vehicle', async () => {

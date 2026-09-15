@@ -1,7 +1,6 @@
 import {
   CalendarBlank,
   CarSimple,
-  Eye,
   MagnifyingGlass,
   Palette,
   PencilSimple,
@@ -15,6 +14,7 @@ import { Link, useSearchParams } from 'react-router'
 import { useSession } from '@/features/auth/hooks'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
 import { useVehicleMutations, useVehicles } from '@/features/vehicles/hooks'
+import exampleVehiclePhoto from '@/assets/ejemplo/ejemplo.jpg'
 import type {
   VehicleCreate,
   VehicleFilters,
@@ -33,6 +33,7 @@ import {
   FilterPanel,
   InlineNotice,
   LoadingState,
+  MediaSlot,
   PageHeader,
   Pagination,
   RowActions,
@@ -81,6 +82,7 @@ export function VehiclesPage() {
   const [formDirty, setFormDirty] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
+  const [previewing, setPreviewing] = useState<VehicleSummary | null>(null)
 
   const filters: VehicleFilters = {
     search: searchParam || undefined,
@@ -353,6 +355,7 @@ export function VehiclesPage() {
             label="Vehículos"
             rows={vehiclesQuery.data.results}
             getRowKey={(v) => v.id}
+            onRowClick={setPreviewing}
             columns={[
               {
                 header: 'Placa',
@@ -457,15 +460,6 @@ export function VehiclesPage() {
             ]}
             actions={(v) => (
               <RowActions className="flex-nowrap">
-                <Link
-                  to={`/vehicles/${v.id}`}
-                  aria-label="Ver ficha"
-                  className="ui-button record-action inline-flex min-h-10 items-center justify-center gap-1.5 rounded-group border border-transparent bg-transparent px-3 py-1.5 text-xs font-semibold text-ink-muted hover:bg-surface-selected hover:text-primary"
-                  title="Ver ficha"
-                >
-                  <Eye size={16} />
-                  <span>Ver ficha</span>
-                </Link>
                 {canManage && (
                   <Button
                     aria-label="Editar"
@@ -515,6 +509,136 @@ export function VehiclesPage() {
           />
         </div>
       ) : null}
+
+      <Drawer
+        className="vehicle-preview-drawer"
+        description="Información disponible del vehículo seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle del vehículo"
+      >
+        {previewing && (
+          <div className="space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <MediaSlot
+                aspectRatio="4:3"
+                className="max-w-70"
+                label="Foto del vehículo no disponible"
+              >
+                <img
+                  alt="Foto de ejemplo del vehículo"
+                  className="size-full object-cover"
+                  src={exampleVehiclePhoto}
+                />
+              </MediaSlot>
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.brand.name} {previewing.model}
+              </h3>
+              <p className="mt-1 font-mono text-sm font-semibold tracking-wide text-ink-muted">
+                {previewing.plate}
+              </p>
+              <div className="mt-3">
+                <StatusBadge
+                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
+                  tone={previewing.is_active ? 'success' : 'neutral'}
+                />
+              </div>
+            </div>
+
+            <section aria-labelledby="vehicle-details-title">
+              <h3
+                className="text-base font-bold text-ink"
+                id="vehicle-details-title"
+              >
+                Datos del vehículo
+              </h3>
+              <div className="mt-3 divide-y divide-line border-y border-line">
+                <div className="flex items-center justify-between gap-3 py-4">
+                  <span className="text-xs font-semibold text-ink-muted">
+                    Color
+                  </span>
+                  <span className="text-sm text-ink">
+                    {previewing.color || 'No registrado'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3 py-4">
+                  <span className="text-xs font-semibold text-ink-muted">
+                    Año
+                  </span>
+                  <span className="text-sm tabular-nums text-ink">
+                    {previewing.year || 'No registrado'}
+                  </span>
+                </div>
+                <div className="flex items-start justify-between gap-3 py-4">
+                  <span className="text-xs font-semibold text-ink-muted">
+                    VIN / Chasis
+                  </span>
+                  <span className="max-w-48 break-all text-right font-mono text-xs text-ink">
+                    {previewing.vin || 'No registrado'}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section aria-labelledby="vehicle-owner-title">
+              <h3
+                className="text-base font-bold text-ink"
+                id="vehicle-owner-title"
+              >
+                Propietario actual
+              </h3>
+              <div className="mt-3 flex items-center gap-3 rounded-group bg-surface-subtle p-3">
+                {previewing.current_owner ? (
+                  <>
+                    <Avatar
+                      className={`person-avatar avatar-${previewing.current_owner.id % 4}`}
+                      name={previewing.current_owner.name}
+                      size="36"
+                    />
+                    <div className="min-w-0">
+                      <Link
+                        className="font-semibold text-primary hover:underline"
+                        to={`/customers/${previewing.current_owner.id}`}
+                      >
+                        {previewing.current_owner.name}
+                      </Link>
+                      <p className="mt-0.5 text-xs text-ink-muted">
+                        {previewing.current_owner.identification}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-sm text-ink-muted">
+                    Sin propietario asignado
+                  </span>
+                )}
+              </div>
+            </section>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px"
+                to={`/vehicles/${previewing.id}`}
+              >
+                Ver ficha completa
+              </Link>
+              {canManage && (
+                <Button
+                  onClick={() => {
+                    setEditingVehicle(previewing)
+                    setPreviewing(null)
+                    setDrawerOpen(true)
+                  }}
+                  variant="secondary"
+                >
+                  <PencilSimple aria-hidden="true" size={18} />
+                  Editar vehículo
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Drawer>
 
       {/* Drawer para registro y edición */}
       <Drawer

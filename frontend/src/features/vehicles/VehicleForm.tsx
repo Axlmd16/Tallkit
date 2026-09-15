@@ -326,7 +326,9 @@ export function VehicleForm({
               value={ownerId}
               onChange={(e) => setOwnerId(e.target.value)}
             >
-              <option value="">Seleccione el cliente propietario del vehículo.</option>
+              <option value="">
+                Seleccione el cliente propietario del vehículo.
+              </option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} ({c.identification})
@@ -374,10 +376,7 @@ export function VehicleForm({
         </Field>
 
         {/* Placa y Modelo */}
-        <Field
-          label="Placa *"
-          error={fieldErrors.plate}
-        >
+        <Field label="Placa *" error={fieldErrors.plate}>
           <Input
             aria-label="Placa"
             placeholder="ABC-1234"
@@ -387,10 +386,7 @@ export function VehicleForm({
           />
         </Field>
 
-        <Field
-          label="Modelo *"
-          error={fieldErrors.model}
-        >
+        <Field label="Modelo *" error={fieldErrors.model}>
           <Input
             aria-label="Modelo"
             placeholder="Ejemplo: K7, T800, Cascadia"
