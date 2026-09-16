@@ -16,7 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "django-stubs>=5.2.9,<5.3",
+  "django-stubs>=5.2.9,<6.2",
   "djangorestframework-stubs>=3.16,<4",
   "mypy>=1.18.2,<2",
   "pip-audit>=2.9.0,<3",
