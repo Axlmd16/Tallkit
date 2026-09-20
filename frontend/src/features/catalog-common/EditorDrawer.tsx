@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { Drawer } from '@/shared/ui'
+import { Drawer, type DrawerWidth } from '@/shared/ui'
 
 import { useReturnFocus } from './useReturnFocus'
 
@@ -32,6 +32,7 @@ export function EditorDrawer<T extends EditorRecord, D extends object>({
   renderForm,
   onClose,
   onSaved,
+  width,
 }: {
   /** `'new'` para alta, un registro para editarlo o `null` cerrado. */
   mode: 'new' | T | null
@@ -50,6 +51,7 @@ export function EditorDrawer<T extends EditorRecord, D extends object>({
   renderForm: (props: EditorFormProps<T, D>) => ReactNode
   onClose: () => void
   onSaved: (message: string) => void
+  width?: DrawerWidth | undefined
 }) {
   const tracker = useIntentTracker()
   const mutations = useMutations()
@@ -103,6 +105,7 @@ export function EditorDrawer<T extends EditorRecord, D extends object>({
       onClose={close}
       open={mode !== null}
       returnFocusRef={returnFocus}
+      width={width}
       title={
         record ? `Editar ${noun}` : `${feminine ? 'Nueva' : 'Nuevo'} ${noun}`
       }

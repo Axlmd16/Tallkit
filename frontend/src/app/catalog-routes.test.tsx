@@ -1,10 +1,18 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 
 let currentSession: Session
+
+async function openGroups(...names: string[]) {
+  const user = userEvent.setup()
+  for (const name of names) {
+    await user.click(await screen.findByRole('button', { name }))
+  }
+}
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
@@ -100,11 +108,12 @@ it.each(routes)('%s se deniega sin permiso', async (path) => {
 it('muestra en la navegación solo lo que la sesión permite y distingue las marcas de vehículo', async () => {
   currentSession = session(['servicios.ver', 'marcas_vehiculo.ver'])
   renderPath('/')
+  await openGroups('Catálogos', 'Clientes y vehículos')
   expect(
     await screen.findByRole('link', { name: 'Servicios' }),
   ).toBeInTheDocument()
   expect(
-    screen.getByRole('link', { name: 'Marcas de vehículo' }),
+    screen.getByRole('link', { name: 'Marcas de vehículos' }),
   ).toHaveAttribute('href', '/vehicle-brands')
   expect(screen.queryByRole('link', { name: 'Productos' })).toBeNull()
   expect(screen.queryByRole('link', { name: 'Proveedores' })).toBeNull()
@@ -117,6 +126,7 @@ it('un Administrador con todos los permisos ve las tres entradas nuevas', async 
     'proveedores.ver',
   ])
   renderPath('/')
+  await openGroups('Catálogos', 'Compras e inventario')
   for (const name of ['Productos', 'Servicios', 'Proveedores']) {
     expect(await screen.findByRole('link', { name })).toBeInTheDocument()
   }

@@ -4,8 +4,45 @@ import { MemoryRouter } from 'react-router'
 import { expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
+import { setViewport, tabletWidth } from '@/test-viewport'
 
 import { AuthenticatedShell } from './AuthenticatedShell'
+
+function useTabletViewport() {
+  setViewport(tabletWidth)
+}
+
+const fullAccess: Session = {
+  authenticated: true,
+  username: 'admin',
+  roles: ['ADMINISTRADOR'],
+  permissions: [
+    'clientes.ver',
+    'marcas_vehiculo.ver',
+    'vehiculos.ver',
+    'productos.ver',
+    'servicios.ver',
+    'mantenimientos.ver',
+    'proveedores.ver',
+    'ingresos.ver',
+    'inventario.ver',
+    'usuarios.ver',
+    'auditoria.ver',
+    'operacion.ver_estado',
+    'parametros.gestionar',
+  ],
+  must_change_password: false,
+}
+
+function renderAt(path: string, session: Session = fullAccess) {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <AuthenticatedShell onLogout={vi.fn()} session={session}>
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+}
 
 const cases: Array<[string, Session, boolean]> = [
   [
@@ -58,14 +95,33 @@ it.each(cases)(
     expect(
       screen.getByRole('button', { name: 'Cerrar sesión' }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Usuarios' })).toBe(
-      isAdmin ? screen.getByRole('link', { name: 'Usuarios' }) : null,
-    )
-    expect(screen.queryByRole('link', { name: 'Auditoría' })).toBe(
-      isAdmin ? screen.getByRole('link', { name: 'Auditoría' }) : null,
-    )
+    const adminGroup = screen.queryByRole('button', {
+      name: 'Administración y control',
+    })
+    expect(adminGroup !== null).toBe(isAdmin)
   },
 )
+
+it('lists administration options only inside their group for authorized sessions', async () => {
+  const user = userEvent.setup()
+  render(
+    <MemoryRouter>
+      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
+        <p>Contenido</p>
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  await user.click(
+    screen.getByRole('button', { name: 'Administración y control' }),
+  )
+
+  expect(screen.getByRole('link', { name: 'Usuarios' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Auditoría' })).toBeInTheDocument()
+  expect(
+    screen.getByRole('link', { name: 'Estado técnico' }),
+  ).toBeInTheDocument()
+})
 
 it('shows every assigned role but does not infer navigation from role names', () => {
   render(
@@ -169,6 +225,9 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   expect(
     within(dialog).getByRole('button', { name: 'Cerrar panel' }),
   ).toBeEnabled()
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Administración y control' }),
+  )
   await user.click(within(dialog).getByRole('link', { name: 'Auditoría' }))
 
   expect(
@@ -177,7 +236,8 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   expect(opener).toHaveFocus()
 })
 
-it('shows Clientes navigation when session includes clientes.ver permission', () => {
+it('shows Clientes navigation when session includes clientes.ver permission', async () => {
+  const user = userEvent.setup()
   render(
     <MemoryRouter>
       <AuthenticatedShell
@@ -195,5 +255,151 @@ it('shows Clientes navigation when session includes clientes.ver permission', ()
     </MemoryRouter>,
   )
 
+  await user.click(screen.getByRole('button', { name: 'Clientes y vehículos' }))
+
   expect(screen.getByRole('link', { name: 'Clientes' })).toBeInTheDocument()
+})
+
+it('shows Inicio as a standalone link above the collapsible groups', () => {
+  renderAt('/')
+
+  const nav = screen.getAllByRole('navigation', {
+    name: 'Navegación principal',
+  })[0]!
+  expect(within(nav).getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  const groups = [
+    'Clientes y vehículos',
+    'Catálogos',
+    'Operación del taller',
+    'Compras e inventario',
+    'Administración y control',
+  ]
+  for (const name of groups) {
+    expect(within(nav).getByRole('button', { name })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  }
+  expect(
+    within(nav).queryByRole('link', { name: 'Clientes' }),
+  ).not.toBeInTheDocument()
+})
+
+it('expands and collapses a group with its button', async () => {
+  const user = userEvent.setup()
+  renderAt('/')
+
+  const group = screen.getByRole('button', { name: 'Catálogos' })
+  await user.click(group)
+  expect(group).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByRole('link', { name: 'Productos' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Servicios' })).toBeInTheDocument()
+
+  await user.click(group)
+  expect(group).toHaveAttribute('aria-expanded', 'false')
+  expect(
+    screen.queryByRole('link', { name: 'Productos' }),
+  ).not.toBeInTheDocument()
+})
+
+it('opens the group of the current route and highlights the option', () => {
+  renderAt('/vehicles')
+
+  expect(
+    screen.getByRole('button', { name: 'Clientes y vehículos' }),
+  ).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByRole('link', { name: 'Vehículos' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  expect(screen.getByRole('link', { name: 'Clientes' })).not.toHaveAttribute(
+    'aria-current',
+  )
+  expect(screen.getByRole('button', { name: 'Catálogos' })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  )
+})
+
+it('keeps detail and secondary catalog routes under their navigation option', () => {
+  renderAt('/customers/7')
+  expect(screen.getByRole('link', { name: 'Clientes' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+})
+
+it('keeps the active option visible when its group is collapsed', async () => {
+  const user = userEvent.setup()
+  renderAt('/purchases')
+
+  const group = screen.getByRole('button', { name: 'Compras e inventario' })
+  expect(screen.getByRole('link', { name: 'Proveedores' })).toBeInTheDocument()
+
+  await user.click(group)
+
+  expect(group).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.getByRole('link', { name: 'Ingresos' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  expect(
+    screen.queryByRole('link', { name: 'Proveedores' }),
+  ).not.toBeInTheDocument()
+})
+
+it('omits a group when the session has no permission for any of its options', () => {
+  renderAt('/', {
+    ...fullAccess,
+    permissions: ['clientes.ver'],
+  })
+
+  expect(
+    screen.getByRole('button', { name: 'Clientes y vehículos' }),
+  ).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Catálogos' }),
+  ).not.toBeInTheDocument()
+})
+
+it('uses group icons with a popover on compact viewports', async () => {
+  useTabletViewport()
+  const user = userEvent.setup()
+  renderAt('/purchases')
+
+  const group = screen.getByRole('button', { name: 'Compras e inventario' })
+  expect(group).toHaveAttribute('aria-haspopup', 'true')
+  expect(group).toHaveAttribute('aria-expanded', 'false')
+  expect(
+    screen.queryByRole('link', { name: 'Proveedores' }),
+  ).not.toBeInTheDocument()
+
+  await user.click(group)
+  const popover = screen.getByRole('group', { name: 'Compras e inventario' })
+  expect(group).toHaveAttribute('aria-expanded', 'true')
+  expect(
+    within(popover).getByRole('link', { name: 'Ingresos' }),
+  ).toHaveAttribute('aria-current', 'page')
+
+  await user.keyboard('{Escape}')
+  expect(
+    screen.queryByRole('group', { name: 'Compras e inventario' }),
+  ).not.toBeInTheDocument()
+  expect(group).toHaveFocus()
+})
+
+it('marks the active group in the compact rail', () => {
+  useTabletViewport()
+  renderAt('/services')
+
+  expect(screen.getByRole('button', { name: 'Catálogos' })).toHaveAttribute(
+    'data-active',
+    'true',
+  )
+  expect(
+    screen.getByRole('button', { name: 'Operación del taller' }),
+  ).not.toHaveAttribute('data-active')
 })

@@ -192,7 +192,6 @@ samp {
   display: none;
 }
 @media (min-width: 768px) {
-  .app-nav-label,
   .app-logout-label {
     position: absolute;
     width: 1px;
@@ -245,19 +244,6 @@ samp {
   .app-rail nav {
     margin-top: 66px;
   }
-  .app-rail nav a {
-    height: 48px;
-    justify-content: center;
-    padding: 0;
-    margin-bottom: 6px;
-  }
-  .app-rail nav a::before {
-    display: none;
-  }
-  .app-rail nav a > svg {
-    width: 24px;
-    height: 24px;
-  }
   .app-main {
     width: 100%;
     max-width: none;
@@ -292,18 +278,18 @@ samp {
    The 1280px breakpoint is an application adaptation, not a Figma value. */
 @media (min-width: 1280px) {
   .app-shell {
-    padding: 30px 30px 30px 248px;
+    padding: 30px 30px 30px 294px;
   }
   .app-rail {
     inset: 0 auto 0 0;
-    width: 218px;
+    width: 264px;
     height: 100dvh;
-    padding: 50px 0 30px;
+    padding: 50px 12px 30px;
     border-radius: 0;
   }
   .app-rail > div:first-child {
     flex-direction: row;
-    padding: 0 30px;
+    padding: 0 18px;
     gap: 15px;
   }
   .app-brand-compact {
@@ -318,30 +304,12 @@ samp {
   .app-rail nav {
     margin-top: 32px;
   }
-  .app-rail .app-rail-nav-item {
-    height: 48px;
-    justify-content: flex-start;
-    gap: 15px;
-    margin-bottom: 6px;
-    padding: 0 30px;
-    border-radius: 0;
-  }
-  .app-nav-label {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    clip: auto;
-    white-space: nowrap;
-  }
   .rail-profile {
     display: grid;
     grid-template-columns: 45px minmax(0, 1fr) 44px;
     align-items: center;
     gap: 10px;
-    padding: 0 20px;
+    padding: 0 8px;
     text-align: left;
   }
   .rail-profile > div {
@@ -356,15 +324,6 @@ samp {
     margin: 0;
     justify-content: center;
   }
-}
-
-.nav-glyph {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-.app-rail a:not([aria-current]) .nav-glyph {
-  opacity: 0.45;
 }
 
 .ui-button {
@@ -1426,23 +1385,6 @@ samp {
 }
 .dialog-panel {
   min-width: 0;
-}
-.nav-glyph {
-  display: block;
-  flex-shrink: 0;
-  background-color: currentColor;
-  mask-size: auto 20px;
-  mask-repeat: no-repeat;
-  mask-position: center;
-}
-.nav-home {
-  mask-image: url('../../assets/figma/category.svg');
-}
-.nav-audit {
-  mask-image: url('../../assets/figma/document.svg');
-}
-.nav-technical {
-  mask-image: url('../../assets/figma/chart.svg');
 }
 
 /* Neutral workshop scene uses the 647 × 602 illustration region of 4:8584. */

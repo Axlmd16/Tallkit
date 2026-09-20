@@ -13,7 +13,7 @@ function DrawerVariantsTest({
   customContainer,
   tokenScope,
 }: {
-  width?: 'default' | '409' | '369'
+  width?: 'default' | 'wide' | '409' | '369'
   overlay?: 'default' | '30' | 'none'
   dirty?: boolean
   customContainer?: HTMLElement | null
@@ -47,6 +47,16 @@ function DrawerVariantsTest({
 }
 
 describe('Drawer Variants y Comportamiento Opt-in (Fase 9.3)', () => {
+  it('renders the wide width for forms with two-column rows', async () => {
+    const user = userEvent.setup()
+    render(<DrawerVariantsTest width="wide" />)
+    await user.click(screen.getByRole('button', { name: 'Abrir cajón' }))
+
+    expect(
+      screen.getByRole('dialog', { name: 'Cajón con Variantes' }).className,
+    ).toContain('md:w-[46rem]')
+  })
+
   it('renders width 409px (F08 4:3261) and 369px (F10 4:5399)', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<DrawerVariantsTest width="409" />)

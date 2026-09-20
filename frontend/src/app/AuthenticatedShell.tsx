@@ -1,22 +1,6 @@
-import {
-  AddressBook,
-  Car,
-  ClipboardText,
-  House,
-  List,
-  Package,
-  ShoppingCartSimple,
-  Stack,
-  Pulse,
-  SignOut,
-  Tag,
-  Toolbox,
-  Truck,
-  Users,
-  Wrench,
-} from '@phosphor-icons/react'
+import { List, SignOut } from '@phosphor-icons/react'
 import { useRef, useState, type ReactNode } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 
 import compactBrand from '@/assets/brand/isotipo.svg'
 import expandedBrand from '@/assets/brand/secundario.svg'
@@ -28,133 +12,14 @@ import {
 } from '@/features/auth/types'
 import { Button, Drawer, IconButton, InlineNotice } from '@/shared/ui'
 
+import { visibleGroups } from './navigation'
+import { CompactNavigation, ExpandedNavigation } from './SidebarNavigation'
+import { useExpandedRail } from './useExpandedRail'
+
 const roleLabels: Record<Role, string> = {
   ADMINISTRADOR: 'Administrador',
   VENDEDOR: 'Vendedor',
   ENCARGADO_TALLER: 'Encargado del taller',
-}
-
-const navigation = [
-  { icon: House, label: 'Inicio', to: '/', permission: null },
-  {
-    icon: AddressBook,
-    label: 'Clientes',
-    to: '/customers',
-    permission: 'clientes.ver',
-  },
-  {
-    icon: Tag,
-    label: 'Marcas de vehículo',
-    to: '/vehicle-brands',
-    permission: 'marcas_vehiculo.ver',
-  },
-  {
-    icon: Car,
-    label: 'Vehículos',
-    to: '/vehicles',
-    permission: 'vehiculos.ver',
-  },
-  {
-    icon: Package,
-    label: 'Productos',
-    to: '/products',
-    permission: 'productos.ver',
-  },
-  {
-    icon: Toolbox,
-    label: 'Servicios',
-    to: '/services',
-    permission: 'servicios.ver',
-  },
-  {
-    icon: Truck,
-    label: 'Proveedores',
-    to: '/suppliers',
-    permission: 'proveedores.ver',
-  },
-  {
-    icon: ShoppingCartSimple,
-    label: 'Ingresos',
-    to: '/purchases',
-    permission: 'ingresos.ver',
-  },
-  {
-    icon: Stack,
-    label: 'Inventario',
-    to: '/inventory',
-    permission: 'inventario.ver',
-  },
-  { icon: Users, label: 'Usuarios', to: '/users', permission: 'usuarios.ver' },
-  {
-    icon: ClipboardText,
-    label: 'Auditoría',
-    to: '/audit',
-    permission: 'auditoria.ver',
-  },
-  {
-    icon: Pulse,
-    label: 'Estado técnico',
-    to: '/technical-status',
-    permission: 'operacion.ver_estado',
-  },
-  {
-    icon: Wrench,
-    label: 'Configuración',
-    to: '/configuration',
-    permission: 'parametros.gestionar',
-  },
-] as const
-
-/** Rutas cuya entrada usa un icono propio en lugar de un glifo del sistema visual. */
-const iconRoutes: ReadonlySet<string> = new Set([
-  '/users',
-  '/customers',
-  '/products',
-  '/services',
-  '/suppliers',
-  '/purchases',
-  '/inventory',
-])
-
-function NavigationItems({
-  onNavigate,
-  permissions,
-}: {
-  onNavigate?: () => void
-  permissions: Set<string>
-}) {
-  return navigation
-    .filter((item) => !item.permission || permissions.has(item.permission))
-    .map((item) => {
-      const Icon = item.icon
-      return (
-        <NavLink
-          className={({ isActive }) =>
-            `app-rail-nav-item relative flex min-h-11 items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors ${isActive ? 'bg-[linear-gradient(90deg,rgb(172_169_255_/_0.2),transparent)] text-primary' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'}`
-          }
-          end={item.to === '/'}
-          key={item.to}
-          onClick={onNavigate}
-          title={item.label}
-          to={item.to}
-        >
-          {iconRoutes.has(item.to) ? (
-            <Icon
-              aria-hidden="true"
-              className="shrink-0"
-              size={22}
-              weight="fill"
-            />
-          ) : (
-            <span
-              aria-hidden="true"
-              className={`nav-glyph ${item.to === '/' ? 'nav-home' : item.to === '/audit' ? 'nav-audit' : 'nav-technical'}`}
-            />
-          )}
-          <span className="app-nav-label truncate">{item.label}</span>
-        </NavLink>
-      )
-    })
 }
 
 export function AuthenticatedShell({
@@ -171,7 +36,9 @@ export function AuthenticatedShell({
   const [navigationOpen, setNavigationOpen] = useState(false)
   const locked = useRef(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
-  const permissions = new Set(session.permissions)
+  const { pathname } = useLocation()
+  const expandedRail = useExpandedRail()
+  const groups = visibleGroups(new Set(session.permissions))
   const userSummary = `${session.username} · ${session.roles.map((role) => roleLabels[role]).join(' · ')}`
 
   async function logout() {
@@ -190,7 +57,7 @@ export function AuthenticatedShell({
   }
 
   return (
-    <div className="app-shell min-h-screen bg-canvas text-ink md:grid md:grid-cols-[5rem_minmax(0,1fr)] xl:grid-cols-[13.625rem_minmax(0,1fr)]">
+    <div className="app-shell min-h-screen bg-canvas text-ink md:grid md:grid-cols-[5rem_minmax(0,1fr)] xl:grid-cols-[16.5rem_minmax(0,1fr)]">
       <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between bg-surface px-4 shadow-card md:hidden">
         <div className="flex min-w-0 items-center gap-3">
           <img
@@ -207,7 +74,7 @@ export function AuthenticatedShell({
         />
       </header>
 
-      <aside className="app-rail sticky top-0 hidden h-screen flex-col bg-surface px-3 py-5 md:flex xl:px-5">
+      <aside className="app-rail sticky top-0 hidden h-screen flex-col bg-surface px-3 py-5 md:flex xl:px-3">
         <div className="app-brand-mark flex min-h-12 items-center justify-center">
           <img
             alt="Tallkit"
@@ -224,9 +91,17 @@ export function AuthenticatedShell({
         </div>
         <nav
           aria-label="Navegación principal"
-          className="mt-8 min-h-0 flex-1 space-y-2 overflow-y-auto"
+          className="mt-8 min-h-0 flex-1 overflow-y-auto"
         >
-          <NavigationItems permissions={permissions} />
+          {expandedRail ? (
+            <ExpandedNavigation
+              groups={groups}
+              idPrefix="rail"
+              pathname={pathname}
+            />
+          ) : (
+            <CompactNavigation groups={groups} pathname={pathname} />
+          )}
         </nav>
         <div className="rail-profile mt-auto pt-4" title={userSummary}>
           <span aria-hidden="true" className="rail-avatar">
@@ -272,10 +147,12 @@ export function AuthenticatedShell({
         returnFocusRef={menuButtonRef}
         title="Navegación principal"
       >
-        <nav aria-label="Opciones disponibles" className="w-full space-y-1">
-          <NavigationItems
+        <nav aria-label="Opciones disponibles" className="w-full">
+          <ExpandedNavigation
+            groups={groups}
+            idPrefix="drawer"
             onNavigate={() => setNavigationOpen(false)}
-            permissions={permissions}
+            pathname={pathname}
           />
           <Button
             className="mt-4 w-full justify-start"

@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom'
 import { Button, IconButton } from './controls'
 import { trapFocus, useModalOpen } from './overlays/modal-utils'
 
-export type DrawerWidth = 'default' | '409' | '369'
+export type DrawerWidth = 'default' | 'wide' | '409' | '369'
 export type DrawerOverlay = 'default' | '30' | 'none'
 
 export interface DrawerProps {
@@ -32,6 +32,7 @@ export interface DrawerProps {
 
 const widthClasses: Record<DrawerWidth, string> = {
   default: 'md:w-[30rem]',
+  wide: 'md:w-[46rem]',
   409: 'md:w-[409px]',
   369: 'md:w-[369px]',
 }

@@ -1,3 +1,14 @@
+import {
+  Barcode,
+  Cube,
+  CurrencyDollar,
+  IdentificationCard,
+  Info,
+  Package,
+  Receipt,
+  Tag,
+  TreeStructure,
+} from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
@@ -13,8 +24,10 @@ import {
   ButtonGroup,
   Checkbox,
   Field,
+  FormSection,
   InlineNotice,
   Input,
+  LeadingIcon,
   Select,
   Textarea,
 } from '@/shared/ui'
@@ -250,7 +263,7 @@ export function ProductForm({
   const retrying = problem?.uncertain ?? false
 
   return (
-    <form className="space-y-8" noValidate onSubmit={submit}>
+    <form className="space-y-5" noValidate onSubmit={submit}>
       {problem && (
         <InlineNotice title="No se pudo guardar el producto" tone="danger">
           {problem.message}
@@ -264,33 +277,47 @@ export function ProductForm({
         </InlineNotice>
       )}
 
-      <fieldset className="space-y-4">
-        <legend className="text-base font-bold text-ink">Identificación</legend>
+      <FormSection
+        description="Códigos y nombre con los que se reconoce el producto."
+        icon={<IdentificationCard size={22} />}
+        title="Identificación"
+      >
         <Field error={errors.code} id="product-code" label="Código interno">
-          <Input
-            disabled={pending}
-            id="product-code"
-            maxLength={64}
-            onChange={(e) => update('code', e.target.value, 'code')}
-            value={draft.code}
-          />
+          <LeadingIcon icon={<Barcode size={20} />}>
+            <Input
+              className="pl-11"
+              disabled={pending}
+              id="product-code"
+              maxLength={64}
+              onChange={(e) => update('code', e.target.value, 'code')}
+              value={draft.code}
+            />
+          </LeadingIcon>
         </Field>
         <Field
           error={errors.manufacturer_code}
-          hint="Opcional. Referencia externa del fabricante o número de parte; no reemplaza al código interno."
+          hint="Opcional. Número de parte del fabricante; no reemplaza al código interno."
           id="product-manufacturer-code"
           label="Código del fabricante"
         >
-          <Input
-            disabled={pending}
-            id="product-manufacturer-code"
-            onChange={(e) =>
-              update('manufacturerCode', e.target.value, 'manufacturer_code')
-            }
-            value={draft.manufacturerCode}
-          />
+          <LeadingIcon icon={<Tag size={20} />}>
+            <Input
+              className="pl-11"
+              disabled={pending}
+              id="product-manufacturer-code"
+              onChange={(e) =>
+                update('manufacturerCode', e.target.value, 'manufacturer_code')
+              }
+              value={draft.manufacturerCode}
+            />
+          </LeadingIcon>
         </Field>
-        <Field error={errors.name} id="product-name" label="Nombre">
+        <Field
+          className="sm:col-span-2"
+          error={errors.name}
+          id="product-name"
+          label="Nombre"
+        >
           <Input
             disabled={pending}
             id="product-name"
@@ -300,6 +327,7 @@ export function ProductForm({
           />
         </Field>
         <Field
+          className="sm:col-span-2"
           error={errors.description}
           id="product-description"
           label="Descripción (opcional)"
@@ -314,17 +342,16 @@ export function ProductForm({
             value={draft.description}
           />
         </Field>
-      </fieldset>
+      </FormSection>
 
-      <fieldset className="space-y-4">
-        <legend className="text-base font-bold text-ink">Presentación</legend>
-        <p className="text-sm text-ink-muted">
-          Cada presentación vendible distinta es otro producto; no hay variantes
-          ni conversión automática.
-        </p>
+      <FormSection
+        description="Cada presentación vendible distinta es otro producto; no hay variantes ni conversión automática."
+        icon={<Cube size={22} />}
+        title="Presentación"
+      >
         <Field
           error={errors.content_quantity}
-          hint="Cantidad cerrada de la presentación, por ejemplo 0.500000."
+          hint="Cantidad cerrada, por ejemplo 0.500000."
           id="product-quantity"
           label="Contenido"
         >
@@ -358,16 +385,22 @@ export function ProductForm({
             ))}
           </Select>
         </Field>
-        <Checkbox
-          checked={draft.isKit}
-          disabled={pending}
-          label="Es un kit comprado completo"
-          onChange={(e) => update('isKit', e.target.checked)}
-        />
-      </fieldset>
+        <div className="flex items-center gap-3 rounded-group border border-line bg-surface px-4 py-3 sm:col-span-2">
+          <Package aria-hidden="true" className="text-primary" size={22} />
+          <Checkbox
+            checked={draft.isKit}
+            disabled={pending}
+            label="Es un kit comprado completo"
+            onChange={(e) => update('isKit', e.target.checked)}
+          />
+        </div>
+      </FormSection>
 
-      <fieldset className="space-y-4">
-        <legend className="text-base font-bold text-ink">Referencias</legend>
+      <FormSection
+        description="Clasificación del producto y compatibilidad con vehículos."
+        icon={<TreeStructure size={22} />}
+        title="Referencias"
+      >
         <Field
           error={errors.category_id}
           id="product-category"
@@ -412,95 +445,110 @@ export function ProductForm({
             ))}
           </Select>
         </Field>
-        <VehicleBrandPicker
-          disabled={pending}
-          error={errors.vehicle_brand_ids}
-          onChange={(next) =>
-            update('vehicleBrands', next, 'vehicle_brand_ids')
-          }
-          selected={draft.vehicleBrands}
-        />
+        <div className="sm:col-span-2">
+          <VehicleBrandPicker
+            disabled={pending}
+            error={errors.vehicle_brand_ids}
+            onChange={(next) =>
+              update('vehicleBrands', next, 'vehicle_brand_ids')
+            }
+            selected={draft.vehicleBrands}
+          />
+        </div>
         {permissions.has('productos.gestionar') && (
-          <p className="text-sm text-ink-muted">
-            ¿Falta una opción? Administre{' '}
-            <a
-              className="font-semibold text-primary underline"
-              href="/product-categories"
-              rel="noopener"
-              target="_blank"
-            >
-              categorías
-            </a>
-            ,{' '}
-            <a
-              className="font-semibold text-primary underline"
-              href="/measurement-units"
-              rel="noopener"
-              target="_blank"
-            >
-              unidades
-            </a>{' '}
-            o{' '}
-            <a
-              className="font-semibold text-primary underline"
-              href="/product-brands"
-              rel="noopener"
-              target="_blank"
-            >
-              marcas de producto
-            </a>{' '}
-            en otra pestaña; este borrador se conserva.
+          <p className="flex items-start gap-2 text-sm text-ink-muted sm:col-span-2">
+            <Info
+              aria-hidden="true"
+              className="mt-0.5 shrink-0 text-primary"
+              size={16}
+            />
+            <span>
+              ¿Falta una opción? Administre{' '}
+              <a
+                className="font-semibold text-primary underline"
+                href="/product-categories"
+                rel="noopener"
+                target="_blank"
+              >
+                categorías
+              </a>
+              ,{' '}
+              <a
+                className="font-semibold text-primary underline"
+                href="/measurement-units"
+                rel="noopener"
+                target="_blank"
+              >
+                unidades
+              </a>{' '}
+              o{' '}
+              <a
+                className="font-semibold text-primary underline"
+                href="/product-brands"
+                rel="noopener"
+                target="_blank"
+              >
+                marcas de producto
+              </a>{' '}
+              en otra pestaña; este borrador se conserva.
+            </span>
           </p>
         )}
-      </fieldset>
+      </FormSection>
 
-      <fieldset className="space-y-4">
-        <legend className="text-base font-bold text-ink">
-          Importe e impuesto
-        </legend>
+      <FormSection
+        description="Precio final al cliente y configuración tributaria."
+        icon={<Receipt size={22} />}
+        title="Precio y tributación"
+      >
         <Field
           error={errors.sale_price}
           hint={
             canChangePrice
-              ? 'Precio final para el cliente en USD, con impuesto incluido cuando aplique.'
+              ? 'Precio final en USD, con impuesto incluido cuando aplique.'
               : 'Cambiar el precio requiere el permiso de cambio de precio.'
           }
           id="product-price"
           label="Precio final (USD)"
         >
-          <Input
-            disabled={pending || !canChangePrice}
-            id="product-price"
-            inputMode="decimal"
-            onChange={(e) => update('price', e.target.value, 'sale_price')}
-            value={draft.price}
-          />
+          <LeadingIcon icon={<CurrencyDollar size={20} />}>
+            <Input
+              className="pl-11"
+              disabled={pending || !canChangePrice}
+              id="product-price"
+              inputMode="decimal"
+              onChange={(e) => update('price', e.target.value, 'sale_price')}
+              value={draft.price}
+            />
+          </LeadingIcon>
         </Field>
         {noTaxConfiguration ? (
-          <InlineNotice
-            title="Configuración tributaria pendiente"
-            tone="warning"
-          >
-            No hay definiciones de impuesto del RUC comercial. Un Administrador
-            debe configurarlas antes de registrar productos.
-            {canConfigure && (
-              <>
-                {' '}
-                <a
-                  className="font-semibold underline"
-                  href="/configuration"
-                  rel="noopener"
-                  target="_blank"
-                >
-                  Abrir configuración
-                </a>
-              </>
-            )}
-          </InlineNotice>
+          <div className="sm:col-span-2">
+            <InlineNotice
+              title="Configuración tributaria pendiente"
+              tone="warning"
+            >
+              No hay definiciones de impuesto del RUC comercial. Un
+              Administrador debe configurarlas antes de registrar productos.
+              {canConfigure && (
+                <>
+                  {' '}
+                  <a
+                    className="font-semibold underline"
+                    href="/configuration"
+                    rel="noopener"
+                    target="_blank"
+                  >
+                    Abrir configuración
+                  </a>
+                </>
+              )}
+            </InlineNotice>
+          </div>
         ) : (
           <Field
             error={errors.tax_definition_id}
-            hint="El precio no se recalcula al cambiar la tarifa del impuesto."
+            hint="El precio no se recalcula al cambiar la tarifa."
             id="product-tax"
             label="Impuesto (RUC comercial)"
           >
@@ -528,12 +576,14 @@ export function ProductForm({
           </Field>
         )}
         {selectedTax && selectedTax.tax_status !== 'applicable' && (
-          <InlineNotice title="Vigencia tributaria pendiente" tone="warning">
-            Puede guardar el producto, pero no podrá usarse en operaciones
-            económicas hasta que se configure una vigencia aplicable.
-          </InlineNotice>
+          <div className="sm:col-span-2">
+            <InlineNotice title="Vigencia tributaria pendiente" tone="warning">
+              Puede guardar el producto, pero no podrá usarse en operaciones
+              económicas hasta que se configure una vigencia aplicable.
+            </InlineNotice>
+          </div>
         )}
-      </fieldset>
+      </FormSection>
 
       <ButtonGroup
         className="justify-end pt-2"

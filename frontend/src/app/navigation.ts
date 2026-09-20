@@ -1,0 +1,201 @@
+import {
+  AddressBook,
+  BookOpen,
+  Car,
+  ClipboardText,
+  DownloadSimple,
+  House,
+  ListChecks,
+  Package,
+  Pulse,
+  ShieldCheck,
+  ShoppingCartSimple,
+  SlidersHorizontal,
+  Stack,
+  Tag,
+  Toolbox,
+  Truck,
+  Users,
+  UsersThree,
+  Wrench,
+  type Icon,
+} from '@phosphor-icons/react'
+
+export interface NavItem {
+  icon: Icon
+  label: string
+  to: string
+  permission: string | null
+  /** Rutas adicionales que pertenecen a esta opción (además de `to` y sus detalles). */
+  alsoMatches?: readonly string[]
+}
+
+export interface NavGroup {
+  id: string
+  icon: Icon
+  label: string
+  items: readonly NavItem[]
+}
+
+export const homeItem: NavItem = {
+  icon: House,
+  label: 'Inicio',
+  to: '/',
+  permission: null,
+}
+
+/**
+ * Agrupación por intención de trabajo: relación con el cliente, catálogos,
+ * operación del taller, abastecimiento y administración no se mezclan.
+ * La interfaz solo organiza; la autorización real pertenece al backend.
+ */
+export const navigationGroups: readonly NavGroup[] = [
+  {
+    id: 'clientes-vehiculos',
+    icon: UsersThree,
+    label: 'Clientes y vehículos',
+    items: [
+      {
+        icon: AddressBook,
+        label: 'Clientes',
+        to: '/customers',
+        permission: 'clientes.ver',
+      },
+      {
+        icon: Car,
+        label: 'Vehículos',
+        to: '/vehicles',
+        permission: 'vehiculos.ver',
+      },
+      {
+        icon: Tag,
+        label: 'Marcas de vehículos',
+        to: '/vehicle-brands',
+        permission: 'marcas_vehiculo.ver',
+      },
+    ],
+  },
+  {
+    id: 'catalogos',
+    icon: BookOpen,
+    label: 'Catálogos',
+    items: [
+      {
+        icon: Package,
+        label: 'Productos',
+        to: '/products',
+        permission: 'productos.ver',
+        alsoMatches: [
+          '/product-categories',
+          '/measurement-units',
+          '/product-brands',
+        ],
+      },
+      {
+        icon: Toolbox,
+        label: 'Servicios',
+        to: '/services',
+        permission: 'servicios.ver',
+      },
+    ],
+  },
+  {
+    id: 'operacion-taller',
+    icon: Wrench,
+    label: 'Operación del taller',
+    items: [
+      {
+        icon: ListChecks,
+        label: 'Mantenimientos',
+        to: '/maintenance',
+        permission: 'mantenimientos.ver',
+      },
+    ],
+  },
+  {
+    id: 'compras-inventario',
+    icon: ShoppingCartSimple,
+    label: 'Compras e inventario',
+    items: [
+      {
+        icon: Truck,
+        label: 'Proveedores',
+        to: '/suppliers',
+        permission: 'proveedores.ver',
+      },
+      {
+        icon: DownloadSimple,
+        label: 'Ingresos',
+        to: '/purchases',
+        permission: 'ingresos.ver',
+      },
+      {
+        icon: Stack,
+        label: 'Inventario',
+        to: '/inventory',
+        permission: 'inventario.ver',
+      },
+    ],
+  },
+  {
+    id: 'administracion-control',
+    icon: ShieldCheck,
+    label: 'Administración y control',
+    items: [
+      {
+        icon: Users,
+        label: 'Usuarios',
+        to: '/users',
+        permission: 'usuarios.ver',
+      },
+      {
+        icon: ClipboardText,
+        label: 'Auditoría',
+        to: '/audit',
+        permission: 'auditoria.ver',
+      },
+      {
+        icon: Pulse,
+        label: 'Estado técnico',
+        to: '/technical-status',
+        permission: 'operacion.ver_estado',
+      },
+      {
+        icon: SlidersHorizontal,
+        label: 'Configuración',
+        to: '/configuration',
+        permission: 'parametros.gestionar',
+      },
+    ],
+  },
+]
+
+export function isItemActive(item: NavItem, pathname: string) {
+  if (item.to === '/') return pathname === '/'
+  return [item.to, ...(item.alsoMatches ?? [])].some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  )
+}
+
+/** Grupos con al menos una opción permitida; los vacíos no se muestran. */
+export function visibleGroups(permissions: ReadonlySet<string>): NavGroup[] {
+  return navigationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.permission || permissions.has(item.permission),
+      ),
+    }))
+    .filter((group) => group.items.length > 0)
+}
+
+export function findActiveGroupId(
+  groups: readonly NavGroup[],
+  pathname: string,
+): string | null {
+  return (
+    groups.find((group) =>
+      group.items.some((item) => isItemActive(item, pathname)),
+    )?.id ?? null
+  )
+}

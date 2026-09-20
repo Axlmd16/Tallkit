@@ -32,6 +32,7 @@ export function ProductEditorDrawer({
       )}
       useDetail={useProduct}
       useMutations={useProductMutations}
+      width="wide"
     />
   )
 }

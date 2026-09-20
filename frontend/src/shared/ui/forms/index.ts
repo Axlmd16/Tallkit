@@ -20,3 +20,5 @@ export { PasswordInput, type PasswordInputProps } from './PasswordInput'
 export { SearchInput, type SearchInputProps } from './SearchInput'
 
 export { DateControl, type DateControlProps } from './DateControl'
+
+export { FormSection, LeadingIcon, type FormSectionProps } from './FormSection'

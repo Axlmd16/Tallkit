@@ -1,10 +1,18 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 
 let currentSession: Session
+
+async function openGroups(...names: string[]) {
+  const user = userEvent.setup()
+  for (const name of names) {
+    await user.click(await screen.findByRole('button', { name }))
+  }
+}
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
@@ -91,6 +99,7 @@ it.each(routes)('%s se deniega sin su permiso', async (path) => {
 it('la navegación muestra Ingresos e Inventario solo con su permiso', async () => {
   currentSession = session(['inventario.ver'])
   renderPath('/')
+  await openGroups('Compras e inventario')
   expect(
     await screen.findByRole('link', { name: 'Inventario' }),
   ).toHaveAttribute('href', '/inventory')
@@ -100,6 +109,7 @@ it('la navegación muestra Ingresos e Inventario solo con su permiso', async () 
 it('un Administrador ve ambas entradas', async () => {
   currentSession = session(['ingresos.ver', 'inventario.ver'])
   renderPath('/')
+  await openGroups('Compras e inventario')
   expect(await screen.findByRole('link', { name: 'Ingresos' })).toHaveAttribute(
     'href',
     '/purchases',

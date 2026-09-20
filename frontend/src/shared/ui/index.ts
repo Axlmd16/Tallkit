@@ -18,6 +18,11 @@ export {
 } from './forms/Textarea'
 export { PasswordInput, type PasswordInputProps } from './forms/PasswordInput'
 export { DateControl, type DateControlProps } from './forms/DateControl'
+export {
+  FormSection,
+  LeadingIcon,
+  type FormSectionProps,
+} from './forms/FormSection'
 
 // Surfaces — tarjetas estructuradas
 export {
