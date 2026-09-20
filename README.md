@@ -4,9 +4,10 @@ Bootstrap técnico del sistema web de gestión integral para un taller automotri
 monorepositorio con una SPA React y una API Django, desplegadas como monolito modular y con
 PostgreSQL como única base de datos relacional.
 
-El repositorio incluye la primera capacidad funcional: identidad, autenticación por sesión,
-roles fijos, autorización y auditoría administrativa. Los módulos de clientes, inventario, ventas
-y mantenimientos todavía no están implementados.
+El repositorio incluye identidad (autenticación por sesión, roles fijos, autorización y auditoría
+administrativa), configuración, catálogos de productos, servicios y proveedores, y el registro de
+clientes, vehículos y marcas de vehículo. Inventario, ventas, pagos y mantenimientos todavía no
+están implementados.
 
 ## Inicio rápido con Docker
 
@@ -84,6 +85,25 @@ Las tablas de `catalog` y `supplier_registry` nacen vacías: ninguna migración 
 3. Productos y servicios.
 
 Despliegue de este cambio (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate` (migraciones aditivas que no alteran datos anteriores), comprobaciones funcionales y luego el frontend; el frontend anterior sigue funcionando con los contratos existentes. Ante un problema con registros reales se prefiere la corrección hacia adelante: volver al código anterior conserva las tablas nuevas, y no se deshacen migraciones destruyendo catálogos ni se restaura sin respaldo comprobado y autorización.
+
+## Clientes, vehículos y marcas de vehículo
+
+El módulo `customer_registry` conserva clientes, marcas de vehículo, vehículos y períodos de propiedad
+(`docs/arquitectura/modelo-datos.md`). Sus tablas nacen vacías: ninguna migración crea clientes, marcas ni
+vehículos, y no se importan datos de la aplicación Flutter anterior. Las marcas se cargan desde la interfaz
+(`/vehicle-brands`) por un Administrador o Encargado del taller antes de registrar el primer vehículo.
+
+Rutas de la API bajo `/api/v1/`: `customers/` (con `matches/`, `activate/`, `deactivate/` y
+`customers/<id>/vehicles/`), `vehicles/` (con `change-owner/`, `ownership/`, `activate/` y `deactivate/`) y
+`vehicle-brands/` (con `activate/` y `deactivate/`). Ninguna admite `DELETE`; el estado y el propietario solo cambian
+por sus acciones dedicadas y las ediciones exigen `expected_version`. Los errores por campo y los conflictos por
+duplicado se devuelven en los campos opcionales `errors` y `conflict` del error uniforme. El contrato completo está en
+el esquema OpenAPI.
+
+Despliegue (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate`, comprobaciones
+funcionales y luego frontend. Las migraciones son aditivas y se ensayaron en una base limpia y en una base con
+identidad previa; ante problemas con datos reales se prefiere la corrección hacia adelante, sin deshacer migraciones ni
+restaurar sin respaldo comprobado y autorización. Detalle en `docs/arquitectura/modelo-datos.md`.
 
 ## Documentación
 

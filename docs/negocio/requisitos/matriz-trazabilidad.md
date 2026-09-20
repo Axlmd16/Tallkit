@@ -32,8 +32,9 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009; RF-AUD-001, 003, 005 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol; implementado por `gestion-usuarios-autenticacion-roles` |
 | Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001 | Sin cambio funcional | Recorridos existentes | UI-001, UI-002, UI-010, UI-011, UI-018 | Implementado por `establecer-sistema-visual-frontend`; referencia en `DESIGN.md` |
 | Separación de los dos RUC | CT-001 | RN-FIS-001…010 | RF-ACC-010…014; RF-PAG-004, RF-PAG-009…010; RF-REP-008 | CU-003, CU-012…013, CU-017…020, CU-026 | UI-014…017, UI-053…063, UI-070…084 | EntidadFiscal, DocumentoInterno, CierreDiario |
-| Clientes compartidos | DP-008 | RN-CLI-001…003, RN-CLI-008 | RF-CLI-001…005, RF-CLI-012 | CU-004 | UI-020…022 | Cliente |
-| Vehículos y propiedad | DP-008; DM-003 V1 | RN-CLI-004…009 | RF-CLI-006…011 | CU-005 | UI-021, UI-023…025 | Vehiculo, PeriodoPropiedad |
+| Clientes compartidos | DP-008 (Cliente) | RN-CLI-001…003, RN-CLI-008 | RF-CLI-001…005, RF-CLI-012 | CU-004 | UI-020…022 | Cliente |
+| Vehículos y propiedad | DP-008 (Vehículo); DM-003 V1 | RN-CLI-004…009 | RF-CLI-006…011 | CU-005 | UI-021, UI-023…025 | Vehiculo, PeriodoPropiedad |
+| Marcas de vehículo | DP-008 (Marcas) | RN-CLI-006 | RF-CLI-013 | CU-005 | UI-033 | MarcaVehiculo |
 | Productos, presentaciones y marcas | DP-009, DP-017 | RN-CAT-001…004, RN-CAT-006…007, RN-CAT-011…013, RN-CAT-016 | RF-CAT-001…007, RF-CAT-009, RF-CAT-013…016 | CU-006 | UI-030…033 | Producto, Presentacion, Cantidad, catálogos de marca |
 | Servicios referenciales | DP-020 | RN-CAT-008…009 | RF-CAT-010…011; RF-TAL-005…006 | CU-016, CU-017 | UI-034…035, UI-071…072 | Servicio, ServicioAplicado |
 | Proveedores e ingresos | DP-011 | RN-CAT-010, RN-CAT-015; RN-INV-003…007 | RF-CAT-012; RF-INV-001…005, RF-INV-014 | CU-007 | UI-036…042 | Proveedor, IngresoMercaderia, LineaIngreso |
@@ -79,7 +80,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 |---|---|---|
 | SPEC-IDENTIDAD | Identidad y acceso (implementada; pendiente de verificación final y archivo) | RF-ACC-001…009; RF-AUD-001, 003, 005 |
 | SPEC-CONFIG | Entidades y parámetros | RF-ACC-010…014 |
-| SPEC-CLIENTES | Clientes y vehículos | RF-CLI-001…012 |
+| SPEC-CLIENTES | Clientes, vehículos, propiedad y marcas de vehículo (implementados en el alcance de `gestionar-clientes-y-vehiculos`; excluyen el historial de mantenimientos y documentos, `RF-CLI-011`, y saldos por RUC de `UI-021`); evidencia en [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md) | RF-CLI-001…013 |
 | SPEC-CATALOGOS | Productos, servicios y proveedores (implementados en el alcance de catálogos; excluyen existencias, costos y disponibilidad) | RF-CAT-001…016; evidencia en [cobertura-catalogos.md](cobertura-catalogos.md) |
 | SPEC-INVENTARIO | Ingresos, existencias, reservas y Kardex | RF-INV-001…019 |
 | SPEC-PROFORMAS | Proformas | RF-PRO-001…011 |

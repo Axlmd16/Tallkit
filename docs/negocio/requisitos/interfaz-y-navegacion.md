@@ -136,10 +136,10 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 |---|---|---|
 | UI-020 | Lista de clientes | Búsqueda por nombre, identificación y contacto; estado; acceso a ficha y creación. |
 | UI-021 | Ficha de cliente | Datos, vehículos, saldos separados por RUC e historial permitido. |
-| UI-022 | Formulario de cliente | Tipo de persona, identificación y datos definidos por `DP-008`; advertencias de duplicado. |
+| UI-022 | Formulario de cliente | Tipo de persona, identificación, nombre o razón social y teléfono obligatorios; email y dirección opcionales; advertencias de coincidencia por nombre o teléfono y rechazo de identificación duplicada con acceso a la ficha existente. |
 | UI-023 | Lista de vehículos | Placa, marca, modelo, propietario vigente, estado y último kilometraje. |
 | UI-024 | Ficha de vehículo | Datos, propietario vigente, períodos de propiedad, historial cronológico y accesos a mantenimientos. |
-| UI-025 | Formulario de vehículo | Placa, VIN y datos definidos; búsqueda previa de duplicados y selección del propietario. |
+| UI-025 | Formulario de vehículo | Placa, marca, modelo y propietario obligatorios; color, año y VIN opcionales; selectores paginados de cliente y marca activos, alta de marca sin perder el borrador y rechazo de placa o VIN duplicados con acceso a la ficha existente. |
 
 ### 6.3 Productos, servicios y proveedores
 
@@ -148,7 +148,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-030 | Lista de productos | Código interno, código del fabricante, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. |
 | UI-031 | Ficha de producto | Datos, existencia de la bodega principal, reserva, disponibilidad, Kardex, precio y costos según permiso, compatibilidades y opción de desarme si es kit. |
 | UI-032 | Formulario de producto | Código interno, código del fabricante (opcional), descripción, categoría, cantidad y unidad de la presentación cerrada, precio final, umbral, marca de producto, tipo kit y compatibilidades informativas. |
-| UI-033 | Categorías, marcas y unidades | Gestión separada de categorías, marcas de producto, marcas de vehículo y unidades de medida. |
+| UI-033 | Categorías, marcas y unidades | Gestión separada de categorías, marcas de producto, marcas de vehículo y unidades de medida. Las marcas de vehículo se consultan con `marcas_vehiculo.ver`, se crean y editan con `marcas_vehiculo.gestionar` y se activan o desactivan solo con `marcas_vehiculo.desactivar`, en la ruta `/vehicle-brands`. |
 | UI-034 | Lista de servicios | Nombre, precio referencial y estado. |
 | UI-035 | Formulario de servicio | Nombre, descripción opcional, precio referencial y estado. |
 | UI-036 | Lista de proveedores | Nombre, identificación opcional, contacto opcional y estado. |

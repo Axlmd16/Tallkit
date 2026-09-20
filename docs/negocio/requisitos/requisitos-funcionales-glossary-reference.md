@@ -7,3 +7,5 @@
 | Crédito | `docs/negocio/producto/glosario.md` | Condición con saldo, no medio de pago. |
 | Documento interno | `docs/negocio/producto/glosario.md` | Documento emitido en V1. |
 | Reembolso | `docs/negocio/producto/glosario.md` | Devolución trazable de dinero. |
+| Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
+| Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |

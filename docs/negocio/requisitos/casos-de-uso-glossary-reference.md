@@ -7,3 +7,5 @@
 | Intervención correctiva | `docs/negocio/producto/glosario.md` | Flujo de reapertura sin cargo. |
 | Consumo interno | `docs/negocio/producto/glosario.md` | Salida sin venta. |
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación separada de pagos. |
+| Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
+| Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |

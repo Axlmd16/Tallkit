@@ -42,18 +42,19 @@
 
 | ID | Requisito | Prioridad | Criterio de cumplimiento resumido |
 |---|---|---|---|
-| RF-CLI-001 | El sistema debe permitir registrar clientes como persona natural o jurídica con los datos obligatorios definidos en `DP-008`. | Debe | El cliente válido se guarda una sola vez y queda disponible para ambas entidades fiscales. |
+| RF-CLI-001 | El sistema debe permitir registrar clientes como persona natural o jurídica con los datos obligatorios definidos en `DP-008`: nombre o razón social, tipo de identificación, identificación y teléfono; email y dirección son opcionales. | Debe | El cliente válido se guarda una sola vez y queda disponible para ambas entidades fiscales. |
 | RF-CLI-002 | El sistema debe permitir buscar clientes por nombre, identificación, teléfono y otros datos disponibles. | Debe | La búsqueda devuelve coincidencias parciales pertinentes y admite seleccionar un cliente. |
 | RF-CLI-003 | El sistema debe normalizar la identificación y evitar duplicados por tipo y número cuando exista. | Debe | El intento de registrar la misma identificación normalizada es rechazado. |
 | RF-CLI-004 | El Administrador, el Vendedor y el Encargado del taller deben poder editar datos de un cliente sin alterar documentos históricos confirmados. | Debe | La ficha cambia, pero los datos conservados en documentos anteriores permanecen. |
 | RF-CLI-005 | El Administrador debe poder desactivar y reactivar clientes sin eliminar su historial. | Debe | El cliente inactivo no se usa en nuevas operaciones y sigue visible en las anteriores. |
 | RF-CLI-006 | El sistema debe permitir registrar uno o varios vehículos con un único cliente propietario vigente. | Debe | Cada vehículo queda asociado a un propietario y puede consultarse desde su ficha. |
-| RF-CLI-007 | El sistema debe registrar, según disponibilidad, placa, VIN, marca, modelo, año, color y datos técnicos necesarios. | Debe | La ficha valida formatos y obligatoriedad conforme a `DP-008`. |
+| RF-CLI-007 | El sistema debe registrar placa, marca, modelo y propietario como datos obligatorios, y color, año y VIN como opcionales. Kilometraje y datos técnicos adicionales quedan fuera del alcance entregado por `gestionar-clientes-y-vehiculos`. | Debe | La ficha valida formatos y obligatoriedad conforme a `DP-008`; no se registran vehículos sin placa. |
 | RF-CLI-008 | El sistema debe normalizar placa y VIN, y evitar duplicados cuando estén informados. | Debe | No se guardan dos vehículos activos o históricos con la misma placa o VIN normalizados. |
 | RF-CLI-009 | El Administrador o el Encargado del taller debe poder cambiar el propietario vigente cerrando el período anterior y conservando su historial. | Debe | Los mantenimientos anteriores permanecen asociados al cliente correspondiente a su fecha. |
 | RF-CLI-010 | El Administrador y el Encargado del taller deben poder editar vehículos; solo el Administrador puede desactivarlos o reactivarlos. | Debe | Un vehículo inactivo no entra en nuevas operaciones, pero conserva consultas históricas. |
 | RF-CLI-011 | El sistema debe mostrar un historial cronológico del vehículo con mantenimientos y documentos vinculados permitidos. | Debe | La consulta reúne los eventos del vehículo sin mezclar pagos o entidades fiscales. |
 | RF-CLI-012 | El sistema debe advertir posibles duplicados de clientes o vehículos antes de confirmar un registro. | Debería | Ante coincidencias relevantes, el usuario puede revisar la ficha existente antes de continuar. |
+| RF-CLI-013 | El sistema debe ofrecer un catálogo administrable de marcas de vehículo, separado de las marcas de producto: los tres roles lo consultan, Administrador y Encargado del taller crean y editan marcas, y solo el Administrador las desactiva y reactiva. | Debe | Una marca inactiva no se selecciona en nuevos vehículos, pero los vehículos que ya la usan conservan su referencia. |
 
 ## 4. Catálogos de productos, servicios y proveedores
 

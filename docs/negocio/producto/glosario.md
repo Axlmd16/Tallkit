@@ -171,6 +171,10 @@ Nueva atención dentro del mismo mantenimiento por una falla atribuible al traba
 
 Caso operativo completo del trabajo realizado sobre un vehículo bajo el RUC artesanal. Contiene una o más intervenciones con diagnóstico, kilometraje, servicios, observaciones y evidencias.
 
+### Marca de vehículo
+
+Catálogo administrable que identifica la marca de un vehículo del cliente; es independiente de la marca de producto. Los tres roles la consultan, Administrador y Encargado del taller la crean y editan, y solo el Administrador la desactiva o reactiva.
+
 ### Movimiento de inventario
 
 Registro inmutable de una entrada o salida que modifica la existencia de un producto y conserva su tipo, origen, fecha y responsable.
@@ -195,6 +199,10 @@ Registro de un importe recibido mediante una forma de pago real y aplicado a una
 
 Cobro de una operación mediante dos o más formas de pago, por ejemplo una parte en efectivo y otra por transferencia.
 
+### Período de propiedad
+
+Intervalo en el que un cliente es el propietario vigente de un vehículo, con inicio y fin opcional. Cambiar el propietario cierra el período anterior y abre otro; los períodos anteriores se conservan y no se editan retroactivamente.
+
 ### Precio aplicado
 
 Precio efectivamente utilizado en una línea de venta o servicio. Se conserva en el documento histórico aunque luego cambie el precio del catálogo.
@@ -218,6 +226,10 @@ Bien físico que compra, almacena o vende el RUC comercial. Puede ser un repuest
 ### Proforma
 
 Oferta de productos con precios y vigencia. No representa una venta confirmada, no reserva stock y puede convertirse en una venta nueva.
+
+### Propietario vigente
+
+Único cliente que posee un vehículo en el período de propiedad abierto. V1 no admite copropiedad ni un responsable distinto del propietario.
 
 ### Proveedor
 

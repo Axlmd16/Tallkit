@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.db import IntegrityError
 
 from customer_registry.application.customers import CustomerNotFoundError
 from customer_registry.application.vehicles import (
@@ -762,3 +763,123 @@ def test_transfer_vehicle_ownership_atomic_rollback_on_audit_failure(
     assert open_period.customer == customer
     vehicle.refresh_from_db()
     assert vehicle.version == 1
+
+
+def _winner(brand: VehicleBrand, *, plate: str, vin: str | None) -> Vehicle:
+    return Vehicle.objects.create(plate=plate, brand=brand, model="Ganador", vin=vin)
+
+
+@pytest.mark.django_db
+def test_create_vehicle_race_on_plate_reports_existing_vehicle(
+    admin_user: User, brand: VehicleBrand, customer: Customer
+) -> None:
+    # Otra transacción confirmó la misma placa después de la comprobación previa.
+    winner = _winner(brand, plate="RACE-001", vin=None)
+
+    with (
+        patch("customer_registry.application.vehicles._ensure_no_duplicates"),
+        pytest.raises(DuplicatePlateError) as exc_info,
+    ):
+        create_vehicle(
+            actor=admin_user,
+            owner_id=customer.id,
+            brand_id=brand.id,
+            plate=" race-001 ",
+            model="Perdedor",
+        )
+
+    assert exc_info.value.vehicle_id == winner.id
+    assert Vehicle.objects.filter(plate="RACE-001").count() == 1
+    assert not OwnershipPeriod.objects.filter(customer=customer).exists()
+    assert not AuditEvent.objects.filter(action="registry.vehicle_created").exists()
+
+
+@pytest.mark.django_db
+def test_create_vehicle_race_on_vin_reports_existing_vehicle(
+    admin_user: User, brand: VehicleBrand, customer: Customer
+) -> None:
+    winner = _winner(brand, plate="RACE-010", vin="RACEVIN0000000001")
+
+    with (
+        patch("customer_registry.application.vehicles._ensure_no_duplicates"),
+        pytest.raises(DuplicateVinError) as exc_info,
+    ):
+        create_vehicle(
+            actor=admin_user,
+            owner_id=customer.id,
+            brand_id=brand.id,
+            plate="RACE-011",
+            model="Perdedor",
+            vin="racevin0000000001",
+        )
+
+    assert exc_info.value.vehicle_id == winner.id
+    assert Vehicle.objects.filter(vin="RACEVIN0000000001").count() == 1
+    assert not Vehicle.objects.filter(plate="RACE-011").exists()
+
+
+@pytest.mark.django_db
+def test_update_vehicle_race_on_plate_reports_existing_vehicle(
+    admin_user: User, brand: VehicleBrand, customer: Customer
+) -> None:
+    mine = create_vehicle(
+        actor=admin_user, owner_id=customer.id, brand_id=brand.id, plate="MINE-001", model="Mio"
+    )
+    winner = _winner(brand, plate="RACE-020", vin=None)
+
+    with (
+        patch("customer_registry.application.vehicles._ensure_no_duplicates"),
+        pytest.raises(DuplicatePlateError) as exc_info,
+    ):
+        update_vehicle(
+            vehicle_id=mine.id,
+            expected_version=mine.version,
+            actor=admin_user,
+            data={"plate": "race-020"},
+        )
+
+    assert exc_info.value.vehicle_id == winner.id
+    mine.refresh_from_db()
+    assert (mine.plate, mine.version) == ("MINE-001", 1)
+
+
+@pytest.mark.django_db
+def test_update_vehicle_race_on_vin_reports_existing_vehicle(
+    admin_user: User, brand: VehicleBrand, customer: Customer
+) -> None:
+    mine = create_vehicle(
+        actor=admin_user, owner_id=customer.id, brand_id=brand.id, plate="MINE-002", model="Mio"
+    )
+    winner = _winner(brand, plate="RACE-030", vin="RACEVIN0000000002")
+
+    with (
+        patch("customer_registry.application.vehicles._ensure_no_duplicates"),
+        pytest.raises(DuplicateVinError) as exc_info,
+    ):
+        update_vehicle(
+            vehicle_id=mine.id,
+            expected_version=mine.version,
+            actor=admin_user,
+            data={"vin": "racevin0000000002"},
+        )
+
+    assert exc_info.value.vehicle_id == winner.id
+    mine.refresh_from_db()
+    assert (mine.vin, mine.version) == (None, 1)
+
+
+@pytest.mark.django_db
+def test_create_vehicle_unrelated_integrity_error_is_not_reported_as_duplicate(
+    admin_user: User, brand: VehicleBrand, customer: Customer
+) -> None:
+    with (
+        patch.object(Vehicle.objects, "create", side_effect=IntegrityError("otro fallo")),
+        pytest.raises(IntegrityError),
+    ):
+        create_vehicle(
+            actor=admin_user,
+            owner_id=customer.id,
+            brand_id=brand.id,
+            plate="RACE-040",
+            model="Otro",
+        )

@@ -58,10 +58,10 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 |---|---|
 | RN-CLI-001 | Un cliente puede ser persona natural o jurídica y puede relacionarse con ambas entidades fiscales. |
 | RN-CLI-002 | Cuando se registre un número de identificación, la combinación de tipo y número normalizado no debe repetirse. |
-| RN-CLI-003 | La ausencia de identificación solo se permitirá si las reglas del documento u operación correspondiente lo admiten. |
+| RN-CLI-003 | V1 no registra clientes sin identificación (`DP-008`, Cliente): son obligatorios nombre o razón social, tipo de identificación (CI de 10 caracteres o RUC de 13), identificación y teléfono. Email y dirección son opcionales durante el registro; una futura facturación podrá exigir completar los datos fiscales antes de emitir un comprobante. |
 | RN-CLI-004 | Un cliente puede tener uno o varios vehículos. |
 | RN-CLI-005 | Un vehículo debe tener un único propietario vigente, que referencia a un Cliente; V1 no distingue responsable ni copropietarios. |
-| RN-CLI-006 | La placa y el VIN, cuando existan, deben normalizarse y no deben duplicarse. |
+| RN-CLI-006 | La placa es obligatoria y, junto con el VIN cuando se informe, debe normalizarse y no duplicarse entre vehículos activos o inactivos (`DP-008`, Vehículo). Marca, modelo y propietario son obligatorios; color, año y VIN son opcionales. La marca proviene de un catálogo administrable: los tres roles la consultan, Administrador y Encargado del taller la crean y editan, y solo el Administrador la desactiva o reactiva (`DP-008`, Marcas). |
 | RN-CLI-007 | El historial de un vehículo debe conservar los mantenimientos y documentos relacionados aunque cambie su propietario. |
 | RN-CLI-008 | Los clientes y vehículos con historial transaccional no deben eliminarse físicamente; podrán desactivarse o corregirse de forma trazable. |
 | RN-CLI-009 | Cambiar el propietario debe cerrar el período anterior y abrir uno nuevo sin alterar mantenimientos ni documentos históricos. |

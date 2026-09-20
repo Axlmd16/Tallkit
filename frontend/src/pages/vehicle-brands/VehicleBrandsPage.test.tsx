@@ -99,7 +99,7 @@ it('allows creating and editing when user has marcas_vehiculo.gestionar', async 
     'Chevrolet',
   )
   await user.click(
-    within(drawer).getByRole('button', { name: /guardar cambios/i }),
+    within(drawer).getByRole('button', { name: /guardar marca/i }),
   )
 
   expect(mocks.create).toHaveBeenCalledWith({ name: 'Chevrolet' })
@@ -182,7 +182,9 @@ it('shows error state when brands fail to load', () => {
     </MemoryRouter>,
   )
 
-  expect(screen.getByText(/No fue posible cargar/i)).toBeInTheDocument()
+  expect(
+    screen.getByText(/No fue posible consultar las marcas/i),
+  ).toBeInTheDocument()
 })
 
 it('allows editing an existing brand via edit drawer', async () => {
@@ -203,7 +205,7 @@ it('allows editing an existing brand via edit drawer', async () => {
   expect(drawer).toBeInTheDocument()
 
   await user.click(
-    within(drawer).getByRole('button', { name: /guardar marca/i }),
+    within(drawer).getByRole('button', { name: /guardar cambios/i }),
   )
   expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
 })

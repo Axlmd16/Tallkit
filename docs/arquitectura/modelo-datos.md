@@ -125,6 +125,15 @@ Registra el intervalo temporal durante el cual un **cliente** es o ha sido **pro
    - `0002_vehiclebrand.py` en la aplicación `customer_registry` (`VehicleBrand`).
    - `0003_vehicle_ownershipperiod_and_more.py` en la aplicación `customer_registry` (`Vehicle`, `OwnershipPeriod`).
    - Las migraciones son independientes de las tablas de negocio futuras y respetan el esquema de identidad vigente.
+4. **Ensayo de migraciones (2026-09-20, PostgreSQL 17.11 del `compose.yaml`)**: se ejecutó `manage.py migrate` en dos bases desechables creadas y eliminadas durante el ensayo, sin tocar la base de desarrollo.
+   - *Base limpia*: todas las migraciones se aplicaron sin errores y `makemigrations --check --dry-run` no detectó cambios.
+   - *Base con identidad previa*: se aplicó solo `identity` (con sus dependencias de `auth`), se insertaron un usuario y un evento de auditoría sintéticos y después se migró el resto. Tras la migración se conservaron 1 usuario y 1 evento; las tablas de clientes, marcas, vehículos y períodos quedaron vacías, sin datos previos imprevistos.
+   - Restricciones comprobadas en `pg_constraint`/`pg_indexes`: unicidad de identificación (`unique_customer_identification`), de placa (`vehicle_plate_unique`), de VIN informado (`vehicle_vin_unique_when_not_null`) y de período abierto (`ownership_unique_open_period`); comprobaciones de no vacío, tipos, versión y `ownership_ended_at_gte_started_at`; claves foráneas protegidas hacia marca, cliente y vehículo.
+5. **Respaldo, despliegue y recuperación**:
+   - Antes de migrar una base con datos, realizar un respaldo verificado con el procedimiento vigente del entorno; el procedimiento definitivo de respaldo y restauración local sigue abierto en DA-003 y este cambio no lo resuelve.
+   - Orden de despliegue: respaldo → backend y `make migrate` → comprobaciones (`manage.py check`, sesiones, permisos de marcas, API y auditoría) → frontend. El contrato de errores ampliado (`errors`, `conflict`) es opcional, de modo que un frontend anterior sigue consumiéndolo.
+   - Las migraciones solo crean tablas propias y no modifican identidad. Antes del uso operativo puede volverse al código anterior dejando las tablas sin uso. Después de registrar datos se prefiere la corrección hacia adelante; no se revierten migraciones ni se restaura una copia sin autorización expresa, y nunca se eliminan fichas automáticamente.
+   - Si una base objetivo contiene tablas o datos de estas capacidades no previstos, detener la migración hasta contar con un plan de conservación.
 
 ## Módulo: workshop_configuration
 

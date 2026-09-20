@@ -6,7 +6,9 @@ test.describe('customer registry', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'admin_e2e')
     await page.getByRole('link', { name: 'Clientes', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Clientes' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Clientes', exact: true }),
+    ).toBeVisible()
   })
 
   test('customer registry journey: natural and juridica creation, search, edit, duplicate rejection, and non-blocking match warning', async ({
@@ -27,7 +29,7 @@ test.describe('customer registry', () => {
       .getByRole('row')
       .filter({ hasText: 'Carlos Vera Natural' })
     await expect(naturalRow).toBeVisible()
-    await expect(naturalRow).toContainText('CI: 0912345678')
+    await expect(naturalRow).toContainText('0912345678')
     await expect(naturalRow).toContainText('0991112233')
     await expect(naturalRow).toContainText('Activo')
 
@@ -49,7 +51,7 @@ test.describe('customer registry', () => {
       .getByRole('row')
       .filter({ hasText: 'Mecánica del Puerto Cía. Ltda.' })
     await expect(juridicaRow).toBeVisible()
-    await expect(juridicaRow).toContainText('RUC: 0991234567001')
+    await expect(juridicaRow).toContainText('0991234567001')
     await expect(juridicaRow).toContainText('042998877')
     await expect(juridicaRow).toContainText('Activo')
 
@@ -167,7 +169,7 @@ test.describe('customer registry', () => {
       .getByRole('row')
       .filter({ hasText: 'Familiar de Carlos Vera' })
     await expect(familiarRow).toBeVisible()
-    await expect(familiarRow).toContainText('CI: 0923456789')
+    await expect(familiarRow).toContainText('0923456789')
   })
 })
 
@@ -180,7 +182,9 @@ test.describe('vehicle brands', () => {
     await page
       .getByRole('link', { name: 'Marcas de vehículo', exact: true })
       .click()
-    await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Marcas', exact: true }),
+    ).toBeVisible()
 
     // Vendedor should NOT see the "Nueva marca" button
     await expect(page.getByRole('button', { name: 'Nueva marca' })).toHaveCount(
@@ -216,7 +220,9 @@ test.describe('vehicle brands', () => {
     await page
       .getByRole('link', { name: 'Marcas de vehículo', exact: true })
       .click()
-    await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Marcas', exact: true }),
+    ).toBeVisible()
 
     // Encargado creates a brand
     await page.getByRole('button', { name: 'Nueva marca' }).click()
@@ -288,7 +294,9 @@ test.describe('vehicle brands', () => {
     await page
       .getByRole('link', { name: 'Marcas de vehículo', exact: true })
       .click()
-    await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Marcas', exact: true }),
+    ).toBeVisible()
 
     brandRow = page.getByRole('row').filter({ hasText: 'Chevrolet Motors' })
     await expect(brandRow).toBeVisible()
@@ -391,7 +399,9 @@ test.describe('vehicles and ownership', () => {
     // 2. Encargado del taller tests creation and validations
     await login(page, 'taller_e2e')
     await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Vehículos' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Vehículos', exact: true }),
+    ).toBeVisible()
 
     // Check that "Marca Para Desactivar" is NOT present in brand options
     await page
@@ -502,7 +512,8 @@ test.describe('vehicles and ownership', () => {
     await expect(subaruRow).toContainText('Subaru E2E')
 
     // 3. Bidirectional navigation and consultation from customer and vehicle
-    await vehicleRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehicleRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(page.getByRole('heading', { name: 'GBE-1234' })).toBeVisible()
     await expect(page.getByText('Toyota E2E Hilux')).toBeVisible()
 
@@ -584,7 +595,9 @@ test.describe('vehicles and ownership', () => {
     // 4. Vendedor authorization check: read-only access
     await login(page, 'vendedor_e2e')
     await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Vehículos' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Vehículos', exact: true }),
+    ).toBeVisible()
 
     // Vendedor can see rows and "Ver ficha", but NOT "Registrar vehículo" or "Editar"
     await expect(
@@ -595,7 +608,8 @@ test.describe('vehicles and ownership', () => {
     await expect(
       vehicleRow.getByRole('button', { name: 'Editar' }),
     ).toHaveCount(0)
-    await vehicleRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehicleRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // In vehicle detail, Vendedor sees details and owner, but cannot edit
     await expect(page.getByRole('heading', { name: 'GBE-1234' })).toBeVisible()
@@ -713,7 +727,8 @@ test.describe('vehicles and ownership', () => {
     const trfRow = page.getByRole('row').filter({ hasText: 'TRF-9999' })
     await expect(trfRow).toBeVisible()
     await expect(trfRow).toContainText('Propietario Origen')
-    await trfRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await trfRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // Vehicle detail
     await expect(page.getByRole('heading', { name: 'TRF-9999' })).toBeVisible()
@@ -773,7 +788,8 @@ test.describe('vehicles and ownership', () => {
     const originRow = page
       .getByRole('row')
       .filter({ hasText: 'Propietario Origen' })
-    await originRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await originRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Propietario Origen' }),
     ).toBeVisible()
@@ -787,7 +803,8 @@ test.describe('vehicles and ownership', () => {
     const destinationRow = page
       .getByRole('row')
       .filter({ hasText: 'Propietario Destino' })
-    await destinationRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await destinationRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Propietario Destino' }),
     ).toBeVisible()
@@ -896,7 +913,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(
       custRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
-    await custRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await custRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -907,7 +925,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(
       vehRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
-    await vehRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -921,7 +940,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(
       custRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
-    await custRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await custRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -932,7 +952,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(
       vehRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
-    await vehRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -970,7 +991,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(vehRow).toBeVisible()
 
     // Check vehicle detail: consultable, history intact, "Cambiar propietario" NOT shown
-    await vehRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(page.getByRole('heading', { name: 'INA-1234' })).toBeVisible()
     await expect(
       page.locator('.page-header').getByText('Inactivo'),
@@ -1011,7 +1033,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // Reactivate vehicle via detail page
     await page.getByLabel('Filtrar por estado').selectOption('false')
     vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
-    await vehRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await vehRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await page.getByRole('button', { name: 'Activar' }).click()
     let actDialog = page.getByRole('dialog', { name: 'Activar vehículo' })
     await expect(actDialog).toBeVisible()
@@ -1057,7 +1080,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(custRow).toBeVisible()
 
     // Check customer detail: consultable, associated vehicle intact
-    await custRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await custRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Cliente Ciclo Estado' }),
     ).toBeVisible()
@@ -1107,7 +1131,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await page.locator('#customer-status-filter').selectOption('false')
     await page.getByRole('button', { name: 'Buscar' }).click()
     custRow = page.getByRole('row').filter({ hasText: 'Cliente Ciclo Estado' })
-    await custRow.getByRole('link', { name: 'Ver ficha' }).click()
+    await custRow.getByRole('cell').first().click()
+    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await page.getByRole('button', { name: 'Activar' }).click()
     actDialog = page.getByRole('dialog', { name: 'Activar cliente' })
     await expect(actDialog).toBeVisible()

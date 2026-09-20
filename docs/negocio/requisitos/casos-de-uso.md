@@ -138,7 +138,8 @@
 **Alternativas y excepciones**
 
 - 4a. Existe la misma identificación: se impide duplicar y se ofrece abrir la ficha.
-- 4b. Falta un dato definido como obligatorio en `DP-008`: se señala el campo.
+- 4b. Falta un dato obligatorio de `DP-008` (nombre o razón social, tipo de identificación, identificación o teléfono): se señala el campo. Email y dirección pueden omitirse.
+- 4c. Coinciden nombre o teléfono con otra ficha, pero la identificación es distinta: se advierte sin bloquear y el actor puede revisar la ficha o continuar.
 - 5a. El Administrador desactiva el cliente: no podrá usarse en nuevas operaciones, pero conserva el historial.
 
 **Garantía de éxito:** existe una única ficha utilizable por los procesos autorizados.  
@@ -160,11 +161,15 @@
 
 **Alternativas y excepciones**
 
-- 4a. La placa o VIN ya existe: se rechaza el duplicado y se muestra la ficha existente.
+- 3a. Falta la marca en el catálogo: si el actor tiene permiso de gestión de marcas (Administrador o Encargado del taller) puede crearla sin perder el borrador del vehículo; de lo contrario solicita su alta.
+- 4a. La placa o VIN ya existe, incluso en un vehículo inactivo: se rechaza el duplicado y se muestra la ficha existente.
+- 4b. Falta la placa, la marca, el modelo o el propietario: se señala el campo. Color, año y VIN son opcionales.
 - 5a. Cambia el propietario: se cierra el período anterior y se abre otro sin trasladar ni borrar historial.
 - 5b. El Administrador desactiva el vehículo: queda fuera de nuevos mantenimientos, pero permanece consultable.
 
 **Garantía de éxito:** el vehículo queda identificado y conserva su continuidad histórica.
+
+> **Estado de implementación:** `CU-004` y `CU-005` están implementados por `openspec/changes/gestionar-clientes-y-vehiculos` para fichas, propiedad y períodos de propiedad. La consulta cronológica de mantenimientos y documentos vinculados (`RF-CLI-011`) no forma parte de esa entrega y depende de las capacidades de taller y ventas. Evidencia: [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md).
 
 > **Estado de implementación:** `CU-006` y `CU-016` están implementados en el cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores` para productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. No incluyen existencias, costos ni operaciones de compra, venta o mantenimiento. Evidencia: [cobertura-catalogos.md](cobertura-catalogos.md).
 

@@ -114,6 +114,7 @@ class CustomerListCreateView(APIView):
     @extend_schema(
         tags=["Customers"],
         summary="Buscar y listar clientes",
+        operation_id="customers_list",
         parameters=[
             OpenApiParameter(
                 "search",
@@ -523,6 +524,7 @@ class VehicleBrandListCreateView(APIView):
     @extend_schema(
         tags=["Brands"],
         summary="Listar marcas de vehículo",
+        operation_id="vehicle_brands_list",
         parameters=[
             OpenApiParameter(
                 "search",
@@ -910,6 +912,7 @@ class VehicleListCreateView(APIView):
     @extend_schema(
         tags=["Vehicles"],
         summary="Listar y buscar vehículos",
+        operation_id="vehicles_list",
         parameters=[
             OpenApiParameter(
                 name="search",

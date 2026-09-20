@@ -53,7 +53,8 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 - Registro, edición, búsqueda y consulta de clientes.
 - Tipos de identificación y datos de contacto.
 - Registro de uno o varios vehículos por cliente y conservación de sus períodos de propiedad.
-- Placa, marca, modelo, año, color, kilometraje y datos técnicos necesarios.
+- Placa, marca, modelo y propietario obligatorios; año, color y VIN opcionales; kilometraje y datos técnicos según las capacidades de taller que los requieran.
+- Catálogo administrable de marcas de vehículo, con consulta para los tres roles, alta y edición para Administrador y Encargado del taller, y baja y reactivación solo para el Administrador.
 - Consulta del historial de mantenimientos y operaciones relacionadas.
 - Uso compartido de clientes y vehículos por las dos entidades fiscales.
 

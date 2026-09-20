@@ -399,7 +399,7 @@ it('allows authorized user to open edit drawer from customer detail', async () =
     </MemoryRouter>,
   )
 
-  const editBtn = screen.getByRole('button', { name: /^editar$/i })
+  const editBtn = screen.getByRole('button', { name: /^editar cliente$/i })
   await user.click(editBtn)
 
   const drawer = screen.getByRole('dialog', { name: /editar cliente/i })

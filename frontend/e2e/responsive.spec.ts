@@ -298,7 +298,8 @@ test('vehicle transfer adapts to narrow 360px viewport without overflow', async 
     .getByRole('listitem')
     .filter({ hasText: 'PBX-9988' })
     .or(page.getByRole('row').filter({ hasText: 'PBX-9988' }))
-  await vehicleRow.getByRole('link', { name: 'Ver ficha' }).click()
+  await vehicleRow.click()
+  await page.getByRole('link', { name: 'Ver ficha completa' }).click()
   await expect(page.getByRole('heading', { name: 'PBX-9988' })).toBeVisible()
 
   // Open transfer dialog

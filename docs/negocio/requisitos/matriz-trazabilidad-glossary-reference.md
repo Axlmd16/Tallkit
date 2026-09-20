@@ -11,3 +11,5 @@
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación por RUC y medio de pago. |
 | Evidencia visual | `docs/tecnico/glosario-tecnico.md` | Demostración reproducible de la implementación del sistema visual. |
 | Referencia Figma | `docs/tecnico/glosario-tecnico.md` | Fuente estructurada de los patrones visuales trazados. |
+| Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
+| Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |

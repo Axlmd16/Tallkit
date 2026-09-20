@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from django.db import transaction
-from django.db.models import Q
+from django.db import IntegrityError, transaction
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from customer_registry.application.brands import BrandNotFoundError
@@ -61,6 +61,64 @@ class StaleVehicleRecordError(VehicleApplicationError):
         self.current_version = current_version
 
 
+def _other_vehicles(exclude_id: int | None, **lookup: str) -> QuerySet[Vehicle]:
+    queryset = Vehicle.objects.filter(**lookup)
+    return queryset if exclude_id is None else queryset.exclude(id=exclude_id)
+
+
+def _ensure_no_duplicates(
+    *, plate: str | None, vin: str | None, exclude_id: int | None = None
+) -> None:
+    if plate:
+        existing_plate = _other_vehicles(exclude_id, plate=plate).first()
+        if existing_plate:
+            raise DuplicatePlateError(
+                f"Ya existe un vehículo registrado con la placa {plate}.",
+                plate=plate,
+                vehicle_id=existing_plate.id,
+                is_active=existing_plate.is_active,
+            )
+    if vin:
+        existing_vin = _other_vehicles(exclude_id, vin=vin).first()
+        if existing_vin:
+            raise DuplicateVinError(
+                f"Ya existe un vehículo registrado con el VIN {vin}.",
+                vin=vin,
+                vehicle_id=existing_vin.id,
+                is_active=existing_vin.is_active,
+            )
+
+
+_PLATE_CONSTRAINT = "vehicle_plate_unique"
+_VIN_CONSTRAINT = "vehicle_vin_unique_when_not_null"
+
+
+def _duplicate_from_integrity_error(
+    exc: IntegrityError, *, plate: str | None, vin: str | None, exclude_id: int | None = None
+) -> VehicleApplicationError | None:
+    """Traduce una violación de unicidad concreta; cualquier otra no se disfraza de duplicado."""
+    constraint = getattr(getattr(exc.__cause__, "diag", None), "constraint_name", None)
+    if constraint == _PLATE_CONSTRAINT and plate:
+        conflict = _other_vehicles(exclude_id, plate=plate).first()
+        if conflict:
+            return DuplicatePlateError(
+                f"Ya existe un vehículo registrado con la placa {plate}.",
+                plate=plate,
+                vehicle_id=conflict.id,
+                is_active=conflict.is_active,
+            )
+    if constraint == _VIN_CONSTRAINT and vin:
+        conflict = _other_vehicles(exclude_id, vin=vin).first()
+        if conflict:
+            return DuplicateVinError(
+                f"Ya existe un vehículo registrado con el VIN {vin}.",
+                vin=vin,
+                vehicle_id=conflict.id,
+                is_active=conflict.is_active,
+            )
+    return None
+
+
 def create_vehicle(
     *,
     actor: User,
@@ -109,35 +167,27 @@ def create_vehicle(
                 reference_id=brand.id,
             )
 
-        existing_plate = Vehicle.objects.filter(plate=normalized_plate).first()
-        if existing_plate:
-            raise DuplicatePlateError(
-                f"Ya existe un vehículo registrado con la placa {normalized_plate}.",
-                plate=normalized_plate,
-                vehicle_id=existing_plate.id,
-                is_active=existing_plate.is_active,
-            )
+        _ensure_no_duplicates(plate=normalized_plate, vin=normalized_vin)
 
-        if normalized_vin:
-            existing_vin = Vehicle.objects.filter(vin=normalized_vin).first()
-            if existing_vin:
-                raise DuplicateVinError(
-                    f"Ya existe un vehículo registrado con el VIN {normalized_vin}.",
+        try:
+            with transaction.atomic():
+                vehicle = Vehicle.objects.create(
+                    plate=normalized_plate,
+                    brand=brand,
+                    model=normalized_model,
+                    color=normalized_color,
+                    year=validated_year,
                     vin=normalized_vin,
-                    vehicle_id=existing_vin.id,
-                    is_active=existing_vin.is_active,
+                    is_active=True,
+                    version=1,
                 )
-
-        vehicle = Vehicle.objects.create(
-            plate=normalized_plate,
-            brand=brand,
-            model=normalized_model,
-            color=normalized_color,
-            year=validated_year,
-            vin=normalized_vin,
-            is_active=True,
-            version=1,
-        )
+        except IntegrityError as exc:
+            duplicate = _duplicate_from_integrity_error(
+                exc, plate=normalized_plate, vin=normalized_vin
+            )
+            if duplicate is None:
+                raise
+            raise duplicate from None
 
         now = timezone.now()
         OwnershipPeriod.objects.create(
@@ -216,16 +266,7 @@ def update_vehicle(
         if "plate" in data and data["plate"] is not None:
             new_plate = validate_vehicle_plate(data["plate"])
             if new_plate != vehicle.plate:
-                existing_plate = (
-                    Vehicle.objects.filter(plate=new_plate).exclude(id=vehicle.id).first()
-                )
-                if existing_plate:
-                    raise DuplicatePlateError(
-                        f"Ya existe un vehículo con la placa {new_plate}.",
-                        plate=new_plate,
-                        vehicle_id=existing_plate.id,
-                        is_active=existing_plate.is_active,
-                    )
+                _ensure_no_duplicates(plate=new_plate, vin=None, exclude_id=vehicle.id)
 
         new_model = vehicle.model
         if "model" in data and data["model"] is not None:
@@ -243,14 +284,7 @@ def update_vehicle(
         if "vin" in data:
             new_vin = validate_vehicle_vin(data["vin"])
             if new_vin and new_vin != vehicle.vin:
-                existing_vin = Vehicle.objects.filter(vin=new_vin).exclude(id=vehicle.id).first()
-                if existing_vin:
-                    raise DuplicateVinError(
-                        f"Ya existe un vehículo con el VIN {new_vin}.",
-                        vin=new_vin,
-                        vehicle_id=existing_vin.id,
-                        is_active=existing_vin.is_active,
-                    )
+                _ensure_no_duplicates(plate=None, vin=new_vin, exclude_id=vehicle.id)
 
         changed_fields: list[str] = []
         if new_brand.id != vehicle.brand_id:
@@ -279,7 +313,16 @@ def update_vehicle(
         fields_to_update = [*changed_fields, "version", "updated_at"]
         if "brand_id" in changed_fields:
             fields_to_update[fields_to_update.index("brand_id")] = "brand"
-        vehicle.save(update_fields=fields_to_update)
+        try:
+            with transaction.atomic():
+                vehicle.save(update_fields=fields_to_update)
+        except IntegrityError as exc:
+            duplicate = _duplicate_from_integrity_error(
+                exc, plate=new_plate, vin=new_vin, exclude_id=vehicle.id
+            )
+            if duplicate is None:
+                raise
+            raise duplicate from None
 
         record_audit_event(
             actor=actor,
