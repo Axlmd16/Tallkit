@@ -139,7 +139,11 @@ export function ServiceForm({
   const noTaxConfiguration = taxes.isSuccess && taxOptions.length === 0
 
   return (
-    <form className="space-y-6" noValidate onSubmit={submit}>
+    <form
+      className="catalog-editor-form service-form space-y-6"
+      noValidate
+      onSubmit={submit}
+    >
       {problem && (
         <InlineNotice title="No se pudo guardar el servicio" tone="danger">
           {problem.message}
@@ -163,6 +167,7 @@ export function ServiceForm({
         />
       </Field>
       <Field
+        className="service-description-field"
         error={errors.description}
         id="service-description"
         label="Descripción (opcional)"

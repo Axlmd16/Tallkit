@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -73,6 +74,36 @@ it('lista un proveedor sin documento ni contacto usando marcadores neutros', () 
   expect(
     screen.getByLabelText(/ámbito fiscal: ruc comercial/i),
   ).toBeInTheDocument()
+})
+
+it('abre una vista previa del proveedor con contacto e identificación', async () => {
+  mocks.list = {
+    isPending: false,
+    isError: false,
+    data: {
+      count: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      results: [
+        {
+          ...supplier,
+          identification_type: 'RUC',
+          identification: '1790012345001',
+          phone: '0999999999',
+        },
+      ],
+    },
+  }
+  const user = userEvent.setup()
+  renderPage()
+
+  await user.click(screen.getAllByText('Juan Pérez')[0]!)
+  const preview = await screen.findByRole('dialog', {
+    name: 'Detalle del proveedor',
+  })
+  expect(within(preview).getByText('1790012345001')).toBeInTheDocument()
+  expect(within(preview).getByText('0999999999')).toBeInTheDocument()
 })
 
 it('envía búsqueda, estado y página de la URL al servidor', () => {

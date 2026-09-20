@@ -146,8 +146,12 @@ export function AdjustmentDrawer({
       open={open}
       {...(returnFocusRef ? { returnFocusRef } : {})}
       title="Carga inicial y ajustes"
+      width="medium"
     >
-      <form className="space-y-4" onSubmit={(event) => void prepare(event)}>
+      <form
+        className="catalog-editor-form inventory-adjustment-form space-y-4"
+        onSubmit={(event) => void prepare(event)}
+      >
         {problem && (
           <InlineNotice title="No se pudo completar" tone="danger">
             {problem.message}

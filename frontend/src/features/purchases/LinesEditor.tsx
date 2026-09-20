@@ -1,4 +1,4 @@
-import { Plus, Trash } from '@phosphor-icons/react'
+import { ListBullets, Plus, Trash } from '@phosphor-icons/react'
 
 import { Button, Field, InlineNotice, Input, Select } from '@/shared/ui'
 
@@ -36,6 +36,17 @@ export function LinesEditor({
 
   return (
     <section aria-label="Líneas del ingreso" className="space-y-4">
+      <div className="flex items-start gap-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-group bg-cyan-soft text-cyan">
+          <ListBullets aria-hidden="true" size={22} />
+        </span>
+        <div>
+          <h2 className="font-bold text-ink">Productos recibidos</h2>
+          <p className="mt-0.5 text-sm text-ink-muted">
+            Registre cantidades, costos e impuesto por cada presentación.
+          </p>
+        </div>
+      </div>
       {lines.length === 0 && (
         <InlineNotice title="Sin líneas" tone="info">
           Puede guardar el borrador sin líneas y continuar después; para
@@ -48,7 +59,7 @@ export function LinesEditor({
         const inactive = line.product?.inactive
         return (
           <fieldset
-            className="space-y-3 rounded-group bg-surface p-4 shadow-card"
+            className="space-y-4 rounded-group border border-line bg-surface p-5"
             key={line.key}
           >
             <legend className="px-2 font-semibold text-ink">

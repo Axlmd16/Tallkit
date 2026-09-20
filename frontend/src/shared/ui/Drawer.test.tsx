@@ -38,6 +38,9 @@ it('moves focus into the drawer, traps it and returns it after Escape', async ()
   const trigger = screen.getByRole('button', { name: 'Editar usuario' })
 
   await user.click(trigger)
+  expect(screen.getByRole('dialog', { name: 'Datos del usuario' })).toHaveClass(
+    'drawer-surface',
+  )
   await waitFor(() =>
     expect(screen.getByRole('textbox', { name: 'Nombres' })).toHaveFocus(),
   )

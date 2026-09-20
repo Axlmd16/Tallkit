@@ -1,6 +1,14 @@
-import { Pencil, Power } from '@phosphor-icons/react'
+import {
+  Barcode,
+  Cube,
+  CurrencyDollar,
+  Package,
+  PencilSimple,
+  Power,
+  Tag,
+} from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { CatalogToolbar } from '@/features/catalog-common/CatalogToolbar'
@@ -21,6 +29,7 @@ import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
+  Drawer,
   ElevatedDataList,
   Field,
   FiscalScopeBadge,
@@ -35,8 +44,6 @@ const PICKER = { isActive: 'all', pageSize: 100 } as const
 
 export function ProductsPage() {
   const filters = useUrlFilters()
-  const location = useLocation()
-  const navigate = useNavigate()
   const permissions = new Set(useSession().data?.permissions ?? [])
   const canManage = permissions.has('productos.gestionar')
   const canDeactivate = permissions.has('productos.desactivar')
@@ -44,6 +51,7 @@ export function ProductsPage() {
   const mutations = useProductMutations()
 
   const [editor, setEditor] = useState<'new' | Product | null>(null)
+  const [previewing, setPreviewing] = useState<Product | null>(null)
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -106,7 +114,7 @@ export function ProductsPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="catalog-page list-page space-y-6">
       <PageHeader
         actions={
           <nav
@@ -193,19 +201,24 @@ export function ProductsPage() {
               <RowActions>
                 {canManage && (
                   <Button
+                    aria-label="Editar"
+                    className="record-action"
                     onClick={() => {
                       setNotice(null)
                       setEditor(row)
                     }}
                     type="button"
+                    title="Editar"
                     variant="quiet"
                   >
-                    <Pencil aria-hidden="true" size={15} />
-                    Editar
+                    <PencilSimple aria-hidden="true" size={18} />
+                    <span>Editar</span>
                   </Button>
                 )}
                 {canDeactivate && (
                   <Button
+                    aria-label={row.is_active ? 'Desactivar' : 'Reactivar'}
+                    className="record-action"
                     onClick={() =>
                       setChange({
                         id: row.id,
@@ -215,10 +228,11 @@ export function ProductsPage() {
                       })
                     }
                     type="button"
-                    variant="quiet"
+                    title={row.is_active ? 'Desactivar' : 'Reactivar'}
+                    variant={row.is_active ? 'danger' : 'secondary'}
                   >
-                    <Power aria-hidden="true" size={15} />
-                    {row.is_active ? 'Desactivar' : 'Reactivar'}
+                    <Power aria-hidden="true" size={18} />
+                    <span>{row.is_active ? 'Desactivar' : 'Reactivar'}</span>
                   </Button>
                 )}
               </RowActions>
@@ -252,7 +266,12 @@ export function ProductsPage() {
                 key: 'name',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="font-semibold text-ink">{row.name}</span>
+                  <span className="flex items-center gap-2.5 font-semibold text-ink">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                      <Package aria-hidden="true" size={17} weight="fill" />
+                    </span>
+                    {row.name}
+                  </span>
                 ),
               },
               {
@@ -289,15 +308,98 @@ export function ProductsPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Productos"
-            onRowClick={(row) =>
-              navigate(`/products/${row.id}`, {
-                state: { from: location.search },
-              })
-            }
+            onRowClick={setPreviewing}
             rows={rows}
           />
         )}
       </ListStates>
+
+      <Drawer
+        className="record-preview-drawer"
+        description="Resumen del producto seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle del producto"
+        width="409"
+      >
+        {previewing && (
+          <div className="record-preview-content space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <span className="grid size-20 place-items-center rounded-full bg-primary-soft text-primary">
+                <Package aria-hidden="true" size={38} weight="duotone" />
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.name}
+              </h3>
+              <p className="mt-1 text-sm font-semibold text-ink-muted">
+                {previewing.code}
+              </p>
+              <div className="mt-3">
+                <StatusBadge
+                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
+                  tone={previewing.is_active ? 'success' : 'neutral'}
+                />
+              </div>
+            </div>
+
+            <section aria-labelledby="product-preview-details">
+              <h3
+                className="text-base font-bold text-ink"
+                id="product-preview-details"
+              >
+                Información del producto
+              </h3>
+              <div className="preview-detail-list">
+                <div>
+                  <Barcode size={19} />
+                  <span>Código fabricante</span>
+                  <strong>
+                    {previewing.manufacturer_code || 'No registrado'}
+                  </strong>
+                </div>
+                <div>
+                  <Tag size={19} />
+                  <span>Categoría</span>
+                  <strong>
+                    {previewing.category?.name || 'Sin categoría'}
+                  </strong>
+                </div>
+                <div>
+                  <Cube size={19} />
+                  <span>Presentación</span>
+                  <strong>{presentation(previewing)}</strong>
+                </div>
+                <div>
+                  <CurrencyDollar size={19} />
+                  <span>Precio final</span>
+                  <strong>{usd(previewing.sale_price)}</strong>
+                </div>
+              </div>
+            </section>
+
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className="preview-primary-link"
+                to={`/products/${previewing.id}`}
+              >
+                Ver ficha completa
+              </Link>
+              {canManage && (
+                <Button
+                  onClick={() => {
+                    setEditor(previewing)
+                    setPreviewing(null)
+                  }}
+                  variant="secondary"
+                >
+                  <PencilSimple aria-hidden="true" size={18} />
+                  Editar producto
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Drawer>
 
       <ProductEditorDrawer
         mode={editor}

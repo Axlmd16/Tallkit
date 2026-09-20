@@ -31,6 +31,7 @@ export function SupplierEditorDrawer({
       )}
       useDetail={useSupplier}
       useMutations={useSupplierMutations}
+      width="medium"
     />
   )
 }

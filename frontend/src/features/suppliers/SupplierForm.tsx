@@ -162,7 +162,11 @@ export function SupplierForm({
   const similar = matches.data?.results ?? []
 
   return (
-    <form className="space-y-6" noValidate onSubmit={submit}>
+    <form
+      className="catalog-editor-form supplier-form space-y-6"
+      noValidate
+      onSubmit={submit}
+    >
       {problem && (
         <InlineNotice title="No se pudo guardar el proveedor" tone="danger">
           {problem.message}
@@ -202,7 +206,7 @@ export function SupplierForm({
         </InlineNotice>
       )}
 
-      <fieldset className="space-y-4">
+      <fieldset className="form-section space-y-4">
         <legend className="text-base font-bold text-ink">
           Identificación (opcional)
         </legend>
@@ -251,7 +255,7 @@ export function SupplierForm({
         )}
       </fieldset>
 
-      <fieldset className="space-y-4">
+      <fieldset className="form-section space-y-4">
         <legend className="text-base font-bold text-ink">
           Contacto (opcional)
         </legend>

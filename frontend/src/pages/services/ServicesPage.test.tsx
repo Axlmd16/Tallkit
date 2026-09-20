@@ -70,6 +70,22 @@ it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   expect(table.textContent).not.toMatch(/stock|existencia|costo|cobro/i)
 })
 
+it('abre una vista previa visual del servicio desde la fila', async () => {
+  const user = userEvent.setup()
+  render(
+    <MemoryRouter>
+      <ServicesPage />
+    </MemoryRouter>,
+  )
+
+  await user.click(screen.getAllByText('Alineación')[0]!)
+  const preview = await screen.findByRole('dialog', {
+    name: 'Detalle del servicio',
+  })
+  expect(within(preview).getByText('USD 25.00')).toBeInTheDocument()
+  expect(within(preview).getByText('RUC artesanal')).toBeInTheDocument()
+})
+
 it('la consulta no ofrece gestión ni consulta opciones fiscales administrativas', () => {
   render(
     <MemoryRouter>

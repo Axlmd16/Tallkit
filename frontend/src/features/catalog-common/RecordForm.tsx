@@ -93,7 +93,11 @@ export function RecordForm({
   const retrying = problem?.uncertain ?? false
 
   return (
-    <form className="space-y-6" noValidate onSubmit={submit}>
+    <form
+      className="catalog-editor-form space-y-6"
+      noValidate
+      onSubmit={submit}
+    >
       {problem && (
         <InlineNotice title="No se pudo guardar" tone="danger">
           {problem.message}

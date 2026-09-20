@@ -263,7 +263,11 @@ export function ProductForm({
   const retrying = problem?.uncertain ?? false
 
   return (
-    <form className="space-y-5" noValidate onSubmit={submit}>
+    <form
+      className="catalog-editor-form space-y-5"
+      noValidate
+      onSubmit={submit}
+    >
       {problem && (
         <InlineNotice title="No se pudo guardar el producto" tone="danger">
           {problem.message}

@@ -12,7 +12,7 @@ import { createPortal } from 'react-dom'
 import { Button, IconButton } from './controls'
 import { trapFocus, useModalOpen } from './overlays/modal-utils'
 
-export type DrawerWidth = 'default' | 'wide' | '409' | '369'
+export type DrawerWidth = 'default' | 'medium' | 'wide' | '409' | '369'
 export type DrawerOverlay = 'default' | '30' | 'none'
 
 export interface DrawerProps {
@@ -32,6 +32,7 @@ export interface DrawerProps {
 
 const widthClasses: Record<DrawerWidth, string> = {
   default: 'md:w-[30rem]',
+  medium: 'md:w-[600px]',
   wide: 'md:w-[46rem]',
   409: 'md:w-[409px]',
   369: 'md:w-[369px]',
@@ -107,7 +108,7 @@ export function Drawer({
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`drawer-panel ml-auto flex h-full w-full flex-col overflow-y-auto bg-surface p-5 text-ink shadow-overlay md:p-8 pointer-events-auto ${panelWidthClass} ${className}`.trim()}
+        className={`drawer-panel drawer-surface drawer-width-${width} ml-auto flex h-full w-full flex-col overflow-y-auto bg-surface p-5 text-ink shadow-overlay md:p-8 pointer-events-auto ${panelWidthClass} ${className}`.trim()}
         onKeyDown={handleKeyDown}
         ref={panelRef}
         role="dialog"

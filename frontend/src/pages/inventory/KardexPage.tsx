@@ -74,7 +74,7 @@ export function KardexPage() {
     query.error instanceof ProblemError && query.error.code === 'stale_record'
 
   return (
-    <div className="space-y-6">
+    <div className="catalog-page space-y-6">
       <Link
         className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
         to={from ?? '/inventory'}

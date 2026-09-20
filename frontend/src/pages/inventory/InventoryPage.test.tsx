@@ -114,6 +114,20 @@ it('muestra presentación, unidad y existencia y distingue el cero real sin umbr
   expect(screen.queryByText(/stock bajo|stock mínimo|por debajo/i)).toBeNull()
 })
 
+it('abre una vista previa de existencias con acceso al Kardex', async () => {
+  const user = userEvent.setup()
+  renderPage()
+
+  await user.click(screen.getAllByText('ACE-1 — Aceite')[0]!)
+  const preview = await screen.findByRole('dialog', {
+    name: 'Detalle de inventario',
+  })
+  expect(within(preview).getByText('7')).toBeInTheDocument()
+  expect(
+    within(preview).getByRole('link', { name: 'Ver Kardex' }),
+  ).toHaveAttribute('href', '/inventory/products/5/kardex')
+})
+
 it('un fallo de consulta ofrece reintentar y nunca presenta cero como saldo', () => {
   mocks.stock = { isPending: false, isError: true, refetch: vi.fn() }
   renderPage()

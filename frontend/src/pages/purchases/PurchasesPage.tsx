@@ -1,6 +1,12 @@
-import { Plus } from '@phosphor-icons/react'
+import {
+  CalendarBlank,
+  CurrencyDollar,
+  Plus,
+  Receipt,
+  Storefront,
+} from '@phosphor-icons/react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
@@ -19,6 +25,7 @@ import {
 } from '@/features/purchases/types'
 import {
   Button,
+  Drawer,
   ElevatedDataList,
   Field,
   FilterPanel,
@@ -31,11 +38,11 @@ import {
 export function PurchasesPage() {
   const filters = useUrlFilters()
   const navigate = useNavigate()
-  const location = useLocation()
   const canCreate = new Set(useSession().data?.permissions ?? []).has(
     'ingresos.crear',
   )
   const [text, setText] = useState(filters.search)
+  const [previewing, setPreviewing] = useState<PurchaseSummary | null>(null)
   useEffect(() => setText(filters.search), [filters.search])
 
   const state = filters.get('state') as PurchaseState | ''
@@ -54,7 +61,7 @@ export function PurchasesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="catalog-page list-page space-y-6">
       <PageHeader
         actions={
           canCreate && (
@@ -147,7 +154,10 @@ export function PurchasesPage() {
                 key: 'internal_number',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="font-semibold text-ink">
+                  <span className="flex items-center gap-2.5 font-semibold text-ink">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-cyan-soft text-cyan">
+                      <Receipt aria-hidden="true" size={17} weight="fill" />
+                    </span>
                     {row.internal_number ?? 'Borrador'}
                   </span>
                 ),
@@ -186,15 +196,75 @@ export function PurchasesPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Ingresos de mercadería"
-            onRowClick={(row) =>
-              navigate(`/purchases/${row.id}`, {
-                state: { from: location.search },
-              })
-            }
+            onRowClick={setPreviewing}
             rows={rows}
           />
         )}
       </ListStates>
+      <Drawer
+        className="record-preview-drawer"
+        description="Resumen del ingreso seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle del ingreso"
+        width="409"
+      >
+        {previewing && (
+          <div className="record-preview-content space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <span className="grid size-20 place-items-center rounded-full bg-cyan-soft text-cyan">
+                <Receipt aria-hidden="true" size={38} weight="duotone" />
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.internal_number ?? 'Ingreso en borrador'}
+              </h3>
+              <p className="mt-1 text-sm text-ink-muted">RUC comercial</p>
+              <div className="mt-3">
+                <PurchaseStateBadge state={previewing.state} />
+              </div>
+            </div>
+            <section aria-labelledby="purchase-preview-details">
+              <h3
+                className="text-base font-bold text-ink"
+                id="purchase-preview-details"
+              >
+                Información del ingreso
+              </h3>
+              <div className="preview-detail-list">
+                <div>
+                  <Storefront size={19} />
+                  <span>Proveedor</span>
+                  <strong>{previewing.supplier.name || 'No registrado'}</strong>
+                </div>
+                <div>
+                  <Receipt size={19} />
+                  <span>Documento</span>
+                  <strong>
+                    {documentTypeLabels[previewing.document.type]}{' '}
+                    {previewing.document.reference}
+                  </strong>
+                </div>
+                <div>
+                  <CalendarBlank size={19} />
+                  <span>Fecha documental</span>
+                  <strong>{documentDate(previewing.document_date)}</strong>
+                </div>
+                <div>
+                  <CurrencyDollar size={19} />
+                  <span>Total</span>
+                  <strong>{usd(previewing.total)}</strong>
+                </div>
+              </div>
+            </section>
+            <Link
+              className="preview-primary-link"
+              to={`/purchases/${previewing.id}`}
+            >
+              Ver ficha completa
+            </Link>
+          </div>
+        )}
+      </Drawer>
     </div>
   )
 }

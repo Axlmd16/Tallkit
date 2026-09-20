@@ -31,6 +31,7 @@ export function ServiceEditorDrawer({
       )}
       useDetail={useService}
       useMutations={useServiceMutations}
+      width="medium"
     />
   )
 }

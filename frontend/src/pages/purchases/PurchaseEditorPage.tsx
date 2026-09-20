@@ -1,3 +1,4 @@
+import { Calculator, Receipt } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -280,13 +281,27 @@ export function PurchaseEditorPage() {
         </InlineNotice>
       )}
       <form
-        className="space-y-6"
+        className="catalog-editor-form space-y-6"
         onSubmit={(event) => {
           event.preventDefault()
           void onSave()
         }}
       >
-        <section aria-label="Documento" className="grid gap-4 md:grid-cols-2">
+        <section
+          aria-label="Documento"
+          className="form-section grid gap-4 rounded-group border border-line bg-surface-subtle/60 p-5 md:grid-cols-2"
+        >
+          <div className="flex items-start gap-3 md:col-span-2">
+            <span className="grid size-10 shrink-0 place-items-center rounded-group bg-primary-soft text-primary">
+              <Receipt aria-hidden="true" size={22} />
+            </span>
+            <div>
+              <h2 className="font-bold text-ink">Datos del documento</h2>
+              <p className="mt-0.5 text-sm text-ink-muted">
+                Identifique al proveedor y el comprobante recibido.
+              </p>
+            </div>
+          </div>
           <div className="md:col-span-2">
             <ReferencePicker
               error={errors.supplier_id}
@@ -376,22 +391,27 @@ export function PurchaseEditorPage() {
         />
         <section
           aria-label="Totales"
-          className="rounded-group bg-surface p-4 shadow-card"
+          className="flex items-start gap-3 rounded-group bg-primary-soft/45 p-5"
         >
-          <h2 className="font-semibold text-ink">Totales del documento</h2>
-          {!dirty && purchase?.totals ? (
-            <p className="mt-2 text-ink">
-              Base {usd(purchase.totals.base)} · Impuesto{' '}
-              {usd(purchase.totals.tax)} · Total{' '}
-              <strong>{usd(purchase.totals.total)}</strong>
-            </p>
-          ) : (
-            <p className="mt-2 text-ink-muted">
-              {purchase?.totals_status === 'not_calculable' && !dirty
-                ? 'Totales no calculables: falta una tarifa vigente única para la fecha.'
-                : 'Los totales se calculan en el servidor al guardar.'}
-            </p>
-          )}
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-primary">
+            <Calculator aria-hidden="true" size={21} />
+          </span>
+          <div>
+            <h2 className="font-bold text-ink">Totales del documento</h2>
+            {!dirty && purchase?.totals ? (
+              <p className="mt-2 text-ink">
+                Base {usd(purchase.totals.base)} · Impuesto{' '}
+                {usd(purchase.totals.tax)} · Total{' '}
+                <strong>{usd(purchase.totals.total)}</strong>
+              </p>
+            ) : (
+              <p className="mt-2 text-ink-muted">
+                {purchase?.totals_status === 'not_calculable' && !dirty
+                  ? 'Totales no calculables: falta una tarifa vigente única para la fecha.'
+                  : 'Los totales se calculan en el servidor al guardar.'}
+              </p>
+            )}
+          </div>
         </section>
         <div className="flex flex-wrap gap-3">
           <Button disabled={busy} type="submit">

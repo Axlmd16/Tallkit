@@ -16,6 +16,7 @@ describe('FormSection', () => {
     )
 
     const group = screen.getByRole('group', { name: 'Identificación' })
+    expect(group).toHaveClass('form-section')
     expect(group).toContainElement(screen.getByLabelText('Nombre'))
     expect(
       screen.getByText('Datos para reconocer el producto.'),
@@ -35,6 +36,9 @@ describe('FormSection', () => {
 
     expect(screen.getByLabelText('Contenido').parentElement).toHaveClass(
       'sm:grid-cols-2',
+    )
+    expect(screen.getByRole('group', { name: 'Presentación' })).toHaveClass(
+      'form-section',
     )
   })
 })

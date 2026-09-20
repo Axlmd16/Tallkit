@@ -96,10 +96,14 @@ it('los filtros de proveedor, estado y período se leen de la dirección', () =>
   })
 })
 
-it('al abrir un detalle conserva los filtros en el estado de navegación', async () => {
+it('abre una vista previa y conserva la ruta de la ficha completa', async () => {
   renderPage('/purchases?state=CONFIRMED')
   await userEvent.click(screen.getAllByText('COM-ING-000007')[0]!)
-  expect(screen.getByTestId('where')).toHaveTextContent('/purchases/7')
+  const preview = await screen.findByRole('dialog', {
+    name: 'Detalle del ingreso',
+  })
+  expect(screen.getByTestId('where')).toHaveTextContent('/purchases')
+  expect(preview.querySelector('a[href="/purchases/7"]')).toBeInTheDocument()
 })
 
 it('solo ofrece crear con el permiso correspondiente', () => {

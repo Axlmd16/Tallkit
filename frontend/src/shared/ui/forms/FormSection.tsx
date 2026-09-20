@@ -25,7 +25,7 @@ export function FormSection({
   return (
     <section
       aria-labelledby={titleId}
-      className={`rounded-group border border-line bg-surface-subtle/60 p-4 sm:p-5 ${className}`.trim()}
+      className={`form-section rounded-group border border-line bg-surface-subtle/60 p-4 sm:p-5 ${className}`.trim()}
       role="group"
     >
       <header className="mb-4 flex items-start gap-3">

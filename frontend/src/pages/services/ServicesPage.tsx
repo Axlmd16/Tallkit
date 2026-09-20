@@ -1,6 +1,12 @@
-import { Pencil, Power } from '@phosphor-icons/react'
+import {
+  CurrencyDollar,
+  PencilSimple,
+  Power,
+  Receipt,
+  Wrench,
+} from '@phosphor-icons/react'
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { CatalogToolbar } from '@/features/catalog-common/CatalogToolbar'
@@ -16,6 +22,7 @@ import type { Service } from '@/features/services/types'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
+  Drawer,
   ElevatedDataList,
   FiscalScopeBadge,
   InlineNotice,
@@ -26,13 +33,12 @@ import {
 
 export function ServicesPage() {
   const filters = useUrlFilters()
-  const location = useLocation()
-  const navigate = useNavigate()
   const permissions = new Set(useSession().data?.permissions ?? [])
   const canManage = permissions.has('servicios.gestionar')
   const tracker = useIntentTracker()
   const mutations = useServiceMutations()
   const [editor, setEditor] = useState<'new' | Service | null>(null)
+  const [previewing, setPreviewing] = useState<Service | null>(null)
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -57,7 +63,7 @@ export function ServicesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="catalog-page list-page space-y-6">
       <PageHeader
         description="Catálogo de servicios del taller con precio referencial final en USD. No maneja existencias."
         title="Servicios"
@@ -99,17 +105,22 @@ export function ServicesPage() {
               canManage && (
                 <RowActions>
                   <Button
+                    aria-label="Editar"
+                    className="record-action"
                     onClick={() => {
                       setNotice(null)
                       setEditor(row)
                     }}
                     type="button"
+                    title="Editar"
                     variant="quiet"
                   >
-                    <Pencil aria-hidden="true" size={15} />
-                    Editar
+                    <PencilSimple aria-hidden="true" size={18} />
+                    <span>Editar</span>
                   </Button>
                   <Button
+                    aria-label={row.is_active ? 'Desactivar' : 'Reactivar'}
+                    className="record-action"
                     onClick={() =>
                       setChange({
                         id: row.id,
@@ -119,10 +130,11 @@ export function ServicesPage() {
                       })
                     }
                     type="button"
-                    variant="quiet"
+                    title={row.is_active ? 'Desactivar' : 'Reactivar'}
+                    variant={row.is_active ? 'danger' : 'secondary'}
                   >
-                    <Power aria-hidden="true" size={15} />
-                    {row.is_active ? 'Desactivar' : 'Reactivar'}
+                    <Power aria-hidden="true" size={18} />
+                    <span>{row.is_active ? 'Desactivar' : 'Reactivar'}</span>
                   </Button>
                 </RowActions>
               )
@@ -133,7 +145,12 @@ export function ServicesPage() {
                 key: 'name',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="font-semibold text-ink">{row.name}</span>
+                  <span className="flex items-center gap-2.5 font-semibold text-ink">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-warning-soft text-warning">
+                      <Wrench aria-hidden="true" size={17} weight="fill" />
+                    </span>
+                    {row.name}
+                  </span>
                 ),
               },
               {
@@ -158,15 +175,81 @@ export function ServicesPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Servicios"
-            onRowClick={(row) =>
-              navigate(`/services/${row.id}`, {
-                state: { from: location.search },
-              })
-            }
+            onRowClick={setPreviewing}
             rows={rows}
           />
         )}
       </ListStates>
+      <Drawer
+        className="record-preview-drawer"
+        description="Resumen del servicio seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle del servicio"
+        width="409"
+      >
+        {previewing && (
+          <div className="record-preview-content space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <span className="grid size-20 place-items-center rounded-full bg-warning-soft text-warning">
+                <Wrench aria-hidden="true" size={38} weight="duotone" />
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.name}
+              </h3>
+              <p className="mt-1 text-sm text-ink-muted">Servicio del taller</p>
+              <div className="mt-3">
+                <StatusBadge
+                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
+                  tone={previewing.is_active ? 'success' : 'neutral'}
+                />
+              </div>
+            </div>
+            <section aria-labelledby="service-preview-details">
+              <h3
+                className="text-base font-bold text-ink"
+                id="service-preview-details"
+              >
+                Información del servicio
+              </h3>
+              <div className="preview-detail-list">
+                <div>
+                  <CurrencyDollar size={19} />
+                  <span>Precio referencial</span>
+                  <strong>USD {previewing.reference_price}</strong>
+                </div>
+                <div>
+                  <Receipt size={19} />
+                  <span>Ámbito fiscal</span>
+                  <strong>RUC artesanal</strong>
+                </div>
+              </div>
+              <p className="mt-4 rounded-group bg-surface-subtle p-4 text-sm text-ink-muted">
+                {previewing.description || 'Sin descripción registrada.'}
+              </p>
+            </section>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className="preview-primary-link"
+                to={`/services/${previewing.id}`}
+              >
+                Ver ficha completa
+              </Link>
+              {canManage && (
+                <Button
+                  onClick={() => {
+                    setEditor(previewing)
+                    setPreviewing(null)
+                  }}
+                  variant="secondary"
+                >
+                  <PencilSimple aria-hidden="true" size={18} /> Editar servicio
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Drawer>
       <ServiceEditorDrawer
         mode={editor}
         onClose={() => setEditor(null)}

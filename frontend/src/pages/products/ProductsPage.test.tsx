@@ -163,11 +163,18 @@ it('cambia filtros reiniciando la página y muestra el estado sin coincidencias'
   expect(mocks.listArgs.at(-1)).toMatchObject({ categoryId: 1, page: 1 })
 })
 
-it('abre la ficha al elegir una fila', async () => {
+it('abre una vista previa del producto antes de ir a la ficha', async () => {
   renderPage()
   const user = userEvent.setup()
   await user.click(screen.getAllByText('Aceite 20W50')[0]!)
-  expect(await screen.findByText('Ficha de producto')).toBeInTheDocument()
+  const preview = await screen.findByRole('dialog', {
+    name: 'Detalle del producto',
+  })
+  expect(within(preview).getByText('ACE-1')).toBeInTheDocument()
+  expect(within(preview).getByText('USD 10.50')).toBeInTheDocument()
+  expect(
+    within(preview).getByRole('link', { name: 'Ver ficha completa' }),
+  ).toHaveAttribute('href', '/products/5')
 })
 
 it('con permiso desactiva mediante confirmación y con clave de idempotencia', async () => {

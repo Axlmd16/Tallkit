@@ -1,6 +1,13 @@
-import { ChartLineUp, Plus } from '@phosphor-icons/react'
+import {
+  ChartLineUp,
+  Cube,
+  CurrencyDollar,
+  Package,
+  Plus,
+  Tag,
+} from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
@@ -11,6 +18,7 @@ import type { StockRow } from '@/features/inventory/types'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
 import {
   Button,
+  Drawer,
   ElevatedDataList,
   Field,
   FilterPanel,
@@ -53,6 +61,7 @@ export function InventoryPage() {
   const [text, setText] = useState(filters.search)
   useEffect(() => setText(filters.search), [filters.search])
   const [adjusting, setAdjusting] = useState(false)
+  const [previewing, setPreviewing] = useState<FlatRow | null>(null)
   const adjustTrigger = useRef<HTMLButtonElement>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const categories = useProductCategoryList({ isActive: 'all', pageSize: 100 })
@@ -80,7 +89,7 @@ export function InventoryPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="catalog-page list-page space-y-6">
       <PageHeader
         actions={
           canAdjust && (
@@ -195,14 +204,17 @@ export function InventoryPage() {
             actions={(row) => (
               <RowActions>
                 <Button
+                  aria-label="Ver Kardex"
+                  className="record-action"
                   onClick={() =>
                     navigate(`/inventory/products/${row.id}/kardex`)
                   }
                   type="button"
+                  title="Ver Kardex"
                   variant="quiet"
                 >
-                  <ChartLineUp aria-hidden="true" size={15} />
-                  Kardex
+                  <ChartLineUp aria-hidden="true" size={18} />
+                  <span>Kardex</span>
                 </Button>
               </RowActions>
             )}
@@ -212,7 +224,12 @@ export function InventoryPage() {
                 key: 'label',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="font-semibold text-ink">{row.label}</span>
+                  <span className="flex items-center gap-2.5 font-semibold text-ink">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-info-soft text-info">
+                      <Package aria-hidden="true" size={17} weight="fill" />
+                    </span>
+                    {row.label}
+                  </span>
                 ),
               },
               {
@@ -276,10 +293,89 @@ export function InventoryPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Existencias"
+            onRowClick={setPreviewing}
             rows={rows.map(flatten)}
           />
         )}
       </ListStates>
+      <Drawer
+        className="record-preview-drawer"
+        description="Resumen de existencias del producto seleccionado."
+        onClose={() => setPreviewing(null)}
+        open={previewing !== null}
+        title="Detalle de inventario"
+        width="409"
+      >
+        {previewing && (
+          <div className="record-preview-content space-y-7">
+            <div className="flex flex-col items-center text-center">
+              <span className="grid size-20 place-items-center rounded-full bg-info-soft text-info">
+                <Package aria-hidden="true" size={38} weight="duotone" />
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-ink">
+                {previewing.label}
+              </h3>
+              <p className="mt-1 text-sm text-ink-muted">Bodega única</p>
+              <div className="mt-3">
+                <StatusBadge
+                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
+                  tone={previewing.is_active ? 'success' : 'neutral'}
+                />
+              </div>
+            </div>
+            <section aria-labelledby="inventory-preview-details">
+              <h3
+                className="text-base font-bold text-ink"
+                id="inventory-preview-details"
+              >
+                Existencias y presentación
+              </h3>
+              <div className="preview-detail-list">
+                <div>
+                  <Package size={19} />
+                  <span>Existencia actual</span>
+                  <strong className="text-lg">{previewing.quantity}</strong>
+                </div>
+                <div>
+                  <Cube size={19} />
+                  <span>Presentación</span>
+                  <strong>{previewing.presentation}</strong>
+                </div>
+                <div>
+                  <Tag size={19} />
+                  <span>Categoría</span>
+                  <strong>{previewing.category}</strong>
+                </div>
+                {canSeeValuation && (
+                  <div>
+                    <CurrencyDollar size={19} />
+                    <span>Valor inventariable</span>
+                    <strong>
+                      {previewing.inventory_value
+                        ? `USD ${previewing.inventory_value}`
+                        : '—'}
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </section>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className="preview-primary-link"
+                to={`/inventory/products/${previewing.id}/kardex`}
+              >
+                <ChartLineUp aria-hidden="true" size={18} /> Ver Kardex
+              </Link>
+              <Link
+                className="preview-secondary-link"
+                to={`/products/${previewing.id}`}
+              >
+                Ver producto
+              </Link>
+            </div>
+          </div>
+        )}
+      </Drawer>
       {canAdjust && (
         <AdjustmentDrawer
           onClose={() => setAdjusting(false)}
