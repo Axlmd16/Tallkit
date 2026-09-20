@@ -50,6 +50,7 @@ from workshop_configuration.application.catalog_options import (
 
 FIELDS = (
     "code",
+    "manufacturer_code",
     "name",
     "description",
     "category_id",
@@ -62,8 +63,15 @@ FIELDS = (
     "is_kit",
 )
 SET_FIELDS = frozenset({"vehicle_brand_ids"})
+_DUPLICATE_MANUFACTURER_CODE = (
+    "duplicate_manufacturer_code",
+    "manufacturer_code",
+    "Ya existe un producto con ese código de fabricante para la misma marca.",
+)
 DUPLICATE_CODE = {
     "product_code_unique": ("duplicate_code", "code", "Ya existe un producto con ese código."),
+    "product_mfr_code_brand_unique": _DUPLICATE_MANUFACTURER_CODE,
+    "product_mfr_code_nobrand_unique": _DUPLICATE_MANUFACTURER_CODE,
 }
 
 
@@ -141,6 +149,7 @@ def _normalized(data: dict[str, Any]) -> NormalizedProduct:
 def _current_input(product: Product) -> dict[str, Any]:
     return {
         "code": product.code,
+        "manufacturer_code": product.manufacturer_code,
         "name": product.name,
         "description": product.description,
         "category_id": product.category_id,
@@ -171,6 +180,7 @@ def create_product(
         product = save_or_translate(
             lambda: Product.objects.create(
                 code=new.code,
+                manufacturer_code=new.manufacturer_code,
                 name=new.name,
                 description=new.description,
                 category_id=new.category_id,

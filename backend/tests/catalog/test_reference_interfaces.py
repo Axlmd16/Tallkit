@@ -110,3 +110,79 @@ def test_tax_options_status_scope_and_no_side_effects() -> None:
 
     assert ConfigurationUse.objects.count() == 0
     assert NumberAllocation.objects.count() == 0
+
+
+def test_tax_options_query_count_is_constant_per_page() -> None:
+    com = _entity("COMERCIAL", "1790000000001")
+    for index in range(3):
+        definition = TaxDefinition.objects.create(
+            fiscal_entity=com, code=f"A{index}", name=f"Def {index}"
+        )
+        TaxPeriod.objects.create(
+            tax_definition=definition, rate=Decimal("12"), starts_on=date(2026, 1, 1)
+        )
+    with CaptureQueriesContext(connection) as small:
+        list_catalog_tax_options(entity_type="COMERCIAL", on=ON)
+    for index in range(3, 15):
+        definition = TaxDefinition.objects.create(
+            fiscal_entity=com, code=f"A{index}", name=f"Def {index}"
+        )
+        TaxPeriod.objects.create(
+            tax_definition=definition, rate=Decimal("12"), starts_on=date(2026, 1, 1)
+        )
+    with CaptureQueriesContext(connection) as large:
+        page = list_catalog_tax_options(entity_type="COMERCIAL", on=ON)
+    assert len(page.items) == 15
+    assert len(large) == len(small)
+
+
+def test_tax_rate_change_does_not_rewrite_product_price_or_configuration(
+    commercial_tax: TaxDefinition,
+) -> None:
+    from django.contrib.auth import get_user_model
+
+    from catalog.application import auxiliaries, products
+    from catalog.models import Product
+    from identity.models import UserRole
+
+    admin = get_user_model().objects.create_user(username="tax_admin", password="pw123456789")
+    UserRole.objects.create(user=admin, role="ADMINISTRADOR")
+    period = TaxPeriod.objects.create(
+        tax_definition=commercial_tax, rate=Decimal("15"), starts_on=date(2026, 1, 1)
+    )
+    category = auxiliaries.create_auxiliary(
+        "category", actor=admin, payload={"name": "Aceites", "idempotency_key": "tax-cat-0001"}
+    )
+    unit = auxiliaries.create_auxiliary(
+        "unit", actor=admin, payload={"name": "Galón", "idempotency_key": "tax-uni-0001"}
+    )
+    created = products.create_product(
+        actor=admin,
+        payload={
+            "code": "ACE-1",
+            "name": "Aceite",
+            "category_id": category.body["id"],
+            "unit_id": unit.body["id"],
+            "tax_definition_id": commercial_tax.pk,
+            "content_quantity": "1",
+            "sale_price": "11.50",
+            "idempotency_key": "tax-prd-0001",
+        },
+    )
+    product = Product.objects.get(pk=created.body["id"])
+    definitions_before = list(TaxDefinition.objects.values_list("pk", "fiscal_entity_id", "code"))
+
+    period.rate = Decimal("0")
+    period.save(update_fields=["rate"])
+
+    product.refresh_from_db()
+    assert product.sale_price == Decimal("11.50")
+    assert product.tax_definition_id == commercial_tax.pk
+    assert list(TaxDefinition.objects.values_list("pk", "fiscal_entity_id", "code")) == (
+        definitions_before
+    )
+    option = list_catalog_tax_options(entity_type="COMERCIAL", on=ON).items[0]
+    assert option.rate == Decimal("0")
+    assert option.tax_status == "applicable"
+    assert ConfigurationUse.objects.count() == 0
+    assert NumberAllocation.objects.count() == 0

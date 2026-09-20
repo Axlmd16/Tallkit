@@ -135,7 +135,7 @@ Altas reciben los campos de la tabla de datos y clave; estado se deriva activo. 
 
 GET de ficha devuelve datos, ID, estado, versión, fechas, referencias mínimas `{id,name,is_active}` y, en producto/servicio, proyección tributaria `{id,code,name,entity_type,rate,tax_status}`. No incluye costos ni existencias. El precio se serializa a dos decimales como texto; cantidad también viaja como texto. No se consulta ni expone una historia económica inexistente.
 
-Consultas: `search`, `is_active=true|false|all` (omisión = true), `page=1`, `page_size=20`, máximo 100. Producto añade `category_id`, `product_brand_id`, `vehicle_brand_id`. Búsqueda parcial por campos de las specs; OR entre código/nombre o documento/nombre, AND con filtros. Orden por nombre normalizado e ID; compatibilidad mediante EXISTS o consulta equivalente que no duplique productos. Respuesta `{count,page,page_size,total_pages,results}`. Cero resultados: `total_pages=0`; página positiva fuera de rango devuelve lista vacía, conservando el número pedido. Tipo/valor inválido responde 400, sin normalización silenciosa a una página arbitraria. Auxiliares, selectores y opciones también paginan en servidor.
+Consultas: `search`, `is_active=true|false|all` (omisión = true), `page=1`, `page_size=20`, máximo 100. Producto añade `category_id`, `product_brand_id`, `vehicle_brand_id`. Búsqueda parcial por campos de las specs; OR entre código interno/código del fabricante/nombre o documento/nombre, AND con filtros. Orden por nombre normalizado e ID; compatibilidad mediante EXISTS o consulta equivalente que no duplique productos. Respuesta `{count,page,page_size,total_pages,results}`. Cero resultados: `total_pages=0`; página positiva fuera de rango devuelve lista vacía, conservando el número pedido. Tipo/valor inválido responde 400, sin normalización silenciosa a una página arbitraria. Auxiliares, selectores y opciones también paginan en servidor.
 
 Rutas adicionales:
 
@@ -161,7 +161,7 @@ Crear `frontend/src/features/products/`, `product-categories/`, `measurement-uni
 
 Agregar destinos filtrados a `app/App.tsx` y `AuthenticatedShell.tsx`. Productos, Servicios y Proveedores son entradas principales; auxiliares se alcanzan desde Productos mediante enlaces autorizados. El enlace existente de marcas de vehículo se etiqueta «Marcas de vehículo» para distinguirlo, conservando su ruta y permisos. Ningún nuevo acceso aparece para quien no puede consultarlo.
 
-Listas: código/nombre/categoría/presentación/precio/estado para producto; nombre/precio referencial/estado para servicio; nombre/identificación/contacto/estado para proveedor. Sin columnas de stock, costo, saldo ni métricas ficticias. Mostrar **entidad fiscal** mediante `FiscalScopeBadge`: comercial para productos/proveedores y artesanal para servicios, sin sugerir que las fichas son documentos.
+Listas: código interno/código del fabricante/nombre/categoría/presentación/precio/estado para producto; nombre/precio referencial/estado para servicio; nombre/identificación/contacto/estado para proveedor. Sin columnas de stock, costo, saldo ni métricas ficticias. Mostrar **entidad fiscal** mediante `FiscalScopeBadge`: comercial para productos/proveedores y artesanal para servicios, sin sugerir que las fichas son documentos.
 
 Reutilizar `PageHeader`, `Toolbar`, `FilterPanel`, `ElevatedDataList` o `ResponsiveDataView`, `Pagination`, `Field`, `Input`, `Select`, `Drawer`, `Dialog`, `StatusBadge` y estados existentes. Consultar estilos computados y tokens canónicos, no copiar clases obsoletas de páginas previas. Conservar Nunito y variantes de navegación desplegada >=1280, rail 768–1279 y drawer móvil <768. No rediseñar componentes ni ampliar a toda la auditoría visual pendiente.
 
@@ -180,7 +180,7 @@ Aplicar **TDD** en implementación: fallo observable, mínimo cambio y refactori
 | Grupo de escenarios | Evidencia necesaria |
 |---|---|
 | Normalización, obligatorios y decimales | Pruebas puras de dominio con límites, cero, negativos, exceso de escala, exponentes, Unicode, opcionales, par CI/RUC y ceros iniciales. |
-| Persistencia e historia | Unicidad de código/nombres/par, múltiples proveedores sin documento, servicios homónimos, PROTECT y conservación de asociaciones/identidad. No crear tablas ficticias de operaciones históricas para probar consumidores futuros. |
+| Persistencia e historia | Unicidad de código interno/código del fabricante por marca/nombres/par, múltiples proveedores sin documento, servicios homónimos, PROTECT y conservación de asociaciones/identidad. No crear tablas ficticias de operaciones históricas para probar consumidores futuros. |
 | Estado y referencias | Categoría con productos activos; producto inactivo/reactivación; cambios ajenos conservando referencia inactiva; compatibilidades sin duplicación ni cascadas. |
 | Transacciones | Fallos inyectados al guardar relación, evento y recibo; ninguna escritura parcial; no-op sin versión/evento adicional. |
 | Concurrencia PostgreSQL | Claves iguales con entradas iguales/distintas; códigos/nombres/documentos duplicados; versiones; baja de categoría contra alta/reclasificación/reactivación; baja de auxiliares contra nueva asociación. Usar conexiones independientes y barreras, sin sleeps como sincronización. |

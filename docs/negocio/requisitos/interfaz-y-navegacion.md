@@ -145,14 +145,16 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
-| UI-030 | Lista de productos | Código, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. |
+| UI-030 | Lista de productos | Código interno, código del fabricante, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. |
 | UI-031 | Ficha de producto | Datos, existencia de la bodega principal, reserva, disponibilidad, Kardex, precio y costos según permiso, compatibilidades y opción de desarme si es kit. |
-| UI-032 | Formulario de producto | Código, descripción, categoría, cantidad y unidad de la presentación cerrada, precio final, umbral, marca de producto, tipo kit y compatibilidades informativas. |
+| UI-032 | Formulario de producto | Código interno, código del fabricante (opcional), descripción, categoría, cantidad y unidad de la presentación cerrada, precio final, umbral, marca de producto, tipo kit y compatibilidades informativas. |
 | UI-033 | Categorías, marcas y unidades | Gestión separada de categorías, marcas de producto, marcas de vehículo y unidades de medida. |
 | UI-034 | Lista de servicios | Nombre, precio referencial y estado. |
 | UI-035 | Formulario de servicio | Nombre, descripción opcional, precio referencial y estado. |
 | UI-036 | Lista de proveedores | Nombre, identificación opcional, contacto opcional y estado. |
 | UI-037 | Formulario de proveedor | Nombre obligatorio, datos opcionales y advertencias de coincidencias pertinentes. |
+
+**Estado de implementación de UI-030…037 (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** Se entregan listas, fichas y formularios de productos, servicios y proveedores, y la gestión de categorías, unidades y marcas de producto, con permisos en servidor y presentación. Las pantallas de producto no muestran existencia, reserva, disponibilidad, Kardex, costos ni umbral porque dependen de inventario. La navegación principal añade Productos, Servicios y Proveedores; la entrada existente de marcas de vehículo se etiqueta «Marcas de vehículo». Los catálogos de apoyo se alcanzan desde Productos. Cobertura: [cobertura-catalogos.md](cobertura-catalogos.md).
 
 ### 6.4 Ingresos e inventario
 

@@ -1450,7 +1450,8 @@ paths:
         name: search
         schema:
           type: string
-        description: Búsqueda parcial.
+        description: Búsqueda parcial por código interno, código del fabricante o
+          nombre.
       - in: query
         name: vehicle_brand_id
         schema:
@@ -4767,6 +4768,10 @@ components:
         code:
           type: string
           maxLength: 64
+        manufacturer_code:
+          type: string
+          nullable: true
+          maxLength: 64
         name:
           type: string
           maxLength: 255
@@ -5002,6 +5007,8 @@ components:
           format: date-time
         code:
           type: string
+        manufacturer_code:
+          type: string
         name:
           type: string
         description:
@@ -5037,6 +5044,7 @@ components:
       - id
       - is_active
       - is_kit
+      - manufacturer_code
       - name
       - product_brand
       - sale_price
@@ -5096,6 +5104,10 @@ components:
           pattern: ^[A-Za-z0-9._:-]{8,128}$
         code:
           type: string
+          maxLength: 64
+        manufacturer_code:
+          type: string
+          nullable: true
           maxLength: 64
         name:
           type: string

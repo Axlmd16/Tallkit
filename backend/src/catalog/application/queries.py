@@ -101,6 +101,7 @@ def _product_dict(
 ) -> dict[str, Any]:
     return {
         "code": product.code,
+        "manufacturer_code": product.manufacturer_code,
         "name": product.name,
         "description": product.description,
         "category": _ref(product.category),
@@ -240,7 +241,11 @@ def list_products(params: dict[str, Any]) -> Page:
         Product.objects.select_related("category", "unit", "product_brand"), is_active
     )
     if search:
-        queryset = queryset.filter(Q(code__icontains=search) | Q(name__icontains=search))
+        queryset = queryset.filter(
+            Q(code__icontains=search)
+            | Q(manufacturer_code__icontains=search)
+            | Q(name__icontains=search)
+        )
     if (category_id := optional_id_param(params, "category_id")) is not None:
         queryset = queryset.filter(category_id=category_id)
     if (brand_id := optional_id_param(params, "product_brand_id")) is not None:

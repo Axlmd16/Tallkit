@@ -75,6 +75,16 @@ La autenticación usa la sesión segura de Django, sin JWT. El navegador obtiene
 que modifique estado envía la cookie de sesión y ese encabezado. Producción sirve frontend y API
 bajo el mismo origen mediante Nginx; no se habilita CORS permisivo.
 
+## Catálogos de productos, servicios y proveedores
+
+Las tablas de `catalog` y `supplier_registry` nacen vacías: ninguna migración crea unidades, marcas, productos, impuestos, proveedores, existencias ni precios. Orden de carga inicial recomendado, con un Administrador:
+
+1. Categorías, unidades de medida y marcas de producto (no requieren configuración fiscal). Proveedores pueden registrarse en cualquier momento; solo el nombre es obligatorio.
+2. Configuración operativa y fiscal (`/configuration`): cada producto exige una definición de impuesto del ámbito comercial y cada servicio una del ámbito artesanal. Sin ellas los formularios muestran «Configuración tributaria pendiente» y no permiten guardar.
+3. Productos y servicios.
+
+Despliegue de este cambio (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate` (migraciones aditivas que no alteran datos anteriores), comprobaciones funcionales y luego el frontend; el frontend anterior sigue funcionando con los contratos existentes. Ante un problema con registros reales se prefiere la corrección hacia adelante: volver al código anterior conserva las tablas nuevas, y no se deshacen migraciones destruyendo catálogos ni se restaura sin respaldo comprobado y autorización.
+
 ## Documentación
 
 - [Arquitectura técnica inicial](docs/tecnico/arquitectura-inicial.md)

@@ -152,7 +152,7 @@ def test_csrf_required_for_session_writes() -> None:
     )
     assert login.status_code == 200
     token = client.cookies["csrftoken"].value
-    post = {"content_type": "application/json"}
+    post: dict[str, Any] = {"content_type": "application/json"}
     assert client.post("/api/v1/suppliers/matches/", {"name": "x"}, **post).status_code == 403
     assert client.post("/api/v1/suppliers/", {"name": "x"}, **post).status_code == 403
     assert client.get("/api/v1/suppliers/").status_code == 200
@@ -191,12 +191,13 @@ def test_crud_flow_replay_errors_and_contract(
     assert (dup.status_code, dup.data["code"]) == (409, "duplicate_code")
     assert dup.data["errors"]["code"]
     assert "id" not in str(dup.data.get("conflict", ""))  # no filtra datos del duplicado
-    for bad, code in [
+    bad_cases: list[tuple[dict[str, Any], str]] = [
         ({"sale_price": 10.5}, "validation_error"),
         ({"sale_price": "1.001"}, "validation_error"),
         ({"stock": 3}, "unknown_field"),
         ({"cost": "1.00"}, "unknown_field"),
-    ]:
+    ]
+    for bad, code in bad_cases:
         r = admin.post(
             "/api/v1/products/",
             {**body, "code": "z", "idempotency_key": "api-key-0003", **bad},

@@ -13,6 +13,15 @@ import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
 import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
+import { MeasurementUnitsPage } from '@/pages/measurement-units/MeasurementUnitsPage'
+import { ProductBrandsPage } from '@/pages/product-brands/ProductBrandsPage'
+import { ProductCategoriesPage } from '@/pages/product-categories/ProductCategoriesPage'
+import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
+import { ProductsPage } from '@/pages/products/ProductsPage'
+import { ServiceDetailPage } from '@/pages/services/ServiceDetailPage'
+import { ServicesPage } from '@/pages/services/ServicesPage'
+import { SupplierDetailPage } from '@/pages/suppliers/SupplierDetailPage'
+import { SuppliersPage } from '@/pages/suppliers/SuppliersPage'
 import { TechnicalStatusPage } from '@/pages/technical-status/TechnicalStatusPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { VehicleBrandsPage } from '@/pages/vehicle-brands/VehicleBrandsPage'
@@ -80,6 +89,78 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="vehiculos.ver">
                 <VehicleDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/products',
+            element: (
+              <PermissionGuard permission="productos.ver">
+                <ProductsPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/products/:id',
+            element: (
+              <PermissionGuard permission="productos.ver">
+                <ProductDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/product-categories',
+            element: (
+              <PermissionGuard permission="productos.ver">
+                <ProductCategoriesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/measurement-units',
+            element: (
+              <PermissionGuard permission="productos.ver">
+                <MeasurementUnitsPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/product-brands',
+            element: (
+              <PermissionGuard permission="productos.ver">
+                <ProductBrandsPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/services',
+            element: (
+              <PermissionGuard permission="servicios.ver">
+                <ServicesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/services/:id',
+            element: (
+              <PermissionGuard permission="servicios.ver">
+                <ServiceDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/suppliers',
+            element: (
+              <PermissionGuard permission="proveedores.ver">
+                <SuppliersPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/suppliers/:id',
+            element: (
+              <PermissionGuard permission="proveedores.ver">
+                <SupplierDetailPage />
               </PermissionGuard>
             ),
           },

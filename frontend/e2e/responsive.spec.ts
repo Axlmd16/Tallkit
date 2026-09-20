@@ -198,7 +198,7 @@ for (const viewport of viewports) {
     await expect(customerDrawer).not.toBeVisible()
 
     // 2. Marcas
-    await navigateTo('Marcas')
+    await navigateTo('Marcas de vehículo')
     await expect(
       page.getByRole('heading', { name: 'Marcas', exact: true }),
     ).toBeVisible()
@@ -261,7 +261,9 @@ test('vehicle transfer adapts to narrow 360px viewport without overflow', async 
   // Ensure brand exists
   await page.getByRole('button', { name: 'Abrir navegación' }).click()
   navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
-  await navDialog.getByRole('link', { name: 'Marcas', exact: true }).click()
+  await navDialog
+    .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+    .click()
   await expect(navDialog).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Nueva marca' }).click()

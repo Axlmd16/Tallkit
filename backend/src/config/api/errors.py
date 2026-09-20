@@ -110,6 +110,7 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "invalid_tax_scope": (400, "Ámbito tributario inválido"),
     "not_found": (404, "Recurso no encontrado"),
     "duplicate_code": (409, "Código duplicado"),
+    "duplicate_manufacturer_code": (409, "Código de fabricante duplicado"),
     "duplicate_name": (409, "Nombre duplicado"),
     "duplicate_identification": (409, "Identificación duplicada"),
     "category_has_active_products": (409, "Categoría con productos activos"),

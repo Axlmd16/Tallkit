@@ -52,6 +52,21 @@ def normalize_code(value: Any) -> str:
     return code
 
 
+def normalize_manufacturer_code(value: Any) -> str:
+    """Código de fabricante opcional; vacío o ausente equivale a ``""``."""
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        raise _fail("manufacturer_code", "El código del fabricante debe ser texto.")
+    code = value.strip().upper()
+    if len(code) > CODE_MAX:
+        raise _fail(
+            "manufacturer_code",
+            f"El código del fabricante no puede exceder {CODE_MAX} caracteres.",
+        )
+    return code
+
+
 def normalize_optional_text(
     value: Any, field: str, max_length: int = DESCRIPTION_MAX, label: str = "El campo"
 ) -> str:
@@ -164,6 +179,7 @@ def validate_brand(data: dict[str, Any]) -> NormalizedBrand:
 @dataclass(frozen=True)
 class NormalizedProduct:
     code: str
+    manufacturer_code: str
     name: str
     description: str
     category_id: int
@@ -182,6 +198,7 @@ def validate_product(data: dict[str, Any]) -> NormalizedProduct:
         raise _fail("is_kit", "El indicador de kit debe ser verdadero o falso.")
     return NormalizedProduct(
         code=normalize_code(data.get("code")),
+        manufacturer_code=normalize_manufacturer_code(data.get("manufacturer_code")),
         name=normalize_name(data.get("name"), label="El nombre del producto"),
         description=normalize_optional_text(
             data.get("description"), "description", label="La descripción"

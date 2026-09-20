@@ -2,6 +2,7 @@
 
 Términos aplicables: [API versionada](glosario-tecnico.md#api-versionada),
 [contrato OpenAPI](glosario-tecnico.md#contrato-openapi),
+[idempotencia](glosario-tecnico.md#idempotencia),
 [mismo origen](glosario-tecnico.md#mismo-origen),
 [monolito modular](glosario-tecnico.md#monolito-modular),
 [OpenSpec](glosario-tecnico.md#openspec) y

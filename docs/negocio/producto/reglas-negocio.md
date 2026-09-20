@@ -70,7 +70,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 
 | ID | Regla |
 |---|---|
-| RN-CAT-001 | Cada producto debe tener un código único dentro del catálogo comercial. |
+| RN-CAT-001 | Cada producto debe tener un **código interno** definido por el taller, obligatorio y único dentro del catálogo comercial; es su identificador principal para búsquedas y referencias internas. Además puede registrar un **código del fabricante o número de parte** opcional, que es una referencia externa, no reemplaza al código interno y solo es único junto con la marca de producto (dos productos de la misma marca no repiten código de fabricante; marcas distintas sí pueden coincidir, y los productos sin marca comparten un único ámbito). Ninguno de los dos códigos modifica existencias ni crea operaciones de inventario. |
 | RN-CAT-002 | Un producto inactivo no puede agregarse a nuevas operaciones, pero debe seguir visible en el historial. |
 | RN-CAT-003 | Categorías, marcas de producto y marcas de vehículo son catálogos distintos y no sustituyen la identificación del producto. |
 | RN-CAT-004 | La compatibilidad vehicular es informativa en V1 y no debe bloquear una venta sin confirmación expresa del usuario. |
@@ -86,6 +86,15 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-CAT-014 | Un producto comprado como kit puede desarmarse mediante una operación explícita; V1 no crea kits de inventario a partir de piezas sueltas. |
 | RN-CAT-015 | Para un proveedor ocasional solo el nombre es obligatorio; identificación y contacto son opcionales. |
 | RN-CAT-016 | El precio de catálogo de un producto representa el valor final para el cliente, con impuesto incluido cuando aplique. |
+
+**Concreciones de catálogo (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** No modifican decisiones confirmadas; precisan cómo se capturan y protegen los datos de las tres capacidades entregadas:
+
+- Precios de productos y servicios: USD, no negativos, con hasta dos decimales; el sistema rechaza el exceso de escala en lugar de redondear. Esta escala solo cubre la captura de precios y no decide el redondeo de bases, impuestos, costos ni documentos (decisión abierta). El contenido de una presentación admite hasta seis decimales y debe ser mayor que cero.
+- Una categoría con productos activos no puede desactivarse; con productos únicamente inactivos sí, y reactivar un producto exige categoría activa. No hay cambios en cascada.
+- Las unidades, marcas y compatibilidades inactivas no pueden elegirse en asociaciones nuevas, pero se conservan al editar otros datos.
+- Cada producto (ámbito comercial) y servicio (ámbito artesanal) guarda una selección tributaria explícita; cambiar la tarifa no recalcula el precio final ni se interpreta la ausencia de configuración como exención.
+- Proveedor: solo el nombre es obligatorio; si se informa identificación se exige el par tipo/documento (CI de 10, RUC de 13 caracteres) sin duplicados, incluidos inactivos. Los nombres coincidentes solo producen una advertencia.
+- Fuera de esta entrega: existencias, reservas, disponibilidad, costos, Kardex y todas las operaciones de compra, venta y mantenimiento.
 
 ## 6. Ingresos, inventario y Kardex
 

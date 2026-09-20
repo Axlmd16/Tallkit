@@ -177,7 +177,9 @@ test.describe('vehicle brands', () => {
   }) => {
     // 1. Consultation by Vendedor and direct write denial
     await login(page, 'vendedor_e2e')
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
 
     // Vendedor should NOT see the "Nueva marca" button
@@ -211,7 +213,9 @@ test.describe('vehicle brands', () => {
 
     // 2. Creation and editing by Encargado del taller, and deactivation denial
     await login(page, 'taller_e2e')
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
 
     // Encargado creates a brand
@@ -281,7 +285,9 @@ test.describe('vehicle brands', () => {
 
     // 3. Consultation and deactivation/reactivation by Administrador
     await login(page, 'admin_e2e')
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await expect(page.getByRole('heading', { name: 'Marcas' })).toBeVisible()
 
     brandRow = page.getByRole('row').filter({ hasText: 'Chevrolet Motors' })
@@ -350,7 +356,9 @@ test.describe('vehicles and ownership', () => {
     await expect(customerDrawer).not.toBeVisible()
 
     // Create a brand "Toyota E2E"
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Toyota E2E')
@@ -666,7 +674,9 @@ test.describe('vehicles and ownership', () => {
     await expect(customerDrawer).not.toBeVisible()
 
     // Create a brand "Mazda E2E"
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Mazda E2E')
@@ -842,7 +852,9 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(custRow).toContainText('Activo')
 
     // Create brand "Kia E2E"
-    await page.getByRole('link', { name: 'Marcas', exact: true }).click()
+    await page
+      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
+      .click()
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Kia E2E')

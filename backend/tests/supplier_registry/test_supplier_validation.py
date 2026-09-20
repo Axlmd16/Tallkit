@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from customer_registry.domain import identification
@@ -63,7 +65,12 @@ def test_contacts_optional_and_validated() -> None:
         {"name": "A", "phone": " 099 ", "email": "a@b.co", "address": " Calle 1 "}
     )
     assert (s.phone, s.email, s.address) == ("099", "a@b.co", "Calle 1")
-    bad_values = [{"email": "no-email"}, {"phone": "9" * 65}, {"address": "a" * 1025}, {"phone": 5}]
+    bad_values: list[dict[str, Any]] = [
+        {"email": "no-email"},
+        {"phone": "9" * 65},
+        {"address": "a" * 1025},
+        {"phone": 5},
+    ]
     for bad in bad_values:
         with pytest.raises(SupplierValidationError):
             validate_supplier({"name": "A", **bad})

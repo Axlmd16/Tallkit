@@ -90,6 +90,9 @@ _DECIMAL_HELP = "Cadena decimal ordinaria; sin exponentes ni redondeo."
 
 class ProductWriteSerializer(CommandFields):
     code = serializers.CharField(max_length=64)
+    manufacturer_code = serializers.CharField(
+        max_length=64, required=False, allow_blank=True, allow_null=True
+    )
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(max_length=2000, required=False, allow_blank=True)
     category_id = serializers.IntegerField()
@@ -119,6 +122,7 @@ class ProductPatchSerializer(ProductWriteSerializer):
 
 class ProductSerializer(_Record):
     code = serializers.CharField()
+    manufacturer_code = serializers.CharField(allow_blank=True)
     name = serializers.CharField()
     description = serializers.CharField()
     category = RefSerializer()

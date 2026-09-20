@@ -6,6 +6,7 @@ ErrorCode = Literal[
     "validation_error",
     "unknown_field",
     "duplicate_code",
+    "duplicate_manufacturer_code",
     "duplicate_name",
     "inactive_reference",
     "invalid_tax_scope",

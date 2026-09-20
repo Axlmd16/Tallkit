@@ -59,7 +59,7 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 
 ### 3.3 Productos y catálogo
 
-- Productos y repuestos con código, nombre, descripción, categoría, marca de producto, presentación, unidad y estado.
+- Productos y repuestos con código interno, código del fabricante opcional, nombre, descripción, categoría, marca de producto, presentación, unidad y estado.
 - **Presentaciones** completas vendibles; una presentación diferente tiene producto, existencia, costo y precio propios.
 - Precios finales para el cliente, con impuesto incluido cuando aplique, e información de costo separada.
 - Búsqueda y filtros combinables por marca de producto y marca de vehículo.

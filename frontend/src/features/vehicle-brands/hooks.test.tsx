@@ -107,3 +107,21 @@ it('executes create, update, activate, and deactivate mutations', async () => {
   expect(api.activate).toHaveBeenCalledWith(1, 3)
   expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] })
 })
+
+it('invalida las consultas de productos al cambiar una marca de vehículo', async () => {
+  const { client, wrapper, api } = setup()
+  const spy = vi.spyOn(client, 'invalidateQueries')
+  const { result } = renderHook(() => useVehicleBrandMutations(api), {
+    wrapper,
+  })
+
+  await act(async () => {
+    await result.current.deactivateBrand.mutateAsync({
+      id: 1,
+      expectedVersion: 1,
+    })
+  })
+
+  const roots = spy.mock.calls.map((call) => call[0]?.queryKey?.[0])
+  expect(roots).toEqual(expect.arrayContaining(['vehicles', 'products']))
+})

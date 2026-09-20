@@ -166,6 +166,8 @@
 
 **Garantía de éxito:** el vehículo queda identificado y conserva su continuidad histórica.
 
+> **Estado de implementación:** `CU-006` y `CU-016` están implementados en el cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores` para productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. No incluyen existencias, costos ni operaciones de compra, venta o mantenimiento. Evidencia: [cobertura-catalogos.md](cobertura-catalogos.md).
+
 ## 8. CU-006 — Gestionar catálogos
 
 **Actor principal:** Administrador. El Encargado del taller gestiona únicamente servicios mediante `CU-016`.  
@@ -181,7 +183,7 @@
 
 **Alternativas y excepciones**
 
-- 4a. Código de producto repetido o importe negativo: se rechaza.
+- 4a. Código interno repetido, código del fabricante repetido para la misma marca o importe negativo: se rechaza.
 - 5a. Se desactiva un elemento: no se usa en operaciones nuevas y permanece en históricas.
 - 5b. Se modifica precio: el nuevo valor no altera líneas históricas.
 - 5c. Se marca un kit comprado: se trata como producto completo; cualquier desarme se realiza con `CU-022`.

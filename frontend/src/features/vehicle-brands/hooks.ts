@@ -47,6 +47,8 @@ export function useVehicleBrandMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-brands'] })
       queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      // Compatibilidades y selectores de productos dependen de las marcas de vehículo.
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })
 
@@ -56,6 +58,8 @@ export function useVehicleBrandMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-brands'] })
       queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      // Compatibilidades y selectores de productos dependen de las marcas de vehículo.
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })
 
@@ -70,6 +74,8 @@ export function useVehicleBrandMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-brands'] })
       queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      // Compatibilidades y selectores de productos dependen de las marcas de vehículo.
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })
 
@@ -84,6 +90,8 @@ export function useVehicleBrandMutations(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-brands'] })
       queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      // Compatibilidades y selectores de productos dependen de las marcas de vehículo.
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })
 

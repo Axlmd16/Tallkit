@@ -240,7 +240,12 @@ class ProductListCreateView(_CatalogView):
         tags=[_PRODUCT_TAG],
         operation_id="catalog_product_list",
         parameters=[
-            *_LIST_PARAMS,
+            OpenApiParameter(
+                "search",
+                OpenApiTypes.STR,
+                description="Búsqueda parcial por código interno, código del fabricante o nombre.",
+            ),
+            *_LIST_PARAMS[1:],
             OpenApiParameter("category_id", OpenApiTypes.INT),
             OpenApiParameter("product_brand_id", OpenApiTypes.INT),
             OpenApiParameter("vehicle_brand_id", OpenApiTypes.INT),

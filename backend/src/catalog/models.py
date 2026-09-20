@@ -81,6 +81,7 @@ class ProductBrand(_Auditable):
 
 class Product(_Auditable):
     code = models.CharField(max_length=64)
+    manufacturer_code = models.CharField(max_length=64, blank=True, default="")
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=2000, blank=True, default="")
     category = models.ForeignKey(ProductCategory, on_delete=models.PROTECT, related_name="products")
@@ -109,6 +110,21 @@ class Product(_Auditable):
             models.UniqueConstraint(Upper(Trim("code")), name="product_code_unique"),
             models.CheckConstraint(
                 condition=models.Q(code__regex=r"\S"), name="product_code_not_blank"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(manufacturer_code="") | models.Q(manufacturer_code__regex=r"\S"),
+                name="product_mfr_code_not_blank",
+            ),
+            models.UniqueConstraint(
+                "product_brand",
+                Upper(Trim("manufacturer_code")),
+                condition=models.Q(product_brand__isnull=False) & ~models.Q(manufacturer_code=""),
+                name="product_mfr_code_brand_unique",
+            ),
+            models.UniqueConstraint(
+                Upper(Trim("manufacturer_code")),
+                condition=models.Q(product_brand__isnull=True) & ~models.Q(manufacturer_code=""),
+                name="product_mfr_code_nobrand_unique",
             ),
             _name_not_blank("product_name_not_blank"),
             models.CheckConstraint(

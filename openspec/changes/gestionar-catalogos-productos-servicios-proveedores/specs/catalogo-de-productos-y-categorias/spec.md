@@ -91,7 +91,7 @@ Una categoría SHALL poder desactivarse solo cuando no tenga productos activos. 
 
 ### Requirement: Producto por presentación completa
 
-Cada **Producto** SHALL exigir código único, nombre, categoría, cantidad positiva de contenido, unidad de medida y **precio final de catálogo**; descripción, marca de producto y compatibilidades SHALL ser opcionales y el estado inicial SHALL ser activo. El código SHALL quitar espacios exteriores y normalizarse a mayúsculas; su unicidad SHALL incluir inactivos. La **presentación** SHALL conservar cantidad decimal y unidad, sin conversiones automáticas. Diferentes presentaciones vendibles SHALL ser productos distintos. SHALL admitirse una indicación de **kit** comprado sin composición. Crear o editar SHALL validar conjuntamente todos los campos y referencias. Trazabilidad: DP-009/010; RN-CAT-001/005/006/011/012; RF-CAT-001/002/008/009/013/014; UI-030…032.
+Cada **Producto** SHALL exigir código interno único (campo `code`), nombre, categoría, cantidad positiva de contenido, unidad de medida y **precio final de catálogo**; descripción, marca de producto y compatibilidades SHALL ser opcionales y el estado inicial SHALL ser activo. El código SHALL quitar espacios exteriores y normalizarse a mayúsculas; su unicidad SHALL incluir inactivos. Además SHALL admitir un **código del fabricante o número de parte** opcional (`manufacturer_code`), referencia externa que no reemplaza al código interno: SHALL normalizarse igual, vacío equivale a ausente, y su unicidad SHALL evaluarse junto con la marca de producto (misma marca no repite; marcas distintas sí; los productos sin marca comparten un único ámbito), incluyendo inactivos. El código del fabricante SHALL NOT modificar existencias ni crear operaciones de inventario. La **presentación** SHALL conservar cantidad decimal y unidad, sin conversiones automáticas. Diferentes presentaciones vendibles SHALL ser productos distintos. SHALL admitirse una indicación de **kit** comprado sin composición. Crear o editar SHALL validar conjuntamente todos los campos y referencias. Trazabilidad: DP-009/010; RN-CAT-001/005/006/011/012; RF-CAT-001/002/008/009/013/014; UI-030…032.
 
 #### Scenario: Producto mínimo persistente
 - **GIVEN** categoría y unidad activas y configuración fiscal válida
@@ -102,6 +102,16 @@ Cada **Producto** SHALL exigir código único, nombre, categoría, cantidad posi
 - **GIVEN** un producto activo o inactivo con código FIL-01
 - **WHEN** se intenta crear otro con « fil-01 »
 - **THEN** SHALL rechazarse el código sin crear otro producto
+
+#### Scenario: Código del fabricante repetido en la misma marca
+- **GIVEN** un producto de la marca A con código de fabricante BP-1
+- **WHEN** se intenta crear o editar otro producto de la marca A con « bp-1 »
+- **THEN** SHALL rechazarse con un error asociado al código del fabricante; con la marca B SHALL aceptarse
+
+#### Scenario: Código del fabricante opcional y buscable
+- **GIVEN** un producto sin código de fabricante y otro con BP-999
+- **WHEN** se busca « bp-99 »
+- **THEN** SHALL mostrarse solo el segundo, y la ficha y el listado SHALL mostrar ambos códigos
 
 #### Scenario: Código concurrente
 - **GIVEN** dos solicitudes independientes con igual código normalizado
@@ -203,7 +213,7 @@ Los precios SHALL ser importes decimales no negativos en USD con hasta dos decim
 
 ### Requirement: Consulta filtrada y paginada de productos y auxiliares
 
-Productos SHALL buscarse por coincidencia parcial de código o nombre, sin distinguir mayúsculas y quitando espacios exteriores; filtros de categoría, estado, marca de producto y marca de vehículo SHALL combinarse por intersección. SHALL permitir activos, inactivos o todos, con activos por defecto. Auxiliares SHALL admitir búsqueda por nombre y estado. Toda lista SHALL paginarse en servidor con orden estable, total y navegación entre páginas; volver desde ficha SHALL conservar búsqueda, filtros y página. Filtros inválidos SHALL rechazarse de forma corregible. La consulta de fichas inactivas SHALL estar permitida. Trazabilidad: RF-CAT-004/006; RNF-REN-005/006; RNF-USA-011; UI-030…033.
+Productos SHALL buscarse por coincidencia parcial de código interno, código del fabricante o nombre, sin distinguir mayúsculas y quitando espacios exteriores; filtros de categoría, estado, marca de producto y marca de vehículo SHALL combinarse por intersección. SHALL permitir activos, inactivos o todos, con activos por defecto. Auxiliares SHALL admitir búsqueda por nombre y estado. Toda lista SHALL paginarse en servidor con orden estable, total y navegación entre páginas; volver desde ficha SHALL conservar búsqueda, filtros y página. Filtros inválidos SHALL rechazarse de forma corregible. La consulta de fichas inactivas SHALL estar permitida. Trazabilidad: RF-CAT-004/006; RNF-REN-005/006; RNF-USA-011; UI-030…033.
 
 #### Scenario: Filtros combinados
 - **GIVEN** productos de distintas categorías y marcas

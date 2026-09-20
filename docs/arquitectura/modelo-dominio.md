@@ -261,7 +261,7 @@ namespace Fiscal {
 }
 
 namespace Catalogos {
-  class Producto { codigo nombre precioFinal esKit activo }
+  class Producto { codigo codigoFabricante nombre precioFinal esKit activo }
   class Presentacion { <<value object>> contenido }
   class Cantidad { <<value object>> valor unidad }
   class UnidadMedida { nombre simbolo }

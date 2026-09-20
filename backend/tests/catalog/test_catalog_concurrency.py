@@ -10,7 +10,15 @@ from django.db import connection, connections
 
 from catalog.application import auxiliaries, products
 from catalog.application.errors import CatalogApplicationError
-from catalog.models import MeasurementUnit, Product, ProductCategory
+from catalog.models import (
+    MeasurementUnit,
+    Product,
+    ProductBrand,
+    ProductCategory,
+    ProductCompatibility,
+)
+from customer_registry.application.brands import deactivate_brand
+from customer_registry.models import VehicleBrand
 from identity.models import AuditEvent, UserRole
 from supplier_registry.application import suppliers
 from supplier_registry.models import Supplier
@@ -133,3 +141,197 @@ def test_category_deactivation_races_product_creation(admin: Any) -> None:
         action__in=["catalog.category_deactivated", "catalog.product_created"], result="SUCCESS"
     ).count()
     assert success == len(ok)
+
+
+def _product_world(**extra: Any) -> dict[str, Any]:
+    entity, _ = FiscalEntity.objects.get_or_create(
+        entity_type="COMERCIAL", defaults={"legal_name": "C", "ruc": "1790000000001"}
+    )
+    tax = TaxDefinition.objects.create(fiscal_entity=entity, code="IVA", name="IVA")
+    return {
+        "tax": tax,
+        "category": ProductCategory.objects.create(name="Cat"),
+        "unit": MeasurementUnit.objects.create(name="U"),
+        **extra,
+    }
+
+
+def _product_payload(world: dict[str, Any], key: str, **override: Any) -> dict[str, Any]:
+    return {
+        "code": key.upper(),
+        "name": f"Producto {key}",
+        "category_id": world["category"].pk,
+        "unit_id": world["unit"].pk,
+        "tax_definition_id": world["tax"].pk,
+        "content_quantity": "1",
+        "sale_price": "1.00",
+        "idempotency_key": key,
+        **override,
+    }
+
+
+def test_category_deactivation_races_product_reclassification(admin: Any) -> None:
+    world = _product_world()
+    target = world["category"]
+    origin = ProductCategory.objects.create(name="Origen")
+    product = Product.objects.create(
+        code="MOVE",
+        name="Mover",
+        category=origin,
+        unit=world["unit"],
+        tax_definition=world["tax"],
+        content_quantity=1,
+        sale_price=1,
+    )
+
+    def deactivate() -> Any:
+        return auxiliaries.set_auxiliary_active(
+            "category",
+            target.pk,
+            active=False,
+            actor=admin,
+            payload={"expected_version": 1, "idempotency_key": "race-recl-off"},
+        )
+
+    def reclassify() -> Any:
+        return products.update_product(
+            product.pk,
+            actor=admin,
+            payload={
+                "expected_version": 1,
+                "category_id": target.pk,
+                "idempotency_key": "race-recl-mov",
+            },
+        )
+
+    off, moved = run_pair(deactivate, reclassify)
+    target.refresh_from_db()
+    product.refresh_from_db()
+    assert not (not target.is_active and product.category_id == target.pk)
+    if isinstance(off, Exception):
+        assert off.code == "category_has_active_products"  # type: ignore[attr-defined]
+        assert product.category_id == target.pk
+    if isinstance(moved, Exception):
+        assert moved.code == "inactive_reference"  # type: ignore[attr-defined]
+        assert product.category_id == origin.pk
+    success = AuditEvent.objects.filter(
+        action__in=["catalog.category_deactivated", "catalog.product_updated"], result="SUCCESS"
+    ).count()
+    assert success == sum(not isinstance(r, Exception) for r in (off, moved))
+
+
+def test_category_deactivation_races_product_reactivation(admin: Any) -> None:
+    world = _product_world()
+    category = world["category"]
+    product = Product.objects.create(
+        code="REACT",
+        name="Reactivar",
+        category=category,
+        unit=world["unit"],
+        tax_definition=world["tax"],
+        content_quantity=1,
+        sale_price=1,
+        is_active=False,
+    )
+
+    def deactivate() -> Any:
+        return auxiliaries.set_auxiliary_active(
+            "category",
+            category.pk,
+            active=False,
+            actor=admin,
+            payload={"expected_version": 1, "idempotency_key": "race-react-off"},
+        )
+
+    def reactivate() -> Any:
+        return products.set_product_active(
+            product.pk,
+            active=True,
+            actor=admin,
+            payload={"expected_version": 1, "idempotency_key": "race-react-on"},
+        )
+
+    off, on = run_pair(deactivate, reactivate)
+    category.refresh_from_db()
+    product.refresh_from_db()
+    assert not (not category.is_active and product.is_active)
+    if isinstance(off, Exception):
+        assert off.code == "category_has_active_products"  # type: ignore[attr-defined]
+        assert product.is_active
+    if isinstance(on, Exception):
+        assert on.code == "inactive_reference"  # type: ignore[attr-defined]
+        assert not product.is_active
+
+
+@pytest.mark.parametrize("kind", ["unit", "brand"])
+def test_auxiliary_deactivation_races_new_association(admin: Any, kind: str) -> None:
+    world = _product_world()
+    brand = ProductBrand.objects.create(name="Marca")
+    auxiliary = world["unit"] if kind == "unit" else brand
+    extra = {} if kind == "unit" else {"product_brand_id": brand.pk}
+
+    def deactivate() -> Any:
+        return auxiliaries.set_auxiliary_active(
+            kind,
+            auxiliary.pk,
+            active=False,
+            actor=admin,
+            payload={"expected_version": 1, "idempotency_key": f"race-{kind}-off"},
+        )
+
+    def associate() -> Any:
+        return products.create_product(
+            actor=admin, payload=_product_payload(world, f"race-{kind}-new", **extra)
+        )
+
+    off, created = run_pair(deactivate, associate)
+    auxiliary.refresh_from_db()
+    assert not isinstance(off, Exception)  # la baja de auxiliares nunca se bloquea
+    assert not auxiliary.is_active
+    if isinstance(created, Exception):
+        assert created.code == "inactive_reference"  # type: ignore[attr-defined]
+        assert Product.objects.count() == 0
+    else:
+        assert Product.objects.count() == 1
+
+
+def test_vehicle_brand_deactivation_races_product_compatibility(admin: Any) -> None:
+    world = _product_world()
+    vehicle_brand = VehicleBrand.objects.create(name="Marca vehículo")
+
+    def deactivate() -> Any:
+        return deactivate_brand(brand_id=vehicle_brand.pk, expected_version=1, actor=admin)
+
+    def associate() -> Any:
+        return products.create_product(
+            actor=admin,
+            payload=_product_payload(world, "race-veh-new", vehicle_brand_ids=[vehicle_brand.pk]),
+        )
+
+    off, created = run_pair(deactivate, associate)
+    vehicle_brand.refresh_from_db()
+    assert not isinstance(off, Exception)
+    assert not vehicle_brand.is_active
+    if isinstance(created, Exception):
+        assert created.code == "inactive_reference"  # type: ignore[attr-defined]
+        assert Product.objects.count() == 0
+    else:
+        assert ProductCompatibility.objects.filter(vehicle_brand=vehicle_brand).count() == 1
+
+
+def test_same_product_code_only_one_wins(admin: Any) -> None:
+    world = _product_world()
+
+    def make(n: int) -> Callable[[], Any]:
+        return lambda: products.create_product(
+            actor=admin,
+            payload=_product_payload(world, f"race-code-{n:04d}", code=" same-code "),
+        )
+
+    first, second = run_pair(make(1), make(2))
+    results = [first, second]
+    assert sum(not isinstance(r, Exception) for r in results) == 1
+    loser = next(r for r in results if isinstance(r, Exception))
+    assert getattr(loser, "code", None) == "duplicate_code"
+    assert Product.objects.filter(code="SAME-CODE").count() == 1
+    assert Product.objects.count() == 1

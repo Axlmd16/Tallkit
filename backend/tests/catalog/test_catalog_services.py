@@ -27,7 +27,9 @@ def make_aux(actor: Any, kind: str, **fields: Any) -> dict[str, Any]:
     return out.body
 
 
-def product_payload(cat: dict, unit: dict, tax: TaxDefinition, **kw: Any) -> dict[str, Any]:
+def product_payload(
+    cat: dict[str, Any], unit: dict[str, Any], tax: TaxDefinition, **kw: Any
+) -> dict[str, Any]:
     return {
         "code": "ace-1",
         "name": "Aceite",
@@ -123,11 +125,12 @@ def test_duplicate_name_including_inactive_and_replay(role_admin: Any) -> None:
 
 
 def test_auxiliary_validation_unknown_and_stale(role_admin: Any) -> None:
-    for bad, code in [
+    cases: list[tuple[dict[str, Any], str]] = [
         ({"name": "  "}, "validation_error"),
         ({"name": "A", "stock": 1}, "unknown_field"),
         ({"name": "A", "parent_id": 1}, "unknown_field"),
-    ]:
+    ]
+    for bad, code in cases:
         with pytest.raises(CatalogApplicationError) as exc:
             auxiliaries.create_auxiliary(
                 "category", actor=role_admin, payload={**bad, "idempotency_key": key()}
@@ -440,3 +443,71 @@ def test_service_scope_and_permissions(
     assert exc.value.code == "invalid_tax_scope"
     with pytest.raises(CatalogApplicationError):
         services.create_service(actor=role_admin, payload={**payload, "cost": 3})
+
+
+def test_presentations_are_independent_products(base: dict[str, Any]) -> None:
+    """Cada presentación vendible es un producto propio, sin variantes ni conversión."""
+    unit = make_aux(base["admin"], "unit", name="Galón", symbol="gal")
+    gallon = new_product(
+        base, code="ACE-GAL", name="Aceite 20W50", unit_id=unit["id"], sale_price="30.00"
+    )
+    half = new_product(
+        base,
+        code="ACE-MEDIO",
+        name="Aceite 20W50",
+        unit_id=unit["id"],
+        content_quantity="0.500000",
+        sale_price="16.00",
+    )
+    assert gallon["id"] != half["id"]
+    assert (gallon["content_quantity"], half["content_quantity"]) == ("1.000000", "0.500000")
+    assert (gallon["sale_price"], half["sale_price"]) == ("30.00", "16.00")
+    updated = products.update_product(
+        half["id"],
+        actor=base["admin"],
+        payload={"expected_version": 1, "sale_price": "17.00", "idempotency_key": key()},
+    ).body
+    assert updated["sale_price"] == "17.00"
+    assert queries.get_product(gallon["id"])["sale_price"] == "30.00"
+    assert not {"variants", "conversion", "parent_id"} & set(gallon)
+
+
+def test_repeated_product_and_service_state_changes_are_harmless(
+    base: dict[str, Any], role_manager: Any, artisanal_tax: TaxDefinition
+) -> None:
+    product = new_product(base)
+    same = products.set_product_active(
+        product["id"],
+        active=True,
+        actor=base["admin"],
+        payload={"expected_version": 1, "idempotency_key": key()},
+    ).body
+    assert same["version"] == 1
+    assert not AuditEvent.objects.filter(action="catalog.product_activated").exists()
+
+    service = services.create_service(
+        actor=role_manager,
+        payload={
+            "name": "Balanceo",
+            "reference_price": "10",
+            "tax_definition_id": artisanal_tax.pk,
+            "idempotency_key": key(),
+        },
+    ).body
+    unchanged = services.set_service_active(
+        service["id"],
+        active=True,
+        actor=role_manager,
+        payload={"expected_version": 1, "idempotency_key": key()},
+    ).body
+    assert unchanged["version"] == 1
+    assert not AuditEvent.objects.filter(action="catalog.service_activated").exists()
+    # una solicitud nueva con versión obsoleta sigue respondiendo conflicto
+    with pytest.raises(CatalogApplicationError) as exc:
+        services.set_service_active(
+            service["id"],
+            active=True,
+            actor=role_manager,
+            payload={"expected_version": 9, "idempotency_key": key()},
+        )
+    assert exc.value.code == "stale_record"

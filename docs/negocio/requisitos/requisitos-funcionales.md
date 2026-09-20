@@ -59,10 +59,10 @@
 
 | ID | Requisito | Prioridad | Criterio de cumplimiento resumido |
 |---|---|---|---|
-| RF-CAT-001 | El sistema debe permitir registrar productos con código único, nombre, descripción, categoría, marca de producto, presentación, unidad, precio final y estado. | Debe | Un producto válido se guarda y un código repetido es rechazado. |
+| RF-CAT-001 | El sistema debe permitir registrar productos con código interno único, código del fabricante opcional, nombre, descripción, categoría, marca de producto, presentación, unidad, precio final y estado. | Debe | Un producto válido se guarda; un código interno repetido es rechazado y un código de fabricante repetido dentro de la misma marca también. |
 | RF-CAT-002 | El sistema debe permitir editar un producto sin modificar líneas históricas de documentos confirmados. | Debe | Los cambios aplican a operaciones futuras y el histórico conserva sus valores. |
 | RF-CAT-003 | El sistema debe permitir activar y desactivar productos sin eliminarlos. | Debe | Un producto inactivo no se agrega a operaciones nuevas, pero sigue visible en el historial. |
-| RF-CAT-004 | El sistema debe permitir buscar y filtrar productos por código, nombre, categoría, marca de producto, marca de vehículo, estado y disponibilidad. | Debe | Los filtros pueden combinarse y los resultados reflejan los criterios. |
+| RF-CAT-004 | El sistema debe permitir buscar y filtrar productos por código interno, código del fabricante, nombre, categoría, marca de producto, marca de vehículo, estado y disponibilidad. | Debe | Los filtros pueden combinarse y los resultados reflejan los criterios. |
 | RF-CAT-005 | El sistema debe mostrar existencias a los tres roles y costos únicamente al Administrador. | Debe | El Vendedor y el Encargado del taller no reciben costos ni valorización desde la interfaz o la API. |
 | RF-CAT-006 | El sistema debe permitir gestionar categorías, marcas de producto, marcas de vehículo, presentaciones y unidades. | Debe | Los valores activos pueden seleccionarse y los históricos permanecen legibles. |
 | RF-CAT-007 | El sistema debe permitir registrar compatibilidades vehiculares como información de referencia. | Debería | La compatibilidad puede consultarse y no bloquea por sí sola una venta. |
@@ -75,6 +75,8 @@
 | RF-CAT-014 | El sistema debe representar cantidades con valor y unidad sin convertir ni fraccionar automáticamente presentaciones. | Debe | Una operación respeta la precisión configurada y no abre envases para vender fracciones. |
 | RF-CAT-015 | El precio del catálogo de productos debe representar el valor final para el cliente, con impuesto incluido cuando aplique. | Debe | La operación desglosa base e impuesto sin cambiar el total mostrado. |
 | RF-CAT-016 | Para un proveedor ocasional el sistema debe exigir nombre y permitir identificación y contacto opcionales. | Debe | Una compra ocasional puede confirmarse sin inventar un proveedor genérico. |
+
+**Estado de implementación (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** Entregados en el alcance de catálogos: RF-CAT-001…003, RF-CAT-004 (sin el filtro de disponibilidad), RF-CAT-006…007, RF-CAT-008 (solo la identificación del kit completo, sin desarme), RF-CAT-009, RF-CAT-010…016. RF-CAT-005 (existencias y costos) y la disponibilidad de RF-CAT-004 dependen de inventario y **no** están implementados. La evidencia por escenario está en [cobertura-catalogos.md](cobertura-catalogos.md).
 
 ## 5. Ingresos de mercadería, inventario y Kardex
 

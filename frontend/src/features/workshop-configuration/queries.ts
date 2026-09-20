@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query'
 import { workshopConfigApi } from './api'
 import type {
   FiscalEntityUpdateRequest,
@@ -26,6 +31,12 @@ export const workshopKeys = {
     [...workshopKeys.all, 'series', scopeId] as const,
   seriesDetail: (seriesId: number) =>
     [...workshopKeys.all, 'series', 'detail', seriesId] as const,
+}
+
+/** Los cambios tributarios modifican las proyecciones fiscales de productos y servicios. */
+function invalidateCatalogTaxProjections(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: ['products'] })
+  queryClient.invalidateQueries({ queryKey: ['services'] })
 }
 
 export function useWorkshopStatus() {
@@ -122,6 +133,7 @@ export function useCreateTaxDefinition() {
     mutationFn: (data: TaxDefinitionCreateRequest) =>
       workshopConfigApi.createTaxDefinition(data),
     onSuccess: (_, variables) => {
+      invalidateCatalogTaxProjections(queryClient)
       queryClient.invalidateQueries({
         queryKey: workshopKeys.taxDefinitions(variables.entity_id),
       })
@@ -151,6 +163,7 @@ export function useCreateTaxPeriod() {
       data: TaxPeriodCreateRequest
     }) => workshopConfigApi.createTaxPeriod(taxDefId, data),
     onSuccess: (_, variables) => {
+      invalidateCatalogTaxProjections(queryClient)
       queryClient.invalidateQueries({
         queryKey: workshopKeys.taxPeriods(variables.taxDefId),
       })
@@ -172,6 +185,7 @@ export function useUpdateTaxPeriod() {
       data: TaxPeriodUpdateRequest
     }) => workshopConfigApi.updateTaxPeriod(periodId, data),
     onSuccess: () => {
+      invalidateCatalogTaxProjections(queryClient)
       // Could be more specific if we knew the taxDefId, but since we don't always, invalidate all periods
       queryClient.invalidateQueries({
         queryKey: [...workshopKeys.all, 'taxes', 'periods'],
@@ -191,6 +205,7 @@ export function useScheduleSuccessor() {
       data: ScheduleSuccessorRequest
     }) => workshopConfigApi.scheduleSuccessor(periodId, data),
     onSuccess: () => {
+      invalidateCatalogTaxProjections(queryClient)
       queryClient.invalidateQueries({
         queryKey: [...workshopKeys.all, 'taxes', 'periods'],
       })

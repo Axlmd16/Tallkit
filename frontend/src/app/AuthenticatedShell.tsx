@@ -4,9 +4,12 @@ import {
   ClipboardText,
   House,
   List,
+  Package,
   Pulse,
   SignOut,
   Tag,
+  Toolbox,
+  Truck,
   Users,
   Wrench,
 } from '@phosphor-icons/react'
@@ -39,7 +42,7 @@ const navigation = [
   },
   {
     icon: Tag,
-    label: 'Marcas',
+    label: 'Marcas de vehículo',
     to: '/vehicle-brands',
     permission: 'marcas_vehiculo.ver',
   },
@@ -48,6 +51,24 @@ const navigation = [
     label: 'Vehículos',
     to: '/vehicles',
     permission: 'vehiculos.ver',
+  },
+  {
+    icon: Package,
+    label: 'Productos',
+    to: '/products',
+    permission: 'productos.ver',
+  },
+  {
+    icon: Toolbox,
+    label: 'Servicios',
+    to: '/services',
+    permission: 'servicios.ver',
+  },
+  {
+    icon: Truck,
+    label: 'Proveedores',
+    to: '/suppliers',
+    permission: 'proveedores.ver',
   },
   { icon: Users, label: 'Usuarios', to: '/users', permission: 'usuarios.ver' },
   {
@@ -69,6 +90,15 @@ const navigation = [
     permission: 'parametros.gestionar',
   },
 ] as const
+
+/** Rutas cuya entrada usa un icono propio en lugar de un glifo del sistema visual. */
+const iconRoutes: ReadonlySet<string> = new Set([
+  '/users',
+  '/customers',
+  '/products',
+  '/services',
+  '/suppliers',
+])
 
 function NavigationItems({
   onNavigate,
@@ -92,7 +122,7 @@ function NavigationItems({
           title={item.label}
           to={item.to}
         >
-          {item.to === '/users' || item.to === '/customers' ? (
+          {iconRoutes.has(item.to) ? (
             <Icon
               aria-hidden="true"
               className="shrink-0"
@@ -176,7 +206,10 @@ export function AuthenticatedShell({
             src={expandedBrand}
           />
         </div>
-        <nav aria-label="Navegación principal" className="mt-8 space-y-2">
+        <nav
+          aria-label="Navegación principal"
+          className="mt-8 min-h-0 flex-1 space-y-2 overflow-y-auto"
+        >
           <NavigationItems permissions={permissions} />
         </nav>
         <div className="rail-profile mt-auto pt-4" title={userSummary}>

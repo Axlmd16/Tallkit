@@ -222,3 +222,23 @@ def test_matches_limit_and_has_more(role_admin: Any) -> None:
     out = queries.find_name_matches({"name": "homónimo"})
     assert len(out["results"]) == 10
     assert out["has_more"] is True
+
+
+def test_customer_with_the_same_identification_neither_blocks_nor_merges(role_admin: Any) -> None:
+    from customer_registry.models import Customer
+
+    customer = Customer.objects.create(
+        person_type="NATURAL",
+        name="Carlos Vera",
+        identification_type="CI",
+        identification="0912345678",
+        phone="0991112233",
+    )
+    supplier = create(
+        role_admin, identification_type="CI", identification="0912345678", name="Carlos Vera"
+    )
+    assert supplier["identification"] == "0912345678"
+    customer.refresh_from_db()
+    assert (customer.name, customer.version, customer.is_active) == ("Carlos Vera", 1, True)
+    assert Customer.objects.count() == 1
+    assert Supplier.objects.count() == 1

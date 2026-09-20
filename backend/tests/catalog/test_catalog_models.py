@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Any
 
 import pytest
 from django.apps import apps
@@ -33,7 +34,7 @@ def test_catalog_models_have_no_stock_or_cost_fields() -> None:
 
 
 @pytest.mark.parametrize("model", [ProductCategory, MeasurementUnit, ProductBrand])
-def test_auxiliary_name_unique_normalized_including_inactive(model: type) -> None:
+def test_auxiliary_name_unique_normalized_including_inactive(model: Any) -> None:
     model.objects.create(name="Aceites", is_active=False)
     with pytest.raises(IntegrityError), transaction.atomic():
         model.objects.create(name="  aceites ")
@@ -122,7 +123,7 @@ def test_services_may_share_names_and_have_no_code(commercial_tax: TaxDefinition
         )
 
 
-def test_command_receipt_constraints(actor: object) -> None:
+def test_command_receipt_constraints(actor: Any) -> None:
     fp = "a" * 64
     CatalogCommand.objects.create(
         actor=actor,

@@ -20,6 +20,8 @@ credenciales, autorización y auditoría de identidad. Las futuras aplicaciones 
 por capacidad del negocio después de su OpenSpec, no por tabla. Cuando aporten valor, separarán
 `api`, `application`, `domain` e `infrastructure`; no se crearán capas vacías.
 
+`catalog` (productos, categorías, unidades, marcas de producto, compatibilidades y servicios) y `supplier_registry` (proveedores) son aplicaciones independientes: `supplier_registry` no depende de `catalog` ni contiene ingresos o cuentas por pagar. Consultan únicamente `customer_registry.application.catalog_references` (marcas de vehículo) y `workshop_configuration.application.catalog_options` (opciones tributarias de solo lectura). Cada una conserva su propio recibo de idempotencia y su transacción; ningún otro módulo importa sus modelos o servicios.
+
 Un módulo puede consultar interfaces públicas de otro, pero no mutar directamente su persistencia.
 La coordinación con efectos económicos o de inventario pertenecerá a servicios de aplicación con
 límites transaccionales explícitos. Las vistas y serializers traducen HTTP y no deciden reglas.

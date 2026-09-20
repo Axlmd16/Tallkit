@@ -61,6 +61,7 @@ python_version = "3.13"
 strict = true
 plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
 mypy_path = "src"
+explicit_package_bases = true
 exclude = ["migrations"]
 
 [tool.django-stubs]

@@ -161,7 +161,7 @@ Cambio OpenSpec `gestionar-catalogos-productos-servicios-proveedores`. Concreta 
 | `catalog_productcategory` | `name`, `description`; nombre único normalizado; categorías planas. |
 | `catalog_measurementunit` | `name`, `symbol` opcional; nombre único normalizado. |
 | `catalog_productbrand` | `name`; único normalizado; independiente de las marcas de vehículo. |
-| `catalog_product` | `code` único (`Upper(Trim)`), `name`, `description`, `category`, `unit`, `product_brand` opcional, `content_quantity`, `sale_price`, `is_kit`, `tax_definition` (ámbito COMERCIAL validado en el servicio). Índices por estado/nombre y categoría/estado. |
+| `catalog_product` | `code` (código interno) único (`Upper(Trim)`), `manufacturer_code` opcional (`''` si falta; migración `catalog/0002_product_manufacturer_code.py`; único por marca de producto con `Upper(Trim)` cuando no está vacío y, para productos sin marca, único entre ellos; restricciones `product_mfr_code_brand_unique` y `product_mfr_code_nobrand_unique`), `name`, `description`, `category`, `unit`, `product_brand` opcional, `content_quantity`, `sale_price`, `is_kit`, `tax_definition` (ámbito COMERCIAL validado en el servicio). Índices por estado/nombre y categoría/estado. |
 | `catalog_productcompatibility` | Par único producto–marca de vehículo; informativa, sin modelo/año. |
 | `catalog_service` | `name` (repetible), `description`, `reference_price`, `tax_definition` (ámbito ARTESANAL validado en el servicio). Sin código. |
 | `catalog_catalogcommand` | Recibo idempotente: actor, acción, clave, huella SHA-256, estado HTTP y resultado; único por actor/acción/clave. Interno, no expuesto. |
@@ -176,3 +176,8 @@ Cambio OpenSpec `gestionar-catalogos-productos-servicios-proveedores`. Concreta 
 - Orden de bloqueos en comandos de producto: recibo, categorías, unidades, marcas de producto, marcas de vehículo (mediante `customer_registry.application.catalog_references`), producto. La baja de categoría bloquea su fila y rechaza si existen productos activos.
 - Las consultas fiscales de solo lectura provienen de `workshop_configuration.application.catalog_options`; no crean `ConfigurationUse` ni numeración.
 - Auditoría por servicio (`catalog.*`, `suppliers.*`) con solo nombres de campos cambiados.
+
+### Carga inicial y operación
+- Las tablas nacen vacías; ninguna migración inserta datos. Auxiliares y proveedores pueden cargarse sin configuración fiscal; productos y servicios exigen antes una definición de impuesto del ámbito correspondiente (comercial para productos, artesanal para servicios).
+- Antes de desplegar: respaldo probado, backend y `make migrate`, comprobaciones y luego frontend. La ampliación es aditiva; ante problemas con registros reales se prefiere la corrección hacia adelante en lugar de deshacer migraciones o restaurar sin autorización.
+- La retención de los recibos idempotentes (`catalog_catalogcommand`, `supplier_registry_suppliercommand`) no tiene purga automática en V1; su política operativa sigue pendiente.
