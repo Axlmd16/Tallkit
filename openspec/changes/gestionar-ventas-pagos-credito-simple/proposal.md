@@ -2,7 +2,7 @@
 
 El sistema ya gestiona clientes, catálogo, compras e inventario, pero todavía no permite completar una **venta de repuestos**, cobrarla ni consultar su deuda. Este cambio incorporará el ciclo comercial con correcciones trazables, preservando la separación fiscal y la coherencia entre dinero, numeración e inventario.
 
-Estado: propuesta pendiente de aprobación. Fecha: 2026-09-20. El usuario autorizó redactar en `develop` y eligió «Ciclo comercial con correcciones»: ventas directas, pagos y crédito comercial, incluidas anulaciones, devoluciones y reembolsos; proformas, reservas de mantenimiento y cobros artesanales quedan para otros cambios. Esta elección delimita el alcance; no aprueba todavía las recomendaciones siguientes ni las fases posteriores.
+Estado: propuesta aprobada para crear specs. Fecha: 2026-09-20. Después de confirmar que esta propuesta estaba registrada en `master` en el commit `b527d68`, se solicitó aprobación expresa de la propuesta y de sus cuatro recomendaciones; el usuario respondió «si esta bien, continua». La aprobación comprende las recomendaciones de importes, precio aplicado, contado/cobro y correcciones que se conservan abajo como contexto de la revisión original. No aprueba anticipadamente specs, diseño, tareas ni implementación, ni autoriza operaciones Git. Se mantiene la autorización para redactar en `develop` y el alcance elegido: ciclo comercial con correcciones; proformas, reservas de mantenimiento y cobros artesanales quedan para otros cambios.
 
 ## What Changes
 
@@ -19,9 +19,9 @@ Se preservan DP-001/002/003/004/006/008 (Cliente)/009/013/014/017/018 y CT-001: 
 
 Administrador y Vendedor crean, consultan, confirman y cobran ventas comerciales según sus permisos existentes. Solo el Administrador anula ventas o pagos y autoriza devoluciones/reembolsos. El Encargado del taller sin otro rol no obtiene acceso a ventas directas, cobros comerciales ni costos. Los roles se acumulan y el backend valida cada acción. El cliente recibe el comprobante, sin acceso autenticado propio.
 
-### Recomendaciones pendientes de aprobación
+### Recomendaciones aprobadas para este cambio
 
-Estas concreciones no son decisiones confirmadas ni certificación tributaria; deben resolverse antes de specs:
+Estas concreciones fueron aprobadas por el usuario para las specs de este cambio; no certifican tarifas ni obligaciones tributarias reales. Se conserva su redacción original y sus alternativas para explicar la decisión adoptada:
 
 1. **Importes y fecha operativa:** proponer USD, precios finales con hasta dos decimales y cantidades enteras positivas de presentaciones completas. Usar la selección tributaria comercial del producto y la fecha efectiva de confirmación en America/Guayaquil; no retrofechar ventas. Para una tarifa porcentual inclusiva, conservar el total de línea, calcular base a centavos con HALF_UP y obtener impuesto por diferencia; sumar las líneas para los totales. En devoluciones parciales, distribuir los importes históricos proporcionalmente y asignar el residuo a la última devolución de la línea, sin exceder sus importes originales. Alternativa: cálculo global u otra política expresamente validada. DP-023 solo aprueba redondeo de compras; no autoriza esta política de ventas. Las tarifas reales siguen siendo configuración validada por el responsable del negocio.
 2. **Precio aplicado:** proponer tomar el precio final vigente del catálogo, sin edición libre en la venta para ningún rol; un cambio de precio corresponde al catálogo y a su permiso administrativo. Si cambia antes de confirmar, presentar los valores actualizados para nueva revisión. Alternativa: permitir un precio negociado con reglas y permisos adicionales, sin habilitar descuentos. La documentación define precio histórico y prohíbe descuentos, pero no concreta completamente esta facultad en ventas.
@@ -57,7 +57,7 @@ Ninguna spec principal requiere sustituir sus reglas en esta propuesta. Las capa
 
 - El contexto general de decisiones y el párrafo final de arquitectura aún describen ausencia de dominio, pero la arquitectura detallada y `backend/src/config/api/urls.py` muestran clientes, catálogo, compras e inventario implementados. Se reutiliza ese estado real sin alterar reglas de negocio.
 - `inventory.application.posting.reverse_operation` y ADR-0005 restringen la reversión exacta al último movimiento. No equivalen a una devolución comercial después de movimientos posteriores. El diseño deberá cubrir ese reingreso sin trasladar a devoluciones una restricción propia de reversión; el glosario también usa una definición restringida de movimiento compensatorio que habrá que mantener precisa.
-- No existe spec principal de ventas/pagos; la línea conceptual no resuelve redondeo comercial, libertad de precio ni todos los detalles operativos de contado y reembolsos. Las recomendaciones anteriores hacen visibles esos pendientes. No se crean series nuevas para pagos o correcciones sin decisión expresa.
+- No existe spec principal de ventas/pagos; la línea conceptual no resolvía redondeo comercial, libertad de precio ni todos los detalles operativos de contado y reembolsos. Las recomendaciones anteriores, ahora aprobadas, concretan esos puntos para este cambio. No se crean series nuevas para pagos o correcciones sin decisión expresa.
 
 ### Fuentes consultadas y trazabilidad
 
@@ -69,6 +69,6 @@ Ninguna spec principal requiere sustituir sus reglas en esta propuesta. Las capa
 
 ### Aprobaciones y siguiente paso
 
-Esta entrega crea únicamente la propuesta y su referencia terminológica. `openspec/config.yaml` exige «No incluir diseño técnico ni código y esperar aprobación explícita antes de crear specs». Primero deben aprobarse la propuesta y sus recomendaciones; después, según AGENTS, registrar el artefacto aprobado en `master` antes de depender de él. La autorización para redactar en `develop` no autoriza commits, ramas ni merges. La secuencia del repositorio sigue proposal → specs → design → tasks, aunque el esquema genérico habilite simultáneamente specs y design.
+La propuesta y sus recomendaciones ya fueron aprobadas sobre el contenido registrado en `master`; esta actualización deja constancia de la aprobación recibida. Las specs se redactan en `develop` y requieren su propia aprobación y registro en `master` antes de crear diseño. La autorización para redactar no autoriza commits, ramas ni merges. La secuencia del repositorio sigue proposal → specs → design → tasks, aunque el esquema genérico habilite simultáneamente specs y design.
 
 Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).
