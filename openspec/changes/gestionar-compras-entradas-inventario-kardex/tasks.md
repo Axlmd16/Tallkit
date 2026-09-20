@@ -12,88 +12,88 @@ ejecutado, nunca una afirmación anticipada.
 
 ## 1. Preparación de fronteras y módulos
 
-- [ ] 1.1 Eliminar el bytecode obsoleto sin fuentes de `backend/src/purchasing/__pycache__/` y sus subdirectorios, verificando con `git status --short` que no se versiona nada y que ningún módulo real se pierde.
-- [ ] 1.2 Crear `backend/src/inventory/` con `__init__.py`, `apps.py`, `models.py` vacío de modelos y `migrations/__init__.py`; registrar la aplicación en `backend/src/config/settings/base.py` sin alterar el orden de las existentes.
-- [ ] 1.3 Crear `backend/src/purchasing/` con la misma estructura mínima y registrarla igualmente en `backend/src/config/settings/base.py`.
-- [ ] 1.4 Escribir en `backend/tests/inventory/test_boundaries.py` y `backend/tests/purchasing/test_boundaries.py` pruebas que fallen mientras las aplicaciones no existan y que prohíban importar modelos ajenos, ejecutar SQL de otros módulos y escribir en persistencia ajena.
-- [ ] 1.5 Sustituir en `backend/tests/catalog/test_boundaries.py` la prohibición absoluta de importar `catalog.application` por una lista blanca de interfaces públicas permitidas, conservando intactas las prohibiciones de modelos y escrituras ajenas.
-- [ ] 1.6 Crear los directorios de prueba `backend/tests/inventory/` y `backend/tests/purchasing/` con `__init__.py` y las fixtures mínimas reutilizando `backend/tests/conftest.py` y `backend/tests/fixtures/`.
-- [ ] 1.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_boundaries.py tests/purchasing/test_boundaries.py tests/catalog/test_boundaries.py` en verde y `uv run --frozen python manage.py check` sin errores.
+- [x] 1.1 Eliminar el bytecode obsoleto sin fuentes de `backend/src/purchasing/__pycache__/` y sus subdirectorios, verificando con `git status --short` que no se versiona nada y que ningún módulo real se pierde.
+- [x] 1.2 Crear `backend/src/inventory/` con `__init__.py`, `apps.py`, `models.py` vacío de modelos y `migrations/__init__.py`; registrar la aplicación en `backend/src/config/settings/base.py` sin alterar el orden de las existentes.
+- [x] 1.3 Crear `backend/src/purchasing/` con la misma estructura mínima y registrarla igualmente en `backend/src/config/settings/base.py`.
+- [x] 1.4 Escribir en `backend/tests/inventory/test_boundaries.py` y `backend/tests/purchasing/test_boundaries.py` pruebas que fallen mientras las aplicaciones no existan y que prohíban importar modelos ajenos, ejecutar SQL de otros módulos y escribir en persistencia ajena.
+- [x] 1.5 Sustituir en `backend/tests/catalog/test_boundaries.py` la prohibición absoluta de importar `catalog.application` por una lista blanca de interfaces públicas permitidas, conservando intactas las prohibiciones de modelos y escrituras ajenas.
+- [x] 1.6 Crear los directorios de prueba `backend/tests/inventory/` y `backend/tests/purchasing/` (sin `__init__.py`: un paquete de pruebas `inventory`/`purchasing` ocultaría los módulos de `src`; se añadió `--import-mode=importlib` a pytest) y las fixtures mínimas reutilizando `backend/tests/conftest.py` y `backend/tests/fixtures/`.
+- [x] 1.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_boundaries.py tests/purchasing/test_boundaries.py tests/catalog/test_boundaries.py` en verde y `uv run --frozen python manage.py check` sin errores.
 
 ## 2. Dominio puro de importes de compra
 
-- [ ] 2.1 Escribir en `backend/tests/purchasing/test_amounts.py` las pruebas que fallan para base = cantidad × costo con `Q2` HALF_UP, impuesto sobre la base ya redondeada y total = base + impuesto, usando los ejemplos exactos de la spec: 2 × 10.00 al 10 % produce 20.00/2.00/22.00.
-- [ ] 2.2 Añadir la prueba del redondeo por línea de la spec: dos líneas de 1 × 0.335 al 10 % producen base 0.34, impuesto 0.03 por línea y totales de documento 0.68 / 0.06 / 0.74.
-- [ ] 2.3 Añadir pruebas de valor inventariable: base cuando el impuesto es `RECOVERABLE` y base + impuesto cuando es `NON_RECOVERABLE`, sin admitir recuperación parcial ni clasificación ausente.
-- [ ] 2.4 Añadir pruebas de rechazo de cantidad cero, cantidad fraccionaria, costo negativo, costo con siete decimales, valores no finitos y exceso de rango, comprobando que no se trunca ni se redondea la entrada.
-- [ ] 2.5 Añadir la prueba de tarifa cero explícita aceptada con impuesto 0.00 frente a definición sin vigencia, que no debe convertirse en exención.
-- [ ] 2.6 Implementar `backend/src/purchasing/domain/amounts.py` con `Decimal`, contexto local de precisión 60 y sin importar Django, DRF ni persistencia, hasta que las pruebas anteriores pasen; refactorizar después sin cambiar resultados.
-- [ ] 2.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_amounts.py` en verde y `uv run --frozen mypy src/purchasing` sin errores.
+- [x] 2.1 Escribir en `backend/tests/purchasing/test_amounts.py` las pruebas que fallan para base = cantidad × costo con `Q2` HALF_UP, impuesto sobre la base ya redondeada y total = base + impuesto, usando los ejemplos exactos de la spec: 2 × 10.00 al 10 % produce 20.00/2.00/22.00.
+- [x] 2.2 Añadir la prueba del redondeo por línea de la spec: dos líneas de 1 × 0.335 al 10 % producen base 0.34, impuesto 0.03 por línea y totales de documento 0.68 / 0.06 / 0.74.
+- [x] 2.3 Añadir pruebas de valor inventariable: base cuando el impuesto es `RECOVERABLE` y base + impuesto cuando es `NON_RECOVERABLE`, sin admitir recuperación parcial ni clasificación ausente.
+- [x] 2.4 Añadir pruebas de rechazo de cantidad cero, cantidad fraccionaria, costo negativo, costo con siete decimales, valores no finitos y exceso de rango, comprobando que no se trunca ni se redondea la entrada.
+- [x] 2.5 Añadir la prueba de tarifa cero explícita aceptada con impuesto 0.00 frente a definición sin vigencia, que no debe convertirse en exención.
+- [x] 2.6 Implementar `backend/src/purchasing/domain/amounts.py` con `Decimal`, contexto local de precisión 60 y sin importar Django, DRF ni persistencia, hasta que las pruebas anteriores pasen; refactorizar después sin cambiar resultados.
+- [x] 2.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_amounts.py` en verde y `uv run --frozen mypy src/purchasing` sin errores.
 
 ## 3. Dominio puro de valoración de inventario
 
-- [ ] 3.1 Escribir en `backend/tests/inventory/test_valuation.py` la prueba que falla del promedio ponderado de la spec: 10 unidades con valor 20.00 más entrada de 5 con valor 20.00 producen 15 unidades, valor 40.00 y promedio 2.666667.
-- [ ] 3.2 Añadir la prueba del residuo terminal: 3 unidades con valor 1.000000 y promedio 0.333333 salen de una en una por 0.333333, 0.333333 y 0.333334, dejando cantidad y valor cero.
-- [ ] 3.3 Añadir la prueba de la salida parcial acotada por `min(valor_conservado, nominal)`, comprobando que el ajuste de redondeo se registra como residuo técnico y que el promedio publicado no se recalcula.
-- [ ] 3.4 Añadir la prueba de entrada posterior al agotamiento: desde cantidad y valor cero, 2 unidades con valor 7.00 producen promedio 3.500000 sin arrastrar valor antiguo.
-- [ ] 3.5 Añadir la prueba de reversión exacta, que restituye cantidad, valor y promedio anteriores conservados en el movimiento original en lugar de valorar al promedio actual.
-- [ ] 3.6 Añadir pruebas de límites: cantidades grandes, costos muy pequeños que fuercen el acotamiento y secuencias largas de entradas y salidas alternadas sin pérdida oculta de valor.
-- [ ] 3.7 Implementar `backend/src/inventory/domain/valuation.py` y `backend/src/inventory/domain/validation.py` con `Decimal`, `Q6` HALF_UP y sin dependencias de framework, hasta que las pruebas pasen.
-- [ ] 3.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_valuation.py` en verde y `uv run --frozen mypy src/inventory` sin errores.
+- [x] 3.1 Escribir en `backend/tests/inventory/test_valuation.py` la prueba que falla del promedio ponderado de la spec: 10 unidades con valor 20.00 más entrada de 5 con valor 20.00 producen 15 unidades, valor 40.00 y promedio 2.666667.
+- [x] 3.2 Añadir la prueba del residuo terminal: 3 unidades con valor 1.000000 y promedio 0.333333 salen de una en una por 0.333333, 0.333333 y 0.333334, dejando cantidad y valor cero.
+- [x] 3.3 Añadir la prueba de la salida parcial acotada por `min(valor_conservado, nominal)`, comprobando que el ajuste de redondeo se registra como residuo técnico y que el promedio publicado no se recalcula.
+- [x] 3.4 Añadir la prueba de entrada posterior al agotamiento: desde cantidad y valor cero, 2 unidades con valor 7.00 producen promedio 3.500000 sin arrastrar valor antiguo.
+- [x] 3.5 Añadir la prueba de reversión exacta, que restituye cantidad, valor y promedio anteriores conservados en el movimiento original en lugar de valorar al promedio actual.
+- [x] 3.6 Añadir pruebas de límites: cantidades grandes, costos muy pequeños que fuercen el acotamiento y secuencias largas de entradas y salidas alternadas sin pérdida oculta de valor.
+- [x] 3.7 Implementar `backend/src/inventory/domain/valuation.py` y `backend/src/inventory/domain/validation.py` con `Decimal`, `Q6` HALF_UP y sin dependencias de framework, hasta que las pruebas pasen.
+- [x] 3.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_valuation.py` en verde y `uv run --frozen mypy src/inventory` sin errores.
 
 ## 4. Persistencia de inventario, restricciones e historia inmutable
 
-- [ ] 4.1 Escribir en `backend/tests/inventory/test_models.py` pruebas que fallen para las restricciones de `InventoryPosition`: par producto/bodega único, cantidad y valor no negativos, cantidad de parte fraccionaria cero y cantidad cero que implica valor y promedio cero.
-- [ ] 4.2 Escribir pruebas de `InventoryOperation` e `InventoryOperationLine`: tipos `PURCHASE_RECEIPT`/`INITIAL_LOAD`/`ADJUSTMENT_IN`/`ADJUSTMENT_OUT`/`REVERSAL`, estados `PREPARED`/`POSTED`/`REVERSED`, origen `(source_type, source_id)` único y relación `reverses` única.
-- [ ] 4.3 Escribir pruebas de `InventoryMovement`: únicos `(position, ordinal)` y `(operation, product)`, cantidad positiva en un solo sentido, vínculo `reverses_movement` único y snapshots históricos de producto y unidad.
-- [ ] 4.4 Escribir la prueba de la restricción parcial que impide una segunda carga inicial por producto y bodega incluso después de compensarla.
-- [ ] 4.5 Implementar los modelos en `backend/src/inventory/models.py` con FK `PROTECT` y `related_name='+'` hacia catálogo, configuración y usuario, sin añadir campos inversos de stock al contrato de catálogo.
-- [ ] 4.6 Generar `backend/src/inventory/migrations/0001_initial.py` con tablas, constraints e índices `(position_id, ordinal)`, `(product_id, effective_at, ordinal)`, `(product_id, movement_type, ordinal)`, `(actor_id, effective_at, id)`, origen/operación y `(kind, state, created_at, id)`.
-- [ ] 4.7 Escribir en `backend/tests/inventory/test_history_protection.py` pruebas que fallen al intentar `UPDATE` y `DELETE` de movimientos y de líneas de operación `POSTED` tanto por ORM como por SQL directo, y que permitan la transición legítima a `REVERSED` con su relación compensatoria.
-- [ ] 4.8 Añadir la migración con los triggers PostgreSQL correspondientes, reversible y sin desactivación en producción, junto con QuerySets sin mutadores públicos.
-- [ ] 4.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_models.py tests/inventory/test_history_protection.py` en verde y `uv run --frozen python manage.py makemigrations --check --dry-run` sin cambios pendientes.
+- [x] 4.1 Escribir en `backend/tests/inventory/test_models.py` pruebas que fallen para las restricciones de `InventoryPosition`: par producto/bodega único, cantidad y valor no negativos, cantidad de parte fraccionaria cero y cantidad cero que implica valor y promedio cero.
+- [x] 4.2 Escribir pruebas de `InventoryOperation` e `InventoryOperationLine`: tipos `PURCHASE_RECEIPT`/`INITIAL_LOAD`/`ADJUSTMENT_IN`/`ADJUSTMENT_OUT`/`REVERSAL`, estados `PREPARED`/`POSTED`/`REVERSED`, origen `(source_type, source_id)` único y relación `reverses` única.
+- [x] 4.3 Escribir pruebas de `InventoryMovement`: únicos `(position, ordinal)` y `(operation, product)`, cantidad positiva en un solo sentido, vínculo `reverses_movement` único y snapshots históricos de producto y unidad.
+- [x] 4.4 Escribir la prueba de la restricción parcial que impide una segunda carga inicial por producto y bodega incluso después de compensarla.
+- [x] 4.5 Implementar los modelos en `backend/src/inventory/models.py` con FK `PROTECT` y `related_name='+'` hacia catálogo, configuración y usuario, sin añadir campos inversos de stock al contrato de catálogo.
+- [x] 4.6 Generar `backend/src/inventory/migrations/0001_initial.py` con tablas, constraints e índices `(position_id, ordinal)`, `(product_id, effective_at, ordinal)`, `(product_id, movement_type, ordinal)`, `(actor_id, effective_at, id)`, origen/operación y `(kind, state, created_at, id)`.
+- [x] 4.7 Escribir en `backend/tests/inventory/test_history_protection.py` pruebas que fallen al intentar `UPDATE` y `DELETE` de movimientos y de líneas de operación `POSTED` tanto por ORM como por SQL directo, y que permitan la transición legítima a `REVERSED` con su relación compensatoria.
+- [x] 4.8 Añadir la migración con los triggers PostgreSQL correspondientes, reversible y sin desactivación en producción, junto con QuerySets sin mutadores públicos.
+- [x] 4.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_models.py tests/inventory/test_history_protection.py` en verde y `uv run --frozen python manage.py makemigrations --check --dry-run` sin cambios pendientes.
 
 ## 5. Persistencia de compras e identidad documental
 
-- [ ] 5.1 Escribir en `backend/tests/purchasing/test_models.py` pruebas que fallen para `PurchaseDocumentIdentity`: unicidad `(supplier, document_type, normalized_reference)` en los tipos documentados y una identidad propia por compra raíz en `SIN_DOCUMENTO`.
-- [ ] 5.2 Escribir pruebas de normalización `strip().upper()` que conserve ceros iniciales y puntuación significativa, incluida la comprobación de equivalencia de comparación Unicode en PostgreSQL igual que en los códigos del catálogo.
-- [ ] 5.3 Escribir pruebas de `Purchase`: estados `DRAFT`/`CONFIRMED`/`VOIDED`, unicidad parcial de identidad externa cuando el estado es `CONFIRMED`, número interno único cuando está informado y relación `replaces` hacia el antecedente.
-- [ ] 5.4 Escribir pruebas de `PurchaseLine` con posición de línea única por compra y snapshots congelados al confirmar, y de `PurchaseCommand` con unicidad actor/acción/clave.
-- [ ] 5.5 Implementar los modelos en `backend/src/purchasing/models.py`, con FK `PROTECT` hacia proveedor, producto, configuración y usuario, y esquema JSON de snapshots con clave de versión validada.
-- [ ] 5.6 Generar `backend/src/purchasing/migrations/0001_initial.py` con sus constraints e índices `(state, document_date, id)`, `(document_identity_id, id)`, `(document_date, id)`, `(purchase_id, position)` y `(product_id, purchase_id)`, sin ninguna FK de `inventory` hacia `purchasing`.
-- [ ] 5.7 Escribir en `backend/tests/purchasing/test_history_protection.py` las pruebas de los triggers que impiden alterar líneas y contenido económico después de confirmar, permitiendo solo los metadatos de anulación definidos, y añadir la migración correspondiente.
-- [ ] 5.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_models.py tests/purchasing/test_history_protection.py` en verde y `uv run --frozen python manage.py makemigrations --check --dry-run` limpio.
+- [x] 5.1 Escribir en `backend/tests/purchasing/test_models.py` pruebas que fallen para `PurchaseDocumentIdentity`: unicidad `(supplier, document_type, normalized_reference)` en los tipos documentados y una identidad propia por compra raíz en `SIN_DOCUMENTO`.
+- [x] 5.2 Escribir pruebas de normalización `strip().upper()` que conserve ceros iniciales y puntuación significativa, incluida la comprobación de equivalencia de comparación Unicode en PostgreSQL igual que en los códigos del catálogo.
+- [x] 5.3 Escribir pruebas de `Purchase`: estados `DRAFT`/`CONFIRMED`/`VOIDED`, unicidad parcial de identidad externa cuando el estado es `CONFIRMED`, número interno único cuando está informado y relación `replaces` hacia el antecedente.
+- [x] 5.4 Escribir pruebas de `PurchaseLine` con posición de línea única por compra y snapshots congelados al confirmar, y de `PurchaseCommand` con unicidad actor/acción/clave.
+- [x] 5.5 Implementar los modelos en `backend/src/purchasing/models.py`, con FK `PROTECT` hacia proveedor, producto, configuración y usuario, y esquema JSON de snapshots con clave de versión validada.
+- [x] 5.6 Generar `backend/src/purchasing/migrations/0001_initial.py` con sus constraints e índices `(state, document_date, id)`, `(document_identity_id, id)`, `(document_date, id)`, `(purchase_id, position)` y `(product_id, purchase_id)`, sin ninguna FK de `inventory` hacia `purchasing`.
+- [x] 5.7 Escribir en `backend/tests/purchasing/test_history_protection.py` las pruebas de los triggers que impiden alterar líneas y contenido económico después de confirmar, permitiendo solo los metadatos de anulación definidos, y añadir la migración correspondiente.
+- [x] 5.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_models.py tests/purchasing/test_history_protection.py` en verde y `uv run --frozen python manage.py makemigrations --check --dry-run` limpio.
 
 ## 6. Interfaces públicas de módulos existentes
 
-- [ ] 6.1 Escribir en `backend/tests/catalog/test_inventory_references.py` pruebas que fallen para referencias por IDs, búsqueda paginada y `lock_product_references(ids)` bajo transacción activa, comprobando que devuelve DTO congelados con código, nombre, presentación, unidad, estado y elección tributaria, y que no expone precio de venta cuando no se necesita.
-- [ ] 6.2 Implementar `backend/src/catalog/application/inventory_references.py` manteniendo los bloqueos y consultas de catálogo dentro de su propio módulo.
-- [ ] 6.3 Escribir pruebas en `backend/tests/supplier_registry/test_purchase_references.py` e implementar `backend/src/supplier_registry/application/purchase_references.py` con referencia de proveedor y `lock_supplier_reference(id)`, devolviendo nombre, identificación opcional, estado y versión sin exponer edición ni copiar contactos innecesarios.
-- [ ] 6.4 Escribir pruebas en `backend/tests/workshop_configuration/test_operation_context.py` e implementar `backend/src/workshop_configuration/application/operation_context.py` con contexto de bodega y entidad comercial, opciones de impuesto para una fecha documental, consulta de revisión sin usos y variante bloqueante para confirmación.
-- [ ] 6.5 Añadir a cada interfaz la prueba negativa que exige transacción exterior activa para las variantes bloqueantes y que rechaza DTO de bloqueo provenientes del cliente HTTP.
-- [ ] 6.6 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/catalog tests/supplier_registry tests/workshop_configuration` en verde, incluida la regresión de los módulos existentes.
+- [x] 6.1 Escribir en `backend/tests/catalog/test_inventory_references.py` pruebas que fallen para referencias por IDs, búsqueda paginada y `lock_product_references(ids)` bajo transacción activa, comprobando que devuelve DTO congelados con código, nombre, presentación, unidad, estado y elección tributaria, y que no expone precio de venta cuando no se necesita.
+- [x] 6.2 Implementar `backend/src/catalog/application/inventory_references.py` manteniendo los bloqueos y consultas de catálogo dentro de su propio módulo.
+- [x] 6.3 Escribir pruebas en `backend/tests/supplier_registry/test_purchase_references.py` e implementar `backend/src/supplier_registry/application/purchase_references.py` con referencia de proveedor y `lock_supplier_reference(id)`, devolviendo nombre, identificación opcional, estado y versión sin exponer edición ni copiar contactos innecesarios.
+- [x] 6.4 Escribir pruebas en `backend/tests/workshop_configuration/test_operation_context.py` e implementar `backend/src/workshop_configuration/application/operation_context.py` con contexto de bodega y entidad comercial, opciones de impuesto para una fecha documental, consulta de revisión sin usos y variante bloqueante para confirmación.
+- [x] 6.5 Añadir a cada interfaz la prueba negativa que exige transacción exterior activa para las variantes bloqueantes y que rechaza DTO de bloqueo provenientes del cliente HTTP.
+- [x] 6.6 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/catalog tests/supplier_registry tests/workshop_configuration` en verde, incluida la regresión de los módulos existentes.
 
 ## 7. Corrección del contrato transaccional de configuración (ADR-0004)
 
-- [ ] 7.1 Escribir en `backend/tests/workshop_configuration/` la prueba que falla exigiendo que `configuration_resolver.py` rechace su uso confirmado fuera de una transacción activa y que bloquee las `TaxDefinition` ordenadas por ID antes que sus períodos.
-- [ ] 7.2 Corregir `backend/src/workshop_configuration/application/configuration_resolver.py`: precondición transaccional, orden de bloqueos, resolución de una sola vigencia por fecha, devolución de snapshots inmutables y separación entre consulta de revisión sin usos y resolución para confirmación.
-- [ ] 7.3 Escribir pruebas y corregir `backend/src/workshop_configuration/application/taxes.py` para que `update_tax_period` y `schedule_successor` lean preliminarmente la definición, bloqueen esa raíz antes que los períodos y revaliden pertenencia, versión y usos dentro del bloqueo.
-- [ ] 7.4 Escribir pruebas y corregir `backend/src/workshop_configuration/application/series.py` para que la edición y sustitución bloqueen `NumberingScope` antes que `DocumentSeries` y revaliden relación y versión.
-- [ ] 7.5 Escribir pruebas y corregir `backend/src/workshop_configuration/application/numbering.py` para exigir transacción exterior antes de cualquier savepoint, obtener el ámbito por servicio público y usar la clave interna `purchase:<id>:confirm` distinta de la clave de transporte.
-- [ ] 7.6 Añadir la prueba de colisión de claves entre documentos que exige no devolver el número de otro documento aunque coincida una huella, y actualizar los tests existentes que invocan `allocate_number` fuera de transacción para que abran la transacción consumidora, endureciendo sus aserciones.
-- [ ] 7.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration` en verde, confirmando que no cambia la API pública administrativa ni las reglas fiscales aprobadas.
+- [x] 7.1 Escribir en `backend/tests/workshop_configuration/` la prueba que falla exigiendo que `configuration_resolver.py` rechace su uso confirmado fuera de una transacción activa y que bloquee las `TaxDefinition` ordenadas por ID antes que sus períodos.
+- [x] 7.2 Corregir `backend/src/workshop_configuration/application/configuration_resolver.py`: precondición transaccional, orden de bloqueos, resolución de una sola vigencia por fecha, devolución de snapshots inmutables y separación entre consulta de revisión sin usos y resolución para confirmación.
+- [x] 7.3 Escribir pruebas y corregir `backend/src/workshop_configuration/application/taxes.py` para que `update_tax_period` y `schedule_successor` lean preliminarmente la definición, bloqueen esa raíz antes que los períodos y revaliden pertenencia, versión y usos dentro del bloqueo.
+- [x] 7.4 Escribir pruebas y corregir `backend/src/workshop_configuration/application/series.py` para que la edición y sustitución bloqueen `NumberingScope` antes que `DocumentSeries` y revaliden relación y versión.
+- [x] 7.5 Escribir pruebas y corregir `backend/src/workshop_configuration/application/numbering.py` para exigir transacción exterior antes de cualquier savepoint, obtener el ámbito por servicio público y usar la clave interna `purchase:<id>:confirm` distinta de la clave de transporte.
+- [x] 7.6 Añadir la prueba de colisión de claves entre documentos que exige no devolver el número de otro documento aunque coincida una huella, y actualizar los tests existentes que invocan `allocate_number` fuera de transacción para que abran la transacción consumidora, endureciendo sus aserciones.
+- [x] 7.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration` en verde, confirmando que no cambia la API pública administrativa ni las reglas fiscales aprobadas.
 
 ## 8. Núcleo de publicación de inventario
 
-- [ ] 8.1 Escribir en `backend/tests/inventory/test_posting.py` las pruebas que fallan para `prepare`, `lock`, publicación de entradas y salidas y reversión exacta, exigiendo transacción exterior y contexto ya bloqueado.
-- [ ] 8.2 Añadir la prueba del orden total de recursos del design: recibo, identidad y operaciones, proveedor, referencias de catálogo, posiciones, contexto de configuración e inserciones finales, sin adquirir después recursos de grupos anteriores.
-- [ ] 8.3 Añadir pruebas de creación de posición inexistente bajo bloqueo del producto y de que las consultas nunca crean posiciones.
-- [ ] 8.4 Añadir la prueba de asignación de `ordinal` consecutivo por posición y de `effective_at` obtenido después de los bloqueos, que nunca retrocede respecto del último momento de esa posición.
-- [ ] 8.5 Añadir la prueba de agrupación por producto de las líneas de compra: cantidades y valores inventariables sumados en un único movimiento por producto, conservando el detalle en `PurchaseLine` e `InventoryOperationLine`.
-- [ ] 8.6 Añadir pruebas de stock insuficiente que fallan antes de valorar y de rechazo de saldo negativo dentro de la misma operación atómica.
-- [ ] 8.7 Implementar `backend/src/inventory/application/posting.py` y `backend/src/inventory/application/operations.py` sobre el dominio puro del grupo 3, sin importar `purchasing` ni confirmar por separado.
-- [ ] 8.8 Añadir la traducción de errores de deadlock, serialización y timeout de bloqueo a conflicto reintentable solo después del rollback completo, con su prueba correspondiente.
-- [ ] 8.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_posting.py` en verde.
+- [x] 8.1 Escribir en `backend/tests/inventory/test_posting.py` las pruebas que fallan para `prepare`, `lock`, publicación de entradas y salidas y reversión exacta, exigiendo transacción exterior y contexto ya bloqueado.
+- [x] 8.2 Añadir la prueba del orden total de recursos del design: recibo, identidad y operaciones, proveedor, referencias de catálogo, posiciones, contexto de configuración e inserciones finales, sin adquirir después recursos de grupos anteriores.
+- [x] 8.3 Añadir pruebas de creación de posición inexistente bajo bloqueo del producto y de que las consultas nunca crean posiciones.
+- [x] 8.4 Añadir la prueba de asignación de `ordinal` consecutivo por posición y de `effective_at` obtenido después de los bloqueos, que nunca retrocede respecto del último momento de esa posición.
+- [x] 8.5 Añadir la prueba de agrupación por producto de las líneas de compra: cantidades y valores inventariables sumados en un único movimiento por producto, conservando el detalle en `PurchaseLine` e `InventoryOperationLine`.
+- [x] 8.6 Añadir pruebas de stock insuficiente que fallan antes de valorar y de rechazo de saldo negativo dentro de la misma operación atómica.
+- [x] 8.7 Implementar `backend/src/inventory/application/posting.py` (y `queries.py` con `get_position`; `operations.py` se implementa en el grupo 11 con las operaciones manuales; la traducción de conflictos vive en `backend/src/shared/transactions.py`) sobre el dominio puro del grupo 3, sin importar `purchasing` ni confirmar por separado.
+- [x] 8.8 Añadir la traducción de errores de deadlock, serialización y timeout de bloqueo a conflicto reintentable solo después del rollback completo, con su prueba correspondiente.
+- [x] 8.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_posting.py` en verde.
 
 ## 9. Compras: borradores, revisión y confirmación
 

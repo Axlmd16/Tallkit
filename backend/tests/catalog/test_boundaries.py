@@ -41,6 +41,13 @@ ALLOWED_CROSS_MODULE = {
 }
 
 
+# Interfaces públicas de aplicación que otros módulos pueden consumir de cada propietario.
+PUBLISHED_APPLICATION_INTERFACES = {
+    "catalog.application.inventory_references",
+    "supplier_registry.application.purchase_references",
+}
+
+
 def imported_modules(path: Path) -> set[str]:
     """Módulos importados en tiempo de ejecución (ignora bloques ``TYPE_CHECKING``)."""
     tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -62,7 +69,7 @@ def imported_modules(path: Path) -> set[str]:
 
 @pytest.mark.parametrize("package", ["catalog", "supplier_registry"])
 def test_modules_only_use_published_interfaces_of_other_modules(package: str) -> None:
-    others = {"customer_registry", "workshop_configuration", "identity", "purchasing"}
+    others = {"customer_registry", "workshop_configuration", "identity", "purchasing", "inventory"}
     others |= {"catalog", "supplier_registry"} - {package}
     violations: list[str] = []
     for path in (SRC / package).rglob("*.py"):
@@ -88,8 +95,9 @@ def test_no_consumer_writes_catalog_or_supplier_persistence() -> None:
         if relative.parts[0] in {"catalog", "supplier_registry"} or "migrations" in path.parts:
             continue
         for module in imported_modules(path):
-            if module in {"catalog.models", "supplier_registry.models"} or module.startswith(
-                ("catalog.application", "supplier_registry.application")
+            if module in {"catalog.models", "supplier_registry.models"} or (
+                module.startswith(("catalog.application", "supplier_registry.application"))
+                and module not in PUBLISHED_APPLICATION_INTERFACES
             ):
                 offenders.append(f"{relative} importa {module}")
     assert not offenders, offenders

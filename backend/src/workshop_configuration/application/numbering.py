@@ -7,8 +7,10 @@ Trazabilidad: design decisión 5 (numeración y transacción del consumidor),
 spec "Secuenciales seguros ante concurrencia y reintentos",
 "Conservación de números asignados", "Formato visible del número interno".
 
-Orden de bloqueos (ADR): entidad fiscal, impuestos en orden de código,
-NumberingScope, DocumentSeries.
+Orden de bloqueos (ADR-0004): entidad fiscal, impuestos por ID, NumberingScope,
+DocumentSeries. La función exige una transacción exterior activa antes de abrir cualquier
+savepoint; el consumidor usa una identidad estable de documento y una clave interna
+(``purchase:<id>:confirm``) distinta de la clave arbitraria de transporte.
 """
 
 from dataclasses import dataclass
@@ -43,6 +45,22 @@ class AllocateNumberResult:
     scope_id: int
 
 
+def get_numbering_scope_id(*, entity_type: str, document_type: str) -> int:
+    """ID del ámbito de numeración de una entidad y tipo de documento (servicio público)."""
+    scope_id = (
+        NumberingScope.objects.filter(
+            fiscal_entity__entity_type=entity_type, document_type=document_type
+        )
+        .values_list("pk", flat=True)
+        .first()
+    )
+    if scope_id is None:
+        raise NumberingScopeNotFoundError(
+            f"No existe ámbito de numeración {document_type} para {entity_type}."
+        )
+    return int(scope_id)
+
+
 def allocate_number(
     *,
     scope_id: int,
@@ -54,8 +72,8 @@ def allocate_number(
     """Asigna el siguiente número disponible en el ámbito, de forma idempotente.
 
     Precondiciones (responsabilidad del consumidor):
-    - Debe llamarse dentro de una transacción de base de datos ya abierta,
-      o esta función abrirá una savepoint interno.
+    - Debe llamarse dentro de la transacción exterior del consumidor; de lo contrario
+      lanza ``RuntimeError`` sin efectos. Los savepoints internos son válidos.
     - El consumidor ha validado sus permisos y el estado del documento antes de llamar.
 
     Garantías:
@@ -64,12 +82,17 @@ def allocate_number(
         - Misma huella: devuelve el resultado previo (idempotencia).
         - Distinta huella: AllocationConflictError.
     - Si existe asignación previa para (scope, request_key):
-        - Misma huella: devuelve el resultado previo.
-        - Distinta huella: AllocationConflictError.
+        - De otro documento: AllocationConflictError aunque coincida la huella.
+        - Del mismo documento con misma huella: devuelve el resultado previo.
+        - Del mismo documento con distinta huella: AllocationConflictError.
     - Incrementa el contador de la serie activa y crea NumberAllocation
       dentro de la misma transacción.
     - El visible_number usa al menos seis dígitos (crece si necesario).
     """
+    if not transaction.get_connection().in_atomic_block:
+        raise RuntimeError(
+            "La asignación de números requiere la transacción exterior del consumidor."
+        )
     with transaction.atomic():
         scope = NumberingScope.objects.select_for_update().filter(pk=scope_id).first()
         if scope is None:
@@ -100,6 +123,13 @@ def allocate_number(
             request_key=request_key,
         ).first()
         if existing_by_key is not None:
+            if (existing_by_key.consumer_type, existing_by_key.consumer_id) != (
+                consumer_type,
+                consumer_id,
+            ):
+                raise AllocationConflictError(
+                    f"La clave de solicitud '{request_key}' pertenece a otro documento."
+                )
             if existing_by_key.request_fingerprint != request_fingerprint:
                 raise AllocationConflictError(
                     f"La clave de solicitud '{request_key}' fue usada con una "

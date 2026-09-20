@@ -7,16 +7,12 @@ Design decisión 5 (numeración y transacción del consumidor).
 
 import hashlib
 import json
-from datetime import date
 
 import pytest
 
-from identity.domain.authorization import Role
-from identity.models import User, UserRole
 from workshop_configuration.application.numbering import (
-    AllocationConflictError,
     AllocateNumberResult,
-    NumberExhaustedError,
+    AllocationConflictError,
     NumberingScopeNotFoundError,
     allocate_number,
 )
@@ -27,7 +23,6 @@ from workshop_configuration.models import (
     NumberingScope,
     WorkshopConfiguration,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -205,3 +200,59 @@ def test_allocate_number_uses_seven_digits_when_needed(scope_and_series: dict) -
     )
     assert result.number == 1_000_000
     assert result.visible_number == "COM-VEN-1000000"
+
+
+# ---------------------------------------------------------------------------
+# Contrato transaccional y colisiones de clave (ADR-0004)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_allocate_number_is_rejected_outside_the_consumer_transaction(
+    scope_and_series: dict,
+) -> None:
+    scope: NumberingScope = scope_and_series["scope"]
+    with pytest.raises(RuntimeError, match="transacción"):
+        allocate_number(
+            scope_id=scope.pk,
+            consumer_type="purchase",
+            consumer_id="1",
+            request_key="purchase:1:confirm",
+            request_fingerprint=_fingerprint({"id": 1}),
+        )
+    assert NumberAllocation.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_same_key_and_fingerprint_for_another_document_never_returns_its_number(
+    scope_and_series: dict,
+) -> None:
+    scope: NumberingScope = scope_and_series["scope"]
+    fingerprint = _fingerprint({"shared": True})
+    first = allocate_number(
+        scope_id=scope.pk,
+        consumer_type="purchase",
+        consumer_id="1",
+        request_key="collision-key",
+        request_fingerprint=fingerprint,
+    )
+    with pytest.raises(AllocationConflictError):
+        allocate_number(
+            scope_id=scope.pk,
+            consumer_type="purchase",
+            consumer_id="2",
+            request_key="collision-key",
+            request_fingerprint=fingerprint,
+        )
+    assert first.number == 1
+    assert NumberAllocation.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_scope_is_found_through_the_public_service(scope_and_series: dict) -> None:
+    from workshop_configuration.application.numbering import get_numbering_scope_id
+
+    scope: NumberingScope = scope_and_series["scope"]
+    assert get_numbering_scope_id(entity_type="COMERCIAL", document_type="VENTA") == scope.pk
+    with pytest.raises(NumberingScopeNotFoundError):
+        get_numbering_scope_id(entity_type="COMERCIAL", document_type="INGRESO")

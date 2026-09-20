@@ -15,13 +15,12 @@ import hashlib
 import json
 import threading
 from datetime import date
-from unittest.mock import patch
 
 import pytest
+from django.db import transaction
 
 from workshop_configuration.application.numbering import (
     AllocateNumberResult,
-    AllocationConflictError,
     NumberExhaustedError,
     allocate_number,
 )
@@ -33,7 +32,6 @@ from workshop_configuration.models import (
     NumberingScope,
     WorkshopConfiguration,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -88,13 +86,14 @@ def test_two_concurrent_allocations_get_distinct_consecutive_numbers(
     def allocate(consumer_id: str, request_key: str) -> None:
         try:
             barrier.wait(timeout=10)
-            result = allocate_number(
-                scope_id=scope.pk,
-                consumer_type="sale",
-                consumer_id=consumer_id,
-                request_key=request_key,
-                request_fingerprint=_fp({"consumer_id": consumer_id}),
-            )
+            with transaction.atomic():  # transacción del consumidor
+                result = allocate_number(
+                    scope_id=scope.pk,
+                    consumer_type="sale",
+                    consumer_id=consumer_id,
+                    request_key=request_key,
+                    request_fingerprint=_fp({"consumer_id": consumer_id}),
+                )
             results.append(result)
         except Exception as exc:
             results.append(exc)
@@ -126,13 +125,14 @@ def test_concurrent_retry_does_not_allocate_twice(scope_series: dict) -> None:
     def allocate_retry() -> None:
         try:
             barrier.wait(timeout=10)
-            result = allocate_number(
-                scope_id=scope.pk,
-                consumer_type="sale",
-                consumer_id="sale-retry",
-                request_key="rk-retry",
-                request_fingerprint=fp,
-            )
+            with transaction.atomic():  # transacción del consumidor
+                result = allocate_number(
+                    scope_id=scope.pk,
+                    consumer_type="sale",
+                    consumer_id="sale-retry",
+                    request_key="rk-retry",
+                    request_fingerprint=fp,
+                )
             results.append(result)
         except Exception as exc:
             results.append(exc)
@@ -145,6 +145,7 @@ def test_concurrent_retry_does_not_allocate_twice(scope_series: dict) -> None:
     t2.join()
 
     successes = [r for r in results if isinstance(r, AllocateNumberResult)]
+    assert len(successes) == 2, f"Errores inesperados: {results}"
     assert all(r.number == successes[0].number for r in successes)
     assert NumberAllocation.objects.filter(numbering_scope=scope).count() == 1
 
@@ -257,7 +258,6 @@ def test_two_simultaneous_initializations_only_one_succeeds() -> None:
     from identity.domain.authorization import Role
     from identity.models import User, UserRole
     from workshop_configuration.application.initialization import (
-        WorkshopAlreadyInitializedError,
         initialize_workshop,
     )
 
@@ -310,8 +310,7 @@ def test_concurrent_period_creation_prevents_overlap(db: None) -> None:
     from identity.domain.authorization import Role
     from identity.models import User, UserRole
     from workshop_configuration.application.taxes import TaxPeriodOverlapError, create_tax_period
-    from workshop_configuration.models import TaxDefinition, TaxPeriod
-    from workshop_configuration.models import WorkshopConfiguration
+    from workshop_configuration.models import TaxDefinition, TaxPeriod, WorkshopConfiguration
 
     admin = User.objects.create_user(username="period-race-admin", password="password123")
     UserRole.objects.create(user=admin, role=Role.ADMINISTRADOR)

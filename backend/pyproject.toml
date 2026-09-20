@@ -48,7 +48,7 @@ ignore = ["S101"]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "--strict-config --strict-markers --cov=src --cov-branch --cov-report=term-missing --cov-fail-under=85"
+addopts = "--import-mode=importlib --strict-config --strict-markers --cov=src --cov-branch --cov-report=term-missing --cov-fail-under=85"
 
 [tool.coverage.run]
 omit = ["*/config/asgi.py", "*/config/wsgi.py", "*/manage.py"]

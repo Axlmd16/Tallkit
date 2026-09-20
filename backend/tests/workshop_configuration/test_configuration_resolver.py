@@ -24,7 +24,6 @@ from workshop_configuration.models import (
     WorkshopConfiguration,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -79,9 +78,10 @@ def test_resolve_configuration_returns_result(configured: dict) -> None:
     assert isinstance(result, ConfigurationResolutionResult)
     assert result.entity.entity_type == "COMERCIAL"
     assert len(result.tax_periods) == 1
-    period_data = result.tax_periods[0]
-    assert period_data["code"] == "IVA"
-    assert str(period_data["period"].rate) == "15.0000"
+    resolved = result.tax_periods[0]
+    assert resolved.code == "IVA"
+    assert str(resolved.rate) == "15.0000"
+    assert resolved.period_id == configured["period"].pk
 
 
 @pytest.mark.django_db
@@ -192,3 +192,79 @@ def test_resolve_configuration_snapshot_unaffected_by_subsequent_edit(
     # La copia histórica debe conservar el nombre original
     use = ConfigurationUse.objects.get(consumer_type="sale", consumer_id="sale-002")
     assert use.legal_name_snapshot == "Taller Comercial"
+
+
+# ---------------------------------------------------------------------------
+# Contrato transaccional (ADR-0004)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_confirmed_resolution_is_rejected_outside_an_active_transaction(
+    configured: dict,
+) -> None:
+    with pytest.raises(RuntimeError, match="transacción"):
+        resolve_configuration(
+            entity_type="COMERCIAL",
+            tax_codes=["IVA"],
+            operation_date=date(2025, 6, 1),
+            consumer_type="purchase",
+            consumer_id="1",
+        )
+    assert ConfigurationUse.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_definitions_are_locked_by_id_before_their_periods(configured: dict) -> None:
+    import re
+
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    entity = configured["entity"]
+    for code in ("ZZZ", "AAA"):  # el orden por código difiere del orden por ID
+        definition = TaxDefinition.objects.create(fiscal_entity=entity, code=code, name=code)
+        TaxPeriod.objects.create(tax_definition=definition, rate="0", starts_on=date(2024, 1, 1))
+    with CaptureQueriesContext(connection) as queries:
+        resolve_configuration(
+            entity_type="COMERCIAL",
+            tax_codes=["AAA", "IVA", "ZZZ"],
+            operation_date=date(2025, 6, 1),
+            consumer_type="purchase",
+            consumer_id="lock-order",
+        )
+    locks = [q["sql"] for q in queries if "FOR UPDATE" in q["sql"]]
+    tables = [re.search(r'FROM "(\w+)"', sql).group(1) for sql in locks]  # type: ignore[union-attr]
+    assert tables == [
+        "workshop_configuration_fiscalentity",
+        "workshop_configuration_taxdefinition",
+        "workshop_configuration_taxperiod",
+    ]
+    assert 'ORDER BY "workshop_configuration_taxdefinition"."id"' in locks[1]
+
+
+@pytest.mark.django_db
+def test_result_is_immutable_snapshots(configured: dict) -> None:
+    import dataclasses
+
+    result = resolve_configuration(
+        entity_type="COMERCIAL", tax_codes=["IVA"], operation_date=date(2025, 6, 1)
+    )
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        result.entity.ruc = "x"  # type: ignore[misc]
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        result.tax_periods[0].rate = 0  # type: ignore[misc,assignment]
+    assert isinstance(result.tax_periods, tuple)
+
+
+@pytest.mark.django_db
+def test_preview_without_consumer_takes_no_locks_and_writes_no_uses(configured: dict) -> None:
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    with CaptureQueriesContext(connection) as queries:
+        resolve_configuration(
+            entity_type="COMERCIAL", tax_codes=["IVA"], operation_date=date(2025, 6, 1)
+        )
+    assert not any("FOR UPDATE" in q["sql"] for q in queries)
+    assert ConfigurationUse.objects.count() == 0

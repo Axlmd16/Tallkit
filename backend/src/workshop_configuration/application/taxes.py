@@ -168,7 +168,7 @@ def _check_no_overlap(
     if exclude_period_id is not None:
         qs = qs.exclude(pk=exclude_period_id)
 
-    for period in qs.select_for_update():
+    for period in qs.select_for_update().order_by("pk"):
         p_start = period.starts_on
         p_end = period.ends_on  # None = abierto
 
@@ -181,6 +181,27 @@ def _check_no_overlap(
             raise TaxPeriodOverlapError(
                 f"El período [{new_start}, {new_end}] se solapa con [{p_start}, {p_end}]."
             )
+
+
+def _lock_definition_then_period(period_id: int) -> tuple[TaxDefinition, TaxPeriod]:
+    """Orden del ADR-0004: lectura preliminar, bloqueo de la definición y luego del período.
+
+    Revalida existencia y pertenencia dentro del bloqueo; si el período cambió de
+    definición o desapareció, falla como no encontrado sin adquirir locks en otro orden.
+    """
+    preliminary = TaxPeriod.objects.filter(pk=period_id).values_list("tax_definition_id", flat=True)
+    definition_id = preliminary.first()
+    if definition_id is None:
+        raise TaxPeriodNotFoundError(f"Vigencia {period_id} no encontrada.")
+    definition = TaxDefinition.objects.select_for_update().filter(pk=definition_id).first()
+    period = (
+        TaxPeriod.objects.select_for_update()
+        .filter(pk=period_id, tax_definition_id=definition_id)
+        .first()
+    )
+    if definition is None or period is None:
+        raise TaxPeriodNotFoundError(f"Vigencia {period_id} no encontrada.")
+    return definition, period
 
 
 def create_tax_period(
@@ -274,9 +295,7 @@ def update_tax_period(
 
     try:
         with transaction.atomic():
-            period = TaxPeriod.objects.select_for_update().filter(pk=period_id).first()
-            if period is None:
-                raise TaxPeriodNotFoundError(f"Vigencia {period_id} no encontrada.")
+            _, period = _lock_definition_then_period(period_id)
 
             if period.version != expected_version:
                 raise StaleRecordError(
@@ -392,19 +411,14 @@ def schedule_successor(
 
     try:
         with transaction.atomic():
-            # Bloquear TaxDefinition y el período para serializar sucesiones concurrentes
-            period = TaxPeriod.objects.select_for_update().filter(pk=period_id).first()
-            if period is None:
-                raise TaxPeriodNotFoundError(f"Vigencia {period_id} no encontrada.")
+            # Bloquear primero la definición y después el período (ADR-0004)
+            _, period = _lock_definition_then_period(period_id)
 
             if period.version != expected_version:
                 raise StaleRecordError(
                     f"Versión obsoleta para la vigencia {period_id}: "
                     f"esperada {expected_version}, actual {period.version}."
                 )
-
-            # Bloquear TaxDefinition
-            TaxDefinition.objects.select_for_update().get(pk=period.tax_definition_id)
 
             # El inicio sucesor debe ser > a toda fecha de uso existente del período
             max_use_date = ConfigurationUse.objects.filter(tax_period=period).aggregate(

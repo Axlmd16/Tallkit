@@ -89,6 +89,29 @@ def get_document_series(
 # ---------------------------------------------------------------------------
 
 
+def _lock_scope_then_series(series_id: int) -> DocumentSeries:
+    """Orden del ADR-0004: lectura preliminar, bloqueo del ámbito y luego de la serie.
+
+    Revalida existencia y pertenencia al ámbito dentro del bloqueo.
+    """
+    scope_id = (
+        DocumentSeries.objects.filter(pk=series_id)
+        .values_list("numbering_scope_id", flat=True)
+        .first()
+    )
+    if scope_id is None:
+        raise DocumentSeriesNotFoundError(f"Serie {series_id} no encontrada.")
+    NumberingScope.objects.select_for_update().get(pk=scope_id)
+    series = (
+        DocumentSeries.objects.select_for_update()
+        .filter(pk=series_id, numbering_scope_id=scope_id)
+        .first()
+    )
+    if series is None:
+        raise DocumentSeriesNotFoundError(f"Serie {series_id} no encontrada.")
+    return series
+
+
 def update_series_code(
     *,
     actor: User,
@@ -117,10 +140,7 @@ def update_series_code(
 
     try:
         with transaction.atomic():
-            # Bloquear el ámbito para serializar contra sustitución concurrente
-            series = DocumentSeries.objects.select_for_update().filter(pk=series_id).first()
-            if series is None:
-                raise DocumentSeriesNotFoundError(f"Serie {series_id} no encontrada.")
+            series = _lock_scope_then_series(series_id)
 
             if series.version != expected_version:
                 raise StaleRecordError(
@@ -204,9 +224,7 @@ def replace_series(
 
     try:
         with transaction.atomic():
-            series = DocumentSeries.objects.select_for_update().filter(pk=series_id).first()
-            if series is None:
-                raise DocumentSeriesNotFoundError(f"Serie {series_id} no encontrada.")
+            series = _lock_scope_then_series(series_id)
 
             if series.version != expected_version:
                 raise StaleRecordError(
@@ -220,9 +238,6 @@ def replace_series(
                     f"El código '{new_code_v}' ya fue utilizado por otra serie "
                     "y no puede reutilizarse."
                 )
-
-            # Bloquear el ámbito para garantizar unicidad de serie activa
-            NumberingScope.objects.select_for_update().get(pk=series.numbering_scope_id)
 
             # Desactivar la serie anterior
             series.is_active = False
