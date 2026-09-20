@@ -5,6 +5,8 @@ import {
   House,
   List,
   Package,
+  ShoppingCartSimple,
+  Stack,
   Pulse,
   SignOut,
   Tag,
@@ -70,6 +72,18 @@ const navigation = [
     to: '/suppliers',
     permission: 'proveedores.ver',
   },
+  {
+    icon: ShoppingCartSimple,
+    label: 'Ingresos',
+    to: '/purchases',
+    permission: 'ingresos.ver',
+  },
+  {
+    icon: Stack,
+    label: 'Inventario',
+    to: '/inventory',
+    permission: 'inventario.ver',
+  },
   { icon: Users, label: 'Usuarios', to: '/users', permission: 'usuarios.ver' },
   {
     icon: ClipboardText,
@@ -98,6 +112,8 @@ const iconRoutes: ReadonlySet<string> = new Set([
   '/products',
   '/services',
   '/suppliers',
+  '/purchases',
+  '/inventory',
 ])
 
 function NavigationItems({

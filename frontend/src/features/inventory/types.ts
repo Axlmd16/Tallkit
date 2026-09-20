@@ -1,0 +1,196 @@
+/** Contratos del backend de inventario. Los decimales viajan como cadenas. */
+
+export type OperationKind =
+  | 'PURCHASE_RECEIPT'
+  | 'INITIAL_LOAD'
+  | 'ADJUSTMENT_IN'
+  | 'ADJUSTMENT_OUT'
+  | 'REVERSAL'
+export type ManualKind = 'INITIAL_LOAD' | 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT'
+export type OperationState = 'PREPARED' | 'POSTED' | 'REVERSED'
+
+export const kindLabels: Record<OperationKind, string> = {
+  PURCHASE_RECEIPT: 'Ingreso de compra',
+  INITIAL_LOAD: 'Carga inicial',
+  ADJUSTMENT_IN: 'Ajuste de entrada',
+  ADJUSTMENT_OUT: 'Ajuste de salida',
+  REVERSAL: 'Compensación',
+}
+
+export const operationStateLabels: Record<OperationState, string> = {
+  PREPARED: 'Preparada',
+  POSTED: 'Contabilizada',
+  REVERSED: 'Revertida',
+}
+
+export interface StockProduct {
+  id: number
+  code: string
+  manufacturer_code: string
+  name: string
+  category: { id: number; name: string }
+  unit: { name: string; symbol: string }
+  content_quantity: string
+  is_active: boolean
+}
+
+export interface StockRow {
+  product: StockProduct
+  quantity: string
+  version: number
+  last_ordinal: number
+  /** Solo con `inventario.ver_valorizacion`. */
+  average_cost?: string
+  inventory_value?: string
+}
+
+export interface StockFilters {
+  search?: string | undefined
+  categoryId?: number | undefined
+  isActive?: 'true' | 'false' | 'all' | undefined
+  stock?: 'all' | 'positive' | 'zero' | undefined
+  page?: number | undefined
+  pageSize?: number | undefined
+}
+
+export interface KardexTotals {
+  count: number
+  quantity_in: string
+  quantity_out: string
+  value_in?: string
+  value_out?: string
+}
+
+export interface KardexRow {
+  ordinal: number
+  effective_at: string
+  movement_type: OperationKind
+  source: { type: string; reference: string }
+  actor_id: number
+  quantity_in: string
+  quantity_out: string
+  quantity_before: string
+  quantity_after: string
+  presentation: {
+    code: string | null
+    name: string | null
+    content_quantity: string | null
+    unit_name: string | null
+    unit_symbol: string | null
+  }
+  applied_unit_cost?: string
+  value_delta?: string
+  value_before?: string
+  value_after?: string
+  average_after?: string
+  rounding_adjustment?: string
+}
+
+export interface Kardex {
+  count: number
+  page: number
+  page_size: number
+  total_pages: number
+  results: KardexRow[]
+  cut: { token: string; ordinal: number; expires_in_seconds: number }
+  opening_quantity: string
+  closing_quantity: string
+  period_totals: KardexTotals
+  matching_totals: KardexTotals
+  page_opening_quantity: string | null
+  opening_value?: string
+  closing_value?: string
+}
+
+export interface KardexFilters {
+  dateFrom?: string | undefined
+  dateTo?: string | undefined
+  movementType?: OperationKind | undefined
+  sourceType?: string | undefined
+  sourceId?: number | undefined
+  actorId?: number | undefined
+  page?: number | undefined
+  pageSize?: number | undefined
+  cutToken?: string | undefined
+}
+
+export interface OperationProjection {
+  id: number
+  reference: string
+  kind: OperationKind
+  state: OperationState
+  version: number
+  product: { id: number; code: string; name: string; is_active: boolean } | null
+  quantity: string | null
+  origin: { type: string; reference: string; origin_url?: string }
+  reverses_reference: string | null
+  created_at: string
+  posted_at: string | null
+  reason?: string
+  unit_cost?: string
+  entry_value?: string
+  movements?: {
+    ordinal: number
+    product_id: number
+    applied_unit_cost: string
+    value_delta: string
+    rounding_adjustment: string
+    value_after: string
+    average_after: string
+  }[]
+}
+
+export interface AdminOperation {
+  id: number
+  reference: string
+  kind: OperationKind
+  state: OperationState
+  version: number
+  product: { id: number; code: string | null; name: string | null } | null
+  quantity: string | null
+  unit_cost: string | null
+  entry_value: string | null
+  reason: string
+  notes: string
+  external_reference: string
+  corrects_operation_id: number | null
+  reverses_id: number | null
+  created_at: string
+  posted_at: string | null
+}
+
+export interface OperationInput {
+  kind: ManualKind
+  product_id: number
+  quantity: string
+  unit_cost?: string
+  reason: string
+  reference?: string
+  notes?: string
+  corrects_operation_id?: number
+}
+
+export interface OperationIssue {
+  code: string
+  field: string
+  message: string
+  product_id?: number
+  blocking_reference?: string | null
+}
+
+export interface OperationReview {
+  operation_id: number
+  state: OperationState
+  version: number
+  can_confirm?: boolean
+  can_reverse?: boolean
+  issues: OperationIssue[]
+  effects?: {
+    product_id: string
+    current_quantity: string
+    resulting_quantity: string
+    resulting_average: string
+  }[]
+  review_token: string | null
+  expires_in_seconds: number
+}

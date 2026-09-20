@@ -82,7 +82,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-CONFIG | Entidades y parámetros | RF-ACC-010…014 |
 | SPEC-CLIENTES | Clientes, vehículos, propiedad y marcas de vehículo (implementados en el alcance de `gestionar-clientes-y-vehiculos`; excluyen el historial de mantenimientos y documentos, `RF-CLI-011`, y saldos por RUC de `UI-021`); evidencia en [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md) | RF-CLI-001…013 |
 | SPEC-CATALOGOS | Productos, servicios y proveedores (implementados en el alcance de catálogos; excluyen existencias, costos y disponibilidad) | RF-CAT-001…016; evidencia en [cobertura-catalogos.md](cobertura-catalogos.md) |
-| SPEC-INVENTARIO | Ingresos, existencias, reservas y Kardex | RF-INV-001…019 |
+| SPEC-INVENTARIO | Ingresos, existencias, reservas y Kardex (implementados parcialmente en `gestionar-compras-entradas-inventario-kardex`: cobertura de RF-INV-001…010, 012…014; pendientes RF-INV-011 y las evidencias adjuntas, RF-INV-015…019); evidencia en [cobertura-compras-inventario.md](cobertura-compras-inventario.md) | RF-INV-001…019 |
 | SPEC-PROFORMAS | Proformas | RF-PRO-001…011 |
 | SPEC-VENTAS | Ventas, devoluciones y reembolsos | RF-VEN-001…018 |
 | SPEC-PAGOS | Pagos y cuentas por cobrar | RF-PAG-001…012 |
@@ -91,6 +91,8 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-AUDITORIA | Auditoría y correcciones | RF-AUD-001…006 |
 
 El cambio activo `openspec/changes/archive/2026-09-13-gestion-usuarios-autenticacion-roles/` implementa únicamente identidad, autenticación, roles, autorización y su auditoría. No constituye implementación de clientes, catálogos, inventario, ventas ni mantenimiento.
+
+El cambio activo `openspec/changes/gestionar-compras-entradas-inventario-kardex` implementa las capacidades `compras-e-ingresos-de-mercaderia`, `existencias-y-ajustes-de-inventario` y `kardex-de-productos` (29 requisitos y 105 escenarios). No implementa alertas de umbral, adjuntos, ventas, mantenimientos ni pagos. Su evidencia está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md); su archivo y la sincronización de specs principales quedan para el flujo autorizado.
 
 El cambio activo `openspec/changes/gestionar-catalogos-productos-servicios-proveedores` implementa las capacidades `catalogo-de-productos-y-categorias`, `catalogo-de-servicios` y `catalogo-de-proveedores` (24 requisitos y 126 escenarios). No implementa inventario, compras, ventas, mantenimientos ni costos. Su inventario de escenarios y evidencia está en [cobertura-catalogos.md](cobertura-catalogos.md); su archivo y la sincronización de specs principales quedan para el flujo autorizado.
 

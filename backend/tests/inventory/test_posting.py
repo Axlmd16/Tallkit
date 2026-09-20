@@ -127,7 +127,7 @@ class TestPrepareAndLock:
         assert not InventoryPosition.objects.exists()
         locked = lock_positions(refs_for(product), warehouse_id=warehouse.pk)
         position = locked.positions[product.pk]
-        assert (position.quantity, position.value, position.average) == (0, 0, 0)
+        assert (position.quantity, position.value, position.average) == (D(0), D(0), D(0))
         assert InventoryPosition.objects.count() == 1
         again = lock_positions(refs_for(product), warehouse_id=warehouse.pk)
         assert again.positions[product.pk].pk == position.pk
@@ -265,7 +265,12 @@ class TestOrdinalsAndTime:
             return original_lock(*args, **kwargs)
 
         monkeypatch.setattr(posting, "lock_positions", spy_lock)
-        monkeypatch.setattr(posting, "_now", lambda: (events.append("clock"), timezone.now())[1])
+
+        def spy_clock() -> Any:
+            events.append("clock")
+            return timezone.now()
+
+        monkeypatch.setattr(posting, "_now", spy_clock)
         receive(actor, refs_for(product), warehouse, [entry(product.pk, 1, "1.00")])
         assert events.index("lock") < events.index("clock")
 

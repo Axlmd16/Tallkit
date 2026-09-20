@@ -21,7 +21,11 @@ from typing import Literal
 from django.db import transaction
 from django.db.models import Q
 
-from workshop_configuration.application.catalog_options import get_catalog_tax_options
+from workshop_configuration.application.catalog_options import (
+    CatalogTaxOptionsPage,
+    get_catalog_tax_options,
+    list_catalog_tax_options,
+)
 from workshop_configuration.models import FiscalEntity, TaxDefinition, TaxPeriod, Warehouse
 
 COMMERCIAL = "COMERCIAL"
@@ -38,10 +42,11 @@ ReviewStatus = Literal["applicable", "missing", "ambiguous", "invalid_scope"]
 
 
 class OperationContextError(Exception):
-    def __init__(self, code: ErrorCode, detail: str = "") -> None:
+    def __init__(self, code: ErrorCode, detail: str = "", definition_id: int | None = None) -> None:
         super().__init__(detail or code)
         self.code = code
         self.detail = detail
+        self.definition_id = definition_id
 
 
 @dataclass(frozen=True)
@@ -150,19 +155,23 @@ def lock_operation_context(
     for pk in requested:
         definition = definitions.get(pk)
         if definition is None:
-            raise OperationContextError("missing_tax", f"La definición tributaria {pk} no existe.")
+            raise OperationContextError(
+                "missing_tax", f"La definición tributaria {pk} no existe.", pk
+            )
         if definition.fiscal_entity.entity_type != COMMERCIAL:
             raise OperationContextError(
-                "invalid_tax_scope", f"La definición {definition.code} no es comercial."
+                "invalid_tax_scope", f"La definición {definition.code} no es comercial.", pk
             )
         periods = periods_by_definition[pk]
         if not periods:
             raise OperationContextError(
-                "missing_rate", f"El impuesto {definition.code} no tiene vigencia el {on}."
+                "missing_rate", f"El impuesto {definition.code} no tiene vigencia el {on}.", pk
             )
         if len(periods) > 1:
             raise OperationContextError(
-                "ambiguous_rate", f"El impuesto {definition.code} tiene varias vigencias el {on}."
+                "ambiguous_rate",
+                f"El impuesto {definition.code} tiene varias vigencias el {on}.",
+                pk,
             )
         period = periods[0]
         taxes[pk] = TaxSnapshot(
@@ -175,3 +184,12 @@ def lock_operation_context(
             ends_on=period.ends_on,
         )
     return LockedOperationContext(context=_context(entity, warehouse), taxes=taxes)
+
+
+def list_commercial_tax_options(
+    *, on: date, search: str = "", page: int = 1, page_size: int = 20
+) -> CatalogTaxOptionsPage:
+    """Definiciones del ámbito comercial con su estado de vigencia; el ámbito no es configurable."""
+    return list_catalog_tax_options(
+        entity_type=COMMERCIAL, search=search, page=page, page_size=page_size, on=on
+    )

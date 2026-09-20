@@ -118,6 +118,20 @@ context: |
   - DP-021: un mantenimiento no puede finalizar mientras su venta comercial abierta tenga
     líneas. El Vendedor o Administrador debe confirmar la venta o retirar las líneas no
     utilizadas; finalizar nunca confirma automáticamente la venta.
+  - DP-022: en compras, cada línea selecciona una definición tributaria del ámbito
+    comercial, sugerida desde el producto y revisable antes de confirmar, y se clasifica
+    como recuperable o no recuperable. No se admite recuperación parcial. El impuesto
+    recuperable se excluye del valor inventariable; el no recuperable se suma a él.
+  - DP-023: base, impuesto y total de cada línea de compra se redondean a centavos con
+    HALF_UP y los totales del documento suman las líneas ya redondeadas. El costo unitario
+    de captura admite hasta seis decimales y el costo derivado no se redondea antes de
+    valorar. El promedio ponderado se publica con seis decimales HALF_UP.
+  - DP-024: la fecha del documento del proveedor, obligatoria y no posterior al día de
+    America/Guayaquil, es la fecha operativa que resuelve la vigencia tributaria de la
+    compra. El momento efectivo del movimiento de inventario es el de confirmación,
+    asignado por el sistema.
+  - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
+    (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
   Reglas esenciales de negocio:
   - Las proformas y ventas directas en borrador no reservan ni descuentan stock.

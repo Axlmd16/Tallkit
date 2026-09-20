@@ -137,3 +137,11 @@ class TestOperationTransitions:
         InventoryOperation.objects.filter(pk=operation.pk).update(state="POSTED")
         discarded = make_operation(actor, source_id=71)
         discarded.delete()
+
+
+@pytest.mark.django_db
+def test_reference_and_correction_link_are_frozen_once_posted(posted: dict[str, Any]) -> None:
+    operation = posted["operation"]
+    for changes in ({"external_reference": "otra"}, {"corrects_operation": operation}):
+        with pytest.raises(DatabaseError, match="contabilizada"), transaction.atomic():
+            InventoryOperation.objects.filter(pk=operation.pk).update(**changes)

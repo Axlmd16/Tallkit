@@ -7,6 +7,7 @@ import {
   StateChangeDialog,
   type StateChange,
 } from '@/features/catalog-common/StateChangeDialog'
+import { useStockItem } from '@/features/inventory/hooks'
 import { useProduct, useProductMutations } from '@/features/products/hooks'
 import { ProductDetails } from '@/features/products/ProductDetails'
 import { ProductEditorDrawer } from '@/features/products/ProductEditorDrawer'
@@ -26,6 +27,8 @@ export function ProductDetailPage() {
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const product = query.data
+  const canSeeStock = permissions.has('inventario.ver')
+  const stock = useStockItem(product?.id ?? null, canSeeStock)
 
   async function changeState(target: StateChange) {
     await tracker.run({ op: 'state', ...target }, (key) =>
@@ -107,6 +110,54 @@ export function ProductDetailPage() {
             </InlineNotice>
           )}
           <ProductDetails product={product} />
+          {canSeeStock && (
+            <section
+              aria-label="Existencias"
+              className="space-y-2 rounded-group bg-surface p-4 shadow-card"
+            >
+              <h2 className="text-lg font-semibold text-ink">Existencias</h2>
+              {stock.isPending && (
+                <LoadingState label="Consultando existencias…" />
+              )}
+              {stock.isError && (
+                <InlineNotice
+                  title="No se pudieron consultar las existencias"
+                  tone="danger"
+                >
+                  No se muestra ningún saldo hasta reintentar.{' '}
+                  <Button
+                    onClick={() => void stock.refetch()}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Reintentar
+                  </Button>
+                </InlineNotice>
+              )}
+              {stock.data && (
+                <>
+                  <p className="text-ink">
+                    Existencia actual: <strong>{stock.data.quantity}</strong>{' '}
+                    presentaciones completas.
+                  </p>
+                  {stock.data.average_cost !== undefined && (
+                    <p className="text-sm text-ink-muted">
+                      Costo promedio USD {stock.data.average_cost} · valor
+                      inventariable USD {stock.data.inventory_value}. Es un
+                      costo de compra: no es el precio final de venta.
+                    </p>
+                  )}
+                </>
+              )}
+              <Link
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
+                state={{ from: `/products/${product.id}` }}
+                to={`/inventory/products/${product.id}/kardex`}
+              >
+                Ver Kardex del producto
+              </Link>
+            </section>
+          )}
           <ProductEditorDrawer
             mode={editing ? product : null}
             onClose={() => setEditing(false)}

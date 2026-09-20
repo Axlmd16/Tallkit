@@ -124,7 +124,7 @@ export function ProductsPage() {
             </Link>
           </nav>
         }
-        description="Catálogo de productos por presentación completa, con precio final en USD y sin existencias ni costos."
+        description="Catálogo de productos por presentación completa, con precio final de venta en USD. Las existencias y costos se consultan en Inventario."
         title="Productos"
       />
       <FiscalScopeBadge scope="commercial" />

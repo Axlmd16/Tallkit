@@ -53,9 +53,24 @@ class ContextNotLockedError(RuntimeError):
 
 
 class ReversalBlockedError(Exception):
-    def __init__(self, code: str, detail: str) -> None:
+    """La reversión no procede; ``code`` distingue el motivo estable.
+
+    ``later_movements``: existe un efecto posterior del producto (referencia en
+    ``blocking_operation_id``). ``inconsistent``: los saldos actuales no coinciden con los
+    posteriores originales, lo que indica una discrepancia que no se repara aquí.
+    """
+
+    def __init__(
+        self,
+        code: str,
+        detail: str,
+        product_id: int | None = None,
+        blocking_operation_id: int | None = None,
+    ) -> None:
         super().__init__(detail)
         self.code = code
+        self.product_id = product_id
+        self.blocking_operation_id = blocking_operation_id
 
 
 @dataclass(frozen=True)
@@ -130,6 +145,8 @@ def prepare_operation(
     reason: str = "",
     observation: str = "",
     fingerprint: str = "",
+    external_reference: str = "",
+    corrects_operation_id: int | None = None,
 ) -> InventoryOperation:
     """Crea la operación PREPARED con sus líneas agrupadas; no toca existencias."""
     _require_transaction()
@@ -152,6 +169,8 @@ def prepare_operation(
         reason=reason,
         observation=observation,
         fingerprint=fingerprint,
+        external_reference=external_reference,
+        corrects_operation_id=corrects_operation_id,
     )
     rows: list[InventoryOperationLine] = []
     for position, entry in enumerate(entries, start=1):
@@ -178,6 +197,12 @@ def prepare_operation(
         )
     InventoryOperationLine.objects.bulk_create(rows)
     return operation
+
+
+def lock_operation(operation_id: int) -> InventoryOperation:
+    """Bloquea una operación existente (grupo 2 del orden total; antes de las posiciones)."""
+    _require_transaction()
+    return InventoryOperation.objects.select_for_update().get(pk=operation_id)
 
 
 def lock_positions(
@@ -382,13 +407,21 @@ def reverse_operation(
         before = Position(movement.quantity_before, movement.value_before, movement.average_before)
         after = Position(movement.quantity_after, movement.value_after, movement.average_after)
         if position.last_ordinal != movement.ordinal:
+            later = (
+                InventoryMovement.objects.filter(position=position, ordinal__gt=movement.ordinal)
+                .order_by("ordinal")
+                .first()
+            )
             raise ReversalBlockedError(
-                "later_movements", "Existen movimientos posteriores del producto."
+                "later_movements",
+                "Existen movimientos posteriores del producto.",
+                movement.product_id,
+                later.operation_id if later else None,
             )
         try:
             reverse_exactly(_state(position), before=before, after=after)
         except InventoryValidationError as error:
-            raise ReversalBlockedError("later_movements", str(error)) from error
+            raise ReversalBlockedError("inconsistent", str(error), movement.product_id) from error
         restored.append((movement, after, before))
 
     reversal = InventoryOperation.objects.create(

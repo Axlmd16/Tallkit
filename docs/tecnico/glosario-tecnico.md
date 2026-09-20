@@ -45,6 +45,10 @@ estructuradas. Una captura complementa la revisión, pero no sustituye esas prop
 
 Propiedad que evita repetir los efectos de una misma solicitud procesada más de una vez.
 
+## Orden total de bloqueos
+
+Secuencia fija en la que una operación toma sus recursos (recibo, identidad y compras, proveedor, catálogo, posiciones, configuración e inserciones), con identificadores ascendentes dentro de cada grupo, para que dos operaciones concurrentes nunca formen un ciclo.
+
 ## Lockfile
 
 Archivo generado por el gestor de dependencias que fija el grafo exacto para instalaciones

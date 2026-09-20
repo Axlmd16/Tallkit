@@ -3,9 +3,22 @@
 ## Alcance
 
 La solución es una aplicación web de red local preparada para publicarse posteriormente. El
-bootstrap comprueba React, Django, PostgreSQL, estilos, navegación, contrato OpenAPI, sesiones,
-CSRF, pruebas y empaquetado. La primera capacidad funcional implementada es identidad y acceso;
-las demás partes del dominio continúan sin implementación.
+bootstrap comprobó React, Django, PostgreSQL, estilos, navegación, contrato OpenAPI, sesiones,
+CSRF, pruebas y empaquetado. Sobre esa base están implementadas identidad y acceso, configuración,
+clientes y vehículos, catálogos de productos, servicios y proveedores, y compras e inventario
+(ingresos de mercadería, existencias, carga inicial, ajustes y Kardex). Ventas, pagos,
+mantenimientos, alertas de stock mínimo y adjuntos continúan sin implementación.
+
+### Fronteras de compras e inventario
+
+`purchasing` coordina el ingreso y `inventory` es propietario de posiciones, operaciones y
+movimientos ([ADR-0005](../adr/0005-publicacion-transaccional-inventario.md)). Los módulos solo se
+comunican por interfaces públicas: `catalog.application.inventory_references`,
+`supplier_registry.application.purchase_references` y
+`workshop_configuration.application.operation_context`; `inventory` nunca importa `purchasing`, y
+la API y la presentación no importan modelos ajenos. Una confirmación abre una única transacción
+exterior con orden total de bloqueos (ADR-0004 dentro de configuración). El diagrama C4 de
+contenedores no cambia: son fronteras internas del backend.
 
 Los diagramas C4 de [contexto](../architecture/c4-context.md) y
 [contenedores](../architecture/c4-containers.md) muestran el alcance y las unidades desplegables.

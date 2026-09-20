@@ -5,9 +5,10 @@ monorepositorio con una SPA React y una API Django, desplegadas como monolito mo
 PostgreSQL como única base de datos relacional.
 
 El repositorio incluye identidad (autenticación por sesión, roles fijos, autorización y auditoría
-administrativa), configuración, catálogos de productos, servicios y proveedores, y el registro de
-clientes, vehículos y marcas de vehículo. Inventario, ventas, pagos y mantenimientos todavía no
-están implementados.
+administrativa), configuración, catálogos de productos, servicios y proveedores, el registro de
+clientes, vehículos y marcas de vehículo, y los ingresos de mercadería con existencias, ajustes,
+carga inicial y Kardex (módulos `purchasing` e `inventory`). Ventas, pagos, mantenimientos, alertas
+de stock mínimo y adjuntos de ingresos todavía no están implementados.
 
 ## Inicio rápido con Docker
 
@@ -99,6 +100,15 @@ Rutas de la API bajo `/api/v1/`: `customers/` (con `matches/`, `activate/`, `dea
 por sus acciones dedicadas y las ediciones exigen `expected_version`. Los errores por campo y los conflictos por
 duplicado se devuelven en los campos opcionales `errors` y `conflict` del error uniforme. El contrato completo está en
 el esquema OpenAPI.
+
+Compras e inventario: `purchases/` (borradores, `preview/`, `confirm/`, `void-preview/`, `void/`,
+`replacement/` y `tax-options/`) e `inventory/` (existencias, `products/<id>/kardex/` y `operations/` con
+`preview/`, `confirm/`, `reverse-preview/` y `reverse/`). Solo el Administrador opera compras y costos; el resto de
+los roles consulta cantidades. Las escrituras exigen `idempotency_key`, las ediciones `expected_version` y las
+confirmaciones un `review_token` de 15 minutos. Para conciliar el inventario de solo lectura:
+`cd backend && uv run python manage.py reconcile_inventory` (código de salida distinto de cero si hay diferencias).
+Si una base de desarrollo trae tablas `purchasing_*` de una implementación anterior, no las importe: reinicie esa
+base o siga el procedimiento de `docs/arquitectura/modelo-datos.md`.
 
 Despliegue (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate`, comprobaciones
 funcionales y luego frontend. Las migraciones son aditivas y se ensayaron en una base limpia y en una base con

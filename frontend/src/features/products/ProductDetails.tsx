@@ -43,7 +43,7 @@ const taxText = (product: Product) => {
   return `${code} — ${name} (${status === 'missing' ? 'vigencia pendiente' : 'vigencias ambiguas'})`
 }
 
-/** Ficha de solo lectura agrupada; sin existencias, costos ni indicadores simulados. */
+/** Ficha de solo lectura agrupada; el catálogo no guarda existencias ni costos; se consultan en Inventario. */
 export function ProductDetails({ product }: { product: Product }) {
   const ref = (item: { name: string; is_active: boolean } | null) =>
     item ? `${item.name}${item.is_active ? '' : ' (inactiva)'}` : '—'

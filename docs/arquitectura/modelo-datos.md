@@ -190,3 +190,48 @@ Cambio OpenSpec `gestionar-catalogos-productos-servicios-proveedores`. Concreta 
 - Las tablas nacen vacías; ninguna migración inserta datos. Auxiliares y proveedores pueden cargarse sin configuración fiscal; productos y servicios exigen antes una definición de impuesto del ámbito correspondiente (comercial para productos, artesanal para servicios).
 - Antes de desplegar: respaldo probado, backend y `make migrate`, comprobaciones y luego frontend. La ampliación es aditiva; ante problemas con registros reales se prefiere la corrección hacia adelante en lugar de deshacer migraciones o restaurar sin autorización.
 - La retención de los recibos idempotentes (`catalog_catalogcommand`, `supplier_registry_suppliercommand`) no tiene purga automática en V1; su política operativa sigue pendiente.
+
+## Módulos: inventory y purchasing
+
+Cambio OpenSpec `gestionar-compras-entradas-inventario-kardex`. Concreta la persistencia de su `design.md` §2–§3; el **modelo de dominio** sigue siendo la fuente conceptual. Las tablas nacen vacías y ninguna migración inserta datos. Las claves foráneas entre módulos se declaran por nombre con `PROTECT` y `related_name='+'`; `inventory` nunca referencia `purchasing`. Migraciones: `inventory/0001_initial`, `0002_history_protection`, `0003_manual_operations`; `purchasing/0001_initial`, `0002_history_protection`. Dependencias reales: `catalog.0002_product_manufacturer_code`, `supplier_registry.0001_initial`, `workshop_configuration.0005_alter_configurationcommand_options_and_more` y el usuario intercambiable.
+
+### Tablas de `inventory`
+| Tabla | Datos y restricciones |
+|---|---|
+| `inventory_inventoryposition` | Producto y bodega (`PROTECT`); `quantity numeric(18,6)` entera y no negativa, `value numeric(38,6)` y `average numeric(24,6)` no negativos, `version`, `last_ordinal`, `last_effective_at`. Único `(product, warehouse)`; cantidad cero implica valor y promedio cero. Es proyección conciliable, no origen independiente de stock. |
+| `inventory_inventoryoperation` | `kind` (`PURCHASE_RECEIPT`, `INITIAL_LOAD`, `ADJUSTMENT_IN`, `ADJUSTMENT_OUT`, `REVERSAL`), `state` (`PREPARED`, `POSTED`, `REVERSED`), origen `(source_type, source_id)` único cuando `source_id` existe, motivo, observación, `external_reference`, `corrects_operation` opcional, actor, `fingerprint`, `version`, `reverses` único opcional. `REVERSAL` exige `reverses`; una compensación nunca pasa a `REVERSED`. |
+| `inventory_inventoryoperationline` | Operación, `position`, producto, `quantity` entera positiva, `entry_value` opcional y `source_line_id`. Únicos `(operation, position)` y `(operation, product)`. |
+| `inventory_inventorymovement` | Hecho inmutable: operación, posición, producto, bodega, `ordinal`, `movement_type`, `effective_at`, `quantity_in`/`quantity_out` (exactamente una positiva y entera), `value_delta`, `applied_unit_cost`, `rounding_adjustment`, cantidades/valores/promedios anterior y posterior, `product_snapshot` JSON con `schema_version`, actor y `reverses_movement` único opcional. Únicos `(position, ordinal)` y `(operation, product)`; índice único parcial que impide una segunda carga inicial por producto y bodega incluso tras compensarla. |
+| `inventory_inventorycommand` | Recibo idempotente propio (actor, acción, clave 8–128 ASCII, huella SHA-256, estado y resultado); único por actor/acción/clave. Interno y no expuesto. |
+
+Índices: movimientos `(product, effective_at, ordinal)`, `(product, movement_type, ordinal)`, `(actor, effective_at, id)` y por operación; operaciones `(kind, state, created_at, id)`.
+
+### Tablas de `purchasing`
+| Tabla | Datos y restricciones |
+|---|---|
+| `purchasing_purchasedocumentidentity` | Proveedor, `document_type` (`FACTURA`, `NOTA_DE_VENTA`, `OTRO`, `SIN_DOCUMENTO`), `reference` y `normalized_reference` (`strip().upper()`, conserva ceros y puntuación). Único `(supplier, document_type, normalized_reference)` salvo `SIN_DOCUMENTO`, que exige referencia vacía. |
+| `purchasing_purchase` | Identidad externa, `document_date`, observación, explicación sin documento, `state` (`DRAFT`, `CONFIRMED`, `VOIDED`), `version`, `replaces` opcional, totales `numeric(38,2)` nulos mientras no sean calculables, snapshots de proveedor y fiscal, `internal_number` único, asignación de numeración, operaciones de inventario (confirmación y anulación), huellas de confirmación y revisión aplicada y metadatos de anulación. Únicos parciales: una sola compra raíz por identidad y una sola `CONFIRMED` por identidad. Un borrador no tiene número; confirmada o anulada sí. |
+| `purchasing_purchaseline` | Compra, `position` única por compra, producto, `quantity` entera positiva, `unit_cost numeric(24,6)` no negativo, definición tributaria, `tax_treatment` (`RECOVERABLE`/`NON_RECOVERABLE`) y, al confirmar, snapshots de producto e impuesto, base, impuesto, total y valor inventariable. Varias líneas del mismo producto son válidas. |
+| `purchasing_purchasecommand` | Recibo idempotente propio, con el mismo contrato que el de inventario. |
+
+Índices de compras: `(state, document_date, id)`, `(document_identity, id)`, `(document_date, id)` y líneas `(product, purchase)`.
+
+### Historia inmutable (triggers PostgreSQL)
+- `inventory_movement_immutable`: rechaza `UPDATE` y `DELETE` de movimientos.
+- `inventory_line_guard`: solo admite cambios en líneas mientras su operación está `PREPARED`.
+- `inventory_operation_guard`: una operación contabilizada solo transiciona `POSTED → REVERSED` sin alterar su contenido; `REVERSED` es final; solo una operación `PREPARED` puede eliminarse.
+- `purchasing_line_guard` y `purchasing_purchase_guard`: congelan líneas y contenido económico tras confirmar; una compra confirmada solo admite los metadatos de anulación y `VOIDED` es final.
+Son reversibles y no se desactivan en operación normal. No impiden que un administrador de base altere deliberadamente el esquema; sí evitan la sobrescritura accidental desde ORM, SQL de aplicación o Admin.
+
+### Precisión y valoración
+- Cantidades: presentaciones enteras hasta 999999999999. Costo de captura hasta 999999999999.999999. Cálculo puro con `Decimal` y contexto local de precisión 60.
+- Promedio ponderado: `Q6(V'/Q')` HALF_UP; el residuo entre `V` y `Q×A` permanece en `V` hasta que la salida que agota la existencia lo absorbe. La reversión restituye el estado previo conservado en el movimiento original.
+
+### Orden de bloqueo y concurrencia
+Recibo, identidad y compras, operación original, proveedor, referencias de catálogo por ID, posiciones por producto, contexto de configuración (entidad, bodega, definiciones por ID, vigencias) y, al final, inserciones. Las posiciones se crean bajo el bloqueo del producto; las consultas nunca las crean. Los errores de deadlock, serialización y tiempo de bloqueo se traducen a `concurrent_operation` solo tras el rollback completo.
+
+### Carga inicial y operación
+- Las tablas nacen vacías. Una ficha sin movimientos proyecta cero real sin migración masiva ni posición.
+- Si aparecieran tablas o saldos previos ajenos a este esquema (por ejemplo, restos de una implementación anterior de `purchasing`), detener la incorporación, inventariar el contenido y reconciliarlo con el Administrador; no importarlo automáticamente ni duplicarlo mediante carga inicial. Procedimiento: respaldo probado; `manage.py showmigrations purchasing inventory`; inventariar tablas `purchasing_*`/`inventory_*` inesperadas; decidir su destino de forma explícita; solo entonces aplicar `make migrate`.
+- Conciliación de solo lectura: `manage.py reconcile_inventory` reconstruye cantidad y valor desde los movimientos, verifica la cadena anterior/posterior, ordinales, promedio y posición, y devuelve código distinto de cero si encuentra diferencias. No ofrece `--fix`.
+- Los recibos idempotentes no tienen purga automática en V1.

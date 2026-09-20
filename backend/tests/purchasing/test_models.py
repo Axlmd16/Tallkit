@@ -182,7 +182,7 @@ class TestPurchase:
             internal_number="COM-ING-6",
             supplier_snapshot={"schema_version": 1, "name": "ok"},
         )
-        assert purchase.supplier_snapshot["schema_version"] == 1
+        assert (purchase.supplier_snapshot or {})["schema_version"] == 1
 
 
 @pytest.mark.django_db

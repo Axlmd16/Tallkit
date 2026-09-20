@@ -16,8 +16,14 @@ import { LoginPage } from '@/pages/login/LoginPage'
 import { MeasurementUnitsPage } from '@/pages/measurement-units/MeasurementUnitsPage'
 import { ProductBrandsPage } from '@/pages/product-brands/ProductBrandsPage'
 import { ProductCategoriesPage } from '@/pages/product-categories/ProductCategoriesPage'
+import { InventoryOperationDetailPage } from '@/pages/inventory/InventoryOperationDetailPage'
+import { InventoryPage } from '@/pages/inventory/InventoryPage'
+import { KardexPage } from '@/pages/inventory/KardexPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
 import { ProductsPage } from '@/pages/products/ProductsPage'
+import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
+import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
+import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
 import { ServiceDetailPage } from '@/pages/services/ServiceDetailPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { SupplierDetailPage } from '@/pages/suppliers/SupplierDetailPage'
@@ -145,6 +151,62 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="servicios.ver">
                 <ServiceDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/purchases',
+            element: (
+              <PermissionGuard permission="ingresos.ver">
+                <PurchasesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/purchases/new',
+            element: (
+              <PermissionGuard permission="ingresos.crear">
+                <PurchaseEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/purchases/:id',
+            element: (
+              <PermissionGuard permission="ingresos.ver">
+                <PurchaseDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/purchases/:id/edit',
+            element: (
+              <PermissionGuard permission="ingresos.crear">
+                <PurchaseEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/inventory',
+            element: (
+              <PermissionGuard permission="inventario.ver">
+                <InventoryPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/inventory/products/:id/kardex',
+            element: (
+              <PermissionGuard permission="inventario.ver">
+                <KardexPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/inventory/operations/:id',
+            element: (
+              <PermissionGuard permission="inventario.ver">
+                <InventoryOperationDetailPage />
               </PermissionGuard>
             ),
           },

@@ -43,6 +43,7 @@ class AllocateNumberResult:
     visible_number: str
     series_code: str
     scope_id: int
+    allocation_id: int
 
 
 def get_numbering_scope_id(*, entity_type: str, document_type: str) -> int:
@@ -115,6 +116,7 @@ def allocate_number(
                 visible_number=existing_by_document.visible_number,
                 series_code=existing_by_document.series.code,
                 scope_id=scope_id,
+                allocation_id=existing_by_document.pk,
             )
 
         # Comprobar asignación existente por clave de solicitud (scope + request_key)
@@ -140,6 +142,7 @@ def allocate_number(
                 visible_number=existing_by_key.visible_number,
                 series_code=existing_by_key.series.code,
                 scope_id=scope_id,
+                allocation_id=existing_by_key.pk,
             )
 
         # Obtener la serie activa (bloqueo ya adquirido por scope)
@@ -182,4 +185,5 @@ def allocate_number(
             visible_number=allocation.visible_number,
             series_code=series.code,
             scope_id=scope_id,
+            allocation_id=allocation.pk,
         )

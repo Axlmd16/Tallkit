@@ -116,6 +116,16 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "category_has_active_products": (409, "Categoría con productos activos"),
     "stale_record": (409, "Registro desactualizado"),
     "idempotency_conflict": (409, "Clave de idempotencia reutilizada"),
+    "review_required": (409, "Revisión requerida"),
+    "duplicate_supplier_document": (409, "Documento del proveedor duplicado"),
+    "configuration_missing": (409, "Configuración ausente"),
+    "configuration_ambiguous": (409, "Configuración ambigua"),
+    "insufficient_stock": (409, "Existencia insuficiente"),
+    "already_initialized": (409, "Producto ya inicializado"),
+    "unsafe_reversal": (409, "Reversión no segura"),
+    "inventory_inconsistent": (409, "Inventario inconsistente"),
+    "not_editable": (409, "Registro no editable"),
+    "concurrent_operation": (409, "Operación concurrente"),
 }
 
 

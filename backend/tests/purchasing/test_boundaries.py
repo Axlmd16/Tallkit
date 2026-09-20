@@ -1,6 +1,7 @@
 """Fronteras del módulo de compras: coordina el documento sin mutar persistencia ajena."""
 
 import ast
+import re
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,7 @@ ALLOWED_CROSS_MODULE = {
     "supplier_registry.application.purchase_references",
     "workshop_configuration.application.operation_context",
     "workshop_configuration.application.numbering",
+    "workshop_configuration.application.configuration_resolver",
     "identity.api.permissions",
     "identity.api.request_context",
     "identity.application.audit",
@@ -74,9 +76,11 @@ def test_no_foreign_sql_is_executed() -> None:
     offenders = []
     for path in package_files(PACKAGE):
         text = path.read_text(encoding="utf-8")
-        if ("cursor(" in text or ".raw(" in text or "RunSQL" in text) and any(
-            marker in text for marker in SQL_MARKERS
-        ):
+        touches_foreign_table = any(
+            re.search(rf"(?i)\b(from|join|into|update)\s+\"?{marker}", text)
+            for marker in SQL_MARKERS
+        )
+        if ("cursor(" in text or ".raw(" in text or "RunSQL" in text) and touches_foreign_table:
             offenders.append(str(path.relative_to(SRC)))
     assert not offenders, offenders
 

@@ -39,7 +39,7 @@ def test_terminal_residue_is_absorbed_by_the_last_exit() -> None:
         current = result.position
     assert applied == [D("0.333333"), D("0.333333"), D("0.333334")]
     assert current == EMPTY_POSITION
-    assert (current.quantity, current.value, current.average) == (0, 0, 0)
+    assert (current.quantity, current.value, current.average) == (D(0), D(0), D(0))
 
 
 def test_partial_exit_keeps_average_and_never_exceeds_retained_value() -> None:

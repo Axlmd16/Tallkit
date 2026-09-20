@@ -53,3 +53,21 @@ def make_product(db: None):  # type: ignore[no-untyped-def]
 @pytest.fixture
 def product(make_product):  # type: ignore[no-untyped-def]
     return make_product()
+
+
+@pytest.fixture
+def admin(db: None):  # type: ignore[no-untyped-def]
+    from identity.models import UserRole
+
+    user = get_user_model().objects.create_user(username="inv-admin", password="x" * 14)
+    UserRole.objects.create(user=user, role="ADMINISTRADOR")
+    return user
+
+
+@pytest.fixture
+def seller(db: None):  # type: ignore[no-untyped-def]
+    from identity.models import UserRole
+
+    user = get_user_model().objects.create_user(username="inv-seller", password="x" * 14)
+    UserRole.objects.create(user=user, role="VENDEDOR")
+    return user

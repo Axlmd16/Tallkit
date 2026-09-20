@@ -155,6 +155,26 @@ Condición que el sistema no puede violar, incluso ante errores, concurrencia o 
 
 Registro cronológico de los movimientos de inventario de un producto, incluyendo entradas, salidas, ajustes, devoluciones y movimientos inversos.
 
+### Carga inicial
+
+Primera entrada de existencias de un producto sin historia de inventario, con costo explícito y sin proveedor inventado. Solo puede hacerse una vez por producto y bodega, incluso si luego se compensa.
+
+### Corte de consulta
+
+Punto estable de la historia (identificado por un ordinal y con vigencia de 30 minutos) contra el que se leen todas las páginas, filas y resúmenes del Kardex, de modo que un movimiento confirmado por otro usuario no se mezcle con lo que se está leyendo.
+
+### Movimiento compensatorio
+
+Movimiento inverso, vinculado al original, que restituye exactamente cantidad, valor y promedio previos sin borrar ni editar la historia. Solo procede si el original es el último efecto del producto.
+
+### Posición de inventario
+
+Proyección operativa de la cantidad, el valor y el costo promedio de un producto en la bodega. Siempre debe poder reconstruirse a partir de los movimientos.
+
+### Revisión previa
+
+Consulta de solo lectura que muestra importes y efectos antes de confirmar y entrega un token firmado, de 15 minutos, ligado al actor, la acción y el contenido revisado.
+
 ### Kit
 
 Producto comprado como conjunto y controlado como una unidad completa. Puede venderse intacto o desarmarse mediante una operación explícita; nunca se descompone automáticamente al vender.

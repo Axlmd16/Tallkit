@@ -12,3 +12,5 @@
 | Monolito modular | `docs/tecnico/glosario-tecnico.md` | Frontera arquitectónica donde reside el módulo customer_registry. |
 | Producto / Servicio / Proveedor | `docs/negocio/producto/glosario.md` | Catálogos persistentes de los módulos `catalog` y `supplier_registry`. |
 | Idempotencia | `docs/tecnico/glosario-tecnico.md` | Recibo por actor, acción y clave que reproduce el resultado original de un comando. |
+| Posición de inventario / Corte de consulta | `docs/negocio/producto/glosario.md` | Proyección conciliable y lectura estable de los módulos `inventory` y `purchasing`. |
+| Orden total de bloqueos | `docs/tecnico/glosario-tecnico.md` | Protocolo de concurrencia de las confirmaciones. |

@@ -102,6 +102,10 @@ class InventoryOperation(models.Model):
     observation = models.CharField(max_length=2000, blank=True, default="")
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     fingerprint = models.CharField(max_length=64, blank=True, default="")
+    external_reference = models.CharField(max_length=128, blank=True, default="")
+    corrects_operation = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="corrections"
+    )
     reverses = models.OneToOneField(
         "self", on_delete=models.PROTECT, null=True, blank=True, related_name="reversal"
     )
@@ -268,3 +272,29 @@ class InventoryMovement(models.Model):
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         raise ImmutableHistoryError("Un movimiento de inventario no se elimina.")
+
+
+class InventoryCommand(models.Model):
+    """Recibo idempotente interno de los comandos manuales de inventario."""
+
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    action = models.CharField(max_length=64)
+    idempotency_key = models.CharField(max_length=128)
+    input_fingerprint = models.CharField(max_length=64)
+    response_status = models.PositiveSmallIntegerField(null=True)
+    result = models.JSONField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["actor", "action", "idempotency_key"], name="inv_command_key_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(idempotency_key__regex=r"^[A-Za-z0-9._:-]{8,128}$"),
+                name="inv_command_key_format",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.action}:{self.idempotency_key}"
