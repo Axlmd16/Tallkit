@@ -253,7 +253,7 @@ test('vehicle transfer adapts to narrow 360px viewport without overflow', async 
   await customerDrawer
     .getByLabel('Nombres y apellidos')
     .fill('Dueño Transferencia')
-  await customerDrawer.getByLabel('Número de identificación').fill('0912345678')
+  await customerDrawer.getByLabel('Número de identificación').fill('0955443322')
   await customerDrawer.getByLabel('Teléfono').fill('0987654321')
   await customerDrawer.getByRole('button', { name: 'Guardar cliente' }).click()
   await expect(customerDrawer).not.toBeVisible()
@@ -284,7 +284,7 @@ test('vehicle transfer adapts to narrow 360px viewport without overflow', async 
   })
   await vehicleDrawer
     .getByLabel('Propietario')
-    .selectOption({ label: 'Dueño Transferencia (0912345678)' })
+    .selectOption({ label: 'Dueño Transferencia (0955443322)' })
   await vehicleDrawer
     .getByLabel('Marca de vehículo')
     .selectOption({ label: 'Nissan Responsive' })

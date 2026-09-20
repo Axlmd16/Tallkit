@@ -3,18 +3,18 @@
 | Campo | Valor |
 |---|---|
 | Cambio OpenSpec | `gestionar-clientes-y-vehiculos` |
-| Estado | Inventario inicial de 69 escenarios; cobertura pendiente de implementación |
-| Fecha | 2026-09-13 |
+| Estado | 69 de 69 escenarios con evidencia ejecutada (2026-09-20); la aceptación visual humana de las nuevas superficies no está registrada |
+| Fecha | 2026-09-20 |
 | Alcance | Gestión de clientes, catálogo de marcas de vehículo y gestión de vehículos y propiedad |
 
 ## 1. Resumen de trazabilidad y cobertura
 
 | Capacidad | Requisitos | Escenarios | Tareas asociadas | Estado de cobertura |
 |---|---|---|---|---|
-| Catálogo de marcas de vehículo | 5 | 17 | Grupo 4 (4.1–4.5), Grupo 5 (5.5), Grupo 7 (7.3), Grupo 8 (8.1, 8.4) | Grupo 4 y 5 completados; 13 cumplidos, 4 pendientes |
-| Gestión de clientes | 9 | 27 | Grupo 1 (1.2), Grupo 3 (3.1–3.7), Grupo 5 (5.3, 5.5), Grupo 7 (7.1, 7.4), Grupo 8 (8.1, 8.4) | Grupo 1, 3 y 5 completados; 21 cumplidos, 6 pendientes |
-| Gestión de vehículos y propiedad | 8 | 25 | Grupo 5 (5.1–5.6), Grupo 6 (6.1–6.5), Grupo 7 (7.2, 7.4), Grupo 8 (8.1, 8.2, 8.4) | Grupo 5 completado; 15 cumplidos, 10 pendientes |
-| **Total** | **22** | **69** | **Grupos 1 al 9** | **49 completados, 20 pendientes** |
+| Catálogo de marcas de vehículo | 5 | 17 | Grupo 4 (4.1–4.5), Grupo 5 (5.5), Grupo 7 (7.3), Grupo 8 (8.1, 8.4) | 17 cumplidos |
+| Gestión de clientes | 9 | 27 | Grupo 1 (1.2), Grupo 3 (3.1–3.7), Grupo 5 (5.3, 5.5), Grupo 7 (7.1, 7.4), Grupo 8 (8.1, 8.4) | 27 cumplidos |
+| Gestión de vehículos y propiedad | 8 | 25 | Grupo 5 (5.1–5.6), Grupo 6 (6.1–6.5), Grupo 7 (7.2, 7.4), Grupo 8 (8.1, 8.2, 8.4) | 25 cumplidos |
+| **Total** | **22** | **69** | **Grupos 1 al 9** | **69 cumplidos, 0 pendientes** |
 
 ---
 
@@ -39,7 +39,7 @@
 | 13 | Baja auditada | Trazabilidad y auditoría | Grupo 4 (4.2, 4.3) | Backend: `test_brand_services.py`, `test_brand_api.py` | **Cumplido** |
 | 14 | Fallo al guardar el evento | Trazabilidad y auditoría | Grupo 4 (4.2) | Backend: `test_brand_services.py` | **Cumplido** |
 | 15 | Rechazo de permisos consultable | Trazabilidad y auditoría | Grupo 4 (4.2) / Grupo 8 (8.1, 8.2) | Backend: `test_brand_api.py`, `test_audit_api.py` | **Cumplido** |
-| 16 | Formulario de marca en teléfono | Experiencia adaptable y formularios claros | Grupo 4 (4.4) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` (360 px) | Pendiente |
+| 16 | Formulario de marca en teléfono | Experiencia adaptable y formularios claros | Grupo 4 (4.4) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` (360 px) | **Cumplido** |
 | 17 | Catálogo sin marcas disponibles | Experiencia adaptable y formularios claros | Grupo 4 (4.4) | Frontend: `VehicleBrandsPage.test.tsx` | **Cumplido** |
 
 ### 2.2 Gestión de clientes (27 escenarios)
@@ -71,7 +71,7 @@
 | 40 | Rechazo comprensible y documentado | Auditoría y trazabilidad | Grupo 3 (3.3) / Grupo 8 (8.1, 8.2) | Backend: `test_customer_services.py`, `test_customer_api.py` | **Cumplido** |
 | 41 | Registro con error en teléfono | Experiencia de usuario adaptable | Grupo 3 (3.5) | Frontend: `CustomerForm.test.tsx` | **Cumplido** |
 | 42 | Consulta fallida frente a lista vacía | Experiencia de usuario adaptable | Grupo 3 (3.6) | Frontend: `CustomersPage.test.tsx` | **Cumplido** |
-| 43 | Revisión en dispositivos y teclado | Experiencia de usuario adaptable | Grupo 3 (3.6) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` | Pendiente |
+| 43 | Revisión en dispositivos y teclado | Experiencia de usuario adaptable | Grupo 3 (3.6) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` | **Cumplido** |
 | 44 | Dependencia aún abierta | Dependencia con sistema visual e identidad | Grupo 1 (1.2) | Cierre verificado en `master` (merge `617ec59`, archivo `2c68d51`) | **Cumplido** |
 
 ### 2.3 Gestión de vehículos y propiedad (25 escenarios)
@@ -101,5 +101,21 @@
 | 65 | Auditoría de transferencia | Auditoría de cambios vehiculares | Grupo 6 (6.1, 6.3) | Backend: `test_vehicle_services.py`, `test_vehicle_api.py` | **Cumplido** |
 | 66 | Fallo durante la transferencia | Auditoría de cambios vehiculares | Grupo 6 (6.1, 6.2) | Backend: `test_vehicle_services.py`, `test_ownership_concurrency.py` | **Cumplido** |
 | 67 | Error de placa documentado | Auditoría de cambios vehiculares | Grupo 5 (5.2) / Grupo 8 (8.1) | Backend: `test_vehicle_services.py` | **Cumplido** |
-| 68 | Transferencia en pantalla estrecha | Experiencia visual adaptable | Grupo 6 (6.4) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` (360 px) | Pendiente |
+| 68 | Transferencia en pantalla estrecha | Experiencia visual adaptable | Grupo 6 (6.4) / Grupo 8 (8.4) | E2E responsive: `responsive.spec.ts` (360 px) | **Cumplido** |
 | 69 | Formulario con errores | Experiencia visual adaptable | Grupo 5 (5.4) | Frontend: `VehicleForm.test.tsx` | **Cumplido** |
+
+## 3. Evidencia ejecutada (2026-09-20) y límites
+
+| Comprobación | Resultado |
+|---|---|
+| `cd backend && uv run pytest` | 616 pruebas pasan; cobertura 90,32 % (mínimo 85 %). |
+| `cd frontend && npm run test:coverage` | 525 pruebas pasan; el umbral global de cobertura **no se cumple** (80,86 % de líneas frente a 85 %). |
+| `manage.py spectacular --validate` | 0 errores y 0 avisos. |
+| `npx playwright test e2e/customers-vehicles.spec.ts e2e/responsive.spec.ts` | 22 pruebas pasan. |
+| Migraciones | Ensayadas en base limpia y con identidad previa; ver `docs/arquitectura/modelo-datos.md` §4. |
+
+Notas por escenario:
+
+- **Concurrencia (27, 51, 57, 66):** 27 y 51 usan una carrera simulada (comprobación previa desactivada con la restricción real de PostgreSQL activa). 57 y 66 usan conexiones independientes en `test_ownership_concurrency.py`. La evidencia de concurrencia backend se registra por separado de los recorridos E2E.
+- **Revisión visual y de dispositivos (16, 43, 68):** los E2E comprueban ausencia de desbordamiento y foco a 360/768/1024/1440 px. No equivalen a la aceptación visual del usuario, que sigue pendiente.
+- **Deriva de interfaz corregida:** los recorridos E2E se adaptaron a la vista previa lateral («Ver ficha completa») y a la lista actual; `useLogout` se corrigió porque tras cerrar sesión no se redirigía a `/login`.
