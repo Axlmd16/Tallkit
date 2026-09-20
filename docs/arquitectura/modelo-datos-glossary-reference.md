@@ -10,3 +10,5 @@
 | RUC | `docs/negocio/producto/glosario.md` | Tipo de identificación tributaria admitida (13 caracteres) y contribuyentes del taller. |
 | Modelo de dominio | `docs/tecnico/glosario-tecnico.md` | Base conceptual previa aprobada que guía este diseño de persistencia. |
 | Monolito modular | `docs/tecnico/glosario-tecnico.md` | Frontera arquitectónica donde reside el módulo customer_registry. |
+| Producto / Servicio / Proveedor | `docs/negocio/producto/glosario.md` | Catálogos persistentes de los módulos `catalog` y `supplier_registry`. |
+| Idempotencia | `docs/tecnico/glosario-tecnico.md` | Recibo por actor, acción y clave que reproduce el resultado original de un comando. |

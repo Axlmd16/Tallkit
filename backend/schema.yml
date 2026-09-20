@@ -557,6 +557,1211 @@ paths:
       responses:
         '200':
           description: Aplicación y PostgreSQL disponibles
+  /api/v1/measurement-units/:
+    get:
+      operationId: catalog_unit_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Measurement units
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: catalog_unit_create
+      tags:
+      - Measurement units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UnitWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UnitWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/measurement-units/{id}/:
+    get:
+      operationId: catalog_unit_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Measurement units
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: catalog_unit_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Measurement units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnitPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/measurement-units/{id}/activate/:
+    post:
+      operationId: catalog_unit_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Measurement units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/measurement-units/{id}/deactivate/:
+    post:
+      operationId: catalog_unit_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Measurement units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-brands/:
+    get:
+      operationId: catalog_brand_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Product brands
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductBrandPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: catalog_brand_create
+      tags:
+      - Product brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BrandWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BrandWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-brands/{id}/:
+    get:
+      operationId: catalog_brand_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product brands
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: catalog_brand_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBrandPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBrandPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBrandPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-brands/{id}/activate/:
+    post:
+      operationId: catalog_brand_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-brands/{id}/deactivate/:
+    post:
+      operationId: catalog_brand_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product brands
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-categories/:
+    get:
+      operationId: catalog_category_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Product categories
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryPage'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: catalog_category_create
+      tags:
+      - Product categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-categories/{id}/:
+    get:
+      operationId: catalog_category_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product categories
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: catalog_category_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-categories/{id}/activate/:
+    post:
+      operationId: catalog_category_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/product-categories/{id}/deactivate/:
+    post:
+      operationId: catalog_category_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Product categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/products/:
+    get:
+      operationId: catalog_product_list
+      parameters:
+      - in: query
+        name: category_id
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: product_brand_id
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      - in: query
+        name: vehicle_brand_id
+        schema:
+          type: integer
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: catalog_product_create
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/products/{id}/:
+    get:
+      operationId: catalog_product_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: catalog_product_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/products/{id}/activate/:
+    post:
+      operationId: catalog_product_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/products/{id}/deactivate/:
+    post:
+      operationId: catalog_product_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/products/tax-options/:
+    get:
+      operationId: catalog_product_tax_options
+      description: Opciones tributarias del ámbito COMERCIAL; el ámbito no es configurable.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogTaxOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/roles/:
     get:
       operationId: roles_list
@@ -717,6 +1922,670 @@ paths:
               schema:
                 type: object
                 additionalProperties: {}
+          description: ''
+  /api/v1/services/:
+    get:
+      operationId: catalog_service_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Services
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: catalog_service_create
+      tags:
+      - Services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/services/{id}/:
+    get:
+      operationId: catalog_service_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Services
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: catalog_service_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedServicePatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedServicePatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedServicePatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/services/{id}/activate/:
+    post:
+      operationId: catalog_service_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/services/{id}/deactivate/:
+    post:
+      operationId: catalog_service_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StateCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/services/tax-options/:
+    get:
+      operationId: catalog_service_tax_options
+      description: Opciones tributarias del ámbito ARTESANAL; el ámbito no es configurable.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial.
+      tags:
+      - Services
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogTaxOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/suppliers/:
+    get:
+      operationId: suppliers_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Nombre o documento.
+      tags:
+      - Suppliers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: suppliers_create
+      tags:
+      - Suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/suppliers/{id}/:
+    get:
+      operationId: suppliers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Suppliers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: suppliers_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/suppliers/{id}/activate/:
+    post:
+      operationId: suppliers_activate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/suppliers/{id}/deactivate/:
+    post:
+      operationId: suppliers_deactivate
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierState'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/suppliers/matches/:
+    post:
+      operationId: suppliers_matches
+      description: Consulta consultiva de nombres coincidentes; no muta ni exige clave.
+      tags:
+      - Suppliers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierMatchQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierMatchQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierMatchQuery'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierMatches'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
           description: ''
   /api/v1/users/:
     get:
@@ -1922,7 +3791,6 @@ paths:
         name: scope_id
         schema:
           type: integer
-        required: true
       tags:
       - workshop-configuration
       security:
@@ -2094,7 +3962,6 @@ paths:
         name: entity_id
         schema:
           type: integer
-        required: true
       tags:
       - workshop-configuration
       security:
@@ -2373,6 +4240,131 @@ components:
       - result
       - target_id
       - target_type
+    BlankEnum:
+      enum:
+      - ''
+    Brand:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+      required:
+      - created_at
+      - id
+      - is_active
+      - name
+      - updated_at
+      - version
+    BrandWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+      required:
+      - idempotency_key
+      - name
+    CatalogTaxOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxProjection'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - created_at
+      - description
+      - id
+      - is_active
+      - name
+      - updated_at
+      - version
+    CategoryPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    CategoryWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+      required:
+      - idempotency_key
+      - name
     ConflictInfo:
       type: object
       properties:
@@ -2503,6 +4495,12 @@ components:
           type: integer
         version:
           type: integer
+        document_type:
+          type: string
+          nullable: true
+        entity_type:
+          type: string
+          nullable: true
       required:
       - code
       - id
@@ -2544,6 +4542,14 @@ components:
       - ruc
       - trade_name
       - version
+    IdentificationTypeEnum:
+      enum:
+      - CI
+      - RUC
+      type: string
+      description: |-
+        * `CI` - CI
+        * `RUC` - RUC
     IdentityRoleEnum:
       enum:
       - ADMINISTRADOR
@@ -2601,6 +4607,9 @@ components:
       required:
       - password
       - username
+    NullEnum:
+      enum:
+      - null
     OwnershipPeriodPage:
       type: object
       properties:
@@ -2667,6 +4676,35 @@ components:
           format: uuid
       required:
       - operation_id
+    PatchedBrandPatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        expected_version:
+          type: integer
+          minimum: 1
+    PatchedCategoryPatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedCustomerUpdate:
       type: object
       properties:
@@ -2719,6 +4757,44 @@ components:
           type: string
         expected_version:
           type: integer
+    PatchedProductPatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        code:
+          type: string
+          maxLength: 64
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        category_id:
+          type: integer
+        unit_id:
+          type: integer
+        product_brand_id:
+          type: integer
+          nullable: true
+        vehicle_brand_ids:
+          type: array
+          items:
+            type: integer
+        tax_definition_id:
+          type: integer
+        content_quantity:
+          type: string
+        sale_price:
+          type: string
+        is_kit:
+          type: boolean
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedSeriesCodeUpdate:
       type: object
       properties:
@@ -2727,6 +4803,63 @@ components:
           maxLength: 20
         expected_version:
           type: integer
+    PatchedServicePatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        reference_price:
+          type: string
+        tax_definition_id:
+          type: integer
+        expected_version:
+          type: integer
+          minimum: 1
+    PatchedSupplierPatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        identification_type:
+          nullable: true
+          description: |-
+            Opcional; se informa junto con identification o ambos quedan vacíos.
+
+            * `CI` - CI
+            * `RUC` - RUC
+          oneOf:
+          - $ref: '#/components/schemas/IdentificationTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        identification:
+          type: string
+          nullable: true
+          description: CI de 10 caracteres o RUC de 13; se conservan los ceros iniciales.
+          maxLength: 32
+        phone:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          maxLength: 254
+        address:
+          type: string
+          maxLength: 1024
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedTaxPeriodUpdate:
       type: object
       properties:
@@ -2741,6 +4874,22 @@ components:
           nullable: true
         expected_version:
           type: integer
+    PatchedUnitPatch:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        symbol:
+          type: string
+          maxLength: 32
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedUserWrite:
       type: object
       properties:
@@ -2836,6 +4985,169 @@ components:
       - status
       - title
       - type
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: '#/components/schemas/Ref'
+        unit:
+          $ref: '#/components/schemas/Ref'
+        product_brand:
+          allOf:
+          - $ref: '#/components/schemas/Ref'
+          nullable: true
+        vehicle_brands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ref'
+        content_quantity:
+          type: string
+        sale_price:
+          type: string
+        is_kit:
+          type: boolean
+        tax:
+          allOf:
+          - $ref: '#/components/schemas/TaxProjection'
+          nullable: true
+      required:
+      - category
+      - code
+      - content_quantity
+      - created_at
+      - description
+      - id
+      - is_active
+      - is_kit
+      - name
+      - product_brand
+      - sale_price
+      - tax
+      - unit
+      - updated_at
+      - vehicle_brands
+      - version
+    ProductBrandPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Brand'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ProductPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ProductWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        code:
+          type: string
+          maxLength: 64
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        category_id:
+          type: integer
+        unit_id:
+          type: integer
+        product_brand_id:
+          type: integer
+          nullable: true
+        vehicle_brand_ids:
+          type: array
+          items:
+            type: integer
+        tax_definition_id:
+          type: integer
+        content_quantity:
+          type: string
+          description: Mayor que cero, hasta 6 decimales, máximo 999999999999.999999.
+            Cadena decimal ordinaria; sin exponentes ni redondeo.
+        sale_price:
+          type: string
+          description: Precio final USD, 0 a 999999999999.99, hasta 2 decimales. Cadena
+            decimal ordinaria; sin exponentes ni redondeo.
+        is_kit:
+          type: boolean
+      required:
+      - category_id
+      - code
+      - content_quantity
+      - idempotency_key
+      - name
+      - sale_price
+      - tax_definition_id
+      - unit_id
+    Ref:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - is_active
+      - name
     ResultEnum:
       enum:
       - SUCCESS
@@ -2883,6 +5195,86 @@ components:
       required:
       - expected_version
       - new_code
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+        description:
+          type: string
+        reference_price:
+          type: string
+        tax:
+          allOf:
+          - $ref: '#/components/schemas/TaxProjection'
+          nullable: true
+      required:
+      - created_at
+      - description
+      - id
+      - is_active
+      - name
+      - reference_price
+      - tax
+      - updated_at
+      - version
+    ServicePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ServiceWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 2000
+        reference_price:
+          type: string
+          description: Precio referencial final USD, hasta 2 decimales. Cadena decimal
+            ordinaria; sin exponentes ni redondeo.
+        tax_definition_id:
+          type: integer
+      required:
+      - idempotency_key
+      - name
+      - reference_price
+      - tax_definition_id
     Session:
       type: object
       properties:
@@ -2907,6 +5299,19 @@ components:
       - permissions
       - roles
       - username
+    StateCommand:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+      - idempotency_key
     Status:
       type: object
       properties:
@@ -2914,6 +5319,152 @@ components:
           type: boolean
       required:
       - is_initialized
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification_type:
+          type: string
+          nullable: true
+        identification:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - address
+      - created_at
+      - email
+      - id
+      - identification
+      - identification_type
+      - is_active
+      - name
+      - phone
+      - updated_at
+      - version
+    SupplierMatch:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - is_active
+      - name
+    SupplierMatchQuery:
+      type: object
+      properties:
+        name:
+          type: string
+        exclude_id:
+          type: integer
+      required:
+      - name
+    SupplierMatches:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplierMatch'
+        has_more:
+          type: boolean
+      required:
+      - has_more
+      - results
+    SupplierPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Supplier'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    SupplierState:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+      - idempotency_key
+    SupplierWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          description: Nombre o razón social; obligatorio.
+          maxLength: 255
+        identification_type:
+          nullable: true
+          description: |-
+            Opcional; se informa junto con identification o ambos quedan vacíos.
+
+            * `CI` - CI
+            * `RUC` - RUC
+          oneOf:
+          - $ref: '#/components/schemas/IdentificationTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        identification:
+          type: string
+          nullable: true
+          description: CI de 10 caracteres o RUC de 13; se conservan los ceros iniciales.
+          maxLength: 32
+        phone:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          maxLength: 254
+        address:
+          type: string
+          maxLength: 1024
+      required:
+      - idempotency_key
+      - name
     TaxDefinition:
       type: object
       properties:
@@ -2923,6 +5474,20 @@ components:
           type: string
         name:
           type: string
+        fiscal_entity_id:
+          type: integer
+        entity_type:
+          type: string
+          nullable: true
+        current_rate:
+          type: string
+          nullable: true
+        starts_on:
+          type: string
+          nullable: true
+        ends_on:
+          type: string
+          nullable: true
       required:
       - code
       - id
@@ -2979,6 +5544,39 @@ components:
       required:
       - rate
       - starts_on
+    TaxProjection:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        entity_type:
+          type: string
+        rate:
+          type: string
+          nullable: true
+        tax_status:
+          $ref: '#/components/schemas/TaxStatusEnum'
+      required:
+      - code
+      - entity_type
+      - id
+      - name
+      - rate
+      - tax_status
+    TaxStatusEnum:
+      enum:
+      - applicable
+      - missing
+      - ambiguous
+      type: string
+      description: |-
+        * `applicable` - applicable
+        * `missing` - missing
+        * `ambiguous` - ambiguous
     TemporaryPassword:
       type: object
       properties:
@@ -2986,6 +5584,70 @@ components:
           type: string
       required:
       - temporary_password
+    Unit:
+      type: object
+      properties:
+        id:
+          type: integer
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        name:
+          type: string
+        symbol:
+          type: string
+      required:
+      - created_at
+      - id
+      - is_active
+      - name
+      - symbol
+      - updated_at
+      - version
+    UnitPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Unit'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    UnitWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        name:
+          type: string
+          maxLength: 255
+        symbol:
+          type: string
+          maxLength: 32
+      required:
+      - idempotency_key
+      - name
     UserPage:
       type: object
       properties:

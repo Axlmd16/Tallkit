@@ -1,83 +1,83 @@
 ## 1. Preparación, aprobaciones y línea base
 
-- [ ] 1.1 Antes de apply, comprobar aprobación explícita de estas tareas y presencia de proposal, specs, design y tasks en `master`; registrar commit, rama y `git status --short`, preservando cambios ajenos. La solicitud de crear tasks aprueba avanzar desde design, no ejecutar la implementación.
+- [x] 1.1 Antes de apply, comprobar aprobación explícita de estas tareas y presencia de proposal, specs, design y tasks en `master`; registrar commit, rama y `git status --short`, preservando cambios ajenos. La solicitud de crear tasks aprueba avanzar desde design, no ejecutar la implementación.
 - [ ] 1.2 Revalidar las fuentes enumeradas en `proposal.md` y `design.md`, las tres specs y el estado de `gestionar-clientes-y-vehiculos` y `aplicar-catalogo-visual-frontend`; registrar contradicciones y pendientes sin cerrar esos cambios ni asumir verificaciones anteriores.
-- [ ] 1.3 Ejecutar la línea base `make check`, `make test` y `make audit` con PostgreSQL disponible; registrar fallos previos y bloqueos de entorno antes de cambios funcionales, sin modificar umbrales ni atribuirlos a este catálogo.
+- [x] 1.3 Ejecutar la línea base `make check`, `make test` y `make audit` con PostgreSQL disponible; registrar fallos previos y bloqueos de entorno antes de cambios funcionales, sin modificar umbrales ni atribuirlos a este catálogo.
 - [ ] 1.4 Crear durante apply `docs/negocio/requisitos/cobertura-catalogos.md` y su referencia terminológica con las 126 filas de escenarios, identificadas por capacidad/requisito/título y estado pendiente. Incorporar evidencia por tarea, sin confundir validación documental con implementación.
 
 Evidencia: commits/estado de Git, comandos de línea base y matriz de 126 escenarios sin cobertura ficticia.
 
 ## 2. Dominio y contratos puros
 
-- [ ] 2.1 Aplicar **TDD** a normalización de nombres/códigos y validación de categoría, unidad y marca en `backend/tests/catalog/test_validation.py`; implementar `catalog/domain/validation.py` y errores puros, cubriendo espacios, capitalización, Unicode, longitudes y rechazo de jerarquías.
-- [ ] 2.2 Probar primero precio USD de hasta dos decimales y contenido positivo de hasta seis, con límites de design §2, cero permitido solo en precio, exceso de escala, exponentes, NaN/infinito y número JSON; implementar validación decimal sin redondeo en dominio de catálogo.
-- [ ] 2.3 Probar ficha de producto y servicio: campos obligatorios/opcionales, IDs, descripción, kit completo, listas de compatibilidad y servicios homónimos; implementar normalización sin tipos DRF/Django ni conceptos de stock.
-- [ ] 2.4 Probar reutilización de CI/RUC y contactos en `backend/tests/supplier_registry/test_validation.py`; publicar la reexportación `customer_registry/domain/identification.py` y validar proveedor sin tipo de persona ni teléfono obligatorio, con ausencia conjunta de documento/tipo, longitudes, ceros iniciales y email opcional.
-- [ ] 2.5 Probar clave de comando y huella canónica en `backend/tests/test_command_values.py`; implementar `shared/command_values.py` con límites y distinción omitir/borrar, sin compartir persistencia de configuración ni incluir datos personales en logs.
+- [x] 2.1 Aplicar **TDD** a normalización de nombres/códigos y validación de categoría, unidad y marca en `backend/tests/catalog/test_validation.py`; implementar `catalog/domain/validation.py` y errores puros, cubriendo espacios, capitalización, Unicode, longitudes y rechazo de jerarquías.
+- [x] 2.2 Probar primero precio USD de hasta dos decimales y contenido positivo de hasta seis, con límites de design §2, cero permitido solo en precio, exceso de escala, exponentes, NaN/infinito y número JSON; implementar validación decimal sin redondeo en dominio de catálogo.
+- [x] 2.3 Probar ficha de producto y servicio: campos obligatorios/opcionales, IDs, descripción, kit completo, listas de compatibilidad y servicios homónimos; implementar normalización sin tipos DRF/Django ni conceptos de stock.
+- [x] 2.4 Probar reutilización de CI/RUC y contactos en `backend/tests/supplier_registry/test_validation.py`; publicar la reexportación `customer_registry/domain/identification.py` y validar proveedor sin tipo de persona ni teléfono obligatorio, con ausencia conjunta de documento/tipo, longitudes, ceros iniciales y email opcional.
+- [x] 2.5 Probar clave de comando y huella canónica en `backend/tests/test_command_values.py`; implementar `shared/command_values.py` con límites y distinción omitir/borrar, sin compartir persistencia de configuración ni incluir datos personales en logs.
 
 Comandos: `cd backend && uv run pytest --no-cov tests/catalog/test_validation.py tests/supplier_registry/test_validation.py tests/test_command_values.py`. `--no-cov` se limita al ciclo enfocado; la cobertura global permanece obligatoria en make check.
 
 ## 3. Persistencia y migraciones aditivas
 
-- [ ] 3.1 Escribir pruebas de registro de aplicaciones y frontera; crear `catalog/apps.py`, `supplier_registry/apps.py`, registrar ambas en `config/settings/base.py` y mantener dependencias unidireccionales conforme a design §1.
-- [ ] 3.2 Probar constraints de categorías, unidades y marcas de producto en `backend/tests/catalog/test_models.py`; implementar sus modelos con nombres normalizados únicos incluidos inactivos, estado, versión y fechas, sin confundir marcas de vehículo.
-- [ ] 3.3 Probar e implementar Product, ProductCompatibility y Service en `catalog/models.py`: relaciones PROTECT, código único, precio y contenido decimales, compatibilidad única, selección tributaria, ausencia de código/identidad única de servicio y de campos de stock/costos.
-- [ ] 3.4 Probar e implementar Supplier en `supplier_registry/models.py`: nombre mínimo, contactos opcionales, NULL conjunto de documento/tipo, unicidad parcial de par también inactivo y coexistencia de varios proveedores no identificados.
-- [ ] 3.5 Probar e implementar CatalogCommand y SupplierCommand con clave única por actor/acción, huella, resultado y estado de respuesta; proteger actor y evitar exposición/edición administrativa de recibos.
-- [ ] 3.6 Generar migraciones iniciales mediante `cd backend && uv run python manage.py makemigrations catalog supplier_registry`; fijar dependencias reales de usuario, VehicleBrand y TaxDefinition. Revisar que solo añadan tablas/constraints propias, sin semillas ficticias ni cambios a datos anteriores.
-- [ ] 3.7 Actualizar `docs/arquitectura/modelo-datos.md` y su referencia a partir del diseño ya aprobado; documentar modelos, relaciones, índices y límites, conservando el carácter conceptual de `modelo-dominio.md`.
+- [x] 3.1 Escribir pruebas de registro de aplicaciones y frontera; crear `catalog/apps.py`, `supplier_registry/apps.py`, registrar ambas en `config/settings/base.py` y mantener dependencias unidireccionales conforme a design §1.
+- [x] 3.2 Probar constraints de categorías, unidades y marcas de producto en `backend/tests/catalog/test_models.py`; implementar sus modelos con nombres normalizados únicos incluidos inactivos, estado, versión y fechas, sin confundir marcas de vehículo.
+- [x] 3.3 Probar e implementar Product, ProductCompatibility y Service en `catalog/models.py`: relaciones PROTECT, código único, precio y contenido decimales, compatibilidad única, selección tributaria, ausencia de código/identidad única de servicio y de campos de stock/costos.
+- [x] 3.4 Probar e implementar Supplier en `supplier_registry/models.py`: nombre mínimo, contactos opcionales, NULL conjunto de documento/tipo, unicidad parcial de par también inactivo y coexistencia de varios proveedores no identificados.
+- [x] 3.5 Probar e implementar CatalogCommand y SupplierCommand con clave única por actor/acción, huella, resultado y estado de respuesta; proteger actor y evitar exposición/edición administrativa de recibos.
+- [x] 3.6 Generar migraciones iniciales mediante `cd backend && uv run python manage.py makemigrations catalog supplier_registry`; fijar dependencias reales de usuario, VehicleBrand y TaxDefinition. Revisar que solo añadan tablas/constraints propias, sin semillas ficticias ni cambios a datos anteriores.
+- [x] 3.7 Actualizar `docs/arquitectura/modelo-datos.md` y su referencia a partir del diseño ya aprobado; documentar modelos, relaciones, índices y límites, conservando el carácter conceptual de `modelo-dominio.md`.
 
 Evidencia: pruebas enfocadas de modelos/frontera con PostgreSQL y `cd backend && uv run python manage.py makemigrations --check --dry-run`; revisar las migraciones generadas, no marcar solo por existencia de archivos.
 
 ## 4. Interfaces de referencias e integración fiscal
 
-- [ ] 4.1 Probar y publicar `customer_registry/application/catalog_references.py` para DTO de marcas y bloqueo ordenado al asociarlas; conservar permisos y comportamiento existentes de clientes/vehículos y no escribir marcas desde catálogo.
-- [ ] 4.2 Probar y crear `workshop_configuration/application/catalog_options.py` con opciones paginadas del ámbito fijo y validación de referencia según design §3; distinguir tarifa cero, missing y ambiguous usando fecha operativa del servidor, sin crear ConfigurationUse ni numeración.
-- [ ] 4.3 Probar que las nuevas consultas internas no requieren conceder `parametros.gestionar` a roles operativos; mantener intactos los endpoints administrativos y comprobar que el servicio consumidor autoriza antes de invocarlas.
+- [x] 4.1 Probar y publicar `customer_registry/application/catalog_references.py` para DTO de marcas y bloqueo ordenado al asociarlas; conservar permisos y comportamiento existentes de clientes/vehículos y no escribir marcas desde catálogo.
+- [x] 4.2 Probar y crear `workshop_configuration/application/catalog_options.py` con opciones paginadas del ámbito fijo y validación de referencia según design §3; distinguir tarifa cero, missing y ambiguous usando fecha operativa del servidor, sin crear ConfigurationUse ni numeración.
+- [x] 4.3 Probar que las nuevas consultas internas no requieren conceder `parametros.gestionar` a roles operativos; mantener intactos los endpoints administrativos y comprobar que el servicio consumidor autoriza antes de invocarlas.
 - [ ] 4.4 Verificar consultas por página sin N+1, ámbito inmutable y ausencia de escrituras en configuración; incluir cambio de vigencia sin recalcular precios y error de referencia fiscal cruzada.
 
 Comandos: `cd backend && uv run pytest --no-cov tests/customer_registry tests/workshop_configuration tests/catalog/test_fiscal_integration.py`; ajustar la selección al archivo real de pruebas, documentándolo en cobertura.
 
 ## 5. Comandos, auditoría e idempotencia
 
-- [ ] 5.1 Escribir primero pruebas de replay y conflicto en `backend/tests/catalog/test_commands.py`; implementar `catalog/application/commands.py` con reclamo por inserción única/savepoint dentro de la transacción, resultado persistido y autorización antes del replay.
-- [ ] 5.2 Repetir los casos para `supplier_registry/application/commands.py` y su recibo propio; comprobar que respuestas con contacto nunca se registren en auditoría/logs ni se expongan por endpoints de comandos.
-- [ ] 5.3 Probar dos solicitudes concurrentes con la misma clave e igual/distinto payload en ambos módulos mediante conexiones independientes; comprobar espera, un solo efecto exitoso, conflicto incompatible y posibilidad de reclamar tras rollback del primero.
-- [ ] 5.4 Probar fallo entre recibo provisional, escritura y auditoría; impedir commit de recibos incompletos y efectos parciales. Implementar traducción de errores concretos después del rollback, sin disfrazar IntegrityError desconocido.
-- [ ] 5.5 Probar versiones esperadas, no-op con versión vigente y replay previo a comparación de versión; implementar auditoría mediante `record_audit_event` con nombres de campos y razones, evitando eventos duplicados por denegación.
+- [x] 5.1 Escribir primero pruebas de replay y conflicto en `backend/tests/catalog/test_commands.py`; implementar `catalog/application/commands.py` con reclamo por inserción única/savepoint dentro de la transacción, resultado persistido y autorización antes del replay.
+- [x] 5.2 Repetir los casos para `supplier_registry/application/commands.py` y su recibo propio; comprobar que respuestas con contacto nunca se registren en auditoría/logs ni se expongan por endpoints de comandos.
+- [x] 5.3 Probar dos solicitudes concurrentes con la misma clave e igual/distinto payload en ambos módulos mediante conexiones independientes; comprobar espera, un solo efecto exitoso, conflicto incompatible y posibilidad de reclamar tras rollback del primero.
+- [x] 5.4 Probar fallo entre recibo provisional, escritura y auditoría; impedir commit de recibos incompletos y efectos parciales. Implementar traducción de errores concretos después del rollback, sin disfrazar IntegrityError desconocido.
+- [x] 5.5 Probar versiones esperadas, no-op con versión vigente y replay previo a comparación de versión; implementar auditoría mediante `record_audit_event` con nombres de campos y razones, evitando eventos duplicados por denegación.
 
 Comandos: `cd backend && uv run pytest --no-cov tests/catalog/test_commands.py tests/supplier_registry/test_commands.py`; registrar evidencia concurrente con barreras, sin sleeps usados como sincronización.
 
 ## 6. Casos de uso de productos y auxiliares
 
-- [ ] 6.1 Probar y crear gestión/consulta de categorías, unidades y marcas en `catalog/application/auxiliaries.py` y `queries.py`, incluyendo unicidad concurrente, activos/inactivos, consulta de ficha y conservación de referencias.
-- [ ] 6.2 Probar y crear alta/edición de producto en `catalog/application/products.py`, con precio final, contenido, marca opcional, compatibilidades, selección fiscal y autorización diferenciada al cambiar precio.
-- [ ] 6.3 Probar y crear baja/reactivación de producto con identidad estable, no-op y referencias conservadas; permitir corrección ajena a una marca/unidad inactiva y exigir categoría activa al reactivar.
-- [ ] 6.4 Probar el bloqueo de baja de categoría con productos activos y permitirlo solo con productos inactivos; implementar el orden de bloqueos de design §4 sin cascadas.
+- [x] 6.1 Probar y crear gestión/consulta de categorías, unidades y marcas en `catalog/application/auxiliaries.py` y `queries.py`, incluyendo unicidad concurrente, activos/inactivos, consulta de ficha y conservación de referencias.
+- [x] 6.2 Probar y crear alta/edición de producto en `catalog/application/products.py`, con precio final, contenido, marca opcional, compatibilidades, selección fiscal y autorización diferenciada al cambiar precio.
+- [x] 6.3 Probar y crear baja/reactivación de producto con identidad estable, no-op y referencias conservadas; permitir corrección ajena a una marca/unidad inactiva y exigir categoría activa al reactivar.
+- [x] 6.4 Probar el bloqueo de baja de categoría con productos activos y permitirlo solo con productos inactivos; implementar el orden de bloqueos de design §4 sin cascadas.
 - [ ] 6.5 Probar carreras de baja de categoría contra alta, reclasificación y reactivación de producto; también baja de unidad/marca contra nueva asociación, incluidas marcas de vehículo. Revalidar versiones/referencias leídas preliminarmente y abortar sin adquirir bloqueos fuera de orden.
-- [ ] 6.6 Probar e implementar búsqueda OR código/nombre y filtros AND categoría/estado/marcas, paginación estable sin duplicados por compatibilidad, activos por defecto y recuperación de fichas inactivas.
+- [x] 6.6 Probar e implementar búsqueda OR código/nombre y filtros AND categoría/estado/marcas, paginación estable sin duplicados por compatibilidad, activos por defecto y recuperación de fichas inactivas.
 
 Comando: `cd backend && uv run pytest --no-cov tests/catalog`; evidencia específica de invariantes tras cada carrera, unicidad y ausencia de efectos económicos.
 
 ## 7. Casos de uso de servicios y proveedores
 
-- [ ] 7.1 Probar e implementar `catalog/application/services.py` con alta, ficha, edición, precio referencial final, impuesto artesanal, nombres repetidos permitidos y gestión por Encargado/Administrador.
-- [ ] 7.2 Probar estados y consultas de servicios en `catalog/application/queries.py`: búsqueda/estado/paginación, desactivación/reactivación/no-op, referencias conservadas y ausencia de stock, cobros, mantenimiento y uso tributario confirmado.
-- [ ] 7.3 Probar e implementar `supplier_registry/application/suppliers.py` con alta mínima, edición, identificación opcional y validación de unicidad en creación/edición, incluidas carreras y registros inactivos.
-- [ ] 7.4 Probar e implementar consultas y advertencias en `supplier_registry/application/queries.py`: búsqueda nombre/documento, estado/paginación, matches por nombre normalizado con límite y has_more; coincidencia no impide guardar ni fusiona clientes/proveedores.
-- [ ] 7.5 Probar baja/reactivación y no-op de proveedores conservando identidad/referencias, acceso exclusivo del Administrador y rechazo de compra, saldo o proveedor exclusivo de producto.
+- [x] 7.1 Probar e implementar `catalog/application/services.py` con alta, ficha, edición, precio referencial final, impuesto artesanal, nombres repetidos permitidos y gestión por Encargado/Administrador.
+- [x] 7.2 Probar estados y consultas de servicios en `catalog/application/queries.py`: búsqueda/estado/paginación, desactivación/reactivación/no-op, referencias conservadas y ausencia de stock, cobros, mantenimiento y uso tributario confirmado.
+- [x] 7.3 Probar e implementar `supplier_registry/application/suppliers.py` con alta mínima, edición, identificación opcional y validación de unicidad en creación/edición, incluidas carreras y registros inactivos.
+- [x] 7.4 Probar e implementar consultas y advertencias en `supplier_registry/application/queries.py`: búsqueda nombre/documento, estado/paginación, matches por nombre normalizado con límite y has_more; coincidencia no impide guardar ni fusiona clientes/proveedores.
+- [x] 7.5 Probar baja/reactivación y no-op de proveedores conservando identidad/referencias, acceso exclusivo del Administrador y rechazo de compra, saldo o proveedor exclusivo de producto.
 
 Comando: `cd backend && uv run pytest --no-cov tests/catalog tests/supplier_registry`; registrar pruebas de cada escenario y no crear operaciones futuras simuladas en producción.
 
 ## 8. API, autorización y OpenAPI
 
-- [ ] 8.1 Escribir pruebas de API de auxiliares y productos; crear serializers/vistas/rutas bajo `catalog/api/` y montarlas en `config/api/urls.py` para las bases de design §6, con GET/POST/PATCH y acciones activate/deactivate.
-- [ ] 8.2 Escribir pruebas y exponer services y suppliers mediante sus respectivos adaptadores; mantener validación y permisos en servicios, PATCH parcial con expected_version, clave obligatoria y respuestas con versión/fechas.
-- [ ] 8.3 Probar/exponer `products/tax-options/`, `services/tax-options/` y `suppliers/matches/` antes de rutas de ID; validar permiso, ámbito fijo, campos mínimos y CSRF de matches sin exigirle recibo de escritura.
-- [ ] 8.4 Probar contrato de listas, total, páginas vacías/fuera de rango, filtros inválidos, límites, decimales textuales y referencias mínimas. Rechazar campos desconocidos y DELETE/PUT; no descartar silenciosamente stock, costos, jerarquías o estado en PATCH.
-- [ ] 8.5 Probar la matriz completa por ruta/método para los tres roles y uniones; incluir anónimo, inactivo, contraseña temporal, sesión invalidada, falta de CSRF y replay después de retirar permiso. No ampliar permisos administrativos fiscales.
+- [x] 8.1 Escribir pruebas de API de auxiliares y productos; crear serializers/vistas/rutas bajo `catalog/api/` y montarlas en `config/api/urls.py` para las bases de design §6, con GET/POST/PATCH y acciones activate/deactivate.
+- [x] 8.2 Escribir pruebas y exponer services y suppliers mediante sus respectivos adaptadores; mantener validación y permisos en servicios, PATCH parcial con expected_version, clave obligatoria y respuestas con versión/fechas.
+- [x] 8.3 Probar/exponer `products/tax-options/`, `services/tax-options/` y `suppliers/matches/` antes de rutas de ID; validar permiso, ámbito fijo, campos mínimos y CSRF de matches sin exigirle recibo de escritura.
+- [x] 8.4 Probar contrato de listas, total, páginas vacías/fuera de rango, filtros inválidos, límites, decimales textuales y referencias mínimas. Rechazar campos desconocidos y DELETE/PUT; no descartar silenciosamente stock, costos, jerarquías o estado en PATCH.
+- [x] 8.5 Probar la matriz completa por ruta/método para los tres roles y uniones; incluir anónimo, inactivo, contraseña temporal, sesión invalidada, falta de CSRF y replay después de retirar permiso. No ampliar permisos administrativos fiscales.
 - [ ] 8.6 Probar errores uniformes y códigos de design §6 con campos/request_id, 400/403/404/405/409 y duplicados sin filtración; comprobar que auditoría existente permite consultar los eventos nuevos solo al Administrador.
-- [ ] 8.7 Documentar y generar `backend/schema.yml` con drf-spectacular incluyendo comandos, límites, filtros, respuestas y errores; validar el esquema y revisar compatibilidad con clientes/configuración.
+- [x] 8.7 Documentar y generar `backend/schema.yml` con drf-spectacular incluyendo comandos, límites, filtros, respuestas y errores; validar el esquema y revisar compatibilidad con clientes/configuración.
 
 Comandos: `cd backend && uv run pytest --no-cov tests/catalog tests/supplier_registry tests/identity tests/api` y `cd backend && uv run python manage.py spectacular --file schema.yml --validate`. Corregir solo fallos del alcance y registrar incompatibilidades reales.
 

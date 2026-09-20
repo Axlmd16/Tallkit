@@ -101,3 +101,37 @@ def problem_exception_handler(exc: Exception, context: dict[str, Any]) -> Respon
     response.content_type = "application/problem+json"
     response["Content-Type"] = "application/problem+json"
     return response
+
+
+_APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
+    "validation_error": (400, "Solicitud inválida"),
+    "unknown_field": (400, "Campo no admitido"),
+    "inactive_reference": (400, "Referencia inactiva"),
+    "invalid_tax_scope": (400, "Ámbito tributario inválido"),
+    "not_found": (404, "Recurso no encontrado"),
+    "duplicate_code": (409, "Código duplicado"),
+    "duplicate_name": (409, "Nombre duplicado"),
+    "duplicate_identification": (409, "Identificación duplicada"),
+    "category_has_active_products": (409, "Categoría con productos activos"),
+    "stale_record": (409, "Registro desactualizado"),
+    "idempotency_conflict": (409, "Clave de idempotencia reutilizada"),
+}
+
+
+def application_error_response(
+    *,
+    request: Request,
+    code: str,
+    message: str,
+    errors: dict[str, list[str]] | None = None,
+) -> Response:
+    """Traduce un error de aplicación con código estable a ``application/problem+json``."""
+    status_code, title = _APPLICATION_ERROR_STATUS.get(code, (400, "Solicitud inválida"))
+    return problem_response(
+        request=request,
+        status_code=status_code,
+        title=title,
+        code=code,
+        detail=message,
+        errors=errors,
+    )

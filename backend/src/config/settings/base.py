@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "identity.apps.IdentityConfig",
     "customer_registry.apps.CustomerRegistryConfig",
     "workshop_configuration.apps.WorkshopConfigurationConfig",
+    "catalog.apps.CatalogConfig",
+    "supplier_registry.apps.SupplierRegistryConfig",
 ]
 
 MIDDLEWARE = [

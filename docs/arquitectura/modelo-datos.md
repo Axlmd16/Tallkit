@@ -144,3 +144,35 @@ Este módulo almacena la configuración de operaciones y reglas fiscales del tal
 ### Consideraciones de Integridad
 - Todo registro expuesto tiene versión (`version` con control de concurrencia optimista).
 - Asignación de secuencias utiliza bloqueos (`FOR UPDATE` con aislamiento repetible) para asegurar consistencia en concurrencia.
+
+## Módulo: catalog y supplier_registry
+
+Cambio OpenSpec `gestionar-catalogos-productos-servicios-proveedores`. Concreta las decisiones de persistencia de su `design.md` §2; el **modelo de dominio** sigue siendo la referencia conceptual. Migraciones iniciales: `catalog/0001_initial.py` y `supplier_registry/0001_initial.py`; solo crean tablas propias, sin datos iniciales, y dependen del usuario, de `customer_registry.VehicleBrand` y de `workshop_configuration.TaxDefinition`.
+
+### Reglas comunes
+- Todo registro editable tiene `is_active`, `version` (control de concurrencia optimista) y fechas `created_at`/`updated_at`. Sin eliminación física: todas las relaciones son `PROTECT`.
+- Nombres únicos: restricción sobre `Lower(Trim(name))`, incluidos registros inactivos; no se quitan acentos ni espacios interiores.
+- Importes en USD con `DecimalField(14, 2)`; contenido de presentación `DecimalField(18, 6)` mayor que cero. La API no redondea: rechaza el exceso de escala.
+- Sin columnas de stock, costos, saldos, bodega ni proveedor único de producto.
+
+### Tablas de `catalog`
+| Tabla | Datos y restricciones |
+|---|---|
+| `catalog_productcategory` | `name`, `description`; nombre único normalizado; categorías planas. |
+| `catalog_measurementunit` | `name`, `symbol` opcional; nombre único normalizado. |
+| `catalog_productbrand` | `name`; único normalizado; independiente de las marcas de vehículo. |
+| `catalog_product` | `code` único (`Upper(Trim)`), `name`, `description`, `category`, `unit`, `product_brand` opcional, `content_quantity`, `sale_price`, `is_kit`, `tax_definition` (ámbito COMERCIAL validado en el servicio). Índices por estado/nombre y categoría/estado. |
+| `catalog_productcompatibility` | Par único producto–marca de vehículo; informativa, sin modelo/año. |
+| `catalog_service` | `name` (repetible), `description`, `reference_price`, `tax_definition` (ámbito ARTESANAL validado en el servicio). Sin código. |
+| `catalog_catalogcommand` | Recibo idempotente: actor, acción, clave, huella SHA-256, estado HTTP y resultado; único por actor/acción/clave. Interno, no expuesto. |
+
+### Tablas de `supplier_registry`
+| Tabla | Datos y restricciones |
+|---|---|
+| `supplier_registry_supplier` | `name`; `identification_type`/`identification` ambos `NULL` o ambos informados (CI de 10, RUC de 13 caracteres); unicidad parcial del par incluso inactivo; `phone`, `email`, `address` opcionales (cadena vacía). Varios proveedores sin identificación pueden coexistir. |
+| `supplier_registry_suppliercommand` | Recibo idempotente propio; contiene respuestas con contacto, por lo que no se expone ni se copia a auditoría o registros. |
+
+### Integridad y concurrencia
+- Orden de bloqueos en comandos de producto: recibo, categorías, unidades, marcas de producto, marcas de vehículo (mediante `customer_registry.application.catalog_references`), producto. La baja de categoría bloquea su fila y rechaza si existen productos activos.
+- Las consultas fiscales de solo lectura provienen de `workshop_configuration.application.catalog_options`; no crean `ConfigurationUse` ni numeración.
+- Auditoría por servicio (`catalog.*`, `suppliers.*`) con solo nombres de campos cambiados.
