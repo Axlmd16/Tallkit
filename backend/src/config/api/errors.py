@@ -125,6 +125,8 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "unsafe_reversal": (409, "Reversión no segura"),
     "inventory_inconsistent": (409, "Inventario inconsistente"),
     "not_editable": (409, "Registro no editable"),
+    "invalid_state": (409, "Estado no válido para la acción"),
+    "dependency_conflict": (409, "Dependencia que impide la acción"),
     "concurrent_operation": (409, "Operación concurrente"),
 }
 

@@ -1,4 +1,7 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
+
+import { clearMoneyIntents } from '@/features/sales/moneyIntent'
 
 import { useSession } from './hooks'
 import { anonymousSession, type Session } from './types'
@@ -10,6 +13,11 @@ export type SessionState =
 
 export function SessionGuard({ state }: { state: SessionState }) {
   const location = useLocation()
+  const ended = state.status === 'ready' && !state.session.authenticated
+  useEffect(() => {
+    // Una sesión cerrada o invalidada no deja identificadores de dinero en el navegador.
+    if (ended) clearMoneyIntents()
+  }, [ended])
   if (state.status === 'loading') {
     return (
       <main className="grid min-h-screen place-items-center bg-canvas text-ink">

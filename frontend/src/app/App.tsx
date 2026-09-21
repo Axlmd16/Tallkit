@@ -24,6 +24,11 @@ import { ProductsPage } from '@/pages/products/ProductsPage'
 import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
 import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
 import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
+import { ReceivablesPage } from '@/pages/sales/ReceivablesPage'
+import { SaleDetailPage } from '@/pages/sales/SaleDetailPage'
+import { SaleDocumentPage } from '@/pages/sales/SaleDocumentPage'
+import { SaleEditorPage } from '@/pages/sales/SaleEditorPage'
+import { SalesPage } from '@/pages/sales/SalesPage'
 import { ServiceDetailPage } from '@/pages/services/ServiceDetailPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { SupplierDetailPage } from '@/pages/suppliers/SupplierDetailPage'
@@ -183,6 +188,54 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="ingresos.crear">
                 <PurchaseEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales',
+            element: (
+              <PermissionGuard permission="ventas.ver">
+                <SalesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/new',
+            element: (
+              <PermissionGuard permission="ventas.crear">
+                <SaleEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/receivables',
+            element: (
+              <PermissionGuard permission="pagos_comerciales.ver">
+                <ReceivablesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/:id',
+            element: (
+              <PermissionGuard permission="ventas.ver">
+                <SaleDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/:id/edit',
+            element: (
+              <PermissionGuard permission="ventas.crear">
+                <SaleEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/:id/document',
+            element: (
+              <PermissionGuard permission="ventas.ver">
+                <SaleDocumentPage />
               </PermissionGuard>
             ),
           },

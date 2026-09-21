@@ -19,6 +19,8 @@ OTHERS = {
 ALLOWED_CROSS_MODULE = {
     "inventory.application.posting",
     "inventory.application.queries",
+    # Excepciones de dominio publicadas para traducir el rechazo por existencia insuficiente.
+    "inventory.domain.validation",
     "catalog.application.sales_references",
     "customer_registry.application.sales_references",
     "workshop_configuration.application.operation_context",

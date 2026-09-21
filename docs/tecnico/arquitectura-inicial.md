@@ -6,8 +6,21 @@ La solución es una aplicación web de red local preparada para publicarse poste
 bootstrap comprobó React, Django, PostgreSQL, estilos, navegación, contrato OpenAPI, sesiones,
 CSRF, pruebas y empaquetado. Sobre esa base están implementadas identidad y acceso, configuración,
 clientes y vehículos, catálogos de productos, servicios y proveedores, y compras e inventario
-(ingresos de mercadería, existencias, carga inicial, ajustes y Kardex). Ventas, pagos,
-mantenimientos, alertas de stock mínimo y adjuntos continúan sin implementación.
+(ingresos de mercadería, existencias, carga inicial, ajustes y Kardex). Ventas comerciales, cobros,
+crédito simple, devoluciones y reembolsos (módulo `sales`) se suman en el cambio `gestionar-ventas-pagos-credito-simple`;
+proformas, mantenimientos, alertas de stock mínimo y adjuntos continúan sin implementación.
+
+### Frontera del módulo comercial
+
+`sales` es propietario de ventas, cobros, devoluciones, reembolsos y recibos idempotentes del RUC comercial
+([ADR-0006](../adr/0006-coordinacion-transaccional-ventas-comerciales.md)). Solo usa interfaces públicas:
+`catalog.application.sales_references`, `customer_registry.application.sales_references`,
+`inventory.application.posting`/`queries` (tipos `SALE_OUT` y `CUSTOMER_RETURN_IN`) y
+`workshop_configuration.application.operation_context`, `configuration_resolver` y `numbering`. Ningún otro
+módulo importa `sales` y `sales/domain/` no depende de Django ni de DRF. La venta es la raíz de consistencia:
+toda acción que cambie exigible, dinero o cantidades devueltas la bloquea primero, dentro de una única
+transacción exterior. El saldo, el exceso y el estado de pago se derivan de los hechos; nunca se almacenan.
+Reversión y conciliación: [modelo de datos](../arquitectura/modelo-datos.md#módulo-sales-ventas-comerciales-cobros-y-correcciones).
 
 ### Fronteras de compras e inventario
 

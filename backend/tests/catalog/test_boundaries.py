@@ -44,6 +44,7 @@ ALLOWED_CROSS_MODULE = {
 # Interfaces públicas de aplicación que otros módulos pueden consumir de cada propietario.
 PUBLISHED_APPLICATION_INTERFACES = {
     "catalog.application.inventory_references",
+    "catalog.application.sales_references",
     "supplier_registry.application.purchase_references",
 }
 

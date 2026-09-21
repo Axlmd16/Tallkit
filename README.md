@@ -110,6 +110,13 @@ confirmaciones un `review_token` de 15 minutos. Para conciliar el inventario de 
 Si una base de desarrollo trae tablas `purchasing_*` de una implementación anterior, no las importe: reinicie esa
 base o siga el procedimiento de `docs/arquitectura/modelo-datos.md`.
 
+Ventas y cobros comerciales: `sales/` (borradores, `draft-preview/`, `preview/`, `confirm/`, `payments/`,
+`returns/`, `refunds/`, `void-preview/`, `void/`, `document/`, `receivables/`, `operations/<uuid>/` y selectores de
+clientes y productos). El Vendedor opera ventas y cobros; devoluciones, reembolsos, correcciones de pagos y
+anulaciones son del Administrador. Las operaciones de dinero llevan un `operation_id` UUID estable además de la
+`idempotency_key`. Conciliación comercial de solo lectura:
+`cd backend && uv run python manage.py reconcile_sales` (código de salida distinto de cero si hay diferencias).
+
 Despliegue (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate`, comprobaciones
 funcionales y luego frontend. Las migraciones son aditivas y se ensayaron en una base limpia y en una base con
 identidad previa; ante problemas con datos reales se prefiere la corrección hacia adelante, sin deshacer migraciones ni

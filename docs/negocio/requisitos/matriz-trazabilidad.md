@@ -84,8 +84,8 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-CATALOGOS | Productos, servicios y proveedores (implementados en el alcance de catálogos; excluyen existencias, costos y disponibilidad) | RF-CAT-001…016; evidencia en [cobertura-catalogos.md](cobertura-catalogos.md) |
 | SPEC-INVENTARIO | Ingresos, existencias, reservas y Kardex (implementados parcialmente en `gestionar-compras-entradas-inventario-kardex`: cobertura de RF-INV-001…010, 012…014; pendientes RF-INV-011 y las evidencias adjuntas, RF-INV-015…019); evidencia en [cobertura-compras-inventario.md](cobertura-compras-inventario.md) | RF-INV-001…019 |
 | SPEC-PROFORMAS | Proformas | RF-PRO-001…011 |
-| SPEC-VENTAS | Ventas, devoluciones y reembolsos | RF-VEN-001…018 |
-| SPEC-PAGOS | Pagos y cuentas por cobrar | RF-PAG-001…012 |
+| SPEC-VENTAS | Ventas, devoluciones y reembolsos (implementados en `gestionar-ventas-pagos-credito-simple` para ventas directas comerciales: RF-VEN-001, 003…015, 017, 018; pendientes RF-VEN-002 y RF-VEN-016); evidencia en [cobertura-ventas-pagos.md](cobertura-ventas-pagos.md) | RF-VEN-001…018 |
+| SPEC-PAGOS | Pagos y cuentas por cobrar (implementados en el alcance comercial: RF-PAG-001…009, 011, 012 y RF-REP-006 comercial; pendiente RF-PAG-010, que depende de taller) | RF-PAG-001…012 |
 | SPEC-TALLER | Servicios, mantenimientos y correcciones | RF-TAL-001…021 |
 | SPEC-REPORTES | Reportes, documentos y cierres | RF-REP-001…014 |
 | SPEC-AUDITORIA | Auditoría y correcciones | RF-AUD-001…006 |
@@ -95,6 +95,8 @@ El cambio activo `openspec/changes/archive/2026-09-13-gestion-usuarios-autentica
 El cambio activo `openspec/changes/gestionar-compras-entradas-inventario-kardex` implementa las capacidades `compras-e-ingresos-de-mercaderia`, `existencias-y-ajustes-de-inventario` y `kardex-de-productos` (29 requisitos y 105 escenarios). No implementa alertas de umbral, adjuntos, ventas, mantenimientos ni pagos. Su evidencia está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md); su archivo y la sincronización de specs principales quedan para el flujo autorizado.
 
 El cambio activo `openspec/changes/gestionar-catalogos-productos-servicios-proveedores` implementa las capacidades `catalogo-de-productos-y-categorias`, `catalogo-de-servicios` y `catalogo-de-proveedores` (24 requisitos y 126 escenarios). No implementa inventario, compras, ventas, mantenimientos ni costos. Su inventario de escenarios y evidencia está en [cobertura-catalogos.md](cobertura-catalogos.md); su archivo y la sincronización de specs principales quedan para el flujo autorizado.
+
+El cambio activo `openspec/changes/gestionar-ventas-pagos-credito-simple` implementa las capacidades `ventas-comerciales`, `pagos-comerciales-y-credito-simple` y `correcciones-de-ventas-y-reembolsos` (24 requisitos y 105 escenarios). No implementa proformas, ventas vinculadas a mantenimiento, reservas, cobros artesanales, cierres diarios, contabilidad ni facturación electrónica. Su evidencia está en [cobertura-ventas-pagos.md](cobertura-ventas-pagos.md); su archivo y la sincronización de specs principales quedan para el flujo autorizado.
 
 ## 6. Controles de cobertura
 

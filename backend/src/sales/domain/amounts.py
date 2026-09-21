@@ -67,17 +67,22 @@ def parse_quantity(value: Any) -> Decimal:
     return Decimal(int(number))
 
 
-def parse_price(value: Any) -> Decimal:
-    """Precio final unitario: no negativo, hasta dos decimales, sin redondear."""
-    number = _as_decimal(value, "unit_price", "El precio")
+def parse_amount(value: Any, field: str, label: str) -> Decimal:
+    """Importe en USD: no negativo, hasta dos decimales, sin redondear ni truncar."""
+    number = _as_decimal(value, field, label)
     if number < 0:
-        raise AmountValidationError("unit_price", "El precio no puede ser negativo.")
+        raise AmountValidationError(field, f"{label} no puede ser negativo.")
     exponent = number.normalize().as_tuple().exponent
     if isinstance(exponent, int) and exponent < -2:
-        raise AmountValidationError("unit_price", "El precio admite hasta 2 decimales.")
+        raise AmountValidationError(field, f"{label} admite hasta 2 decimales.")
     if number > MONEY_MAX:
-        raise AmountValidationError("unit_price", "El precio excede el máximo permitido.")
+        raise AmountValidationError(field, f"{label} excede el máximo permitido.")
     return number.quantize(CENTS)
+
+
+def parse_price(value: Any) -> Decimal:
+    """Precio final unitario: no negativo, hasta dos decimales, sin redondear."""
+    return parse_amount(value, "unit_price", "El precio")
 
 
 def _cents(value: Decimal) -> Decimal:

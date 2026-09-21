@@ -23,6 +23,10 @@ Rol con control general sobre usuarios, configuración, catálogos, inventario, 
 
 Movimiento autorizado que corrige una diferencia entre la existencia registrada y la existencia comprobada. Debe incluir motivo y responsable.
 
+### Cuentas por cobrar
+
+Deuda cobrable de las ventas comerciales confirmadas, derivada de los hechos registrados (importe exigible menos pagos aplicados). Se presenta separada del exceso pendiente de reembolso, que nunca se resta de ella ni constituye saldo a favor; la antigüedad cuenta días desde la confirmación, sin vencimiento ni mora.
+
 ### Anulación
 
 Proceso controlado que deja sin efecto una operación sin eliminar su historial. Cuando la operación afectó inventario o dinero, la anulación requiere movimientos o registros compensatorios.

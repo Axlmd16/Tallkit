@@ -39,6 +39,7 @@ def get_position(product_id: int, *, warehouse_id: int) -> InventoryPosition | N
 @dataclass(frozen=True)
 class OperationEffect:
     product_id: int
+    movement_id: int
     ordinal: int
     quantity_in: Decimal
     quantity_out: Decimal
@@ -47,6 +48,13 @@ class OperationEffect:
     current_quantity: Decimal
     current_value: Decimal
     last_ordinal: int
+    applied_unit_cost: Decimal
+    value_delta: Decimal
+
+    @property
+    def applied_value(self) -> Decimal:
+        """Valor absoluto realmente aplicado por el movimiento, incluidos sus residuos."""
+        return abs(self.value_delta)
 
 
 @dataclass(frozen=True)
@@ -66,6 +74,7 @@ def operation_effects(operation_id: int) -> list[OperationEffect]:
     return [
         OperationEffect(
             product_id=m.product_id,
+            movement_id=m.pk,
             ordinal=m.ordinal,
             quantity_in=m.quantity_in,
             quantity_out=m.quantity_out,
@@ -74,6 +83,8 @@ def operation_effects(operation_id: int) -> list[OperationEffect]:
             current_quantity=m.position.quantity,
             current_value=m.position.value,
             last_ordinal=m.position.last_ordinal,
+            applied_unit_cost=m.applied_unit_cost,
+            value_delta=m.value_delta,
         )
         for m in movements
     ]
@@ -473,6 +484,7 @@ def get_operation(
     line = lines[0] if lines else None
     ref = get_stock_catalog_row(line.product_id) if line else None
     from_purchase = operation.source_type.startswith("PURCHASE")
+    from_commercial = operation.source_type.startswith("SALE")
     origin: dict[str, Any] = {
         "type": operation.source_type or operation.kind,
         "reference": operation.public_reference,
@@ -494,7 +506,7 @@ def get_operation(
         "created_at": operation.created_at.isoformat(),
         "posted_at": operation.posted_at.isoformat() if operation.posted_at else None,
     }
-    if not from_purchase:
+    if not from_purchase and not from_commercial:
         result["reason"] = operation.reason
     if include_valuation:
         if line and line.entry_value is not None:
