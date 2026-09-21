@@ -94,7 +94,7 @@ La visibilidad de opciones y acciones sigue dependiendo exclusivamente de los pe
     2. Componentes compartidos.
     3. Piloto con una lista, una ficha, un formulario y el editor de venta, que el usuario revisa antes de seguir.
     4. Resto de módulos.
-12. Se usa modal para formularios de hasta unos cuatro campos simples y sin secciones, como marcas, categorías y unidades de medida. La clasificación de cada formulario se fijará en las specs.
+12. Se usa modal para formularios de hasta unos cuatro campos simples y sin secciones, como marcas, categorías y unidades de medida, y también para formularios sin secciones que dejarían vacía una página completa, como el de usuario. La clasificación de cada formulario se fija en las specs.
 13. Los toasts duran 6 segundos, se pausan al pasar el cursor o enfocarlos, se pueden cerrar y se muestran hasta tres a la vez.
 14. Cerrar un modal con datos modificados advierte de los cambios sin guardar (`RNF-USA-005`).
 
