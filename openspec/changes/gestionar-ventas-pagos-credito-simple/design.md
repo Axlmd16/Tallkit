@@ -1,6 +1,6 @@
 ## Context
 
-La propuesta registrada en `master` (`b527d68`) y sus recomendaciones fueron aprobadas. Las tres specs, registradas en `master` (`c393e13`), contienen 24 requisitos y 105 escenarios; el usuario aprobó expresamente avanzar a diseño mediante «si esta bien, continua». Este diseño es propuesto, pendiente de aprobación; se redacta en `develop`, sin autorización para commits, merges, tareas ni implementación.
+La propuesta registrada en `master` (`b527d68`) y sus recomendaciones fueron aprobadas. Las tres specs, registradas en `master` (`c393e13`), contienen 24 requisitos y 105 escenarios; el usuario aprobó expresamente avanzar a diseño mediante «si esta bien, continua». Este diseño fue aprobado expresamente por el usuario el 2026-09-20, sobre el contenido registrado en `master` en `0ef91f6`, junto con el ADR-0006 propuesto; la aprobación habilita únicamente la creación de tareas. Se redacta en `develop`, sin autorización para commits, merges ni implementación.
 
 Existen identidad, configuración, clientes, catálogo, compras e inventario. La descripción general de «dominio sin implementar» sigue obsoleta: las rutas y los módulos reales demuestran esas capacidades, pero no ventas ni cobros. Se conservan las decisiones confirmadas y el modelo conceptual, la separación fiscal, sesiones/CSRF y el monolito modular de ADR-0001/0003/0004/0005. Las specs previas y sus referencias terminológicas son dependencias de este diseño.
 
@@ -230,7 +230,7 @@ Durante implementación: TDD por comportamiento; después `make check`, `make te
 
 No quedan decisiones de negocio bloqueantes para este diseño: las cuatro recomendaciones y las specs fueron aprobadas. DM-001 sigue abierto para una abstracción común futura; este diseño no lo resuelve para el RUC artesanal. Las tarifas reales y clasificación tributaria se configuran y validan antes de operación real, sin inferirlas de los ejemplos de prueba.
 
-El ADR-0006 está **propuesto**, no aceptado. La fecha de aprobación de estas specs se registra en sus encabezados; esta constancia no autoriza commits. Antes de tasks se necesita aprobación explícita de este diseño y su registro en `master`, conforme a `openspec/config.yaml` y AGENTS.
+El ADR-0006 sigue **propuesto**: su aceptación se registra durante apply, conforme a la tarea correspondiente. La fecha de aprobación de estas specs se registra en sus encabezados; esta constancia no autoriza commits. El diseño y el ADR fueron aprobados y están registrados en `master`, de modo que las tareas ya pueden redactarse; aplicar el cambio requiere una aprobación posterior y explícita de esas tareas, conforme a `openspec/config.yaml` y AGENTS.
 
 ## Fuentes consultadas
 
