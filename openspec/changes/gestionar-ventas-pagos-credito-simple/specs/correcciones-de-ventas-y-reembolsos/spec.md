@@ -2,7 +2,7 @@
 
 ## Fuentes y alcance
 
-Fuentes: propuesta y recomendación 4 aprobadas el 2026-09-20; DP-014/017/018; modelo de dominio y su spec; RN-VEN-006/015/016/019…021; RF-VEN-011…013/017/018; CU-014/015; actores-y-roles; UI-056/057/063; RNF-INT; glosario del producto. La anulación conservadora y la devolución física son acciones diferentes. La restricción de último movimiento de la reversión de inventario no impide devolver productos después de otros movimientos. No se modifican las reglas de anulación de compras, cargas o ajustes del cambio de inventario. Estado: specs pendientes de aprobación.
+Fuentes: propuesta y recomendación 4 aprobadas el 2026-09-20; DP-014/017/018; modelo de dominio y su spec; RN-VEN-006/015/016/019…021; RF-VEN-011…013/017/018; CU-014/015; actores-y-roles; UI-056/057/063; RNF-INT; glosario del producto. La anulación conservadora y la devolución física son acciones diferentes. La restricción de último movimiento de la reversión de inventario no impide devolver productos después de otros movimientos. No se modifican las reglas de anulación de compras, cargas o ajustes del cambio de inventario. Estado: specs aprobadas el 2026-09-20 para crear diseño. El usuario respondió «si esta bien, continua» a la solicitud expresa de aprobación de las tres specs (24 requisitos y 105 escenarios), sobre el contenido registrado en master en c393e13. Esta aprobación no abarca diseño, tareas ni implementación.
 
 ## ADDED Requirements
 

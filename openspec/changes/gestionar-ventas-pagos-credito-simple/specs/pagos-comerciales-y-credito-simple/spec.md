@@ -2,7 +2,7 @@
 
 ## Fuentes y alcance
 
-Fuentes: propuesta y sus cuatro recomendaciones aprobadas el 2026-09-20; decisiones confirmadas; modelo de dominio y su spec principal; reglas RN-VEN; actores-y-roles; RF-PAG; CU-012/013/015; UI-060…063; RNF-INT; glosario del producto. Se cubren únicamente cobros y deudas comerciales. La vista artesanal, su operación económica y los cierres diarios siguen fuera de esta entrega. Estado: specs pendientes de aprobación.
+Fuentes: propuesta y sus cuatro recomendaciones aprobadas el 2026-09-20; decisiones confirmadas; modelo de dominio y su spec principal; reglas RN-VEN; actores-y-roles; RF-PAG; CU-012/013/015; UI-060…063; RNF-INT; glosario del producto. Se cubren únicamente cobros y deudas comerciales. La vista artesanal, su operación económica y los cierres diarios siguen fuera de esta entrega. Estado: specs aprobadas el 2026-09-20 para crear diseño. El usuario respondió «si esta bien, continua» a la solicitud expresa de aprobación de las tres specs (24 requisitos y 105 escenarios), sobre el contenido registrado en master en c393e13. Esta aprobación no abarca diseño, tareas ni implementación.
 
 ## ADDED Requirements
 

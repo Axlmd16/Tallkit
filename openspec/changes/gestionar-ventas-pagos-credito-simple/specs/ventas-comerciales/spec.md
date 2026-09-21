@@ -2,7 +2,7 @@
 
 ## Fuentes y alcance
 
-Fuentes: propuesta aprobada el 2026-09-20, decisiones confirmadas, modelo de dominio, specs principales de modelo/configuración/autorización, reglas de negocio, actores y roles, requisitos funcionales, CU-012, UI-053…055/058 y RNF-INT. Esta capacidad concreta ventas directas; no habilita proformas, reservas ni ventas de mantenimiento. Usa los términos del glosario del producto. Los datos históricos y la política de inventario vigente se conservan; las salidas comerciales son una operación nueva, no un ajuste manual. Estado: specs pendientes de aprobación.
+Fuentes: propuesta aprobada el 2026-09-20, decisiones confirmadas, modelo de dominio, specs principales de modelo/configuración/autorización, reglas de negocio, actores y roles, requisitos funcionales, CU-012, UI-053…055/058 y RNF-INT. Esta capacidad concreta ventas directas; no habilita proformas, reservas ni ventas de mantenimiento. Usa los términos del glosario del producto. Los datos históricos y la política de inventario vigente se conservan; las salidas comerciales son una operación nueva, no un ajuste manual. Estado: specs aprobadas el 2026-09-20 para crear diseño. El usuario respondió «si esta bien, continua» a la solicitud expresa de aprobación de las tres specs (24 requisitos y 105 escenarios), sobre el contenido registrado en master en c393e13. Esta aprobación no abarca diseño, tareas ni implementación.
 
 ## ADDED Requirements
 
