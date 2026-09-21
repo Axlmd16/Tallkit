@@ -13,45 +13,45 @@ Toda evidencia debe ser un resultado real ejecutado, nunca una afirmación antic
 
 ## 1. Preparación del módulo comercial y fronteras
 
-- [ ] 1.1 Crear `backend/src/sales/` con `__init__.py`, `apps.py`, `models.py` sin modelos, `domain/__init__.py`, `application/__init__.py`, `api/__init__.py` y `migrations/__init__.py`, sin código de negocio todavía.
-- [ ] 1.2 Registrar `sales.apps.SalesConfig` en `backend/src/config/settings/base.py` después de `purchasing.apps.PurchasingConfig`, sin alterar el orden de las aplicaciones existentes.
-- [ ] 1.3 Crear el directorio `backend/tests/sales/` sin `__init__.py`, siguiendo la convención vigente de `backend/tests/purchasing/`, y reutilizar `backend/tests/conftest.py` y `backend/tests/fixtures/`.
-- [ ] 1.4 Escribir en `backend/tests/sales/test_boundaries.py`, adaptando `backend/tests/purchasing/test_boundaries.py`, las pruebas que fallan mientras la aplicación no exista y que prohíban importar modelos de `catalog`, `customer_registry`, `inventory`, `workshop_configuration` e `identity`, ejecutar SQL de otros módulos y escribir en persistencia ajena.
-- [ ] 1.5 Añadir en la misma prueba la prohibición de que `sales/domain/` importe Django, DRF o persistencia, y la prohibición de que `inventory`, `purchasing`, `catalog`, `customer_registry` y `workshop_configuration` importen `sales`.
-- [ ] 1.6 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_boundaries.py` en verde y `uv run --frozen python manage.py check` sin errores.
+- [x] 1.1 Crear `backend/src/sales/` con `__init__.py`, `apps.py`, `models.py` sin modelos, `domain/__init__.py`, `application/__init__.py`, `api/__init__.py` y `migrations/__init__.py`, sin código de negocio todavía.
+- [x] 1.2 Registrar `sales.apps.SalesConfig` en `backend/src/config/settings/base.py` después de `purchasing.apps.PurchasingConfig`, sin alterar el orden de las aplicaciones existentes.
+- [x] 1.3 Crear el directorio `backend/tests/sales/` sin `__init__.py`, siguiendo la convención vigente de `backend/tests/purchasing/`, y reutilizar `backend/tests/conftest.py` y `backend/tests/fixtures/`.
+- [x] 1.4 Escribir en `backend/tests/sales/test_boundaries.py`, adaptando `backend/tests/purchasing/test_boundaries.py`, las pruebas que fallan mientras la aplicación no exista y que prohíban importar modelos de `catalog`, `customer_registry`, `inventory`, `workshop_configuration` e `identity`, ejecutar SQL de otros módulos y escribir en persistencia ajena.
+- [x] 1.5 Añadir en la misma prueba la prohibición de que `sales/domain/` importe Django, DRF o persistencia, y la prohibición de que `inventory`, `purchasing`, `catalog`, `customer_registry` y `workshop_configuration` importen `sales`.
+- [x] 1.6 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_boundaries.py` en verde y `uv run --frozen python manage.py check` sin errores.
 
 ## 2. Dominio puro de importes de venta
 
-- [ ] 2.1 Escribir en `backend/tests/sales/test_amounts.py` las pruebas que fallan del desglose por línea: total = cantidad × precio final; base = HALF_UP(total / (1 + tarifa/100), 2); impuesto = total − base, con el ejemplo de la spec: 2 × 11.50 al 15 % produce total 23.00, base 20.00 e impuesto 3.00.
-- [ ] 2.2 Añadir la prueba del medio centavo de la spec: tarifa de prueba 20 % y total de línea 0.03 producen base 0.03 e impuesto 0.00 conservando el total 0.03.
-- [ ] 2.3 Añadir la prueba de totales del documento: dos líneas de total 0.03 al 20 % producen base 0.06, impuesto 0.00 y total 0.06, sumando líneas ya redondeadas sin recálculo global.
-- [ ] 2.4 Añadir la prueba de tarifa cero explícita configurada, que produce impuesto 0.00, frente a la ausencia de vigencia, que es error y nunca exención.
-- [ ] 2.5 Añadir pruebas de rechazo de cantidad cero, negativa o fraccionaria, precio con más de dos decimales, valores no finitos y desbordamiento de los máximos declarados en el diseño, sin truncar ni redondear la entrada.
-- [ ] 2.6 Escribir las pruebas de la venta de total cero: importes cero válidos sin inventar pago ni tratarla como error de cálculo.
-- [ ] 2.7 Implementar `backend/src/sales/domain/amounts.py` con `Decimal`, contexto local de precisión 60 y HALF_UP explícito, sin importar Django, DRF ni persistencia, hasta que las pruebas pasen; refactorizar después sin cambiar resultados.
-- [ ] 2.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_amounts.py` en verde y `uv run --frozen mypy src/sales` sin errores.
+- [x] 2.1 Escribir en `backend/tests/sales/test_amounts.py` las pruebas que fallan del desglose por línea: total = cantidad × precio final; base = HALF_UP(total / (1 + tarifa/100), 2); impuesto = total − base, con el ejemplo de la spec: 2 × 11.50 al 15 % produce total 23.00, base 20.00 e impuesto 3.00.
+- [x] 2.2 Añadir la prueba del medio centavo de la spec: tarifa de prueba 20 % y total de línea 0.03 producen base 0.03 e impuesto 0.00 conservando el total 0.03.
+- [x] 2.3 Añadir la prueba de totales del documento: dos líneas de total 0.03 al 20 % producen base 0.06, impuesto 0.00 y total 0.06, sumando líneas ya redondeadas sin recálculo global.
+- [x] 2.4 Añadir la prueba de tarifa cero explícita configurada, que produce impuesto 0.00, frente a la ausencia de vigencia, que es error y nunca exención.
+- [x] 2.5 Añadir pruebas de rechazo de cantidad cero, negativa o fraccionaria, precio con más de dos decimales, valores no finitos y desbordamiento de los máximos declarados en el diseño, sin truncar ni redondear la entrada.
+- [x] 2.6 Escribir las pruebas de la venta de total cero: importes cero válidos sin inventar pago ni tratarla como error de cálculo.
+- [x] 2.7 Implementar `backend/src/sales/domain/amounts.py` con `Decimal`, contexto local de precisión 60 y HALF_UP explícito, sin importar Django, DRF ni persistencia, hasta que las pruebas pasen; refactorizar después sin cambiar resultados.
+- [x] 2.8 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_amounts.py` en verde y `uv run --frozen mypy src/sales` sin errores.
 
 ## 3. Dominio puro de distribución de costos y devoluciones
 
-- [ ] 3.1 Escribir en `backend/tests/sales/test_allocation.py` las pruebas que fallan del reparto del valor de salida realmente aplicado entre líneas del mismo producto por cantidad y posición estable, con diferencias de valor proporcional acumulado a seis decimales y residuo en la última línea.
-- [ ] 3.2 Añadir la prueba de líneas repetidas del mismo producto en una venta, comprobando que la suma de asignaciones iguala exactamente el valor publicado por inventario y no `cantidad × costo publicado`.
-- [ ] 3.3 Escribir en `backend/tests/sales/test_return_amounts.py` la prueba del ejemplo histórico de la spec: venta de 2 unidades con total 23.00, base 20.00 e impuesto 3.00; devolver una unidad corrige total 11.50, base 10.00 e impuesto 1.50 aunque cambien precio y tarifa del catálogo.
-- [ ] 3.4 Añadir la prueba de devoluciones sucesivas con residuo de la spec: tres unidades con total 0.15, base 0.13 e impuesto 0.02 producen bases 0.04, 0.05 y 0.04, impuestos 0.01, 0.00 y 0.01 y totales 0.05 cada vez, sumando exactamente los importes originales.
-- [ ] 3.5 Añadir la prueba de asignación de costo por tramo devuelto: proporción acumulada del valor histórico a seis decimales para aptos y no aptos, orden canónico apto antes que no apto y residuo agotado por el último tramo de la línea.
-- [ ] 3.6 Añadir la prueba de que devolver todas las unidades aptas restituye exactamente el valor histórico de salida y de que una devolución mixta nunca reintegra el valor asignado a unidades no aptas.
-- [ ] 3.7 Añadir pruebas de rechazo de cantidad acumulada mayor que la vendida, de importes acumulados superiores a los originales y de exigible negativo derivado.
-- [ ] 3.8 Implementar `backend/src/sales/domain/allocation.py` y `backend/src/sales/domain/returns.py` como funciones puras sobre `Decimal`, sin dependencias de framework.
-- [ ] 3.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_allocation.py tests/sales/test_return_amounts.py` en verde y `uv run --frozen mypy src/sales` sin errores.
+- [x] 3.1 Escribir en `backend/tests/sales/test_allocation.py` las pruebas que fallan del reparto del valor de salida realmente aplicado entre líneas del mismo producto por cantidad y posición estable, con diferencias de valor proporcional acumulado a seis decimales y residuo en la última línea.
+- [x] 3.2 Añadir la prueba de líneas repetidas del mismo producto en una venta, comprobando que la suma de asignaciones iguala exactamente el valor publicado por inventario y no `cantidad × costo publicado`.
+- [x] 3.3 Escribir en `backend/tests/sales/test_return_amounts.py` la prueba del ejemplo histórico de la spec: venta de 2 unidades con total 23.00, base 20.00 e impuesto 3.00; devolver una unidad corrige total 11.50, base 10.00 e impuesto 1.50 aunque cambien precio y tarifa del catálogo.
+- [x] 3.4 Añadir la prueba de devoluciones sucesivas con residuo de la spec: tres unidades con total 0.15, base 0.13 e impuesto 0.02 producen bases 0.04, 0.05 y 0.04, impuestos 0.01, 0.00 y 0.01 y totales 0.05 cada vez, sumando exactamente los importes originales.
+- [x] 3.5 Añadir la prueba de asignación de costo por tramo devuelto: proporción acumulada del valor histórico a seis decimales para aptos y no aptos, orden canónico apto antes que no apto y residuo agotado por el último tramo de la línea.
+- [x] 3.6 Añadir la prueba de que devolver todas las unidades aptas restituye exactamente el valor histórico de salida y de que una devolución mixta nunca reintegra el valor asignado a unidades no aptas.
+- [x] 3.7 Añadir pruebas de rechazo de cantidad acumulada mayor que la vendida, de importes acumulados superiores a los originales y de exigible negativo derivado.
+- [x] 3.8 Implementar `backend/src/sales/domain/allocation.py` y `backend/src/sales/domain/returns.py` como funciones puras sobre `Decimal`, sin dependencias de framework.
+- [x] 3.9 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_allocation.py tests/sales/test_return_amounts.py` en verde y `uv run --frozen mypy src/sales` sin errores.
 
 ## 4. Dominio puro de saldos, estados y condición
 
-- [ ] 4.1 Escribir en `backend/tests/sales/test_balances.py` las pruebas que fallan de E (exigible vigente tras correcciones), P (pagos válidos netos de correcciones) y R (reembolsos efectivos), con aplicado neto P − R.
-- [ ] 4.2 Añadir las pruebas de las fórmulas de la spec: saldo = máximo(E − (P − R), 0) y exceso = máximo((P − R) − E, 0), con los casos 100/30 → saldo 70 parcial; 100/100 → saldo 0 pagado; exigible 80 con pagos 100 → saldo 0, pagado y exceso 20; tras reembolso de 20 → exceso 0.
-- [ ] 4.3 Añadir la prueba de la venta de 100.00 con pagos 60.00 cuya devolución reduce el exigible a 80.00: saldo 20.00, estado parcial y sin reembolso pendiente.
-- [ ] 4.4 Añadir la prueba del estado de importe cero: sin deuda, sin pago ficticio y con rechazo de todo cobro posterior.
-- [ ] 4.5 Añadir las pruebas de la condición: CONTADO exige cobro igual al saldo y rechaza abonos parciales; CREDITO admite abonos sin vencimiento, cuotas ni intereses; CREDITO nunca es medio de pago.
-- [ ] 4.6 Implementar `backend/src/sales/domain/balances.py` con las fórmulas aprobadas y sin estados almacenados editables.
-- [ ] 4.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_balances.py` en verde.
+- [x] 4.1 Escribir en `backend/tests/sales/test_balances.py` las pruebas que fallan de E (exigible vigente tras correcciones), P (pagos válidos netos de correcciones) y R (reembolsos efectivos), con aplicado neto P − R.
+- [x] 4.2 Añadir las pruebas de las fórmulas de la spec: saldo = máximo(E − (P − R), 0) y exceso = máximo((P − R) − E, 0), con los casos 100/30 → saldo 70 parcial; 100/100 → saldo 0 pagado; exigible 80 con pagos 100 → saldo 0, pagado y exceso 20; tras reembolso de 20 → exceso 0.
+- [x] 4.3 Añadir la prueba de la venta de 100.00 con pagos 60.00 cuya devolución reduce el exigible a 80.00: saldo 20.00, estado parcial y sin reembolso pendiente.
+- [x] 4.4 Añadir la prueba del estado de importe cero: sin deuda, sin pago ficticio y con rechazo de todo cobro posterior.
+- [x] 4.5 Añadir las pruebas de la condición: CONTADO exige cobro igual al saldo y rechaza abonos parciales; CREDITO admite abonos sin vencimiento, cuotas ni intereses; CREDITO nunca es medio de pago.
+- [x] 4.6 Implementar `backend/src/sales/domain/balances.py` con las fórmulas aprobadas y sin estados almacenados editables.
+- [x] 4.7 Evidencia del grupo: `cd backend && uv run --frozen pytest --no-cov tests/sales/test_balances.py` en verde.
 
 ## 5. Persistencia comercial, restricciones e historia inmutable
 
