@@ -130,6 +130,33 @@ context: |
     America/Guayaquil, es la fecha operativa que resuelve la vigencia tributaria de la
     compra. El momento efectivo del movimiento de inventario es el de confirmación,
     asignado por el sistema.
+  - DP-025 (ventas directas, aprobada 2026-09-20 en la propuesta de
+    gestionar-ventas-pagos-credito-simple): importes en USD con precios finales de hasta dos
+    decimales y cantidades enteras positivas de presentaciones completas. La venta usa la
+    selección tributaria comercial del producto y la fecha efectiva de confirmación en
+    America/Guayaquil; no se retrofecha. Con tarifa inclusiva, el total de línea conserva
+    cantidad por precio final, la base se redondea a centavos con HALF_UP, el impuesto se
+    obtiene por diferencia y el documento suma las líneas ya redondeadas. Una tarifa cero
+    debe estar configurada: la ausencia de vigencia es un error, nunca una exención. En
+    devoluciones parciales la base y el costo se distribuyen de forma acumulada y el último
+    tramo absorbe el residuo. No certifica tarifas ni obligaciones tributarias reales.
+  - DP-026 (precio aplicado, aprobada 2026-09-20): la venta toma el precio final vigente del
+    catálogo; ningún rol lo edita en la venta y no existen descuentos, ni siquiera de valor
+    cero. Un cambio de precio corresponde al catálogo y a su permiso administrativo; si cambia
+    antes de confirmar, la confirmación exige una nueva revisión con los valores actuales.
+  - DP-027 (contado y cobro, aprobada 2026-09-20): confirmar y cobrar son acciones
+    independientes. Una venta de contado solicita después un cobro completo; si se interrumpe,
+    permanece confirmada y pendiente, sin convertirse en crédito ni marcarse pagada. El crédito
+    admite abonos parciales sin vencimiento, cuotas ni intereses. La fecha de cobro es la del
+    sistema; no se admite captura retroactiva.
+  - DP-028 (correcciones, aprobada 2026-09-20): la anulación total por error solo procede sin
+    devoluciones previas y con restitución segura del inventario; con movimientos posteriores
+    se orienta a una devolución trazable sin reescribir la valoración histórica. Las
+    devoluciones físicas admiten movimientos posteriores y usan el costo histórico y la
+    inspección de aptitud. El reembolso lo registra expresamente el Administrador con medio
+    real, como hecho ya realizado; mientras tanto la obligación pendiente permanece visible y
+    no existe saldo a favor. Estas cuatro decisiones no cierran DM-001 ni las validaciones
+    contables y tributarias externas.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

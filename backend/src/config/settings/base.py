@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "supplier_registry.apps.SupplierRegistryConfig",
     "inventory.apps.InventoryConfig",
     "purchasing.apps.PurchasingConfig",
+    "sales.apps.SalesConfig",
 ]
 
 MIDDLEWARE = [

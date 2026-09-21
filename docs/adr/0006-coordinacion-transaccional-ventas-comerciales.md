@@ -1,13 +1,13 @@
 # ADR-0006: Coordinación transaccional de ventas comerciales
 
-- Estado: Propuesta; requiere aprobación del diseño antes de implementación.
-- Fecha: 2026-09-20
+- Estado: Aceptada el 2026-09-21 al aplicar el cambio `gestionar-ventas-pagos-credito-simple`; el diseño y este ADR fueron aprobados por el usuario el 2026-09-20.
+- Fecha: 2026-09-21
 
 ## Contexto
 
 Ventas debe coordinar inventario, numeración, cobros y correcciones sin efectos parciales. La devolución física puede ocurrir después de otros movimientos, mientras la reversión exacta vigente solo admite el último efecto. El dinero realmente entregado no puede deshacerse mediante rollback de la base de datos.
 
-## Decisión propuesta
+## Decisión
 
 Crear `sales` como propietario de ventas y hechos monetarios comerciales, con servicios internos separados para cobros y correcciones. Toda modificación del exigible, dinero o cantidad devuelta se serializa sobre la venta y participa en una única **transacción atómica** exterior. Inventario y configuración conservan sus escrituras detrás de interfaces públicas. El orden común es recibo → venta/hechos propios → operación original de inventario → cliente/productos → posiciones → configuración/numeración → publicaciones.
 
@@ -26,11 +26,11 @@ La devolución apta produce una entrada nueva a valor histórico asignado de la 
 
 La raíz comercial permite validar saldos y cantidades conjuntamente y reutiliza inventario sin escribir sus modelos. A cambio, las acciones sobre una misma venta se serializan, hay que conservar asignaciones históricas y recibos, y se requieren pruebas de concurrencia y reconciliación. El sistema distingue coherencia del registro de dinero y movimiento físico del dinero; no promete atomicidad con el efectivo.
 
-Complementa ADR-0001, ADR-0004 y ADR-0005, sin reemplazarlos. La aceptación de las specs no implica aceptación de este ADR.
+Complementa ADR-0001, ADR-0004 y ADR-0005, sin reemplazarlos. Implementación verificada por las pruebas del cambio: `backend/tests/sales/test_concurrency.py`, `test_confirm.py`, `test_void.py` y `test_reconcile.py`.
 
 ## Referencias
 
-- [Diseño propuesto](../../openspec/changes/gestionar-ventas-pagos-credito-simple/design.md).
+- [Diseño aprobado](../../openspec/changes/gestionar-ventas-pagos-credito-simple/design.md).
 - [ADR-0004](0004-contrato-transaccional-configuracion-y-numeracion.md).
 - [ADR-0005](0005-publicacion-transaccional-inventario.md).
 - [Referencia terminológica](0006-coordinacion-transaccional-ventas-comerciales-glossary-reference.md).

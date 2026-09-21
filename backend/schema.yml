@@ -2815,6 +2815,1164 @@ paths:
                 items:
                   $ref: '#/components/schemas/RoleRead'
           description: ''
+  /api/v1/sales/:
+    get:
+      operationId: sales_sale_list
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+        description: Inclusiva, zona del negocio.
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+        description: Inclusiva, zona del negocio.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: payment_state
+        schema:
+          type: string
+          enum:
+          - PAID
+          - PARTIAL
+          - PENDING
+      - in: query
+        name: state
+        schema:
+          type: string
+          enum:
+          - CONFIRMED
+          - DRAFT
+          - VOIDED
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: sales_sale_create
+      description: 'Hasta 200 líneas. El precio, impuesto, total y costo los determina
+        el servidor: cualquier campo de precio, descuento, impuesto, total, costo
+        o saldo se rechaza con `unknown_field`.'
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaleWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaleWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/:
+    get:
+      operationId: sales_sale_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: sales_sale_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSalePatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSalePatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSalePatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/confirm/:
+    post:
+      operationId: sales_sale_confirm
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaleConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaleConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaleConfirm'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/document/:
+    get:
+      operationId: sales_sale_document
+      description: Comprobante interno con datos históricos y sin costos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/payments/:
+    get:
+      operationId: sales_payment_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: sales_payment_create
+      description: Hasta dos partes, una por medio. La fecha efectiva la asigna el
+        servidor.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/payments/{payment_id}/correct/:
+    post:
+      operationId: sales_payment_correct
+      description: Anula lógicamente el pago y, opcionalmente, lo sustituye en una
+        acción.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: payment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectionWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CorrectionWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CorrectionWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/payments/{payment_id}/correction-preview/:
+    post:
+      operationId: sales_payment_correction_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: payment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectionPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CorrectionPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CorrectionPreview'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/payments/preview/:
+    post:
+      operationId: sales_payment_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentPreview'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/preview/:
+    post:
+      operationId: sales_sale_preview
+      description: Revisión de solo lectura protegida por CSRF; no crea recibo ni
+        efectos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/refunds/:
+    get:
+      operationId: sales_refund_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Refund'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: sales_refund_create
+      description: Registra un desembolso ya realizado; el reembolso por anulación
+        va en `void`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefundWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefundWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/refunds/preview/:
+    post:
+      operationId: sales_refund_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefundPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefundPreview'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/returns/:
+    get:
+      operationId: sales_return_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Return'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: sales_return_create
+      description: Hasta 200 líneas; cada cantidad devuelta se clasifica como apta
+        o no apta.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReturnWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReturnWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Return'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/returns/preview/:
+    post:
+      operationId: sales_return_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReturnPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReturnPreview'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/void/:
+    post:
+      operationId: sales_sale_void
+      description: Con dinero aplicado exige el desembolso ya realizado y su UUID.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoidWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoidWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoidWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sale'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/void-preview/:
+    post:
+      operationId: sales_sale_void_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoidPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoidPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoidPreview'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyReview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/customer-options/:
+    get:
+      operationId: sales_customer_options
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/draft-preview/:
+    post:
+      operationId: sales_draft_preview
+      description: 'Proyección documental de la captura sin persistir: no guarda borrador,
+        recibo, reserva, número ni uso fiscal. No habilita confirmar.'
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftPreviewResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/operations/{operation_id}/:
+    get:
+      operationId: sales_operation_status
+      description: Consulta un hecho ya registrado por su UUID tras un resultado incierto.
+      parameters:
+      - in: path
+        name: operation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationStatus'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/product-options/:
+    get:
+      operationId: sales_product_options
+      description: Productos activos con su precio final vigente; nunca costos.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/receivables/:
+    get:
+      operationId: sales_receivables
+      description: Deuda cobrable y exceso por reembolsar se muestran por separado.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: min_age_days
+        schema:
+          type: integer
+        description: Días desde la confirmación, fechas locales.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: payment_state
+        schema:
+          type: string
+          enum:
+          - PARTIAL
+          - PENDING
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceivablesPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/schema/:
     get:
       operationId: schema_retrieve
@@ -5494,6 +6652,66 @@ components:
       required:
       - id
       - type
+    CorrectionPreview:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        replacement:
+          allOf:
+          - $ref: '#/components/schemas/CorrectionReplacement'
+          nullable: true
+      required:
+      - operation_id
+      - reason
+    CorrectionReplacement:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+      required:
+      - operation_id
+      - parts
+    CorrectionWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        replacement:
+          allOf:
+          - $ref: '#/components/schemas/CorrectionReplacement'
+          nullable: true
+        review_token:
+          type: string
+      required:
+      - idempotency_key
+      - operation_id
+      - reason
+      - review_token
     CustomerCreate:
       type: object
       properties:
@@ -5601,6 +6819,51 @@ components:
           minimum: 1
       required:
       - expected_version
+    Document:
+      type: object
+      properties:
+        notice:
+          type: string
+          description: Documento interno no autorizado por el SRI.
+        number:
+          type: string
+          nullable: true
+        state:
+          type: string
+        voided:
+          type: boolean
+        issuer:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        customer:
+          type: object
+          additionalProperties: {}
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        base_total:
+          type: string
+          nullable: true
+        tax_total:
+          type: string
+          nullable: true
+        grand_total:
+          type: string
+          nullable: true
+      required:
+      - base_total
+      - customer
+      - grand_total
+      - issuer
+      - lines
+      - notice
+      - number
+      - state
+      - tax_total
+      - voided
     DocumentSeries:
       type: object
       properties:
@@ -5638,6 +6901,78 @@ components:
         * `NOTA_DE_VENTA` - NOTA_DE_VENTA
         * `OTRO` - OTRO
         * `SIN_DOCUMENTO` - SIN_DOCUMENTO
+    DraftPreview:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+          minimum: 1
+        condition:
+          type: string
+          description: 'Valores: CONTADO, CREDITO.'
+        notes:
+          type: string
+          maxLength: 2000
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleLineWrite'
+          maxItems: 200
+    DraftPreviewResult:
+      type: object
+      properties:
+        status:
+          type: string
+        internal_number:
+          type: string
+          nullable: true
+        number_pending:
+          type: boolean
+        notice:
+          type: string
+        condition:
+          type: string
+          nullable: true
+        customer:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        fiscal_entity:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        can_confirm:
+          type: boolean
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        totals:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        operational_date:
+          type: string
+          format: date
+      required:
+      - can_confirm
+      - condition
+      - customer
+      - fiscal_entity
+      - internal_number
+      - issues
+      - lines
+      - notice
+      - number_pending
+      - operational_date
+      - status
+      - totals
     FiscalEntity:
       type: object
       properties:
@@ -5812,6 +7147,29 @@ components:
       - inventory_value
       - tax
       - total
+    MoneyReview:
+      type: object
+      properties:
+        sale_id:
+          type: integer
+        version:
+          type: integer
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        review_token:
+          type: string
+          nullable: true
+        expires_in_seconds:
+          type: integer
+      required:
+      - expires_in_seconds
+      - issues
+      - review_token
+      - sale_id
+      - version
     NullEnum:
       enum:
       - null
@@ -5963,6 +7321,21 @@ components:
       - review_token
       - state
       - version
+    OperationStatus:
+      type: object
+      properties:
+        kind:
+          type: string
+          description: 'Valores: payment, return, refund.'
+        id:
+          type: integer
+        result:
+          type: object
+          additionalProperties: {}
+      required:
+      - id
+      - kind
+      - result
     OperationWrite:
       type: object
       properties:
@@ -6005,6 +7378,28 @@ components:
       - kind
       - product_id
       - quantity
+    OptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     OwnershipPeriodPage:
       type: object
       properties:
@@ -6051,6 +7446,18 @@ components:
       - is_current
       - started_at
       - vehicle_id
+    Part:
+      type: object
+      properties:
+        method:
+          type: string
+          description: 'Valores: EFECTIVO, TRANSFERENCIA.'
+        amount:
+          type: string
+          description: USD positivo, hasta 2 decimales, como cadena.
+      required:
+      - amount
+      - method
     PasswordChange:
       type: object
       properties:
@@ -6252,6 +7659,32 @@ components:
         expected_version:
           type: integer
           minimum: 1
+    PatchedSalePatch:
+      type: object
+      description: Omitir un campo lo conserva; enviarlo vacío lo vacía; ``lines``
+        reemplaza la colección.
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        customer_id:
+          type: integer
+          minimum: 1
+        condition:
+          type: string
+          description: 'Valores: CONTADO, CREDITO.'
+        notes:
+          type: string
+          maxLength: 2000
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleLineWrite'
+          maxItems: 200
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedSeriesCodeUpdate:
       type: object
       properties:
@@ -6408,6 +7841,89 @@ components:
           maxLength: 120
         expected_version:
           type: integer
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        operation_id:
+          type: string
+          format: uuid
+        sale_id:
+          type: integer
+        amount:
+          type: string
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+        effective_at:
+          type: string
+          format: date-time
+        effective_date:
+          type: string
+          format: date
+        state:
+          type: string
+          description: 'Valores: ACTIVE, CORRECTED.'
+        correction:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - amount
+      - correction
+      - effective_at
+      - effective_date
+      - id
+      - money
+      - operation_id
+      - parts
+      - sale_id
+      - state
+    PaymentPreview:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+      required:
+      - operation_id
+      - parts
+    PaymentWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+        review_token:
+          type: string
+      required:
+      - idempotency_key
+      - operation_id
+      - parts
+      - review_token
     Problem:
       type: object
       properties:
@@ -6827,6 +8343,35 @@ components:
       - document_type
       - idempotency_key
       - supplier_id
+    ReceivablesPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleSummary'
+        receivable_total:
+          type: string
+          description: Deuda cobrable de todas las coincidencias.
+        refund_due_total:
+          type: string
+          description: Exceso por reembolsar, no restado.
+      required:
+      - count
+      - page
+      - page_size
+      - receivable_total
+      - refund_due_total
+      - results
+      - total_pages
     Ref:
       type: object
       properties:
@@ -6840,6 +8385,101 @@ components:
       - id
       - is_active
       - name
+    Refund:
+      type: object
+      properties:
+        id:
+          type: integer
+        operation_id:
+          type: string
+          format: uuid
+        sale_id:
+          type: integer
+        origin:
+          type: string
+          description: 'Valores: RETURN, VOID.'
+        sale_return_id:
+          type: integer
+          nullable: true
+        amount:
+          type: string
+        reason:
+          type: string
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - amount
+      - id
+      - money
+      - operation_id
+      - origin
+      - parts
+      - reason
+      - sale_id
+      - sale_return_id
+    RefundPreview:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        sale_return_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+      required:
+      - operation_id
+      - parts
+      - reason
+      - sale_return_id
+    RefundWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        sale_return_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+        review_token:
+          type: string
+      required:
+      - idempotency_key
+      - operation_id
+      - parts
+      - reason
+      - review_token
+      - sale_return_id
     Replacement:
       type: object
       properties:
@@ -6859,6 +8499,105 @@ components:
         * `SUCCESS` - Exitoso
         * `FAILURE` - Fallido
         * `DENIED` - Denegado
+    Return:
+      type: object
+      properties:
+        id:
+          type: integer
+        operation_id:
+          type: string
+          format: uuid
+        sale_id:
+          type: integer
+        reason:
+          type: string
+        grand_total:
+          type: string
+        restocked:
+          type: boolean
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - grand_total
+      - id
+      - lines
+      - money
+      - operation_id
+      - reason
+      - restocked
+      - sale_id
+    ReturnLine:
+      type: object
+      properties:
+        sale_line_id:
+          type: integer
+          minimum: 1
+        fit_quantity:
+          type: string
+          description: Unidades aptas para reventa, entero >= 0.
+        unfit_quantity:
+          type: string
+          description: Unidades no aptas, entero >= 0.
+      required:
+      - fit_quantity
+      - sale_line_id
+      - unfit_quantity
+    ReturnPreview:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnLine'
+          maxItems: 200
+          minItems: 1
+      required:
+      - lines
+      - operation_id
+      - reason
+    ReturnWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnLine'
+          maxItems: 200
+          minItems: 1
+        review_token:
+          type: string
+      required:
+      - idempotency_key
+      - lines
+      - operation_id
+      - reason
+      - review_token
     Review:
       type: object
       properties:
@@ -6920,6 +8659,234 @@ components:
       required:
       - code
       - permissions
+    Sale:
+      type: object
+      properties:
+        id:
+          type: integer
+        state:
+          type: string
+          description: 'Valores: DRAFT, CONFIRMED, VOIDED.'
+        version:
+          type: integer
+        condition:
+          type: string
+        notes:
+          type: string
+        internal_number:
+          type: string
+          nullable: true
+        customer:
+          type: object
+          additionalProperties: {}
+        operational_date:
+          type: string
+          format: date
+          nullable: true
+        base_total:
+          type: string
+          nullable: true
+        tax_total:
+          type: string
+          nullable: true
+        grand_total:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        voided_at:
+          type: string
+          format: date-time
+          nullable: true
+        void_reason:
+          type: string
+        fiscal_scope:
+          type: string
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - base_total
+      - condition
+      - confirmed_at
+      - created_at
+      - customer
+      - fiscal_scope
+      - grand_total
+      - id
+      - internal_number
+      - lines
+      - money
+      - notes
+      - operational_date
+      - state
+      - tax_total
+      - version
+      - void_reason
+      - voided_at
+    SaleConfirm:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        review_token:
+          type: string
+      required:
+      - expected_version
+      - idempotency_key
+      - review_token
+    SaleLineWrite:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+          description: Entero positivo de presentaciones, como cadena.
+      required:
+      - product_id
+      - quantity
+    SalePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleSummary'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    SaleReview:
+      type: object
+      properties:
+        sale_id:
+          type: integer
+        state:
+          type: string
+        version:
+          type: integer
+        can_confirm:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        review_token:
+          type: string
+          nullable: true
+        expires_in_seconds:
+          type: integer
+        totals:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        effects:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - can_confirm
+      - effects
+      - expires_in_seconds
+      - issues
+      - lines
+      - review_token
+      - sale_id
+      - state
+      - totals
+      - version
+    SaleSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        state:
+          type: string
+        internal_number:
+          type: string
+          nullable: true
+        customer:
+          type: object
+          additionalProperties: {}
+        origin:
+          type: string
+        sale_date:
+          type: string
+          format: date
+        grand_total:
+          type: string
+          nullable: true
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - customer
+      - grand_total
+      - id
+      - internal_number
+      - money
+      - origin
+      - sale_date
+      - state
+    SaleWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        customer_id:
+          type: integer
+          minimum: 1
+        condition:
+          type: string
+          description: 'Valores: CONTADO, CREDITO.'
+        notes:
+          type: string
+          maxLength: 2000
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaleLineWrite'
+          maxItems: 200
+      required:
+      - condition
+      - customer_id
+      - idempotency_key
     ScheduleSuccessor:
       type: object
       properties:
@@ -7809,6 +9776,36 @@ components:
       - idempotency_key
       - reason
       - review_token
+    VoidPreview:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        refund:
+          allOf:
+          - $ref: '#/components/schemas/VoidRefund'
+          nullable: true
+          description: Desembolso ya realizado cuando la venta tiene dinero aplicado.
+      required:
+      - reason
+    VoidRefund:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del hecho de dinero; se conserva al reintentar.
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Part'
+          maxItems: 2
+          minItems: 1
+      required:
+      - operation_id
+      - parts
     VoidReview:
       type: object
       properties:
@@ -7844,6 +9841,32 @@ components:
       - review_token
       - state
       - version
+    VoidWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        refund:
+          allOf:
+          - $ref: '#/components/schemas/VoidRefund'
+          nullable: true
+          description: Desembolso ya realizado cuando la venta tiene dinero aplicado.
+        expected_version:
+          type: integer
+          minimum: 1
+        review_token:
+          type: string
+      required:
+      - expected_version
+      - idempotency_key
+      - reason
+      - review_token
     Warehouse:
       type: object
       properties:

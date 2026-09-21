@@ -12,12 +12,11 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Protocol
 
 from django.db import transaction
 from django.utils import timezone
 
-from catalog.application.inventory_references import ProductReference
 from identity.models import User
 from inventory.domain.validation import (
     InventoryValidationError,
@@ -39,11 +38,35 @@ from inventory.models import (
     OperationState,
 )
 
+
+class ProductReference(Protocol):
+    """Lo que la publicación necesita para congelar la identidad del producto.
+
+    Cualquier DTO de catálogo con estos atributos (inventario, compras o ventas) lo cumple.
+    """
+
+    @property
+    def id(self) -> int: ...
+    @property
+    def code(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def content_quantity(self) -> Decimal: ...
+    @property
+    def unit_id(self) -> int: ...
+    @property
+    def unit_name(self) -> str: ...
+    @property
+    def unit_symbol(self) -> str: ...
+
+
 SNAPSHOT_SCHEMA_VERSION = 1
 ENTRY_KINDS = {
     OperationKind.PURCHASE_RECEIPT,
     OperationKind.INITIAL_LOAD,
     OperationKind.ADJUSTMENT_IN,
+    OperationKind.CUSTOMER_RETURN_IN,
 }
 _TOKEN = object()
 

@@ -37,6 +37,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("", include("catalog.api.urls")),
     path("suppliers/", include("supplier_registry.api.urls")),
     path("purchases/", include("purchasing.api.urls")),
+    path("sales/", include("sales.api.urls")),
     path("inventory/", include("inventory.api.urls")),
     path("workshop-configuration/", include("workshop_configuration.api.urls")),
     path("roles/", RoleListView.as_view(), name="role-list"),

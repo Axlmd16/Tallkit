@@ -10,3 +10,4 @@ Términos aplicables: [API versionada](glosario-tecnico.md#api-versionada),
 [modelo de dominio](../negocio/producto/glosario.md#modelo-de-dominio) se usa como fuente conceptual.
 [posición de inventario](../negocio/producto/glosario.md#posición-de-inventario) y
 [orden total de bloqueos](glosario-tecnico.md#orden-total-de-bloqueos) describen las fronteras de compras e inventario.
+[cuentas por cobrar](../negocio/producto/glosario.md#cuentas-por-cobrar), [reembolso](../negocio/producto/glosario.md#reembolso) y [identidad de operación](glosario-tecnico.md#identidad-de-operación) describen la frontera del módulo comercial.

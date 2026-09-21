@@ -6,6 +6,8 @@ export type OperationKind =
   | 'ADJUSTMENT_IN'
   | 'ADJUSTMENT_OUT'
   | 'REVERSAL'
+  | 'SALE_OUT'
+  | 'CUSTOMER_RETURN_IN'
 export type ManualKind = 'INITIAL_LOAD' | 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT'
 export type OperationState = 'PREPARED' | 'POSTED' | 'REVERSED'
 
@@ -15,6 +17,8 @@ export const kindLabels: Record<OperationKind, string> = {
   ADJUSTMENT_IN: 'Ajuste de entrada',
   ADJUSTMENT_OUT: 'Ajuste de salida',
   REVERSAL: 'Compensación',
+  SALE_OUT: 'Salida por venta',
+  CUSTOMER_RETURN_IN: 'Reingreso por devolución de cliente',
 }
 
 export const operationStateLabels: Record<OperationState, string> = {

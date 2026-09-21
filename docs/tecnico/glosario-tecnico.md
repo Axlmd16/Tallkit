@@ -41,6 +41,10 @@ la fidelidad de una interfaz sin deducir estilos a partir de la imagen.
 Frame o nodo identificado de forma estable en Figma y consultado mediante sus propiedades
 estructuradas. Una captura complementa la revisión, pero no sustituye esas propiedades.
 
+## Identidad de operación
+
+UUID estable de un hecho de dinero (cobro, corrección, devolución o reembolso). Se distingue de la clave de idempotencia de transporte: repetir el mismo UUID con el mismo contenido devuelve el hecho ya registrado aunque cambie la clave HTTP, y dos cobros legítimos del mismo importe llevan UUID distintos.
+
 ## Idempotencia
 
 Propiedad que evita repetir los efectos de una misma solicitud procesada más de una vez.

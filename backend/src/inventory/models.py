@@ -35,6 +35,8 @@ class OperationKind(models.TextChoices):
     ADJUSTMENT_IN = "ADJUSTMENT_IN"
     ADJUSTMENT_OUT = "ADJUSTMENT_OUT"
     REVERSAL = "REVERSAL"
+    SALE_OUT = "SALE_OUT"
+    CUSTOMER_RETURN_IN = "CUSTOMER_RETURN_IN"
 
 
 class OperationState(models.TextChoices):

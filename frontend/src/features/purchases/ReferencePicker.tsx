@@ -92,58 +92,65 @@ export function ReferencePicker({
         placeholder="Buscar…"
         value={term}
       />
-      <div
-        aria-label={`Resultados de ${label}`}
-        className="mt-3 space-y-2"
-        role="list"
-      >
-        {results.isPending && <LoadingState label="Buscando…" />}
-        {results.isError && (
-          <InlineNotice title="No se pudo buscar" tone="danger">
-            <Button
-              onClick={() => void results.refetch?.()}
-              type="button"
-              variant="secondary"
-            >
-              Reintentar
-            </Button>
-          </InlineNotice>
-        )}
-        {results.data?.options.length === 0 && (
-          <p className="text-sm text-ink-muted">Sin coincidencias.</p>
-        )}
-        {results.data?.options.map((option) => (
-          <div
-            className="flex items-center justify-between gap-3"
-            key={option.id}
-            role="listitem"
+      {results.isPending && <LoadingState label="Buscando…" />}
+      {results.isError && (
+        <InlineNotice title="No se pudo buscar" tone="danger">
+          <Button
+            onClick={() => void results.refetch?.()}
+            type="button"
+            variant="secondary"
           >
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">{option.label}</p>
-              {option.detail && (
-                <p className="truncate text-sm text-ink-muted">
-                  {option.detail}
+            Reintentar
+          </Button>
+        </InlineNotice>
+      )}
+      {results.data?.options.length === 0 && (
+        <p className="mt-3 text-sm text-ink-muted">Sin coincidencias.</p>
+      )}
+      {results.data && results.data.options.length > 0 && (
+        <div
+          aria-label={`Resultados de ${label}`}
+          className="mt-3 space-y-2"
+          role="list"
+        >
+          {results.data.options.map((option) => (
+            <div
+              className="flex items-center justify-between gap-3"
+              key={option.id}
+              role="listitem"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-ink">
+                  {option.label}
                 </p>
+                {option.detail && (
+                  <p className="truncate text-sm text-ink-muted">
+                    {option.detail}
+                  </p>
+                )}
+              </div>
+              {option.inactive ? (
+                <StatusBadge
+                  label="Inactivo: no seleccionable"
+                  tone="warning"
+                />
+              ) : (
+                <Button
+                  disabled={disabled}
+                  onClick={() => {
+                    onSelect(option)
+                    setOpen(false)
+                  }}
+                  type="button"
+                  variant="secondary"
+                >
+                  Elegir
+                </Button>
               )}
             </div>
-            {option.inactive ? (
-              <StatusBadge label="Inactivo: no seleccionable" tone="warning" />
-            ) : (
-              <Button
-                disabled={disabled}
-                onClick={() => {
-                  onSelect(option)
-                  setOpen(false)
-                }}
-                type="button"
-                variant="secondary"
-              >
-                Elegir
-              </Button>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
       {results.data && results.data.totalPages > 1 && (
         <div className="mt-3 flex items-center gap-3">
           <Button

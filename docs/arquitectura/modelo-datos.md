@@ -235,3 +235,43 @@ Recibo, identidad y compras, operación original, proveedor, referencias de cat�
 - Si aparecieran tablas o saldos previos ajenos a este esquema (por ejemplo, restos de una implementación anterior de `purchasing`), detener la incorporación, inventariar el contenido y reconciliarlo con el Administrador; no importarlo automáticamente ni duplicarlo mediante carga inicial. Procedimiento: respaldo probado; `manage.py showmigrations purchasing inventory`; inventariar tablas `purchasing_*`/`inventory_*` inesperadas; decidir su destino de forma explícita; solo entonces aplicar `make migrate`.
 - Conciliación de solo lectura: `manage.py reconcile_inventory` reconstruye cantidad y valor desde los movimientos, verifica la cadena anterior/posterior, ordinales, promedio y posición, y devuelve código distinto de cero si encuentra diferencias. No ofrece `--fix`.
 - Los recibos idempotentes no tienen purga automática en V1.
+
+## Módulo: sales (ventas comerciales, cobros y correcciones)
+
+Modelo implementado por el cambio `gestionar-ventas-pagos-credito-simple` (migraciones `sales.0001`…`0004` e `inventory.0004`). Pertenece únicamente al RUC comercial. Las FK hacia cliente, catálogo, inventario, configuración e identidad usan `PROTECT` y `related_name="+"`; inventario nunca referencia ventas. **No se almacena** saldo, exceso ni estado de pago: se derivan de los hechos registrados.
+
+### Tablas de `sales`
+| Tabla | Datos y restricciones |
+|---|---|
+| `sales_sale` | Cliente, entidad fiscal y bodega, `condition` (`CONTADO`/`CREDITO`), notas, `state` (`DRAFT`, `CONFIRMED`, `VOIDED`), `version`, fecha operativa, totales `numeric(24,2)` (base, impuesto, total), snapshots de cliente y fiscal, `internal_number` único (nulo solo en borrador), asignación de numeración, operaciones de inventario de la salida y de la reversión, huellas de confirmación y revisión aplicada y metadatos de anulación. Checks: estado y condición válidos, versión ≥ 1, número acorde al estado, importes no negativos y fecha obligatorios al confirmar, snapshots con `schema_version`. |
+| `sales_saleline` | Venta, `position` única por venta, producto, `quantity` entera positiva y, al confirmar, definición tributaria, snapshots de producto e impuesto, precio final, tarifa, base, impuesto y total (todos o ninguno, no negativos). Varias líneas del mismo producto son válidas. |
+| `sales_salecostallocation` | Línea, movimiento agrupado de inventario (único por par), cantidad entera, costo publicado `numeric(24,6)` y valor realmente aplicado `numeric(38,6)`; suma verificable por movimiento. Inmutable. |
+| `sales_commercialpayment`, `sales_paymentpart` | Pago con `operation_id` UUID único, importe positivo `numeric(24,2)`, fecha efectiva del sistema y actor; partes por medio (`EFECTIVO`/`TRANSFERENCIA`), una por medio, positivas. |
+| `sales_paymentcorrection` | `operation_id` único, pago original (uno a uno: una corrección por pago), reemplazo opcional (uno a uno), motivo no vacío. El original se conserva íntegro. |
+| `sales_salereturn`, `sales_salereturnline` | Devolución con UUID único, motivo, fecha, actor y totales; líneas con cantidades aptas y no aptas enteras no negativas de suma positiva, importes históricos y valor de costo asignado a cada tramo (`numeric(38,6)`). Una línea por devolución. |
+| `sales_commercialrefund`, `sales_refundpart` | Desembolso efectivo con UUID único, origen `RETURN` (con devolución) o `VOID` (sin ella), motivo, importe y partes por medio. |
+| `sales_salevoid` | Una anulación por venta (uno a uno), motivo, actor, operación de reversión y reembolso opcional. |
+| `sales_salescommand` | Recibo idempotente `(actor, action, idempotency_key)` único con formato 8…128 caracteres, huella canónica e identidad del resultado (tipo e ID); sin purga automática. |
+
+Índices: ventas por `(customer, created_at, id)` y `(state, created_at, id)`, líneas por `(product, sale)`, y pagos, devoluciones y reembolsos por `(sale, effective_at, id)`; asignaciones por movimiento.
+
+### Historia inmutable de `sales` (triggers PostgreSQL, `sales.0002`)
+- `sales_<tabla>_immutable`: rechaza `UPDATE` y `DELETE` de pagos, partes, correcciones, asignaciones de costo, devoluciones, líneas de devolución, reembolsos, partes de reembolso y anulaciones.
+- `sales_line_guard`: solo admite cambios en líneas mientras la venta es `DRAFT`.
+- `sales_sale_guard`: una venta confirmada solo puede aumentar `version`/`updated_at` o pasar a `VOIDED` alterando únicamente los metadatos de anulación; `VOIDED` es final; solo un borrador puede eliminarse.
+- Triggers de restricción **diferidos**: la suma de partes debe igualar el importe de cada pago y reembolso, y correcciones, reembolsos y líneas de devolución deben vincular hechos de la misma venta.
+Son reversibles y no se desactivan en operación normal.
+
+### Extensión de `inventory` (`inventory.0004`)
+`OperationKind` incorpora `SALE_OUT` (salida) y `CUSTOMER_RETURN_IN` (entrada); ambos se admiten en los checks de operación y movimiento. La devolución referencia la salida original mediante `corrects_operation` y su origen (`source_type = SALE_RETURN`); no usa `reverses`/`reverses_movement`. La anulación reutiliza la reversión exacta existente. `operations.py` sigue aceptando solo carga inicial y ajustes manuales.
+
+### Precisión y cálculo
+Importes de venta y pago `numeric(24,2)`; cálculo puro con `Decimal` (precisión 60) y HALF_UP: total = cantidad × precio final; base = HALF_UP(total / (1 + tarifa/100), 2); impuesto = total − base; el documento suma líneas ya redondeadas. Devoluciones: base acumulada proporcional a la base histórica, impuesto por diferencia; costo por proporción acumulada a seis decimales con el residuo en el último tramo.
+
+### Orden de bloqueo y concurrencia
+Recibo del comando, venta (raíz de consistencia) y hechos comerciales, operación original de inventario, cliente, productos por ID ascendente, posiciones, entidad/bodega/definiciones tributarias y ámbito de numeración, e inserciones finales. Un pago o corrección bloquea siempre la venta antes que el pago. Los deadlocks se traducen a `concurrent_operation` solo tras el rollback completo.
+
+### Conciliación y procedimiento de reversión
+- `manage.py reconcile_sales` (solo lectura, sin `--fix`) verifica número y configuración, movimientos frente a asignaciones de costo, cantidades devueltas, E/P/R, partes, reembolsos y ausencia de pagos huérfanos; termina con código distinto de cero ante diferencias.
+- Las tablas nacen vacías: no se siembran ventas, pagos, saldos iniciales ni movimientos comerciales, y ninguna numeración previa se renumera.
+- **Reversión.** Antes del primer uso: retirar las rutas y revertir `sales` a `zero` y `inventory` a `0003` solo con las tablas nuevas vacías y sin operaciones `SALE_OUT`/`CUSTOMER_RETURN_IN`. Después de registrar ventas: no revertir destructivamente; detener nuevas escrituras comerciales, conservar esquema e historia, corregir hacia adelante o restaurar un respaldo completo con conciliación del dinero recibido desde ese respaldo. Una versión anterior de inventario no debe operar sobre tipos que desconoce.

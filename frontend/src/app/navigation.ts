@@ -3,11 +3,13 @@ import {
   BookOpen,
   Car,
   ClipboardText,
+  Coins,
   DownloadSimple,
   House,
   ListChecks,
   Package,
   Pulse,
+  Receipt,
   ShieldCheck,
   ShoppingCartSimple,
   SlidersHorizontal,
@@ -28,6 +30,8 @@ export interface NavItem {
   permission: string | null
   /** Rutas adicionales que pertenecen a esta opción (además de `to` y sus detalles). */
   alsoMatches?: readonly string[]
+  /** Rutas que, aunque comparten prefijo, pertenecen a otra opción. */
+  excludes?: readonly string[]
 }
 
 export interface NavGroup {
@@ -113,6 +117,26 @@ export const navigationGroups: readonly NavGroup[] = [
     ],
   },
   {
+    id: 'ventas-cobros',
+    icon: Receipt,
+    label: 'Ventas y cobros',
+    items: [
+      {
+        icon: Receipt,
+        label: 'Ventas',
+        to: '/sales',
+        permission: 'ventas.ver',
+        excludes: ['/sales/receivables'],
+      },
+      {
+        icon: Coins,
+        label: 'Cuentas por cobrar',
+        to: '/sales/receivables',
+        permission: 'pagos_comerciales.ver',
+      },
+    ],
+  },
+  {
     id: 'compras-inventario',
     icon: ShoppingCartSimple,
     label: 'Compras e inventario',
@@ -172,6 +196,10 @@ export const navigationGroups: readonly NavGroup[] = [
 
 export function isItemActive(item: NavItem, pathname: string) {
   if (item.to === '/') return pathname === '/'
+  const excluded = (item.excludes ?? []).some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  )
+  if (excluded) return false
   return [item.to, ...(item.alsoMatches ?? [])].some(
     (base) => pathname === base || pathname.startsWith(`${base}/`),
   )

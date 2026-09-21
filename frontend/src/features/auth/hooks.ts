@@ -1,3 +1,4 @@
+import { clearMoneyIntents } from '@/features/sales/moneyIntent'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { authApi, type AuthApi } from './api'
@@ -32,6 +33,7 @@ export function useLogout(api: AuthApi = authApi) {
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
+      clearMoneyIntents()
       queryClient.setQueryData(sessionQueryKey, anonymousSession)
       queryClient.removeQueries({
         predicate: (query) => query.queryKey[0] !== sessionQueryKey[0],
