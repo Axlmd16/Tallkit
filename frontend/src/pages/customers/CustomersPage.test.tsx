@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -144,29 +144,22 @@ it('identifies RUC customers with the reusable category badge', () => {
   expect(screen.getAllByLabelText('Categoría: RUC')).not.toHaveLength(0)
 })
 
-it('opens an overlaid customer preview when selecting a row', async () => {
+it('opens the customer detail page when selecting a row', async () => {
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <CustomersPage />
+    <MemoryRouter initialEntries={['/customers?search=Carlos']}>
+      <Routes>
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/customers/:id" element={<div>Ficha del cliente</div>} />
+      </Routes>
     </MemoryRouter>,
   )
 
   await user.click(screen.getAllByText('Carlos Vera')[0]!)
 
-  const preview = screen.getByRole('dialog', { name: 'Detalle del cliente' })
-  expect(preview).toBeInTheDocument()
-  expect(
-    within(preview).getByRole('heading', { name: 'Carlos Vera' }),
-  ).toBeInTheDocument()
-  expect(
-    within(preview).getByText('Información de contacto'),
-  ).toBeInTheDocument()
-  expect(within(preview).getByText('Correo electrónico')).toBeInTheDocument()
-  expect(within(preview).getByText('Teléfono')).toBeInTheDocument()
-  expect(within(preview).getByText('Dirección')).toBeInTheDocument()
-  expect(within(preview).getByText('carlos@example.com')).toBeInTheDocument()
+  expect(screen.getByText('Ficha del cliente')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('renders an empty state when the catalog has no customers', () => {
@@ -209,44 +202,25 @@ it('renders an empty state when filters yield no matches', () => {
   ).toBeInTheDocument()
 })
 
-it('allows authorized user to open new customer drawer and save', async () => {
+it('takes an authorized user to the new customer page', async () => {
   mocks.permissions = ['clientes.ver', 'clientes.gestionar']
   mocks.create.mockResolvedValue(sampleCustomer)
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <CustomersPage />
+    <MemoryRouter initialEntries={['/customers']}>
+      <Routes>
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route path="/customers/new" element={<div>Editor de cliente</div>} />
+      </Routes>
     </MemoryRouter>,
   )
 
   const newButton = screen.getByRole('button', { name: /nuevo cliente/i })
   await user.click(newButton)
 
-  const drawer = screen.getByRole('dialog', { name: /nuevo cliente/i })
-  expect(drawer).toBeInTheDocument()
-  expect(drawer).toHaveClass('customer-drawer')
-
-  await user.type(
-    within(drawer).getByLabelText(/nombres y apellidos/i),
-    'María López',
-  )
-  await user.type(
-    within(drawer).getByLabelText(/número de identificación/i),
-    '0922222222',
-  )
-  await user.type(within(drawer).getByLabelText(/teléfono/i), '0988888888')
-
-  await user.click(
-    within(drawer).getByRole('button', { name: /guardar cliente/i }),
-  )
-  expect(mocks.create).toHaveBeenCalledWith(
-    expect.objectContaining({
-      name: 'María López',
-      identification: '0922222222',
-      phone: '0988888888',
-    }),
-  )
+  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('allows administrator to deactivate and reactivate customer via dialog', async () => {
@@ -302,27 +276,28 @@ it('shows error state on fetch failure', () => {
   ).toBeInTheDocument()
 })
 
-it('allows editing an existing customer via edit drawer', async () => {
+it('takes an authorized user to the customer edit page', async () => {
   mocks.permissions = ['clientes.ver', 'clientes.gestionar']
   mocks.update.mockResolvedValue(sampleCustomer)
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <CustomersPage />
+    <MemoryRouter initialEntries={['/customers']}>
+      <Routes>
+        <Route path="/customers" element={<CustomersPage />} />
+        <Route
+          path="/customers/:id/edit"
+          element={<div>Editor de cliente</div>}
+        />
+      </Routes>
     </MemoryRouter>,
   )
 
   const editButtons = screen.getAllByRole('button', { name: /^editar$/i })
   await user.click(editButtons[0]!)
 
-  const drawer = screen.getByRole('dialog', { name: /editar cliente/i })
-  expect(drawer).toBeInTheDocument()
-
-  await user.click(
-    within(drawer).getByRole('button', { name: /guardar cliente/i }),
-  )
-  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
+  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('allows administrator to activate an inactive customer', async () => {

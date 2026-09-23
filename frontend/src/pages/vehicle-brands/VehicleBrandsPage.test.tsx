@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/shared/ui'
+
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
   brands: {} as Record<string, unknown>,
@@ -59,9 +61,11 @@ beforeEach(() => {
 
 it('renders brands list and restricts management actions without permission', () => {
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   expect(screen.getByRole('heading', { name: /marcas/i })).toBeInTheDocument()
@@ -82,9 +86,11 @@ it('allows creating and editing when user has marcas_vehiculo.gestionar', async 
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   const newBtn = screen.getByRole('button', { name: /nueva marca/i })
@@ -121,9 +127,11 @@ it('allows deactivation when user has marcas_vehiculo.desactivar', async () => {
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   const deactBtn = screen.getAllByRole('button', { name: /desactivar/i })[0]!
@@ -153,9 +161,11 @@ it('shows empty state when list has no records', () => {
   }
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   expect(screen.getByText(/no hay marcas registradas/i)).toBeInTheDocument()
@@ -165,21 +175,25 @@ it('shows loading state while brands are loading', () => {
   mocks.brands = { isPending: true, isError: false, isSuccess: false }
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
-  expect(screen.getByRole('status')).toBeInTheDocument()
+  expect(screen.getByText('Cargando catálogo de marcas...')).toBeInTheDocument()
 })
 
 it('shows error state when brands fail to load', () => {
   mocks.brands = { isPending: false, isError: true, isSuccess: false }
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   expect(
@@ -193,9 +207,11 @@ it('allows editing an existing brand via edit drawer', async () => {
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   const editButtons = screen.getAllByRole('button', { name: /editar/i })
@@ -232,9 +248,11 @@ it('allows administrator to activate an inactive brand', async () => {
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   const actBtn = screen.getAllByRole('button', { name: /activar/i })[0]!
@@ -262,12 +280,85 @@ it('renders pagination controls when multiple pages exist', () => {
   }
 
   render(
-    <MemoryRouter initialEntries={['/vehicle-brands']}>
-      <VehicleBrandsPage />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/vehicle-brands']}>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
   expect(
     screen.getByRole('navigation', { name: /paginación/i }),
+  ).toBeInTheDocument()
+})
+
+function renderManager() {
+  mocks.permissions = ['marcas_vehiculo.ver', 'marcas_vehiculo.gestionar']
+  render(
+    <ToastProvider>
+      <MemoryRouter>
+        <VehicleBrandsPage />
+      </MemoryRouter>
+    </ToastProvider>,
+  )
+}
+
+it('crea la marca en un modal sobre la lista y lo confirma con un toast', async () => {
+  mocks.create.mockResolvedValue({ ...sampleBrand, name: 'Great Wall' })
+  const user = userEvent.setup()
+  renderManager()
+  await user.click(screen.getByRole('button', { name: /nueva marca/i }))
+  const modal = screen.getByRole('dialog', { name: 'Nueva marca de vehículo' })
+  await user.type(
+    within(modal).getByLabelText('Nombre de la marca'),
+    'Great Wall',
+  )
+  await user.click(within(modal).getByRole('button', { name: 'Guardar marca' }))
+
+  expect(mocks.create).toHaveBeenCalledWith({ name: 'Great Wall' })
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByText('Marca «Great Wall» creada.')).toBeInTheDocument()
+  expect(screen.queryByText('Operación exitosa')).toBeNull()
+})
+
+it('«Guardar y crear otra» deja el modal abierto con el campo vacío', async () => {
+  mocks.create.mockResolvedValue(sampleBrand)
+  const user = userEvent.setup()
+  renderManager()
+  await user.click(screen.getByRole('button', { name: /nueva marca/i }))
+  const modal = screen.getByRole('dialog', { name: 'Nueva marca de vehículo' })
+  const input = within(modal).getByLabelText('Nombre de la marca')
+  await user.type(input, 'Kia')
+  await user.click(
+    within(modal).getByRole('button', { name: 'Guardar y crear otra' }),
+  )
+  expect(mocks.create).toHaveBeenCalledWith({ name: 'Kia' })
+  expect(
+    screen.getByRole('dialog', { name: 'Nueva marca de vehículo' }),
+  ).toBeInTheDocument()
+  expect(input).toHaveValue('')
+})
+
+it('exige el nombre junto al campo y no envía nada', async () => {
+  const user = userEvent.setup()
+  renderManager()
+  await user.click(screen.getByRole('button', { name: /nueva marca/i }))
+  const modal = screen.getByRole('dialog', { name: 'Nueva marca de vehículo' })
+  await user.click(within(modal).getByRole('button', { name: 'Guardar marca' }))
+  expect(
+    within(modal).getByText('El nombre de la marca es obligatorio.'),
+  ).toBeInTheDocument()
+  expect(mocks.create).not.toHaveBeenCalled()
+})
+
+it('advierte antes de cerrar con cambios sin guardar', async () => {
+  const user = userEvent.setup()
+  renderManager()
+  await user.click(screen.getByRole('button', { name: /nueva marca/i }))
+  const modal = screen.getByRole('dialog', { name: 'Nueva marca de vehículo' })
+  await user.type(within(modal).getByLabelText('Nombre de la marca'), 'Kia')
+  await user.keyboard('{Escape}')
+  expect(
+    await screen.findByRole('button', { name: 'Seguir editando' }),
   ).toBeInTheDocument()
 })

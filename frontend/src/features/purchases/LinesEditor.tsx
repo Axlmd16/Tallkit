@@ -1,10 +1,9 @@
 import { ListBullets, Plus, Trash } from '@phosphor-icons/react'
 
-import { Button, Field, InlineNotice, Input, Select } from '@/shared/ui'
+import { Button, Combobox, Field, InlineNotice, Input, Select } from '@/shared/ui'
 
 import { emptyLine, type LineDraft } from './draft'
 import { useProductOptions } from './pickers'
-import { ReferencePicker } from './ReferencePicker'
 import { usd } from './format'
 import type { CommercialTaxOption, MoneyBlock } from './types'
 
@@ -53,155 +52,179 @@ export function LinesEditor({
           confirmar necesita al menos una.
         </InlineNotice>
       )}
-      {lines.map((line, index) => {
-        const prefix = `lines.${index}`
-        const option = taxOptions.find((o) => o.id === line.taxDefinitionId)
-        const inactive = line.product?.inactive
-        return (
-          <fieldset
-            className="space-y-4 rounded-group border border-line bg-surface p-5"
-            key={line.key}
-          >
-            <legend className="px-2 font-semibold text-ink">
-              Línea {index + 1}
-            </legend>
-            <ReferencePicker
-              error={errors[`${prefix}.product_id`]}
-              id={`line-${line.key}-product`}
-              inactiveHelp="Producto inactivo: se conserva legible, pero impide confirmar mientras siga inactivo."
-              label="Producto"
-              onSelect={(product) =>
-                patch(index, {
-                  product,
-                  ...(line.taxDefinitionId === null && product?.taxDefinitionId
-                    ? { taxDefinitionId: product.taxDefinitionId }
-                    : {}),
-                })
-              }
-              selected={line.product}
-              useOptions={useProductOptions}
-            />
-            {inactive && (
-              <InlineNotice title="Producto inactivo" tone="warning">
-                Reactive el producto o retire la línea antes de confirmar.
-              </InlineNotice>
-            )}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Field
-                error={errors[`${prefix}.quantity`]}
-                id={`line-${line.key}-quantity`}
-                label="Cantidad de presentaciones"
-              >
-                <Input
-                  id={`line-${line.key}-quantity`}
-                  inputMode="numeric"
-                  onChange={(event) =>
-                    patch(index, { quantity: event.target.value })
-                  }
-                  value={line.quantity}
-                />
-              </Field>
-              <Field
-                error={errors[`${prefix}.unit_cost`]}
-                hint="USD sin impuesto"
-                id={`line-${line.key}-cost`}
-                label="Costo unitario"
-              >
-                <Input
-                  id={`line-${line.key}-cost`}
-                  inputMode="decimal"
-                  onChange={(event) =>
-                    patch(index, { unitCost: event.target.value })
-                  }
-                  value={line.unitCost}
-                />
-              </Field>
-              <Field
-                error={errors[`${prefix}.tax_definition_id`]}
-                id={`line-${line.key}-tax`}
-                label="Impuesto"
-              >
-                <Select
-                  id={`line-${line.key}-tax`}
-                  onChange={(event) =>
-                    patch(index, {
-                      taxDefinitionId: event.target.value
-                        ? Number(event.target.value)
-                        : null,
-                    })
-                  }
-                  value={line.taxDefinitionId ?? ''}
-                >
-                  <option value="">Seleccione…</option>
-                  {taxOptions.map((tax) => (
-                    <option key={tax.id} value={tax.id}>
-                      {tax.code}
-                      {tax.tax_status === 'applicable'
-                        ? ` · ${tax.rate}%`
-                        : ' · sin tarifa vigente'}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                error={errors[`${prefix}.tax_recoverability`]}
-                id={`line-${line.key}-recoverability`}
-                label="Recuperabilidad del impuesto"
-              >
-                <Select
-                  id={`line-${line.key}-recoverability`}
-                  onChange={(event) =>
-                    patch(index, {
-                      recoverability: event.target
-                        .value as LineDraft['recoverability'],
-                    })
-                  }
-                  value={line.recoverability}
-                >
-                  <option value="">Seleccione…</option>
-                  <option value="RECOVERABLE">Recuperable</option>
-                  <option value="NON_RECOVERABLE">No recuperable</option>
-                </Select>
-              </Field>
-            </div>
-            {option && option.tax_status !== 'applicable' && (
-              <InlineNotice title="Impuesto sin tarifa vigente" tone="warning">
-                No se mostrarán importes ni podrá confirmar hasta que la
-                configuración tenga una tarifa vigente única para la fecha del
-                documento.
-              </InlineNotice>
-            )}
-            <dl
-              aria-label={`Importes de la línea ${index + 1}`}
-              className="grid gap-2 text-sm sm:grid-cols-4"
-            >
-              {(
-                [
-                  ['Base', amounts[index]?.base],
-                  ['Impuesto', amounts[index]?.tax],
-                  ['Total', amounts[index]?.total],
-                  ['Valor inventariable', amounts[index]?.inventory_value],
-                ] as const
-              ).map(([label, value]) => (
-                <div key={label}>
-                  <dt className="text-ink-muted">{label}</dt>
-                  <dd className="font-semibold text-ink">
-                    {value ? usd(value) : 'Calculado al guardar'}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            <Button
-              onClick={() => onChange(lines.filter((_, i) => i !== index))}
-              type="button"
-              variant="quiet"
-            >
-              <Trash aria-hidden="true" size={15} />
-              Quitar línea {index + 1}
-            </Button>
-          </fieldset>
-        )
-      })}
+      {lines.length > 0 && (
+        <div className="overflow-x-auto rounded-group border border-line bg-surface">
+          <table className="w-full min-w-[980px] border-collapse text-sm">
+            <thead className="bg-canvas text-left text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              <tr>
+                <th className="px-3 py-2">Código</th>
+                <th className="px-3 py-2">Producto</th>
+                <th className="px-3 py-2">Cantidad</th>
+                <th className="px-3 py-2">Costo USD</th>
+                <th className="px-3 py-2">Impuesto</th>
+                <th className="px-3 py-2">Recuperabilidad</th>
+                <th className="px-3 py-2 text-right">Total</th>
+                <th className="px-3 py-2"><span className="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((line, index) => {
+                const prefix = `lines.${index}`
+                const option = taxOptions.find(
+                  (tax) => tax.id === line.taxDefinitionId,
+                )
+                const [code = '—'] = (line.product?.label ?? '').split(' — ')
+                return (
+                  <tr
+                    aria-label={`Línea ${index + 1}`}
+                    className="border-t border-line align-top"
+                    key={line.key}
+                    role="group"
+                  >
+                    <td className="px-3 py-3 font-mono text-xs font-semibold text-ink">
+                      {code || '—'}
+                    </td>
+                    <td className="w-[260px] px-3 py-3">
+                      <Combobox
+                        clearable
+                        error={errors[`${prefix}.product_id`]}
+                        id={`line-${line.key}-product`}
+                        inactiveHelp="Producto inactivo: se conserva legible, pero impide confirmar mientras siga inactivo."
+                        label="Producto"
+                        onSelect={(product) =>
+                          patch(index, {
+                            product,
+                            ...(line.taxDefinitionId === null &&
+                            product?.taxDefinitionId
+                              ? { taxDefinitionId: product.taxDefinitionId }
+                              : {}),
+                          })
+                        }
+                        selected={line.product}
+                        useOptions={useProductOptions}
+                      />
+                      {line.product?.inactive && (
+                        <p className="mt-1 text-xs font-semibold text-warning">
+                          Producto inactivo
+                        </p>
+                      )}
+                    </td>
+                    <td className="w-28 px-3 py-3">
+                      <Field
+                        error={errors[`${prefix}.quantity`]}
+                        id={`line-${line.key}-quantity`}
+                        label="Cantidad de presentaciones"
+                      >
+                        <Input
+                          id={`line-${line.key}-quantity`}
+                          inputMode="numeric"
+                          onChange={(event) =>
+                            patch(index, { quantity: event.target.value })
+                          }
+                          value={line.quantity}
+                        />
+                      </Field>
+                    </td>
+                    <td className="w-32 px-3 py-3">
+                      <Field
+                        error={errors[`${prefix}.unit_cost`]}
+                        id={`line-${line.key}-cost`}
+                        label="Costo unitario"
+                      >
+                        <Input
+                          id={`line-${line.key}-cost`}
+                          inputMode="decimal"
+                          onChange={(event) =>
+                            patch(index, { unitCost: event.target.value })
+                          }
+                          value={line.unitCost}
+                        />
+                      </Field>
+                    </td>
+                    <td className="w-36 px-3 py-3">
+                      <Field
+                        error={errors[`${prefix}.tax_definition_id`]}
+                        id={`line-${line.key}-tax`}
+                        label="Impuesto"
+                      >
+                        <Select
+                          id={`line-${line.key}-tax`}
+                          onChange={(event) =>
+                            patch(index, {
+                              taxDefinitionId: event.target.value
+                                ? Number(event.target.value)
+                                : null,
+                            })
+                          }
+                          value={line.taxDefinitionId ?? ''}
+                        >
+                          <option value="">Seleccione…</option>
+                          {taxOptions.map((tax) => (
+                            <option key={tax.id} value={tax.id}>
+                              {tax.code}
+                              {tax.tax_status === 'applicable'
+                                ? ` · ${tax.rate}%`
+                                : ' · sin tarifa vigente'}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                      {option && option.tax_status !== 'applicable' && (
+                        <p className="mt-1 text-xs text-warning">
+                          Sin tarifa vigente
+                        </p>
+                      )}
+                    </td>
+                    <td className="w-40 px-3 py-3">
+                      <Field
+                        error={errors[`${prefix}.tax_recoverability`]}
+                        id={`line-${line.key}-recoverability`}
+                        label="Recuperabilidad del impuesto"
+                      >
+                        <Select
+                          id={`line-${line.key}-recoverability`}
+                          onChange={(event) =>
+                            patch(index, {
+                              recoverability: event.target
+                                .value as LineDraft['recoverability'],
+                            })
+                          }
+                          value={line.recoverability}
+                        >
+                          <option value="">Seleccione…</option>
+                          <option value="RECOVERABLE">Recuperable</option>
+                          <option value="NON_RECOVERABLE">No recuperable</option>
+                        </Select>
+                      </Field>
+                    </td>
+                    <td
+                      aria-label={`Importes de la línea ${index + 1}`}
+                      className="px-3 py-3 text-right font-semibold whitespace-nowrap text-ink"
+                    >
+                      <span className="block">{amounts[index]?.total ? usd(amounts[index]!.total) : '—'}</span>
+                      <span className="block text-xs font-normal text-ink-muted">
+                        Imp. {amounts[index]?.tax ? usd(amounts[index]!.tax) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <Button
+                        aria-label={`Quitar línea ${index + 1}`}
+                        onClick={() =>
+                          onChange(lines.filter((_, i) => i !== index))
+                        }
+                        type="button"
+                        variant="quiet"
+                      >
+                        <Trash aria-hidden="true" size={15} />
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <Button
         disabled={lines.length >= MAX_LINES}
         onClick={() => onChange([...lines, emptyLine()])}

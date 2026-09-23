@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
@@ -57,9 +58,11 @@ function Page() {
 
 const renderPage = (path = '/') =>
   render(
-    <MemoryRouter initialEntries={[path]}>
-      <Page />
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Page />
+      </MemoryRouter>
+    </ToastProvider>,
   )
 
 beforeEach(() => {
@@ -118,6 +121,8 @@ it('crea con una clave y evita el doble envío', async () => {
   renderPage()
 
   await user.click(screen.getByRole('button', { name: /nueva categoría/i }))
+  expect(screen.queryByRole('button', { name: 'Cerrar panel' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
   await user.type(screen.getByLabelText(/nombre/i), '  Aceites ')
   const submit = screen.getByRole('button', { name: /guardar categoría/i })
   await user.click(submit)

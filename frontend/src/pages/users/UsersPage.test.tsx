@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
@@ -31,6 +32,14 @@ vi.mock('@/features/users/hooks', () => ({
 }))
 
 import { UsersPage } from './UsersPage'
+
+function renderPage() {
+  return render(
+    <ToastProvider>
+      <UsersPage />
+    </ToastProvider>,
+  )
+}
 
 const record = {
   id: 2,
@@ -67,7 +76,7 @@ beforeEach(() => {
 })
 
 it('shows states and hides every administrative action without permission', () => {
-  render(<UsersPage />)
+  renderPage()
 
   expect(screen.getAllByText('ana')).not.toHaveLength(0)
   expect(
@@ -88,7 +97,7 @@ it('renders an explicit empty result', () => {
     isSuccess: true,
     data: { results: [], page: 1, total_pages: 0 },
   }
-  render(<UsersPage />)
+  renderPage()
 
   expect(
     screen.getByText('No hay usuarios que coincidan con los filtros.'),
@@ -101,7 +110,7 @@ it('explains the last active administrator conflict', async () => {
     new ProblemError('Conflicto.', 409, 'last_active_administrator'),
   )
   const user = userEvent.setup()
-  render(<UsersPage />)
+  renderPage()
 
   await user.click(screen.getAllByRole('button', { name: 'Desactivar' })[0]!)
   expect(
@@ -120,7 +129,7 @@ it('shows a reset credential once and removes it when acknowledged', async () =>
   mocks.permissions = ['usuarios.restablecer_clave']
   mocks.resetPassword.mockResolvedValue({ temporary_password: 'Temporal-2026' })
   const user = userEvent.setup()
-  render(<UsersPage />)
+  renderPage()
 
   await user.click(
     screen.getAllByRole('button', { name: 'Restablecer contraseña' })[0]!,
@@ -153,7 +162,7 @@ it('covers filters, creation, editing, activation and pagination', async () => {
     },
   }
   const user = userEvent.setup()
-  render(<UsersPage />)
+  renderPage()
 
   await user.type(screen.getByLabelText('Buscar'), 'ana')
   await user.selectOptions(screen.getByLabelText('Estado'), 'true')
@@ -165,6 +174,10 @@ it('covers filters, creation, editing, activation and pagination', async () => {
 
   await user.click(screen.getByRole('button', { name: 'Crear usuario' }))
   expect(screen.getByRole('dialog', { name: 'Nuevo usuario' })).toBeVisible()
+  expect(
+    screen.queryByRole('button', { name: 'Cerrar panel' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
   await user.type(screen.getByLabelText('Identificación de acceso'), ' nueva ')
   await user.type(screen.getByLabelText('Nombres'), 'Nueva')
   await user.type(screen.getByLabelText('Apellidos'), 'Persona')
@@ -208,7 +221,7 @@ it.each([
   ],
 ])('renders user state %s', (message, state) => {
   mocks.users = state
-  render(<UsersPage />)
+  renderPage()
   expect(screen.getByText(message)).toBeInTheDocument()
 })
 
@@ -220,6 +233,6 @@ it.each([
   ],
 ])('renders role state %s', (message, state) => {
   mocks.roles = state
-  render(<UsersPage />)
+  renderPage()
   expect(screen.getByText(message)).toBeInTheDocument()
 })

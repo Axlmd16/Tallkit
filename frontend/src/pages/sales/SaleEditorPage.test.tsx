@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/shared/ui'
+
 import draftSource from '@/features/sales/draft.ts?raw'
 import linesSource from '@/features/sales/SaleLinesEditor.tsx?raw'
 import documentSource from '@/features/sales/SalesDocument.tsx?raw'
@@ -113,13 +115,15 @@ function deferred<T>() {
 
 function renderEditor(path = '/sales/new') {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<SaleEditorPage />} path="/sales/new" />
-        <Route element={<SaleEditorPage />} path="/sales/:id/edit" />
-        <Route element={<p>detalle</p>} path="/sales/:id" />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<SaleEditorPage />} path="/sales/new" />
+          <Route element={<SaleEditorPage />} path="/sales/:id/edit" />
+          <Route element={<p>detalle</p>} path="/sales/:id" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 
@@ -195,7 +199,7 @@ it('bajo 1280 px alterna Editar y Vista previa conservando la captura y sin dupl
   ).toHaveLength(1)
 })
 
-it('el encabezado compacto reúne título, ámbito fiscal, estado y aviso de cambios sin guardar', async () => {
+it('el encabezado compacto reúne título, estado y aviso de cambios sin guardar; el ámbito fiscal lo da el marco', async () => {
   const user = userEvent.setup()
   renderEditor()
   expect(
@@ -204,7 +208,7 @@ it('el encabezado compacto reúne título, ámbito fiscal, estado y aviso de cam
   expect(
     screen.getByText('Prepare una venta directa de repuestos'),
   ).toBeInTheDocument()
-  expect(screen.getByText('RUC comercial')).toBeInTheDocument()
+  expect(screen.queryByText('RUC comercial')).toBeNull()
   expect(screen.getByText('Borrador')).toBeInTheDocument()
   expect(screen.queryByText('Cambios sin guardar')).toBeNull()
   await user.type(screen.getByLabelText('Notas'), 'x')
@@ -506,4 +510,22 @@ it('el combobox se maneja con teclado: flechas, Enter y Escape', async () => {
   expect(screen.queryByRole('listbox')).toBeNull()
   await user.keyboard('{ArrowDown}{Enter}')
   expect(product).toHaveValue('ACE-1 — Aceite')
+})
+
+it('la condición es una selección exclusiva y el total del servidor acompaña a las acciones', async () => {
+  const user = userEvent.setup()
+  renderEditor()
+  const condition = screen.getByRole('radiogroup', {
+    name: 'Condición de venta',
+  })
+  await user.click(within(condition).getByRole('radio', { name: 'Contado' }))
+  expect(
+    within(condition).getByRole('radio', { name: 'Contado' }),
+  ).toHaveAttribute('aria-checked', 'true')
+  await fillLine(user)
+  await waitFor(() =>
+    expect(document.querySelector('.sale-actions-total')).toHaveTextContent(
+      'USD 23.00',
+    ),
+  )
 })

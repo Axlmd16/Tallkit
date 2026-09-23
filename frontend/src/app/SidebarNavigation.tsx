@@ -11,10 +11,9 @@ import {
 } from './navigation'
 
 const rowBase =
-  'app-rail-nav-item relative flex min-h-11 w-full items-center gap-3 rounded-[10px] px-3 py-2 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
-const rowIdle = 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-const rowActive =
-  'bg-primary-soft font-extrabold text-primary before:absolute before:top-2 before:bottom-2 before:left-0 before:w-[3px] before:rounded-full before:bg-primary'
+  'app-rail-nav-item relative flex min-h-11 w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
+const rowIdle = 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
+const rowActive = 'bg-accent-soft font-semibold text-accent-strong'
 
 interface SidebarProps {
   groups: readonly NavGroup[]
@@ -44,13 +43,13 @@ function ItemLink({
       title={item.label}
       to={item.to}
     >
-      <Icon aria-hidden="true" className="shrink-0" size={20} />
+      <Icon aria-hidden="true" className="shrink-0" size={18} />
       {!iconOnly && <span className="min-w-0 flex-1">{item.label}</span>}
     </Link>
   )
 }
 
-const kidsList = 'ml-[21px] border-l border-line pl-[9px]'
+const kidsList = 'ml-[18px] border-l border-line pl-2'
 
 /** Sidebar expandido (escritorio y drawer móvil): grupos desplegables. */
 export function ExpandedNavigation({
@@ -100,14 +99,14 @@ export function ExpandedNavigation({
             <button
               aria-controls={panelId}
               aria-expanded={isOpen}
-              className={`${rowBase} font-bold ${hasActive ? 'text-primary hover:bg-surface-muted' : 'text-ink hover:bg-surface-muted'}`}
+              className={`${rowBase} font-semibold ${hasActive ? 'text-accent-strong hover:bg-surface-subtle' : 'text-ink hover:bg-surface-subtle'}`}
               onClick={() => toggle(group.id)}
               type="button"
             >
               <Icon
                 aria-hidden="true"
-                className={`shrink-0 ${hasActive ? 'text-primary' : 'text-ink-muted'}`}
-                size={20}
+                className={`shrink-0 ${hasActive ? 'text-accent' : 'text-ink-muted'}`}
+                size={18}
               />
               <span className="min-w-0 flex-1">{group.label}</span>
               <CaretDown
@@ -189,7 +188,7 @@ export function CompactNavigation({
   }
 
   const railButton =
-    'relative mx-auto grid size-12 place-items-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
+    'relative mx-auto grid size-11 place-items-center rounded-control transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
 
   return (
     <>
@@ -231,12 +230,12 @@ export function CompactNavigation({
       {group && flyout && (
         <div
           aria-label={group.label}
-          className="fixed left-[118px] z-40 w-60 rounded-xl border border-line bg-surface p-2.5 shadow-menu"
+          className="fixed left-[80px] z-40 w-60 rounded-panel border border-line bg-surface p-2 shadow-menu"
           data-flyout=""
           role="group"
           style={{ top: flyout.top }}
         >
-          <p className="mx-3 mt-1 mb-2 text-xs font-extrabold tracking-wider text-ink-muted uppercase">
+          <p className="mx-2.5 mt-1 mb-1.5 text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
             {group.label}
           </p>
           <ul className="flex flex-col gap-0.5">

@@ -1,7 +1,9 @@
 import { User } from '@phosphor-icons/react'
 import {
+  forwardRef,
   useEffect,
   useId,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -34,17 +36,26 @@ const empty: UserWrite = {
   roles: [],
 }
 
-export function UserForm({
-  user,
-  onSubmit,
-  onCancel,
-  onDirtyChange,
-}: {
+export interface UserFormHandle {
+  submit: () => Promise<boolean>
+}
+
+interface UserFormProps {
   user?: UserSummary
   onSubmit: (data: UserWrite) => Promise<void>
   onCancel?: () => void
   onDirtyChange?: (dirty: boolean) => void
-}) {
+  embedded?: boolean
+}
+
+export const UserForm = forwardRef<UserFormHandle, UserFormProps>(
+  function UserForm({
+    user,
+    onSubmit,
+    onCancel,
+    onDirtyChange,
+    embedded = false,
+  }, ref) {
   const initial = useMemo<UserWrite>(
     () =>
       user
@@ -79,9 +90,8 @@ export function UserForm({
     onDirtyChange?.(dirty)
   }, [dirty, onDirtyChange])
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
-    if (locked.current) return
+  async function saveForm() {
+    if (locked.current) return false
     const missingUsername = !draft.username.trim()
     const missingRoles = draft.roles.length === 0
     setUsernameError(
@@ -96,7 +106,7 @@ export function UserForm({
             ? 'Ingrese la identificación de acceso.'
             : 'Seleccione al menos un rol.',
       )
-      return
+      return false
     }
 
     locked.current = true
@@ -104,6 +114,7 @@ export function UserForm({
     setSummary('')
     try {
       await onSubmit({ ...draft, username: draft.username.trim() })
+      return true
     } catch (caught) {
       const message =
         caught instanceof Error
@@ -111,18 +122,22 @@ export function UserForm({
           : 'No fue posible guardar el usuario.'
       setSummary(message)
       setUsernameError(message)
+      return false
     } finally {
       locked.current = false
       setPending(false)
     }
   }
 
-  return (
-    <form
-      className="user-form space-y-6"
-      noValidate
-      onSubmit={(event) => void submit(event)}
-    >
+  useImperativeHandle(ref, () => ({ submit: saveForm }))
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    void saveForm()
+  }
+
+  const fields = (
+    <>
       <div className="user-form-avatar" aria-hidden="true">
         {user ? (
           `${user.first_name[0] ?? user.username[0]}${user.last_name[0] ?? ''}`.toUpperCase()
@@ -225,6 +240,16 @@ export function UserForm({
           Hay cambios sin guardar.
         </p>
       )}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="user-form space-y-6">{fields}</div>
+  }
+
+  return (
+    <form className="user-form space-y-6" noValidate onSubmit={submit}>
+      {fields}
       <ButtonGroup label="Acciones del formulario">
         <Button pending={pending} pendingLabel="Guardando…" type="submit">
           Guardar usuario
@@ -237,4 +262,5 @@ export function UserForm({
       </ButtonGroup>
     </form>
   )
-}
+  },
+)

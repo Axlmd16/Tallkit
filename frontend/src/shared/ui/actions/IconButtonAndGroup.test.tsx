@@ -13,10 +13,10 @@ describe('C03-C04: IconButton y ButtonGroup', () => {
       expect(btn).toHaveAttribute('title', 'Perfil de usuario')
     })
 
-    it('conserva por defecto forma cuadrada redondeada (rounded-group) y tamaño 40px', () => {
+    it('conserva por defecto forma cuadrada redondeada (rounded-control) y tamaño 40px', () => {
       render(<IconButton icon={<User />} label="Acción estándar" />)
       const btn = screen.getByRole('button', { name: 'Acción estándar' })
-      expect(btn.className).toContain('rounded-group')
+      expect(btn.className).toContain('rounded-control')
       expect(btn.className).toContain('size-10')
     })
 

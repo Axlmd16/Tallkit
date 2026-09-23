@@ -21,7 +21,7 @@ import {
 } from '@/features/purchases/hooks'
 import { LinesEditor } from '@/features/purchases/LinesEditor'
 import { useSupplierOptions } from '@/features/purchases/pickers'
-import { ReferencePicker } from '@/features/purchases/ReferencePicker'
+import { PurchaseDocument } from '@/features/purchases/PurchaseDocument'
 import { ReviewDialog } from '@/features/purchases/ReviewDialog'
 import {
   documentTypeLabels,
@@ -31,8 +31,11 @@ import {
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { useLatestReview } from '@/shared/api/latest-review'
+import { SaleViewer } from '@/features/sales/SaleViewer'
+import '@/features/sales/sales.css'
 import {
   Button,
+  Combobox,
   Dialog,
   Field,
   FiscalScopeBadge,
@@ -69,6 +72,7 @@ export function PurchaseEditorPage() {
   const [reviewMessage, setReviewMessage] = useState<string | null>(null)
   const [discardOpen, setDiscardOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [view, setView] = useState<'edit' | 'preview'>('edit')
   const reviewTrigger = useRef<HTMLButtonElement>(null)
 
   const purchase = query.data
@@ -242,8 +246,22 @@ export function PurchaseEditorPage() {
     )
   }
 
+  const documentLines = draft.lines.map((line, index) => {
+    const [code = null, name = null] = (line.product?.label ?? '').split(' — ')
+    const persisted = !dirty ? purchase?.lines[index] : undefined
+    return {
+      key: line.key,
+      code,
+      name,
+      quantity: line.quantity,
+      unitCost: persisted?.unit_cost ?? null,
+      tax: persisted?.amounts?.tax ?? null,
+      total: persisted?.amounts?.total ?? null,
+    }
+  })
+
   return (
-    <div className="space-y-6">
+    <div className="sale-screen">
       <PageHeader
         description="Complete el documento del proveedor y las líneas. Los importes los calcula el sistema; confirme solo después de revisarlos."
         title={
@@ -252,7 +270,25 @@ export function PurchaseEditorPage() {
             : 'Editar ingreso de mercadería'
         }
       />
-      <FiscalScopeBadge scope="commercial" />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <FiscalScopeBadge scope="commercial" />
+        {dirty && <span className="sale-unsaved">Cambios sin guardar</span>}
+      </div>
+      <div aria-label="Vista" className="sale-view-switch" role="group">
+        {(['edit', 'preview'] as const).map((value) => (
+          <button
+            aria-pressed={view === value}
+            key={value}
+            onClick={() => setView(value)}
+            type="button"
+          >
+            {value === 'edit' ? 'Editar' : 'Vista previa'}
+          </button>
+        ))}
+      </div>
+      <div className="sale-workspace" data-view={view}>
+        <section aria-label="Captura del ingreso" className="sale-editor-panel">
+          <div className="sale-editor-scroll">
       {problem && (
         <InlineNotice
           title={
@@ -281,7 +317,7 @@ export function PurchaseEditorPage() {
         </InlineNotice>
       )}
       <form
-        className="catalog-editor-form space-y-6"
+        className="catalog-editor-form space-y-4"
         onSubmit={(event) => {
           event.preventDefault()
           void onSave()
@@ -303,7 +339,8 @@ export function PurchaseEditorPage() {
             </div>
           </div>
           <div className="md:col-span-2">
-            <ReferencePicker
+            <Combobox
+              clearable
               error={errors.supplier_id}
               id="purchase-supplier"
               inactiveHelp="Proveedor inactivo: se conserva legible, pero impide confirmar mientras siga inactivo."
@@ -442,6 +479,31 @@ export function PurchaseEditorPage() {
           </p>
         )}
       </form>
+          </div>
+        </section>
+        <section aria-label="Vista previa" className="sale-viewer">
+          <SaleViewer
+            failed={false}
+            issues={[]}
+            phase={!dirty && purchase ? 'fresh' : 'incomplete'}
+          >
+            <PurchaseDocument
+              documentDateValue={draft.documentDate}
+              documentReference={
+                draft.documentType === 'SIN_DOCUMENTO'
+                  ? draft.reason
+                  : draft.reference
+              }
+              documentType={draft.documentType}
+              lines={documentLines}
+              number={purchase?.internal_number ?? null}
+              stale={dirty || !purchase}
+              supplier={draft.supplier?.label ?? ''}
+              totals={!dirty ? (purchase?.totals ?? null) : null}
+            />
+          </SaleViewer>
+        </section>
+      </div>
       <ReviewDialog
         documentType={draft.documentType}
         message={reviewMessage}

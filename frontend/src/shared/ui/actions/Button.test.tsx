@@ -17,10 +17,10 @@ describe('C02: Button - Variantes opt-in 40/50 y estados', () => {
     expect(btn.className).toContain('min-h-10')
   })
 
-  it('soporta variante opt-in de tamaño 50px (min-h-[50px]) para formularios', () => {
+  it('soporta variante opt-in de tamaño 44px (min-h-11) para formularios', () => {
     render(<Button size="50">Botón formulario</Button>)
     const btn = screen.getByRole('button', { name: 'Botón formulario' })
-    expect(btn.className).toContain('min-h-[50px]')
+    expect(btn.className).toContain('min-h-11')
   })
 
   it('soporta todos los tonos de variante: primary, secondary, quiet y danger', () => {
@@ -28,13 +28,13 @@ describe('C02: Button - Variantes opt-in 40/50 y estados', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-primary')
 
     rerender(<Button variant="secondary">Secundario</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-primary-soft')
+    expect(screen.getByRole('button')).toHaveClass('border-line-strong')
 
     rerender(<Button variant="quiet">Quiet</Button>)
     expect(screen.getByRole('button')).toHaveClass('bg-transparent')
 
     rerender(<Button variant="danger">Peligro</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-danger-soft')
+    expect(screen.getByRole('button')).toHaveClass('text-danger')
   })
 
   it('gestiona correctamente estados disabled y busy/pending', () => {

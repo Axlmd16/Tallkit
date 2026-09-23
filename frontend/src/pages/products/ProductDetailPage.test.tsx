@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/shared/ui'
+
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
   stock: {} as Record<string, unknown>,
@@ -39,9 +41,6 @@ vi.mock('@/features/products/hooks', () => ({
   }),
   useProductMutations: () => ({ setActive: { mutateAsync: vi.fn() } }),
 }))
-vi.mock('@/features/products/ProductEditorDrawer', () => ({
-  ProductEditorDrawer: () => null,
-}))
 vi.mock('@/features/inventory/hooks', () => ({
   useStockItem: (id: number | null, enabled: boolean) => {
     mocks.stockArgs.push([id, enabled])
@@ -62,12 +61,14 @@ function Where() {
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/products/7']}>
-      <Routes>
-        <Route element={<ProductDetailPage />} path="/products/:id" />
-        <Route element={<Where />} path="/inventory/products/:id/kardex" />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/products/7']}>
+        <Routes>
+          <Route element={<ProductDetailPage />} path="/products/:id" />
+          <Route element={<Where />} path="/inventory/products/:id/kardex" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 

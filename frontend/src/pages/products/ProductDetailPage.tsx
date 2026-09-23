@@ -1,6 +1,6 @@
 import { ArrowLeft, Pencil, Power } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import {
@@ -10,10 +10,15 @@ import {
 import { useStockItem } from '@/features/inventory/hooks'
 import { useProduct, useProductMutations } from '@/features/products/hooks'
 import { ProductDetails } from '@/features/products/ProductDetails'
-import { ProductEditorDrawer } from '@/features/products/ProductEditorDrawer'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
+import {
+  Button,
+  InlineNotice,
+  LoadingState,
+  PageHeader,
+  useToast,
+} from '@/shared/ui'
 
 export function ProductDetailPage() {
   const id = Number(useParams().id)
@@ -23,9 +28,9 @@ export function ProductDetailPage() {
   const query = useProduct(Number.isFinite(id) ? id : null)
   const mutations = useProductMutations()
   const tracker = useIntentTracker()
-  const [editing, setEditing] = useState(false)
+  const navigate = useNavigate()
+  const toast = useToast()
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const product = query.data
   const canSeeStock = permissions.has('inventario.ver')
   const stock = useStockItem(product?.id ?? null, canSeeStock)
@@ -39,7 +44,7 @@ export function ProductDetailPage() {
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `Producto «${target.name}» ${target.active ? 'reactivado' : 'desactivado'}.`,
     )
   }
@@ -74,7 +79,9 @@ export function ProductDetailPage() {
               <div className="flex flex-wrap gap-2">
                 {permissions.has('productos.gestionar') && (
                   <Button
-                    onClick={() => setEditing(true)}
+                    onClick={() =>
+                      void navigate(`/products/${product.id}/edit`)
+                    }
                     type="button"
                     variant="secondary"
                   >
@@ -104,11 +111,6 @@ export function ProductDetailPage() {
             description={`Código interno ${product.code}${product.manufacturer_code ? ` · Fabricante ${product.manufacturer_code}` : ''}`}
             title={product.name}
           />
-          {notice && (
-            <InlineNotice title="Operación exitosa" tone="success">
-              {notice}
-            </InlineNotice>
-          )}
           <ProductDetails product={product} />
           {canSeeStock && (
             <section
@@ -158,11 +160,6 @@ export function ProductDetailPage() {
               </Link>
             </section>
           )}
-          <ProductEditorDrawer
-            mode={editing ? product : null}
-            onClose={() => setEditing(false)}
-            onSaved={setNotice}
-          />
           <StateChangeDialog
             activateText="¿Reactivar el producto? Exige que su categoría esté activa."
             change={change}

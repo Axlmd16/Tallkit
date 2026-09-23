@@ -4,6 +4,8 @@ import { Button } from '@/shared/ui/actions'
 import { EmptyState, InlineNotice, LoadingState } from '@/shared/ui/states'
 
 export { EmptyState, InlineNotice, LoadingState }
+export { ToastProvider, useToast } from './Toast'
+export type { ToastApi, ToastOptions } from './Toast'
 
 export interface ErrorStateProps {
   title?: string

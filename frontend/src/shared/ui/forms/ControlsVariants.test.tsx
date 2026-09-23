@@ -10,7 +10,7 @@ describe('C06–C08: Variantes opt-in de Input, Select y Checkbox', () => {
       render(<Input placeholder="Entrada estándar" />)
       const input = screen.getByPlaceholderText('Entrada estándar')
       expect(input.className).toContain('rounded-control')
-      expect(input.className).toContain('min-h-[50px]')
+      expect(input.className).toContain('min-h-10')
     })
 
     it('soporta variante opt-in radio r10 (F10 4:5440)', () => {
@@ -22,7 +22,7 @@ describe('C06–C08: Variantes opt-in de Input, Select y Checkbox', () => {
     it('soporta variante opt-in compacta 42px (F12 4:6205)', () => {
       render(<Input placeholder="Entrada compacta" density="compact42" />)
       const input = screen.getByPlaceholderText('Entrada compacta')
-      expect(input.className).toContain('min-h-[42px]')
+      expect(input.className).toContain('min-h-10')
     })
 
     it('soporta estado disabled y reenvío de ref', () => {

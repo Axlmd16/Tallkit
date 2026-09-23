@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { API, csrf, seedFiscalConfiguration, send } from './catalog-helpers'
-import { login } from './helpers'
+import { expandNavigation, goToSection, login } from './helpers'
 
 async function createAuxiliary(
   page: Page,
@@ -70,7 +70,9 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     // Alta de producto con importe exacto.
     await page.goto('/products')
     await page.getByRole('button', { name: 'Nuevo producto' }).click()
-    const form = page.getByRole('dialog', { name: 'Nuevo producto' })
+    // Producto usa página completa: su formulario tiene secciones (PPF-03).
+    await expect(page).toHaveURL(/\/products\/new$/)
+    const form = page.locator('main')
     await form.getByLabel('Código interno', { exact: true }).fill('ace-e2e')
     await form
       .getByLabel('Código del fabricante', { exact: true })
@@ -93,7 +95,11 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await expect(form.getByLabel('Precio final (USD)')).toHaveValue('10.999')
     await form.getByLabel('Precio final (USD)').fill('10.50')
     await form.getByRole('button', { name: 'Guardar producto' }).click()
-    await expect(form).not.toBeVisible()
+    await expect(page).toHaveURL(/\/products\/\d+$/)
+    await expect(
+      page.getByText(/Producto «Aceite 20W50 E2E» creado/),
+    ).toBeVisible()
+    await page.goto('/products')
 
     const row = page.getByRole('row').filter({ hasText: 'ACE-E2E' })
     await expect(row).toContainText('Aceite 20W50 E2E')
@@ -200,7 +206,7 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
 
     await login(page, 'taller_e2e')
     await expect(page.getByRole('link', { name: 'Proveedores' })).toHaveCount(0)
-    await page.getByRole('link', { name: 'Servicios', exact: true }).click()
+    await goToSection(page, 'Servicios')
     await page.getByRole('button', { name: 'Nuevo servicio' }).click()
     const form = page.getByRole('dialog', { name: 'Nuevo servicio' })
     await form.getByLabel('Nombre', { exact: true }).fill('Alineación E2E')
@@ -212,7 +218,7 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
       page.getByRole('row').filter({ hasText: 'Alineación E2E' }),
     ).toContainText('USD 25.00')
 
-    await page.getByRole('link', { name: 'Productos', exact: true }).click()
+    await goToSection(page, 'Productos')
     await expect(
       page.getByRole('button', { name: 'Nuevo producto' }),
     ).toHaveCount(0)
@@ -224,6 +230,7 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
   }) => {
     await login(page, 'vendedor_e2e')
     const request = page.request
+    await expandNavigation(page)
     await expect(page.getByRole('link', { name: 'Proveedores' })).toHaveCount(0)
     await expect(
       page.getByRole('link', { name: 'Servicios', exact: true }),
@@ -327,7 +334,8 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
       .filter({ hasText: 'ACE-E2E' })
       .getByRole('button', { name: 'Editar' })
       .click()
-    const form = page.getByRole('dialog', { name: 'Editar producto' })
+    await expect(page).toHaveURL(/\/products\/\d+\/edit$/)
+    const form = page.locator('main')
     const list = await (
       await page.request.get(`${API}/products/?search=ACE-E2E`)
     ).json()
@@ -359,7 +367,7 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await form.getByRole('button', { name: 'Cargar versión vigente' }).click()
     await reloaded
     await form.getByRole('button', { name: 'Guardar cambios' }).click()
-    await expect(form).not.toBeVisible()
+    await expect(page).toHaveURL(/\/products\/\d+$/)
   })
 
   test('un fallo de red conserva la clave y el reintento no duplica el registro', async ({

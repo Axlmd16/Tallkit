@@ -1,9 +1,12 @@
 import { PencilSimple, Plus, Power, Key } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
 import type { Role } from '@/features/auth/types'
-import { UserForm } from '@/features/users/UserForm'
+import {
+  UserForm,
+  type UserFormHandle,
+} from '@/features/users/UserForm'
 import { useRoles, useUserMutations, useUsers } from '@/features/users/hooks'
 import type {
   UserFilters,
@@ -14,11 +17,11 @@ import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   Dialog,
-  Drawer,
   ElevatedDataList,
   EmptyState,
   Field,
   FilterPanel,
+  FormModal,
   InlineNotice,
   Input,
   LoadingState,
@@ -27,6 +30,7 @@ import {
   RowActions,
   Select,
   StatusBadge,
+  useToast,
 } from '@/shared/ui'
 
 const roleLabels: Record<Role, string> = {
@@ -36,12 +40,13 @@ const roleLabels: Record<Role, string> = {
 }
 
 type Confirmation = { kind: 'state' | 'reset'; user: UserSummary }
-type Notice = { text: string; tone: 'success' | 'danger' }
+type Notice = { text: string; tone: 'danger' }
 
 export function UsersPage() {
   const session = useSession().data
   const permissions = new Set(session?.permissions ?? [])
   const [filters, setFilters] = useState<UserFilters>({ page: 1 })
+  const formRef = useRef<UserFormHandle>(null)
   const [editing, setEditing] = useState<UserSummary | null | undefined>()
   const [formDirty, setFormDirty] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
@@ -52,13 +57,14 @@ export function UsersPage() {
   const users = useUsers(filters)
   const roles = useRoles()
   const mutations = useUserMutations()
+  const toast = useToast()
 
   async function save(data: UserWrite) {
     if (editing) await mutations.update.mutateAsync({ id: editing.id, data })
     else await mutations.create.mutateAsync(data)
     setEditing(undefined)
     setFormDirty(false)
-    setNotice({ text: 'Usuario guardado correctamente.', tone: 'success' })
+    toast.success('Usuario guardado correctamente.')
   }
 
   async function runConfirmation() {
@@ -77,10 +83,9 @@ export function UsersPage() {
       }
       if (user.is_active) await mutations.deactivate.mutateAsync(user.id)
       else await mutations.activate.mutateAsync(user.id)
-      setNotice({
-        text: `Usuario ${user.is_active ? 'desactivado' : 'activado'}.`,
-        tone: 'success',
-      })
+      toast.success(
+        `Usuario ${user.is_active ? 'desactivado' : 'activado'}.`,
+      )
     } catch (caught) {
       const text =
         caught instanceof ProblemError &&
@@ -268,29 +273,29 @@ export function UsersPage() {
         </div>
       )}
 
-      <Drawer
+      <FormModal
         description="Complete únicamente la información autorizada para esta cuenta interna."
-        hasUnsavedChanges={formDirty}
+        dirty={formDirty}
         onClose={() => {
           setEditing(undefined)
           setFormDirty(false)
         }}
+        onSave={() => formRef.current?.submit() ?? false}
         open={editing !== undefined}
+        saveLabel="Guardar usuario"
         title={editing ? 'Editar usuario' : 'Nuevo usuario'}
       >
         {editing !== undefined && (
           <UserForm
+            embedded
             key={editing ? editing.id : 'new'}
-            onCancel={() => {
-              setEditing(undefined)
-              setFormDirty(false)
-            }}
             onDirtyChange={setFormDirty}
             onSubmit={save}
+            ref={formRef}
             {...(editing ? { user: editing } : {})}
           />
         )}
-      </Drawer>
+      </FormModal>
 
       {users.isPending && <LoadingState label="Cargando usuarios…" />}
       {users.isError && (
@@ -360,7 +365,11 @@ export function UsersPage() {
       </details>
 
       <Dialog
-        appearance={confirmation?.kind === 'reset' ? 'recover' : 'default'}
+        tone={
+          confirmation?.kind === 'state' && confirmation.user.is_active
+            ? 'danger'
+            : 'default'
+        }
         description={
           confirmation
             ? confirmation.kind === 'reset'
@@ -405,7 +414,6 @@ export function UsersPage() {
       </Dialog>
 
       <Dialog
-        appearance="confirm"
         description="Cópiela ahora: por seguridad no volverá a mostrarse después de cerrar este diálogo."
         onClose={() => setTemporaryPassword(null)}
         open={Boolean(temporaryPassword)}

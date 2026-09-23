@@ -72,7 +72,7 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
     expect(handleClose).toHaveBeenCalled()
   })
 
-  it('renders ConfirmationPanel without illustrations with 658px/726px width (F19/F20)', async () => {
+  it('renders the Tallkit confirmation panel without illustrations at 420–480px', async () => {
     const user = userEvent.setup()
     const handleConfirm = vi.fn()
     const handleCancel = vi.fn()
@@ -86,15 +86,15 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
         open
         title="Anular Orden de Servicio"
         tone="danger"
-        width="658"
       />,
     )
 
-    const panel658 = screen.getByRole('dialog', {
+    const panel480 = screen.getByRole('dialog', {
       name: 'Anular Orden de Servicio',
     })
-    expect(panel658).toBeVisible()
-    expect(panel658.className).toContain('max-w-[658px]')
+    expect(panel480).toBeVisible()
+    expect(panel480).toHaveClass('max-w-[480px]')
+    expect(panel480.parentElement).toHaveClass('bg-ink/45')
 
     // No debe contener imágenes ni ilustraciones demo
     expect(document.querySelector('img')).toBeNull()
@@ -105,7 +105,7 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
     await user.click(confirmBtn)
     expect(handleConfirm).toHaveBeenCalledTimes(1)
 
-    // Rerender con ancho 726px
+    // La variante estrecha se mantiene dentro del rango aprobado.
     rerender(
       <ConfirmationPanel
         confirmLabel="Confirmar"
@@ -114,11 +114,11 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
         onConfirm={handleConfirm}
         open
         title="Confirmar Proceso"
-        width="726"
+        width="420"
       />,
     )
-    const panel726 = screen.getByRole('dialog', { name: 'Confirmar Proceso' })
-    expect(panel726.className).toContain('max-w-[726px]')
+    const panel420 = screen.getByRole('dialog', { name: 'Confirmar Proceso' })
+    expect(panel420).toHaveClass('max-w-[420px]')
   })
 
   it('connects mobile navigation to Drawer, closing on selection or Escape', async () => {

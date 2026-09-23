@@ -22,10 +22,10 @@ import {
 import { VoidSaleDialog } from '@/features/sales/VoidSaleDialog'
 import {
   Button,
-  FiscalScopeBadge,
   InlineNotice,
   LoadingState,
   PageHeader,
+  useToast,
 } from '@/shared/ui'
 
 type Dialogs =
@@ -48,7 +48,7 @@ export function SaleDetailPage() {
   const scope = session?.username ?? ''
   const query = useSale(Number.isFinite(id) ? id : null)
   const [dialog, setDialog] = useState<Dialogs>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const returnFocus = useRef<HTMLElement | null>(null)
 
   if (query.isPending) return <LoadingState label="Cargando venta…" />
@@ -76,7 +76,7 @@ export function SaleDetailPage() {
   }
   const done = (message: string) => () => {
     setDialog(null)
-    setNotice(message)
+    toast.success(message)
   }
   const focusRef = returnFocus
 
@@ -100,16 +100,6 @@ export function SaleDetailPage() {
         description="Los importes, el saldo y los estados se derivan de hechos registrados; no se editan."
         title={sale.internal_number ?? 'Venta en borrador'}
       />
-      <FiscalScopeBadge scope="commercial" />
-      {notice && (
-        <p
-          aria-label="Resultado de la operación"
-          className="text-sm font-semibold text-success"
-          role="status"
-        >
-          {notice}
-        </p>
-      )}
       <section
         aria-label="Estados"
         className="ui-surface rounded-group bg-surface p-5"

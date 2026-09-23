@@ -152,8 +152,26 @@ describe('DropdownMenu (C17)', () => {
 
     const menu = screen.getByRole('menu')
     expect(menu).toBeInTheDocument()
-    expect(menu.className).toContain('rounded-group')
+    expect(menu.className).toContain('rounded-panel')
     expect(menu.className).toContain('shadow-menu')
-    expect(menu.className).not.toContain('border')
+    expect(menu.className).toContain('border-line')
+  })
+
+  it('renders the floating panel in a portal so table overflow cannot clip it', async () => {
+    const user = userEvent.setup()
+    render(
+      <div data-testid="clipping-panel" style={{ overflow: 'hidden' }}>
+        <DropdownMenu
+          items={items}
+          trigger={<button type="button">Acciones de fila</button>}
+        />
+      </div>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Acciones de fila' }))
+
+    const menu = screen.getByRole('menu')
+    expect(menu.parentElement).toBe(document.body)
+    expect(menu).toHaveClass('fixed')
   })
 })

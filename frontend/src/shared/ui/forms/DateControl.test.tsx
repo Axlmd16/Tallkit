@@ -92,7 +92,7 @@ describe('DateControl (C13)', () => {
 
     let input = screen.getByLabelText('Fecha compacta r10')
     expect(input.className).toContain('rounded-group')
-    expect(input.className).toContain('min-h-[42px]')
+    expect(input.className).toContain('min-h-10')
 
     rerender(
       <DateControl aria-label="Fecha standard r5" density="50" radius="r5" />,
@@ -100,6 +100,6 @@ describe('DateControl (C13)', () => {
 
     input = screen.getByLabelText('Fecha standard r5')
     expect(input.className).toContain('rounded-control')
-    expect(input.className).toContain('min-h-[50px]')
+    expect(input.className).toContain('min-h-10')
   })
 })

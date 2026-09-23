@@ -2,7 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import '@/shared/styles/index.css'
-import '@/shared/ui/catalog-tokens.css'
 import { CatalogApp } from './CatalogApp'
 
 if (!import.meta.env.DEV) {

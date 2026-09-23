@@ -183,7 +183,8 @@ it('valida en el cliente, asocia cada error a su campo y no envía nada', async 
 
 it('conserva los decimales como cadenas y prellena el impuesto sugerido del producto', async () => {
   renderEditor('/purchases/new')
-  await userEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0]!)
+  await userEvent.click(screen.getByRole('combobox', { name: 'Proveedor' }))
+  await userEvent.click(screen.getByRole('option', { name: /Repuestos SA/ }))
   await userEvent.type(
     screen.getByLabelText('Referencia del proveedor'),
     'F-99',
@@ -194,9 +195,8 @@ it('conserva los decimales como cadenas y prellena el impuesto sugerido del prod
   )
   await userEvent.click(screen.getByRole('button', { name: 'Agregar línea' }))
   const line = screen.getByRole('group', { name: /Línea 1/ })
-  await userEvent.click(
-    within(line).getAllByRole('button', { name: 'Elegir' })[0]!,
-  )
+  await userEvent.click(within(line).getByRole('combobox', { name: 'Producto' }))
+  await userEvent.click(screen.getByRole('option', { name: /ACE-1 — Aceite/ }))
   await userEvent.type(
     within(line).getByLabelText('Cantidad de presentaciones'),
     '2',
@@ -233,19 +233,18 @@ it('las referencias inactivas se etiquetan y no pueden elegirse', async () => {
   renderEditor('/purchases/new')
   await userEvent.click(screen.getByRole('button', { name: 'Agregar línea' }))
   const line = screen.getByRole('group', { name: /Línea 1/ })
+  await userEvent.click(within(line).getByRole('combobox', { name: 'Producto' }))
   expect(
-    within(line).getByText('Inactivo: no seleccionable'),
-  ).toBeInTheDocument()
-  expect(within(line).getAllByRole('button', { name: 'Elegir' })).toHaveLength(
-    1,
-  )
+    screen.getByRole('option', { name: /OLD-1 — Bujía vieja/ }),
+  ).toHaveAttribute('aria-disabled', 'true')
 })
 
 it('impide el doble envío mientras el guardado está en curso', async () => {
   let release!: (value: unknown) => void
   mocks.create.mockReturnValue(new Promise((resolve) => (release = resolve)))
   renderEditor('/purchases/new')
-  await userEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0]!)
+  await userEvent.click(screen.getByRole('combobox', { name: 'Proveedor' }))
+  await userEvent.click(screen.getByRole('option', { name: /Repuestos SA/ }))
   await userEvent.type(screen.getByLabelText('Referencia del proveedor'), 'F-1')
   await userEvent.type(
     screen.getByLabelText('Fecha del documento'),

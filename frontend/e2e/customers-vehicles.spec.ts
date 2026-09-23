@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
 
-import { login, logout } from './helpers'
+import { login, logout, goToSection } from './helpers'
 
 test.describe('customer registry', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'admin_e2e')
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     await expect(
       page.getByRole('heading', { name: 'Clientes', exact: true }),
     ).toBeVisible()
@@ -179,9 +179,7 @@ test.describe('vehicle brands', () => {
   }) => {
     // 1. Consultation by Vendedor and direct write denial
     await login(page, 'vendedor_e2e')
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await expect(
       page.getByRole('heading', { name: 'Marcas', exact: true }),
     ).toBeVisible()
@@ -217,9 +215,7 @@ test.describe('vehicle brands', () => {
 
     // 2. Creation and editing by Encargado del taller, and deactivation denial
     await login(page, 'taller_e2e')
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await expect(
       page.getByRole('heading', { name: 'Marcas', exact: true }),
     ).toBeVisible()
@@ -291,9 +287,7 @@ test.describe('vehicle brands', () => {
 
     // 3. Consultation and deactivation/reactivation by Administrador
     await login(page, 'admin_e2e')
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await expect(
       page.getByRole('heading', { name: 'Marcas', exact: true }),
     ).toBeVisible()
@@ -348,7 +342,7 @@ test.describe('vehicles and ownership', () => {
     await login(page, 'admin_e2e')
 
     // Create a customer "Valeria Vehículos"
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     await page.getByRole('button', { name: 'Nuevo cliente' }).click()
     const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
     await customerDrawer
@@ -364,9 +358,7 @@ test.describe('vehicles and ownership', () => {
     await expect(customerDrawer).not.toBeVisible()
 
     // Create a brand "Toyota E2E"
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Toyota E2E')
@@ -398,7 +390,7 @@ test.describe('vehicles and ownership', () => {
 
     // 2. Encargado del taller tests creation and validations
     await login(page, 'taller_e2e')
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await expect(
       page.getByRole('heading', { name: 'Vehículos', exact: true }),
     ).toBeVisible()
@@ -514,7 +506,11 @@ test.describe('vehicles and ownership', () => {
     // 3. Bidirectional navigation and consultation from customer and vehicle
     await vehicleRow.getByRole('cell').first().click()
     await page.getByRole('link', { name: 'Ver ficha completa' }).click()
-    await expect(page.getByRole('heading', { name: 'GBE-1234' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('GBE-1234'),
+    ).toBeVisible()
     await expect(page.getByText('Toyota E2E Hilux')).toBeVisible()
 
     const currentOwnerSection = page
@@ -543,7 +539,11 @@ test.describe('vehicles and ownership', () => {
 
     // Click GBE-1234 to navigate back to vehicle detail
     await vehiclesSection.getByRole('link', { name: 'GBE-1234' }).click()
-    await expect(page.getByRole('heading', { name: 'GBE-1234' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('GBE-1234'),
+    ).toBeVisible()
 
     // Direct backend rejection check: inactive reference cannot be selected
     const inactiveBrandId = await page.evaluate(async () => {
@@ -594,7 +594,7 @@ test.describe('vehicles and ownership', () => {
 
     // 4. Vendedor authorization check: read-only access
     await login(page, 'vendedor_e2e')
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await expect(
       page.getByRole('heading', { name: 'Vehículos', exact: true }),
     ).toBeVisible()
@@ -612,7 +612,11 @@ test.describe('vehicles and ownership', () => {
     await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // In vehicle detail, Vendedor sees details and owner, but cannot edit
-    await expect(page.getByRole('heading', { name: 'GBE-1234' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('GBE-1234'),
+    ).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Editar vehículo' }),
     ).toHaveCount(0)
@@ -657,7 +661,7 @@ test.describe('vehicles and ownership', () => {
     await login(page, 'admin_e2e')
 
     // Create Customer A "Propietario Origen"
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     await page.getByRole('button', { name: 'Nuevo cliente' }).click()
     let customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
     await customerDrawer
@@ -688,9 +692,7 @@ test.describe('vehicles and ownership', () => {
     await expect(customerDrawer).not.toBeVisible()
 
     // Create a brand "Mazda E2E"
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Mazda E2E')
@@ -698,7 +700,7 @@ test.describe('vehicles and ownership', () => {
     await expect(brandDrawer).not.toBeVisible()
 
     // Create a vehicle "TRF-9999" owned by Customer A
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
@@ -723,7 +725,7 @@ test.describe('vehicles and ownership', () => {
 
     // 2. Encargado del taller performs ownership transfer
     await login(page, 'taller_e2e')
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     const trfRow = page.getByRole('row').filter({ hasText: 'TRF-9999' })
     await expect(trfRow).toBeVisible()
     await expect(trfRow).toContainText('Propietario Origen')
@@ -731,7 +733,11 @@ test.describe('vehicles and ownership', () => {
     await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // Vehicle detail
-    await expect(page.getByRole('heading', { name: 'TRF-9999' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('TRF-9999'),
+    ).toBeVisible()
     const currentOwnerSection = page
       .locator('section')
       .filter({ hasText: 'Propietario actual' })
@@ -742,14 +748,15 @@ test.describe('vehicles and ownership', () => {
     // Initial period in history table
     const historySection = page
       .locator('section')
-      .filter({ hasText: 'Historial de períodos de propiedad' })
+      .filter({ hasText: 'Historial de propiedad' })
     let periodRows = historySection.getByRole('row')
     await expect(periodRows).toHaveCount(2) // header + 1 period
     await expect(historySection).toContainText('Propietario Origen')
     await expect(historySection).toContainText('Vigente')
 
     // Open transfer modal
-    await currentOwnerSection
+    await page
+      .getByRole('region', { name: 'Acciones' })
       .getByRole('button', { name: 'Cambiar propietario' })
       .click()
     const transferDialog = page.getByRole('dialog', {
@@ -784,7 +791,7 @@ test.describe('vehicles and ownership', () => {
     await expect(historySection).toContainText('Vigente')
 
     // 3. Verify Customer A no longer has TRF-9999 under active vehicles
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     const originRow = page
       .getByRole('row')
       .filter({ hasText: 'Propietario Origen' })
@@ -799,7 +806,7 @@ test.describe('vehicles and ownership', () => {
     await expect(originVehicles.getByText('TRF-9999')).toHaveCount(0)
 
     // 4. Verify Customer B HAS TRF-9999 under active vehicles
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     const destinationRow = page
       .getByRole('row')
       .filter({ hasText: 'Propietario Destino' })
@@ -815,10 +822,15 @@ test.describe('vehicles and ownership', () => {
 
     // Navigate back to vehicle detail from Customer B's list
     await destinationVehicles.getByRole('link', { name: 'TRF-9999' }).click()
-    await expect(page.getByRole('heading', { name: 'TRF-9999' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('TRF-9999'),
+    ).toBeVisible()
 
     // 5. Test idempotent transfer (repeating transfer to same owner)
-    await currentOwnerSection
+    await page
+      .getByRole('region', { name: 'Acciones' })
       .getByRole('button', { name: 'Cambiar propietario' })
       .click()
     await expect(transferDialog).toBeVisible()
@@ -847,7 +859,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
   }) => {
     // 1. Admin creates customer and vehicle
     await login(page, 'admin_e2e')
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     await page.getByRole('button', { name: 'Nuevo cliente' }).click()
     let customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
     await customerDrawer
@@ -869,9 +881,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(custRow).toContainText('Activo')
 
     // Create brand "Kia E2E"
-    await page
-      .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-      .click()
+    await goToSection(page, 'Marcas de vehículos')
     await page.getByRole('button', { name: 'Nueva marca' }).click()
     const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
     await brandDrawer.getByLabel('Nombre de la marca').fill('Kia E2E')
@@ -879,7 +889,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(brandDrawer).not.toBeVisible()
 
     // Create vehicle for this customer
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
@@ -907,7 +917,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // 2. Negative permissions check for Vendedor
     await logout(page)
     await login(page, 'vendedor_e2e')
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     custRow = page.getByRole('row').filter({ hasText: 'Cliente Ciclo Estado' })
     await expect(custRow).toBeVisible()
     await expect(
@@ -919,7 +929,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
 
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
     await expect(vehRow).toBeVisible()
     await expect(
@@ -934,7 +944,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // 3. Negative permissions check for Encargado
     await logout(page)
     await login(page, 'taller_e2e')
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     custRow = page.getByRole('row').filter({ hasText: 'Cliente Ciclo Estado' })
     await expect(custRow).toBeVisible()
     await expect(
@@ -946,7 +956,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
 
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
     await expect(vehRow).toBeVisible()
     await expect(
@@ -961,7 +971,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // 4. Vehicle deactivation and reactivation by Administrador
     await logout(page)
     await login(page, 'admin_e2e')
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
     await expect(vehRow).toBeVisible()
 
@@ -993,9 +1003,15 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // Check vehicle detail: consultable, history intact, "Cambiar propietario" NOT shown
     await vehRow.getByRole('cell').first().click()
     await page.getByRole('link', { name: 'Ver ficha completa' }).click()
-    await expect(page.getByRole('heading', { name: 'INA-1234' })).toBeVisible()
     await expect(
-      page.locator('.page-header').getByText('Inactivo'),
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('INA-1234'),
+    ).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('Inactivo'),
     ).toBeVisible()
     await expect(page.getByText('Kia E2E Fortuner')).toBeVisible()
     await expect(
@@ -1003,7 +1019,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     ).toHaveCount(0)
 
     // Attempt duplicate vehicle creation with same plate (normalized duplicate test)
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
@@ -1042,13 +1058,17 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       .getByRole('button', { name: 'Confirmar activación' })
       .click()
     await expect(actDialog).not.toBeVisible()
-    await expect(page.locator('.page-header').getByText('Activo')).toBeVisible()
+    await expect(
+      page
+        .getByRole('region', { name: 'Resumen del vehículo' })
+        .getByText('Activo'),
+    ).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Cambiar propietario' }),
     ).toBeVisible()
 
     // 5. Customer deactivation and reactivation by Administrador
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     custRow = page.getByRole('row').filter({ hasText: 'Cliente Ciclo Estado' })
     await expect(custRow).toBeVisible()
 
@@ -1094,7 +1114,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await expect(customerVehicles.getByText('INA-1234')).toBeVisible()
 
     // Inactive customer cannot be selected for new vehicle
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
@@ -1108,7 +1128,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await vehicleDrawer.getByRole('button', { name: 'Cancelar' }).click()
 
     // Attempt duplicate customer creation with same identification
-    await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+    await goToSection(page, 'Clientes')
     await page.getByRole('button', { name: 'Nuevo cliente' }).click()
     customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
     await customerDrawer
@@ -1145,7 +1165,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     ).toBeVisible()
 
     // Customer is now available again for vehicle registration
-    await page.getByRole('link', { name: 'Vehículos', exact: true }).click()
+    await goToSection(page, 'Vehículos')
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()

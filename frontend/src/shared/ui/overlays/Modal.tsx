@@ -21,6 +21,7 @@ export interface ModalProps {
   returnFocusRef?: RefObject<HTMLElement | null> | undefined
   className?: string | undefined
   portalContainer?: HTMLElement | null | undefined
+  mobileFullWidth?: boolean | undefined
 }
 
 export function Modal({
@@ -33,6 +34,7 @@ export function Modal({
   portalContainer,
   returnFocusRef,
   title,
+  mobileFullWidth = false,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
@@ -62,7 +64,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/35 p-4 sm:p-6"
+      className={`fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/35 sm:p-6 ${mobileFullWidth ? 'max-sm:place-items-stretch max-sm:p-0' : 'p-4'}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -71,7 +73,7 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`w-full max-w-[466px] rounded-dialog bg-surface p-5 sm:p-6 text-ink shadow-overlay overflow-y-auto max-h-[min(90vh,45rem)] ${className}`.trim()}
+        className={`max-h-[min(90vh,45rem)] w-full max-w-[466px] overflow-y-auto rounded-dialog bg-surface p-5 text-ink shadow-overlay sm:p-6 ${mobileFullWidth ? 'max-sm:flex max-sm:min-h-dvh max-sm:max-w-none max-sm:flex-col max-sm:rounded-none' : ''} ${className}`.trim()}
         onKeyDown={handleKeyDown}
         ref={modalRef}
         role="dialog"
@@ -97,7 +99,11 @@ export function Modal({
           />
         </header>
 
-        <div className="modal-content text-sm text-ink mb-6">{children}</div>
+        <div
+          className={`modal-content mb-6 text-sm text-ink ${mobileFullWidth ? 'max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto' : ''}`}
+        >
+          {children}
+        </div>
 
         {actions && (
           <footer className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-line">

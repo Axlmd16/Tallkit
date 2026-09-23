@@ -72,12 +72,12 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       <div className="relative w-full">
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
         >
           <Icon name="search" size={18} />
         </span>
         <Input
-          className={`pl-10 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none ${hasValue ? 'pr-11' : ''} ${className}`}
+          className={`pl-9 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none ${hasValue ? 'pr-11' : ''} ${className}`}
           disabled={disabled}
           inputMode="search"
           onChange={handleChange}

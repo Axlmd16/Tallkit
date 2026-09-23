@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CatalogApp } from './CatalogApp'
+import { CATALOG } from './registry'
 
 describe('CatalogApp - Aislamiento e independencia', () => {
   const originalFetch = globalThis.fetch
@@ -37,46 +38,60 @@ describe('CatalogApp - Aislamiento e independencia', () => {
   it('permite filtrar componentes mediante la barra de búsqueda', () => {
     render(<CatalogApp />)
     const searchInput = screen.getByPlaceholderText(/buscar componentes/i)
-    fireEvent.change(searchInput, { target: { value: 'DataTable' } })
+    fireEvent.change(searchInput, { target: { value: 'combobox' } })
 
-    expect(screen.getByText('C34')).toBeInTheDocument()
-    expect(screen.queryByText('C01')).not.toBeInTheDocument()
+    const nav = screen.getByRole('navigation', {
+      name: 'Componentes del catálogo',
+    })
+    expect(within(nav).getByText('TK-06')).toBeInTheDocument()
+    expect(within(nav).queryByText('TK-01')).not.toBeInTheDocument()
   })
 
-  it('permite seleccionar un componente y ver sus variantes y ficha de procedencia', () => {
+  it('muestra el ejemplo y la procedencia del componente elegido', () => {
     render(<CatalogApp />)
-    const item = screen.getByText('C02')
-    fireEvent.click(item)
+    fireEvent.click(screen.getByRole('button', { name: /TK-03 Botones/ }))
 
+    expect(screen.getByRole('heading', { name: 'Botones' })).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'C02 — Button' }),
-    ).toBeInTheDocument()
-    expect(screen.getAllByText(/primario/i).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText(/secundario/i).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Pendiente')).toBeInTheDocument()
+      screen.getByRole('region', { name: 'Ejemplo de Botones' }),
+    ).toHaveTextContent('Anular venta')
+    expect(screen.getByText(/Tablero «Fundamentos»/)).toBeInTheDocument()
   })
 
   it('permite captura aislada cuando se define el hash con isolate=true e id', () => {
-    window.location.hash = '#isolate=true&id=C02'
+    window.location.hash = '#isolate=true&id=TK-03'
     render(<CatalogApp />)
 
     expect(
       screen.queryByRole('heading', { name: /catálogo visual/i }),
     ).not.toBeInTheDocument()
-    const isolatedContainer = screen.getByTestId('isolated-view')
-    expect(isolatedContainer).toBeInTheDocument()
-    expect(screen.getByText(/vista aislada/i)).toBeInTheDocument()
-    expect(screen.getByText(/C02/i)).toBeInTheDocument()
+    expect(screen.getByTestId('isolated-view')).toHaveTextContent(
+      'TK-03 — Botones',
+    )
   })
 
-  it('permite reset determinista del catálogo', () => {
+  it('restablece el ejemplo de forma determinista', () => {
     render(<CatalogApp />)
-    const searchInput = screen.getByPlaceholderText(/buscar componentes/i)
-    fireEvent.change(searchInput, { target: { value: 'DataTable' } })
-    expect(screen.queryByText('C01')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /TK-05/ }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Crédito' }))
+    expect(screen.getByRole('radio', { name: 'Crédito' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Restablecer ejemplo' }))
+    expect(screen.getByRole('radio', { name: 'Contado' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
 
-    const resetButton = screen.getByRole('button', { name: /limpiar/i })
-    fireEvent.click(resetButton)
-    expect(screen.getByText('C01')).toBeInTheDocument()
+  it('cada entrada del registro tiene un ejemplo que se renderiza', () => {
+    for (const entry of CATALOG) {
+      window.location.hash = `#isolate=true&id=${entry.id}`
+      const { unmount } = render(<CatalogApp />)
+      expect(screen.getByTestId('isolated-view')).toHaveTextContent(entry.name)
+      expect(screen.queryByText('Sin ejemplo.')).toBeNull()
+      unmount()
+    }
   })
 })

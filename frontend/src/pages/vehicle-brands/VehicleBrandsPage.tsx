@@ -9,7 +9,6 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { BrandForm } from '@/features/vehicle-brands/BrandForm'
 import {
   useVehicleBrandMutations,
   useVehicleBrands,
@@ -22,11 +21,11 @@ import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   Dialog,
-  Drawer,
   ElevatedDataList,
   EmptyState,
   Field,
   FilterPanel,
+  FormModal,
   InlineNotice,
   Input,
   LoadingState,
@@ -36,6 +35,7 @@ import {
   Select,
   StatusBadge,
   Toolbar,
+  useToast,
 } from '@/shared/ui'
 
 type Confirmation = {
@@ -43,7 +43,7 @@ type Confirmation = {
   brand: VehicleBrandSummary
 }
 
-type Notice = { text: string; tone: 'success' | 'danger' }
+type Notice = { text: string; tone: 'danger' }
 
 export function VehicleBrandsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -67,8 +67,10 @@ export function VehicleBrandsPage() {
   const [editing, setEditing] = useState<
     VehicleBrandSummary | null | undefined
   >()
-  const [formDirty, setFormDirty] = useState(false)
+  const [name, setName] = useState('')
+  const [nameError, setNameError] = useState('')
   const [notice, setNotice] = useState<Notice | null>(null)
+  const toast = useToast()
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
 
   const filters: VehicleBrandFilters = {
@@ -113,46 +115,50 @@ export function VehicleBrandsPage() {
     updateFilters({ search: '' })
   }
 
-  const handleCloseDrawer = () => {
-    if (
-      formDirty &&
-      !window.confirm(
-        'Tiene cambios sin guardar en el formulario. ¿Desea descartarlos?',
-      )
-    ) {
-      return
-    }
-    setEditing(undefined)
-    setFormDirty(false)
+  const openEditor = (brand: VehicleBrandSummary | null) => {
+    setEditing(brand)
+    setName(brand?.name ?? '')
+    setNameError('')
   }
 
-  const handleSaveBrand = async (data: {
-    name: string
-    expected_version?: number | undefined
-  }) => {
-    if (editing && editing.id) {
-      await mutations.updateBrand.mutateAsync({
-        id: editing.id,
-        data: {
-          name: data.name,
-          expected_version: data.expected_version ?? editing.version,
-        },
-      })
-      setNotice({
-        text: `Marca "${data.name}" actualizada correctamente.`,
-        tone: 'success',
-      })
-    } else {
-      await mutations.createBrand.mutateAsync({
-        name: data.name,
-      })
-      setNotice({
-        text: `Marca "${data.name}" creada exitosamente.`,
-        tone: 'success',
-      })
-    }
-    setFormDirty(false)
+  const closeEditor = () => {
     setEditing(undefined)
+    setNameError('')
+  }
+
+  /** Guarda la marca; devuelve `false` si hay un dato que corregir junto al campo. */
+  const saveBrand = async (): Promise<boolean> => {
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setNameError('El nombre de la marca es obligatorio.')
+      return false
+    }
+    if (trimmed.length > 255) {
+      setNameError('El nombre de la marca no puede exceder 255 caracteres.')
+      return false
+    }
+    setNameError('')
+    try {
+      if (editing && editing.id) {
+        await mutations.updateBrand.mutateAsync({
+          id: editing.id,
+          data: { name: trimmed, expected_version: editing.version },
+        })
+        toast.success(`Marca «${trimmed}» actualizada.`)
+      } else {
+        await mutations.createBrand.mutateAsync({ name: trimmed })
+        toast.success(`Marca «${trimmed}» creada.`)
+      }
+    } catch (err) {
+      const fieldMessage =
+        err instanceof ProblemError ? err.errors?.name?.[0] : undefined
+      if (fieldMessage) {
+        setNameError(fieldMessage)
+        return false
+      }
+      throw err
+    }
+    return true
   }
 
   const handleConfirmState = async () => {
@@ -164,19 +170,13 @@ export function VehicleBrandsPage() {
           id: brand.id,
           expectedVersion: brand.version,
         })
-        setNotice({
-          text: `Marca "${brand.name}" desactivada correctamente.`,
-          tone: 'success',
-        })
+        toast.success(`Marca «${brand.name}» desactivada.`)
       } else {
         await mutations.activateBrand.mutateAsync({
           id: brand.id,
           expectedVersion: brand.version,
         })
-        setNotice({
-          text: `Marca "${brand.name}" reactivada correctamente.`,
-          tone: 'success',
-        })
+        toast.success(`Marca «${brand.name}» reactivada.`)
       }
       setConfirmation(null)
     } catch (err) {
@@ -203,10 +203,7 @@ export function VehicleBrandsPage() {
       />
 
       {notice && (
-        <InlineNotice
-          tone={notice.tone === 'success' ? 'success' : 'danger'}
-          title={notice.tone === 'success' ? 'Operación exitosa' : 'Error'}
-        >
+        <InlineNotice tone="danger" title="No se completó la operación">
           {notice.text}
         </InlineNotice>
       )}
@@ -281,10 +278,7 @@ export function VehicleBrandsPage() {
             <Button
               type="button"
               variant="primary"
-              onClick={() => {
-                setEditing(null)
-                setFormDirty(false)
-              }}
+              onClick={() => openEditor(null)}
             >
               <Plus size={16} weight="bold" />
               Nueva marca
@@ -357,10 +351,7 @@ export function VehicleBrandsPage() {
                   <Button
                     type="button"
                     variant="quiet"
-                    onClick={() => {
-                      setEditing(b)
-                      setFormDirty(false)
-                    }}
+                    onClick={() => openEditor(b)}
                   >
                     <PencilSimple size={15} />
                     Editar
@@ -396,23 +387,47 @@ export function VehicleBrandsPage() {
         </div>
       )}
 
-      <Drawer
-        open={editing !== undefined}
-        onClose={handleCloseDrawer}
-        title={editing ? 'Editar marca' : 'Nueva marca'}
+      <FormModal
         description={
           editing
             ? 'Modifique el nombre homologado de la marca.'
-            : 'Ingrese el nombre de la nueva marca de vehículo.'
+            : 'Se podrá elegir al registrar vehículos y compatibilidades.'
         }
+        createAnotherLabel="Guardar y crear otra"
+        dirty={name !== (editing?.name ?? '')}
+        onClose={closeEditor}
+        onSave={saveBrand}
+        {...(editing
+          ? {}
+          : {
+              onSaveAndCreateAnother: async () => {
+                const saved = await saveBrand()
+                if (saved) setName('')
+                return saved
+              },
+            })}
+        open={editing !== undefined}
+        saveLabel={editing ? 'Guardar cambios' : 'Guardar marca'}
+        title={editing ? 'Editar marca' : 'Nueva marca de vehículo'}
       >
-        <BrandForm
-          brand={editing ?? undefined}
-          onSubmit={handleSaveBrand}
-          onCancel={handleCloseDrawer}
-          onDirtyChange={setFormDirty}
-        />
-      </Drawer>
+        <Field
+          error={nameError || undefined}
+          id="brand-name"
+          label="Nombre de la marca"
+        >
+          <Input
+            autoFocus
+            id="brand-name"
+            maxLength={255}
+            onChange={(event) => {
+              setName(event.target.value)
+              if (nameError) setNameError('')
+            }}
+            placeholder="Ej. Toyota, Chevrolet, Ford"
+            value={name}
+          />
+        </Field>
+      </FormModal>
 
       <Dialog
         open={confirmation !== null}

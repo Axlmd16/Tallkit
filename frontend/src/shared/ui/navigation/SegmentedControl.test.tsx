@@ -158,7 +158,8 @@ describe('SegmentedControl (C14)', () => {
     )
 
     let activeRadio = screen.getByRole('radio', { name: 'Día' })
-    expect(activeRadio.className).toContain('bg-primary')
+    expect(activeRadio.className).toContain('text-ink')
+    expect(activeRadio.className).toContain('bg-surface')
 
     rerender(
       <SegmentedControl
@@ -171,6 +172,6 @@ describe('SegmentedControl (C14)', () => {
     )
 
     activeRadio = screen.getByRole('radio', { name: 'Día' })
-    expect(activeRadio.className).toContain('bg-warning')
+    expect(activeRadio.className).toContain('text-warning')
   })
 })

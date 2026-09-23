@@ -1,4 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+  type FormEvent,
+} from 'react'
 
 import {
   Button,
@@ -23,26 +29,37 @@ export interface TextFieldSpec {
 
 export type RecordValues = Record<string, string>
 
-/** Formulario de campos de texto para catálogos auxiliares, con borrador en memoria. */
-export function RecordForm({
-  idPrefix,
-  fields,
-  record,
-  noun,
-  onSubmit,
-  onCancel,
-  onDirtyChange,
-  onReload,
-}: {
+export interface RecordFormHandle {
+  submit: () => Promise<boolean>
+}
+
+interface RecordFormProps {
   idPrefix: string
   fields: TextFieldSpec[]
   record?: RecordValues | undefined
   noun: string
   onSubmit: (values: RecordValues) => Promise<void>
-  onCancel: () => void
+  onCancel?: (() => void) | undefined
   onDirtyChange?: ((dirty: boolean) => void) | undefined
   onReload?: (() => void) | undefined
-}) {
+  onSubmitLabelChange?: ((label: string) => void) | undefined
+  embedded?: boolean
+}
+
+/** Formulario de campos de texto para catálogos auxiliares, con borrador en memoria. */
+export const RecordForm = forwardRef<RecordFormHandle, RecordFormProps>(
+  function RecordForm({
+    idPrefix,
+    fields,
+    record,
+    noun,
+    onSubmit,
+    onCancel,
+    onDirtyChange,
+    onReload,
+    onSubmitLabelChange,
+    embedded = false,
+  }, ref) {
   const initial = (): RecordValues =>
     Object.fromEntries(fields.map((f) => [f.name, record?.[f.name] ?? '']))
   const [values, setValues] = useState<RecordValues>(initial)
@@ -69,11 +86,10 @@ export function RecordForm({
     return Object.keys(next).length === 0
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
-    if (pending) return
+  async function saveForm() {
+    if (pending) return false
     setProblem(null)
-    if (!validate()) return
+    if (!validate()) return false
     setPending(true)
     try {
       await onSubmit(
@@ -81,10 +97,12 @@ export function RecordForm({
           fields.map((f) => [f.name, (values[f.name] ?? '').trim()]),
         ),
       )
+      return true
     } catch (error) {
       const view = describeProblem(error)
       setProblem(view)
       setErrors(view.fields)
+      return false
     } finally {
       setPending(false)
     }
@@ -92,12 +110,25 @@ export function RecordForm({
 
   const retrying = problem?.uncertain ?? false
 
-  return (
-    <form
-      className="catalog-editor-form space-y-6"
-      noValidate
-      onSubmit={submit}
-    >
+  useImperativeHandle(ref, () => ({ submit: saveForm }))
+
+  useEffect(() => {
+    onSubmitLabelChange?.(
+      retrying
+        ? 'Reintentar envío'
+        : record
+          ? 'Guardar cambios'
+          : `Guardar ${noun}`,
+    )
+  }, [noun, onSubmitLabelChange, record, retrying])
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    void saveForm()
+  }
+
+  const fieldsContent = (
+    <>
       {problem && (
         <InlineNotice title="No se pudo guardar" tone="danger">
           {problem.message}
@@ -139,6 +170,16 @@ export function RecordForm({
           </Field>
         )
       })}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="catalog-editor-form space-y-6">{fieldsContent}</div>
+  }
+
+  return (
+    <form className="catalog-editor-form space-y-6" noValidate onSubmit={submit}>
+      {fieldsContent}
       <ButtonGroup
         className="justify-end pt-2"
         label={`Acciones del formulario de ${noun}`}
@@ -168,4 +209,5 @@ export function RecordForm({
       </ButtonGroup>
     </form>
   )
-}
+  },
+)

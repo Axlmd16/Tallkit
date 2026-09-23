@@ -90,13 +90,13 @@ export function SegmentedControl({
 
   const activeStyles =
     accent === 'coral'
-      ? 'bg-warning text-white shadow-sm'
-      : 'bg-primary text-white shadow-sm'
+      ? 'bg-surface text-warning shadow-[0_1px_2px_rgb(21_35_58_/_0.12)]'
+      : 'bg-surface text-ink shadow-[0_1px_2px_rgb(21_35_58_/_0.12)]'
 
   return (
     <div
       aria-label={ariaLabel}
-      className={`inline-flex items-center gap-1 rounded-group bg-surface-muted p-1 border border-line ${className}`}
+      className={`inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-control bg-surface-muted p-[3px] ${className}`}
       role="radiogroup"
     >
       {options.map((option, index) => {
@@ -104,10 +104,8 @@ export function SegmentedControl({
         return (
           <button
             aria-checked={isSelected ? 'true' : 'false'}
-            className={`min-h-[36px] rounded-control px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 ${
-              isSelected
-                ? activeStyles
-                : 'text-ink-muted hover:bg-surface-selected/40 hover:text-ink'
+            className={`min-h-8 shrink-0 rounded-[4px] px-3 py-1 text-[12.5px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 ${
+              isSelected ? activeStyles : 'text-ink-muted hover:text-ink'
             }`}
             disabled={option.disabled}
             id={`${groupName}-${option.value}`}

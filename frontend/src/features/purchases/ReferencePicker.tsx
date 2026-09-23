@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
 
+import type {
+  ComboboxOption,
+  ComboboxResults,
+} from '@/shared/ui/forms/Combobox'
+
 import {
   Button,
   Field,
@@ -9,20 +14,10 @@ import {
   StatusBadge,
 } from '@/shared/ui'
 
-export interface PickerOption {
-  id: number
-  label: string
-  detail?: string | undefined
-  inactive?: boolean | undefined
-  /** Definición tributaria sugerida por el catálogo (solo productos). */
-  taxDefinitionId?: number | undefined
-}
+export type PickerOption = ComboboxOption
 
-export interface PickerResults {
-  isPending: boolean
-  isError: boolean
+export interface PickerResults extends ComboboxResults {
   data?: { options: PickerOption[]; totalPages: number } | undefined
-  refetch?: (() => unknown) | undefined
 }
 
 function useDebounced(value: string, delay = 300): string {

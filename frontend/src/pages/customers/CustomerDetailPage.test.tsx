@@ -164,7 +164,7 @@ it('handles customer not found', () => {
   ).toBeInTheDocument()
 })
 
-it('allows authorized user to edit from customer detail page', async () => {
+it('takes an authorized user from the detail to the edit page', async () => {
   mocks.permissions = ['clientes.ver', 'clientes.gestionar']
   mocks.update.mockResolvedValue({ ...sampleCustomer, phone: '0997654321' })
   const user = userEvent.setup()
@@ -173,6 +173,10 @@ it('allows authorized user to edit from customer detail page', async () => {
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
         <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={<div>Editor de cliente</div>}
+          path="/customers/:id/edit"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -180,25 +184,8 @@ it('allows authorized user to edit from customer detail page', async () => {
   const editBtn = screen.getByRole('button', { name: /editar cliente/i })
   await user.click(editBtn)
 
-  const drawer = screen.getByRole('dialog', { name: /editar cliente/i })
-  expect(drawer).toBeInTheDocument()
-
-  const phoneInput = within(drawer).getByLabelText(/teléfono/i)
-  await user.clear(phoneInput)
-  await user.type(phoneInput, '0997654321')
-
-  await user.click(
-    within(drawer).getByRole('button', { name: /guardar cliente/i }),
-  )
-  expect(mocks.update).toHaveBeenCalledWith(
-    expect.objectContaining({
-      id: 1,
-      data: expect.objectContaining({
-        phone: '0997654321',
-        expected_version: 2,
-      }),
-    }),
-  )
+  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('displays empty state when customer has no associated vehicles', () => {
@@ -228,7 +215,7 @@ it('displays empty state when customer has no associated vehicles', () => {
   ).toBeInTheDocument()
 })
 
-it('allows authorized user to open vehicle registration drawer and register vehicle with customer preselected', async () => {
+it('takes an authorized user to vehicle registration with the customer preselected', async () => {
   mocks.permissions = ['clientes.ver', 'vehiculos.gestionar']
   mocks.createVehicle.mockResolvedValue({
     ...sampleVehicle,
@@ -242,6 +229,10 @@ it('allows authorized user to open vehicle registration drawer and register vehi
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
         <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={<div>Editor de vehículo</div>}
+          path="/vehicles/new"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -251,31 +242,8 @@ it('allows authorized user to open vehicle registration drawer and register vehi
   })
   await user.click(registerBtn)
 
-  const drawer = screen.getByRole('dialog', {
-    name: /registrar vehículo/i,
-  })
-  expect(drawer).toBeInTheDocument()
-  expect(within(drawer).getByText('Carlos Vera')).toBeInTheDocument()
-
-  await user.selectOptions(
-    within(drawer).getByLabelText('Marca de vehículo'),
-    '1',
-  )
-  await user.type(within(drawer).getByLabelText('Placa'), 'PBC-9999')
-  await user.type(within(drawer).getByLabelText('Modelo'), 'Yaris')
-
-  await user.click(
-    within(drawer).getByRole('button', { name: 'Guardar vehículo' }),
-  )
-
-  expect(mocks.createVehicle).toHaveBeenCalledWith(
-    expect.objectContaining({
-      owner_id: 1,
-      brand_id: 1,
-      plate: 'PBC-9999',
-      model: 'Yaris',
-    }),
-  )
+  expect(screen.getByText('Editor de vehículo')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('does not display vehicle registration button when user lacks vehiculos.gestionar', () => {
@@ -386,7 +354,7 @@ it('shows error state when customer fails to load', () => {
   ).toBeInTheDocument()
 })
 
-it('allows authorized user to open edit drawer from customer detail', async () => {
+it('navigates to edit from the customer detail actions', async () => {
   mocks.permissions = ['clientes.ver', 'clientes.gestionar']
   mocks.update.mockResolvedValue(sampleCustomer)
   const user = userEvent.setup()
@@ -395,6 +363,10 @@ it('allows authorized user to open edit drawer from customer detail', async () =
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route
+          path="/customers/:id/edit"
+          element={<div>Editor de cliente</div>}
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -402,11 +374,6 @@ it('allows authorized user to open edit drawer from customer detail', async () =
   const editBtn = screen.getByRole('button', { name: /^editar cliente$/i })
   await user.click(editBtn)
 
-  const drawer = screen.getByRole('dialog', { name: /editar cliente/i })
-  expect(drawer).toBeInTheDocument()
-
-  await user.click(
-    within(drawer).getByRole('button', { name: /guardar cliente/i }),
-  )
-  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
+  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })

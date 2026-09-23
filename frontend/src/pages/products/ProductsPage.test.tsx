@@ -3,13 +3,20 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/shared/ui'
+
 import { ProblemError } from '@/shared/api/client'
 
 const mocks = vi.hoisted(() => ({
+  stock: { isPending: false, isError: false, data: { quantity: '18' } },
   permissions: [] as string[],
   list: {} as Record<string, unknown>,
   listArgs: [] as unknown[],
   setActive: vi.fn(),
+}))
+
+vi.mock('@/features/inventory/hooks', () => ({
+  useStockItem: () => mocks.stock,
 }))
 
 const page = <T,>(results: T[]) => ({
@@ -80,12 +87,19 @@ const product = {
 
 function renderPage(path = '/products') {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<ProductsPage />} path="/products" />
-        <Route element={<p>Ficha de producto</p>} path="/products/:id" />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<ProductsPage />} path="/products" />
+          <Route element={<p>Ficha de producto</p>} path="/products/:id" />
+          <Route
+            element={<p>Editor de producto</p>}
+            path="/products/:id/edit"
+          />
+          <Route element={<p>Editor de producto</p>} path="/products/new" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 
@@ -96,17 +110,20 @@ beforeEach(() => {
   mocks.list = page([product])
 })
 
-it('muestra código, categoría, presentación, precio y estado sin stock ni costos', () => {
+it('muestra las columnas del piloto y existencias reales sin costos', () => {
+  mocks.permissions.push('inventario.ver')
   renderPage()
   const table = screen.getByRole('table', { name: 'Productos' })
   expect(within(table).getByText('ACE-1')).toBeInTheDocument()
   expect(within(table).getByText('Aceites')).toBeInTheDocument()
-  expect(within(table).getByText('0.5 Galón')).toBeInTheDocument()
+  expect(within(table).getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
+    'Código interno', 'Código del fabricante', 'Producto', 'Categoría', 'Existencias', 'Marca', 'Precio final USD', 'Acciones',
+  ])
+  expect(within(table).getByText('18')).toBeInTheDocument()
   expect(within(table).getByText('USD 10.50')).toBeInTheDocument()
-  expect(table.textContent).not.toMatch(/stock|existencia|costo|disponib/i)
-  expect(
-    screen.getByLabelText(/ámbito fiscal: ruc comercial/i),
-  ).toBeInTheDocument()
+  expect(table.textContent).not.toMatch(/costo|stock bajo/i)
+  // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
+  expect(screen.queryByLabelText(/ámbito fiscal/i)).toBeNull()
 })
 
 it('muestra ambos códigos y ofrece búsqueda por ellos', () => {
@@ -163,18 +180,20 @@ it('cambia filtros reiniciando la página y muestra el estado sin coincidencias'
   expect(mocks.listArgs.at(-1)).toMatchObject({ categoryId: 1, page: 1 })
 })
 
-it('abre una vista previa del producto antes de ir a la ficha', async () => {
-  renderPage()
+it('al elegir un producto abre su ficha conservando los filtros', async () => {
+  renderPage('/products?search=aceite')
   const user = userEvent.setup()
   await user.click(screen.getAllByText('Aceite 20W50')[0]!)
-  const preview = await screen.findByRole('dialog', {
-    name: 'Detalle del producto',
-  })
-  expect(within(preview).getByText('ACE-1')).toBeInTheDocument()
-  expect(within(preview).getByText('USD 10.50')).toBeInTheDocument()
-  expect(
-    within(preview).getByRole('link', { name: 'Ver ficha completa' }),
-  ).toHaveAttribute('href', '/products/5')
+  expect(await screen.findByText('Ficha de producto')).toBeInTheDocument()
+})
+
+it('crear y editar abren las páginas del formulario de producto', async () => {
+  mocks.permissions = ['productos.ver', 'productos.gestionar']
+  renderPage()
+  const user = userEvent.setup()
+  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(screen.getByRole('menuitem', { name: 'Editar' }))
+  expect(await screen.findByText('Editor de producto')).toBeInTheDocument()
 })
 
 it('con permiso desactiva mediante confirmación y con clave de idempotencia', async () => {
@@ -186,7 +205,8 @@ it('con permiso desactiva mediante confirmación y con clave de idempotencia', a
   mocks.setActive.mockResolvedValue(product)
   const user = userEvent.setup()
   renderPage()
-  await user.click(screen.getAllByRole('button', { name: /desactivar/i })[0]!)
+  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(screen.getByRole('menuitem', { name: 'Desactivar' }))
   const dialog = await screen.findByRole('dialog')
   await user.click(
     within(dialog).getByRole('button', { name: /confirmar desactivación/i }),
@@ -217,7 +237,8 @@ it('explica la reactivación rechazada por categoría inactiva', async () => {
   )
   const user = userEvent.setup()
   renderPage()
-  await user.click(screen.getAllByRole('button', { name: /reactivar/i })[0]!)
+  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(screen.getByRole('menuitem', { name: 'Reactivar' }))
   const dialog = await screen.findByRole('dialog')
   await user.click(
     within(dialog).getByRole('button', { name: /confirmar reactivación/i }),

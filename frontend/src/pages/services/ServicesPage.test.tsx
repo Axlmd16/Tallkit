@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -70,20 +70,20 @@ it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   expect(table.textContent).not.toMatch(/stock|existencia|costo|cobro/i)
 })
 
-it('abre una vista previa visual del servicio desde la fila', async () => {
+it('al elegir un servicio abre su ficha, sin panel lateral de vista previa', async () => {
   const user = userEvent.setup()
   render(
-    <MemoryRouter>
-      <ServicesPage />
+    <MemoryRouter initialEntries={['/services']}>
+      <Routes>
+        <Route element={<ServicesPage />} path="/services" />
+        <Route element={<p>Ficha del servicio</p>} path="/services/:id" />
+      </Routes>
     </MemoryRouter>,
   )
 
   await user.click(screen.getAllByText('Alineación')[0]!)
-  const preview = await screen.findByRole('dialog', {
-    name: 'Detalle del servicio',
-  })
-  expect(within(preview).getByText('USD 25.00')).toBeInTheDocument()
-  expect(within(preview).getByText('RUC artesanal')).toBeInTheDocument()
+  expect(await screen.findByText('Ficha del servicio')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
 
 it('la consulta no ofrece gestión ni consulta opciones fiscales administrativas', () => {
@@ -115,6 +115,8 @@ it('el Encargado con gestión puede crear, editar y desactivar', async () => {
   expect(
     await screen.findByRole('dialog', { name: /nuevo servicio/i }),
   ).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Cerrar panel' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
 })
 
 it.each([

@@ -460,3 +460,20 @@ it('«Consultar estado» vuelve a consultar el UUID pendiente sin ofrecer otra o
   ).toBeInTheDocument()
   expect(mocks.registerPayment).toHaveBeenCalledTimes(1)
 })
+
+it('anular es una acción de peligro con una salida segura que nombra lo que se conserva', () => {
+  render(
+    <VoidSaleDialog
+      sale={{ ...sale, money: { ...sale.money, applied: '0.00' } } as Sale}
+      {...common}
+    />,
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Anular venta' })
+  expect(dialog).toHaveAttribute('data-tone', 'danger')
+  expect(
+    screen.getByRole('button', { name: 'Conservar venta' }),
+  ).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Anular venta' }).className,
+  ).toMatch(/\bbg-danger\b/)
+})

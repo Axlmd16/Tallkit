@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as authHooks from '@/features/auth/hooks'
@@ -69,7 +69,15 @@ function renderComponent(initialEntries: string[] = ['/vehicles']) {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={initialEntries}>
-        <VehiclesPage />
+        <Routes>
+          <Route path="/vehicles" element={<VehiclesPage />} />
+          <Route path="/vehicles/new" element={<div>Editor de vehículo</div>} />
+          <Route
+            path="/vehicles/:id/edit"
+            element={<div>Editor de vehículo</div>}
+          />
+          <Route path="/vehicles/:id" element={<div>Ficha del vehículo</div>} />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
   )
@@ -228,7 +236,7 @@ describe('VehiclesPage', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('opens a vehicle preview drawer from the row', async () => {
+  it('opens the vehicle detail page from the row', async () => {
     vi.spyOn(authHooks, 'useSession').mockReturnValue({
       data: {
         authenticated: true,
@@ -244,27 +252,11 @@ describe('VehiclesPage', () => {
 
     await user.click(screen.getAllByText('ABC-1234')[0]!)
 
-    expect(
-      screen.getByRole('dialog', { name: 'Detalle del vehículo' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('img', { name: /foto del vehículo/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByAltText('Foto de ejemplo del vehículo')).toHaveAttribute(
-      'src',
-      expect.stringContaining('ejemplo'),
-    )
-    expect(
-      within(
-        screen.getByRole('dialog', { name: 'Detalle del vehículo' }),
-      ).getByText('Toyota Corolla'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Ver ficha completa' }),
-    ).toHaveAttribute('href', '/vehicles/100')
+    expect(screen.getByText('Ficha del vehículo')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('opens registration drawer and submits new vehicle', async () => {
+  it('takes an authorized user to the vehicle registration page', async () => {
     const mutations = {
       createVehicle: { mutateAsync: vi.fn().mockResolvedValue(sampleVehicle) },
       updateVehicle: { mutateAsync: vi.fn() },
@@ -288,29 +280,8 @@ describe('VehiclesPage', () => {
     renderComponent()
 
     await user.click(screen.getByRole('button', { name: 'Registrar vehículo' }))
-    expect(
-      screen.getByRole('dialog', { name: 'Registrar vehículo' }),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('dialog')).toHaveClass('vehicle-drawer')
-
-    await user.selectOptions(screen.getByLabelText('Propietario'), '10')
-    await user.selectOptions(screen.getByLabelText('Marca de vehículo'), '1')
-    await user.type(screen.getByLabelText('Placa'), 'XYZ-1234')
-    await user.type(screen.getByLabelText('Modelo'), 'Yaris')
-
-    await user.click(screen.getByRole('button', { name: 'Guardar vehículo' }))
-
-    await waitFor(() => {
-      expect(mutations.createVehicle.mutateAsync).toHaveBeenCalledWith({
-        owner_id: 10,
-        brand_id: 1,
-        plate: 'XYZ-1234',
-        model: 'Yaris',
-        color: undefined,
-        year: undefined,
-        vin: undefined,
-      })
-    })
+    expect(screen.getByText('Editor de vehículo')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('allows administrator to deactivate an active vehicle via dialog', async () => {
@@ -556,7 +527,7 @@ describe('VehiclesPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('opens edit drawer for an existing vehicle', async () => {
+  it('opens the edit page for an existing vehicle', async () => {
     const mutations = {
       createVehicle: { mutateAsync: vi.fn() },
       updateVehicle: { mutateAsync: vi.fn().mockResolvedValue(sampleVehicle) },
@@ -584,8 +555,7 @@ describe('VehiclesPage', () => {
     const editBtns = screen.getAllByRole('button', { name: /Editar/i })
     await user.click(editBtns[0]!)
 
-    expect(
-      screen.getByRole('dialog', { name: 'Editar vehículo' }),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Editor de vehículo')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

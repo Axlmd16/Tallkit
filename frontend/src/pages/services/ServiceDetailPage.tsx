@@ -9,7 +9,7 @@ import {
 } from '@/features/catalog-common/StateChangeDialog'
 import { useService, useServiceMutations } from '@/features/services/hooks'
 import { ServiceDetails } from '@/features/services/ServiceDetails'
-import { ServiceEditorDrawer } from '@/features/services/ServiceEditorDrawer'
+import { ServiceEditorModal } from '@/features/services/ServiceEditorModal'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
@@ -105,7 +105,7 @@ export function ServiceDetailPage() {
             </InlineNotice>
           )}
           <ServiceDetails service={service} />
-          <ServiceEditorDrawer
+          <ServiceEditorModal
             mode={editing ? service : null}
             onClose={() => setEditing(false)}
             onSaved={setNotice}

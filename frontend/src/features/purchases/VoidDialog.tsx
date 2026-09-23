@@ -90,6 +90,7 @@ export function VoidDialog({
       open={open}
       {...(returnFocusRef ? { returnFocusRef } : {})}
       title="Anular ingreso de mercadería"
+      tone="danger"
     >
       <div className="space-y-4">
         {latest.pending && !review && (

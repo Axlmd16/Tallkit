@@ -1,12 +1,11 @@
 import { Plus, Trash } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 
-import { Button, getControlClasses, Tooltip } from '@/shared/ui'
+import { Button, getControlClasses, Tooltip, Money } from '@/shared/ui'
 
 import { emptyLine, WHOLE, type LineDraft } from './draft'
-import { usd } from './format'
 import { useProductPickerOptions } from './pickers'
-import { SaleCombobox } from './SaleCombobox'
+import { Combobox } from '@/shared/ui/forms/Combobox'
 import type { DocumentLine } from './types'
 
 export const MAX_LINES = 200
@@ -49,8 +48,7 @@ export function SaleLinesEditor({
     )
   }
 
-  const money = (value: string | null | undefined) =>
-    value === null || value === undefined ? '—' : usd(value)
+  const money = (value: string | null | undefined) => <Money amount={value} />
 
   return (
     <section aria-label="Líneas de la venta" className="sale-section">
@@ -113,7 +111,7 @@ export function SaleLinesEditor({
                   key={line.key}
                 >
                   <td data-label="Producto">
-                    <SaleCombobox
+                    <Combobox
                       error={productError}
                       id={`sale-line-${index}-product`}
                       inactiveHelp="No puede confirmarse una venta con este producto: cámbielo o retire la línea."

@@ -1,8 +1,6 @@
-import { Wrench } from '@phosphor-icons/react'
-import confirmBg from '@/assets/figma/confirm-bg.svg'
-import confirmHand from '@/assets/figma/confirm-hand.svg'
-import confirmSpark from '@/assets/figma/confirm-spark.svg'
+import { WarningCircle } from '@phosphor-icons/react'
 import {
+  useEffect,
   useId,
   useRef,
   type KeyboardEvent,
@@ -19,7 +17,7 @@ export function Dialog({
   open,
   returnFocusRef,
   title,
-  appearance = 'default',
+  tone = 'default',
 }: {
   children: ReactNode
   description: string
@@ -27,7 +25,8 @@ export function Dialog({
   open: boolean
   returnFocusRef?: RefObject<HTMLElement | null>
   title: string
-  appearance?: 'default' | 'recover' | 'confirm'
+  /** `danger` para acciones destructivas: anular, desactivar, eliminar. */
+  tone?: 'default' | 'danger'
 }) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
@@ -38,6 +37,21 @@ export function Dialog({
     open,
     returnFocusRef,
   })
+
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  // Escape cierra aunque el foco todavía no haya entrado al panel (por ejemplo, al abrir
+  // con Enter); si el panel ya lo atendió, el evento no llega hasta aquí.
+  useEffect(() => {
+    if (!open) return
+    function onKey(event: globalThis.KeyboardEvent) {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      event.preventDefault()
+      closeRef.current()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
 
   if (!open) return null
 
@@ -53,7 +67,7 @@ export function Dialog({
 
   return (
     <div
-      className={`dialog-backdrop dialog-backdrop-${appearance} fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/35 p-4 sm:p-6`}
+      className="dialog-backdrop fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/45 p-4 sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
@@ -62,31 +76,30 @@ export function Dialog({
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`dialog-panel dialog-${appearance} max-h-[min(90vh,50rem)] w-full max-w-lg overflow-y-auto rounded-dialog bg-surface p-5 text-ink shadow-overlay sm:p-7`}
+        className="dialog-panel max-h-[min(90vh,50rem)] w-full max-w-[460px] overflow-y-auto rounded-dialog bg-surface px-5 pt-5 pb-4 text-ink shadow-dialog"
+        data-tone={tone}
         onKeyDown={handleKeyDown}
         ref={dialogRef}
         role="dialog"
         tabIndex={-1}
       >
-        {appearance === 'recover' && (
-          <span className="auth-logo" aria-hidden="true">
-            <Wrench size={46} weight="bold" />
-          </span>
-        )}
-        {appearance === 'confirm' && (
-          <div className="confirm-illustration" aria-hidden="true">
-            <img alt="" src={confirmBg} />
-            <img alt="" src={confirmHand} />
-            <img alt="" src={confirmSpark} />
-          </div>
-        )}
-        <h2 className="text-xl font-extrabold" id={titleId}>
+        <h2
+          className="flex items-center gap-2 text-base leading-[22px] font-semibold"
+          id={titleId}
+        >
+          {tone === 'danger' && (
+            <WarningCircle
+              aria-hidden="true"
+              className="shrink-0 text-danger"
+              size={20}
+            />
+          )}
           {title}
         </h2>
-        <p className="mt-2 text-ink-muted" id={descriptionId}>
+        <p className="mt-1 text-[13px] text-ink-muted" id={descriptionId}>
           {description}
         </p>
-        <div className="dialog-actions mt-6 flex flex-wrap justify-end gap-2">
+        <div className="dialog-actions mt-5 flex flex-wrap justify-end gap-2">
           {children}
         </div>
       </div>

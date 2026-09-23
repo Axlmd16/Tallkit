@@ -31,6 +31,9 @@ const { stub } = vi.hoisted(() => ({
 vi.mock('@/pages/products/ProductsPage', () => ({
   ProductsPage: stub('productos'),
 }))
+vi.mock('@/pages/products/ProductEditorPage', () => ({
+  ProductEditorPage: stub('editor de producto'),
+}))
 vi.mock('@/pages/products/ProductDetailPage', () => ({
   ProductDetailPage: stub('ficha de producto'),
 }))
@@ -54,6 +57,15 @@ vi.mock('@/pages/suppliers/SuppliersPage', () => ({
 }))
 vi.mock('@/pages/suppliers/SupplierDetailPage', () => ({
   SupplierDetailPage: stub('ficha de proveedor'),
+}))
+vi.mock('@/pages/suppliers/SupplierEditorPage', () => ({
+  SupplierEditorPage: stub('editor de proveedor'),
+}))
+vi.mock('@/pages/customers/CustomerEditorPage', () => ({
+  CustomerEditorPage: stub('editor de cliente'),
+}))
+vi.mock('@/pages/vehicles/VehicleEditorPage', () => ({
+  VehicleEditorPage: stub('editor de vehículo'),
 }))
 
 import { App, appRoutes } from './App'
@@ -131,3 +143,86 @@ it('un Administrador con todos los permisos ve las tres entradas nuevas', async 
     expect(await screen.findByRole('link', { name })).toBeInTheDocument()
   }
 })
+
+const productEditorRoutes = ['/products/new', '/products/7/edit']
+
+it.each(productEditorRoutes)(
+  '%s abre la página del formulario de producto con productos.gestionar',
+  async (path) => {
+    currentSession = session(['productos.ver', 'productos.gestionar'])
+    renderPath(path)
+    expect(
+      await screen.findByText('Pantalla editor de producto'),
+    ).toBeInTheDocument()
+  },
+)
+
+it.each(productEditorRoutes)(
+  '%s se deniega a quien solo puede consultar productos',
+  async (path) => {
+    currentSession = session(['productos.ver'])
+    renderPath(path)
+    expect(
+      await screen.findByRole('heading', { name: 'Acceso no permitido' }),
+    ).toBeInTheDocument()
+  },
+)
+
+it('las rutas de consulta de productos siguen intactas junto a las nuevas', async () => {
+  currentSession = session(['productos.ver', 'productos.gestionar'])
+  renderPath('/products/7')
+  expect(
+    await screen.findByText('Pantalla ficha de producto'),
+  ).toBeInTheDocument()
+})
+
+const supplierEditorRoutes = ['/suppliers/new', '/suppliers/7/edit']
+
+it.each(supplierEditorRoutes)(
+  '%s abre la página del formulario de proveedor con proveedores.gestionar',
+  async (path) => {
+    currentSession = session(['proveedores.ver', 'proveedores.gestionar'])
+    renderPath(path)
+    expect(
+      await screen.findByText('Pantalla editor de proveedor'),
+    ).toBeInTheDocument()
+  },
+)
+
+const longEditorRoutes: Array<[string, string, string]> = [
+  ['/customers/new', 'clientes.gestionar', 'Pantalla editor de cliente'],
+  ['/customers/7/edit', 'clientes.gestionar', 'Pantalla editor de cliente'],
+  ['/vehicles/new', 'vehiculos.gestionar', 'Pantalla editor de vehículo'],
+  ['/vehicles/7/edit', 'vehiculos.gestionar', 'Pantalla editor de vehículo'],
+]
+
+it.each(longEditorRoutes)(
+  '%s abre su formulario de página con %s',
+  async (path, permission, text) => {
+    currentSession = session([permission])
+    renderPath(path)
+    expect(await screen.findByText(text)).toBeInTheDocument()
+  },
+)
+
+it.each(longEditorRoutes)(
+  '%s se deniega sin el permiso de gestión',
+  async (path) => {
+    currentSession = session(['clientes.ver', 'vehiculos.ver'])
+    renderPath(path)
+    expect(
+      await screen.findByRole('heading', { name: 'Acceso no permitido' }),
+    ).toBeInTheDocument()
+  },
+)
+
+it.each(supplierEditorRoutes)(
+  '%s se deniega a quien solo puede consultar proveedores',
+  async (path) => {
+    currentSession = session(['proveedores.ver'])
+    renderPath(path)
+    expect(
+      await screen.findByRole('heading', { name: 'Acceso no permitido' }),
+    ).toBeInTheDocument()
+  },
+)

@@ -11,23 +11,32 @@ import {
   type SelectHTMLAttributes,
 } from 'react'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger'
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'quiet'
+  | 'danger'
+  | 'danger-solid'
+  | 'ghost'
 export type ButtonSize = '40' | '50'
 
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
     'border-primary bg-primary text-white hover:border-primary-strong hover:bg-primary-strong',
-  secondary:
-    'border-transparent bg-primary-soft text-primary-strong hover:bg-primary/15',
+  secondary: 'border-line-strong bg-surface text-ink hover:bg-surface-subtle',
   quiet:
-    'border-transparent bg-transparent text-ink-muted hover:bg-surface-selected hover:text-primary',
+    'border-transparent bg-transparent text-accent hover:bg-accent-soft hover:text-accent-strong',
   danger:
-    'border-danger/10 bg-danger-soft text-danger hover:border-danger/20 hover:bg-danger/15',
+    'border-danger/30 bg-surface text-danger hover:border-danger/45 hover:bg-danger-soft',
+  'danger-solid':
+    'border-danger bg-danger text-white hover:border-danger/90 hover:bg-danger/90',
+  ghost:
+    'border-transparent bg-transparent text-ink-muted hover:bg-surface-subtle hover:text-ink',
 }
 
 const buttonSizes: Record<ButtonSize, string> = {
-  '40': 'min-h-10 px-4 py-2 text-sm',
-  '50': 'min-h-[50px] px-6 py-3 text-base',
+  '40': 'min-h-10 px-4 py-2 text-[13.5px]',
+  '50': 'min-h-11 px-5 py-2.5 text-sm',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -55,7 +64,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         aria-busy={pending || undefined}
-        className={`ui-button inline-flex items-center justify-center gap-2 rounded-group border font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${buttonSizes[size]} ${buttonVariants[variant]} ${className}`}
+        className={`ui-button inline-flex items-center justify-center gap-2 rounded-control border font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow] duration-150 disabled:cursor-not-allowed disabled:opacity-45 ${buttonSizes[size]} ${buttonVariants[variant]} ${className}`}
         disabled={disabled || pending}
         ref={ref}
         type={type}
@@ -89,7 +98,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     },
     ref,
   ) {
-    const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-group'
+    const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-control'
     const sizeClass =
       targetSize === 'touch44' ? 'size-11 min-w-11 min-h-11' : 'size-10'
 
@@ -99,7 +108,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         className={`shrink-0 px-0 ${sizeClass} ${shapeClass} ${className}`}
         ref={ref}
         title={label}
-        variant="quiet"
+        variant="ghost"
         {...props}
       >
         <span aria-hidden="true" className="grid place-items-center">
@@ -158,6 +167,8 @@ export function Field({
   id: providedId,
   label,
   className = '',
+  required = false,
+  hideLabel = false,
 }: {
   children: ReactNode
   error?: string | undefined
@@ -165,6 +176,10 @@ export function Field({
   id?: string | undefined
   label: string
   className?: string
+  /** Marca visual de obligatorio; va en CSS para no alterar el nombre accesible. */
+  required?: boolean
+  /** Etiqueta solo para tecnologías de asistencia, cuando el control es autoexplicativo. */
+  hideLabel?: boolean
 }) {
   const generatedId = useId()
   const id = providedId ?? generatedId
@@ -175,17 +190,20 @@ export function Field({
   return (
     <FieldContext.Provider value={{ describedBy, id, invalid: Boolean(error) }}>
       <div className={`ui-field ${className}`}>
-        <label className="block text-sm font-semibold text-ink" htmlFor={id}>
+        <label
+          className={`${hideLabel ? 'sr-only' : 'block text-xs font-semibold text-ink'} ${required ? "after:ml-0.5 after:text-danger after:content-['*']" : ''}`}
+          htmlFor={id}
+        >
           {label}
         </label>
+        <div className={hideLabel ? '' : 'mt-1.5'}>{children}</div>
         {hint && (
-          <p className="mt-1 text-sm text-ink-muted" id={hintId}>
+          <p className="mt-1 text-xs leading-4 text-ink-muted" id={hintId}>
             {hint}
           </p>
         )}
-        <div className="mt-2">{children}</div>
         {error && (
-          <p className="mt-2 text-sm font-semibold text-danger" id={errorId}>
+          <p className="mt-1.5 text-xs font-semibold text-danger" id={errorId}>
             {error}
           </p>
         )}
@@ -205,8 +223,8 @@ export function getControlClasses({
   radius?: ControlRadius
 } = {}) {
   const radiusClass = radius === 'r10' ? 'rounded-group' : 'rounded-control'
-  const densityClass = density === 'compact42' ? 'min-h-[42px]' : 'min-h-[50px]'
-  return `ui-control ${densityClass} w-full ${radiusClass} border border-transparent bg-surface-muted px-4 py-2.5 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:bg-surface-selected/50 focus:border-primary/35 focus:bg-surface focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)] disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-danger/45 aria-invalid:bg-danger-soft aria-invalid:shadow-[0_0_0_3px_rgb(209_26_42_/_0.08)]`
+  const densityClass = density === 'compact42' ? 'min-h-10' : 'min-h-10'
+  return `ui-control ${densityClass} w-full ${radiusClass} border border-line-strong bg-surface px-3 py-2 text-[13.5px] text-ink outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:border-ink-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(15_107_111_/_0.18)] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-60 aria-invalid:border-danger aria-invalid:bg-[#fffaf9] aria-invalid:shadow-none`
 }
 
 export function useFieldProps() {
@@ -299,11 +317,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <label
-        className={`inline-flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-2 text-sm font-semibold text-ink ${className}`}
+        className={`inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-1 text-[13.5px] font-medium text-ink ${className}`}
       >
         <input
           aria-checked={indeterminate ? 'mixed' : props.checked}
-          className={`${sizeClass} rounded accent-primary`}
+          className={`${sizeClass} rounded accent-accent`}
           ref={setRefs}
           type="checkbox"
           {...props}
@@ -316,7 +334,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
 export function FieldError({ children }: { children: ReactNode }) {
   return (
-    <p className="text-sm font-semibold text-danger" role="alert">
+    <p className="text-xs font-semibold text-danger" role="alert">
       {children}
     </p>
   )

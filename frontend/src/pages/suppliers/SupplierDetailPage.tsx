@@ -1,6 +1,6 @@
 import { ArrowLeft, Pencil, Power } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import {
@@ -9,7 +9,6 @@ import {
 } from '@/features/catalog-common/StateChangeDialog'
 import { useSupplier, useSupplierMutations } from '@/features/suppliers/hooks'
 import { SupplierDetails } from '@/features/suppliers/SupplierDetails'
-import { SupplierEditorDrawer } from '@/features/suppliers/SupplierEditorDrawer'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
@@ -17,6 +16,7 @@ import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
 export function SupplierDetailPage() {
   const id = Number(useParams().id)
   const location = useLocation()
+  const navigate = useNavigate()
   const back = `/suppliers${(location.state as { from?: string } | null)?.from ?? ''}`
   const canManage = new Set(useSession().data?.permissions ?? []).has(
     'proveedores.gestionar',
@@ -24,7 +24,6 @@ export function SupplierDetailPage() {
   const query = useSupplier(Number.isFinite(id) ? id : null)
   const mutations = useSupplierMutations()
   const tracker = useIntentTracker()
-  const [editing, setEditing] = useState(false)
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const supplier = query.data
@@ -72,7 +71,7 @@ export function SupplierDetailPage() {
               canManage && (
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => setEditing(true)}
+                    onClick={() => void navigate(`/suppliers/${supplier.id}/edit`)}
                     type="button"
                     variant="secondary"
                   >
@@ -105,11 +104,6 @@ export function SupplierDetailPage() {
             </InlineNotice>
           )}
           <SupplierDetails supplier={supplier} />
-          <SupplierEditorDrawer
-            mode={editing ? supplier : null}
-            onClose={() => setEditing(false)}
-            onSaved={setNotice}
-          />
           <StateChangeDialog
             activateText="¿Reactivar el proveedor? Volverá a poder seleccionarse en operaciones nuevas."
             change={change}

@@ -1,24 +1,29 @@
 import { PencilSimple, Power } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
 import type { Page } from '@/shared/api/catalog-resource'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
-  Drawer,
   ElevatedDataList,
-  InlineNotice,
+  FormModal,
   PageHeader,
   RowActions,
   StatusBadge,
+  useToast,
 } from '@/shared/ui'
 
-import { CatalogToolbar } from './CatalogToolbar'
+import { CatalogToolbar, NewRecordButton } from './CatalogToolbar'
 import { useUrlFilters } from './filters'
 import { ListStates } from './ListStates'
 import { useReturnFocus } from './useReturnFocus'
-import { RecordForm, type RecordValues, type TextFieldSpec } from './RecordForm'
+import {
+  RecordForm,
+  type RecordFormHandle,
+  type RecordValues,
+  type TextFieldSpec,
+} from './RecordForm'
 import { StateChangeDialog, type StateChange } from './StateChangeDialog'
 
 export interface AuxiliaryItem {
@@ -99,7 +104,9 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
   const [editing, setEditing] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [saveLabel, setSaveLabel] = useState(`Guardar ${noun}`)
+  const formRef = useRef<RecordFormHandle>(null)
+  const toast = useToast()
 
   const fichaId = filters.getNumber('ficha') ?? null
   const list = config.useList({
@@ -109,7 +116,6 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
   })
   const detail = config.useDetail(fichaId)
   const item = detail.data
-  const article = feminine ? 'la' : 'el'
   const created = feminine ? 'creada' : 'creado'
   const updated = feminine ? 'actualizada' : 'actualizado'
 
@@ -128,7 +134,7 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
       const saved = await tracker.run({ op: 'create', data }, (key) =>
         mutations.create.mutateAsync({ data, key }),
       )
-      setNotice(
+      toast.success(
         `${noun[0]!.toUpperCase()}${noun.slice(1)} «${saved.name}» ${created}.`,
       )
       closePanel()
@@ -148,7 +154,7 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
       { op: 'update', id: item.id, data },
       (key) => mutations.update.mutateAsync({ id: item.id, data, key }),
     )
-    setNotice(
+    toast.success(
       `${noun[0]!.toUpperCase()}${noun.slice(1)} «${saved.name}» ${updated}.`,
     )
     setEditing(false)
@@ -164,7 +170,7 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `${noun[0]!.toUpperCase()}${noun.slice(1)} «${target.name}» ${
         target.active ? 'reactivad' : 'desactivad'
       }${feminine ? 'a' : 'o'}.`,
@@ -190,41 +196,41 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
       </Button>
     )
 
-  const panelOpen = creating || fichaId !== null
+  const panelOpen = creating || editing
   const returnFocus = useReturnFocus(panelOpen)
 
   return (
     <div className="space-y-6">
-      <PageHeader description={config.description} title={config.title} />
-
-      {notice && (
-        <InlineNotice title="Operación exitosa" tone="success">
-          {notice}
-        </InlineNotice>
-      )}
-
-      <CatalogToolbar
-        filters={filters}
-        idPrefix={idPrefix}
-        label={`Barra de herramientas de ${config.nounPlural}`}
-        newLabel={`${feminine ? 'Nueva' : 'Nuevo'} ${noun}`}
-        onNew={
-          canManage
-            ? () => {
-                setNotice(null)
+      <PageHeader
+        actions={
+          canManage && (
+            <NewRecordButton
+              label={`${feminine ? 'Nueva' : 'Nuevo'} ${noun}`}
+              onClick={() => {
+                setSaveLabel(`Guardar ${noun}`)
                 setCreating(true)
-              }
-            : undefined
+              }}
+            />
+          )
         }
-        searchLabel={`Buscar ${noun}`}
-        searchPlaceholder="Buscar por nombre…"
-        statusLabels={{
-          active: feminine ? 'Activas' : 'Activos',
-          inactive: feminine ? 'Inactivas' : 'Inactivos',
-        }}
+        description={config.description}
+        title={config.title}
       />
 
       <ListStates
+        toolbar={
+          <CatalogToolbar
+            filters={filters}
+            idPrefix={idPrefix}
+            label={`Barra de herramientas de ${config.nounPlural}`}
+            searchLabel={`Buscar ${noun}`}
+            searchPlaceholder="Buscar por nombre…"
+            statusLabels={{
+              active: feminine ? 'Activas' : 'Activos',
+              inactive: feminine ? 'Inactivas' : 'Inactivos',
+            }}
+          />
+        }
         emptyText={`Aún no hay ${config.nounPlural} registrad${feminine ? 'a' : 'o'}s.`}
         emptyTitle={`No hay ${config.nounPlural}`}
         errorText={`No fue posible consultar ${config.nounPlural}. Reintente en unos instantes.`}
@@ -240,7 +246,7 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
                 {canManage && (
                   <Button
                     onClick={() => {
-                      setNotice(null)
+                      setSaveLabel('Guardar cambios')
                       setEditing(true)
                       filters.set({ ficha: row.id })
                     }}
@@ -292,105 +298,65 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
             getRowKey={(row) => row.id}
             label={config.title}
             onRowClick={(row) => {
-              setNotice(null)
-              setEditing(false)
-              filters.set({ ficha: row.id })
+              if (canManage) {
+                setSaveLabel('Guardar cambios')
+                setEditing(true)
+                filters.set({ ficha: row.id })
+              }
             }}
             rows={rows}
           />
         )}
       </ListStates>
 
-      <Drawer
+      <FormModal
         description={
           creating
             ? `Complete los datos ${feminine ? 'de la nueva' : 'del nuevo'} ${noun}.`
-            : editing
-              ? `Modifique los datos ${feminine ? 'de la' : 'del'} ${noun}.`
-              : `Ficha ${feminine ? 'de la' : 'del'} ${noun}.`
+            : `Modifique los datos ${feminine ? 'de la' : 'del'} ${noun}.`
         }
-        hasUnsavedChanges={dirty}
+        dirty={dirty}
         onClose={closePanel}
+        onSave={() => formRef.current?.submit() ?? false}
         open={panelOpen}
         returnFocusRef={returnFocus}
+        saveLabel={saveLabel}
         title={
           creating
             ? `${feminine ? 'Nueva' : 'Nuevo'} ${noun}`
-            : editing
-              ? `Editar ${noun}`
-              : (item?.name ?? `Ficha ${feminine ? 'de la' : 'del'} ${noun}`)
+            : `Editar ${noun}`
         }
       >
         {creating && (
           <RecordForm
+            embedded
             fields={fields}
             idPrefix={`${idPrefix}-form`}
             noun={noun}
-            onCancel={closePanel}
             onDirtyChange={setDirty}
+            onSubmitLabelChange={setSaveLabel}
             onSubmit={save}
+            ref={formRef}
           />
         )}
-        {!creating && fichaId !== null && detail.isPending && (
+        {!creating && editing && detail.isPending && (
           <p className="text-ink-muted">Cargando ficha…</p>
         )}
         {!creating && item && editing && (
           <RecordForm
+            embedded
             fields={fields}
             idPrefix={`${idPrefix}-form`}
             noun={noun}
-            onCancel={() => {
-              setEditing(false)
-              setDirty(false)
-            }}
             onDirtyChange={setDirty}
             onReload={() => detail.refetch()}
+            onSubmitLabelChange={setSaveLabel}
             onSubmit={save}
+            ref={formRef}
             record={toValues(item, fields)}
           />
         )}
-        {!creating && item && !editing && (
-          <div className="space-y-4">
-            <dl className="grid gap-3 text-sm">
-              {fields.map((field) => (
-                <div key={field.name}>
-                  <dt className="font-semibold text-ink-muted">
-                    {field.label}
-                  </dt>
-                  <dd className="text-ink">
-                    {String((item as never)[field.name] || '—')}
-                  </dd>
-                </div>
-              ))}
-              <div>
-                <dt className="font-semibold text-ink-muted">Estado</dt>
-                <dd>
-                  <StatusBadge
-                    label={item.is_active ? 'Activo' : 'Inactivo'}
-                    tone={item.is_active ? 'success' : 'neutral'}
-                  />
-                </dd>
-              </div>
-            </dl>
-            {canManage && (
-              <RowActions>
-                <Button
-                  onClick={() => setEditing(true)}
-                  type="button"
-                  variant="secondary"
-                >
-                  <PencilSimple aria-hidden="true" size={15} />
-                  Editar
-                </Button>
-                {stateAction(item)}
-              </RowActions>
-            )}
-            <p className="text-xs text-ink-muted">
-              {`Use ${article} ${noun} desde el formulario de productos; ${article} inactiv${feminine ? 'a' : 'o'} conserva sus productos asociados.`}
-            </p>
-          </div>
-        )}
-      </Drawer>
+      </FormModal>
 
       <StateChangeDialog
         activateText={`¿Reactivar «${change?.name ?? ''}»? Volverá a estar disponible para nuevos productos.`}

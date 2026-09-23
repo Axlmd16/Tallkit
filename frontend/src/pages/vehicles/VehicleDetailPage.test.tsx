@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { ToastProvider } from '@/shared/ui'
 
 import * as authHooks from '@/features/auth/hooks'
 import * as vehicleHooks from '@/features/vehicles/hooks'
@@ -28,6 +30,7 @@ vi.mock('@/features/vehicle-brands/hooks', () => ({
 }))
 
 vi.mock('@/features/customers/hooks', () => ({
+  useCustomer: () => ({ data: undefined }),
   useCustomers: () => ({
     data: {
       results: [
@@ -97,13 +100,22 @@ function renderComponent(vehicleId = '42') {
   })
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[`/vehicles/${vehicleId}`]}>
-        <Routes>
-          <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-          <Route path="/vehicles" element={<div>Vehicles List</div>} />
-          <Route path="/customers/:id" element={<div>Customer Profile</div>} />
-        </Routes>
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={[`/vehicles/${vehicleId}`]}>
+          <Routes>
+            <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+            <Route
+              path="/vehicles/:id/edit"
+              element={<div>Editor de vehículo</div>}
+            />
+            <Route path="/vehicles" element={<div>Vehicles List</div>} />
+            <Route
+              path="/customers/:id"
+              element={<div>Customer Profile</div>}
+            />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
@@ -152,7 +164,7 @@ describe('VehicleDetailPage', () => {
     renderComponent()
 
     expect(
-      screen.getByRole('heading', { name: 'ABC-1234' }),
+      screen.getByRole('heading', { name: 'Toyota Corolla' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Toyota Corolla')).toBeInTheDocument()
     expect(screen.getByText('Blanco')).toBeInTheDocument()
@@ -167,7 +179,7 @@ describe('VehicleDetailPage', () => {
     // Ownership periods table
     expect(
       screen.getByRole('heading', {
-        name: 'Historial de períodos de propiedad',
+        name: 'Historial de propiedad',
       }),
     ).toBeInTheDocument()
     expect(screen.getAllByText('Vigente').length).toBeGreaterThanOrEqual(1)
@@ -395,7 +407,7 @@ describe('VehicleDetailPage', () => {
     } as unknown as ReturnType<typeof authHooks.useSession>)
 
     renderComponent()
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByText('Cargando ficha del vehículo…')).toBeInTheDocument()
   })
 
   it('shows error state when vehicle fails to load', () => {
@@ -447,13 +459,13 @@ describe('VehicleDetailPage', () => {
 
     renderComponent()
     expect(
-      screen.getByRole('heading', { name: 'ABC-1234' }),
+      screen.getByRole('heading', { name: 'Toyota Corolla' }),
     ).toBeInTheDocument()
     // No crash for missing optional fields
     expect(screen.queryByText('null')).not.toBeInTheDocument()
   })
 
-  it('allows encargado to open edit drawer for vehicle', async () => {
+  it('allows encargado to open the vehicle edit page', async () => {
     vi.spyOn(authHooks, 'useSession').mockReturnValue({
       data: {
         authenticated: true,
@@ -470,8 +482,25 @@ describe('VehicleDetailPage', () => {
     const editBtn = screen.getByRole('button', { name: 'Editar vehículo' })
     await user.click(editBtn)
 
+    expect(screen.getByText('Editor de vehículo')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('ficha de vehículo Tallkit (PPF-02)', () => {
+  it('muestra volver, placa y estado en el resumen, y acciones en la columna lateral', () => {
+    renderComponent()
     expect(
-      screen.getByRole('dialog', { name: 'Editar vehículo' }),
+      screen.getByRole('link', { name: 'Volver a vehículos' }),
+    ).toHaveAttribute('href', '/vehicles')
+    const summary = screen.getByRole('region', { name: 'Resumen del vehículo' })
+    expect(within(summary).getByText('ABC-1234')).toHaveClass('font-mono')
+    expect(
+      within(summary).getByRole('status', { name: /Estado: Activo/ }),
+    ).toBeInTheDocument()
+    const actions = screen.getByRole('region', { name: 'Acciones' })
+    expect(
+      within(actions).getByRole('button', { name: 'Editar vehículo' }),
     ).toBeInTheDocument()
   })
 })

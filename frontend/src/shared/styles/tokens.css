@@ -1,0 +1,72 @@
+/*
+ * Tokens del sistema visual Tallkit · Banco de trabajo.
+ *
+ * Primera capa: valores crudos `--tk-*`. Tailwind los expone con nombres semánticos mediante
+ * `@theme inline` en index.css, de modo que las utilidades (`bg-surface`, `text-ink`…) cambian
+ * de valor sin tocar cada pantalla. `primary` es la acción principal; `accent` es selección,
+ * enlace y foco. El naranja `brand` es solo acento de marca: nunca se usa como texto.
+ */
+:root {
+  --tk-canvas: #f3f4f6;
+  --tk-surface: #ffffff;
+  --tk-surface-subtle: #f8f9fa;
+  --tk-surface-muted: #eef0f3;
+  --tk-workspace: #e6e9ed;
+  --tk-line: #e2e5e9;
+  --tk-line-strong: #cbd1d8;
+  --tk-ink: #15233a;
+  --tk-ink-muted: #5b6474;
+
+  --tk-primary: #224368;
+  --tk-primary-strong: #1a3453;
+  --tk-primary-soft: #e6edf6;
+  --tk-accent: #0f6b6f;
+  --tk-accent-strong: #0a5255;
+  --tk-accent-soft: #e1f0ef;
+  --tk-brand: #e58439;
+
+  --tk-scope-commercial: #224368;
+  --tk-scope-commercial-soft: #e6edf6;
+  --tk-scope-artisan: #94460b;
+  --tk-scope-artisan-soft: #fceee2;
+
+  --tk-success: #1d6b3f;
+  --tk-success-soft: #e3f3e9;
+  --tk-warning: #7a4e00;
+  --tk-warning-soft: #fff3d1;
+  --tk-danger: #b42318;
+  --tk-danger-soft: #fdecea;
+  --tk-info: #0a5255;
+  --tk-info-soft: #e1f0ef;
+
+  --tk-font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --tk-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --tk-shadow-menu: 0 10px 24px rgb(21 35 58 / 0.14);
+  --tk-shadow-dialog: 0 24px 48px rgb(21 35 58 / 0.28);
+  --tk-shadow-sheet:
+    0 1px 2px rgb(21 35 58 / 0.08), 0 14px 32px rgb(21 35 58 / 0.14);
+  --tk-shadow-toast: 0 12px 28px rgb(21 35 58 / 0.28);
+}
+
+/*
+ * Base del tema oscuro para una versión posterior. Ningún código asigna `data-theme` ni
+ * responde a `prefers-color-scheme`: el tema claro es el único disponible.
+ */
+[data-theme='dark'] {
+  --tk-canvas: #0e1520;
+  --tk-surface: #16202e;
+  --tk-surface-subtle: #1b2636;
+  --tk-surface-muted: #202c3d;
+  --tk-workspace: #0b111a;
+  --tk-line: #26334a;
+  --tk-line-strong: #34435c;
+  --tk-ink: #e6eaf0;
+  --tk-ink-muted: #a7b0bf;
+  --tk-primary: #7fa3d6;
+  --tk-primary-strong: #9dbbe4;
+  --tk-primary-soft: #1d2d45;
+  --tk-accent: #4fb3b0;
+  --tk-accent-strong: #7ccbc8;
+  --tk-accent-soft: #13302f;
+}

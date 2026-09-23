@@ -10,6 +10,7 @@ import { RemoteSessionGuard } from '@/features/auth/SessionGuard'
 import { ChangePasswordPage } from '@/pages/change-password/ChangePasswordPage'
 import { AuditPage } from '@/pages/audit/AuditPage'
 import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
+import { CustomerEditorPage } from '@/pages/customers/CustomerEditorPage'
 import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { LoginPage } from '@/pages/login/LoginPage'
@@ -20,6 +21,7 @@ import { InventoryOperationDetailPage } from '@/pages/inventory/InventoryOperati
 import { InventoryPage } from '@/pages/inventory/InventoryPage'
 import { KardexPage } from '@/pages/inventory/KardexPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
+import { ProductEditorPage } from '@/pages/products/ProductEditorPage'
 import { ProductsPage } from '@/pages/products/ProductsPage'
 import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
 import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
@@ -32,11 +34,13 @@ import { SalesPage } from '@/pages/sales/SalesPage'
 import { ServiceDetailPage } from '@/pages/services/ServiceDetailPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { SupplierDetailPage } from '@/pages/suppliers/SupplierDetailPage'
+import { SupplierEditorPage } from '@/pages/suppliers/SupplierEditorPage'
 import { SuppliersPage } from '@/pages/suppliers/SuppliersPage'
 import { TechnicalStatusPage } from '@/pages/technical-status/TechnicalStatusPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { VehicleBrandsPage } from '@/pages/vehicle-brands/VehicleBrandsPage'
 import { VehicleDetailPage } from '@/pages/vehicles/VehicleDetailPage'
+import { VehicleEditorPage } from '@/pages/vehicles/VehicleEditorPage'
 import { VehiclesPage } from '@/pages/vehicles/VehiclesPage'
 
 import { RemoteAuthenticatedShell } from './AuthenticatedShell'
@@ -72,10 +76,26 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/customers/new',
+            element: (
+              <PermissionGuard permission="clientes.gestionar">
+                <CustomerEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/customers/:id',
             element: (
               <PermissionGuard permission="clientes.ver">
                 <CustomerDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/customers/:id/edit',
+            element: (
+              <PermissionGuard permission="clientes.gestionar">
+                <CustomerEditorPage />
               </PermissionGuard>
             ),
           },
@@ -96,6 +116,14 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/vehicles/new',
+            element: (
+              <PermissionGuard permission="vehiculos.gestionar">
+                <VehicleEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/vehicles/:id',
             element: (
               <PermissionGuard permission="vehiculos.ver">
@@ -104,10 +132,34 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/vehicles/:id/edit',
+            element: (
+              <PermissionGuard permission="vehiculos.gestionar">
+                <VehicleEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/products',
             element: (
               <PermissionGuard permission="productos.ver">
                 <ProductsPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/products/new',
+            element: (
+              <PermissionGuard permission="productos.gestionar">
+                <ProductEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/products/:id/edit',
+            element: (
+              <PermissionGuard permission="productos.gestionar">
+                <ProductEditorPage />
               </PermissionGuard>
             ),
           },
@@ -272,10 +324,26 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/suppliers/new',
+            element: (
+              <PermissionGuard permission="proveedores.gestionar">
+                <SupplierEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/suppliers/:id',
             element: (
               <PermissionGuard permission="proveedores.ver">
                 <SupplierDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/suppliers/:id/edit',
+            element: (
+              <PermissionGuard permission="proveedores.gestionar">
+                <SupplierEditorPage />
               </PermissionGuard>
             ),
           },

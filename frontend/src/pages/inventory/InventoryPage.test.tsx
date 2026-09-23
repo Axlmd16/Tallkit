@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -61,7 +61,13 @@ const row = (name: string, quantity: string, extra: object = {}) => ({
 function renderPage(path = '/inventory') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <InventoryPage />
+      <Routes>
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route
+          path="/inventory/products/:id/kardex"
+          element={<div>Kardex del producto</div>}
+        />
+      </Routes>
     </MemoryRouter>,
   )
 }
@@ -114,18 +120,13 @@ it('muestra presentación, unidad y existencia y distingue el cero real sin umbr
   expect(screen.queryByText(/stock bajo|stock mínimo|por debajo/i)).toBeNull()
 })
 
-it('abre una vista previa de existencias con acceso al Kardex', async () => {
+it('abre el Kardex al seleccionar una fila', async () => {
   const user = userEvent.setup()
   renderPage()
 
   await user.click(screen.getAllByText('ACE-1 — Aceite')[0]!)
-  const preview = await screen.findByRole('dialog', {
-    name: 'Detalle de inventario',
-  })
-  expect(within(preview).getByText('7')).toBeInTheDocument()
-  expect(
-    within(preview).getByRole('link', { name: 'Ver Kardex' }),
-  ).toHaveAttribute('href', '/inventory/products/5/kardex')
+  expect(await screen.findByText('Kardex del producto')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
 it('un fallo de consulta ofrece reintentar y nunca presenta cero como saldo', () => {
@@ -210,7 +211,10 @@ it('el ajuste exige motivo y costo explícito solo en entradas, revisa el efecto
     within(drawer).getByLabelText('Tipo de operación'),
     'ADJUSTMENT_OUT',
   )
-  await userEvent.click(within(drawer).getByRole('button', { name: 'Elegir' }))
+  await userEvent.click(
+    within(drawer).getByRole('combobox', { name: 'Producto' }),
+  )
+  await userEvent.click(screen.getByRole('option', { name: /ACE-1 — Aceite/ }))
   await userEvent.type(
     within(drawer).getByLabelText('Cantidad de presentaciones'),
     '3',

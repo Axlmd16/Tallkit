@@ -24,7 +24,10 @@ it('keeps page context and its primary action together', () => {
     />,
   )
 
-  expect(screen.getByRole('heading', { name: 'Usuarios' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Usuarios' })).toHaveClass(
+    'text-[22px]',
+    'font-semibold',
+  )
   expect(screen.getByRole('button', { name: 'Crear usuario' })).toBeEnabled()
 })
 
@@ -41,7 +44,7 @@ it('labels filter and toolbar regions', () => {
   ).toBeVisible()
   expect(
     screen.getByRole('search', { name: 'Filtros de usuarios' }),
-  ).toBeVisible()
+  ).toHaveClass('rounded-panel', 'border', 'border-line', 'bg-surface')
 })
 
 it('provides comparable desktop columns and complete mobile detail', () => {
@@ -94,7 +97,7 @@ it('composes elevated surfaces and operational statistics without inventing navi
 
   expect(
     screen.getByRole('region', { name: 'Resumen de usuarios' }),
-  ).toBeVisible()
+  ).toHaveClass('rounded-panel', 'border', 'border-line')
   expect(screen.getByText('Usuarios activos')).toBeVisible()
   expect(screen.getByText('12')).toBeVisible()
 })

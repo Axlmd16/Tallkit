@@ -58,7 +58,7 @@ export function Avatar({
   return (
     <div
       aria-label={accessibleLabel}
-      className={`inline-flex shrink-0 items-center justify-center select-none bg-primary-soft text-primary-strong font-semibold overflow-hidden border border-primary/10 ${sizeClass} ${shapeClass} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center select-none overflow-hidden border border-line bg-accent-soft font-semibold text-accent-strong ${sizeClass} ${shapeClass} ${className}`}
       role="img"
     >
       {children ??

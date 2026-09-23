@@ -23,7 +23,7 @@ describe('DetailCard (C23)', () => {
 
     expect(
       screen.getByRole('heading', { level: 3, name: 'Ficha de Vehículo' }),
-    ).toBeInTheDocument()
+    ).toHaveClass('text-[15px]', 'font-semibold')
     expect(screen.getByText('Mantenimiento preventivo')).toBeInTheDocument()
     expect(screen.getByText('Activo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument()
