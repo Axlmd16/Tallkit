@@ -67,6 +67,7 @@ export function VoidSaleDialog({
           key: idempotencyKey,
         })
       }
+      cancelLabel="Conservar venta"
       submitLabel="Anular venta"
       submitTone="danger"
       title="Anular venta"

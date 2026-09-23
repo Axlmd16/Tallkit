@@ -18,13 +18,12 @@ export const DateControl = forwardRef<HTMLInputElement, DateControlProps>(
     ref,
   ) {
     const radiusClass = radius === 'r10' ? 'rounded-group' : 'rounded-control'
-    const densityClass =
-      density === 'compact42' ? 'min-h-[42px]' : 'min-h-[50px]'
+    const densityClass = density === 'compact42' ? 'min-h-10' : 'min-h-10'
 
     return (
       <input
         type="date"
-        className={`ui-control w-full ${radiusClass} ${densityClass} border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:bg-surface-selected/50 focus:border-primary/35 focus:bg-surface focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)] disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-danger/45 aria-invalid:bg-danger-soft aria-invalid:shadow-[0_0_0_3px_rgb(209_26_42_/_0.08)] ${className}`}
+        className={`ui-control w-full ${radiusClass} ${densityClass} border border-line-strong bg-surface px-3 py-2 text-[13.5px] text-ink outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:border-ink-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(15_107_111_/_0.18)] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-60 aria-invalid:border-danger aria-invalid:bg-[#fffaf9] aria-invalid:shadow-none ${className}`}
         ref={ref}
         {...useFieldProps()}
         {...props}

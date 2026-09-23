@@ -46,6 +46,7 @@ export function MoneyDialog({
   submit,
   submitLabel,
   submitTone = 'primary',
+  cancelLabel = 'Cancelar',
   returnFocusRef,
   children,
   extraNotice,
@@ -64,6 +65,8 @@ export function MoneyDialog({
   submit: (reviewToken: string, key: string) => Promise<unknown>
   submitLabel: string
   submitTone?: 'primary' | 'danger'
+  /** Salida segura; en acciones destructivas nombra lo que se conserva. */
+  cancelLabel?: string
   returnFocusRef?: RefObject<HTMLElement | null>
   children: ReactNode
   extraNotice?: ReactNode
@@ -143,6 +146,7 @@ export function MoneyDialog({
       open={open}
       {...(returnFocusRef ? { returnFocusRef } : {})}
       title={title}
+      tone={submitTone === 'danger' ? 'danger' : 'default'}
     >
       <div className="space-y-4">
         {pendingLookup && (
@@ -212,7 +216,7 @@ export function MoneyDialog({
             )}
             <div className="flex flex-wrap justify-end gap-3">
               <Button onClick={onClose} type="button" variant="secondary">
-                Cancelar
+                {cancelLabel}
               </Button>
               <Button
                 disabled={busy || !formValid}
@@ -226,7 +230,7 @@ export function MoneyDialog({
                 disabled={busy || !canDo(review) || !formValid}
                 onClick={() => void run()}
                 type="button"
-                variant={submitTone}
+                variant={submitTone === 'danger' ? 'danger-solid' : 'primary'}
               >
                 {pending ? 'Registrando…' : submitLabel}
               </Button>

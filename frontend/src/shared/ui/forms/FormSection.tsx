@@ -8,6 +8,8 @@ export interface FormSectionProps {
   icon?: ReactNode
   children: ReactNode
   className?: string
+  /** `flush`: sección dentro de un panel común, separada por una línea. */
+  variant?: 'card' | 'flush'
 }
 
 /**
@@ -20,29 +22,29 @@ export function FormSection({
   icon,
   children,
   className = '',
+  variant = 'card',
 }: FormSectionProps) {
   const titleId = useId()
   return (
     <section
       aria-labelledby={titleId}
-      className={`form-section rounded-group border border-line bg-surface-subtle/60 p-4 sm:p-5 ${className}`.trim()}
+      className={`form-section grid gap-4 p-4 sm:p-5 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-7 ${variant === 'flush' ? 'border-b border-line last:border-b-0' : 'rounded-panel border border-line bg-surface'} ${className}`.trim()}
       role="group"
     >
-      <header className="mb-4 flex items-start gap-3">
+      <header className="flex min-w-0 items-start gap-2">
         {icon && (
-          <span
-            aria-hidden="true"
-            className="grid size-10 shrink-0 place-items-center rounded-group bg-primary-soft text-primary"
-          >
+          <span aria-hidden="true" className="mt-0.5 shrink-0 text-ink-muted">
             {icon}
           </span>
         )}
         <div className="min-w-0">
-          <h3 className="text-base font-bold text-ink" id={titleId}>
+          <h3 className="text-[14.5px] font-semibold text-ink" id={titleId}>
             {title}
           </h3>
           {description && (
-            <p className="mt-0.5 text-sm text-ink-muted">{description}</p>
+            <p className="mt-1 text-[12.5px] leading-[18px] text-ink-muted">
+              {description}
+            </p>
           )}
         </div>
       </header>
@@ -63,7 +65,7 @@ export function LeadingIcon({
     <div className="relative">
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-ink-muted"
+        className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted"
       >
         {icon}
       </span>

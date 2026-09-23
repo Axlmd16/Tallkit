@@ -1,10 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 import { setViewport, tabletWidth } from '@/test-viewport'
+
+// @ts-expect-error Node fs module used in test runner
+import fs from 'node:fs'
 
 import { AuthenticatedShell } from './AuthenticatedShell'
 
@@ -42,6 +45,10 @@ function renderAt(path: string, session: Session = fullAccess) {
       </AuthenticatedShell>
     </MemoryRouter>,
   )
+}
+
+function CurrentPath() {
+  return <output data-testid="current-path">{useLocation().pathname}</output>
 }
 
 const cases: Array<[string, Session, boolean]> = [
@@ -199,10 +206,7 @@ it('keeps the brand title constrained and aligns expanded navigation to the rail
   const navigationLink = screen.getByRole('link', { name: 'Inicio' })
 
   expect(navigationLink).toHaveClass('app-rail-nav-item')
-  expect(screen.getByTestId('brand-logo-expanded')).toHaveAttribute(
-    'src',
-    '/src/assets/brand/secundario.svg',
-  )
+  expect(screen.getByTestId('brand-logo-expanded')).toHaveTextContent('Tallkit')
   expect(screen.getByTestId('brand-logo-compact')).toHaveAttribute(
     'src',
     '/src/assets/brand/isotipo.svg',
@@ -326,10 +330,40 @@ it('opens the group of the current route and highlights the option', () => {
 
 it('keeps detail and secondary catalog routes under their navigation option', () => {
   renderAt('/customers/7')
-  expect(screen.getByRole('link', { name: 'Clientes' })).toHaveAttribute(
+  const mainNavigation = screen.getAllByRole('navigation', {
+    name: 'Navegación principal',
+  })[0]!
+  expect(
+    within(mainNavigation).getByRole('link', { name: 'Clientes' }),
+  ).toHaveAttribute('aria-current', 'page')
+})
+
+it('makes parent breadcrumbs navigate and names the current nested page', async () => {
+  const user = userEvent.setup()
+  render(
+    <MemoryRouter initialEntries={['/products/7/edit']}>
+      <AuthenticatedShell onLogout={vi.fn()} session={fullAccess}>
+        <CurrentPath />
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+
+  const breadcrumbs = screen.getByRole('navigation', { name: 'Ruta' })
+  expect(within(breadcrumbs).getByRole('link', { name: 'Catálogos' })).toHaveAttribute(
+    'href',
+    '/products',
+  )
+  expect(within(breadcrumbs).getByRole('link', { name: 'Productos' })).toHaveAttribute(
+    'href',
+    '/products',
+  )
+  expect(within(breadcrumbs).getByText('Editar producto')).toHaveAttribute(
     'aria-current',
     'page',
   )
+
+  await user.click(within(breadcrumbs).getByRole('link', { name: 'Productos' }))
+  expect(screen.getByTestId('current-path')).toHaveTextContent('/products')
 })
 
 it('keeps the active option visible when its group is collapsed', async () => {
@@ -402,4 +436,61 @@ it('marks the active group in the compact rail', () => {
   expect(
     screen.getByRole('button', { name: 'Operación del taller' }),
   ).not.toHaveAttribute('data-active')
+})
+
+it('marca la opción activa con el acento de selección, no con la acción principal', () => {
+  renderAt('/customers')
+  const active = screen.getByRole('link', { name: 'Clientes' })
+  expect(active).toHaveAttribute('aria-current', 'page')
+  expect(active.className).toMatch(/bg-accent-soft/)
+  expect(active.className).toMatch(/text-accent-strong/)
+  expect(active.className).not.toMatch(/\bbg-primary-soft\b|\btext-primary\b/)
+})
+
+it('muestra la ruta de migas de la pantalla actual en la barra superior', () => {
+  renderAt('/sales/receivables', {
+    ...fullAccess,
+    permissions: [
+      ...fullAccess.permissions,
+      'ventas.ver',
+      'pagos_comerciales.ver',
+    ],
+  })
+  const trail = screen.getByRole('navigation', { name: 'Ruta' })
+  expect(trail).toHaveTextContent('Ventas y cobros')
+  expect(trail).toHaveTextContent('Cuentas por cobrar')
+  expect(within(trail).getByText('Cuentas por cobrar')).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+})
+
+it('identifica el ámbito fiscal solo en las pantallas económicas', () => {
+  const sales = renderAt('/sales', {
+    ...fullAccess,
+    permissions: [...fullAccess.permissions, 'ventas.ver'],
+  })
+  expect(
+    screen.getByRole('status', { name: /Ámbito fiscal: RUC comercial/ }),
+  ).toBeInTheDocument()
+  sales.unmount()
+  renderAt('/users')
+  expect(screen.queryByRole('status', { name: /Ámbito fiscal/ })).toBeNull()
+})
+
+it('no ofrece búsqueda global en la barra superior', () => {
+  renderAt('/')
+  const banner = screen.getByTestId('app-topbar')
+  expect(within(banner).queryByRole('searchbox')).toBeNull()
+})
+
+it('el CSS fija barra lateral de 240 px desde 1280 px e iconos de 72 px en tableta', () => {
+  const css: string = fs.readFileSync('src/shared/styles/index.css', 'utf-8')
+  expect(css).toMatch(
+    /@media \(min-width: 768px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*72px/,
+  )
+  expect(css).toMatch(
+    /@media \(min-width: 1280px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*240px/,
+  )
+  expect(css).not.toMatch(/width:\s*80px;\s*\n\s*height: calc\(100dvh - 60px\)/)
 })

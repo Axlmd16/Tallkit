@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useState,
+  type FormEvent,
+} from 'react'
 
 import {
   describeProblem,
@@ -44,20 +51,31 @@ function taxLabel(option: TaxProjection): string {
   return `${option.code} — ${option.name} (${status})`
 }
 
-/** Formulario de servicio: precio referencial final e impuesto del ámbito artesanal. */
-export function ServiceForm({
-  service,
-  onSubmit,
-  onCancel,
-  onDirtyChange,
-  onReload,
-}: {
+export interface ServiceFormHandle {
+  submit: () => Promise<boolean>
+}
+
+interface ServiceFormProps {
   service?: Service | undefined
   onSubmit: (data: Partial<ServiceInput>) => Promise<void>
-  onCancel: () => void
+  onCancel?: (() => void) | undefined
   onDirtyChange?: ((dirty: boolean) => void) | undefined
   onReload?: (() => void) | undefined
-}) {
+  onSubmitLabelChange?: ((label: string) => void) | undefined
+  embedded?: boolean
+}
+
+/** Formulario de servicio: precio referencial final e impuesto del ámbito artesanal. */
+export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
+  function ServiceForm({
+    service,
+    onSubmit,
+    onCancel,
+    onDirtyChange,
+    onReload,
+    onSubmitLabelChange,
+    embedded = false,
+  }, ref) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(service))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [problem, setProblem] = useState<ProblemView | null>(null)
@@ -119,31 +137,41 @@ export function ServiceForm({
     return changes
   }
 
-  async function submit(event: FormEvent) {
-    event.preventDefault()
-    if (pending) return
+  async function saveForm() {
+    if (pending) return false
     setProblem(null)
-    if (!validate()) return
+    if (!validate()) return false
     setPending(true)
     try {
       await onSubmit(payload())
+      return true
     } catch (error) {
       const view = describeProblem(error)
       setProblem(view)
       setErrors(view.fields)
+      return false
     } finally {
       setPending(false)
     }
   }
 
   const noTaxConfiguration = taxes.isSuccess && taxOptions.length === 0
+  const saveLabel = problem?.uncertain
+    ? 'Reintentar envío'
+    : service
+      ? 'Guardar cambios'
+      : 'Guardar servicio'
 
-  return (
-    <form
-      className="catalog-editor-form service-form space-y-6"
-      noValidate
-      onSubmit={submit}
-    >
+  useImperativeHandle(ref, () => ({ submit: saveForm }))
+  useEffect(() => onSubmitLabelChange?.(saveLabel), [onSubmitLabelChange, saveLabel])
+
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    void saveForm()
+  }
+
+  const fields = (
+    <>
       {problem && (
         <InlineNotice title="No se pudo guardar el servicio" tone="danger">
           {problem.message}
@@ -233,6 +261,16 @@ export function ServiceForm({
           económicas hasta que se configure una vigencia aplicable.
         </InlineNotice>
       )}
+    </>
+  )
+
+  if (embedded) {
+    return <div className="catalog-editor-form service-form space-y-6">{fields}</div>
+  }
+
+  return (
+    <form className="catalog-editor-form service-form space-y-6" noValidate onSubmit={submit}>
+      {fields}
       <ButtonGroup
         className="justify-end pt-2"
         label="Acciones del formulario de servicio"
@@ -251,15 +289,10 @@ export function ServiceForm({
           type="submit"
           variant="primary"
         >
-          {pending
-            ? 'Guardando…'
-            : problem?.uncertain
-              ? 'Reintentar envío'
-              : service
-                ? 'Guardar cambios'
-                : 'Guardar servicio'}
+          {pending ? 'Guardando…' : saveLabel}
         </Button>
       </ButtonGroup>
     </form>
   )
-}
+  },
+)

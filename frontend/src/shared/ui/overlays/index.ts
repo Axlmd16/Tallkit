@@ -9,6 +9,7 @@ export {
 export { DetailPanel, type DetailPanelProps } from './DetailPanel'
 
 export { Modal, type ModalProps } from './Modal'
+export { FormModal, type FormModalProps } from './FormModal'
 
 export {
   ConfirmationPanel,

@@ -23,7 +23,7 @@ import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   ConfirmationPanel,
-  Drawer,
+  Modal,
   ElevatedDataList,
   EmptyState,
   Field,
@@ -178,7 +178,11 @@ export function CustomersPage() {
           <div className="min-w-0">
             <button
               className="break-words font-semibold text-primary hover:underline"
-              onClick={() => setPreviewing(row)}
+              onClick={() =>
+                void navigate(`/customers/${row.id}`, {
+                  state: { from: window.location.search },
+                })
+              }
               type="button"
             >
               {row.name}
@@ -247,7 +251,7 @@ export function CustomersPage() {
       <PageHeader
         actions={
           canManage ? (
-            <Button onClick={() => setEditing(null)}>
+            <Button onClick={() => void navigate('/customers/new')}>
               <Plus aria-hidden="true" size={20} />
               Nuevo cliente
             </Button>
@@ -326,7 +330,7 @@ export function CustomersPage() {
                 Limpiar filtros
               </Button>
             ) : canManage ? (
-              <Button onClick={() => setEditing(null)}>
+              <Button onClick={() => void navigate('/customers/new')}>
                 <Plus aria-hidden="true" size={20} />
                 Registrar primer cliente
               </Button>
@@ -352,7 +356,7 @@ export function CustomersPage() {
                   <Button
                     aria-label="Editar"
                     className="record-action"
-                    onClick={() => setEditing(row)}
+                    onClick={() => void navigate(`/customers/${row.id}/edit`)}
                     title="Editar"
                     variant="quiet"
                   >
@@ -382,7 +386,11 @@ export function CustomersPage() {
             columns={columns}
             getRowKey={(row) => row.id}
             label="Clientes"
-            onRowClick={setPreviewing}
+            onRowClick={(row) =>
+              void navigate(`/customers/${row.id}`, {
+                state: { from: window.location.search },
+              })
+            }
             rows={results}
           />
 
@@ -395,7 +403,7 @@ export function CustomersPage() {
         </>
       )}
 
-      <Drawer
+      <Modal
         className="customer-preview-drawer"
         description="Información disponible del cliente seleccionado."
         onClose={() => setPreviewing(null)}
@@ -529,9 +537,9 @@ export function CustomersPage() {
             </div>
           </div>
         )}
-      </Drawer>
+      </Modal>
 
-      <Drawer
+      <Modal
         className="customer-drawer"
         description={
           editing
@@ -563,7 +571,7 @@ export function CustomersPage() {
           }}
           onSubmit={saveCustomer}
         />
-      </Drawer>
+      </Modal>
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

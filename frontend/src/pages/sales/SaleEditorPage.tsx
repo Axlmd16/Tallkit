@@ -15,7 +15,6 @@ import {
   type SaleDraft,
 } from '@/features/sales/draft'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
-import { SaleCombobox } from '@/features/sales/SaleCombobox'
 import { useSale, useSaleMutations } from '@/features/sales/hooks'
 import { SaleLinesEditor } from '@/features/sales/SaleLinesEditor'
 import { SaleReviewDialog } from '@/features/sales/SaleReviewDialog'
@@ -32,12 +31,14 @@ import { useIntentTracker } from '@/shared/api/idempotency'
 import { useLatestReview } from '@/shared/api/latest-review'
 import {
   Button,
-  FiscalScopeBadge,
+  Combobox,
   InlineNotice,
   LoadingState,
-  Select,
+  Money,
+  SegmentedControl,
   StatusBadge,
   Textarea,
+  useToast,
 } from '@/shared/ui'
 
 const DEBOUNCE_MS = 300
@@ -56,6 +57,7 @@ export function SaleEditorPage() {
   const saved = useSale(saleId)
   const mutations = useSaleMutations()
   const tracker = useIntentTracker()
+  const toast = useToast()
   const [draft, setDraft] = useState<SaleDraft>(emptyDraft)
   const [savedSignature, setSavedSignature] = useState<string | null>(null)
   const [problem, setProblem] = useState<ProblemView | null>(null)
@@ -212,7 +214,6 @@ export function SaleEditorPage() {
           <p>Prepare una venta directa de repuestos</p>
         </div>
         <div className="sale-topbar-status">
-          <FiscalScopeBadge scope="commercial" />
           <StatusBadge label="Borrador" tone="neutral" />
           {unsaved && <span className="sale-unsaved">Cambios sin guardar</span>}
         </div>
@@ -277,7 +278,7 @@ export function SaleEditorPage() {
               <div className="sale-data-grid">
                 <div className="sale-field">
                   <label htmlFor="sale-customer">Cliente</label>
-                  <SaleCombobox
+                  <Combobox
                     clearable
                     error={errors.customer_id}
                     id="sale-customer"
@@ -292,29 +293,26 @@ export function SaleEditorPage() {
                   />
                 </div>
                 <div className="sale-field">
-                  <label htmlFor="sale-condition">Condición de venta</label>
-                  <Select
-                    aria-describedby={
-                      errors.condition ? 'sale-condition-error' : undefined
-                    }
-                    aria-invalid={errors.condition ? true : undefined}
-                    id="sale-condition"
-                    onChange={(event) =>
+                  <span className="sale-field-label" id="sale-condition-label">
+                    Condición de venta
+                  </span>
+                  <SegmentedControl
+                    aria-label="Condición de venta"
+                    className="w-full [&>button]:flex-1"
+                    onChange={(value) =>
                       setDraft((d) => ({
                         ...d,
-                        condition: event.target.value as SaleCondition,
+                        condition: value as SaleCondition,
                       }))
                     }
+                    options={(
+                      Object.keys(conditionLabels) as SaleCondition[]
+                    ).map((value) => ({
+                      value,
+                      label: conditionLabels[value],
+                    }))}
                     value={draft.condition}
-                  >
-                    {(Object.keys(conditionLabels) as SaleCondition[]).map(
-                      (value) => (
-                        <option key={value} value={value}>
-                          {conditionLabels[value]}
-                        </option>
-                      ),
-                    )}
-                  </Select>
+                  />
                   {errors.condition && (
                     <p
                       className="sale-field-note font-semibold text-danger"
@@ -371,6 +369,13 @@ export function SaleEditorPage() {
             </div>
           </div>
           <div className="sale-actions">
+            <div className="sale-actions-total">
+              <span>Total de la venta</span>
+              <Money
+                amount={showValues ? (preview?.totals?.total ?? null) : null}
+                className={`text-xl font-bold ${fresh ? '' : 'pending-value'}`}
+              />
+            </div>
             <p aria-live="polite" className="sale-actions-note">
               {actionNote}
             </p>
@@ -409,7 +414,18 @@ export function SaleEditorPage() {
       {saved.data && (
         <SaleReviewDialog
           onClose={() => setReviewing(false)}
-          onConfirmed={(sale) => navigate(`/sales/${sale.id}`)}
+          onConfirmed={(sale) => {
+            toast.success(
+              sale.internal_number
+                ? `Venta ${sale.internal_number} confirmada.`
+                : 'Venta confirmada.',
+              {
+                href: `/sales/${sale.id}/document`,
+                linkLabel: 'Ver comprobante',
+              },
+            )
+            navigate(`/sales/${sale.id}`)
+          }}
           open={reviewing}
           returnFocusRef={reviewRef}
           sale={saved.data}

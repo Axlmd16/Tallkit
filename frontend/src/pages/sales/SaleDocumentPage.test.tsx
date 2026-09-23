@@ -136,9 +136,12 @@ it('presenta carga y error con ruta de retorno', () => {
 it('el CSS de impresión oculta navegación y quita el marco de la hoja', async () => {
   // @ts-expect-error Node fs module used in test runner
   const fs = await import('node:fs')
-  const css: string = fs.readFileSync('src/features/sales/sales.css', 'utf-8')
+  const css: string = fs.readFileSync(
+    'src/shared/ui/business/document-sheet.css',
+    'utf-8',
+  )
   expect(css).toMatch(
     /@media print[\s\S]*\.no-print[\s\S]*display:\s*none\s*!important/,
   )
-  expect(css).toMatch(/@media print[\s\S]*\.sales-sheet\s*{[^}]*border:\s*0/)
+  expect(css).toMatch(/@media print[\s\S]*\.document-sheet\s*{[^}]*border:\s*0/)
 })

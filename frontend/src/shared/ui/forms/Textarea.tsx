@@ -19,7 +19,7 @@ const resizeClasses: Record<TextareaResize, string> = {
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   function Textarea(
-    { className = '', radius = 'r10', resize = 'vertical', rows = 4, ...props },
+    { className = '', radius = 'r10', resize = 'vertical', rows = 3, ...props },
     ref,
   ) {
     const radiusClass = radius === 'r5' ? 'rounded-control' : 'rounded-group'
@@ -27,7 +27,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     return (
       <textarea
-        className={`ui-control min-h-[96px] w-full ${radiusClass} ${resizeClass} border border-transparent bg-surface-muted px-4 py-2.5 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:bg-surface-selected/50 focus:border-primary/35 focus:bg-surface focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)] disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-danger/45 aria-invalid:bg-danger-soft aria-invalid:shadow-[0_0_0_3px_rgb(209_26_42_/_0.08)] ${className}`}
+        className={`ui-control min-h-[72px] w-full ${radiusClass} ${resizeClass} border border-line-strong bg-surface px-3 py-2 text-[13.5px] text-ink outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:border-ink-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(15_107_111_/_0.18)] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-60 aria-invalid:border-danger aria-invalid:bg-[#fffaf9] aria-invalid:shadow-none ${className}`}
         ref={ref}
         rows={rows}
         {...useFieldProps()}

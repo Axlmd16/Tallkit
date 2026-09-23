@@ -90,7 +90,7 @@ export function Tabs({
         aria-orientation="horizontal"
         className={`flex items-center gap-2 border-b border-line ${
           variant === 'pill'
-            ? 'border-b-0 gap-1 bg-surface-muted p-1 rounded-group'
+            ? 'border-b-0 gap-0.5 bg-surface-muted p-[3px] rounded-control'
             : ''
         } ${tabListClassName}`}
         role="tablist"
@@ -103,18 +103,22 @@ export function Tabs({
           const styleClasses =
             variant === 'line'
               ? isSelected
-                ? 'border-b-2 border-primary text-primary font-semibold'
+                ? 'border-b-2 border-accent text-accent-strong font-semibold'
                 : 'border-b-2 border-transparent text-ink-muted hover:text-ink hover:border-line'
               : isSelected
-                ? 'bg-surface text-ink shadow-sm font-semibold'
-                : 'text-ink-muted hover:text-ink hover:bg-surface-selected/30'
+                ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(21_35_58_/_0.12)] font-semibold'
+                : 'text-ink-muted hover:text-ink'
 
           return (
             <button
-              aria-controls={panelId}
+              aria-controls={
+                isSelected && activeItem?.content !== undefined
+                  ? panelId
+                  : undefined
+              }
               aria-selected={isSelected ? 'true' : 'false'}
-              className={`min-h-[40px] px-4 py-2 text-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
-                variant === 'pill' ? 'rounded-control' : ''
+              className={`min-h-10 px-3.5 py-2 text-[13.5px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
+                variant === 'pill' ? 'rounded-[4px] min-h-8' : ''
               } ${styleClasses}`}
               disabled={item.disabled}
               id={tabId}
@@ -139,9 +143,9 @@ export function Tabs({
               <span>{item.label}</span>
               {typeof item.count === 'number' && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  className={`rounded-chip px-1.5 py-0.5 text-xs font-semibold ${
                     isSelected
-                      ? 'bg-surface-selected text-ink'
+                      ? 'bg-accent-soft text-accent-strong'
                       : 'bg-surface-muted text-ink-muted'
                   }`}
                 >
@@ -156,7 +160,7 @@ export function Tabs({
       {activeItem?.content !== undefined && (
         <div
           aria-labelledby={`tab-${autoId}-${activeItem.id}`}
-          className={`mt-3 outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-control ${panelClassName}`}
+          className={`mt-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-control ${panelClassName}`}
           id={`panel-${autoId}-${activeItem.id}`}
           role="tabpanel"
           tabIndex={0}

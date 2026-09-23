@@ -37,7 +37,9 @@ export function DetailCard({
           {icon && <div className="shrink-0">{icon}</div>}
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h3 className="text-lg font-bold leading-snug text-ink">{title}</h3>
+              <h3 className="text-[15px] font-semibold leading-snug text-ink">
+                {title}
+              </h3>
               {badge && <span className="shrink-0">{badge}</span>}
             </div>
             {subtitle && (

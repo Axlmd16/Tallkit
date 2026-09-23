@@ -1,21 +1,18 @@
-import { useState, type FormEvent, type RefObject } from 'react'
+import { useState, type RefObject } from 'react'
 
 import {
   describeProblem,
   type ProblemView,
 } from '@/features/catalog-common/problem'
 import { useProductOptions } from '@/features/purchases/pickers'
-import {
-  ReferencePicker,
-  type PickerOption,
-} from '@/features/purchases/ReferencePicker'
+import type { ComboboxOption as PickerOption } from '@/shared/ui'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { useLatestReview } from '@/shared/api/latest-review'
 import {
-  Button,
-  Drawer,
+  Combobox,
   Field,
+  FormModal,
   InlineNotice,
   Input,
   Select,
@@ -33,10 +30,10 @@ import {
 const MANUAL: ManualKind[] = ['INITIAL_LOAD', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT']
 
 /**
- * Carga inicial y ajustes en un solo Drawer: preparar, revisar el efecto y confirmar
- * son pasos del mismo panel, de modo que nunca se superponen dos trampas de foco.
+ * Carga inicial y ajustes en un FormModal: preparar, revisar el efecto y confirmar
+ * son dos acciones explícitas dentro de una sola trampa de foco.
  */
-export function AdjustmentDrawer({
+export function AdjustmentModal({
   open,
   onClose,
   onDone,
@@ -85,9 +82,8 @@ export function AdjustmentDrawer({
     return Object.keys(next).length === 0
   }
 
-  async function prepare(event: FormEvent) {
-    event.preventDefault()
-    if (pending || !validate() || !product) return
+  async function prepare(): Promise<boolean> {
+    if (pending || !validate() || !product) return false
     setPending(true)
     setProblem(null)
     const data = {
@@ -104,18 +100,20 @@ export function AdjustmentDrawer({
       )
       setOperation(created)
       await latest.request(() => mutations.preview.mutateAsync(created.id))
+      return false
     } catch (error) {
       const view = describeProblem(error)
       setProblem(view)
       setErrors(view.fields)
+      return false
     } finally {
       setPending(false)
     }
   }
 
-  async function confirm() {
+  async function confirm(): Promise<boolean> {
     const review = latest.review
-    if (!operation || !review?.review_token || pending) return
+    if (!operation || !review?.review_token || pending) return false
     const payload = {
       id: operation.id,
       expectedVersion: operation.version,
@@ -127,11 +125,13 @@ export function AdjustmentDrawer({
         mutations.confirm.mutateAsync({ ...payload, key }),
       )
       onDone(`${kindLabels[kind]} contabilizada: ${operation.reference}.`)
+      return true
     } catch (error) {
       setProblem(describeProblem(error))
       if (error instanceof ProblemError && error.code === 'review_required') {
         await latest.request(() => mutations.preview.mutateAsync(operation.id))
       }
+      return false
     } finally {
       setPending(false)
     }
@@ -139,19 +139,25 @@ export function AdjustmentDrawer({
 
   const review = latest.review
   return (
-    <Drawer
+    <FormModal
       description="Registre una carga inicial o un ajuste justificado. El sistema resuelve la bodega y valora las salidas al costo promedio vigente."
-      hasUnsavedChanges={dirty && !operation}
+      dirty={dirty && !operation}
       onClose={onClose}
+      onSave={() => (operation ? confirm() : prepare())}
       open={open}
+      saveLabel={
+        operation
+          ? pending
+            ? 'Confirmando…'
+            : 'Confirmar operación'
+          : pending
+            ? 'Preparando…'
+            : 'Preparar y revisar'
+      }
       {...(returnFocusRef ? { returnFocusRef } : {})}
       title="Carga inicial y ajustes"
-      width="medium"
     >
-      <form
-        className="catalog-editor-form inventory-adjustment-form space-y-4"
-        onSubmit={(event) => void prepare(event)}
-      >
+      <div className="catalog-editor-form inventory-adjustment-form space-y-4">
         {problem && (
           <InlineNotice title="No se pudo completar" tone="danger">
             {problem.message}
@@ -173,7 +179,8 @@ export function AdjustmentDrawer({
             ))}
           </Select>
         </Field>
-        <ReferencePicker
+        <Combobox
+          clearable
           disabled={operation !== null}
           error={errors.product_id}
           id="adjust-product"
@@ -230,12 +237,7 @@ export function AdjustmentDrawer({
             value={notes}
           />
         </Field>
-        {!operation && (
-          <Button disabled={pending} type="submit">
-            {pending ? 'Preparando…' : 'Preparar y revisar'}
-          </Button>
-        )}
-      </form>
+      </div>
       {operation && review && (
         <section aria-label="Revisión del efecto" className="mt-6 space-y-3">
           <h3 className="font-semibold text-ink">Revisión del efecto</h3>
@@ -258,20 +260,13 @@ export function AdjustmentDrawer({
             {operation.reference} queda preparada; abandonarla no cambia
             existencias.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              disabled={pending || !review.can_confirm}
-              onClick={() => void confirm()}
-              type="button"
-            >
-              {pending ? 'Confirmando…' : 'Confirmar operación'}
-            </Button>
-            <Button onClick={onClose} type="button" variant="secondary">
-              Abandonar sin confirmar
-            </Button>
-          </div>
+          {!review.can_confirm && (
+            <p className="text-sm font-semibold text-danger">
+              Corrija los impedimentos antes de confirmar.
+            </p>
+          )}
         </section>
       )}
-    </Drawer>
+    </FormModal>
   )
 }

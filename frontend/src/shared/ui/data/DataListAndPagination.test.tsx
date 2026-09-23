@@ -159,7 +159,7 @@ describe('DataList, Pagination y RowActions (C35, C36, C38) - Fase 8.3', () => {
     expect(
       screen.getByRole('button', { name: 'Página siguiente' }),
     ).toBeEnabled()
-    expect(screen.getByText('Página 2 de 3 (25 registros)')).toBeVisible()
+    expect(screen.getByText('Página 2 de 3 · 25 registros')).toBeVisible()
   })
 
   it('RowActions composes direct actions and dropdown menu trigger', async () => {

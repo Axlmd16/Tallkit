@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -45,7 +45,10 @@ const supplier = {
 function renderPage(path = '/suppliers') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <SuppliersPage />
+      <Routes>
+        <Route element={<SuppliersPage />} path="/suppliers" />
+        <Route element={<p>Ficha del proveedor</p>} path="/suppliers/:id" />
+      </Routes>
     </MemoryRouter>,
   )
 }
@@ -76,7 +79,7 @@ it('lista un proveedor sin documento ni contacto usando marcadores neutros', () 
   ).toBeInTheDocument()
 })
 
-it('abre una vista previa del proveedor con contacto e identificación', async () => {
+it('al elegir un proveedor abre su ficha, sin panel lateral de vista previa', async () => {
   mocks.list = {
     isPending: false,
     isError: false,
@@ -99,11 +102,8 @@ it('abre una vista previa del proveedor con contacto e identificación', async (
   renderPage()
 
   await user.click(screen.getAllByText('Juan Pérez')[0]!)
-  const preview = await screen.findByRole('dialog', {
-    name: 'Detalle del proveedor',
-  })
-  expect(within(preview).getByText('1790012345001')).toBeInTheDocument()
-  expect(within(preview).getByText('0999999999')).toBeInTheDocument()
+  expect(await screen.findByText('Ficha del proveedor')).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
 
 it('envía búsqueda, estado y página de la URL al servidor', () => {

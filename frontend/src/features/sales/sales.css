@@ -531,7 +531,7 @@
   width: 794px;
   margin: 0 auto;
 }
-.sale-sheet-frame .sales-sheet {
+.sale-sheet-frame .document-sheet {
   width: 794px;
   min-height: 1123px;
   max-width: none;
@@ -553,175 +553,6 @@
   .sale-line,
   .sale-icon-button {
     transition: none;
-  }
-}
-
-/* Hoja del comprobante: misma estructura en el visor, el comprobante y la impresión. */
-.sales-sheet {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  padding: 24px;
-  border: 1px solid var(--color-line);
-  border-radius: 10px;
-  background: var(--color-surface);
-  color: var(--color-ink);
-  font-size: 13px;
-}
-.sheet-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--color-ink);
-}
-.sheet-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 800;
-}
-.sheet-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
-}
-.sheet-kind {
-  text-align: right;
-}
-.sheet-title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-.sheet-state {
-  margin-top: 2px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-.sheet-meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 24px;
-  padding: 16px 0;
-}
-.sheet-meta .wide {
-  grid-column: 1 / -1;
-}
-.sheet-meta dt {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-.sheet-meta dd {
-  margin-top: 2px;
-  overflow-wrap: anywhere;
-}
-.sheet-lines {
-  margin-bottom: 16px;
-}
-.sales-sheet table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.sales-sheet th,
-.sales-sheet td {
-  padding: 7px 6px;
-  text-align: left;
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-.sales-sheet th {
-  border-bottom: 1px solid var(--color-line);
-  background: var(--color-surface-muted);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-ink-muted);
-}
-.sales-sheet td {
-  border-bottom: 1px solid var(--color-line);
-}
-.sales-sheet td.empty {
-  color: var(--color-ink-muted);
-}
-.sales-sheet .amount {
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.sheet-foot {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-.sheet-totals {
-  width: min(280px, 100%);
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-}
-.sheet-totals p {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 4px 0;
-}
-.sheet-totals .grand {
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 2px solid var(--color-ink);
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--color-primary-strong);
-}
-.sheet-notice {
-  margin-top: auto;
-  padding-top: 24px;
-  border-top: 1px solid var(--color-line);
-  font-size: 11px;
-  color: var(--color-ink-muted);
-}
-.sales-sheet[aria-busy='true'] .pending-value {
-  opacity: 0.7;
-}
-/* Con opacidad reducida el color primario perdería contraste AA: el total pasa a tinta. */
-.sheet-totals.pending-value .grand {
-  color: var(--color-ink);
-}
-
-/* Comprobante confirmado en teléfono: filas apiladas. El visor mantiene la hoja A4. */
-@media (max-width: 640px) {
-  .catalog-page > .sales-sheet {
-    padding: 16px;
-  }
-  .catalog-page > .sales-sheet thead {
-    position: absolute;
-    left: -9999px;
-  }
-  .catalog-page > .sales-sheet tr {
-    display: block;
-    border-top: 1px solid var(--color-line);
-    padding: 8px 0;
-  }
-  .catalog-page > .sales-sheet td {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 0;
-  }
-  .catalog-page > .sales-sheet td::before {
-    content: attr(data-label);
-    font-weight: 600;
   }
 }
 
@@ -788,18 +619,21 @@
   }
 }
 
-@media print {
-  .no-print,
-  nav,
-  header[role='banner'],
-  aside {
-    display: none !important;
-  }
-  .sales-sheet {
-    border: 0;
-    padding: 0;
-  }
-  body {
-    background: #fff !important;
-  }
+/* Total del servidor junto a las acciones del editor. */
+.sale-actions-total {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  margin-right: auto;
+}
+.sale-actions-total > span:first-child {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+}
+.sale-field-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink);
 }

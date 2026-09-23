@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -86,12 +86,25 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   renderPage()
   expect(screen.getAllByText('COM-VEN-000007').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Ana Pérez').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('Venta directa').length).toBeGreaterThan(0)
+  expect(screen.queryByText('Venta directa')).not.toBeInTheDocument()
+  expect(within(screen.getByRole('table', { name: 'Ventas' })).getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
+    'Número', 'Fecha', 'Cliente', 'Condición', 'Estado', 'Pago', 'Total USD', 'Acciones',
+  ])
   expect(screen.getAllByText('20/09/2026').length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 23.00').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Confirmada').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Parcial').length).toBeGreaterThan(0)
-  expect(screen.getByText('RUC comercial')).toBeInTheDocument()
+  // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
+  expect(screen.queryByText('RUC comercial')).toBeNull()
+})
+
+it('el número interno usa la letra monoespaciada y el total se alinea a la derecha', () => {
+  renderPage()
+  const table = screen.getByRole('table', { name: 'Ventas' })
+  expect(within(table).getByText('COM-VEN-000007')).toHaveClass('font-mono')
+  expect(within(table).getByText('USD 23.00').closest('td')).toHaveClass(
+    'text-right',
+  )
 })
 
 it('los filtros de cliente, estado, pago y período se leen de la dirección', () => {
@@ -151,9 +164,10 @@ it('los filtros escriben en la dirección y «Limpiar» los retira', async () =>
   renderPage(
     '/sales?state=CONFIRMED&payment_state=PAID&date_from=2026-01-01&date_to=2026-01-31&customer_id=3&customer_name=Ana',
   )
-  await userEvent.selectOptions(
-    screen.getByLabelText('Estado de la venta'),
-    'VOIDED',
+  await userEvent.click(
+    within(
+      screen.getByRole('radiogroup', { name: 'Estado de la venta' }),
+    ).getByRole('radio', { name: 'Anuladas' }),
   )
   await userEvent.selectOptions(
     screen.getByLabelText('Estado de pago'),
@@ -173,7 +187,10 @@ it('los filtros escriben en la dirección y «Limpiar» los retira', async () =>
 
 it('elegir un cliente lo lleva a la dirección y crear abre el editor', async () => {
   renderPage()
-  await userEvent.click(screen.getByRole('button', { name: 'Elegir' }))
+  await userEvent.click(screen.getByRole('combobox', { name: 'Cliente' }))
+  await userEvent.click(
+    await screen.findByRole('option', { name: /Ana Pérez/ }),
+  )
   expect((mocks.args.at(-1) as { customerId?: number }).customerId).toBe(3)
   await userEvent.click(screen.getByRole('button', { name: /nueva venta/i }))
   expect(screen.getByTestId('where')).toHaveTextContent('/sales/new')

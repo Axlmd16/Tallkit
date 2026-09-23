@@ -1,14 +1,4 @@
-import {
-  Barcode,
-  Cube,
-  CurrencyDollar,
-  IdentificationCard,
-  Info,
-  Package,
-  Receipt,
-  Tag,
-  TreeStructure,
-} from '@phosphor-icons/react'
+import { CheckCircle, Circle, Info } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
@@ -21,14 +11,16 @@ import { useProductBrandList } from '@/features/product-brands/hooks'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
 import {
   Button,
-  ButtonGroup,
   Checkbox,
   Field,
+  FiscalScopeBadge,
   FormSection,
   InlineNotice,
   Input,
   LeadingIcon,
+  Money,
   Select,
+  StatusBadge,
   Textarea,
 } from '@/shared/ui'
 
@@ -264,358 +256,516 @@ export function ProductForm({
 
   return (
     <form
-      className="catalog-editor-form space-y-5"
+      className="catalog-editor-form grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start"
       noValidate
       onSubmit={submit}
     >
-      {problem && (
-        <InlineNotice title="No se pudo guardar el producto" tone="danger">
-          {problem.message}
-          {problem.staleRecord && onReload && (
-            <div className="mt-3">
-              <Button onClick={onReload} type="button" variant="secondary">
-                Cargar versión vigente
-              </Button>
-            </div>
-          )}
-        </InlineNotice>
-      )}
-
-      <FormSection
-        description="Códigos y nombre con los que se reconoce el producto."
-        icon={<IdentificationCard size={22} />}
-        title="Identificación"
-      >
-        <Field error={errors.code} id="product-code" label="Código interno">
-          <LeadingIcon icon={<Barcode size={20} />}>
-            <Input
-              className="pl-11"
-              disabled={pending}
-              id="product-code"
-              maxLength={64}
-              onChange={(e) => update('code', e.target.value, 'code')}
-              value={draft.code}
-            />
-          </LeadingIcon>
-        </Field>
-        <Field
-          error={errors.manufacturer_code}
-          hint="Opcional. Número de parte del fabricante; no reemplaza al código interno."
-          id="product-manufacturer-code"
-          label="Código del fabricante"
-        >
-          <LeadingIcon icon={<Tag size={20} />}>
-            <Input
-              className="pl-11"
-              disabled={pending}
-              id="product-manufacturer-code"
-              onChange={(e) =>
-                update('manufacturerCode', e.target.value, 'manufacturer_code')
-              }
-              value={draft.manufacturerCode}
-            />
-          </LeadingIcon>
-        </Field>
-        <Field
-          className="sm:col-span-2"
-          error={errors.name}
-          id="product-name"
-          label="Nombre"
-        >
-          <Input
-            disabled={pending}
-            id="product-name"
-            maxLength={255}
-            onChange={(e) => update('name', e.target.value, 'name')}
-            value={draft.name}
-          />
-        </Field>
-        <Field
-          className="sm:col-span-2"
-          error={errors.description}
-          id="product-description"
-          label="Descripción (opcional)"
-        >
-          <Textarea
-            disabled={pending}
-            id="product-description"
-            maxLength={2000}
-            onChange={(e) =>
-              update('description', e.target.value, 'description')
-            }
-            value={draft.description}
-          />
-        </Field>
-      </FormSection>
-
-      <FormSection
-        description="Cada presentación vendible distinta es otro producto; no hay variantes ni conversión automática."
-        icon={<Cube size={22} />}
-        title="Presentación"
-      >
-        <Field
-          error={errors.content_quantity}
-          hint="Cantidad cerrada, por ejemplo 0.500000."
-          id="product-quantity"
-          label="Contenido"
-        >
-          <Input
-            disabled={pending}
-            id="product-quantity"
-            inputMode="decimal"
-            onChange={(e) =>
-              update('quantity', e.target.value, 'content_quantity')
-            }
-            value={draft.quantity}
-          />
-        </Field>
-        <Field
-          error={errors.unit_id}
-          id="product-unit"
-          label="Unidad de medida"
-        >
-          <Select
-            disabled={pending}
-            id="product-unit"
-            onChange={(e) => update('unitId', e.target.value, 'unit_id')}
-            value={draft.unitId}
-          >
-            <option value="">Seleccione…</option>
-            {unitOptions.map((unit) => (
-              <option key={unit.id} value={unit.id}>
-                {unit.name}
-                {unit.is_active ? '' : ' (inactiva)'}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="flex items-center gap-3 rounded-group border border-line bg-surface px-4 py-3 sm:col-span-2">
-          <Package aria-hidden="true" className="text-primary" size={22} />
-          <Checkbox
-            checked={draft.isKit}
-            disabled={pending}
-            label="Es un kit comprado completo"
-            onChange={(e) => update('isKit', e.target.checked)}
-          />
-        </div>
-      </FormSection>
-
-      <FormSection
-        description="Clasificación del producto y compatibilidad con vehículos."
-        icon={<TreeStructure size={22} />}
-        title="Referencias"
-      >
-        <Field
-          error={errors.category_id}
-          id="product-category"
-          label="Categoría"
-        >
-          <Select
-            disabled={pending}
-            id="product-category"
-            onChange={(e) =>
-              update('categoryId', e.target.value, 'category_id')
-            }
-            value={draft.categoryId}
-          >
-            <option value="">Seleccione…</option>
-            {categoryOptions.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-                {category.is_active ? '' : ' (inactiva)'}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field
-          error={errors.product_brand_id}
-          id="product-brand"
-          label="Marca de producto (opcional)"
-        >
-          <Select
-            disabled={pending}
-            id="product-brand"
-            onChange={(e) =>
-              update('brandId', e.target.value, 'product_brand_id')
-            }
-            value={draft.brandId}
-          >
-            <option value="">Sin marca</option>
-            {brandOptions.map((brand) => (
-              <option key={brand.id} value={brand.id}>
-                {brand.name}
-                {brand.is_active ? '' : ' (inactiva)'}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="sm:col-span-2">
-          <VehicleBrandPicker
-            disabled={pending}
-            error={errors.vehicle_brand_ids}
-            onChange={(next) =>
-              update('vehicleBrands', next, 'vehicle_brand_ids')
-            }
-            selected={draft.vehicleBrands}
-          />
-        </div>
-        {permissions.has('productos.gestionar') && (
-          <p className="flex items-start gap-2 text-sm text-ink-muted sm:col-span-2">
-            <Info
-              aria-hidden="true"
-              className="mt-0.5 shrink-0 text-primary"
-              size={16}
-            />
-            <span>
-              ¿Falta una opción? Administre{' '}
-              <a
-                className="font-semibold text-primary underline"
-                href="/product-categories"
-                rel="noopener"
-                target="_blank"
-              >
-                categorías
-              </a>
-              ,{' '}
-              <a
-                className="font-semibold text-primary underline"
-                href="/measurement-units"
-                rel="noopener"
-                target="_blank"
-              >
-                unidades
-              </a>{' '}
-              o{' '}
-              <a
-                className="font-semibold text-primary underline"
-                href="/product-brands"
-                rel="noopener"
-                target="_blank"
-              >
-                marcas de producto
-              </a>{' '}
-              en otra pestaña; este borrador se conserva.
-            </span>
-          </p>
+      <div className="min-w-0 space-y-4">
+        {problem && (
+          <InlineNotice title="No se pudo guardar el producto" tone="danger">
+            {problem.message}
+            {problem.staleRecord && onReload && (
+              <div className="mt-3">
+                <Button onClick={onReload} type="button" variant="secondary">
+                  Cargar versión vigente
+                </Button>
+              </div>
+            )}
+          </InlineNotice>
         )}
-      </FormSection>
 
-      <FormSection
-        description="Precio final al cliente y configuración tributaria."
-        icon={<Receipt size={22} />}
-        title="Precio y tributación"
-      >
-        <Field
-          error={errors.sale_price}
-          hint={
-            canChangePrice
-              ? 'Precio final en USD, con impuesto incluido cuando aplique.'
-              : 'Cambiar el precio requiere el permiso de cambio de precio.'
-          }
-          id="product-price"
-          label="Precio final (USD)"
-        >
-          <LeadingIcon icon={<CurrencyDollar size={20} />}>
-            <Input
-              className="pl-11"
-              disabled={pending || !canChangePrice}
-              id="product-price"
-              inputMode="decimal"
-              onChange={(e) => update('price', e.target.value, 'sale_price')}
-              value={draft.price}
-            />
-          </LeadingIcon>
-        </Field>
-        {noTaxConfiguration ? (
-          <div className="sm:col-span-2">
-            <InlineNotice
-              title="Configuración tributaria pendiente"
-              tone="warning"
+        <div className="overflow-hidden rounded-panel border border-line bg-surface">
+          <FormSection
+            description="Códigos y nombre con los que se reconoce el producto en el mostrador y en las compras."
+            title="Identificación"
+            variant="flush"
+          >
+            <Field
+              error={errors.code}
+              hint="Único en el catálogo. Se usa para buscar y en el comprobante."
+              id="product-code"
+              label="Código interno"
+              required
             >
-              No hay definiciones de impuesto del RUC comercial. Un
-              Administrador debe configurarlas antes de registrar productos.
-              {canConfigure && (
-                <>
-                  {' '}
+              <Input
+                className="font-mono"
+                disabled={pending}
+                id="product-code"
+                maxLength={64}
+                onChange={(e) => update('code', e.target.value, 'code')}
+                value={draft.code}
+              />
+            </Field>
+            <Field
+              error={errors.manufacturer_code}
+              hint="Opcional. Número de parte del fabricante; no reemplaza al código interno."
+              id="product-manufacturer-code"
+              label="Código del fabricante"
+            >
+              <Input
+                className="font-mono"
+                disabled={pending}
+                id="product-manufacturer-code"
+                onChange={(e) =>
+                  update(
+                    'manufacturerCode',
+                    e.target.value,
+                    'manufacturer_code',
+                  )
+                }
+                value={draft.manufacturerCode}
+              />
+            </Field>
+            <Field
+              className="sm:col-span-2"
+              error={errors.name}
+              id="product-name"
+              label="Nombre"
+              required
+            >
+              <Input
+                disabled={pending}
+                id="product-name"
+                maxLength={255}
+                onChange={(e) => update('name', e.target.value, 'name')}
+                value={draft.name}
+              />
+            </Field>
+            <Field
+              className="sm:col-span-2"
+              error={errors.description}
+              id="product-description"
+              label="Descripción (opcional)"
+            >
+              <Textarea
+                disabled={pending}
+                id="product-description"
+                maxLength={2000}
+                onChange={(e) =>
+                  update('description', e.target.value, 'description')
+                }
+                value={draft.description}
+              />
+            </Field>
+          </FormSection>
+
+          <FormSection
+            description="Cada presentación vendible distinta es otro producto; no hay variantes ni conversión automática."
+            title="Presentación"
+            variant="flush"
+          >
+            <Field
+              error={errors.content_quantity}
+              hint="Cantidad cerrada, por ejemplo 0.500000."
+              id="product-quantity"
+              label="Contenido"
+              required
+            >
+              <Input
+                disabled={pending}
+                id="product-quantity"
+                inputMode="decimal"
+                onChange={(e) =>
+                  update('quantity', e.target.value, 'content_quantity')
+                }
+                value={draft.quantity}
+              />
+            </Field>
+            <Field
+              error={errors.unit_id}
+              id="product-unit"
+              label="Unidad de medida"
+              required
+            >
+              <Select
+                disabled={pending}
+                id="product-unit"
+                onChange={(e) => update('unitId', e.target.value, 'unit_id')}
+                value={draft.unitId}
+              >
+                <option value="">Seleccione…</option>
+                {unitOptions.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name}
+                    {unit.is_active ? '' : ' (inactiva)'}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <div className="rounded-control border border-line bg-surface-subtle px-3 py-1 sm:col-span-2">
+              <Checkbox
+                checked={draft.isKit}
+                disabled={pending}
+                label="Es un kit comprado completo"
+                onChange={(e) => update('isKit', e.target.checked)}
+              />
+              <p className="pb-2 pl-7 text-xs text-ink-muted">
+                Se compra y vende como una sola pieza; solo se descompone con un
+                desarme explícito.
+              </p>
+            </div>
+          </FormSection>
+
+          <FormSection
+            description="Clasificación del producto y compatibilidad con vehículos."
+            title="Referencias"
+            variant="flush"
+          >
+            <Field
+              error={errors.category_id}
+              id="product-category"
+              label="Categoría"
+              required
+            >
+              <Select
+                disabled={pending}
+                id="product-category"
+                onChange={(e) =>
+                  update('categoryId', e.target.value, 'category_id')
+                }
+                value={draft.categoryId}
+              >
+                <option value="">Seleccione…</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                    {category.is_active ? '' : ' (inactiva)'}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field
+              error={errors.product_brand_id}
+              id="product-brand"
+              label="Marca de producto (opcional)"
+            >
+              <Select
+                disabled={pending}
+                id="product-brand"
+                onChange={(e) =>
+                  update('brandId', e.target.value, 'product_brand_id')
+                }
+                value={draft.brandId}
+              >
+                <option value="">Sin marca</option>
+                {brandOptions.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                    {brand.is_active ? '' : ' (inactiva)'}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <div className="sm:col-span-2">
+              <VehicleBrandPicker
+                disabled={pending}
+                error={errors.vehicle_brand_ids}
+                onChange={(next) =>
+                  update('vehicleBrands', next, 'vehicle_brand_ids')
+                }
+                selected={draft.vehicleBrands}
+              />
+            </div>
+            {permissions.has('productos.gestionar') && (
+              <p className="flex items-start gap-2 text-sm text-ink-muted sm:col-span-2">
+                <Info
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0 text-accent"
+                  size={16}
+                />
+                <span>
+                  ¿Falta una opción? Administre{' '}
                   <a
-                    className="font-semibold underline"
-                    href="/configuration"
+                    className="font-semibold text-accent underline"
+                    href="/product-categories"
                     rel="noopener"
                     target="_blank"
                   >
-                    Abrir configuración
+                    categorías
                   </a>
-                </>
-              )}
-            </InlineNotice>
-          </div>
-        ) : (
-          <Field
-            error={errors.tax_definition_id}
-            hint="El precio no se recalcula al cambiar la tarifa."
-            id="product-tax"
-            label="Impuesto (RUC comercial)"
-          >
-            <Select
-              disabled={pending || taxes.isPending}
-              id="product-tax"
-              onChange={(e) =>
-                update('taxId', e.target.value, 'tax_definition_id')
-              }
-              value={draft.taxId}
-            >
-              <option value="">Seleccione…</option>
-              {selectedTax &&
-                !taxOptions.some((o) => o.id === selectedTax.id) && (
-                  <option value={selectedTax.id}>
-                    {taxLabel(selectedTax)}
-                  </option>
-                )}
-              {taxOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {taxLabel(option)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        )}
-        {selectedTax && selectedTax.tax_status !== 'applicable' && (
-          <div className="sm:col-span-2">
-            <InlineNotice title="Vigencia tributaria pendiente" tone="warning">
-              Puede guardar el producto, pero no podrá usarse en operaciones
-              económicas hasta que se configure una vigencia aplicable.
-            </InlineNotice>
-          </div>
-        )}
-      </FormSection>
+                  ,{' '}
+                  <a
+                    className="font-semibold text-accent underline"
+                    href="/measurement-units"
+                    rel="noopener"
+                    target="_blank"
+                  >
+                    unidades
+                  </a>{' '}
+                  o{' '}
+                  <a
+                    className="font-semibold text-accent underline"
+                    href="/product-brands"
+                    rel="noopener"
+                    target="_blank"
+                  >
+                    marcas de producto
+                  </a>{' '}
+                  en otra pestaña; este borrador se conserva.
+                </span>
+              </p>
+            )}
+          </FormSection>
 
-      <ButtonGroup
-        className="justify-end pt-2"
-        label="Acciones del formulario de producto"
-      >
-        <Button
-          disabled={pending}
-          onClick={onCancel}
-          type="button"
-          variant="quiet"
-        >
-          Cancelar
-        </Button>
-        <Button
-          aria-busy={pending}
-          disabled={pending}
-          type="submit"
-          variant="primary"
-        >
-          {pending
-            ? 'Guardando…'
-            : retrying
-              ? 'Reintentar envío'
-              : product
-                ? 'Guardar cambios'
-                : 'Guardar producto'}
-        </Button>
-      </ButtonGroup>
+          <FormSection
+            description="Precio final al cliente, con impuesto incluido. Se venderá con el RUC comercial."
+            title="Precio y tributación"
+            variant="flush"
+          >
+            <Field
+              error={errors.sale_price}
+              hint={
+                canChangePrice
+                  ? 'Precio final en USD, con impuesto incluido cuando aplique.'
+                  : 'Cambiar el precio requiere el permiso de cambio de precio.'
+              }
+              id="product-price"
+              label="Precio final (USD)"
+              required
+            >
+              <LeadingIcon
+                icon={
+                  <span className="text-xs font-semibold tracking-wide">
+                    USD
+                  </span>
+                }
+              >
+                <Input
+                  className="pl-14 text-right font-semibold"
+                  disabled={pending || !canChangePrice}
+                  id="product-price"
+                  inputMode="decimal"
+                  onChange={(e) =>
+                    update('price', e.target.value, 'sale_price')
+                  }
+                  value={draft.price}
+                />
+              </LeadingIcon>
+            </Field>
+            {noTaxConfiguration ? (
+              <div className="sm:col-span-2">
+                <InlineNotice
+                  title="Configuración tributaria pendiente"
+                  tone="warning"
+                >
+                  No hay definiciones de impuesto del RUC comercial. Un
+                  Administrador debe configurarlas antes de registrar productos.
+                  {canConfigure && (
+                    <>
+                      {' '}
+                      <a
+                        className="font-semibold underline"
+                        href="/configuration"
+                        rel="noopener"
+                        target="_blank"
+                      >
+                        Abrir configuración
+                      </a>
+                    </>
+                  )}
+                </InlineNotice>
+              </div>
+            ) : (
+              <Field
+                error={errors.tax_definition_id}
+                hint="El precio no se recalcula al cambiar la tarifa."
+                id="product-tax"
+                label="Impuesto (RUC comercial)"
+                required
+              >
+                <Select
+                  disabled={pending || taxes.isPending}
+                  id="product-tax"
+                  onChange={(e) =>
+                    update('taxId', e.target.value, 'tax_definition_id')
+                  }
+                  value={draft.taxId}
+                >
+                  <option value="">Seleccione…</option>
+                  {selectedTax &&
+                    !taxOptions.some((o) => o.id === selectedTax.id) && (
+                      <option value={selectedTax.id}>
+                        {taxLabel(selectedTax)}
+                      </option>
+                    )}
+                  {taxOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {taxLabel(option)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+            {selectedTax && selectedTax.tax_status !== 'applicable' && (
+              <div className="sm:col-span-2">
+                <InlineNotice
+                  title="Vigencia tributaria pendiente"
+                  tone="warning"
+                >
+                  Puede guardar el producto, pero no podrá usarse en operaciones
+                  económicas hasta que se configure una vigencia aplicable.
+                </InlineNotice>
+              </div>
+            )}
+          </FormSection>
+
+          <div
+            aria-label="Acciones del formulario de producto"
+            className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-subtle px-5 py-3"
+            role="group"
+          >
+            <span className="mr-auto text-[12.5px] text-ink-muted">
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>{' '}
+              Campo obligatorio
+            </span>
+            <Button
+              disabled={pending}
+              onClick={onCancel}
+              type="button"
+              variant="quiet"
+            >
+              Cancelar
+            </Button>
+            <Button
+              aria-busy={pending}
+              disabled={pending}
+              type="submit"
+              variant="primary"
+            >
+              {pending
+                ? 'Guardando…'
+                : retrying
+                  ? 'Reintentar envío'
+                  : product
+                    ? 'Guardar cambios'
+                    : 'Guardar producto'}
+            </Button>
+          </div>
+        </div>
+      </div>
+      <ProductSummary
+        categoryName={
+          categoryOptions.find((c) => String(c.id) === draft.categoryId)?.name
+        }
+        draft={draft}
+        taxName={selectedTax ? taxLabel(selectedTax) : undefined}
+        unitName={unitOptions.find((u) => String(u.id) === draft.unitId)?.name}
+      />
     </form>
+  )
+}
+
+/**
+ * Columna lateral: cómo se verá el producto en una venta y qué falta antes de guardar.
+ * Solo refleja lo escrito; la validación y el cálculo reales los hace el servidor.
+ */
+function ProductSummary({
+  draft,
+  categoryName,
+  unitName,
+  taxName,
+}: {
+  draft: Draft
+  categoryName?: string | undefined
+  unitName?: string | undefined
+  taxName?: string | undefined
+}) {
+  const checks: Array<[string, boolean]> = [
+    ['Código interno', draft.code.trim() !== ''],
+    ['Nombre', draft.name.trim() !== ''],
+    ['Contenido y unidad', draft.quantity.trim() !== '' && draft.unitId !== ''],
+    ['Categoría', draft.categoryId !== ''],
+    ['Precio final', PRICE.test(draft.price.trim())],
+    ['Impuesto', draft.taxId !== ''],
+  ]
+  const done = checks.filter(([, ok]) => ok).length
+  return (
+    <aside className="space-y-4" aria-label="Resumen del producto">
+      <section className="rounded-panel border border-line bg-surface">
+        <h3 className="border-b border-line px-4 py-3 text-[14.5px] font-semibold">
+          Así se verá en la venta
+        </h3>
+        <div className="space-y-3 p-4 text-[13px]">
+          <div className="flex min-h-10 items-center gap-2 rounded-control border border-line-strong px-2.5">
+            <span className="rounded-chip border border-line bg-surface-muted px-1.5 font-mono text-xs">
+              {draft.code.trim() || 'CÓDIGO'}
+            </span>
+            <span className="truncate font-medium">
+              {draft.name.trim() || 'Nombre del producto'}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-ink-muted">Precio final</span>
+            <Money
+              amount={
+                PRICE.test(draft.price.trim()) ? draft.price.trim() : null
+              }
+              className="text-lg font-bold"
+            />
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-ink-muted">Impuesto</span>
+            <span className="text-right">{taxName ?? '—'}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-ink-muted">Presentación</span>
+            <span className="text-right">
+              {draft.quantity.trim() && unitName
+                ? `${draft.quantity.trim()} ${unitName}`
+                : '—'}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <FiscalScopeBadge scope="commercial" />
+            {categoryName && (
+              <StatusBadge kind="category" label={categoryName} />
+            )}
+          </div>
+        </div>
+      </section>
+      <section className="rounded-panel border border-line bg-surface">
+        <div className="flex items-center justify-between border-b border-line px-4 py-3">
+          <h3 className="text-[14.5px] font-semibold">Antes de guardar</h3>
+          <span className="text-[12.5px] text-ink-muted">
+            {done} de {checks.length}
+          </span>
+        </div>
+        <ul className="space-y-2 px-4 py-3 text-[13px]">
+          {checks.map(([label, ok]) => (
+            <li className="flex items-center gap-2" key={label}>
+              {ok ? (
+                <CheckCircle
+                  aria-hidden="true"
+                  className="text-success"
+                  size={16}
+                  weight="fill"
+                />
+              ) : (
+                <Circle
+                  aria-hidden="true"
+                  className="text-line-strong"
+                  size={16}
+                />
+              )}
+              <span className={ok ? '' : 'text-ink-muted'}>
+                {label}
+                <span className="sr-only">
+                  {ok ? ': completo' : ': pendiente'}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <p className="flex gap-2 rounded-control bg-info-soft px-3 py-2.5 text-[12.5px] text-info">
+        <Info aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
+        <span>
+          Las existencias no se cargan aquí: entran con un <b>ingreso</b> de
+          compra.
+        </span>
+      </p>
+    </aside>
   )
 }

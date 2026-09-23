@@ -1,30 +1,24 @@
-import {
-  EnvelopeSimple,
-  IdentificationCard,
-  MapPin,
-  PencilSimple,
-  Phone,
-  Power,
-} from '@phosphor-icons/react'
+import { PencilSimple, Power } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { CatalogToolbar } from '@/features/catalog-common/CatalogToolbar'
+import {
+  CatalogToolbar,
+  NewRecordButton,
+} from '@/features/catalog-common/CatalogToolbar'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import {
   StateChangeDialog,
   type StateChange,
 } from '@/features/catalog-common/StateChangeDialog'
-import { SupplierEditorDrawer } from '@/features/suppliers/SupplierEditorDrawer'
 import { useSupplierMutations, useSuppliers } from '@/features/suppliers/hooks'
 import type { Supplier } from '@/features/suppliers/types'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Avatar,
   Button,
-  Drawer,
   ElevatedDataList,
   FiscalScopeBadge,
   InlineNotice,
@@ -43,8 +37,7 @@ export function SuppliersPage() {
   )
   const tracker = useIntentTracker()
   const mutations = useSupplierMutations()
-  const [editor, setEditor] = useState<'new' | Supplier | null>(null)
-  const [previewing, setPreviewing] = useState<Supplier | null>(null)
+  const navigate = useNavigate()
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -73,6 +66,14 @@ export function SuppliersPage() {
       <PageHeader
         description="Proveedores del ámbito comercial. Solo el nombre es obligatorio; identificación y contacto son opcionales."
         title="Proveedores"
+        actions={
+          canManage && (
+            <NewRecordButton
+              label="Nuevo proveedor"
+              onClick={() => void navigate('/suppliers/new')}
+            />
+          )
+        }
       />
       <FiscalScopeBadge scope="commercial" />
       {notice && (
@@ -80,23 +81,16 @@ export function SuppliersPage() {
           {notice}
         </InlineNotice>
       )}
-      <CatalogToolbar
-        filters={filters}
-        idPrefix="supplier"
-        label="Barra de herramientas de proveedores"
-        newLabel="Nuevo proveedor"
-        onNew={
-          canManage
-            ? () => {
-                setNotice(null)
-                setEditor('new')
-              }
-            : undefined
-        }
-        searchLabel="Buscar por nombre o documento"
-        searchPlaceholder="Nombre o documento…"
-      />
       <ListStates
+        toolbar={
+          <CatalogToolbar
+            filters={filters}
+            idPrefix="supplier"
+            label="Barra de herramientas de proveedores"
+            searchLabel="Buscar por nombre o documento"
+            searchPlaceholder="Nombre o documento…"
+          />
+        }
         emptyText="Aún no hay proveedores registrados."
         emptyTitle="No hay proveedores"
         errorText="No fue posible consultar los proveedores. Reintente en unos instantes."
@@ -114,8 +108,7 @@ export function SuppliersPage() {
                     aria-label="Editar"
                     className="record-action"
                     onClick={() => {
-                      setNotice(null)
-                      setEditor(row)
+                      void navigate(`/suppliers/${row.id}/edit`)
                     }}
                     type="button"
                     title="Editar"
@@ -190,113 +183,15 @@ export function SuppliersPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Proveedores"
-            onRowClick={setPreviewing}
+            onRowClick={(row) =>
+              void navigate(`/suppliers/${row.id}`, {
+                state: { from: window.location.search },
+              })
+            }
             rows={rows}
           />
         )}
       </ListStates>
-      <Drawer
-        className="record-preview-drawer"
-        description="Resumen del proveedor seleccionado."
-        onClose={() => setPreviewing(null)}
-        open={previewing !== null}
-        title="Detalle del proveedor"
-        width="409"
-      >
-        {previewing && (
-          <div className="record-preview-content space-y-7">
-            <div className="flex flex-col items-center text-center">
-              <Avatar
-                className={`person-avatar avatar-${previewing.id % 4}`}
-                name={previewing.name}
-                size="70"
-              />
-              <h3 className="mt-4 text-xl font-bold text-ink">
-                {previewing.name}
-              </h3>
-              <p className="mt-1 text-sm text-ink-muted">Proveedor comercial</p>
-              <div className="mt-3">
-                <StatusBadge
-                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
-                  tone={previewing.is_active ? 'success' : 'neutral'}
-                />
-              </div>
-            </div>
-            <section aria-labelledby="supplier-preview-contact">
-              <h3
-                className="text-base font-bold text-ink"
-                id="supplier-preview-contact"
-              >
-                Información de contacto
-              </h3>
-              <div className="preview-detail-list">
-                <div>
-                  <Phone size={19} />
-                  <span>Teléfono</span>
-                  <strong>{previewing.phone || 'No registrado'}</strong>
-                </div>
-                <div>
-                  <EnvelopeSimple size={19} />
-                  <span>Correo electrónico</span>
-                  <strong>{previewing.email || 'No registrado'}</strong>
-                </div>
-                <div>
-                  <MapPin size={19} />
-                  <span>Dirección</span>
-                  <strong>{previewing.address || 'No registrada'}</strong>
-                </div>
-              </div>
-            </section>
-            <section aria-labelledby="supplier-preview-id">
-              <h3
-                className="text-base font-bold text-ink"
-                id="supplier-preview-id"
-              >
-                Identificación
-              </h3>
-              <div className="mt-3 flex items-center gap-3 rounded-group bg-surface-subtle p-3">
-                <IdentificationCard className="text-primary" size={20} />
-                <span className="flex-1 text-sm text-ink">
-                  {previewing.identification || 'No registrada'}
-                </span>
-                {previewing.identification_type && (
-                  <StatusBadge
-                    kind="category"
-                    label={previewing.identification_type}
-                    shape="rectangle"
-                    showIcon={false}
-                    tone="info"
-                  />
-                )}
-              </div>
-            </section>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                className="preview-primary-link"
-                to={`/suppliers/${previewing.id}`}
-              >
-                Ver ficha completa
-              </Link>
-              {canManage && (
-                <Button
-                  onClick={() => {
-                    setEditor(previewing)
-                    setPreviewing(null)
-                  }}
-                  variant="secondary"
-                >
-                  <PencilSimple aria-hidden="true" size={18} /> Editar proveedor
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </Drawer>
-      <SupplierEditorDrawer
-        mode={editor}
-        onClose={() => setEditor(null)}
-        onSaved={setNotice}
-      />
       <StateChangeDialog
         activateText={`¿Reactivar «${change?.name ?? ''}»? Volverá a poder seleccionarse en operaciones nuevas.`}
         change={change}

@@ -31,7 +31,7 @@ const columns = [
 ]
 
 describe('DataTable (C34) - Fase 8.1', () => {
-  it('renders default elevated table and accessible mobile card list', () => {
+  it('renders the default table contained in a panel and a compact mobile list', () => {
     render(
       <DataTable
         columns={columns}
@@ -43,7 +43,10 @@ describe('DataTable (C34) - Fase 8.1', () => {
 
     const table = screen.getByRole('table', { name: 'Flota de Vehículos' })
     expect(table).toBeVisible()
-    expect(table.className).toContain('border-separate')
+    expect(table.className).toContain('border-collapse')
+    expect(table.closest('.data-table-container')?.className).toMatch(
+      /rounded-panel.*border-line|border-line.*rounded-panel/,
+    )
 
     const mobileList = screen.getByRole('list', {
       name: 'Flota de Vehículos en pantalla estrecha',
@@ -68,7 +71,7 @@ describe('DataTable (C34) - Fase 8.1', () => {
     expect(table.className).toContain('border-collapse')
   })
 
-  it('applies rowHeight 70px (F03 4:661/4:964) and 60px (F07 4:3086) variants', () => {
+  it('applies taller row height variants for denser or roomier tables', () => {
     const { rerender } = render(
       <DataTable
         columns={columns}
@@ -80,7 +83,7 @@ describe('DataTable (C34) - Fase 8.1', () => {
     )
 
     const row70Cells = screen.getAllByRole('cell', { name: 'P-1234' })
-    expect(row70Cells[0]?.className).toMatch(/h-\[70px\]|py-5/)
+    expect(row70Cells[0]?.className).toMatch(/h-14/)
 
     rerender(
       <DataTable
@@ -93,7 +96,7 @@ describe('DataTable (C34) - Fase 8.1', () => {
     )
 
     const row60Cells = screen.getAllByRole('cell', { name: 'P-1234' })
-    expect(row60Cells[0]?.className).toMatch(/h-\[60px\]|py-3\.5/)
+    expect(row60Cells[0]?.className).toMatch(/h-\[52px\]/)
   })
 
   it('renders custom cell renderers and actions slot', () => {

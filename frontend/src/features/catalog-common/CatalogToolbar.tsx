@@ -11,8 +11,6 @@ export function CatalogToolbar({
   searchLabel,
   searchPlaceholder,
   filters,
-  newLabel,
-  onNew,
   extraFilters,
   statusLabels = { active: 'Activos', inactive: 'Inactivos' },
 }: {
@@ -21,8 +19,6 @@ export function CatalogToolbar({
   searchLabel: string
   searchPlaceholder: string
   filters: UrlFilters
-  newLabel?: string | undefined
-  onNew?: (() => void) | undefined
   extraFilters?: ReactNode
   statusLabels?: { active: string; inactive: string }
 }) {
@@ -36,16 +32,22 @@ export function CatalogToolbar({
   }
 
   return (
-    <Toolbar label={label}>
+    <Toolbar className="items-end gap-3" label={label}>
       <form
-        className="flex flex-1 flex-wrap items-end gap-3"
+        className="flex min-w-[18rem] flex-1 items-end gap-2"
         onSubmit={submit}
         role="search"
       >
-        <div className="min-w-[220px] flex-1">
-          <Field id={`${idPrefix}-search`} label={searchLabel}>
+        <div className="min-w-[12rem] flex-1">
+          <Field hideLabel id={`${idPrefix}-search`} label={searchLabel}>
             <div className="relative">
+              <MagnifyingGlass
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted"
+                size={16}
+              />
               <Input
+                className="pl-9"
                 id={`${idPrefix}-search`}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={searchPlaceholder}
@@ -68,17 +70,16 @@ export function CatalogToolbar({
           </Field>
         </div>
         <Button type="submit" variant="secondary">
-          <MagnifyingGlass aria-hidden="true" size={16} />
           Buscar
         </Button>
       </form>
 
       <FilterPanel
-        className="order-last w-full basis-full"
+        bare
         layout="inline"
         label={label.replace(/^Barra de herramientas de /, 'Filtros de ')}
       >
-        <div className="w-44">
+        <div className="w-40">
           <Field id={`${idPrefix}-status`} label="Estado">
             <Select
               id={`${idPrefix}-status`}
@@ -95,15 +96,22 @@ export function CatalogToolbar({
         </div>
         {extraFilters}
       </FilterPanel>
-
-      {onNew && (
-        <div className="ml-auto">
-          <Button onClick={onNew} type="button" variant="primary">
-            <Plus aria-hidden="true" size={16} weight="bold" />
-            {newLabel}
-          </Button>
-        </div>
-      )}
     </Toolbar>
+  )
+}
+
+/** Acción principal de una lista: va en la cabecera de la página, a la derecha. */
+export function NewRecordButton({
+  label,
+  onClick,
+}: {
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Button onClick={onClick} type="button" variant="primary">
+      <Plus aria-hidden="true" size={16} weight="bold" />
+      {label}
+    </Button>
   )
 }

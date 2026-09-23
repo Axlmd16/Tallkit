@@ -34,6 +34,20 @@ it('uses a split workshop composition without public registration or social acce
   )
 })
 
+it('la composición complementaria es propia de Tallkit y no usa ilustraciones de la plantilla', () => {
+  render(
+    <MemoryRouter>
+      <LoginPage />
+    </MemoryRouter>,
+  )
+  const visual = screen.getByTestId('login-visual')
+  expect(visual).toHaveTextContent('Tallkit')
+  expect(visual.querySelector('img[src*="workshop-diagnostic"]')).toBeNull()
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+    'Iniciar sesión',
+  )
+})
+
 it('navigates to the authenticated start after a successful login', async () => {
   mutateAsync.mockResolvedValue(undefined)
   const user = userEvent.setup()

@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/shared/ui'
+
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
   query: {} as Record<string, unknown>,
@@ -104,11 +106,13 @@ const sale = {
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/sales/7']}>
-      <Routes>
-        <Route element={<SaleDetailPage />} path="/sales/:id" />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/sales/7']}>
+        <Routes>
+          <Route element={<SaleDetailPage />} path="/sales/:id" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
 }
 
@@ -138,7 +142,8 @@ it('separa estado de la venta, estado de pago y documento interno en campos dist
   expect(
     within(states).getByText('Documento interno').nextElementSibling,
   ).toHaveTextContent('COM-VEN-000007')
-  expect(screen.getByText('RUC comercial')).toBeInTheDocument()
+  // El ámbito fiscal lo muestra la barra superior del marco; la ficha no lo duplica.
+  expect(screen.queryByText('RUC comercial')).toBeNull()
 })
 
 it('distingue saldo cobrable y exceso por reembolsar sin llamarlo saldo a favor', () => {
@@ -232,9 +237,8 @@ it('el cobro se ofrece solo con saldo y permiso, y devuelve el foco al botón qu
   const dialog = screen.getByRole('dialog', { name: 'Cobro' })
   expect(dialog).toHaveAttribute('data-opener', 'Registrar cobro')
   await userEvent.click(screen.getByRole('button', { name: 'Terminar Cobro' }))
-  expect(
-    screen.getByRole('status', { name: 'Resultado de la operación' }),
-  ).toHaveTextContent('Cobro registrado.')
+  // La confirmación es una notificación temporal, no una franja fija.
+  expect(screen.getByText('Cobro registrado.')).toBeInTheDocument()
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 

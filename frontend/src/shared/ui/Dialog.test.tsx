@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef, useState } from 'react'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import { Button } from './controls'
 import { Dialog } from './Dialog'
@@ -72,4 +72,38 @@ it('keeps tab focus inside while the dialog is open', async () => {
   expect(
     screen.getByRole('button', { name: 'Confirmar desactivación' }),
   ).toHaveFocus()
+})
+
+it('usa el lenguaje Tallkit sin ilustraciones de la plantilla y marca el peligro', () => {
+  render(
+    <Dialog
+      description="Se conservan el número y los valores originales."
+      onClose={() => undefined}
+      open
+      title="Anular venta"
+      tone="danger"
+    >
+      <Button variant="danger-solid">Anular venta</Button>
+    </Dialog>,
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Anular venta' })
+  expect(dialog.querySelector('img')).toBeNull()
+  expect(dialog.className).toMatch(/rounded-dialog/)
+  expect(dialog).toHaveAttribute('data-tone', 'danger')
+})
+
+it('Escape cierra aunque el foco siga fuera del panel', async () => {
+  const user = userEvent.setup()
+  const onClose = vi.fn()
+  render(
+    <>
+      <button type="button">Detrás</button>
+      <Dialog description="d" onClose={onClose} open title="Registrar cobro">
+        <Button>Registrar cobro</Button>
+      </Dialog>
+    </>,
+  )
+  screen.getByText('Detrás').focus()
+  await user.keyboard('{Escape}')
+  expect(onClose).toHaveBeenCalledTimes(1)
 })

@@ -17,7 +17,7 @@ import {
   Button,
   ConfirmationPanel,
   DetailCard,
-  Drawer,
+  Modal,
   EmptyState,
   InlineNotice,
   LoadingState,
@@ -158,7 +158,7 @@ export function CustomerDetailPage() {
         actions={
           <Toolbar label="Acciones de la ficha">
             {canManage && (
-              <Button onClick={() => setDrawerOpen(true)}>
+              <Button onClick={() => void navigate(`/customers/${customer.id}/edit`)}>
                 <PencilSimple aria-hidden="true" size={18} />
                 Editar cliente
               </Button>
@@ -228,7 +228,11 @@ export function CustomerDetailPage() {
             canManageVehicles ? (
               <Button
                 className="text-xs"
-                onClick={() => setVehicleDrawerOpen(true)}
+                onClick={() =>
+                  void navigate(
+                    `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
+                  )
+                }
                 variant="secondary"
               >
                 <Plus aria-hidden="true" size={16} />
@@ -285,7 +289,7 @@ export function CustomerDetailPage() {
         </DetailCard>
       </div>
 
-      <Drawer
+      <Modal
         description="Actualice los datos de contacto o identificación del cliente."
         onClose={() => {
           if (
@@ -312,9 +316,9 @@ export function CustomerDetailPage() {
           }}
           onSubmit={saveCustomer}
         />
-      </Drawer>
+      </Modal>
 
-      <Drawer
+      <Modal
         description={`Registre un vehículo asignado a ${customer.name}.`}
         onClose={() => {
           if (
@@ -338,7 +342,7 @@ export function CustomerDetailPage() {
           onDirtyChange={setVehicleFormDirty}
           onSubmit={saveVehicle}
         />
-      </Drawer>
+      </Modal>
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

@@ -1,82 +1,126 @@
 @import 'tailwindcss';
+@import './tokens.css';
 
 @font-face {
-  font-family: 'Nunito';
+  font-family: 'IBM Plex Sans';
   font-style: normal;
   font-display: swap;
   font-weight: 400;
-  src: url('@fontsource/nunito/files/nunito-latin-400-normal.woff2')
+  src: url('@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2')
     format('woff2');
 }
 
 @font-face {
-  font-family: 'Nunito';
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
   font-style: normal;
   font-display: swap;
   font-weight: 600;
-  src: url('@fontsource/nunito/files/nunito-latin-600-normal.woff2')
+  src: url('@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2')
     format('woff2');
 }
 
 @font-face {
-  font-family: 'Nunito';
+  font-family: 'IBM Plex Sans';
   font-style: normal;
   font-display: swap;
   font-weight: 700;
-  src: url('@fontsource/nunito/files/nunito-latin-700-normal.woff2')
+  src: url('@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2')
     format('woff2');
 }
 
 @font-face {
-  font-family: 'Nunito';
+  font-family: 'IBM Plex Mono';
   font-style: normal;
   font-display: swap;
-  font-weight: 800;
-  src: url('@fontsource/nunito/files/nunito-latin-800-normal.woff2')
+  font-weight: 400;
+  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2')
     format('woff2');
 }
 
-@theme static {
-  --color-canvas: #fafafb;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f7f7f8;
-  --color-surface-muted: #f7f7f8;
-  --color-surface-selected: #efeeff;
-  --color-ink: #030229;
-  --color-ink-muted: #626176;
-  --color-line: #e7e6eb;
-  --color-primary: #605bff;
-  --color-primary-strong: #4f4ae8;
-  --color-primary-soft: #efeeff;
-  --color-focus: #504aef;
-  --color-info: #5b93ff;
-  --color-info-soft: #eaf2ff;
-  --color-cyan: #26c0e2;
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2')
+    format('woff2');
+}
+
+@theme inline {
+  --color-canvas: var(--tk-canvas);
+  --color-surface: var(--tk-surface);
+  --color-surface-subtle: var(--tk-surface-subtle);
+  --color-surface-muted: var(--tk-surface-muted);
+  --color-surface-selected: var(--tk-accent-soft);
+  --color-workspace: var(--tk-workspace);
+  --color-ink: var(--tk-ink);
+  --color-ink-muted: var(--tk-ink-muted);
+  --color-line: var(--tk-line);
+  --color-line-strong: var(--tk-line-strong);
+  --color-primary: var(--tk-primary);
+  --color-primary-strong: var(--tk-primary-strong);
+  --color-primary-soft: var(--tk-primary-soft);
+  --color-accent: var(--tk-accent);
+  --color-accent-strong: var(--tk-accent-strong);
+  --color-accent-soft: var(--tk-accent-soft);
+  --color-brand: var(--tk-brand);
+  --color-focus: var(--tk-accent);
+  --color-scope-commercial: var(--tk-scope-commercial);
+  --color-scope-commercial-soft: var(--tk-scope-commercial-soft);
+  --color-scope-artisan: var(--tk-scope-artisan);
+  --color-scope-artisan-soft: var(--tk-scope-artisan-soft);
+  --color-info: var(--tk-info);
+  --color-info-soft: var(--tk-info-soft);
+  --color-success: var(--tk-success);
+  --color-success-soft: var(--tk-success-soft);
+  --color-warning: var(--tk-warning);
+  --color-warning-soft: var(--tk-warning-soft);
+  --color-danger: var(--tk-danger);
+  --color-danger-soft: var(--tk-danger-soft);
+  /* Pasteles heredados: se retiran cuando queden sin consumidores (tarea 9.3). */
+  --color-cyan: var(--tk-accent);
+  --color-cyan-soft: var(--tk-accent-soft);
   --color-yellow: #ffd66b;
-  --color-coral: #ff8f6b;
-  --color-pink: #ef37ff;
-  --color-orange: #f29339;
-  --color-green: #3a974c;
-  --color-cyan-soft: #e9f9fc;
-  --color-yellow-soft: #fff7e1;
-  --color-coral-soft: #fff4f0;
-  --color-pink-soft: #fff0fc;
-  --color-success: #27763a;
-  --color-success-soft: #eaf7ee;
-  --color-warning: #a65f0c;
-  --color-warning-soft: #fff6df;
-  --color-danger: #d11a2a;
-  --color-danger-soft: #fdecef;
-  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --color-yellow-soft: var(--tk-warning-soft);
+  --color-coral: var(--tk-brand);
+  --color-coral-soft: var(--tk-scope-artisan-soft);
+  --color-pink: var(--tk-danger);
+  --color-pink-soft: var(--tk-danger-soft);
+  --color-orange: var(--tk-brand);
+  --color-green: var(--tk-success);
+  --font-sans: var(--tk-font-sans);
+  --font-mono: var(--tk-font-mono);
   --spacing-touch: 2.75rem;
-  --radius-control: 0.3125rem;
-  --radius-group: 0.625rem;
+  --radius-chip: 0.25rem;
+  --radius-control: 0.375rem;
+  --radius-group: 0.5rem;
+  --radius-panel: 0.5rem;
   --radius-dialog: 0.625rem;
-  --shadow-row: 1px 17px 44px 0 rgb(3 2 41 / 0.07);
+  --shadow-row: 0 0 #0000;
   --shadow-card: 0 0 #0000;
-  --shadow-menu: 0 10px 20px rgb(0 0 0 / 0.1);
-  --shadow-overlay: -14px 30px 20px 0 rgb(0 0 0 / 0.05);
+  --shadow-menu: var(--tk-shadow-menu);
+  --shadow-overlay: var(--tk-shadow-dialog);
+  --shadow-dialog: var(--tk-shadow-dialog);
+  --shadow-sheet: var(--tk-shadow-sheet);
+  --shadow-toast: var(--tk-shadow-toast);
 }
 
 :root {
@@ -103,7 +147,23 @@ body {
   min-height: 100vh;
   background: var(--color-canvas);
   color: var(--color-ink);
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Escala Tallkit contenida: página 22 px, panel 15 px, interfaz 13–14 px, etiquetas 12 px. */
+h1 {
+  letter-spacing: -0.01em;
+}
+
+code,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: normal;
+  letter-spacing: 0.01em;
 }
 
 body,
@@ -137,7 +197,7 @@ summary {
 
 ::selection {
   color: #ffffff;
-  background: var(--color-primary);
+  background: var(--color-accent);
 }
 
 .numeric,
@@ -187,9 +247,14 @@ samp {
   }
 }
 
-/* Frame 4:344: an 80px floating rail, inset 30px, content starts at x=140. */
+/* Marco Tallkit: iconos de 72 px en tableta y barra desplegada de 240 px desde 1280 px. */
 .rail-avatar {
   display: none;
+}
+.app-mobile-brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 @media (min-width: 768px) {
   .app-logout-label {
@@ -205,53 +270,32 @@ samp {
   }
   .app-shell {
     display: block;
-    padding: 30px 30px 30px 140px;
+    padding-left: 72px;
   }
   .app-rail {
     position: fixed;
-    inset: 30px auto 30px 30px;
-    width: 80px;
-    height: calc(100dvh - 60px);
-    padding: 35px 0 20px;
-    border-radius: 10px;
+    inset: 0 auto 0 0;
+    width: 72px;
+    height: 100dvh;
+    z-index: 30;
   }
-  .app-rail > div:first-child {
-    flex-direction: column;
-    padding: 0;
-    gap: 5px;
-  }
-  .app-rail > div:first-child > span {
-    width: 42px;
-    height: 42px;
-  }
-  .app-rail > div:first-child > p {
-    display: none;
-  }
-  .app-mobile-brand-logo {
-    width: 64px;
-    height: 48px;
-    object-fit: contain;
+  .app-brand-mark {
+    justify-content: center;
   }
   .app-brand-compact {
     display: block;
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
   }
   .app-brand-expanded {
     display: none;
   }
-  .app-rail nav {
-    margin-top: 66px;
-  }
-  .app-main {
-    width: 100%;
-    max-width: none;
-    padding: 0;
-    margin: 0;
-  }
   .rail-profile {
-    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 10px 0;
   }
   .rail-profile > div {
     display: none;
@@ -259,14 +303,13 @@ samp {
   .rail-avatar {
     display: grid;
     place-items: center;
-    width: 45px;
-    height: 43px;
-    margin: auto;
-    border-radius: 12px;
-    background: #ffc7d4;
-    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-control);
+    background: var(--color-primary);
+    color: #ffffff;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
   }
   .rail-profile > button {
     width: 44px;
@@ -274,49 +317,32 @@ samp {
   }
 }
 
-/* Frame 4:2 / group 4:233: 218px sidebar and content origin x=248.
-   The 1280px breakpoint is an application adaptation, not a Figma value. */
 @media (min-width: 1280px) {
   .app-shell {
-    padding: 30px 30px 30px 294px;
+    padding-left: 240px;
   }
   .app-rail {
-    inset: 0 auto 0 0;
-    width: 264px;
-    height: 100dvh;
-    padding: 50px 12px 30px;
-    border-radius: 0;
+    width: 240px;
   }
-  .app-rail > div:first-child {
-    flex-direction: row;
+  .app-brand-mark {
+    justify-content: flex-start;
     padding: 0 18px;
-    gap: 15px;
   }
   .app-brand-compact {
     display: none;
   }
   .app-brand-expanded {
-    display: block;
-    width: 150px;
-    height: 108px;
-    object-fit: contain;
-  }
-  .app-rail nav {
-    margin-top: 32px;
+    display: flex;
   }
   .rail-profile {
-    display: grid;
-    grid-template-columns: 45px minmax(0, 1fr) 44px;
+    grid-template-columns: 32px minmax(0, 1fr) 44px;
     align-items: center;
+    justify-items: stretch;
     gap: 10px;
-    padding: 0 8px;
-    text-align: left;
+    padding: 10px 12px 10px 16px;
   }
   .rail-profile > div {
     display: block;
-  }
-  .rail-avatar {
-    margin: 0;
   }
   .rail-profile > button {
     width: 44px;
@@ -901,28 +927,6 @@ samp {
   }
 }
 
-/* List structure from 4:660 / 4:2803, with Sys-Taller's existing actions. */
-.list-page .page-header > div > p {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-.list-page .filter-panel {
-  margin-top: 24px;
-}
-.list-page .filter-panel .ui-control {
-  min-height: 40px;
-  height: 40px;
-  background: var(--color-surface);
-  padding-block: 8px;
-}
-.list-page .filter-panel label {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--color-ink-muted);
-}
 .role-reference {
   margin-top: 8px;
 }
@@ -971,13 +975,6 @@ samp {
 .vehicles-page .data-table-container th:nth-child(7),
 .vehicles-page .data-table-container td:nth-child(7) {
   width: 12%;
-}
-.list-page table tbody tr {
-  height: 70px;
-}
-.list-page table td {
-  font-size: 14px;
-  font-weight: 400;
 }
 .user-identity {
   display: flex;
@@ -1036,13 +1033,6 @@ samp {
 .role-vendedor {
   background: var(--color-primary-soft);
   color: var(--color-primary-strong);
-}
-.list-page td [role='status'] {
-  min-width: 112px;
-  min-height: 40px;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 13px;
 }
 @media (min-width: 768px) {
   .record-action {
@@ -1323,149 +1313,6 @@ samp {
   }
 }
 
-/* Login 4:8584: 448px column, 348px controls, 92px mark, same vertical bands. */
-.login-column {
-  background: white;
-  padding: max(40px, calc((100vh - 712px) / 2)) 50px 40px;
-}
-.login-content {
-  width: 348px;
-  max-width: 100%;
-  margin: auto;
-}
-.auth-logo {
-  display: grid;
-  place-items: center;
-  width: 92px;
-  height: 92px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: white;
-  margin-inline: auto;
-}
-.login-brand-logo {
-  display: block;
-  width: min(100%, 300px);
-  height: 112px;
-  object-fit: contain;
-  margin-inline: auto;
-}
-.login-content h1 {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 25px;
-  line-height: 34px;
-  font-weight: 600;
-}
-.login-context {
-  display: flex;
-  gap: 22px;
-  margin-top: 34px;
-}
-.login-context > span {
-  display: grid;
-  place-items: center;
-  height: 50px;
-  flex: 1;
-  background: var(--color-surface-muted);
-  border-radius: 10px;
-  font-size: 14px;
-}
-.login-divider {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-block: 25px 27px;
-  font-size: 14px;
-  line-height: 25px;
-}
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  height: 1px;
-  background: var(--color-line);
-  flex: 1;
-}
-.login-form .ui-field {
-  position: relative;
-  margin: 0;
-}
-.login-form .ui-field > label {
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 22px;
-}
-.login-form .ui-field > div {
-  margin-top: 8px;
-}
-.login-form .ui-field > p[id$='-hint'] {
-  position: absolute;
-  top: 197px;
-  margin: 0;
-  font-size: 12px;
-  line-height: 20px;
-}
-.login-form .ui-field + .ui-field {
-  margin-top: 20px;
-}
-.login-form .ui-control {
-  height: 50px;
-}
-.login-form > button {
-  margin-top: 84px;
-  height: 50px;
-  font-size: 16px;
-}
-.login-footnote {
-  margin-top: 30px;
-  text-align: center;
-  font-size: 14px;
-}
-.login-art {
-  place-items: center;
-  overflow: hidden;
-  min-width: 0;
-}
-.login-illustration {
-  width: 647px;
-  height: 602px;
-  max-width: 90%;
-  object-fit: cover;
-}
-/* Recover 4:9302 and Confirm 4:9333 preserve existing administrative actions. */
-.dialog-backdrop-recover,
-.dialog-backdrop-confirm {
-  background: var(--color-surface-muted);
-}
-.dialog-recover,
-.dialog-confirm {
-  box-shadow: none;
-  max-height: calc(100dvh - 32px);
-}
-.dialog-recover {
-  width: 658px;
-  max-width: 100%;
-  min-height: 658px;
-  padding: 104px 78px 40px;
-}
-.dialog-recover h2 {
-  margin-top: 58px;
-  text-align: center;
-  font-size: 25px;
-  line-height: 34px;
-  font-weight: 600;
-}
-.dialog-recover > p {
-  margin-top: 14px;
-  font-size: 13px;
-  line-height: 20px;
-  text-align: center;
-}
-.dialog-recover .dialog-actions {
-  margin-top: 24px;
-  flex-direction: column;
-  gap: 0;
-}
 .recovery-target {
   width: 100%;
   font-size: 16px;
@@ -1480,117 +1327,6 @@ samp {
   padding-inline: 15px;
   color: var(--color-ink-muted);
   font-size: 14px;
-}
-.dialog-recover .dialog-actions > button {
-  width: 100%;
-  height: 50px;
-  font-size: 16px;
-}
-.dialog-recover .dialog-actions > button:last-child {
-  margin-top: 25px;
-  order: 1;
-}
-.dialog-recover .dialog-actions > button:not(:last-child) {
-  margin-top: 10px;
-  order: 2;
-  background: transparent;
-  height: 40px;
-}
-.dialog-confirm {
-  width: 726px;
-  max-width: 100%;
-  min-height: 726px;
-  padding: 128px 78px 45px;
-  text-align: center;
-}
-.confirm-illustration {
-  position: relative;
-  width: 220px;
-  height: 200px;
-  margin-inline: auto;
-}
-.confirm-illustration img:first-child {
-  position: absolute;
-  width: 184px;
-  height: 184px;
-  left: 18px;
-  top: 16px;
-}
-.confirm-illustration img:nth-child(2) {
-  position: absolute;
-  width: 77px;
-  height: 69px;
-  left: 72px;
-  top: 73px;
-}
-.confirm-illustration img:nth-child(3) {
-  position: absolute;
-  width: 220px;
-  height: 90px;
-  top: 0;
-  left: 0;
-}
-.dialog-confirm h2 {
-  margin-top: 28px;
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 33px;
-}
-.dialog-confirm > p {
-  font-size: 14px;
-  line-height: 21px;
-  margin: 12px auto 0;
-  max-width: 470px;
-}
-.dialog-confirm .dialog-actions {
-  justify-content: center;
-  margin-top: 20px;
-  gap: 18px;
-}
-.dialog-confirm .dialog-actions > button {
-  min-width: 169px;
-  height: 50px;
-  font-size: 16px;
-}
-@media (max-width: 1023px) {
-  .login-column {
-    padding: 48px 24px;
-  }
-  .login-content h1 {
-    margin-top: 24px;
-  }
-  .login-context {
-    margin-top: 24px;
-  }
-}
-@media (max-width: 767px) {
-  .dialog-recover,
-  .dialog-confirm {
-    min-height: 0;
-    padding: 32px 24px;
-  }
-  .dialog-recover h2 {
-    margin-top: 28px;
-  }
-  .dialog-confirm h2 {
-    margin-top: 24px;
-  }
-  .confirm-illustration {
-    transform: scale(0.8);
-    height: 170px;
-  }
-}
-.login-illustration {
-  object-fit: contain;
-}
-.dialog-recover > p {
-  margin-top: 6px;
-  min-height: 36px;
-  font-size: 12px;
-  line-height: 18px;
-}
-.dialog-recover .dialog-actions {
-  margin-top: 16px;
 }
 .recovery-target {
   line-height: 22px;
@@ -1607,20 +1343,6 @@ samp {
   .users-page table td:last-child {
     min-width: 156px;
   }
-}
-.login-column {
-  min-width: 0;
-}
-.login-content {
-  width: 100%;
-  max-width: 348px;
-}
-.login-form:has([role='alert']) .ui-field > p[id$='-hint'] {
-  position: static;
-  margin-top: 4px;
-}
-.login-form:has([role='alert']) > button {
-  margin-top: 24px;
 }
 @media (pointer: coarse) {
   .ui-button,
@@ -1644,73 +1366,11 @@ samp {
   min-width: 0;
 }
 
-/* Neutral workshop scene uses the 647 × 602 illustration region of 4:8584. */
-.login-art-scene {
-  position: relative;
-  width: 647px;
-  height: 602px;
-  max-width: 90%;
-  transform: translateX(15.5px);
-}
-.scene-clock {
-  position: absolute;
-  top: 0;
-  left: 25.66%;
-  display: grid;
-  place-items: center;
-  width: 92px;
-  height: 92px;
-  border: 8px solid var(--color-coral);
-  border-radius: 50%;
-  background: white;
-  color: var(--color-ink);
-  box-shadow: 0 6px 0 #ffe0d6;
-}
-.login-art-scene .login-illustration {
-  position: absolute;
-  left: 0;
-  top: 150px;
-  width: 100%;
-  height: auto;
-  max-width: none;
-}
-.scene-toolbox {
-  position: absolute;
-  left: 7%;
-  bottom: 44px;
-  display: grid;
-  place-items: center;
-  width: 132px;
-  height: 140px;
-  background: var(--color-cyan);
-  color: #095265;
-  border: 5px solid #87ddea;
-  z-index: 1;
-}
-.scene-access {
-  position: absolute;
-  right: 7.5%;
-  bottom: 28px;
-  display: grid;
-  place-items: center;
-  width: 90px;
-  height: 90px;
-  border-radius: 5px;
-  background: var(--color-yellow);
-  color: #8a5919;
-  z-index: 1;
-}
-.scene-ground {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 59px;
-  border-radius: 50%;
-  background: #eceafa;
-}
-@media (min-width: 1024px) and (max-width: 1199px) {
-  .login-art-scene {
-    transform: none;
-  }
+/* Panel de lista (PPF-01): filtros, tabla y paginación comparten un mismo panel. */
+.list-panel-body > .data-table-container,
+.list-panel-body > section,
+.list-panel-body > div > .data-table-container {
+  margin-top: 0;
+  border: 0;
+  border-radius: 0;
 }

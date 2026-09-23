@@ -10,6 +10,11 @@ describe('C24: Avatar', () => {
     expect(avatar).toHaveTextContent('CM')
     expect(avatar.className).toContain('rounded-full')
     expect(avatar.className).toContain('size-9') // 36px
+    expect(avatar).toHaveClass(
+      'bg-accent-soft',
+      'text-accent-strong',
+      'border-line',
+    )
   })
 
   it('soporta iniciales explícitas y etiqueta accesible personalizada', () => {

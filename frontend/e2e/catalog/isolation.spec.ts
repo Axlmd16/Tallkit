@@ -22,7 +22,7 @@ test.describe('Visual Catalog - Aislamiento e Independencia', () => {
     await expect(catalogRoot).toBeVisible()
 
     const heading = page.getByRole('heading', {
-      name: /catálogo visual reutilizable/i,
+      name: /catálogo visual tallkit/i,
     })
     await expect(heading).toBeVisible()
 
@@ -36,15 +36,15 @@ test.describe('Visual Catalog - Aislamiento e Independencia', () => {
   test('permite navegación interna y vista aislada sin dependencias externas', async ({
     page,
   }) => {
-    await page.goto('/visual-catalog.html#isolate=true&id=C02')
+    await page.goto('/visual-catalog.html#isolate=true&id=TK-03')
 
     const isolatedView = page.getByTestId('isolated-view')
     await expect(isolatedView).toBeVisible()
-    await expect(page.getByText('C02 — Button')).toBeVisible()
+    await expect(page.getByText('TK-03 — Botones')).toBeVisible()
 
     // El marco general del catálogo no se muestra en modo de captura aislada
     await expect(
-      page.getByRole('heading', { name: /catálogo visual reutilizable/i }),
+      page.getByRole('heading', { name: /catálogo visual tallkit/i }),
     ).not.toBeVisible()
 
     await expectNoSeriousAccessibilityViolations(page)

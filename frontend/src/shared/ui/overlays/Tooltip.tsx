@@ -126,7 +126,7 @@ export function Tooltip({
       {clonedTrigger}
       {isVisible && !disabled && (
         <span
-          className={`pointer-events-none absolute z-50 rounded-control bg-ink px-2.5 py-1 text-xs font-medium text-white shadow-md whitespace-nowrap animate-in fade-in duration-100 ${positionClasses[position]}`}
+          className={`pointer-events-none absolute z-50 rounded-[4px] bg-ink px-2 py-1 text-xs font-medium text-white shadow-menu whitespace-nowrap animate-in fade-in duration-100 ${positionClasses[position]}`}
           id={tooltipId}
           role="tooltip"
         >

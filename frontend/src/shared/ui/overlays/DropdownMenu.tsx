@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
@@ -11,6 +12,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 
 export interface DropdownMenuItem {
   id: string
@@ -44,6 +46,7 @@ export function DropdownMenu({
   const menuId = `menu-${autoId}`
 
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const [position, setPosition] = useState({ left: 0, top: 0 })
   const isControlled = typeof open === 'boolean'
   const isOpen = isControlled ? open : uncontrolledOpen
 
@@ -108,6 +111,38 @@ export function DropdownMenu({
       document.removeEventListener('pointerdown', handlePointerDown)
     }
   }, [isOpen, setMenuOpen])
+
+  useLayoutEffect(() => {
+    if (!isOpen) return
+
+    function placeMenu() {
+      const triggerBox = triggerRef.current?.getBoundingClientRect()
+      if (!triggerBox) return
+      const menuWidth = menuRef.current?.offsetWidth || 180
+      const menuHeight = menuRef.current?.offsetHeight || 0
+      const gutter = 8
+      const preferredLeft =
+        align === 'left' ? triggerBox.left : triggerBox.right - menuWidth
+      const left = Math.min(
+        Math.max(gutter, preferredLeft),
+        Math.max(gutter, window.innerWidth - menuWidth - gutter),
+      )
+      const roomBelow = window.innerHeight - triggerBox.bottom - gutter
+      const top =
+        menuHeight > roomBelow && triggerBox.top >= menuHeight + gutter
+          ? triggerBox.top - menuHeight - 4
+          : triggerBox.bottom + 4
+      setPosition({ left, top })
+    }
+
+    placeMenu()
+    window.addEventListener('resize', placeMenu)
+    window.addEventListener('scroll', placeMenu, true)
+    return () => {
+      window.removeEventListener('resize', placeMenu)
+      window.removeEventListener('scroll', placeMenu, true)
+    }
+  }, [align, isOpen, items.length])
 
   function handleTriggerClick(e: MouseEvent) {
     const childProps = (
@@ -200,22 +235,22 @@ export function DropdownMenu({
     },
   } as Record<string, unknown>)
 
-  const alignmentClass = align === 'left' ? 'left-0' : 'right-0'
-
   return (
     <div className={`relative inline-block text-left ${className}`}>
       {clonedTrigger}
 
-      {isOpen && (
-        <div
-          aria-labelledby={triggerId}
-          className={`absolute z-50 mt-1.5 min-w-[180px] rounded-group bg-surface p-1 shadow-menu outline-none ${alignmentClass}`}
-          id={menuId}
-          onKeyDown={handleMenuKeyDown}
-          ref={menuRef}
-          role="menu"
-          tabIndex={-1}
-        >
+      {isOpen &&
+        createPortal(
+          <div
+            aria-labelledby={triggerId}
+            className="fixed z-50 min-w-[180px] rounded-panel border border-line bg-surface p-1 shadow-menu outline-none"
+            id={menuId}
+            onKeyDown={handleMenuKeyDown}
+            ref={menuRef}
+            role="menu"
+            style={position}
+            tabIndex={-1}
+          >
           {items.map((item) => {
             if (item.divider) {
               return (
@@ -229,12 +264,12 @@ export function DropdownMenu({
 
             const isDestructive = item.destructive
             const itemClasses = isDestructive
-              ? 'text-danger hover:bg-danger-soft/40 focus:bg-danger-soft/40'
-              : 'text-ink hover:bg-surface-selected/60 focus:bg-surface-selected/60'
+              ? 'text-danger hover:bg-danger-soft focus:bg-danger-soft'
+              : 'text-ink hover:bg-surface-subtle focus:bg-accent-soft'
 
             return (
               <button
-                className={`flex w-full items-center gap-2 rounded-control px-3 py-2 text-left text-sm font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
+                className={`flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
                 data-item-id={item.id}
                 disabled={item.disabled}
                 id={`item-${autoId}-${item.id}`}
@@ -261,8 +296,9 @@ export function DropdownMenu({
               </button>
             )
           })}
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }

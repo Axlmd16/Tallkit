@@ -69,7 +69,8 @@ describe('Fase 5.1: Reexportar PageHeader, Toolbar y Surface (C18, C19, C21)', (
 
       const surface = screen.getByRole('region', { name: 'Tarjeta de datos' })
       expect(surface.className).toContain('ui-surface')
-      expect(surface.className).toContain('rounded-group')
+      expect(surface.className).toContain('rounded-panel')
+      expect(surface.className).toContain('border-line')
       expect(surface.className).toContain('bg-surface')
       expect(
         screen.getByText('Contenido interior protegido'),

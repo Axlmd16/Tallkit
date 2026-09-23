@@ -9,7 +9,7 @@ import {
   XCircle,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
@@ -26,7 +26,7 @@ import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   ConfirmationPanel,
-  Drawer,
+  Modal,
   ElevatedDataList,
   EmptyState,
   Field,
@@ -52,6 +52,7 @@ type Confirmation = {
 type Notice = { text: string; tone: 'success' | 'danger' }
 
 export function VehiclesPage() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const session = useSession().data
   const permissions = new Set(session?.permissions ?? [])
@@ -137,13 +138,11 @@ export function VehiclesPage() {
   }
 
   const handleOpenCreate = () => {
-    setEditingVehicle(null)
-    setDrawerOpen(true)
+    void navigate('/vehicles/new')
   }
 
   const handleOpenEdit = (vehicle: VehicleSummary) => {
-    setEditingVehicle(vehicle)
-    setDrawerOpen(true)
+    void navigate(`/vehicles/${vehicle.id}/edit`)
   }
 
   const handleCloseDrawer = () => {
@@ -355,7 +354,11 @@ export function VehiclesPage() {
             label="Vehículos"
             rows={vehiclesQuery.data.results}
             getRowKey={(v) => v.id}
-            onRowClick={setPreviewing}
+            onRowClick={(vehicle) =>
+              void navigate(`/vehicles/${vehicle.id}`, {
+                state: { from: window.location.search },
+              })
+            }
             columns={[
               {
                 header: 'Placa',
@@ -510,7 +513,7 @@ export function VehiclesPage() {
         </div>
       ) : null}
 
-      <Drawer
+      <Modal
         className="vehicle-preview-drawer"
         description="Información disponible del vehículo seleccionado."
         onClose={() => setPreviewing(null)}
@@ -638,10 +641,10 @@ export function VehiclesPage() {
             </div>
           </div>
         )}
-      </Drawer>
+      </Modal>
 
       {/* Drawer para registro y edición */}
-      <Drawer
+      <Modal
         className="vehicle-drawer"
         open={drawerOpen}
         onClose={handleCloseDrawer}
@@ -658,7 +661,7 @@ export function VehiclesPage() {
           onCancel={handleCancel}
           onDirtyChange={setFormDirty}
         />
-      </Drawer>
+      </Modal>
 
       {/* Diálogo para confirmación de cambio de estado */}
       <ConfirmationPanel

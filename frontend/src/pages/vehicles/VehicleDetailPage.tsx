@@ -1,16 +1,16 @@
 import {
   ArrowLeft,
-  Car,
-  Clock,
+  EnvelopeSimple,
   PencilSimple,
+  Phone,
   Power,
-  User,
 } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { useCustomers } from '@/features/customers/hooks'
+import { useCustomer, useCustomers } from '@/features/customers/hooks'
+import { timestamp } from '@/features/purchases/format'
 import {
   useVehicle,
   useVehicleMutations,
@@ -22,20 +22,20 @@ import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   Dialog,
-  Drawer,
+  Modal,
   EmptyState,
   Field,
   InlineNotice,
   LoadingState,
-  PageHeader,
   Pagination,
+  PlateTag,
   Select,
   StatusBadge,
-  Surface,
   Toolbar,
+  useToast,
 } from '@/shared/ui'
 
-type Notice = { text: string; tone: 'success' | 'danger' }
+type Notice = { text: string; tone: 'danger' }
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -50,6 +50,13 @@ export function VehicleDetailPage() {
   const vehicleQuery = useVehicle(vehicleId)
   const vehicle = vehicleQuery.data
   const mutations = useVehicleMutations()
+  const toast = useToast()
+  // Teléfono y correo del propietario solo para quien puede consultar clientes.
+  const owner = useCustomer(
+    permissions.has('clientes.ver')
+      ? (vehicleQuery.data?.current_owner?.id ?? 0)
+      : 0,
+  )
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [formDirty, setFormDirty] = useState(false)
@@ -82,10 +89,7 @@ export function VehicleDetailPage() {
       id: targetId,
       data: updateData,
     })
-    setNotice({
-      text: 'Datos del vehículo actualizados correctamente.',
-      tone: 'success',
-    })
+    toast.success('Datos del vehículo actualizados correctamente.')
     setDrawerOpen(false)
     setFormDirty(false)
   }
@@ -117,19 +121,13 @@ export function VehicleDetailPage() {
           id: vehicle.id,
           expectedVersion: vehicle.version,
         })
-        setNotice({
-          text: `Vehículo con placa «${vehicle.plate}» desactivado.`,
-          tone: 'success',
-        })
+        toast.success(`Vehículo con placa «${vehicle.plate}» desactivado.`)
       } else {
         await mutations.activateVehicle.mutateAsync({
           id: vehicle.id,
           expectedVersion: vehicle.version,
         })
-        setNotice({
-          text: `Vehículo con placa «${vehicle.plate}» activado.`,
-          tone: 'success',
-        })
+        toast.success(`Vehículo con placa «${vehicle.plate}» activado.`)
       }
     } catch (caught) {
       const text =
@@ -174,10 +172,7 @@ export function VehicleDetailPage() {
         },
         previousOwnerId: vehicle.current_owner?.id,
       })
-      setNotice({
-        text: 'La propiedad del vehículo fue transferida exitosamente.',
-        tone: 'success',
-      })
+      toast.success('La propiedad del vehículo fue transferida exitosamente.')
       handleCloseTransfer()
     } catch (err: unknown) {
       if (err instanceof ProblemError) {
@@ -221,282 +216,262 @@ export function VehicleDetailPage() {
     )
   }
 
+  const field = (label: string, value: ReactNode, mono = false) => (
+    <div>
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd
+        className={`mt-0.5 text-[13.5px] font-medium text-ink ${mono ? 'font-mono' : ''}`}
+      >
+        {value}
+      </dd>
+    </div>
+  )
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-3">
         <Link
+          aria-label="Volver a vehículos"
+          className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
+          title="Volver a vehículos"
           to="/vehicles"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-primary"
         >
-          <ArrowLeft size={16} />
-          <span>Volver al listado</span>
+          <ArrowLeft aria-hidden="true" size={18} />
         </Link>
+        <div className="min-w-0">
+          <p className="text-xs text-ink-muted">Vehículos</p>
+          <h1 className="text-[22px] leading-7 font-semibold text-ink">
+            {vehicle.brand.name} {vehicle.model}
+          </h1>
+        </div>
       </div>
 
-      <PageHeader
-        title={vehicle.plate}
-        description={`${vehicle.brand.name} ${vehicle.model}`}
-        actions={
-          <div className="flex items-center gap-3">
-            <StatusBadge
-              label={vehicle.is_active ? 'Activo' : 'Inactivo'}
-              tone={vehicle.is_active ? 'success' : 'neutral'}
-            />
-            {canManage && (
-              <Button
-                variant="primary"
-                onClick={() => setDrawerOpen(true)}
-                className="inline-flex items-center gap-2"
-              >
-                <PencilSimple size={18} />
-                <span>Editar vehículo</span>
-              </Button>
-            )}
-            {canDeactivate && (
-              <Button
-                variant={vehicle.is_active ? 'danger' : 'secondary'}
-                onClick={() =>
-                  setStatusConfirmation(
-                    vehicle.is_active ? 'deactivate' : 'activate',
-                  )
-                }
-                className="inline-flex items-center gap-2"
-              >
-                <Power size={18} />
-                <span>{vehicle.is_active ? 'Desactivar' : 'Activar'}</span>
-              </Button>
-            )}
-          </div>
-        }
-      />
-
       {notice && (
-        <InlineNotice
-          tone={notice.tone}
-          title={notice.tone === 'success' ? 'Éxito' : 'Error'}
-        >
+        <InlineNotice title="No se completó la operación" tone="danger">
           {notice.text}
         </InlineNotice>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Ficha técnica del vehículo */}
-        <Surface className="space-y-6 p-6 lg:col-span-2">
-          <div className="flex items-center gap-2 border-b border-ink/10 pb-3">
-            <Car size={22} className="text-primary" />
-            <h2 className="text-lg font-semibold text-ink">
-              Información técnica del vehículo
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Placa
-              </p>
-              <p className="mt-1 font-mono text-base font-bold text-ink">
-                {vehicle.plate}
-              </p>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-4">
+          <section
+            aria-label="Resumen del vehículo"
+            className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-panel border border-line bg-surface px-5 py-4"
+          >
+            <PlateTag plate={vehicle.plate} size="lg" />
+            <dl className="order-last grid min-w-0 basis-full grid-cols-2 gap-x-6 gap-y-3 sm:order-none sm:flex-1 sm:basis-0 sm:grid-cols-4">
+              {field('Marca', vehicle.brand.name)}
+              {field('Año', vehicle.year ?? 'No especificado')}
+              {field('Color', vehicle.color || 'No especificado')}
+              {field(
+                'Número de chasis (VIN)',
+                vehicle.vin || 'No especificado',
+                Boolean(vehicle.vin),
+              )}
+            </dl>
+            <div className="ml-auto sm:ml-0">
+              <StatusBadge
+                label={vehicle.is_active ? 'Activo' : 'Inactivo'}
+                tone={vehicle.is_active ? 'success' : 'neutral'}
+              />
             </div>
+          </section>
 
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Marca
-              </p>
-              <p className="mt-1 text-base font-medium text-ink">
-                {vehicle.brand.name}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Modelo
-              </p>
-              <p className="mt-1 text-base font-medium text-ink">
-                {vehicle.model}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Color
-              </p>
-              <p className="mt-1 text-base font-medium text-ink">
-                {vehicle.color || 'No especificado'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Año de fabricación
-              </p>
-              <p className="mt-1 text-base font-medium text-ink">
-                {vehicle.year ?? 'No especificado'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Número de chasis (VIN)
-              </p>
-              <p className="mt-1 font-mono text-base font-medium text-ink">
-                {vehicle.vin || 'No especificado'}
-              </p>
-            </div>
-          </div>
-        </Surface>
-
-        {/* Propietario actual */}
-        <Surface className="space-y-6 p-6">
-          <div className="flex items-center justify-between border-b border-ink/10 pb-3">
-            <div className="flex items-center gap-2">
-              <User size={22} className="text-primary" />
-              <h2 className="text-lg font-semibold text-ink">
-                Propietario actual
+          <section
+            aria-labelledby="vehicle-periods-title"
+            className="overflow-hidden rounded-panel border border-line bg-surface"
+          >
+            <div className="border-b border-line px-5 py-3">
+              <h2
+                className="text-[14.5px] font-semibold text-ink"
+                id="vehicle-periods-title"
+              >
+                Historial de propiedad
               </h2>
             </div>
-            {canManage && vehicle.is_active && (
-              <Button variant="secondary" onClick={handleOpenTransfer}>
-                Cambiar propietario
-              </Button>
+            {periodsQuery.isLoading ? (
+              <LoadingState label="Cargando períodos de propiedad…" />
+            ) : periods.length === 0 ? (
+              <p className="px-5 py-6 text-[13px] text-ink-muted">
+                No hay períodos de propiedad registrados para este vehículo.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13px]">
+                  <thead>
+                    <tr className="border-b border-line bg-surface-subtle text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+                      <th className="h-9 px-4">Propietario</th>
+                      <th className="h-9 px-4">Identificación</th>
+                      <th className="h-9 px-4">Inicio</th>
+                      <th className="h-9 px-4">Fin</th>
+                      <th className="h-9 px-4 text-right">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {periods.map((p) => (
+                      <tr className="hover:bg-surface-subtle" key={p.id}>
+                        <td className="h-12 px-4 font-medium">
+                          <Link
+                            className="text-accent hover:underline"
+                            to={`/customers/${p.customer.id}`}
+                          >
+                            {p.customer.name}
+                          </Link>
+                        </td>
+                        <td className="h-12 px-4 font-mono text-xs text-ink-muted">
+                          {p.customer.identification}
+                        </td>
+                        <td className="h-12 px-4 text-ink-muted">
+                          {timestamp(p.started_at)}
+                        </td>
+                        <td className="h-12 px-4 text-ink-muted">
+                          {p.ended_at ? timestamp(p.ended_at) : 'Vigente'}
+                        </td>
+                        <td className="h-12 px-4 text-right">
+                          <StatusBadge
+                            label={p.is_current ? 'Vigente' : 'Finalizado'}
+                            tone={p.is_current ? 'success' : 'neutral'}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {periodsQuery.data && periodsQuery.data.total_pages > 1 && (
+                  <div className="px-4 pb-3">
+                    <Pagination
+                      onNext={() =>
+                        setPeriodsPage((prev) =>
+                          Math.min(prev + 1, periodsQuery.data.total_pages),
+                        )
+                      }
+                      onPrevious={() =>
+                        setPeriodsPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      page={periodsPage}
+                      totalPages={periodsQuery.data.total_pages}
+                    />
+                  </div>
+                )}
+              </div>
             )}
-          </div>
-
-          {vehicle.current_owner ? (
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                  Nombre del cliente
-                </p>
-                <Link
-                  to={`/customers/${vehicle.current_owner.id}`}
-                  className="mt-1 block text-base font-semibold text-primary hover:underline"
-                >
-                  {vehicle.current_owner.name}
-                </Link>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                  Identificación
-                </p>
-                <p className="mt-1 font-mono text-sm font-medium text-ink">
-                  {vehicle.current_owner.identification}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                  Estado del propietario
-                </p>
-                <div className="mt-1">
-                  <StatusBadge
-                    label={
-                      vehicle.current_owner.is_active ? 'Activo' : 'Inactivo'
-                    }
-                    tone={
-                      vehicle.current_owner.is_active ? 'success' : 'neutral'
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-control bg-surface-muted p-3 text-xs text-ink-muted">
-                Para transferir la titularidad de este vehículo a otro cliente,
-                utilice el botón de cambio de propietario.
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-ink-muted">
-              Este vehículo no tiene propietario registrado actualmente.
-            </p>
-          )}
-        </Surface>
-      </div>
-
-      {/* Historial de períodos de propiedad */}
-      <Surface className="space-y-4 p-6">
-        <div className="flex items-center gap-2 border-b border-ink/10 pb-3">
-          <Clock size={22} className="text-primary" />
-          <h2 className="text-lg font-semibold text-ink">
-            Historial de períodos de propiedad
-          </h2>
+          </section>
         </div>
 
-        {periodsQuery.isLoading ? (
-          <LoadingState label="Cargando períodos de propiedad…" />
-        ) : periods.length === 0 ? (
-          <EmptyState
-            title="Sin períodos de propiedad"
-            description="No hay períodos de propiedad registrados para este vehículo."
-          />
-        ) : (
-          <div className="space-y-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-ink/10 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                    <th className="pb-3 pr-4">Propietario</th>
-                    <th className="pb-3 pr-4">Identificación</th>
-                    <th className="pb-3 pr-4">Inicio</th>
-                    <th className="pb-3 pr-4">Fin</th>
-                    <th className="pb-3 text-right">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink/10">
-                  {periods.map((p) => (
-                    <tr key={p.id} className="hover:bg-surface-muted/50">
-                      <td className="py-3 pr-4 font-medium text-ink">
-                        <Link
-                          to={`/customers/${p.customer.id}`}
-                          className="text-primary hover:underline"
-                        >
-                          {p.customer.name}
-                        </Link>
-                      </td>
-                      <td className="py-3 pr-4 font-mono text-xs text-ink-muted">
-                        {p.customer.identification}
-                      </td>
-                      <td className="py-3 pr-4 text-ink-muted">
-                        {new Date(p.started_at).toLocaleString()}
-                      </td>
-                      <td className="py-3 pr-4 text-ink-muted">
-                        {p.ended_at
-                          ? new Date(p.ended_at).toLocaleString()
-                          : 'Vigente'}
-                      </td>
-                      <td className="py-3 text-right">
-                        <StatusBadge
-                          label={p.is_current ? 'Vigente' : 'Finalizado'}
-                          tone={p.is_current ? 'success' : 'neutral'}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <aside className="space-y-4">
+          {(canManage || canDeactivate) && (
+            <section
+              aria-labelledby="vehicle-actions-title"
+              className="rounded-panel border border-line bg-surface"
+            >
+              <div className="border-b border-line px-4 py-3">
+                <h2
+                  className="text-[14.5px] font-semibold text-ink"
+                  id="vehicle-actions-title"
+                >
+                  Acciones
+                </h2>
+              </div>
+              <div className="flex flex-col gap-2 p-4">
+                {canManage && (
+                  <Button onClick={() => void navigate(`/vehicles/${vehicle.id}/edit`)}>
+                    <PencilSimple aria-hidden="true" size={16} />
+                    Editar vehículo
+                  </Button>
+                )}
+                {canManage && vehicle.is_active && (
+                  <Button onClick={handleOpenTransfer} variant="secondary">
+                    Cambiar propietario
+                  </Button>
+                )}
+                {canDeactivate && (
+                  <Button
+                    onClick={() =>
+                      setStatusConfirmation(
+                        vehicle.is_active ? 'deactivate' : 'activate',
+                      )
+                    }
+                    variant={vehicle.is_active ? 'danger' : 'secondary'}
+                  >
+                    <Power aria-hidden="true" size={16} />
+                    {vehicle.is_active ? 'Desactivar' : 'Activar'}
+                  </Button>
+                )}
+              </div>
+            </section>
+          )}
 
-            {periodsQuery.data && periodsQuery.data.total_pages > 1 && (
-              <Pagination
-                page={periodsPage}
-                totalPages={periodsQuery.data.total_pages}
-                onNext={() =>
-                  setPeriodsPage((prev) =>
-                    Math.min(prev + 1, periodsQuery.data.total_pages),
-                  )
-                }
-                onPrevious={() =>
-                  setPeriodsPage((prev) => Math.max(prev - 1, 1))
-                }
-              />
+          <section
+            aria-labelledby="vehicle-owner-title"
+            className="rounded-panel border border-line bg-surface"
+          >
+            <div className="flex items-center justify-between border-b border-line px-4 py-3">
+              <h2
+                className="text-[14.5px] font-semibold text-ink"
+                id="vehicle-owner-title"
+              >
+                Propietario actual
+              </h2>
+              {vehicle.current_owner && (
+                <Link
+                  className="text-[12.5px] font-semibold text-accent hover:underline"
+                  to={`/customers/${vehicle.current_owner.id}`}
+                >
+                  Ver cliente
+                </Link>
+              )}
+            </div>
+            {vehicle.current_owner ? (
+              <div className="space-y-3 p-4 text-[13px]">
+                <div>
+                  <Link
+                    className="text-sm font-semibold text-ink hover:text-accent hover:underline"
+                    to={`/customers/${vehicle.current_owner.id}`}
+                  >
+                    {vehicle.current_owner.name}
+                  </Link>
+                  <p className="text-[12.5px] text-ink-muted">
+                    Identificación{' '}
+                    <span className="font-mono">
+                      {vehicle.current_owner.identification}
+                    </span>
+                  </p>
+                </div>
+                {owner.data?.phone && (
+                  <p className="flex items-center gap-2">
+                    <Phone
+                      aria-hidden="true"
+                      className="text-ink-muted"
+                      size={16}
+                    />
+                    {owner.data.phone}
+                  </p>
+                )}
+                {owner.data?.email && (
+                  <p className="flex min-w-0 items-center gap-2">
+                    <EnvelopeSimple
+                      aria-hidden="true"
+                      className="shrink-0 text-ink-muted"
+                      size={16}
+                    />
+                    <span className="truncate">{owner.data.email}</span>
+                  </p>
+                )}
+                {!vehicle.current_owner.is_active && (
+                  <StatusBadge label="Cliente inactivo" tone="neutral" />
+                )}
+              </div>
+            ) : (
+              <p className="p-4 text-[13px] text-ink-muted">
+                Este vehículo no tiene propietario registrado actualmente.
+              </p>
             )}
-          </div>
-        )}
-      </Surface>
+          </section>
+        </aside>
+      </div>
 
       {/* Drawer de edición */}
-      <Drawer
+      <Modal
         open={drawerOpen}
         onClose={handleCloseDrawer}
         title="Editar vehículo"
@@ -508,7 +483,7 @@ export function VehicleDetailPage() {
           onCancel={handleCancel}
           onDirtyChange={setFormDirty}
         />
-      </Drawer>
+      </Modal>
 
       {/* Modal / Dialog de cambio de propietario */}
       <Dialog

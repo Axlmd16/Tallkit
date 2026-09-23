@@ -6,6 +6,8 @@ export interface DataColumn<T> {
   priority?: 'primary' | 'secondary' | undefined
   sortable?: boolean | undefined
   render?: ((row: T) => ReactNode) | undefined
+  /** `end` alinea a la derecha importes y cantidades. */
+  align?: 'start' | 'end' | undefined
 }
 
 export type DataTableVariant = 'elevated' | 'contained'
@@ -45,9 +47,9 @@ function cellValue<T extends object>(column: DataColumn<T>, row: T): ReactNode {
 }
 
 const heightClasses: Record<DataTableRowHeight, string> = {
-  default: 'py-3 min-h-[52px]',
-  60: 'py-3.5 h-[60px]',
-  70: 'py-5 h-[70px]',
+  default: 'py-2 h-12',
+  60: 'py-2.5 h-[52px]',
+  70: 'py-3 h-14',
 }
 
 export function DataTable<T extends object>({
@@ -68,7 +70,8 @@ export function DataTable<T extends object>({
   onSort,
   onRowClick,
 }: DataTableProps<T>) {
-  const isContained = variant === 'contained'
+  // Tallkit presenta toda tabla contenida en un panel; `elevated` se conserva por compatibilidad.
+  const isContained = variant === 'contained' || variant === 'elevated'
   const isSelectionActive = Boolean(onSelectRow || onSelectAll)
 
   const selectedSet = new Set(
@@ -85,21 +88,23 @@ export function DataTable<T extends object>({
     rows.some((row) => selectedSet.has(getRowKey(row))) && !allSelected
 
   const tableLayoutClasses = isContained
-    ? 'w-full border-collapse text-left text-sm divide-y divide-line bg-surface rounded-group border border-line overflow-hidden'
-    : 'w-full border-separate border-spacing-y-[10px] text-left text-sm'
+    ? 'w-full border-collapse text-left text-[13px] bg-surface'
+    : 'w-full border-collapse text-left text-[13px]'
 
   const theadClasses = isContained
-    ? 'bg-canvas border-b border-line text-xs text-ink-muted'
-    : 'text-xs text-ink-muted'
+    ? 'bg-surface-subtle border-b border-line text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase'
+    : 'text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase'
 
   const rowBaseClasses = isContained
-    ? 'align-middle transition-colors hover:bg-surface-selected/30 focus-within:bg-surface-selected/30'
-    : 'align-middle transition-shadow duration-150 hover:shadow-row focus-within:shadow-row [&>td:first-child]:rounded-l-group [&>td:last-child]:rounded-r-group'
+    ? 'align-middle transition-colors hover:bg-surface-subtle focus-within:bg-surface-subtle'
+    : 'align-middle transition-colors hover:bg-surface-subtle'
 
   const cellHeightClass = heightClasses[rowHeight]
 
   return (
-    <div className={`data-table-container mt-4 min-w-0 ${className}`.trim()}>
+    <div
+      className={`data-table-container mt-3 min-w-0 overflow-hidden rounded-panel border border-line bg-surface ${className}`.trim()}
+    >
       <div
         aria-label={`${label}: tabla desplazable`}
         className="hidden overflow-x-auto md:block"
@@ -113,12 +118,12 @@ export function DataTable<T extends object>({
           <thead className={theadClasses}>
             <tr>
               {isSelectionActive && (
-                <th className="w-12 px-4 py-2 text-center" scope="col">
+                <th className="w-11 px-3 py-2 text-center" scope="col">
                   <input
                     aria-checked={someSelected ? 'mixed' : allSelected}
                     aria-label="Seleccionar todas las filas"
                     checked={allSelected}
-                    className="size-5 rounded accent-primary cursor-pointer align-middle"
+                    className="size-4 rounded accent-accent cursor-pointer align-middle"
                     onChange={(e) => onSelectAll?.(e.target.checked)}
                     ref={(input) => {
                       if (input) {
@@ -137,13 +142,13 @@ export function DataTable<T extends object>({
                 return (
                   <th
                     aria-sort={currentSort}
-                    className="px-5 py-2 font-normal"
+                    className={`h-9 px-3 py-2 font-semibold ${column.align === 'end' ? 'text-right' : ''}`.trim()}
                     key={String(column.key)}
                     scope="col"
                   >
                     {column.sortable && onSort ? (
                       <button
-                        className="inline-flex items-center gap-1 font-semibold text-ink hover:text-primary outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        className="inline-flex items-center gap-1 font-semibold uppercase text-ink-muted hover:text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
                         onClick={() => {
                           const nextDirection =
                             currentSort === 'ascending'
@@ -175,7 +180,7 @@ export function DataTable<T extends object>({
               })}
 
               {actions && (
-                <th className="px-5 py-2 font-normal" scope="col">
+                <th className="h-9 px-3 py-2 font-semibold" scope="col">
                   Acciones
                 </th>
               )}
@@ -189,7 +194,7 @@ export function DataTable<T extends object>({
 
               return (
                 <tr
-                  className={`${rowBaseClasses} ${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'bg-surface-selected/40' : ''}`.trim()}
+                  className={`${rowBaseClasses} ${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'bg-accent-soft/60' : ''}`.trim()}
                   onClick={() => onRowClick?.(row)}
                   onKeyDown={(event) => {
                     if (
@@ -205,12 +210,12 @@ export function DataTable<T extends object>({
                 >
                   {isSelectionActive && (
                     <td
-                      className={`px-4 text-center ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
+                      className={`px-3 text-center ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
                     >
                       <input
                         aria-label={`Seleccionar fila ${rowKey}`}
                         checked={isSelected}
-                        className="size-5 rounded accent-primary cursor-pointer align-middle"
+                        className="size-4 rounded accent-accent cursor-pointer align-middle"
                         onChange={(e) =>
                           onSelectRow?.(rowKey, e.target.checked)
                         }
@@ -221,7 +226,7 @@ export function DataTable<T extends object>({
 
                   {columns.map((column) => (
                     <td
-                      className={`px-5 ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
+                      className={`px-3 ${column.align === 'end' ? 'text-right' : ''} ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
                       key={String(column.key)}
                     >
                       {cellValue(column, row)}
@@ -230,7 +235,7 @@ export function DataTable<T extends object>({
 
                   {actions && (
                     <td
-                      className={`px-5 ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
+                      className={`px-3 ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
                       onClick={(event) => event.stopPropagation()}
                     >
                       {actions(row)}
@@ -245,7 +250,7 @@ export function DataTable<T extends object>({
 
       <ul
         aria-label={`${label} en pantalla estrecha`}
-        className="space-y-3 md:hidden"
+        className="divide-y divide-line md:hidden"
       >
         {rows.map((row) => {
           const rowKey = getRowKey(row)
@@ -253,18 +258,18 @@ export function DataTable<T extends object>({
 
           return (
             <li
-              className={`min-w-0 rounded-group bg-surface p-4 shadow-row border ${
-                isSelected ? 'border-primary' : 'border-transparent'
+              className={`min-w-0 px-4 py-3 ${
+                isSelected ? 'bg-accent-soft/60' : ''
               } ${onRowClick ? 'cursor-pointer' : ''}`}
               key={rowKey}
               onClick={() => onRowClick?.(row)}
             >
               {isSelectionActive && (
-                <div className="mb-3 pb-2 border-b border-line flex items-center gap-2">
-                  <label className="inline-flex items-center gap-2 text-sm font-semibold text-ink cursor-pointer">
+                <div className="mb-2 flex items-center gap-2">
+                  <label className="inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold text-ink cursor-pointer">
                     <input
                       checked={isSelected}
-                      className="size-5 rounded accent-primary"
+                      className="size-4 rounded accent-accent"
                       onChange={(e) => onSelectRow?.(rowKey, e.target.checked)}
                       type="checkbox"
                     />
@@ -273,27 +278,37 @@ export function DataTable<T extends object>({
                 </div>
               )}
 
-              <dl className="grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-3 gap-y-2 text-sm">
-                {columns.map((column) => (
-                  <div className="contents" key={String(column.key)}>
-                    <dt className="font-semibold text-ink-muted">
-                      {column.header}
-                    </dt>
-                    <dd
-                      className={
-                        column.priority === 'primary'
-                          ? 'min-w-0 break-words font-semibold text-ink'
-                          : 'min-w-0 break-words text-ink'
-                      }
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[13.5px] font-semibold text-ink">
+                {columns
+                  .filter((column) => column.priority === 'primary')
+                  .map((column) => (
+                    <span
+                      className="min-w-0 break-words"
+                      key={String(column.key)}
                     >
+                      <span className="sr-only">{column.header}: </span>
                       {cellValue(column, row)}
-                    </dd>
-                  </div>
-                ))}
+                    </span>
+                  ))}
+              </div>
+              <dl className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
+                {columns
+                  .filter((column) => column.priority !== 'primary')
+                  .map((column) => (
+                    <div
+                      className="flex min-w-0 items-center gap-1"
+                      key={String(column.key)}
+                    >
+                      <dt className="sr-only">{column.header}</dt>
+                      <dd className="min-w-0 break-words">
+                        {cellValue(column, row)}
+                      </dd>
+                    </div>
+                  ))}
               </dl>
 
               {actions && (
-                <div className="mt-4 pt-2 border-t border-line">
+                <div className="mt-2">
                   <div onClick={(event) => event.stopPropagation()}>
                     {actions(row)}
                   </div>

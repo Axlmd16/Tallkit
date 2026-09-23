@@ -182,7 +182,7 @@ async function pickCustomer(page: Page, world: World) {
     .fill(world.customer.name)
   await page
     .getByRole('listbox', { name: 'Resultados de Cliente' })
-    .getByRole('option')
+    .getByRole('option', { name: new RegExp(world.customer.name) })
     .first()
     .click()
 }
@@ -193,7 +193,7 @@ async function pickProduct(page: Page, world: World) {
     .fill(world.product.code)
   await page
     .getByRole('listbox', { name: 'Resultados de Producto de la línea 1' })
-    .getByRole('option')
+    .getByRole('option', { name: new RegExp(world.product.code) })
     .first()
     .click()
 }
@@ -263,9 +263,7 @@ test.describe('Ventas, cobros y correcciones', () => {
     await page.getByLabel('Efectivo (USD)').fill('40.00')
     await page.getByRole('button', { name: 'Revisar' }).click()
     await page.getByRole('button', { name: 'Registrar cobro' }).last().click()
-    await expect(
-      page.getByRole('status', { name: 'Resultado de la operación' }),
-    ).toContainText('Cobro registrado.')
+    await expect(page.getByText('Cobro registrado.')).toBeVisible()
     await expect(page.getByText('Estado de pago').locator('..')).toContainText(
       'Pagada',
     )
@@ -414,9 +412,7 @@ test.describe('Ventas, cobros y correcciones', () => {
       .getByRole('button', { name: 'Registrar devolución' })
       .last()
       .click()
-    await expect(
-      page.getByRole('status', { name: 'Resultado de la operación' }),
-    ).toContainText('Devolución registrada.')
+    await expect(page.getByText('Devolución registrada.')).toBeVisible()
     const money = page.getByRole('region', { name: 'Importes' })
     await expect(
       money.getByText('Exceso por reembolsar', { exact: true }).locator('..'),

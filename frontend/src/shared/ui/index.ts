@@ -6,6 +6,7 @@ export * from './navigation'
 export * from './states'
 export * from './timeline'
 export * from './board'
+export * from './business'
 export * from './conversation'
 export * from './media'
 
@@ -18,6 +19,12 @@ export {
 } from './forms/Textarea'
 export { PasswordInput, type PasswordInputProps } from './forms/PasswordInput'
 export { DateControl, type DateControlProps } from './forms/DateControl'
+export {
+  Combobox,
+  type ComboboxOption,
+  type ComboboxProps,
+  type ComboboxResults,
+} from './forms/Combobox'
 export {
   FormSection,
   LeadingIcon,
@@ -46,6 +53,7 @@ export {
   type ConfirmationTone,
 } from './overlays/ConfirmationPanel'
 export { Modal, type ModalProps } from './overlays/Modal'
+export { FormModal, type FormModalProps } from './overlays/FormModal'
 export {
   DropdownMenu,
   type DropdownMenuProps,
@@ -66,6 +74,10 @@ export {
   type SuccessStateProps,
   NoResultsState,
   type NoResultsStateProps,
+  ToastProvider,
+  useToast,
+  type ToastApi,
+  type ToastOptions,
 } from './feedback'
 
 // Data — tabla y lista avanzadas

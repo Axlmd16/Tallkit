@@ -3,19 +3,19 @@ import { describe, expect, it } from 'vitest'
 
 import { StatusBadge } from './states'
 
-describe('C37: StatusBadge adaptado opt-in', () => {
-  it('conserva por defecto forma de píldora, rol status y anuncio de estado', () => {
+describe('StatusBadge Tallkit', () => {
+  it('es rectangular por defecto, con rol status, anuncio y marcador', () => {
     render(<StatusBadge label="En proceso" tone="info" />)
     const badge = screen.getByRole('status', { name: 'Estado: En proceso' })
     expect(badge).toBeInTheDocument()
-    expect(badge.className).toContain('rounded-full')
-    expect(badge.querySelector('svg')).toBeInTheDocument()
+    expect(badge.className).toContain('rounded-chip')
+    expect(badge.querySelector('[data-marker]')).toBeInTheDocument()
   })
 
-  it('soporta variante opt-in de forma rectangular (F03 4:976)', () => {
-    render(<StatusBadge label="Completado" shape="rectangle" tone="success" />)
+  it('admite la forma de píldora cuando se pide expresamente', () => {
+    render(<StatusBadge label="Completado" shape="pill" tone="success" />)
     const badge = screen.getByRole('status', { name: 'Estado: Completado' })
-    expect(badge.className).toContain('rounded-control')
+    expect(badge.className).toContain('rounded-full')
   })
 
   it('soporta variante de categoría sin anunciar como resultado de estado (F13 4:6246)', () => {

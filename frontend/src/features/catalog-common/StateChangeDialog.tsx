@@ -60,6 +60,7 @@ export function StateChangeDialog({
       open={change !== null}
       returnFocusRef={returnFocus}
       title={activating ? `Reactivar ${noun}` : `Desactivar ${noun}`}
+      tone={activating ? 'default' : 'danger'}
     >
       {problem && (
         <div className="mt-4">

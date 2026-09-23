@@ -23,7 +23,7 @@ export function DataList<T>({
     return (
       <div
         aria-label={label}
-        className={`p-6 text-center text-sm text-ink-muted bg-surface rounded-group border border-line ${className}`.trim()}
+        className={`p-6 text-center text-[13px] text-ink-muted bg-surface rounded-panel border border-line ${className}`.trim()}
         role="region"
       >
         <p>{emptyText}</p>
@@ -52,20 +52,20 @@ export function DataList<T>({
           return (
             <section
               aria-labelledby={groupId}
-              className="space-y-3"
+              className="space-y-1.5"
               key={groupName}
               role="group"
             >
               <h3
-                className="text-xs font-bold text-ink-muted uppercase tracking-wider px-1"
+                className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider px-1"
                 id={groupId}
               >
                 {groupName}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="divide-y divide-line overflow-hidden rounded-panel border border-line bg-surface">
                 {groupItems.map((item) => (
                   <li
-                    className="p-4 rounded-group bg-surface border border-line shadow-card transition-shadow hover:shadow-row"
+                    className="px-4 py-3 transition-colors hover:bg-surface-subtle"
                     key={keyExtractor(item)}
                   >
                     {renderItem(item)}
@@ -80,10 +80,13 @@ export function DataList<T>({
   }
 
   return (
-    <ul aria-label={label} className={`space-y-2.5 ${className}`.trim()}>
+    <ul
+      aria-label={label}
+      className={`divide-y divide-line overflow-hidden rounded-panel border border-line bg-surface ${className}`.trim()}
+    >
       {items.map((item) => (
         <li
-          className="p-4 rounded-group bg-surface border border-line shadow-card transition-shadow hover:shadow-row"
+          className="px-4 py-3 transition-colors hover:bg-surface-subtle"
           key={keyExtractor(item)}
         >
           {renderItem(item)}

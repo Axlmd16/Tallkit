@@ -15,7 +15,9 @@ export function PageHeader({
   return (
     <header className="page-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-2xl leading-[33px] font-bold text-ink">{title}</h1>
+        <h1 className="text-[22px] leading-7 font-semibold text-ink">
+          {title}
+        </h1>
         {description && (
           <p className="mt-1 max-w-[72ch] text-sm text-ink-muted">
             {description}
@@ -56,6 +58,8 @@ export interface FilterPanelProps {
   onClear?: () => void
   clearLabel?: string
   className?: string
+  /** `bare`: sin panel propio, para la franja de filtros de un panel de lista. */
+  bare?: boolean
 }
 
 export function FilterPanel({
@@ -65,6 +69,7 @@ export function FilterPanel({
   onClear,
   clearLabel = 'Limpiar filtros',
   className = '',
+  bare = false,
 }: FilterPanelProps) {
   const layoutClasses =
     layout === 'inline'
@@ -76,7 +81,7 @@ export function FilterPanel({
   return (
     <div
       aria-label={label}
-      className={`filter-panel mt-5 ${layoutClasses} ${className}`.trim()}
+      className={`filter-panel ${bare ? '' : 'mt-5 rounded-panel border border-line bg-surface p-3'} ${layoutClasses} ${className}`.trim()}
       role="search"
     >
       {children}
@@ -103,7 +108,7 @@ export function Surface({
 }: HTMLAttributes<HTMLElement>) {
   return (
     <section
-      className={`ui-surface rounded-group bg-surface p-5 sm:p-6 ${className}`}
+      className={`ui-surface rounded-panel border border-line bg-surface p-4 sm:p-5 ${className}`}
       {...props}
     >
       {children}
@@ -145,6 +150,7 @@ type DataColumn<T> = {
   key: keyof T
   priority: 'primary' | 'secondary'
   render?: (row: T) => ReactNode
+  align?: 'start' | 'end'
 }
 
 type DataViewProps<T extends object> = {

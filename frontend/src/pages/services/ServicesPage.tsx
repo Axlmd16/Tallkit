@@ -1,15 +1,12 @@
-import {
-  CurrencyDollar,
-  PencilSimple,
-  Power,
-  Receipt,
-  Wrench,
-} from '@phosphor-icons/react'
+import { PencilSimple, Power, Wrench } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { CatalogToolbar } from '@/features/catalog-common/CatalogToolbar'
+import {
+  CatalogToolbar,
+  NewRecordButton,
+} from '@/features/catalog-common/CatalogToolbar'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import {
@@ -17,12 +14,11 @@ import {
   type StateChange,
 } from '@/features/catalog-common/StateChangeDialog'
 import { useServiceMutations, useServices } from '@/features/services/hooks'
-import { ServiceEditorDrawer } from '@/features/services/ServiceEditorDrawer'
+import { ServiceEditorModal } from '@/features/services/ServiceEditorModal'
 import type { Service } from '@/features/services/types'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
-  Drawer,
   ElevatedDataList,
   FiscalScopeBadge,
   InlineNotice,
@@ -38,7 +34,7 @@ export function ServicesPage() {
   const tracker = useIntentTracker()
   const mutations = useServiceMutations()
   const [editor, setEditor] = useState<'new' | Service | null>(null)
-  const [previewing, setPreviewing] = useState<Service | null>(null)
+  const navigate = useNavigate()
   const [change, setChange] = useState<StateChange | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -67,6 +63,17 @@ export function ServicesPage() {
       <PageHeader
         description="Catálogo de servicios del taller con precio referencial final en USD. No maneja existencias."
         title="Servicios"
+        actions={
+          canManage && (
+            <NewRecordButton
+              label="Nuevo servicio"
+              onClick={() => {
+                setNotice(null)
+                setEditor('new')
+              }}
+            />
+          )
+        }
       />
       <FiscalScopeBadge scope="artesanal" />
       {notice && (
@@ -74,23 +81,16 @@ export function ServicesPage() {
           {notice}
         </InlineNotice>
       )}
-      <CatalogToolbar
-        filters={filters}
-        idPrefix="service"
-        label="Barra de herramientas de servicios"
-        newLabel="Nuevo servicio"
-        onNew={
-          canManage
-            ? () => {
-                setNotice(null)
-                setEditor('new')
-              }
-            : undefined
-        }
-        searchLabel="Buscar servicio"
-        searchPlaceholder="Buscar por nombre…"
-      />
       <ListStates
+        toolbar={
+          <CatalogToolbar
+            filters={filters}
+            idPrefix="service"
+            label="Barra de herramientas de servicios"
+            searchLabel="Buscar servicio"
+            searchPlaceholder="Buscar por nombre…"
+          />
+        }
         emptyText="Aún no hay servicios registrados."
         emptyTitle="No hay servicios"
         errorText="No fue posible consultar los servicios. Reintente en unos instantes."
@@ -175,82 +175,16 @@ export function ServicesPage() {
             ]}
             getRowKey={(row) => row.id}
             label="Servicios"
-            onRowClick={setPreviewing}
+            onRowClick={(row) =>
+              void navigate(`/services/${row.id}`, {
+                state: { from: window.location.search },
+              })
+            }
             rows={rows}
           />
         )}
       </ListStates>
-      <Drawer
-        className="record-preview-drawer"
-        description="Resumen del servicio seleccionado."
-        onClose={() => setPreviewing(null)}
-        open={previewing !== null}
-        title="Detalle del servicio"
-        width="409"
-      >
-        {previewing && (
-          <div className="record-preview-content space-y-7">
-            <div className="flex flex-col items-center text-center">
-              <span className="grid size-20 place-items-center rounded-full bg-warning-soft text-warning">
-                <Wrench aria-hidden="true" size={38} weight="duotone" />
-              </span>
-              <h3 className="mt-4 text-xl font-bold text-ink">
-                {previewing.name}
-              </h3>
-              <p className="mt-1 text-sm text-ink-muted">Servicio del taller</p>
-              <div className="mt-3">
-                <StatusBadge
-                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
-                  tone={previewing.is_active ? 'success' : 'neutral'}
-                />
-              </div>
-            </div>
-            <section aria-labelledby="service-preview-details">
-              <h3
-                className="text-base font-bold text-ink"
-                id="service-preview-details"
-              >
-                Información del servicio
-              </h3>
-              <div className="preview-detail-list">
-                <div>
-                  <CurrencyDollar size={19} />
-                  <span>Precio referencial</span>
-                  <strong>USD {previewing.reference_price}</strong>
-                </div>
-                <div>
-                  <Receipt size={19} />
-                  <span>Ámbito fiscal</span>
-                  <strong>RUC artesanal</strong>
-                </div>
-              </div>
-              <p className="mt-4 rounded-group bg-surface-subtle p-4 text-sm text-ink-muted">
-                {previewing.description || 'Sin descripción registrada.'}
-              </p>
-            </section>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                className="preview-primary-link"
-                to={`/services/${previewing.id}`}
-              >
-                Ver ficha completa
-              </Link>
-              {canManage && (
-                <Button
-                  onClick={() => {
-                    setEditor(previewing)
-                    setPreviewing(null)
-                  }}
-                  variant="secondary"
-                >
-                  <PencilSimple aria-hidden="true" size={18} /> Editar servicio
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </Drawer>
-      <ServiceEditorDrawer
+      <ServiceEditorModal
         mode={editor}
         onClose={() => setEditor(null)}
         onSaved={setNotice}

@@ -1,8 +1,9 @@
 import {
   CheckCircle,
   Info,
+  LockSimple,
   SpinnerGap,
-  Storefront,
+  Tag,
   WarningCircle,
   Wrench,
   XCircle,
@@ -13,7 +14,7 @@ type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const toneClasses: Record<Tone, string> = {
   neutral: 'bg-surface-muted text-ink-muted',
-  info: 'bg-info-soft text-primary-strong',
+  info: 'bg-info-soft text-info',
   success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning',
   danger: 'bg-danger-soft text-danger',
@@ -42,22 +43,27 @@ export interface StatusBadgeProps {
 export function StatusBadge({
   label,
   tone = 'neutral',
-  shape = 'pill',
+  shape = 'rectangle',
   kind = 'status',
   showIcon = kind === 'status',
   className = '',
 }: StatusBadgeProps) {
-  const Icon = toneIcons[tone]
-  const shapeClass = shape === 'rectangle' ? 'rounded-control' : 'rounded-full'
+  const shapeClass = shape === 'rectangle' ? 'rounded-chip' : 'rounded-full'
   const isStatus = kind === 'status'
 
   return (
     <span
       aria-label={isStatus ? `Estado: ${label}` : `Categoría: ${label}`}
-      className={`inline-flex min-h-7 items-center gap-1.5 ${shapeClass} px-3 py-1 text-xs font-bold ${toneClasses[tone]} ${className}`}
+      className={`inline-flex min-h-[22px] items-center gap-1.5 ${shapeClass} px-2 py-0.5 text-xs font-semibold whitespace-nowrap ${toneClasses[tone]} ${className}`}
       {...(isStatus ? { role: 'status' } : {})}
     >
-      {showIcon && <Icon aria-hidden="true" size={16} weight="regular" />}
+      {showIcon && (
+        <span
+          aria-hidden="true"
+          className="inline-block size-[7px] shrink-0 rounded-[2px] bg-current"
+          data-marker=""
+        />
+      )}
       {label}
     </span>
   )
@@ -69,14 +75,14 @@ export function FiscalScopeBadge({
   scope: 'commercial' | 'artesanal'
 }) {
   const commercial = scope === 'commercial'
-  const Icon = commercial ? Storefront : Wrench
+  const Icon = commercial ? Tag : Wrench
   return (
     <span
       aria-label={`Ámbito fiscal: ${commercial ? 'RUC comercial' : 'RUC artesanal'}`}
-      className={`inline-flex min-h-8 items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold ${commercial ? 'bg-primary-soft text-primary-strong' : 'bg-warning-soft text-warning'}`}
+      className={`inline-flex min-h-[26px] items-center gap-1.5 rounded-chip px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${commercial ? 'bg-scope-commercial-soft text-scope-commercial' : 'bg-scope-artisan-soft text-scope-artisan'}`}
       role="status"
     >
-      <Icon aria-hidden="true" size={18} weight="regular" />
+      <Icon aria-hidden="true" size={14} weight="bold" />
       {commercial ? 'RUC comercial' : 'RUC artesanal'}
     </span>
   )
@@ -94,13 +100,13 @@ export function InlineNotice({
   const Icon = toneIcons[tone]
   return (
     <div
-      className={`flex gap-3 rounded-group p-4 ${toneClasses[tone]}`}
+      className={`flex gap-2.5 rounded-control px-3 py-2.5 text-[13px] ${toneClasses[tone]}`}
       role={tone === 'danger' ? 'alert' : 'status'}
     >
-      <Icon aria-hidden="true" className="mt-0.5 shrink-0" size={20} />
-      <div>
+      <Icon aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
+      <div className="min-w-0">
         <p className="font-semibold">{title}</p>
-        {children && <div className="mt-1 text-sm">{children}</div>}
+        {children && <div className="mt-0.5 text-[12.5px]">{children}</div>}
       </div>
     </div>
   )
@@ -109,13 +115,13 @@ export function InlineNotice({
 export function LoadingState({ label = 'Cargando…' }: { label?: string }) {
   return (
     <div
-      className="flex min-h-28 items-center justify-center gap-3 text-ink-muted"
+      className="flex min-h-24 items-center justify-center gap-2.5 text-[13px] text-ink-muted"
       role="status"
     >
       <SpinnerGap
         aria-hidden="true"
         className="animate-spin motion-reduce:animate-none"
-        size={22}
+        size={18}
       />
       <span>{label}</span>
     </div>
@@ -132,10 +138,70 @@ export function EmptyState({
   title: string
 }) {
   return (
-    <section className="rounded-group bg-surface px-5 py-10 text-center shadow-card">
-      <h2 className="text-lg font-semibold text-ink">{title}</h2>
-      <p className="mx-auto mt-2 max-w-xl text-ink-muted">{description}</p>
-      {action && <div className="mt-5 flex justify-center">{action}</div>}
+    <section className="rounded-panel border border-line bg-surface px-5 py-9 text-center">
+      <h2 className="text-[14.5px] font-semibold text-ink">{title}</h2>
+      <p className="mx-auto mt-1.5 max-w-md text-[13px] text-ink-muted">
+        {description}
+      </p>
+      {action && <div className="mt-4 flex justify-center">{action}</div>}
     </section>
+  )
+}
+
+/** Estado «sin permiso»: explica qué rol concede el acceso; la denegación real es del backend. */
+export function ForbiddenState({
+  action,
+  description,
+  title,
+}: {
+  action?: ReactNode
+  description: string
+  title: string
+}) {
+  return (
+    <section className="rounded-panel border border-line bg-surface px-5 py-9 text-center">
+      <span
+        aria-hidden="true"
+        className="mx-auto grid size-11 place-items-center rounded-panel bg-surface-muted text-ink-muted"
+      >
+        <LockSimple size={22} />
+      </span>
+      <h2 className="mt-3 text-[14.5px] font-semibold text-ink">{title}</h2>
+      <p className="mx-auto mt-1.5 max-w-md text-[13px] text-ink-muted">
+        {description}
+      </p>
+      {action && <div className="mt-4 flex justify-center">{action}</div>}
+    </section>
+  )
+}
+
+/** Marcadores de carga en filas: ocupan el lugar de la tabla sin mostrar datos. */
+export function SkeletonRows({
+  label = 'Cargando…',
+  rows = 5,
+}: {
+  label?: string
+  rows?: number
+}) {
+  return (
+    <div aria-busy="true" aria-label={label} role="status">
+      <span className="sr-only">{label}</span>
+      {Array.from({ length: rows }, (_, index) => (
+        <div
+          aria-hidden="true"
+          className="grid h-11 grid-cols-[5.5rem_minmax(0,1fr)_5rem_4rem] items-center gap-4 border-b border-line px-4 last:border-b-0"
+          data-skeleton-row=""
+          key={index}
+        >
+          <span className="h-2.5 w-16 rounded-[3px] bg-surface-muted" />
+          <span
+            className="h-2.5 rounded-[3px] bg-surface-muted"
+            style={{ width: `${48 + ((index * 17) % 36)}%` }}
+          />
+          <span className="h-2.5 w-14 rounded-[3px] bg-surface-muted" />
+          <span className="h-2.5 w-12 justify-self-end rounded-[3px] bg-surface-muted" />
+        </div>
+      ))}
+    </div>
   )
 }

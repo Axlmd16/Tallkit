@@ -227,3 +227,26 @@ export function findActiveGroupId(
     )?.id ?? null
   )
 }
+
+/** Ámbito fiscal de las áreas con operaciones económicas; el resto es compartido. */
+export const groupScopes: Readonly<Record<string, 'commercial' | 'artesanal'>> =
+  {
+    'ventas-cobros': 'commercial',
+    'compras-inventario': 'commercial',
+    'operacion-taller': 'artesanal',
+  }
+
+/** Grupo y opción que corresponden a la ruta, para la ruta de migas y el ámbito fiscal. */
+export function findLocation(
+  groups: readonly NavGroup[],
+  pathname: string,
+): { group: NavGroup | null; item: NavItem } | null {
+  if (isItemActive(homeItem, pathname)) return { group: null, item: homeItem }
+  for (const group of groups) {
+    const item = group.items.find((candidate) =>
+      isItemActive(candidate, pathname),
+    )
+    if (item) return { group, item }
+  }
+  return null
+}

@@ -1,4 +1,4 @@
-import { Wrench } from '@phosphor-icons/react'
+import { DocumentSheet } from '@/shared/ui/business/DocumentSheet'
 
 import './sales.css'
 
@@ -49,59 +49,47 @@ export function SalesDocument({
     value === null || value === undefined ? '—' : usd(value)
   const pending = updating || stale
   return (
-    <article
-      aria-busy={updating}
-      aria-label="Comprobante de venta"
-      className="sales-sheet"
+    <DocumentSheet
+      busy={updating}
+      label="Comprobante de venta"
+      meta={[
+        {
+          label: 'Fecha operativa',
+          value: data.date ? documentDate(data.date) : '—',
+        },
+        {
+          label: 'Emisor',
+          value: data.issuer ? (
+            <>
+              {data.issuer.legal_name} · RUC{' '}
+              <span className="font-mono">{data.issuer.ruc}</span> (comercial)
+            </>
+          ) : (
+            '—'
+          ),
+        },
+        {
+          label: 'Condición de venta',
+          value: data.condition ? conditionLabels[data.condition] : '—',
+        },
+        {
+          label: 'Cliente',
+          wide: true,
+          value: data.customer
+            ? [
+                data.customer.name,
+                data.customer.identification &&
+                  `${data.customer.identification_type ?? ''} ${data.customer.identification}`.trim(),
+              ]
+                .filter(Boolean)
+                .join(' · ')
+            : '—',
+        },
+      ]}
+      notice={INTERNAL_NOTICE}
+      number={data.number}
+      state={data.heading}
     >
-      <header className="sheet-head">
-        <div className="sheet-brand">
-          <span aria-hidden="true" className="sheet-mark">
-            <Wrench size={18} weight="bold" />
-          </span>
-          <span>Sys-Taller</span>
-        </div>
-        <div className="sheet-kind">
-          <p className="sheet-title">COMPROBANTE INTERNO</p>
-          <p className="sheet-state">{data.heading}</p>
-        </div>
-      </header>
-      <dl className="sheet-meta">
-        <div>
-          <dt>Número</dt>
-          <dd>{data.number ?? 'Pendiente de confirmación'}</dd>
-        </div>
-        <div>
-          <dt>Fecha operativa</dt>
-          <dd>{data.date ? documentDate(data.date) : '—'}</dd>
-        </div>
-        <div>
-          <dt>Emisor</dt>
-          <dd>
-            {data.issuer
-              ? `${data.issuer.legal_name} · RUC ${data.issuer.ruc} (comercial)`
-              : '—'}
-          </dd>
-        </div>
-        <div>
-          <dt>Condición de venta</dt>
-          <dd>{data.condition ? conditionLabels[data.condition] : '—'}</dd>
-        </div>
-        <div className="wide">
-          <dt>Cliente</dt>
-          <dd>
-            {data.customer
-              ? [
-                  data.customer.name,
-                  data.customer.identification &&
-                    `${data.customer.identification_type ?? ''} ${data.customer.identification}`.trim(),
-                ]
-                  .filter(Boolean)
-                  .join(' · ')
-              : '—'}
-          </dd>
-        </div>
-      </dl>
       <section aria-label="Líneas" className="sheet-lines">
         <table>
           <thead>
@@ -123,7 +111,9 @@ export function SalesDocument({
             )}
             {data.lines.map((line) => (
               <tr key={line.position}>
-                <td data-label="Código">{line.product_code ?? '—'}</td>
+                <td className="font-mono" data-label="Código">
+                  {line.product_code ?? '—'}
+                </td>
                 <td data-label="Descripción">{line.product_name ?? '—'}</td>
                 <td className="amount" data-label="Cantidad">
                   {line.quantity}
@@ -166,8 +156,7 @@ export function SalesDocument({
             Se conservan el número y los valores originales.
           </p>
         )}
-        <p className="sheet-notice">{INTERNAL_NOTICE}</p>
       </footer>
-    </article>
+    </DocumentSheet>
   )
 }
