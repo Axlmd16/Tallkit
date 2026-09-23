@@ -11,10 +11,10 @@ import {
 } from '@/features/auth/types'
 import {
   Button,
-  Drawer,
   FiscalScopeBadge,
   IconButton,
   InlineNotice,
+  NavigationPanel,
   ToastProvider,
 } from '@/shared/ui'
 
@@ -53,7 +53,8 @@ function currentBreadcrumbLabel(pathname: string, itemLabel: string) {
   if (pathname.endsWith('/edit')) return `Editar ${noun}`
   if (pathname.endsWith('/document')) return 'Comprobante'
   if (pathname.endsWith('/kardex')) return 'Kardex'
-  if (pathname.startsWith('/inventory/operations/')) return 'Operación de inventario'
+  if (pathname.startsWith('/inventory/operations/'))
+    return 'Operación de inventario'
   return `Ficha de ${noun}`
 }
 
@@ -213,10 +214,7 @@ export function AuthenticatedShell({
                       </li>
                     </>
                   )}
-                  <li
-                    aria-current="page"
-                    className="truncate font-semibold"
-                  >
+                  <li aria-current="page" className="truncate font-semibold">
                     {currentLabel}
                   </li>
                 </ol>
@@ -234,7 +232,7 @@ export function AuthenticatedShell({
           <main className="app-main w-full px-4 py-5 md:px-6">{children}</main>
         </div>
 
-        <Drawer
+        <NavigationPanel
           description="Elija una función disponible según sus permisos."
           onClose={() => setNavigationOpen(false)}
           open={navigationOpen}
@@ -259,7 +257,7 @@ export function AuthenticatedShell({
               Cerrar sesión
             </Button>
           </nav>
-        </Drawer>
+        </NavigationPanel>
       </div>
     </ToastProvider>
   )

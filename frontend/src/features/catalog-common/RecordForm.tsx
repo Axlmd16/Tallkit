@@ -48,166 +48,175 @@ interface RecordFormProps {
 
 /** Formulario de campos de texto para catálogos auxiliares, con borrador en memoria. */
 export const RecordForm = forwardRef<RecordFormHandle, RecordFormProps>(
-  function RecordForm({
-    idPrefix,
-    fields,
-    record,
-    noun,
-    onSubmit,
-    onCancel,
-    onDirtyChange,
-    onReload,
-    onSubmitLabelChange,
-    embedded = false,
-  }, ref) {
-  const initial = (): RecordValues =>
-    Object.fromEntries(fields.map((f) => [f.name, record?.[f.name] ?? '']))
-  const [values, setValues] = useState<RecordValues>(initial)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [problem, setProblem] = useState<ProblemView | null>(null)
-  const [pending, setPending] = useState(false)
+  function RecordForm(
+    {
+      idPrefix,
+      fields,
+      record,
+      noun,
+      onSubmit,
+      onCancel,
+      onDirtyChange,
+      onReload,
+      onSubmitLabelChange,
+      embedded = false,
+    },
+    ref,
+  ) {
+    const initial = (): RecordValues =>
+      Object.fromEntries(fields.map((f) => [f.name, record?.[f.name] ?? '']))
+    const [values, setValues] = useState<RecordValues>(initial)
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [problem, setProblem] = useState<ProblemView | null>(null)
+    const [pending, setPending] = useState(false)
 
-  const dirty = fields.some(
-    (f) => (values[f.name] ?? '').trim() !== (record?.[f.name] ?? '').trim(),
-  )
-  useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange])
-
-  function validate(): boolean {
-    const next: Record<string, string> = {}
-    for (const field of fields) {
-      const text = (values[field.name] ?? '').trim()
-      if (field.required && !text)
-        next[field.name] = `${field.label} es obligatorio.`
-      else if (text.length > field.maxLength)
-        next[field.name] =
-          `${field.label} no puede exceder ${field.maxLength} caracteres.`
-    }
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
-
-  async function saveForm() {
-    if (pending) return false
-    setProblem(null)
-    if (!validate()) return false
-    setPending(true)
-    try {
-      await onSubmit(
-        Object.fromEntries(
-          fields.map((f) => [f.name, (values[f.name] ?? '').trim()]),
-        ),
-      )
-      return true
-    } catch (error) {
-      const view = describeProblem(error)
-      setProblem(view)
-      setErrors(view.fields)
-      return false
-    } finally {
-      setPending(false)
-    }
-  }
-
-  const retrying = problem?.uncertain ?? false
-
-  useImperativeHandle(ref, () => ({ submit: saveForm }))
-
-  useEffect(() => {
-    onSubmitLabelChange?.(
-      retrying
-        ? 'Reintentar envío'
-        : record
-          ? 'Guardar cambios'
-          : `Guardar ${noun}`,
+    const dirty = fields.some(
+      (f) => (values[f.name] ?? '').trim() !== (record?.[f.name] ?? '').trim(),
     )
-  }, [noun, onSubmitLabelChange, record, retrying])
+    useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange])
 
-  function submit(event: FormEvent) {
-    event.preventDefault()
-    void saveForm()
-  }
+    function validate(): boolean {
+      const next: Record<string, string> = {}
+      for (const field of fields) {
+        const text = (values[field.name] ?? '').trim()
+        if (field.required && !text)
+          next[field.name] = `${field.label} es obligatorio.`
+        else if (text.length > field.maxLength)
+          next[field.name] =
+            `${field.label} no puede exceder ${field.maxLength} caracteres.`
+      }
+      setErrors(next)
+      return Object.keys(next).length === 0
+    }
 
-  const fieldsContent = (
-    <>
-      {problem && (
-        <InlineNotice title="No se pudo guardar" tone="danger">
-          {problem.message}
-          {problem.staleRecord && onReload && (
-            <div className="mt-3">
-              <Button onClick={onReload} type="button" variant="secondary">
-                Cargar versión vigente
-              </Button>
-            </div>
-          )}
-        </InlineNotice>
-      )}
-      {fields.map((field, index) => {
-        const id = `${idPrefix}-${field.name}`
-        const Control = field.multiline ? Textarea : Input
-        return (
-          <Field
-            error={errors[field.name]}
-            hint={field.hint}
-            id={id}
-            key={field.name}
-            label={field.required ? field.label : `${field.label} (opcional)`}
-          >
-            <Control
-              autoFocus={index === 0}
-              disabled={pending}
-              id={id}
-              maxLength={field.maxLength}
-              onChange={(event) => {
-                setValues((prev) => ({
-                  ...prev,
-                  [field.name]: event.target.value,
-                }))
-                setErrors((prev) => ({ ...prev, [field.name]: '' }))
-              }}
-              placeholder={field.placeholder}
-              value={values[field.name] ?? ''}
-            />
-          </Field>
+    async function saveForm() {
+      if (pending) return false
+      setProblem(null)
+      if (!validate()) return false
+      setPending(true)
+      try {
+        await onSubmit(
+          Object.fromEntries(
+            fields.map((f) => [f.name, (values[f.name] ?? '').trim()]),
+          ),
         )
-      })}
-    </>
-  )
+        return true
+      } catch (error) {
+        const view = describeProblem(error)
+        setProblem(view)
+        setErrors(view.fields)
+        return false
+      } finally {
+        setPending(false)
+      }
+    }
 
-  if (embedded) {
-    return <div className="catalog-editor-form space-y-6">{fieldsContent}</div>
-  }
+    const retrying = problem?.uncertain ?? false
 
-  return (
-    <form className="catalog-editor-form space-y-6" noValidate onSubmit={submit}>
-      {fieldsContent}
-      <ButtonGroup
-        className="justify-end pt-2"
-        label={`Acciones del formulario de ${noun}`}
+    useImperativeHandle(ref, () => ({ submit: saveForm }))
+
+    useEffect(() => {
+      onSubmitLabelChange?.(
+        retrying
+          ? 'Reintentar envío'
+          : record
+            ? 'Guardar cambios'
+            : `Guardar ${noun}`,
+      )
+    }, [noun, onSubmitLabelChange, record, retrying])
+
+    function submit(event: FormEvent) {
+      event.preventDefault()
+      void saveForm()
+    }
+
+    const fieldsContent = (
+      <>
+        {problem && (
+          <InlineNotice title="No se pudo guardar" tone="danger">
+            {problem.message}
+            {problem.staleRecord && onReload && (
+              <div className="mt-3">
+                <Button onClick={onReload} type="button" variant="secondary">
+                  Cargar versión vigente
+                </Button>
+              </div>
+            )}
+          </InlineNotice>
+        )}
+        {fields.map((field, index) => {
+          const id = `${idPrefix}-${field.name}`
+          const Control = field.multiline ? Textarea : Input
+          return (
+            <Field
+              error={errors[field.name]}
+              hint={field.hint}
+              id={id}
+              key={field.name}
+              label={field.required ? field.label : `${field.label} (opcional)`}
+            >
+              <Control
+                autoFocus={index === 0}
+                disabled={pending}
+                id={id}
+                maxLength={field.maxLength}
+                onChange={(event) => {
+                  setValues((prev) => ({
+                    ...prev,
+                    [field.name]: event.target.value,
+                  }))
+                  setErrors((prev) => ({ ...prev, [field.name]: '' }))
+                }}
+                placeholder={field.placeholder}
+                value={values[field.name] ?? ''}
+              />
+            </Field>
+          )
+        })}
+      </>
+    )
+
+    if (embedded) {
+      return (
+        <div className="catalog-editor-form space-y-6">{fieldsContent}</div>
+      )
+    }
+
+    return (
+      <form
+        className="catalog-editor-form space-y-6"
+        noValidate
+        onSubmit={submit}
       >
-        <Button
-          disabled={pending}
-          onClick={onCancel}
-          type="button"
-          variant="quiet"
+        {fieldsContent}
+        <ButtonGroup
+          className="justify-end pt-2"
+          label={`Acciones del formulario de ${noun}`}
         >
-          Cancelar
-        </Button>
-        <Button
-          aria-busy={pending}
-          disabled={pending}
-          type="submit"
-          variant="primary"
-        >
-          {pending
-            ? 'Guardando…'
-            : retrying
-              ? 'Reintentar envío'
-              : record
-                ? 'Guardar cambios'
-                : `Guardar ${noun}`}
-        </Button>
-      </ButtonGroup>
-    </form>
-  )
+          <Button
+            disabled={pending}
+            onClick={onCancel}
+            type="button"
+            variant="quiet"
+          >
+            Cancelar
+          </Button>
+          <Button
+            aria-busy={pending}
+            disabled={pending}
+            type="submit"
+            variant="primary"
+          >
+            {pending
+              ? 'Guardando…'
+              : retrying
+                ? 'Reintentar envío'
+                : record
+                  ? 'Guardar cambios'
+                  : `Guardar ${noun}`}
+          </Button>
+        </ButtonGroup>
+      </form>
+    )
   },
 )

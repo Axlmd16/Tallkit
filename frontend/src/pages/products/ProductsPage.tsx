@@ -14,9 +14,9 @@ import {
   type StateChange,
 } from '@/features/catalog-common/StateChangeDialog'
 import { useMeasurementUnitList } from '@/features/measurement-units/hooks'
-import { useStockItem } from '@/features/inventory/hooks'
 import { useProductBrandList } from '@/features/product-brands/hooks'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
+import { presentation } from '@/features/products/format'
 import { useProductMutations, useProducts } from '@/features/products/hooks'
 import type { Product } from '@/features/products/types'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
@@ -29,22 +29,11 @@ import {
   Field,
   PageHeader,
   Select,
-  StockIndicator,
   useToast,
+  StatusBadge,
 } from '@/shared/ui'
 
 const PICKER = { isActive: 'all', pageSize: 100 } as const
-
-function ProductStock({ productId }: { productId: number }) {
-  const query = useStockItem(productId)
-  if (query.isPending) {
-    return <span className="text-ink-muted">Consultando…</span>
-  }
-  if (query.isError || !query.data) {
-    return <span aria-label="Existencias no disponibles">—</span>
-  }
-  return <StockIndicator quantity={query.data.quantity} />
-}
 
 export function ProductsPage() {
   const filters = useUrlFilters()
@@ -201,7 +190,7 @@ export function ProductsPage() {
       >
         {(rows) => (
           <ElevatedDataList<Product>
-            actions={(row) => (
+            actions={(row) =>
               canManage || canDeactivate ? (
                 <DropdownMenu
                   items={[
@@ -242,7 +231,7 @@ export function ProductsPage() {
                   }
                 />
               ) : null
-            )}
+            }
             columns={[
               {
                 header: 'Código interno',
@@ -280,15 +269,10 @@ export function ProductsPage() {
                 render: (row) => row.category?.name ?? '—',
               },
               {
-                header: 'Existencias',
-                key: 'updated_at',
+                header: 'Presentación',
+                key: 'content_quantity',
                 priority: 'secondary',
-                render: (row) =>
-                  permissions.has('inventario.ver') ? (
-                    <ProductStock productId={row.id} />
-                  ) : (
-                    <span aria-label="Sin permiso para consultar existencias">—</span>
-                  ),
+                render: presentation,
               },
               {
                 header: 'Marca',
@@ -303,6 +287,17 @@ export function ProductsPage() {
                 align: 'end',
                 render: (row) => (
                   <Money amount={row.sale_price} className="font-semibold" />
+                ),
+              },
+              {
+                header: 'Estado',
+                key: 'is_active',
+                priority: 'secondary',
+                render: (row) => (
+                  <StatusBadge
+                    label={row.is_active ? 'Activo' : 'Inactivo'}
+                    tone={row.is_active ? 'success' : 'neutral'}
+                  />
                 ),
               },
             ]}

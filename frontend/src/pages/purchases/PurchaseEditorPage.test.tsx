@@ -1,11 +1,15 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
+import type * as ReactRouter from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({
+  /** Simula una navegación que todavía no se aplicó (transición pendiente). */
+  holdNavigation: false,
   purchase: undefined as unknown,
   create: vi.fn(),
   update: vi.fn(),
@@ -42,6 +46,17 @@ vi.mock('@/features/purchases/hooks', () => ({
     confirm: { mutateAsync: mocks.confirm },
   }),
 }))
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof ReactRouter>()
+  return {
+    ...actual,
+    useNavigate: () => {
+      const navigate = actual.useNavigate()
+      return ((...args: Parameters<typeof navigate>) =>
+        mocks.holdNavigation ? undefined : navigate(...args)) as typeof navigate
+    },
+  }
+})
 vi.mock('@/features/purchases/pickers', () => ({
   useSupplierOptions: () => ({
     isPending: false,
@@ -148,17 +163,20 @@ const review = {
 function renderEditor(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<PurchaseEditorPage />} path="/purchases/new" />
-        <Route element={<PurchaseEditorPage />} path="/purchases/:id/edit" />
-        <Route element={<p>detalle abierto</p>} path="/purchases/:id" />
-      </Routes>
+      <ToastProvider>
+        <Routes>
+          <Route element={<PurchaseEditorPage />} path="/purchases/new" />
+          <Route element={<PurchaseEditorPage />} path="/purchases/:id/edit" />
+          <Route element={<p>detalle abierto</p>} path="/purchases/:id" />
+        </Routes>
+      </ToastProvider>
     </MemoryRouter>,
   )
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mocks.holdNavigation = false
   mocks.purchase = undefined
   mocks.create.mockResolvedValue({ ...draftPurchase, id: 11 })
   mocks.update.mockResolvedValue(draftPurchase)
@@ -195,7 +213,9 @@ it('conserva los decimales como cadenas y prellena el impuesto sugerido del prod
   )
   await userEvent.click(screen.getByRole('button', { name: 'Agregar línea' }))
   const line = screen.getByRole('group', { name: /Línea 1/ })
-  await userEvent.click(within(line).getByRole('combobox', { name: 'Producto' }))
+  await userEvent.click(
+    within(line).getByRole('combobox', { name: 'Producto' }),
+  )
   await userEvent.click(screen.getByRole('option', { name: /ACE-1 — Aceite/ }))
   await userEvent.type(
     within(line).getByLabelText('Cantidad de presentaciones'),
@@ -233,7 +253,9 @@ it('las referencias inactivas se etiquetan y no pueden elegirse', async () => {
   renderEditor('/purchases/new')
   await userEvent.click(screen.getByRole('button', { name: 'Agregar línea' }))
   const line = screen.getByRole('group', { name: /Línea 1/ })
-  await userEvent.click(within(line).getByRole('combobox', { name: 'Producto' }))
+  await userEvent.click(
+    within(line).getByRole('combobox', { name: 'Producto' }),
+  )
   expect(
     screen.getByRole('option', { name: /OLD-1 — Bujía vieja/ }),
   ).toHaveAttribute('aria-disabled', 'true')
@@ -291,6 +313,9 @@ it('la revisión nombra productos, cantidades y efecto sobre el stock con import
     reviewToken: 'token-1',
   })
   expect(await screen.findByText('detalle abierto')).toBeInTheDocument()
+  expect(
+    screen.getByRole('status', { name: 'Notificaciones' }),
+  ).toHaveTextContent('confirmado')
 })
 
 it('review_required conserva la entrada, explica el cambio y solicita una revisión actualizada', async () => {
@@ -353,4 +378,25 @@ it('cancelar la revisión no confirma nada y deja el borrador editable', async (
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(mocks.confirm).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: 'Guardar borrador' })).toBeEnabled()
+})
+
+it('no crea un segundo ingreso si se revisa antes de que se aplique la navegación al borrador creado', async () => {
+  mocks.holdNavigation = true
+  renderEditor('/purchases/new')
+  await userEvent.click(screen.getByRole('combobox', { name: 'Proveedor' }))
+  await userEvent.click(screen.getByRole('option', { name: /Repuestos SA/ }))
+  await userEvent.type(screen.getByLabelText('Referencia del proveedor'), 'F-1')
+  await userEvent.type(
+    screen.getByLabelText('Fecha del documento'),
+    '2026-01-15',
+  )
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Guardar borrador' }),
+  )
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Revisar y confirmar' }),
+  )
+  await waitFor(() => expect(mocks.preview).toHaveBeenCalledWith(11))
+  expect(mocks.create).toHaveBeenCalledTimes(1)
 })

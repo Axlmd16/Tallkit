@@ -28,7 +28,7 @@ export function FormSection({
   return (
     <section
       aria-labelledby={titleId}
-      className={`form-section grid gap-4 p-4 sm:p-5 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-7 ${variant === 'flush' ? 'border-b border-line last:border-b-0' : 'rounded-panel border border-line bg-surface'} ${className}`.trim()}
+      className={`form-section grid grid-cols-1 gap-4 p-4 sm:p-5 lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:gap-7 ${variant === 'flush' ? 'border-b border-line last:border-b-0' : 'rounded-panel border border-line bg-surface'} ${className}`.trim()}
       role="group"
     >
       <header className="flex min-w-0 items-start gap-2">

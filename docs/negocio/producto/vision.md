@@ -3,12 +3,15 @@
 | Campo | Valor |
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
-| Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.3 |
+| Nombre visible | Tallkit |
+| Nombre técnico provisional | Sys-Inventario (repositorio Sys-Taller) |
+| Versión del documento | 0.4 |
 | Estado | Alineado con el modelo de dominio aprobado |
-| Fecha | 2026-09-08 |
+| Fecha | 2026-09-23 |
 
 > Este documento describe el sistema objetivo. El comportamiento del código existente no modifica esta visión ni se considera automáticamente correcto.
+>
+> **Tallkit** es el nombre visible del producto en la interfaz, con su logotipo propio. «Sys-Inventario»/«Sys-Taller» se conserva como nombre técnico del repositorio y de la documentación interna.
 
 ## 1. Propósito
 

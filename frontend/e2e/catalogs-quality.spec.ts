@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
 import { API, seedFiscalConfiguration, send } from './catalog-helpers'
-import { login } from './helpers'
+import { expandNavigation, login } from './helpers'
 
 const viewports = [
   { name: 'phone', width: 360, height: 800 },
@@ -170,68 +170,84 @@ test('los formularios no desbordan y cumplen axe en 360 y 1024, con textos largo
   await login(page, 'admin_e2e')
   for (const width of [360, 1024]) {
     await page.setViewportSize({ width, height: 800 })
-    for (const [route, button, dialog] of [
-      ['/products', 'Nuevo producto', 'Nuevo producto'],
+    // Producto y proveedor usan página completa; servicio y categoría, un modal.
+    for (const [route, button, form] of [
+      ['/products', 'Nuevo producto', 'page'],
       ['/services', 'Nuevo servicio', 'Nuevo servicio'],
-      ['/suppliers', 'Nuevo proveedor', 'Nuevo proveedor'],
+      ['/suppliers', 'Nuevo proveedor', 'page'],
       ['/product-categories', 'Nueva categoría', 'Nueva categoría'],
     ] as const) {
       await page.goto(route)
-      await page.getByRole('button', { name: button }).click()
-      const drawer = page.getByRole('dialog', { name: dialog })
-      await expect(drawer).toBeVisible()
-      await drawer
+      await page.getByRole('button', { name: button }).first().click()
+      const scope =
+        form === 'page'
+          ? page.getByRole('main')
+          : page.getByRole('dialog', { name: form })
+      if (form === 'page') await expect(page).toHaveURL(/\/new$/)
+      await expect(scope).toBeVisible()
+      await scope
         .getByLabel(/^Nombre/)
         .first()
         .fill(LONG_UNBROKEN)
       await expectNoHorizontalOverflow(page)
       await expectNoSeriousAccessibilityViolations(page)
-      await expectTouchTargets(page, drawer)
+      await expectTouchTargets(page, scope)
       await page.screenshot({
         animations: 'disabled',
         path: evidencePath(testInfo, `form-${route.slice(1)}-${width}.png`),
       })
-      await drawer.getByRole('button', { name: 'Cancelar' }).click()
+      await scope.getByRole('button', { name: 'Cancelar' }).click()
+      const discard = page.getByRole('button', { name: 'Descartar' })
+      if (await discard.isVisible()) await discard.click()
+      await expect(page).toHaveURL(new RegExp(`${route}$`))
     }
   }
 })
 
-test('se opera con teclado y el foco vuelve al control que abrió el panel', async ({
+test('se opera con teclado y el foco vuelve al control que abrió el modal', async ({
   page,
 }) => {
   await login(page, 'admin_e2e')
-  await page.goto('/products')
-  const trigger = page.getByRole('button', { name: 'Nuevo producto' })
+  await page.goto('/services')
+  const trigger = page.getByRole('button', { name: 'Nuevo servicio' })
   await trigger.focus()
   await page.keyboard.press('Enter')
-  const drawer = page.getByRole('dialog', { name: 'Nuevo producto' })
-  await expect(drawer).toBeVisible()
+  const modal = page.getByRole('dialog', { name: 'Nuevo servicio' })
+  await expect(modal).toBeVisible()
   expect(
-    await drawer.evaluate((node) => node.contains(document.activeElement)),
+    await modal.evaluate((node) => node.contains(document.activeElement)),
   ).toBe(true)
 
-  // El foco queda atrapado en el panel.
-  for (let i = 0; i < 60; i += 1) {
+  // El foco queda atrapado en el modal.
+  for (let i = 0; i < 30; i += 1) {
     await page.keyboard.press('Tab')
     expect(
-      await drawer.evaluate((node) => node.contains(document.activeElement)),
+      await modal.evaluate((node) => node.contains(document.activeElement)),
     ).toBe(true)
   }
   await page.keyboard.press('Escape')
-  await expect(drawer).not.toBeVisible()
+  await expect(modal).not.toBeVisible()
   await expect(trigger).toBeFocused()
 
-  // Con cambios sin guardar, Escape solicita confirmación y conserva el borrador.
+  // Con cambios sin guardar, Escape solicita confirmación y conserva lo escrito.
   await page.keyboard.press('Enter')
-  await drawer.getByLabel('Código interno', { exact: true }).fill('BORRADOR')
+  await modal
+    .getByLabel(/^Nombre/)
+    .first()
+    .fill('BORRADOR')
+  // Una persona no pulsa Escape en el mismo cuadro en que termina de escribir: se deja
+  // pintar el estado «con cambios» antes de cerrar.
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => resolve(null))),
+  )
   await page.keyboard.press('Escape')
-  await expect(page.getByText('Hay cambios sin guardar.')).toBeVisible()
-  await expect(
-    drawer.getByLabel('Código interno', { exact: true }),
-  ).toHaveValue('BORRADOR')
+  const warning = page.getByRole('dialog', { name: 'Hay cambios sin guardar' })
+  await expect(warning).toBeVisible()
+  await warning.getByRole('button', { name: 'Seguir editando' }).click()
+  await expect(modal.getByLabel(/^Nombre/).first()).toHaveValue('BORRADOR')
 })
 
-test('la navegación cambia de variante entre 1279 y 1280 con las entradas nuevas visibles', async ({
+test('la navegación cambia de variante entre 1279 y 1280 con las entradas nuevas alcanzables', async ({
   page,
 }) => {
   await login(page, 'admin_e2e')
@@ -243,17 +259,25 @@ test('la navegación cambia de variante entre 1279 y 1280 con las entradas nueva
     await page.goto('/')
     const rail = page.locator('.app-rail')
     expect(Math.round((await rail.boundingBox())!.width)).toBe(
-      expanded ? 218 : 80,
+      expanded ? 240 : 72,
     )
-    for (const name of [
-      'Productos',
-      'Servicios',
-      'Proveedores',
-      'Marcas de vehículo',
-    ]) {
-      await expect(rail.getByRole('link', { name })).toBeAttached()
+    if (expanded) {
+      await expandNavigation(page)
+      for (const name of [
+        'Productos',
+        'Servicios',
+        'Proveedores',
+        'Marcas de vehículo',
+      ]) {
+        await expect(rail.getByRole('link', { name })).toBeAttached()
+      }
+    } else {
+      // En modo compacto cada área es un icono con nombre accesible.
+      await expect(
+        rail.getByRole('button', { name: 'Catálogos' }),
+      ).toBeVisible()
     }
-    // El botón de cierre sigue alcanzable aunque la navegación sea larga.
+    // El cierre de sesión sigue alcanzable aunque la navegación sea larga.
     await rail
       .getByRole('button', { name: 'Cerrar sesión' })
       .scrollIntoViewIfNeeded()

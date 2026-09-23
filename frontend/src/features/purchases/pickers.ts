@@ -1,10 +1,13 @@
 import { useProducts } from '@/features/products/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
 
-import type { PickerResults } from './ReferencePicker'
+import type { ComboboxResults } from '@/shared/ui'
 
 /** Proveedores de todos los estados: los inactivos se etiquetan y no se eligen. */
-export function useSupplierOptions(term: string, page: number): PickerResults {
+export function useSupplierOptions(
+  term: string,
+  page: number,
+): ComboboxResults {
   const query = useSuppliers({
     search: term || undefined,
     isActive: 'all',
@@ -28,7 +31,7 @@ export function useSupplierOptions(term: string, page: number): PickerResults {
   }
 }
 
-export function useProductOptions(term: string, page: number): PickerResults {
+export function useProductOptions(term: string, page: number): ComboboxResults {
   const query = useProducts({
     search: term || undefined,
     isActive: 'all',

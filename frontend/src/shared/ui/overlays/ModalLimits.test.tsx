@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Button } from '../controls'
 import { Dialog } from '../Dialog'
-import { Drawer } from '../Drawer'
+import { Modal } from './Modal'
 
 function NestedModalsExample() {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -19,7 +19,7 @@ function NestedModalsExample() {
         Abrir cajón
       </Button>
 
-      <Drawer
+      <Modal
         description="Cajón con acción modal anidada"
         onClose={() => setDrawerOpen(false)}
         open={drawerOpen}
@@ -40,7 +40,7 @@ function NestedModalsExample() {
         >
           <Button onClick={() => setDialogOpen(false)}>Cerrar diálogo</Button>
         </Dialog>
-      </Drawer>
+      </Modal>
     </div>
   )
 }
@@ -62,7 +62,7 @@ function EmptyControlsModal() {
   )
 }
 
-describe('Límites de foco, scroll y anidación en Drawer y Dialog (Fase 9.2)', () => {
+describe('Límites de foco, scroll y anidación en Modal y Dialog (Fase 9.2)', () => {
   it('makes the page and lower modal surface inert while the top modal is open', async () => {
     const user = userEvent.setup()
     const { container } = render(<NestedModalsExample />)

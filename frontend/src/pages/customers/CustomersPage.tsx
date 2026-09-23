@@ -12,12 +12,10 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { CustomerForm } from '@/features/customers/CustomerForm'
 import { useCustomerMutations, useCustomers } from '@/features/customers/hooks'
 import type {
   CustomerFilters,
   CustomerSummary,
-  CustomerWrite,
 } from '@/features/customers/types'
 import { ProblemError } from '@/shared/api/client'
 import {
@@ -38,6 +36,7 @@ import {
   StatusBadge,
   Toolbar,
   Avatar,
+  useToast,
 } from '@/shared/ui'
 
 type Confirmation = {
@@ -45,10 +44,8 @@ type Confirmation = {
   customer: CustomerSummary
 }
 
-type Notice = { text: string; tone: 'success' | 'danger' }
-
 const primaryButtonLinkClass =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomersPage() {
   const navigate = useNavigate()
@@ -70,9 +67,8 @@ export function CustomersPage() {
         : undefined
 
   const [searchInput, setSearchInput] = useState(searchParam)
-  const [editing, setEditing] = useState<CustomerSummary | null | undefined>()
-  const [formDirty, setFormDirty] = useState(false)
-  const [notice, setNotice] = useState<Notice | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [previewing, setPreviewing] = useState<CustomerSummary | null>(null)
 
@@ -113,18 +109,6 @@ export function CustomersPage() {
     setSearchParams(new URLSearchParams())
   }
 
-  async function saveCustomer(data: CustomerWrite) {
-    if (editing) {
-      await mutations.update.mutateAsync({ id: editing.id, data })
-      setNotice({ text: 'Cliente actualizado correctamente.', tone: 'success' })
-    } else {
-      await mutations.create.mutateAsync(data)
-      setNotice({ text: 'Cliente registrado correctamente.', tone: 'success' })
-    }
-    setEditing(undefined)
-    setFormDirty(false)
-  }
-
   async function runConfirmation() {
     if (!confirmation) return
     const { kind, customer } = confirmation
@@ -136,19 +120,13 @@ export function CustomersPage() {
           id: customer.id,
           expectedVersion: customer.version,
         })
-        setNotice({
-          text: `Cliente «${customer.name}» desactivado.`,
-          tone: 'success',
-        })
+        toast.success(`Cliente «${customer.name}» desactivado.`)
       } else {
         await mutations.activate.mutateAsync({
           id: customer.id,
           expectedVersion: customer.version,
         })
-        setNotice({
-          text: `Cliente «${customer.name}» activado.`,
-          tone: 'success',
-        })
+        toast.success(`Cliente «${customer.name}» activado.`)
       }
     } catch (caught) {
       const text =
@@ -159,7 +137,7 @@ export function CustomersPage() {
           : caught instanceof Error
             ? caught.message
             : 'No fue posible cambiar el estado del cliente.'
-      setNotice({ text, tone: 'danger' })
+      setNotice(text)
     }
   }
 
@@ -177,7 +155,7 @@ export function CustomersPage() {
           />
           <div className="min-w-0">
             <button
-              className="break-words font-semibold text-primary hover:underline"
+              className="break-words font-semibold text-accent hover:underline"
               onClick={() =>
                 void navigate(`/customers/${row.id}`, {
                   state: { from: window.location.search },
@@ -261,7 +239,11 @@ export function CustomersPage() {
         title="Clientes"
       />
 
-      {notice && <InlineNotice title={notice.text} tone={notice.tone} />}
+      {notice && (
+        <InlineNotice title="No se completó la operación" tone="danger">
+          {notice}
+        </InlineNotice>
+      )}
 
       <FilterPanel label="Filtros de búsqueda de clientes">
         <form
@@ -524,10 +506,9 @@ export function CustomersPage() {
               </Link>
               {canManage && (
                 <Button
-                  onClick={() => {
-                    setEditing(previewing)
-                    setPreviewing(null)
-                  }}
+                  onClick={() =>
+                    void navigate(`/customers/${previewing.id}/edit`)
+                  }
                   variant="secondary"
                 >
                   <PencilSimple aria-hidden="true" size={18} />
@@ -537,40 +518,6 @@ export function CustomersPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      <Modal
-        className="customer-drawer"
-        description={
-          editing
-            ? 'Actualice los datos del cliente.'
-            : 'Ingrese los datos para registrar un nuevo cliente.'
-        }
-        onClose={() => {
-          if (
-            !formDirty ||
-            window.confirm('Hay cambios sin guardar. ¿Desea descartarlos?')
-          ) {
-            setEditing(undefined)
-            setFormDirty(false)
-          }
-        }}
-        open={editing !== undefined}
-        title={editing ? `Editar cliente: ${editing.name}` : 'Nuevo cliente'}
-      >
-        <CustomerForm
-          customer={editing ?? undefined}
-          onCancel={() => {
-            setEditing(undefined)
-            setFormDirty(false)
-          }}
-          onDirtyChange={setFormDirty}
-          onNavigateToCustomer={(id) => {
-            setEditing(undefined)
-            navigate(`/customers/${id}`)
-          }}
-          onSubmit={saveCustomer}
-        />
       </Modal>
 
       <ConfirmationPanel

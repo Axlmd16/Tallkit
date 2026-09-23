@@ -1,10 +1,9 @@
-import { ListBullets, Plus, Trash } from '@phosphor-icons/react'
+import { Plus, Trash } from '@phosphor-icons/react'
 
-import { Button, Combobox, Field, InlineNotice, Input, Select } from '@/shared/ui'
+import { Button, Combobox, Field, Input, Money, Select } from '@/shared/ui'
 
 import { emptyLine, type LineDraft } from './draft'
 import { useProductOptions } from './pickers'
-import { usd } from './format'
 import type { CommercialTaxOption, MoneyBlock } from './types'
 
 export const MAX_LINES = 200
@@ -34,37 +33,49 @@ export function LinesEditor({
   }
 
   return (
-    <section aria-label="Líneas del ingreso" className="space-y-4">
-      <div className="flex items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-group bg-cyan-soft text-cyan">
-          <ListBullets aria-hidden="true" size={22} />
+    <section aria-label="Líneas del ingreso" className="sale-section">
+      <div className="sale-section-head">
+        <h2>Productos recibidos</h2>
+        <span className="sale-section-hint">
+          Cantidad, costo e impuesto por presentación; los importes los calcula
+          el sistema.
         </span>
-        <div>
-          <h2 className="font-bold text-ink">Productos recibidos</h2>
-          <p className="mt-0.5 text-sm text-ink-muted">
-            Registre cantidades, costos e impuesto por cada presentación.
-          </p>
-        </div>
       </div>
       {lines.length === 0 && (
-        <InlineNotice title="Sin líneas" tone="info">
-          Puede guardar el borrador sin líneas y continuar después; para
-          confirmar necesita al menos una.
-        </InlineNotice>
+        <p className="px-3 py-4 text-[13px] text-ink-muted">
+          No hay productos agregados. Puede guardar el borrador sin líneas y
+          continuar después; para confirmar necesita al menos una.
+        </p>
       )}
       {lines.length > 0 && (
-        <div className="overflow-x-auto rounded-group border border-line bg-surface">
-          <table className="w-full min-w-[980px] border-collapse text-sm">
-            <thead className="bg-canvas text-left text-xs font-semibold tracking-wide text-ink-muted uppercase">
-              <tr>
-                <th className="px-3 py-2">Código</th>
-                <th className="px-3 py-2">Producto</th>
-                <th className="px-3 py-2">Cantidad</th>
-                <th className="px-3 py-2">Costo USD</th>
-                <th className="px-3 py-2">Impuesto</th>
-                <th className="px-3 py-2">Recuperabilidad</th>
-                <th className="px-3 py-2 text-right">Total</th>
-                <th className="px-3 py-2"><span className="sr-only">Acciones</span></th>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] border-collapse text-[13px]">
+            <thead className="bg-surface-subtle text-left text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+              <tr className="border-b border-line">
+                <th className="h-9 px-3" scope="col">
+                  Código
+                </th>
+                <th className="h-9 px-3" scope="col">
+                  Producto
+                </th>
+                <th className="h-9 px-3 text-right" scope="col">
+                  Cantidad
+                </th>
+                <th className="h-9 px-3 text-right" scope="col">
+                  Costo USD
+                </th>
+                <th className="h-9 px-3" scope="col">
+                  Impuesto
+                </th>
+                <th className="h-9 px-3" scope="col">
+                  Recuperabilidad
+                </th>
+                <th className="h-9 px-3 text-right" scope="col">
+                  Total
+                </th>
+                <th className="h-9 px-3" scope="col">
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -77,14 +88,14 @@ export function LinesEditor({
                 return (
                   <tr
                     aria-label={`Línea ${index + 1}`}
-                    className="border-t border-line align-top"
+                    className="border-t border-line align-top first:border-t-0"
                     key={line.key}
                     role="group"
                   >
-                    <td className="px-3 py-3 font-mono text-xs font-semibold text-ink">
+                    <td className="px-3 py-2.5 font-mono text-xs font-semibold text-ink">
                       {code || '—'}
                     </td>
-                    <td className="w-[260px] px-3 py-3">
+                    <td className="w-[260px] px-3 py-2.5">
                       <Combobox
                         clearable
                         error={errors[`${prefix}.product_id`]}
@@ -109,13 +120,15 @@ export function LinesEditor({
                         </p>
                       )}
                     </td>
-                    <td className="w-28 px-3 py-3">
+                    <td className="w-28 px-3 py-2.5">
                       <Field
                         error={errors[`${prefix}.quantity`]}
                         id={`line-${line.key}-quantity`}
+                        hideLabel
                         label="Cantidad de presentaciones"
                       >
                         <Input
+                          className="text-right tabular-nums"
                           id={`line-${line.key}-quantity`}
                           inputMode="numeric"
                           onChange={(event) =>
@@ -125,13 +138,15 @@ export function LinesEditor({
                         />
                       </Field>
                     </td>
-                    <td className="w-32 px-3 py-3">
+                    <td className="w-32 px-3 py-2.5">
                       <Field
                         error={errors[`${prefix}.unit_cost`]}
                         id={`line-${line.key}-cost`}
+                        hideLabel
                         label="Costo unitario"
                       >
                         <Input
+                          className="text-right tabular-nums"
                           id={`line-${line.key}-cost`}
                           inputMode="decimal"
                           onChange={(event) =>
@@ -141,10 +156,11 @@ export function LinesEditor({
                         />
                       </Field>
                     </td>
-                    <td className="w-36 px-3 py-3">
+                    <td className="w-36 px-3 py-2.5">
                       <Field
                         error={errors[`${prefix}.tax_definition_id`]}
                         id={`line-${line.key}-tax`}
+                        hideLabel
                         label="Impuesto"
                       >
                         <Select
@@ -175,10 +191,11 @@ export function LinesEditor({
                         </p>
                       )}
                     </td>
-                    <td className="w-40 px-3 py-3">
+                    <td className="w-40 px-3 py-2.5">
                       <Field
                         error={errors[`${prefix}.tax_recoverability`]}
                         id={`line-${line.key}-recoverability`}
+                        hideLabel
                         label="Recuperabilidad del impuesto"
                       >
                         <Select
@@ -193,20 +210,22 @@ export function LinesEditor({
                         >
                           <option value="">Seleccione…</option>
                           <option value="RECOVERABLE">Recuperable</option>
-                          <option value="NON_RECOVERABLE">No recuperable</option>
+                          <option value="NON_RECOVERABLE">
+                            No recuperable
+                          </option>
                         </Select>
                       </Field>
                     </td>
                     <td
                       aria-label={`Importes de la línea ${index + 1}`}
-                      className="px-3 py-3 text-right font-semibold whitespace-nowrap text-ink"
+                      className="px-3 py-2.5 text-right font-semibold whitespace-nowrap text-ink"
                     >
-                      <span className="block">{amounts[index]?.total ? usd(amounts[index]!.total) : '—'}</span>
+                      <Money amount={amounts[index]?.total} className="block" />
                       <span className="block text-xs font-normal text-ink-muted">
-                        Imp. {amounts[index]?.tax ? usd(amounts[index]!.tax) : '—'}
+                        Imp. <Money amount={amounts[index]?.tax} />
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-right">
+                    <td className="px-3 py-2.5 text-right">
                       <Button
                         aria-label={`Quitar línea ${index + 1}`}
                         onClick={() =>
@@ -225,20 +244,22 @@ export function LinesEditor({
           </table>
         </div>
       )}
-      <Button
-        disabled={lines.length >= MAX_LINES}
-        onClick={() => onChange([...lines, emptyLine()])}
-        type="button"
-        variant="secondary"
-      >
-        <Plus aria-hidden="true" size={15} />
-        Agregar línea
-      </Button>
-      {lines.length >= MAX_LINES && (
-        <p className="text-sm text-ink-muted">
-          Máximo {MAX_LINES} líneas por ingreso.
-        </p>
-      )}
+      <div className="flex flex-wrap items-center gap-3 border-t border-line p-3">
+        <Button
+          disabled={lines.length >= MAX_LINES}
+          onClick={() => onChange([...lines, emptyLine()])}
+          type="button"
+          variant="secondary"
+        >
+          <Plus aria-hidden="true" size={15} />
+          Agregar línea
+        </Button>
+        {lines.length >= MAX_LINES && (
+          <p className="text-[12.5px] text-ink-muted">
+            Máximo {MAX_LINES} líneas por ingreso.
+          </p>
+        )}
+      </div>
     </section>
   )
 }

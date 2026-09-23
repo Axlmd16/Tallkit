@@ -173,7 +173,7 @@ export function SaleReviewDialog({
           </Button>
           {stale === 'stale_record' && (
             <Link
-              className="underline"
+              className="font-semibold text-accent underline"
               to={`/sales/${sale.id}/edit`}
               onClick={onClose}
             >

@@ -1,17 +1,16 @@
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
-import { documentDate, PaymentStateBadge, usd } from '@/features/sales/format'
+import { documentDate, PaymentStateBadge } from '@/features/sales/format'
 import { useReceivables } from '@/features/sales/hooks'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
-import { ReferencePicker } from '@/features/sales/ReferencePicker'
 import type { PaymentState, SaleSummary } from '@/features/sales/types'
 import {
+  Combobox,
   ElevatedDataList,
   Field,
   FilterPanel,
-  FiscalScopeBadge,
-  InlineNotice,
   Input,
+  Money,
   PageHeader,
   Select,
 } from '@/shared/ui'
@@ -34,88 +33,118 @@ export function ReceivablesPage() {
   })
   const totals = query.data
   return (
-    <div className="catalog-page list-page space-y-6">
+    <div className="catalog-page list-page space-y-4">
       <PageHeader
         description="Deuda cobrable y reembolsos pendientes de las ventas comerciales confirmadas."
         title="Cuentas por cobrar"
       />
-      <FiscalScopeBadge scope="commercial" />
-      <FilterPanel
-        label="Filtros de cuentas por cobrar"
-        layout="inline"
-        {...(filters.filtered
-          ? {
-              onClear: () =>
-                filters.set({
-                  customer_id: '',
-                  customer_name: '',
-                  payment_state: '',
-                  min_age_days: '',
-                }),
-            }
-          : {})}
-      >
-        <ReferencePicker
-          id="receivables-customer"
-          inactiveHelp="Cliente inactivo."
-          label="Cliente"
-          onSelect={(option) =>
-            filters.set({
-              customer_id: option?.id,
-              customer_name: option?.label,
-            })
-          }
-          selected={
-            customerId
-              ? {
-                  id: customerId,
-                  label:
-                    filters.get('customer_name') || `Cliente ${customerId}`,
-                }
-              : null
-          }
-          useOptions={useCustomerPickerOptions}
-        />
-        <Field id="receivables-state" label="Estado de pago">
-          <Select
-            id="receivables-state"
-            onChange={(event) =>
-              filters.set({ payment_state: event.target.value })
-            }
-            value={paymentState}
-          >
-            <option value="">Pendiente y parcial</option>
-            <option value="PENDING">Pendiente</option>
-            <option value="PARTIAL">Parcial</option>
-          </Select>
-        </Field>
-        <Field id="receivables-age" label="Antigüedad mínima (días)">
-          <Input
-            id="receivables-age"
-            inputMode="numeric"
-            onChange={(event) =>
-              filters.set({ min_age_days: event.target.value })
-            }
-            value={filters.get('min_age_days')}
-          />
-        </Field>
-      </FilterPanel>
       {totals && (
         <section
           aria-label="Totales de todas las coincidencias"
-          className="grid gap-4 sm:grid-cols-2"
+          className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2"
         >
-          <InlineNotice title="Deuda cobrable" tone="warning">
-            <strong>{usd(totals.receivable_total)}</strong> en {totals.count}{' '}
-            ventas (todas las coincidencias, no solo esta página).
-          </InlineNotice>
-          <InlineNotice title="Reembolsos pendientes" tone="info">
-            <strong>{usd(totals.refund_due_total)}</strong>. No se resta de la
-            deuda ni es saldo a favor utilizable.
-          </InlineNotice>
+          <div className="bg-surface px-4 py-3">
+            <h2 className="text-xs font-semibold text-ink-muted">
+              Deuda cobrable
+            </h2>
+            <p className="mt-1 text-xl font-semibold text-ink">
+              <Money amount={totals.receivable_total} />
+            </p>
+            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+              en {totals.count} ventas (todas las coincidencias, no solo esta
+              página).
+            </p>
+          </div>
+          <div className="bg-surface px-4 py-3">
+            <h2 className="text-xs font-semibold text-ink-muted">
+              Reembolsos pendientes
+            </h2>
+            <p className="mt-1 text-xl font-semibold text-ink">
+              <Money amount={totals.refund_due_total} />
+            </p>
+            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+              No se resta de la deuda ni es saldo a favor utilizable.
+            </p>
+          </div>
         </section>
       )}
       <ListStates
+        toolbar={
+          <FilterPanel
+            bare
+            label="Filtros de cuentas por cobrar"
+            layout="inline"
+            {...(filters.filtered
+              ? {
+                  onClear: () =>
+                    filters.set({
+                      customer_id: '',
+                      customer_name: '',
+                      payment_state: '',
+                      min_age_days: '',
+                    }),
+                }
+              : {})}
+          >
+            <div className="ui-field">
+              <label
+                className="block text-xs font-semibold text-ink"
+                htmlFor="receivables-customer"
+              >
+                Cliente
+              </label>
+              <div className="mt-1.5">
+                <Combobox
+                  clearable
+                  id="receivables-customer"
+                  inactiveHelp="Cliente inactivo."
+                  label="Cliente"
+                  onSelect={(option) =>
+                    filters.set({
+                      customer_id: option?.id,
+                      customer_name: option?.label,
+                    })
+                  }
+                  placeholder="Nombre o identificación"
+                  selected={
+                    customerId
+                      ? {
+                          id: customerId,
+                          label:
+                            filters.get('customer_name') ||
+                            `Cliente ${customerId}`,
+                        }
+                      : null
+                  }
+                  useOptions={useCustomerPickerOptions}
+                />
+              </div>
+            </div>
+            <Field id="receivables-state" label="Estado de pago">
+              <Select
+                id="receivables-state"
+                onChange={(event) =>
+                  filters.set({ payment_state: event.target.value })
+                }
+                value={paymentState}
+              >
+                <option value="">Pendiente y parcial</option>
+                <option value="PENDING">Pendiente</option>
+                <option value="PARTIAL">Parcial</option>
+              </Select>
+            </Field>
+            <Field id="receivables-age" label="Antigüedad mínima (días)">
+              <Input
+                id="receivables-age"
+                inputMode="numeric"
+                onChange={(event) =>
+                  filters.set({ min_age_days: event.target.value })
+                }
+                value={filters.get('min_age_days')}
+              />
+            </Field>
+          </FilterPanel>
+        }
         emptyText="No hay ventas con saldo por cobrar ni reembolsos pendientes."
         emptyTitle="Sin cuentas por cobrar"
         errorText="No fue posible consultar las cuentas por cobrar. Reintente en unos instantes."
@@ -134,7 +163,7 @@ export function ReceivablesPage() {
                 priority: 'primary',
                 render: (row) => (
                   <Link
-                    className="font-semibold underline"
+                    className="font-mono font-semibold text-accent hover:underline"
                     to={`/sales/${row.id}`}
                   >
                     {row.internal_number}
@@ -157,19 +186,26 @@ export function ReceivablesPage() {
                 header: 'Antigüedad',
                 key: 'age_days',
                 priority: 'secondary',
-                render: (row) => `${row.age_days ?? 0} días`,
+                align: 'end',
+                render: (row) => (
+                  <span className="tabular-nums">{`${row.age_days ?? 0} días`}</span>
+                ),
               },
               {
                 header: 'Deuda cobrable',
                 key: 'money',
                 priority: 'secondary',
-                render: (row) => usd(row.money.balance),
+                align: 'end',
+                render: (row) => (
+                  <Money amount={row.money.balance} className="font-semibold" />
+                ),
               },
               {
                 header: 'Reembolso pendiente',
                 key: 'grand_total',
                 priority: 'secondary',
-                render: (row) => usd(row.money.refund_due),
+                align: 'end',
+                render: (row) => <Money amount={row.money.refund_due} />,
               },
               {
                 header: 'Estado de pago',

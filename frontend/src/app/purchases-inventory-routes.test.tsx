@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -46,6 +46,12 @@ vi.mock('@/pages/inventory/InventoryOperationDetailPage', () => ({
 }))
 
 import { App, appRoutes } from './App'
+
+/** Enlaces de la navegación principal; el inicio repite los mismos accesos. */
+const mainNav = async () =>
+  within(
+    await screen.findByRole('navigation', { name: 'Navegación principal' }),
+  )
 
 const session = (permissions: string[]): Session => ({
   authenticated: true,
@@ -101,18 +107,19 @@ it('la navegación muestra Ingresos e Inventario solo con su permiso', async () 
   renderPath('/')
   await openGroups('Compras e inventario')
   expect(
-    await screen.findByRole('link', { name: 'Inventario' }),
+    await (await mainNav()).findByRole('link', { name: 'Inventario' }),
   ).toHaveAttribute('href', '/inventory')
-  expect(screen.queryByRole('link', { name: 'Ingresos' })).toBeNull()
+  expect((await mainNav()).queryByRole('link', { name: 'Ingresos' })).toBeNull()
 })
 
 it('un Administrador ve ambas entradas', async () => {
   currentSession = session(['ingresos.ver', 'inventario.ver'])
   renderPath('/')
   await openGroups('Compras e inventario')
-  expect(await screen.findByRole('link', { name: 'Ingresos' })).toHaveAttribute(
-    'href',
-    '/purchases',
-  )
-  expect(screen.getByRole('link', { name: 'Inventario' })).toBeInTheDocument()
+  expect(
+    await (await mainNav()).findByRole('link', { name: 'Ingresos' }),
+  ).toHaveAttribute('href', '/purchases')
+  expect(
+    (await mainNav()).getByRole('link', { name: 'Inventario' }),
+  ).toBeInTheDocument()
 })

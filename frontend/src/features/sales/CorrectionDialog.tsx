@@ -64,6 +64,7 @@ export function CorrectionDialog({
   })
   return (
     <MoneyDialog
+      subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
       description="La corrección conserva el pago original y su auditoría; no representa dinero reembolsado."
       formValid={valid}
       inputSignature={JSON.stringify([trimmed, replace, cash, transfer])}
@@ -82,6 +83,7 @@ export function CorrectionDialog({
           key,
         })
       }
+      cancelLabel="Conservar pago"
       submitLabel="Corregir pago"
       submitTone="danger"
       title="Corregir pago"

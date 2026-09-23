@@ -5,10 +5,7 @@ import { FormModal } from '@/shared/ui'
 
 import { useReturnFocus } from '../catalog-common/useReturnFocus'
 import { useService, useServiceMutations } from './hooks'
-import {
-  ServiceForm,
-  type ServiceFormHandle,
-} from './ServiceForm'
+import { ServiceForm, type ServiceFormHandle } from './ServiceForm'
 import type { Service, ServiceInput } from './types'
 
 export function ServiceEditorModal({

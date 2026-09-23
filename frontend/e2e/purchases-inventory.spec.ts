@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
 import { API, csrf, send, seedFiscalConfiguration } from './catalog-helpers'
@@ -147,24 +147,29 @@ async function apiAdjust(
   expect(done.ok(), await done.text()).toBeTruthy()
 }
 
-async function chooseSupplier(page: Page, name: string) {
-  await page.getByPlaceholder('Buscar…').first().fill(name)
+/** Elige una opción de un combobox; los resultados se muestran en un portal. */
+async function pickOption(
+  page: Page,
+  scope: Page | Locator,
+  label: string,
+  text: string,
+) {
+  await scope.getByRole('combobox', { name: label }).fill(text)
   await page
-    .getByRole('listitem')
-    .filter({ hasText: name })
-    .getByRole('button', { name: 'Elegir' })
+    .getByRole('listbox', { name: `Resultados de ${label}` })
+    .getByRole('option', { name: new RegExp(text) })
+    .first()
     .click()
+}
+
+async function chooseSupplier(page: Page, name: string) {
+  await pickOption(page, page, 'Proveedor', name)
 }
 
 async function fillFirstLine(page: Page, world: World, quantity: string) {
   await page.getByRole('button', { name: 'Agregar línea' }).click()
   const line = page.getByRole('group', { name: /Línea 1/ })
-  await line.getByPlaceholder('Buscar…').fill(world.product.code)
-  await line
-    .getByRole('listitem')
-    .filter({ hasText: world.product.code })
-    .getByRole('button', { name: 'Elegir' })
-    .click()
+  await pickOption(page, line, 'Producto', world.product.code)
   await line.getByLabel('Cantidad de presentaciones').fill(quantity)
   await line.getByLabel('Costo unitario').fill('10.00')
   await line
@@ -189,7 +194,9 @@ test.describe('Ingresos, inventario y Kardex', () => {
     )
     await page.getByRole('button', { name: 'Guardar borrador' }).click()
     await expect(page).toHaveURL(/\/purchases\/\d+\/edit$/)
-    await expect(page.getByLabel('Totales')).toContainText('USD 23.00')
+    await expect(
+      page.getByText('Total del ingreso').locator('..'),
+    ).toContainText('USD 23.00')
 
     await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
     const dialog = page.getByRole('dialog')
@@ -204,7 +211,9 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await expect(
       page.getByRole('heading', { name: /COM-ING-\d{6}/ }),
     ).toBeVisible()
-    await expect(page.getByText('Confirmado')).toBeVisible()
+    await expect(
+      page.getByRole('status', { name: 'Estado: Confirmado' }),
+    ).toBeVisible()
 
     await page.goto(`/inventory/products/${world.product.id}/kardex`)
     const period = page.getByLabel('Saldos del período')
@@ -280,12 +289,7 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await page.getByRole('button', { name: /carga inicial o ajuste/i }).click()
     const drawer = page.getByRole('dialog')
     await drawer.getByLabel('Tipo de operación').selectOption('ADJUSTMENT_OUT')
-    await drawer.getByPlaceholder('Buscar…').fill(world.product.code)
-    await drawer
-      .getByRole('listitem')
-      .filter({ hasText: world.product.code })
-      .getByRole('button', { name: 'Elegir' })
-      .click()
+    await pickOption(page, drawer, 'Producto', world.product.code)
     await drawer.getByLabel('Cantidad de presentaciones').fill('50')
     await drawer.getByLabel('Motivo').fill('Salida excesiva de prueba')
     await drawer.getByRole('button', { name: 'Preparar y revisar' }).click()
@@ -327,9 +331,11 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await page.goto('/purchases?state=CONFIRMED')
     await page.getByText(purchase.internal_number).first().click()
     await expect(page).toHaveURL(new RegExp(`/purchases/${purchase.id}$`))
-    await page.getByRole('button', { name: 'Volver a la lista' }).click()
+    await page.getByRole('link', { name: 'Volver a ingresos' }).click()
     await expect(page).toHaveURL(/state=CONFIRMED/)
-    await expect(page.locator('#purchase-state')).toHaveValue('CONFIRMED')
+    await expect(
+      page.getByRole('radio', { name: 'Confirmados' }),
+    ).toHaveAttribute('aria-checked', 'true')
 
     const cuts: Array<string | null> = []
     page.on('request', (request) => {

@@ -75,7 +75,7 @@
 }
 .sale-view-switch button[aria-pressed='true'] {
   background: var(--color-surface);
-  color: var(--color-primary-strong);
+  color: var(--color-accent-strong);
   box-shadow: 0 1px 3px rgb(3 2 41 / 0.12);
 }
 
@@ -239,8 +239,8 @@
   color: var(--color-ink-muted);
 }
 .sale-combobox-clear:hover {
-  background: var(--color-surface-selected);
-  color: var(--color-primary);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 .sale-combobox-menu {
   position: fixed;
@@ -294,7 +294,7 @@
   padding: 0 10px;
   border-radius: 6px;
   font-weight: 600;
-  color: var(--color-primary-strong);
+  color: var(--color-accent-strong);
 }
 .sale-combobox-pager button:disabled {
   opacity: 0.4;
@@ -313,12 +313,12 @@
     color 0.15s;
 }
 .sale-icon-button:hover:not(:disabled) {
-  background: var(--color-surface-selected);
-  color: var(--color-primary);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 .sale-icon-button[aria-pressed='true'] {
-  background: var(--color-surface-selected);
-  color: var(--color-primary-strong);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
 }
 .sale-icon-button.danger:hover:not(:disabled) {
   background: var(--color-danger-soft);

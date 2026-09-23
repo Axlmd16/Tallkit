@@ -1,6 +1,41 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { login, logout, goToSection } from './helpers'
+
+/**
+ * Los formularios de cliente y vehículo son páginas completas (PPF-03). Se recuerda la página
+ * desde la que se abrió cada formulario para volver a ella al cerrarlo, como hacía el panel.
+ */
+const FORM_URL = /\/(customers|vehicles)\/(new|\d+\/edit)(\?.*)?$/
+const formOrigin = new WeakMap<Page, string>()
+
+test.beforeEach(({ page }) => {
+  let previous = ''
+  page.on('framenavigated', (frame) => {
+    if (frame !== page.mainFrame()) return
+    const url = frame.url()
+    if (FORM_URL.test(url) && previous && !FORM_URL.test(previous)) {
+      formOrigin.set(page, previous)
+    }
+    previous = url
+  })
+})
+
+async function formOpened(page: Page) {
+  await expect(page).toHaveURL(FORM_URL)
+  // La URL cambia antes de que la navegación termine de pintar el formulario.
+  await expect(
+    page.getByRole('heading', { level: 1, name: /^(Nuevo|Registrar|Editar)/ }),
+  ).toBeVisible()
+  return page.getByRole('main')
+}
+
+async function formClosed(page: Page) {
+  await expect(page).not.toHaveURL(FORM_URL)
+  const origin = formOrigin.get(page)
+  if (origin && page.url() !== origin) await page.goto(origin)
+  await expect(page.locator('h1').first()).toBeVisible()
+}
 
 test.describe('customer registry', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,16 +50,18 @@ test.describe('customer registry', () => {
     page,
   }) => {
     // 1. Register a Persona Natural without email or address
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    const drawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
-    await expect(drawer).toBeVisible()
+    // El formulario de cliente es una página completa (PPF-03).
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    await expect(page).toHaveURL(/\/customers\/new$/)
+    const drawer = page.getByRole('main')
 
     await drawer.getByLabel('Nombres y apellidos').fill('Carlos Vera Natural')
     await drawer.getByLabel('Número de identificación').fill('0912345678')
     await drawer.getByLabel('Teléfono').fill('0991112233')
     await drawer.getByRole('button', { name: 'Guardar cliente' }).click()
 
-    await expect(drawer).not.toBeVisible()
+    await expect(page).toHaveURL(/\/customers\/\d+$/)
+    await page.goto('/customers')
     let naturalRow = page
       .getByRole('row')
       .filter({ hasText: 'Carlos Vera Natural' })
@@ -34,8 +71,8 @@ test.describe('customer registry', () => {
     await expect(naturalRow).toContainText('Activo')
 
     // 2. Register a Persona Jurídica with razón social, RUC of 13 digits, without email or address
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    await expect(drawer).toBeVisible()
+    await page.goto('/customers/new')
+    await expect(page).toHaveURL(/\/customers\/new$/)
 
     await drawer.getByLabel('Tipo de persona').selectOption('JURIDICA')
     await expect(drawer.getByLabel('Razón social')).toBeVisible()
@@ -46,7 +83,8 @@ test.describe('customer registry', () => {
     await drawer.getByLabel('Teléfono').fill('042998877')
     await drawer.getByRole('button', { name: 'Guardar cliente' }).click()
 
-    await expect(drawer).not.toBeVisible()
+    await expect(page).toHaveURL(/\/customers\/\d+$/)
+    await page.goto('/customers')
     const juridicaRow = page
       .getByRole('row')
       .filter({ hasText: 'Mecánica del Puerto Cía. Ltda.' })
@@ -104,15 +142,16 @@ test.describe('customer registry', () => {
       .getByRole('row')
       .filter({ hasText: 'Carlos Vera Natural' })
     await naturalRow.getByRole('button', { name: 'Editar' }).click()
-    const editDrawer = page.getByRole('dialog', { name: /editar cliente/i })
-    await expect(editDrawer).toBeVisible()
+    await expect(page).toHaveURL(/\/customers\/\d+\/edit$/)
+    const editDrawer = page.getByRole('main')
     await expect(editDrawer.getByLabel('Nombres y apellidos')).toHaveValue(
       'Carlos Vera Natural',
     )
 
     await editDrawer.getByLabel('Teléfono').fill('0999998888')
     await editDrawer.getByRole('button', { name: 'Guardar cliente' }).click()
-    await expect(editDrawer).not.toBeVisible()
+    await expect(page).toHaveURL(/\/customers\/\d+$/)
+    await page.goto('/customers')
 
     naturalRow = page
       .getByRole('row')
@@ -120,8 +159,8 @@ test.describe('customer registry', () => {
     await expect(naturalRow).toContainText('0999998888')
 
     // 5. Reject duplicate identification
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    await expect(drawer).toBeVisible()
+    await page.goto('/customers/new')
+    await expect(page).toHaveURL(/\/customers\/new$/)
 
     await drawer.getByLabel('Nombres y apellidos').fill('Intento Duplicado')
     await drawer.getByLabel('Número de identificación').fill('0912345678')
@@ -144,11 +183,11 @@ test.describe('customer registry', () => {
     await expect(drawer.getByLabel('Teléfono')).toHaveValue('0987654321')
 
     await drawer.getByRole('button', { name: 'Cancelar' }).click()
-    await expect(drawer).not.toBeVisible()
+    await expect(page).toHaveURL(/\/customers$/)
 
     // 6. Review non-blocking match warning with same phone, and confirm independent record
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    await expect(drawer).toBeVisible()
+    await page.goto('/customers/new')
+    await expect(page).toHaveURL(/\/customers\/new$/)
 
     await drawer
       .getByLabel('Nombres y apellidos')
@@ -163,7 +202,8 @@ test.describe('customer registry', () => {
 
     // Confirmation is non-blocking: save succeeds
     await drawer.getByRole('button', { name: 'Guardar cliente' }).click()
-    await expect(drawer).not.toBeVisible()
+    await expect(page).toHaveURL(/\/customers\/\d+$/)
+    await page.goto('/customers')
 
     const familiarRow = page
       .getByRole('row')
@@ -343,8 +383,8 @@ test.describe('vehicles and ownership', () => {
 
     // Create a customer "Valeria Vehículos"
     await goToSection(page, 'Clientes')
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    const customerDrawer = await formOpened(page)
     await customerDrawer
       .getByLabel('Nombres y apellidos')
       .fill('Valeria Vehículos')
@@ -355,7 +395,7 @@ test.describe('vehicles and ownership', () => {
     await customerDrawer
       .getByRole('button', { name: 'Guardar cliente' })
       .click()
-    await expect(customerDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Create a brand "Toyota E2E"
     await goToSection(page, 'Marcas de vehículos')
@@ -400,10 +440,8 @@ test.describe('vehicles and ownership', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    const vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
-    await expect(vehicleDrawer).toBeVisible()
+    const vehicleDrawer = await formOpened(page)
+    await formOpened(page)
 
     const brandSelect = vehicleDrawer.getByLabel('Marca de vehículo')
     await expect(
@@ -430,7 +468,7 @@ test.describe('vehicles and ownership', () => {
     await vehicleDrawer
       .getByRole('button', { name: 'Guardar vehículo' })
       .click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Verify row in vehicles list: normalized plate GBE-1234, Toyota E2E Hilux, Activo
     let vehicleRow = page.getByRole('row').filter({ hasText: 'GBE-1234' })
@@ -444,7 +482,7 @@ test.describe('vehicles and ownership', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    await expect(vehicleDrawer).toBeVisible()
+    await formOpened(page)
     await vehicleDrawer
       .getByLabel('Propietario')
       .selectOption({ label: 'Valeria Vehículos (0955667788)' })
@@ -462,14 +500,14 @@ test.describe('vehicles and ownership', () => {
         .first(),
     ).toBeVisible()
     await vehicleDrawer.getByRole('button', { name: 'Cancelar' }).click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Test creating missing brand during vehicle form without losing draft
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    await expect(vehicleDrawer).toBeVisible()
+    await formOpened(page)
     await vehicleDrawer
       .getByLabel('Propietario')
       .selectOption({ label: 'Valeria Vehículos (0955667788)' })
@@ -497,7 +535,7 @@ test.describe('vehicles and ownership', () => {
     await vehicleDrawer
       .getByRole('button', { name: 'Guardar vehículo' })
       .click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     const subaruRow = page.getByRole('row').filter({ hasText: 'PBA-7890' })
     await expect(subaruRow).toBeVisible()
@@ -505,7 +543,6 @@ test.describe('vehicles and ownership', () => {
 
     // 3. Bidirectional navigation and consultation from customer and vehicle
     await vehicleRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page
         .getByRole('region', { name: 'Resumen del vehículo' })
@@ -609,7 +646,6 @@ test.describe('vehicles and ownership', () => {
       vehicleRow.getByRole('button', { name: 'Editar' }),
     ).toHaveCount(0)
     await vehicleRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // In vehicle detail, Vendedor sees details and owner, but cannot edit
     await expect(
@@ -662,8 +698,8 @@ test.describe('vehicles and ownership', () => {
 
     // Create Customer A "Propietario Origen"
     await goToSection(page, 'Clientes')
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    let customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    let customerDrawer = await formOpened(page)
     await customerDrawer
       .getByLabel('Nombres y apellidos')
       .fill('Propietario Origen')
@@ -674,11 +710,11 @@ test.describe('vehicles and ownership', () => {
     await customerDrawer
       .getByRole('button', { name: 'Guardar cliente' })
       .click()
-    await expect(customerDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Create Customer B "Propietario Destino"
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    customerDrawer = await formOpened(page)
     await customerDrawer
       .getByLabel('Nombres y apellidos')
       .fill('Propietario Destino')
@@ -689,7 +725,7 @@ test.describe('vehicles and ownership', () => {
     await customerDrawer
       .getByRole('button', { name: 'Guardar cliente' })
       .click()
-    await expect(customerDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Create a brand "Mazda E2E"
     await goToSection(page, 'Marcas de vehículos')
@@ -705,9 +741,7 @@ test.describe('vehicles and ownership', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    const vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
+    const vehicleDrawer = await formOpened(page)
     await vehicleDrawer
       .getByLabel('Propietario')
       .selectOption({ label: 'Propietario Origen (0911223344)' })
@@ -719,7 +753,7 @@ test.describe('vehicles and ownership', () => {
     await vehicleDrawer
       .getByRole('button', { name: 'Guardar vehículo' })
       .click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     await logout(page)
 
@@ -730,7 +764,6 @@ test.describe('vehicles and ownership', () => {
     await expect(trfRow).toBeVisible()
     await expect(trfRow).toContainText('Propietario Origen')
     await trfRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
 
     // Vehicle detail
     await expect(
@@ -796,7 +829,6 @@ test.describe('vehicles and ownership', () => {
       .getByRole('row')
       .filter({ hasText: 'Propietario Origen' })
     await originRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Propietario Origen' }),
     ).toBeVisible()
@@ -811,7 +843,6 @@ test.describe('vehicles and ownership', () => {
       .getByRole('row')
       .filter({ hasText: 'Propietario Destino' })
     await destinationRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Propietario Destino' }),
     ).toBeVisible()
@@ -860,8 +891,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     // 1. Admin creates customer and vehicle
     await login(page, 'admin_e2e')
     await goToSection(page, 'Clientes')
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    let customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    let customerDrawer = await formOpened(page)
     await customerDrawer
       .getByLabel('Nombres y apellidos')
       .fill('Cliente Ciclo Estado')
@@ -872,7 +903,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await customerDrawer
       .getByRole('button', { name: 'Guardar cliente' })
       .click()
-    await expect(customerDrawer).not.toBeVisible()
+    await formClosed(page)
 
     let custRow = page
       .getByRole('row')
@@ -894,9 +925,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    let vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
+    let vehicleDrawer = await formOpened(page)
     await vehicleDrawer
       .getByLabel('Propietario')
       .selectOption({ label: 'Cliente Ciclo Estado (0944556677)' })
@@ -908,7 +937,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
     await vehicleDrawer
       .getByRole('button', { name: 'Guardar vehículo' })
       .click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     let vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
     await expect(vehRow).toBeVisible()
@@ -924,7 +953,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       custRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
     await custRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -936,7 +964,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       vehRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
     await vehRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -951,7 +978,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       custRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
     await custRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -963,7 +989,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       vehRow.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
     await vehRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('button', { name: /Desactivar|Activar/i }),
     ).toHaveCount(0)
@@ -1002,7 +1027,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
 
     // Check vehicle detail: consultable, history intact, "Cambiar propietario" NOT shown
     await vehRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page
         .getByRole('region', { name: 'Resumen del vehículo' })
@@ -1024,9 +1048,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
+    vehicleDrawer = await formOpened(page)
     await vehicleDrawer
       .getByLabel('Propietario')
       .selectOption({ label: 'Cliente Ciclo Estado (0944556677)' })
@@ -1044,13 +1066,12 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
         .first(),
     ).toBeVisible()
     await vehicleDrawer.getByRole('button', { name: 'Cancelar' }).click()
-    await expect(vehicleDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Reactivate vehicle via detail page
     await page.getByLabel('Filtrar por estado').selectOption('false')
     vehRow = page.getByRole('row').filter({ hasText: 'INA-1234' })
     await vehRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await page.getByRole('button', { name: 'Activar' }).click()
     let actDialog = page.getByRole('dialog', { name: 'Activar vehículo' })
     await expect(actDialog).toBeVisible()
@@ -1101,7 +1122,6 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
 
     // Check customer detail: consultable, associated vehicle intact
     await custRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await expect(
       page.getByRole('heading', { name: 'Cliente Ciclo Estado' }),
     ).toBeVisible()
@@ -1119,9 +1139,7 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
+    vehicleDrawer = await formOpened(page)
     await expect(vehicleDrawer.getByLabel('Propietario')).not.toContainText(
       'Cliente Ciclo Estado',
     )
@@ -1129,8 +1147,8 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
 
     // Attempt duplicate customer creation with same identification
     await goToSection(page, 'Clientes')
-    await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-    customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
+    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
+    customerDrawer = await formOpened(page)
     await customerDrawer
       .getByLabel('Nombres y apellidos')
       .fill('Duplicado Inactivo')
@@ -1145,14 +1163,13 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
       customerDrawer.getByRole('alert').getByText(/ya existe un cliente con/i),
     ).toBeVisible()
     await customerDrawer.getByRole('button', { name: 'Cancelar' }).click()
-    await expect(customerDrawer).not.toBeVisible()
+    await formClosed(page)
 
     // Reactivate customer via detail page
     await page.locator('#customer-status-filter').selectOption('false')
     await page.getByRole('button', { name: 'Buscar' }).click()
     custRow = page.getByRole('row').filter({ hasText: 'Cliente Ciclo Estado' })
     await custRow.getByRole('cell').first().click()
-    await page.getByRole('link', { name: 'Ver ficha completa' }).click()
     await page.getByRole('button', { name: 'Activar' }).click()
     actDialog = page.getByRole('dialog', { name: 'Activar cliente' })
     await expect(actDialog).toBeVisible()
@@ -1166,13 +1183,14 @@ test.describe('customer and vehicle deactivation and reactivation', () => {
 
     // Customer is now available again for vehicle registration
     await goToSection(page, 'Vehículos')
+    await expect(
+      page.getByRole('heading', { name: 'Vehículos', exact: true }),
+    ).toBeVisible()
     await page
       .getByRole('button', { name: 'Registrar vehículo' })
       .first()
       .click()
-    vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
+    vehicleDrawer = await formOpened(page)
     await expect(vehicleDrawer.getByLabel('Propietario')).toContainText(
       'Cliente Ciclo Estado',
     )

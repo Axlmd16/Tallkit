@@ -8,15 +8,10 @@ import { ToastProvider } from '@/shared/ui'
 import { ProblemError } from '@/shared/api/client'
 
 const mocks = vi.hoisted(() => ({
-  stock: { isPending: false, isError: false, data: { quantity: '18' } },
   permissions: [] as string[],
   list: {} as Record<string, unknown>,
   listArgs: [] as unknown[],
   setActive: vi.fn(),
-}))
-
-vi.mock('@/features/inventory/hooks', () => ({
-  useStockItem: () => mocks.stock,
 }))
 
 const page = <T,>(results: T[]) => ({
@@ -110,18 +105,30 @@ beforeEach(() => {
   mocks.list = page([product])
 })
 
-it('muestra las columnas del piloto y existencias reales sin costos', () => {
+it('muestra las columnas del catálogo sin existencias ni costos, aunque se pueda ver el inventario', () => {
   mocks.permissions.push('inventario.ver')
   renderPage()
   const table = screen.getByRole('table', { name: 'Productos' })
   expect(within(table).getByText('ACE-1')).toBeInTheDocument()
   expect(within(table).getByText('Aceites')).toBeInTheDocument()
-  expect(within(table).getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
-    'Código interno', 'Código del fabricante', 'Producto', 'Categoría', 'Existencias', 'Marca', 'Precio final USD', 'Acciones',
+  expect(
+    within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent),
+  ).toEqual([
+    'Código interno',
+    'Código del fabricante',
+    'Producto',
+    'Categoría',
+    'Presentación',
+    'Marca',
+    'Precio final USD',
+    'Estado',
+    'Acciones',
   ])
-  expect(within(table).getByText('18')).toBeInTheDocument()
   expect(within(table).getByText('USD 10.50')).toBeInTheDocument()
-  expect(table.textContent).not.toMatch(/costo|stock bajo/i)
+  expect(within(table).getByText('Activo')).toBeInTheDocument()
+  expect(table.textContent).not.toMatch(/stock|existencia|costo/i)
   // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
   expect(screen.queryByLabelText(/ámbito fiscal/i)).toBeNull()
 })
@@ -191,7 +198,9 @@ it('crear y editar abren las páginas del formulario de producto', async () => {
   mocks.permissions = ['productos.ver', 'productos.gestionar']
   renderPage()
   const user = userEvent.setup()
-  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(
+    screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!,
+  )
   await user.click(screen.getByRole('menuitem', { name: 'Editar' }))
   expect(await screen.findByText('Editor de producto')).toBeInTheDocument()
 })
@@ -205,7 +214,9 @@ it('con permiso desactiva mediante confirmación y con clave de idempotencia', a
   mocks.setActive.mockResolvedValue(product)
   const user = userEvent.setup()
   renderPage()
-  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(
+    screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!,
+  )
   await user.click(screen.getByRole('menuitem', { name: 'Desactivar' }))
   const dialog = await screen.findByRole('dialog')
   await user.click(
@@ -237,7 +248,9 @@ it('explica la reactivación rechazada por categoría inactiva', async () => {
   )
   const user = userEvent.setup()
   renderPage()
-  await user.click(screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!)
+  await user.click(
+    screen.getAllByRole('button', { name: 'Acciones de ACE-1' })[0]!,
+  )
   await user.click(screen.getByRole('menuitem', { name: 'Reactivar' }))
   const dialog = await screen.findByRole('dialog')
   await user.click(

@@ -12,6 +12,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 
 type ToastTone = 'success' | 'info'
 
@@ -144,16 +145,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div
-        aria-label="Notificaciones"
-        aria-live="polite"
-        className="fixed inset-x-3 bottom-3 z-[70] flex flex-col gap-2 sm:right-6 sm:bottom-6 sm:left-auto"
-        role="status"
-      >
-        {entries.map((entry) => (
-          <ToastItem entry={entry} key={entry.id} onDismiss={dismiss} />
-        ))}
-      </div>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          // Fuera del árbol de la aplicación y exenta del aislamiento de los modales: una
+          // confirmación emitida con un modal abierto («Guardar y crear otro») se anuncia igual.
+          <div
+            aria-label="Notificaciones"
+            aria-live="polite"
+            className="fixed inset-x-3 bottom-3 z-[70] flex flex-col gap-2 sm:right-6 sm:bottom-6 sm:left-auto"
+            data-modal-exempt=""
+            role="status"
+          >
+            {entries.map((entry) => (
+              <ToastItem entry={entry} key={entry.id} onDismiss={dismiss} />
+            ))}
+          </div>,
+          document.body,
+        )}
     </ToastContext.Provider>
   )
 }

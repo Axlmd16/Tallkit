@@ -15,13 +15,7 @@ import { useSession } from '@/features/auth/hooks'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
 import { useVehicleMutations, useVehicles } from '@/features/vehicles/hooks'
 import exampleVehiclePhoto from '@/assets/ejemplo/ejemplo.jpg'
-import type {
-  VehicleCreate,
-  VehicleFilters,
-  VehicleSummary,
-  VehicleUpdate,
-} from '@/features/vehicles/types'
-import { VehicleForm } from '@/features/vehicles/VehicleForm'
+import type { VehicleFilters, VehicleSummary } from '@/features/vehicles/types'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
@@ -42,14 +36,13 @@ import {
   StatusBadge,
   Toolbar,
   Avatar,
+  useToast,
 } from '@/shared/ui'
 
 type Confirmation = {
   kind: 'activate' | 'deactivate'
   vehicle: VehicleSummary
 }
-
-type Notice = { text: string; tone: 'success' | 'danger' }
 
 export function VehiclesPage() {
   const navigate = useNavigate()
@@ -76,12 +69,8 @@ export function VehiclesPage() {
     : undefined
 
   const [searchInput, setSearchInput] = useState(searchParam)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editingVehicle, setEditingVehicle] = useState<VehicleSummary | null>(
-    null,
-  )
-  const [formDirty, setFormDirty] = useState(false)
-  const [notice, setNotice] = useState<Notice | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const [previewing, setPreviewing] = useState<VehicleSummary | null>(null)
 
@@ -145,46 +134,6 @@ export function VehiclesPage() {
     void navigate(`/vehicles/${vehicle.id}/edit`)
   }
 
-  const handleCloseDrawer = () => {
-    if (formDirty) {
-      const confirmed = window.confirm(
-        'Tiene cambios sin guardar. ¿Desea descartarlos?',
-      )
-      if (!confirmed) return
-    }
-    setDrawerOpen(false)
-    setEditingVehicle(null)
-    setFormDirty(false)
-  }
-
-  const handleCancel = () => {
-    setDrawerOpen(false)
-    setEditingVehicle(null)
-    setFormDirty(false)
-  }
-
-  const handleSaveVehicle = async (
-    data: VehicleCreate | (VehicleUpdate & { id: number }),
-  ) => {
-    if ('id' in data) {
-      const { id, ...updateData } = data
-      await mutations.updateVehicle.mutateAsync({ id, data: updateData })
-      setNotice({
-        text: 'Vehículo actualizado correctamente.',
-        tone: 'success',
-      })
-    } else {
-      await mutations.createVehicle.mutateAsync(data)
-      setNotice({
-        text: 'Vehículo registrado correctamente.',
-        tone: 'success',
-      })
-    }
-    setDrawerOpen(false)
-    setEditingVehicle(null)
-    setFormDirty(false)
-  }
-
   const handleConfirmStateChange = async () => {
     if (!confirmation) return
     const { kind, vehicle } = confirmation
@@ -196,19 +145,13 @@ export function VehiclesPage() {
           id: vehicle.id,
           expectedVersion: vehicle.version,
         })
-        setNotice({
-          text: `Vehículo con placa «${vehicle.plate}» desactivado.`,
-          tone: 'success',
-        })
+        toast.success(`Vehículo con placa «${vehicle.plate}» desactivado.`)
       } else {
         await mutations.activateVehicle.mutateAsync({
           id: vehicle.id,
           expectedVersion: vehicle.version,
         })
-        setNotice({
-          text: `Vehículo con placa «${vehicle.plate}» activado.`,
-          tone: 'success',
-        })
+        toast.success(`Vehículo con placa «${vehicle.plate}» activado.`)
       }
     } catch (caught) {
       const text =
@@ -219,7 +162,7 @@ export function VehiclesPage() {
           : caught instanceof Error
             ? caught.message
             : 'No fue posible cambiar el estado del vehículo.'
-      setNotice({ text, tone: 'danger' })
+      setNotice(text)
     }
   }
 
@@ -246,11 +189,8 @@ export function VehiclesPage() {
       />
 
       {notice && (
-        <InlineNotice
-          tone={notice.tone}
-          title={notice.tone === 'success' ? 'Éxito' : 'Error'}
-        >
-          {notice.text}
+        <InlineNotice title="No se completó la operación" tone="danger">
+          {notice}
         </InlineNotice>
       )}
 
@@ -376,7 +316,7 @@ export function VehiclesPage() {
                 priority: 'primary',
                 render: (v) => (
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-control bg-surface-muted text-ink-muted">
                       <CarSimple aria-hidden="true" size={17} weight="fill" />
                     </span>
                     <p className="min-w-0 truncate font-semibold text-ink">
@@ -436,7 +376,7 @@ export function VehiclesPage() {
                       <div className="min-w-0">
                         <Link
                           to={`/customers/${v.current_owner.id}`}
-                          className="block wrap-break-word font-semibold text-primary hover:underline"
+                          className="block wrap-break-word font-semibold text-accent hover:underline"
                         >
                           {v.current_owner.name}
                         </Link>
@@ -600,7 +540,7 @@ export function VehiclesPage() {
                     />
                     <div className="min-w-0">
                       <Link
-                        className="font-semibold text-primary hover:underline"
+                        className="font-semibold text-accent hover:underline"
                         to={`/customers/${previewing.current_owner.id}`}
                       >
                         {previewing.current_owner.name}
@@ -620,18 +560,14 @@ export function VehiclesPage() {
 
             <div className="flex flex-wrap gap-2">
               <Link
-                className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px"
+                className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px"
                 to={`/vehicles/${previewing.id}`}
               >
                 Ver ficha completa
               </Link>
               {canManage && (
                 <Button
-                  onClick={() => {
-                    setEditingVehicle(previewing)
-                    setPreviewing(null)
-                    setDrawerOpen(true)
-                  }}
+                  onClick={() => handleOpenEdit(previewing)}
                   variant="secondary"
                 >
                   <PencilSimple aria-hidden="true" size={18} />
@@ -641,26 +577,6 @@ export function VehiclesPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      {/* Drawer para registro y edición */}
-      <Modal
-        className="vehicle-drawer"
-        open={drawerOpen}
-        onClose={handleCloseDrawer}
-        title={editingVehicle ? 'Editar vehículo' : 'Registrar vehículo'}
-        description={
-          editingVehicle
-            ? `Modifique los datos técnicos del vehículo con placa ${editingVehicle.plate}.`
-            : 'Ingrese los datos técnicos y asigne el cliente propietario.'
-        }
-      >
-        <VehicleForm
-          vehicle={editingVehicle ?? undefined}
-          onSubmit={handleSaveVehicle}
-          onCancel={handleCancel}
-          onDirtyChange={setFormDirty}
-        />
       </Modal>
 
       {/* Diálogo para confirmación de cambio de estado */}

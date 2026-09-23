@@ -21,10 +21,10 @@ import {
   Button,
   ElevatedDataList,
   FiscalScopeBadge,
-  InlineNotice,
   PageHeader,
   RowActions,
   StatusBadge,
+  useToast,
 } from '@/shared/ui'
 
 export function ServicesPage() {
@@ -36,7 +36,7 @@ export function ServicesPage() {
   const [editor, setEditor] = useState<'new' | Service | null>(null)
   const navigate = useNavigate()
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
 
   const query = useServices({
     search: filters.search || undefined,
@@ -53,7 +53,7 @@ export function ServicesPage() {
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `Servicio «${target.name}» ${target.active ? 'reactivado' : 'desactivado'}.`,
     )
   }
@@ -68,7 +68,6 @@ export function ServicesPage() {
             <NewRecordButton
               label="Nuevo servicio"
               onClick={() => {
-                setNotice(null)
                 setEditor('new')
               }}
             />
@@ -76,11 +75,6 @@ export function ServicesPage() {
         }
       />
       <FiscalScopeBadge scope="artesanal" />
-      {notice && (
-        <InlineNotice title="Operación exitosa" tone="success">
-          {notice}
-        </InlineNotice>
-      )}
       <ListStates
         toolbar={
           <CatalogToolbar
@@ -108,7 +102,6 @@ export function ServicesPage() {
                     aria-label="Editar"
                     className="record-action"
                     onClick={() => {
-                      setNotice(null)
                       setEditor(row)
                     }}
                     type="button"
@@ -187,7 +180,7 @@ export function ServicesPage() {
       <ServiceEditorModal
         mode={editor}
         onClose={() => setEditor(null)}
-        onSaved={setNotice}
+        onSaved={(message) => toast.success(message)}
       />
       <StateChangeDialog
         activateText={`¿Reactivar «${change?.name ?? ''}»? Volverá a poder seleccionarse en operaciones nuevas.`}

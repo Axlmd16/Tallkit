@@ -52,6 +52,7 @@ vi.mock('@/features/vehicle-brands/hooks', () => ({
 }))
 
 import { CustomerDetailPage } from './CustomerDetailPage'
+import { ToastProvider } from '@/shared/ui'
 
 const sampleCustomer = {
   id: 1,
@@ -118,7 +119,14 @@ it('renders customer details and associated vehicles with links', () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -151,7 +159,14 @@ it('handles customer not found', () => {
   render(
     <MemoryRouter initialEntries={['/customers/999']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -172,7 +187,14 @@ it('takes an authorized user from the detail to the edit page', async () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
         <Route
           element={<div>Editor de cliente</div>}
           path="/customers/:id/edit"
@@ -205,7 +227,14 @@ it('displays empty state when customer has no associated vehicles', () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -228,11 +257,15 @@ it('takes an authorized user to vehicle registration with the customer preselect
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
         <Route
-          element={<div>Editor de vehículo</div>}
-          path="/vehicles/new"
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
         />
+        <Route element={<div>Editor de vehículo</div>} path="/vehicles/new" />
       </Routes>
     </MemoryRouter>,
   )
@@ -252,7 +285,14 @@ it('does not display vehicle registration button when user lacks vehiculos.gesti
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -270,7 +310,14 @@ it('allows administrator to deactivate customer via confirmation dialog', async 
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -304,7 +351,14 @@ it('displays version conflict error when deactivation fails with stale record', 
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        <Route
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+          path="/customers/:id"
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -329,12 +383,21 @@ it('shows loading state while customer is fetching', () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route
+          path="/customers/:id"
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+        />
       </Routes>
     </MemoryRouter>,
   )
 
-  expect(screen.getByRole('status')).toBeInTheDocument()
+  expect(screen.getByRole('status', { name: '' })).toHaveTextContent(
+    'Cargando ficha del cliente…',
+  )
 })
 
 it('shows error state when customer fails to load', () => {
@@ -344,7 +407,14 @@ it('shows error state when customer fails to load', () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route
+          path="/customers/:id"
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -362,7 +432,14 @@ it('navigates to edit from the customer detail actions', async () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
-        <Route path="/customers/:id" element={<CustomerDetailPage />} />
+        <Route
+          path="/customers/:id"
+          element={
+            <ToastProvider>
+              <CustomerDetailPage />
+            </ToastProvider>
+          }
+        />
         <Route
           path="/customers/:id/edit"
           element={<div>Editor de cliente</div>}

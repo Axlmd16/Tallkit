@@ -1,139 +1,129 @@
-import path from 'node:path'
+import { expect, test, type Page } from '@playwright/test'
 
-import { expect, test } from '@playwright/test'
-
-import { expectNoSeriousAccessibilityViolations } from './accessibility'
+import {
+  expectAdaptableAndAccessible,
+  REPRESENTATIVE_WIDTHS,
+} from './accessibility'
+import { send } from './catalog-helpers'
 import { login } from './helpers'
 
-const viewports = [
-  { name: 'phone', width: 360, height: 800 },
-  { name: 'tablet-portrait', width: 768, height: 1024 },
-  { name: 'tablet-landscape', width: 1024, height: 768 },
-  { name: 'desktop', width: 1440, height: 900 },
+let counter = 0
+
+async function settled(page: Page) {
+  await expect(page.locator('h1').first()).toBeVisible()
+  await expect(page.getByText(/^Cargando/)).toHaveCount(0)
+}
+
+/** Proveedor mínimo para abrir una ficha y su diálogo de desactivación. */
+async function seedSupplier(page: Page): Promise<number> {
+  const tag = `${Date.now().toString(36)}${counter++}`
+  const response = await send(page.request, 'post', '/suppliers/', {
+    name: `Proveedor responsivo ${tag}`,
+    idempotency_key: `e2e-resp-sup-${tag}`,
+  })
+  expect(response.ok(), await response.text()).toBeTruthy()
+  const supplier = (await response.json()) as { id: number }
+  await page.reload()
+  return supplier.id
+}
+
+const railVariants = [
+  { width: 768, railWidth: 72, labels: false },
+  { width: 1024, railWidth: 72, labels: false },
+  { width: 1279, railWidth: 72, labels: false },
+  { width: 1280, railWidth: 240, labels: true },
+  { width: 1440, railWidth: 240, labels: true },
 ] as const
 
-const navigationVariants = [
-  { width: 768, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
-  { width: 1024, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
-  { width: 1279, expectedWidth: 80, expectedLeft: 30, labelsVisible: false },
-  { width: 1280, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
-  { width: 1366, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
-  { width: 1440, expectedWidth: 218, expectedLeft: 0, labelsVisible: true },
-] as const
-
-test('sidebar uses the approved navigation variant at 360px', async ({
+test('en teléfono la navegación es un panel temporal que se cierra al elegir', async ({
   page,
-}, testInfo) => {
+}) => {
   await page.setViewportSize({ width: 360, height: 800 })
   await login(page, 'admin_e2e')
   await expect(page.locator('.app-rail')).toBeHidden()
   await page.getByRole('button', { name: 'Abrir navegación' }).click()
-  await expect(
-    page.getByRole('dialog', { name: 'Navegación principal' }),
-  ).toBeVisible()
-  await page.screenshot({
-    animations: 'disabled',
-    fullPage: true,
-    path: process.env.CATALOG_EVIDENCE_DIR
-      ? path.join(process.env.CATALOG_EVIDENCE_DIR, 'actual', 'sidebar-360.png')
-      : testInfo.outputPath('sidebar-360.png'),
-  })
+  const panel = page.getByRole('dialog', { name: 'Navegación principal' })
+  await expect(panel).toBeVisible()
+  await expectAdaptableAndAccessible(page)
+  await panel.getByRole('button', { name: 'Administración y control' }).click()
+  await panel.getByRole('link', { name: 'Usuarios', exact: true }).click()
+  await expect(panel).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Usuarios' })).toBeVisible()
 })
 
-for (const variant of navigationVariants) {
-  test(`sidebar uses the approved navigation variant at ${variant.width}px`, async ({
+for (const variant of railVariants) {
+  test(`barra lateral de ${variant.railWidth} px a ${variant.width} px`, async ({
     page,
-  }, testInfo) => {
+  }) => {
     await page.setViewportSize({ width: variant.width, height: 900 })
     await login(page, 'admin_e2e')
-
-    const sidebar = page.locator('.app-rail')
-    const box = await sidebar.boundingBox()
-    expect(box).not.toBeNull()
-    expect(Math.round(box!.width)).toBe(variant.expectedWidth)
-    expect(Math.round(box!.x)).toBe(variant.expectedLeft)
-
-    const homeLabel = sidebar
-      .getByRole('link', { name: 'Inicio' })
-      .getByText('Inicio')
-    await expect(homeLabel).toHaveCSS(
-      'position',
-      variant.labelsVisible ? 'static' : 'absolute',
-    )
-
-    const contentLeft = await page
+    const rail = page.locator('.app-rail')
+    const box = await rail.boundingBox()
+    expect(Math.round(box!.width)).toBe(variant.railWidth)
+    const home = rail.getByRole('link', { name: 'Inicio' })
+    await expect(home).toHaveAttribute('aria-current', 'page')
+    if (variant.labels) await expect(home).toContainText('Inicio')
+    else await expect(home).not.toContainText('Inicio')
+    const main = await page
       .locator('.app-main')
       .evaluate((element) => element.getBoundingClientRect().left)
-    expect(contentLeft).toBeGreaterThanOrEqual(
-      variant.labelsVisible ? 248 : 140,
-    )
-    await page.screenshot({
-      animations: 'disabled',
-      fullPage: true,
-      path: process.env.CATALOG_EVIDENCE_DIR
-        ? path.join(
-            process.env.CATALOG_EVIDENCE_DIR,
-            'actual',
-            `sidebar-${variant.width}.png`,
-          )
-        : testInfo.outputPath(`sidebar-${variant.width}.png`),
-    })
+    expect(main).toBeGreaterThanOrEqual(variant.railWidth)
   })
 }
 
-for (const viewport of viewports) {
-  test(`authorized navigation adapts without page overflow: ${viewport.name}`, async ({
+test('el acceso se adapta y es accesible en los cinco anchos', async ({
+  page,
+}) => {
+  for (const width of REPRESENTATIVE_WIDTHS) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('/login')
+    await settled(page)
+    await expectAdaptableAndAccessible(page)
+  }
+})
+
+for (const width of REPRESENTATIVE_WIDTHS) {
+  test(`pantallas representativas sin desplazamiento horizontal ni violaciones graves a ${width} px`, async ({
     page,
-  }, testInfo) => {
-    await page.setViewportSize(viewport)
+  }) => {
+    test.setTimeout(120_000)
+    await page.setViewportSize({ width, height: 900 })
     await login(page, 'admin_e2e')
+    const supplierId = await seedSupplier(page)
 
-    if (viewport.width < 768) {
-      await page.getByRole('button', { name: 'Abrir navegación' }).click()
-      const dialog = page.getByRole('dialog', { name: 'Navegación principal' })
-      await dialog.getByRole('link', { name: 'Usuarios' }).click()
-      await expect(dialog).toHaveCount(0)
-    } else {
-      await page.getByRole('link', { name: 'Usuarios', exact: true }).click()
+    // Inicio, lista, formulario en página y editor de venta.
+    for (const path of ['/', '/sales', '/products/new', '/sales/new']) {
+      await page.goto(path)
+      await settled(page)
+      await expectAdaptableAndAccessible(page)
     }
 
-    await expect(page.getByRole('heading', { name: 'Usuarios' })).toBeVisible()
-    if (viewport.width < 768) {
-      await expect(
-        page.getByRole('list', { name: 'Usuarios en pantalla estrecha' }),
-      ).toBeVisible()
-    } else {
-      await expect(page.getByRole('table', { name: 'Usuarios' })).toBeVisible()
-    }
-    await page.getByRole('button', { name: 'Crear usuario' }).click()
-    const userDrawer = page.getByRole('dialog', { name: 'Nuevo usuario' })
-    await expect(userDrawer).toBeVisible()
-    const drawerBox = await userDrawer.boundingBox()
-    expect(drawerBox).not.toBeNull()
-    if (viewport.width < 768) {
-      expect(drawerBox!.width).toBe(viewport.width)
-    } else {
-      expect(drawerBox!.width).toBeLessThan(viewport.width)
-    }
+    // Ficha y diálogo de confirmación.
+    await page.goto(`/suppliers/${supplierId}`)
+    await settled(page)
+    await expectAdaptableAndAccessible(page)
+    await page.getByRole('button', { name: 'Desactivar' }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await expectAdaptableAndAccessible(page)
     await page.keyboard.press('Escape')
-    await expect(userDrawer).toHaveCount(0)
+    await expect(page.getByRole('dialog')).toHaveCount(0)
 
-    const hasHorizontalOverflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth >
-        document.documentElement.clientWidth,
-    )
-    expect(hasHorizontalOverflow).toBe(false)
-    await expectNoSeriousAccessibilityViolations(page)
-    await page.screenshot({
-      animations: 'disabled',
-      fullPage: true,
-      path: testInfo.outputPath(`users-${viewport.name}.png`),
-    })
+    // Formulario corto en modal.
+    await page.goto('/vehicle-brands')
+    await settled(page)
+    await page.getByRole('button', { name: 'Nueva marca' }).first().click()
+    const modal = page.getByRole('dialog', { name: 'Nueva marca de vehículo' })
+    await expect(modal).toBeVisible()
+    const box = await modal.boundingBox()
+    if (width < 640) expect(Math.round(box!.width)).toBe(width)
+    else expect(box!.width).toBeLessThanOrEqual(520)
+    await expectAdaptableAndAccessible(page)
+    await page.keyboard.press('Escape')
+    await expect(modal).toHaveCount(0)
   })
 }
 
-test('keeps keyboard focus and reduced motion usable at enlarged content', async ({
+test('conserva foco y movimiento reducido con el contenido ampliado', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 720, height: 900 })
@@ -154,179 +144,4 @@ test('keeps keyboard focus and reduced motion usable at enlarged content', async
     .getByRole('button', { name: 'Ingresar' })
     .evaluate((element) => getComputedStyle(element).transitionDuration)
   expect(transitionDuration).toBe('1e-05s')
-})
-
-for (const viewport of viewports) {
-  test(`customers, brands and vehicles adapt without page overflow: ${viewport.name}`, async ({
-    page,
-  }, testInfo) => {
-    test.setTimeout(90_000)
-    await page.setViewportSize(viewport)
-    await login(page, 'admin_e2e')
-
-    const navigateTo = async (name: string) => {
-      if (viewport.width < 768) {
-        await page.getByRole('button', { name: 'Abrir navegación' }).click()
-        const dialog = page.getByRole('dialog', {
-          name: 'Navegación principal',
-        })
-        await dialog.getByRole('link', { name, exact: true }).click()
-        await expect(dialog).toHaveCount(0)
-      } else {
-        await page.getByRole('link', { name, exact: true }).click()
-      }
-    }
-
-    const checkOverflow = async () => {
-      const hasHorizontalOverflow = await page.evaluate(
-        () =>
-          document.documentElement.scrollWidth >
-          document.documentElement.clientWidth,
-      )
-      expect(hasHorizontalOverflow).toBe(false)
-    }
-
-    // 1. Clientes
-    await navigateTo('Clientes')
-    await expect(page.getByRole('heading', { name: 'Clientes' })).toBeVisible()
-    await checkOverflow()
-    await page.getByRole('button', { name: 'Nuevo cliente' }).first().click()
-    const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
-    await expect(customerDrawer).toBeVisible()
-    await checkOverflow()
-    await page.keyboard.press('Escape')
-    await expect(customerDrawer).not.toBeVisible()
-
-    // 2. Marcas
-    await navigateTo('Marcas de vehículo')
-    await expect(
-      page.getByRole('heading', { name: 'Marcas', exact: true }),
-    ).toBeVisible()
-    await checkOverflow()
-    await page.getByRole('button', { name: 'Nueva marca' }).first().click()
-    const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
-    await expect(brandDrawer).toBeVisible()
-    await checkOverflow()
-    await page.keyboard.press('Escape')
-    await expect(brandDrawer).not.toBeVisible()
-
-    // 3. Vehículos
-    await navigateTo('Vehículos')
-    await expect(page.getByRole('heading', { name: 'Vehículos' })).toBeVisible()
-    await checkOverflow()
-    await page
-      .getByRole('button', { name: 'Registrar vehículo' })
-      .first()
-      .click()
-    const vehicleDrawer = page.getByRole('dialog', {
-      name: 'Registrar vehículo',
-    })
-    await expect(vehicleDrawer).toBeVisible()
-    await checkOverflow()
-    await page.keyboard.press('Escape')
-    await expect(vehicleDrawer).not.toBeVisible()
-
-    await expectNoSeriousAccessibilityViolations(page)
-    await page.screenshot({
-      animations: 'disabled',
-      fullPage: true,
-      path: testInfo.outputPath(`registry-${viewport.name}.png`),
-    })
-  })
-}
-
-test('vehicle transfer adapts to narrow 360px viewport without overflow', async ({
-  page,
-}, testInfo) => {
-  test.setTimeout(90_000)
-  await page.setViewportSize({ width: 360, height: 800 })
-  await login(page, 'admin_e2e')
-
-  // Navigate to Clientes and ensure at least one customer exists
-  await page.getByRole('button', { name: 'Abrir navegación' }).click()
-  let navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
-  await navDialog.getByRole('link', { name: 'Clientes', exact: true }).click()
-  await expect(navDialog).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Nuevo cliente' }).click()
-  const customerDrawer = page.getByRole('dialog', { name: 'Nuevo cliente' })
-  await customerDrawer
-    .getByLabel('Nombres y apellidos')
-    .fill('Dueño Transferencia')
-  await customerDrawer.getByLabel('Número de identificación').fill('0955443322')
-  await customerDrawer.getByLabel('Teléfono').fill('0987654321')
-  await customerDrawer.getByRole('button', { name: 'Guardar cliente' }).click()
-  await expect(customerDrawer).not.toBeVisible()
-
-  // Ensure brand exists
-  await page.getByRole('button', { name: 'Abrir navegación' }).click()
-  navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
-  await navDialog
-    .getByRole('link', { name: 'Marcas de vehículo', exact: true })
-    .click()
-  await expect(navDialog).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Nueva marca' }).click()
-  const brandDrawer = page.getByRole('dialog', { name: 'Nueva marca' })
-  await brandDrawer.getByLabel('Nombre de la marca').fill('Nissan Responsive')
-  await brandDrawer.getByRole('button', { name: 'Guardar marca' }).click()
-  await expect(brandDrawer).not.toBeVisible()
-
-  // Create vehicle
-  await page.getByRole('button', { name: 'Abrir navegación' }).click()
-  navDialog = page.getByRole('dialog', { name: 'Navegación principal' })
-  await navDialog.getByRole('link', { name: 'Vehículos', exact: true }).click()
-  await expect(navDialog).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Registrar vehículo' }).first().click()
-  const vehicleDrawer = page.getByRole('dialog', {
-    name: 'Registrar vehículo',
-  })
-  await vehicleDrawer
-    .getByLabel('Propietario')
-    .selectOption({ label: 'Dueño Transferencia (0955443322)' })
-  await vehicleDrawer
-    .getByLabel('Marca de vehículo')
-    .selectOption({ label: 'Nissan Responsive' })
-  await vehicleDrawer.getByLabel('Placa').fill('PBX-9988')
-  await vehicleDrawer.getByLabel('Modelo').fill('Sentra')
-  await vehicleDrawer.getByRole('button', { name: 'Guardar vehículo' }).click()
-  await expect(vehicleDrawer).not.toBeVisible()
-
-  // Open vehicle detail
-  const vehicleRow = page
-    .getByRole('listitem')
-    .filter({ hasText: 'PBX-9988' })
-    .or(page.getByRole('row').filter({ hasText: 'PBX-9988' }))
-  await vehicleRow.click()
-  await page.getByRole('link', { name: 'Ver ficha completa' }).click()
-  await expect(
-    page
-      .getByRole('region', { name: 'Resumen del vehículo' })
-      .getByText('PBX-9988'),
-  ).toBeVisible()
-
-  // Open transfer dialog
-  await page.getByRole('button', { name: 'Cambiar propietario' }).click()
-  const transferDialog = page.getByRole('dialog', {
-    name: 'Cambiar propietario',
-  })
-  await expect(transferDialog).toBeVisible()
-
-  const hasHorizontalOverflow = await page.evaluate(
-    () =>
-      document.documentElement.scrollWidth >
-      document.documentElement.clientWidth,
-  )
-  expect(hasHorizontalOverflow).toBe(false)
-  await expectNoSeriousAccessibilityViolations(page)
-
-  await page.screenshot({
-    animations: 'disabled',
-    fullPage: true,
-    path: testInfo.outputPath('vehicle-transfer-360px.png'),
-  })
-
-  await page.keyboard.press('Escape')
-  await expect(transferDialog).not.toBeVisible()
 })

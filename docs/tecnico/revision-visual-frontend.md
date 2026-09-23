@@ -5,7 +5,7 @@
 | Fecha | 2026-09-10 |
 | Cambio | `establecer-sistema-visual-frontend` |
 | Dirección | Adaptación del kit **SAAS Dashboard** al taller |
-| Estado | Implementación anterior rechazada; corrección de fidelidad en curso, sin aprobación visual |
+| Estado | Histórico. La dirección SAAS Dashboard y su corrección de fidelidad se cancelaron; el sistema visual vigente es Tallkit (cambio `redisenar-sistema-visual-tallkit`, ver `DESIGN.md`). |
 
 ## Línea base anterior al rediseño
 

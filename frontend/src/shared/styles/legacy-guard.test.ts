@@ -15,15 +15,7 @@ const LEGACY = /Nunito|#605bff|#4f4ae8|#efeeff|@\/assets\/figma/i
  * Deuda conocida que las fases 2 a 4 eliminan. La lista debe quedar vacía en la tarea 11.3:
  * un archivo nuevo con restos o un archivo ya limpio que siga aquí hacen fallar la prueba.
  */
-const PENDING = [
-  'src/assets/figma/category.svg',
-  'src/shared/styles/index.css',
-  'src/shared/ui/charts/BarChart.tsx',
-  'src/shared/ui/charts/DonutChart.tsx',
-  'src/shared/ui/charts/LineAreaChart.tsx',
-  'src/shared/ui/data/Progress.tsx',
-  'src/shared/ui/icons/index.tsx',
-]
+const PENDING: string[] = []
 
 function files(dir: string): string[] {
   const entries = fs.readdirSync(path.resolve(cwd, dir), {

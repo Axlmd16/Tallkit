@@ -1,9 +1,8 @@
 import { useState, type RefObject } from 'react'
 
-import { Button, Dialog, InlineNotice } from '@/shared/ui'
+import { Button, Dialog, InlineNotice, Money } from '@/shared/ui'
 
 import { documentTypeLabels, type PurchaseReview } from './types'
-import { usd } from './format'
 
 /**
  * Revisión previa a confirmar: importes y efectos entregados por el backend. Nombra
@@ -45,7 +44,9 @@ export function ReviewDialog({
         <div className="space-y-4">
           <p className="text-ink">
             {documentTypeLabels[documentType]} de{' '}
-            <strong>{supplierName}</strong>.
+            <strong>{supplierName}</strong> para el RUC comercial. Confirmar
+            recibe todas las líneas en la bodega, asigna el número interno y
+            actualiza existencias y costo promedio.
           </p>
           {message && (
             <InlineNotice title="Revise nuevamente" tone="warning">
@@ -69,14 +70,20 @@ export function ReviewDialog({
               className="grid grid-cols-2 gap-2 text-sm"
             >
               <dt>Base</dt>
-              <dd className="font-semibold">{usd(review.totals.base)}</dd>
+              <dd className="text-right font-semibold">
+                <Money amount={review.totals.base} />
+              </dd>
               <dt>Impuesto</dt>
-              <dd className="font-semibold">{usd(review.totals.tax)}</dd>
+              <dd className="text-right font-semibold">
+                <Money amount={review.totals.tax} />
+              </dd>
               <dt>Total</dt>
-              <dd className="font-semibold">{usd(review.totals.total)}</dd>
+              <dd className="text-right font-semibold">
+                <Money amount={review.totals.total} />
+              </dd>
               <dt>Valor inventariable</dt>
-              <dd className="font-semibold">
-                {usd(review.totals.inventory_value)}
+              <dd className="text-right font-semibold">
+                <Money amount={review.totals.inventory_value} />
               </dd>
             </dl>
           )}
@@ -87,9 +94,10 @@ export function ReviewDialog({
             <ul className="mt-2 space-y-1 text-sm">
               {review.effects.map((effect) => (
                 <li key={effect.product_id}>
-                  <strong>{effect.code}</strong> {effect.name}: recibirá{' '}
-                  {effect.quantity_to_receive} presentaciones; pasa de{' '}
-                  {effect.current_quantity} a {effect.resulting_quantity}.
+                  <strong className="font-mono">{effect.code}</strong>{' '}
+                  {effect.name}: recibirá {effect.quantity_to_receive}{' '}
+                  presentaciones; pasa de {effect.current_quantity} a{' '}
+                  {effect.resulting_quantity}.
                 </li>
               ))}
             </ul>

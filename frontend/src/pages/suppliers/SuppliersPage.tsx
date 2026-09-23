@@ -21,10 +21,10 @@ import {
   Button,
   ElevatedDataList,
   FiscalScopeBadge,
-  InlineNotice,
   PageHeader,
   RowActions,
   StatusBadge,
+  useToast,
 } from '@/shared/ui'
 
 const contact = (supplier: Supplier) =>
@@ -39,7 +39,7 @@ export function SuppliersPage() {
   const mutations = useSupplierMutations()
   const navigate = useNavigate()
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
 
   const query = useSuppliers({
     search: filters.search || undefined,
@@ -56,7 +56,7 @@ export function SuppliersPage() {
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `Proveedor «${target.name}» ${target.active ? 'reactivado' : 'desactivado'}.`,
     )
   }
@@ -76,11 +76,6 @@ export function SuppliersPage() {
         }
       />
       <FiscalScopeBadge scope="commercial" />
-      {notice && (
-        <InlineNotice title="Operación exitosa" tone="success">
-          {notice}
-        </InlineNotice>
-      )}
       <ListStates
         toolbar={
           <CatalogToolbar

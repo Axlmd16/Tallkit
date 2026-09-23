@@ -20,6 +20,7 @@ import {
   DetailCard,
   Dialog,
   ErrorState,
+  getControlClasses,
   LoadingState,
   PageHeader,
   StatusBadge,
@@ -223,7 +224,7 @@ function InitializeWorkshopForm() {
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div className="flex items-center gap-2.5">
                   <Storefront
-                    className="text-primary shrink-0"
+                    className="shrink-0 text-ink-muted"
                     size={24}
                     weight="duotone"
                   />
@@ -264,7 +265,7 @@ function InitializeWorkshopForm() {
                       title="13 dígitos numéricos"
                       maxLength={13}
                       placeholder="Ej. 0991234567001"
-                      className="ui-control min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                      className={getControlClasses()}
                     />
                   </div>
                   <p className="mt-1 text-xs text-ink-muted">
@@ -287,7 +288,7 @@ function InitializeWorkshopForm() {
                       value={commercialLegalName}
                       onChange={(e) => setCommercialLegalName(e.target.value)}
                       placeholder="Nombre legal completo"
-                      className="ui-control min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                      className={getControlClasses()}
                     />
                   </div>
                   <p className="mt-1 text-xs text-ink-muted">
@@ -302,7 +303,7 @@ function InitializeWorkshopForm() {
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div className="flex items-center gap-2.5">
                   <Buildings
-                    className="text-primary shrink-0"
+                    className="shrink-0 text-ink-muted"
                     size={24}
                     weight="duotone"
                   />
@@ -343,7 +344,7 @@ function InitializeWorkshopForm() {
                       title="13 dígitos numéricos"
                       maxLength={13}
                       placeholder="Ej. 1791234567001"
-                      className="ui-control min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                      className={getControlClasses()}
                     />
                   </div>
                   <p className="mt-1 text-xs text-ink-muted">
@@ -366,7 +367,7 @@ function InitializeWorkshopForm() {
                       value={artisanalLegalName}
                       onChange={(e) => setArtisanalLegalName(e.target.value)}
                       placeholder="Nombre legal completo"
-                      className="ui-control min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                      className={getControlClasses()}
                     />
                   </div>
                   <p className="mt-1 text-xs text-ink-muted">
@@ -382,7 +383,7 @@ function InitializeWorkshopForm() {
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div className="flex items-center gap-2.5">
                 <WarehouseIcon
-                  className="text-primary shrink-0"
+                  className="shrink-0 text-ink-muted"
                   size={24}
                   weight="duotone"
                 />
@@ -416,7 +417,7 @@ function InitializeWorkshopForm() {
                     value={warehouseName}
                     onChange={(e) => setWarehouseName(e.target.value)}
                     placeholder="Ej. Bodega Central"
-                    className="ui-control min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                    className={getControlClasses()}
                   />
                 </div>
                 <p className="mt-1 text-xs text-ink-muted">
@@ -646,10 +647,10 @@ function EntityCard({ entity }: { entity: FiscalEntity }) {
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex items-center gap-3">
             <span
-              className={`grid size-11 shrink-0 place-items-center rounded-full ${
+              className={`grid size-11 shrink-0 place-items-center rounded-control ${
                 isComercial
-                  ? 'bg-primary-soft text-primary'
-                  : 'bg-warning-soft text-warning'
+                  ? 'bg-scope-commercial-soft text-scope-commercial'
+                  : 'bg-scope-artisan-soft text-scope-artisan'
               }`}
             >
               {isComercial ? (
@@ -772,7 +773,7 @@ function EntityCard({ entity }: { entity: FiscalEntity }) {
               required
               pattern="^[0-9]{13}$"
               maxLength={13}
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
           <div className="ui-field">
@@ -787,7 +788,7 @@ function EntityCard({ entity }: { entity: FiscalEntity }) {
               name="legal_name"
               defaultValue={entity.legal_name}
               required
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
           <div className="ui-field">
@@ -801,7 +802,7 @@ function EntityCard({ entity }: { entity: FiscalEntity }) {
               id="address"
               name="address"
               defaultValue={entity.address ?? ''}
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
@@ -858,7 +859,7 @@ function WarehouseSection() {
       <DetailCard
         title="Bodega Principal"
         icon={
-          <span className="grid size-11 place-items-center rounded-full bg-info-soft text-primary-strong shrink-0">
+          <span className="grid size-11 place-items-center rounded-control bg-surface-muted text-ink-muted shrink-0">
             <WarehouseIcon size={22} weight="duotone" />
           </span>
         }
@@ -945,7 +946,7 @@ function WarehouseSection() {
               name="name"
               defaultValue={warehouse?.name}
               required
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
@@ -1148,7 +1149,7 @@ function TaxesSection() {
               id="tax_entity"
               name="entity_id"
               required
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             >
               {entities?.map((e) => (
                 <option key={e.id} value={e.id}>
@@ -1172,7 +1173,7 @@ function TaxesSection() {
                 required
                 placeholder="Ej. IVA"
                 maxLength={20}
-                className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                className={`mt-2 ${getControlClasses()}`}
               />
             </div>
             <div className="ui-field">
@@ -1187,7 +1188,7 @@ function TaxesSection() {
                 name="rate"
                 required
                 placeholder="Ej. 15.0000"
-                className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                className={`mt-2 ${getControlClasses()}`}
               />
             </div>
           </div>
@@ -1204,7 +1205,7 @@ function TaxesSection() {
               name="name"
               required
               placeholder="Ej. Impuesto al Valor Agregado"
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
 
@@ -1221,7 +1222,7 @@ function TaxesSection() {
               type="date"
               required
               defaultValue={new Date().toISOString().split('T')[0]}
-              className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+              className={`mt-2 ${getControlClasses()}`}
             />
           </div>
 
@@ -1335,7 +1336,7 @@ function SeriesSection() {
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="font-mono font-bold text-primary">
+                      <span className="font-mono font-bold text-ink">
                         {s.code}
                       </span>
                     </td>
@@ -1403,7 +1404,7 @@ function SeriesSection() {
                 defaultValue={editingSeries.code}
                 required
                 maxLength={20}
-                className="ui-control mt-2 min-h-[44px] w-full rounded-control border border-transparent bg-surface-muted px-4 py-2 text-sm text-ink outline-none transition-[background-color,border-color,box-shadow] focus:border-primary/35 focus:bg-surface hover:bg-surface-selected/50 focus:shadow-[0_0_0_3px_rgb(96_91_255_/_0.12)]"
+                className={`mt-2 ${getControlClasses()}`}
               />
               <p className="mt-1 text-xs text-ink-muted">
                 Solo se puede modificar si aún no ha emitido comprobantes.

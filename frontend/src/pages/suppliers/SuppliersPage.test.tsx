@@ -27,6 +27,7 @@ vi.mock('@/features/suppliers/hooks', () => ({
 }))
 
 import { SuppliersPage } from './SuppliersPage'
+import { ToastProvider } from '@/shared/ui'
 
 const supplier = {
   id: 1,
@@ -46,7 +47,14 @@ function renderPage(path = '/suppliers') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route element={<SuppliersPage />} path="/suppliers" />
+        <Route
+          element={
+            <ToastProvider>
+              <SuppliersPage />
+            </ToastProvider>
+          }
+          path="/suppliers"
+        />
         <Route element={<p>Ficha del proveedor</p>} path="/suppliers/:id" />
       </Routes>
     </MemoryRouter>,

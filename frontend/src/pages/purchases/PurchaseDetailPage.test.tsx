@@ -28,6 +28,8 @@ vi.mock('@/features/purchases/hooks', () => ({
   }),
 }))
 
+import { ToastProvider } from '@/shared/ui'
+
 import { PurchaseDetailPage } from './PurchaseDetailPage'
 
 const confirmed = {
@@ -97,10 +99,12 @@ const confirmed = {
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={['/purchases/4']}>
-      <Routes>
-        <Route element={<PurchaseDetailPage />} path="/purchases/:id" />
-        <Route element={<p>editor abierto</p>} path="/purchases/:id/edit" />
-      </Routes>
+      <ToastProvider>
+        <Routes>
+          <Route element={<PurchaseDetailPage />} path="/purchases/:id" />
+          <Route element={<p>editor abierto</p>} path="/purchases/:id/edit" />
+        </Routes>
+      </ToastProvider>
     </MemoryRouter>,
   )
 }
@@ -142,7 +146,7 @@ it('muestra fechas diferenciadas, estado, ámbito, totales, líneas históricas 
     screen.getByRole('heading', { name: 'COM-ING-000004' }),
   ).toBeInTheDocument()
   expect(screen.getByText('Confirmado')).toBeInTheDocument()
-  expect(screen.getByText('RUC comercial')).toBeInTheDocument()
+  expect(screen.queryByText('RUC comercial')).toBeNull()
   expect(screen.getByText('10/01/2026')).toBeInTheDocument()
   expect(screen.getByText('Fecha de confirmación')).toBeInTheDocument()
   expect(screen.getByLabelText('Línea 1')).toHaveTextContent('ACE-1 — Aceite')
@@ -152,6 +156,9 @@ it('muestra fechas diferenciadas, estado, ámbito, totales, líneas históricas 
     '/purchases/2',
   )
   expect(screen.getByRole('link', { name: 'Borrador #8' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'INV-31' }).className).toMatch(
+    /\btext-accent\b/,
+  )
   expect(screen.getByRole('link', { name: 'INV-31' })).toHaveAttribute(
     'href',
     '/inventory/operations/31',
@@ -173,6 +180,10 @@ it('anular exige motivo, explica el efecto y envía token, versión y motivo', a
     await within(dialog).findByLabelText('Efecto de la anulación'),
   ).toHaveTextContent('ACE-1')
   const confirm = within(dialog).getByRole('button', { name: 'Anular ingreso' })
+  expect(
+    within(dialog).getByRole('button', { name: 'Conservar ingreso' }),
+  ).toBeInTheDocument()
+  expect(dialog).toHaveTextContent('RUC comercial')
   expect(confirm).toBeDisabled()
   await userEvent.type(
     within(dialog).getByLabelText('Motivo de la anulación'),
@@ -188,7 +199,9 @@ it('anular exige motivo, explica el efecto y envía token, versión y motivo', a
     reason: 'Error de captura',
   })
   expect(
-    await screen.findByText('El ingreso fue anulado y su efecto compensado.'),
+    await screen.findByText(
+      'Ingreso COM-ING-000004 anulado y su efecto compensado.',
+    ),
   ).toBeInTheDocument()
 })
 

@@ -121,20 +121,20 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
     expect(panel420).toHaveClass('max-w-[420px]')
   })
 
-  it('connects mobile navigation to Drawer, closing on selection or Escape', async () => {
+  it('connects mobile navigation to its panel, closing on selection or Escape', async () => {
     const user = userEvent.setup()
     render(<MobileSidebarExample />)
 
     const openBtn = screen.getByRole('button', { name: 'Abrir menú móvil' })
     await user.click(openBtn)
 
-    // Drawer móvil abierto
+    // Panel de navegación móvil abierto
     const mobileDrawer = screen.getByRole('dialog', {
       name: 'Navegación móvil',
     })
     expect(mobileDrawer).toBeVisible()
 
-    // Seleccionar item dentro del drawer cierra el menú móvil
+    // Elegir una opción dentro del panel cierra el menú móvil
     const dashItem = within(mobileDrawer).getByRole('button', {
       name: /tablero/i,
     })
@@ -147,7 +147,7 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
     })
   })
 
-  it('closes mobile navigation drawer on resize to desktop breakpoint (>= 1024px)', async () => {
+  it('closes mobile navigation panel on resize to desktop breakpoint (>= 1024px)', async () => {
     const user = userEvent.setup()
     render(<MobileSidebarExample />)
 
@@ -166,5 +166,60 @@ describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () 
         screen.queryByRole('dialog', { name: 'Navegación móvil' }),
       ).not.toBeInTheDocument()
     })
+  })
+
+  it('devuelve el foco al control que lo tenía aunque la referencia de retorno llegue vacía', async () => {
+    function LateCapture() {
+      const [open, setOpen] = useState(false)
+      // Simula la captura tardía: al aislar la página el navegador ya quitó el foco al disparador.
+      const emptyRef = useRef<HTMLElement | null>(null)
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Nuevo servicio</Button>
+          <Modal
+            onClose={() => setOpen(false)}
+            open={open}
+            returnFocusRef={emptyRef}
+            title="Nuevo servicio"
+          >
+            <input aria-label="Nombre" />
+          </Modal>
+        </>
+      )
+    }
+    const user = userEvent.setup()
+    render(<LateCapture />)
+    const trigger = screen.getByRole('button', { name: 'Nuevo servicio' })
+    await user.click(trigger)
+    await screen.findByRole('dialog', { name: 'Nuevo servicio' })
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(trigger).toHaveFocus())
+  })
+
+  it('ignora una referencia de retorno que apunta a un campo del propio modal ya retirado', async () => {
+    function InnerCapture() {
+      const [open, setOpen] = useState(false)
+      const inner = useRef<HTMLInputElement | null>(null)
+      return (
+        <>
+          <Button onClick={() => setOpen(true)}>Nueva marca</Button>
+          <Modal
+            onClose={() => setOpen(false)}
+            open={open}
+            returnFocusRef={inner}
+            title="Nueva marca"
+          >
+            <input aria-label="Nombre" ref={inner} />
+          </Modal>
+        </>
+      )
+    }
+    const user = userEvent.setup()
+    render(<InnerCapture />)
+    const trigger = screen.getByRole('button', { name: 'Nueva marca' })
+    await user.click(trigger)
+    await screen.findByRole('dialog', { name: 'Nueva marca' })
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
 })

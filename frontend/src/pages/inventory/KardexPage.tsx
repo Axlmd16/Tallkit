@@ -74,18 +74,27 @@ export function KardexPage() {
     query.error instanceof ProblemError && query.error.code === 'stale_record'
 
   return (
-    <div className="catalog-page space-y-6">
-      <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
-        to={from ?? '/inventory'}
-      >
-        <ArrowLeft aria-hidden="true" size={16} />
-        {from ? 'Volver a la ficha del producto' : 'Volver a inventario'}
-      </Link>
-      <PageHeader
-        description="Historia de movimientos del producto con saldos reales de existencia."
-        title="Kardex del producto"
-      />
+    <div className="catalog-page space-y-4">
+      <div className="flex items-center gap-3">
+        <Link
+          aria-label={
+            from ? 'Volver a la ficha del producto' : 'Volver a inventario'
+          }
+          className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
+          title={
+            from ? 'Volver a la ficha del producto' : 'Volver a inventario'
+          }
+          to={from ?? '/inventory'}
+        >
+          <ArrowLeft aria-hidden="true" size={18} />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <PageHeader
+            description="Historia de movimientos del producto con saldos reales de existencia."
+            title="Kardex del producto"
+          />
+        </div>
+      </div>
       <InlineNotice title="Está leyendo un corte de la historia" tone="info">
         Los movimientos confirmados después de abrir esta consulta no aparecen
         hasta que la actualice.{' '}
@@ -209,29 +218,37 @@ export function KardexPage() {
         <>
           <section
             aria-label="Saldos del período"
-            className="grid gap-3 rounded-group bg-surface p-4 shadow-card sm:grid-cols-3"
+            className="rounded-panel border border-line bg-surface"
           >
-            <h2 className="sm:col-span-3 font-semibold text-ink">
-              Saldos del período
-            </h2>
-            <p>
-              <span className="block text-sm text-ink-muted">
-                Saldo inicial
-              </span>
-              <strong>{data.opening_quantity}</strong>
-            </p>
-            <p>
-              <span className="block text-sm text-ink-muted">Saldo final</span>
-              <strong>{data.closing_quantity}</strong>
-            </p>
-            <p>
-              <span className="block text-sm text-ink-muted">
-                Movimientos del período
-              </span>
-              {totalsText(data.period_totals)}
-            </p>
+            <div className="border-b border-line px-4 py-3">
+              <h2 className="text-[14.5px] font-semibold text-ink">
+                Saldos del período
+              </h2>
+            </div>
+            <dl className="grid gap-x-6 gap-y-3 px-4 py-3 sm:grid-cols-3">
+              <div>
+                <dt className="text-xs text-ink-muted">Saldo inicial</dt>
+                <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                  {data.opening_quantity}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Saldo final</dt>
+                <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                  {data.closing_quantity}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">
+                  Movimientos del período
+                </dt>
+                <dd className="mt-0.5 text-[13px] text-ink">
+                  {totalsText(data.period_totals)}
+                </dd>
+              </div>
+            </dl>
             {canSeeValuation && data.opening_value !== undefined && (
-              <p className="sm:col-span-3 text-sm">
+              <p className="border-t border-line px-4 py-2 text-[13px] text-ink-muted tabular-nums">
                 Valor inicial USD {data.opening_value} · valor final USD{' '}
                 {data.closing_value}
               </p>
@@ -239,16 +256,18 @@ export function KardexPage() {
           </section>
           <section
             aria-label="Coincidencias con los filtros"
-            className="rounded-group bg-surface-muted p-4"
+            className="rounded-panel border border-line bg-surface-subtle px-4 py-3 text-[13px]"
           >
             <h2 className="font-semibold text-ink">
               Coincidencias con los filtros
             </h2>
-            <p>{totalsText(data.matching_totals)}</p>
+            <p className="mt-0.5">{totalsText(data.matching_totals)}</p>
             {data.page_opening_quantity !== null && (
-              <p className="text-sm text-ink-muted">
+              <p className="text-ink-muted">
                 Saldo antes de la primera fila de esta página:{' '}
-                {data.page_opening_quantity}
+                <span className="font-mono tabular-nums">
+                  {data.page_opening_quantity}
+                </span>
               </p>
             )}
           </section>
@@ -278,7 +297,7 @@ export function KardexPage() {
                   priority: 'secondary',
                   render: (row) => (
                     <Link
-                      className="underline"
+                      className="font-mono text-xs font-semibold text-accent hover:underline"
                       to={`/inventory/operations/${row.source.reference.replace('INV-', '')}`}
                     >
                       {row.source.reference}
@@ -289,19 +308,30 @@ export function KardexPage() {
                   header: 'Entrada',
                   key: 'quantity_in',
                   priority: 'secondary',
-                  render: (row) => row.quantity_in,
+                  align: 'end',
+                  render: (row) => (
+                    <span className="tabular-nums">{row.quantity_in}</span>
+                  ),
                 },
                 {
                   header: 'Salida',
                   key: 'quantity_out',
                   priority: 'secondary',
-                  render: (row) => row.quantity_out,
+                  align: 'end',
+                  render: (row) => (
+                    <span className="tabular-nums">{row.quantity_out}</span>
+                  ),
                 },
                 {
                   header: 'Saldo',
                   key: 'quantity_after',
                   priority: 'primary',
-                  render: (row) => <strong>{row.quantity_after}</strong>,
+                  align: 'end',
+                  render: (row) => (
+                    <strong className="tabular-nums">
+                      {row.quantity_after}
+                    </strong>
+                  ),
                 },
                 {
                   header: 'Responsable',
@@ -315,6 +345,7 @@ export function KardexPage() {
                         header: 'Costo aplicado',
                         key: 'applied_unit_cost' as const,
                         priority: 'secondary' as const,
+                        align: 'end' as const,
                         render: (row: KardexRow) =>
                           row.applied_unit_cost ?? '—',
                       },
@@ -322,6 +353,7 @@ export function KardexPage() {
                         header: 'Valor del saldo',
                         key: 'value_after' as const,
                         priority: 'secondary' as const,
+                        align: 'end' as const,
                         render: (row: KardexRow) => row.value_after ?? '—',
                       },
                     ]

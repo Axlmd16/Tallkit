@@ -58,7 +58,7 @@ export function VehicleBrandPicker({
         )}
         {selected.map((brand) => (
           <li
-            className="inline-flex min-h-9 items-center gap-1 rounded-full bg-primary-soft py-1 pl-3 pr-1 text-sm font-semibold text-primary-strong"
+            className="inline-flex min-h-9 items-center gap-1 rounded-chip bg-accent-soft py-1 pl-3 pr-1 text-sm font-semibold text-accent-strong"
             key={brand.id}
           >
             {brand.name}

@@ -10,6 +10,7 @@ import type { VehicleSummary } from '@/features/vehicles/types'
 import { ProblemError } from '@/shared/api/client'
 
 import { VehiclesPage } from './VehiclesPage'
+import { ToastProvider } from '@/shared/ui'
 
 vi.mock('@/features/vehicle-brands/hooks', () => ({
   useVehicleBrands: () => ({
@@ -70,7 +71,14 @@ function renderComponent(initialEntries: string[] = ['/vehicles']) {
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={initialEntries}>
         <Routes>
-          <Route path="/vehicles" element={<VehiclesPage />} />
+          <Route
+            path="/vehicles"
+            element={
+              <ToastProvider>
+                <VehiclesPage />
+              </ToastProvider>
+            }
+          />
           <Route path="/vehicles/new" element={<div>Editor de vehículo</div>} />
           <Route
             path="/vehicles/:id/edit"
@@ -474,7 +482,9 @@ describe('VehiclesPage', () => {
     } as unknown as ReturnType<typeof authHooks.useSession>)
 
     renderComponent()
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: '' })).toHaveTextContent(
+      'Cargando vehículos…',
+    )
   })
 
   it('shows error state when vehicles fail to load', () => {

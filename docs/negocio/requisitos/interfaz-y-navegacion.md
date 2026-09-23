@@ -4,11 +4,11 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.4 |
-| Estado | Modelo de dominio aprobado; corrección visual pendiente de aceptación |
-| Fecha | 2026-09-10 |
+| Versión del documento | 0.5 |
+| Estado | Modelo de dominio aprobado; sistema visual Tallkit aplicado, pendiente de aceptación visual final |
+| Fecha | 2026-09-23 |
 
-> Este documento define estructura, pantallas y comportamiento esperado. La dirección visual vigente, basada en una adaptación del kit **SAAS Dashboard**, sus tokens y componentes se documentan en [`../../../DESIGN.md`](../../../DESIGN.md).
+> Este documento define estructura, pantallas y comportamiento esperado. El sistema visual propio **Tallkit · Banco de trabajo**, sus tokens y componentes se documentan en [`../../../DESIGN.md`](../../../DESIGN.md); los patrones de pantalla PPF-01…PPF-08 están en la capacidad `patrones-de-pantalla-frontend` (hoy en `openspec/changes/redisenar-sistema-visual-tallkit/specs/`, y en `openspec/specs/` al archivar el cambio).
 
 ## 1. Principios de interfaz
 
@@ -29,12 +29,16 @@
 
 La aplicación autenticada tendrá:
 
-- Identidad textual reemplazable, usuario actual, roles y cierre de sesión. El acceso a perfil se incorporará cuando exista esa capacidad.
-- Navegación principal blanca de iconos, 80 px desde 768 px, margen exterior de 30 px en escritorio y drawer bajo 768 px; referencia 4:344.
+- Marca **Tallkit** con el logotipo del producto, usuario actual, roles y cierre de sesión al pie de la navegación. El acceso a perfil se incorporará cuando exista esa capacidad.
+- Navegación principal agrupada por área de trabajo, según el tamaño:
+  - desde 1280 px, barra lateral desplegada de 240 px con iconos y etiquetas;
+  - de 768 a 1279 px, barra compacta de iconos de 72 px con nombre accesible y ayuda emergente;
+  - por debajo de 768 px, barra superior con menú y un panel temporal de navegación que se cierra al elegir.
+- Barra superior de escritorio con la ruta de migas; no incluye búsqueda global.
 - Título de página y contexto breve cuando resulte útil.
-- Área principal de contenido.
-- Indicador visible de entidad fiscal cuando la pantalla tenga ámbito económico.
-- Zona de notificaciones para confirmaciones, advertencias y errores mediante texto y color redundantes.
+- Área principal de contenido, a todo el ancho disponible.
+- Indicador visible de entidad fiscal (nombre, icono y tono propios de cada RUC) en la barra superior cuando la pantalla tenga ámbito económico.
+- Zona de notificaciones temporales abajo a la derecha para confirmar acciones terminadas (sección 8.2). Las advertencias y los errores permanecen en línea junto a lo afectado.
 
 Los recursos tipográficos e iconográficos esenciales se sirven desde el paquete local. Los controles táctiles esenciales tienen al menos 44 px; el foco es visible y el movimiento respeta `prefers-reduced-motion`. Las tablas comparables se mantienen en computadora y tableta, mientras el teléfono prioriza identificación, estado y acciones sin provocar desplazamiento horizontal de la página.
 
@@ -275,18 +279,20 @@ flowchart TD
 - Desactivar usuarios.
 - Restaurar un respaldo.
 
-La confirmación debe indicar el objeto, entidad fiscal, efecto principal y motivo obligatorio cuando aplique. El texto del botón debe describir la acción, por ejemplo `Confirmar venta y descontar stock`, no simplemente `Aceptar`.
+La confirmación debe indicar el objeto y su número interno, la entidad fiscal, el efecto principal y el motivo obligatorio cuando aplique, y mostrar los valores revisados por el servidor antes de habilitar la acción. El efecto se explica en el cuerpo del diálogo; el botón usa un texto breve que nombra la acción, por ejemplo `Confirmar venta`, `Registrar cobro` o `Anular venta`, nunca `Aceptar`. Las acciones destructivas usan el tratamiento de peligro y su salida segura nombra lo que se conserva, por ejemplo `Conservar venta`.
 
 ### 8.2 Tipos de mensaje
 
 | Tipo | Uso |
 |---|---|
-| Éxito | Acción completada, con acceso al documento creado. |
+| Éxito | Acción completada (crear, guardar, confirmar, cobrar, activar o desactivar). Se comunica con una notificación temporal abajo a la derecha que dura 6 segundos, se pausa con el puntero o el foco, se cierra con su control o con Escape, se anuncia sin mover el foco e incluye el enlace «Ver» cuando existe un documento o registro al que ir. Se muestran hasta tres a la vez. No se usan franjas de éxito persistentes. |
 | Información | Estado o consecuencia sin riesgo inmediato. |
 | Advertencia | Decisión revisable: stock cambió, kilometraje menor, proforma vencida. |
 | Error de validación | Datos que el usuario puede corregir. |
 | Error de conflicto | Otro usuario modificó el recurso o cambió la existencia. |
 | Error del sistema | Fallo no recuperable desde el formulario, con identificador de seguimiento. |
+
+Información, advertencias y errores nunca se comunican solo con una notificación temporal: permanecen en línea junto al campo o panel afectado.
 
 ## 9. Estados y acciones disponibles
 
@@ -309,24 +315,29 @@ El formato exacto de secuenciales internos y el ciclo de una futura referencia f
 
 ## 10. Comportamiento adaptable
 
+Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como marcas, categorías, unidades de medida, servicios, ajustes de inventario y usuarios) se presentan en un **modal** sobre la pantalla de origen. Los formularios con secciones (producto, cliente, vehículo, proveedor, configuración del taller) y los editores de ingreso y venta se presentan en **página completa**. No se usan paneles laterales para crear ni editar. Cerrar un modal o salir de una página con cambios sin guardar advierte y permite seguir editando o descartar.
+
 ### Escritorio
 
-- Navegación lateral expandida.
-- Tablas con columnas relevantes y paneles de resumen.
-- Formularios de dos columnas cuando su lectura no se deteriore.
+- Navegación lateral desplegada de 240 px desde 1280 px.
+- Tablas contenidas en un panel, con filas compactas, encabezado visible e importes alineados a la derecha.
+- Modales centrados de 420 a 480 px.
+- Formularios en página con cada sección y sus campos en una o dos columnas.
 
 ### Tableta
 
-- Navegación contraíble.
+- Navegación compacta de iconos de 72 px con nombre accesible y ayuda emergente.
+- Columnas esenciales en las tablas; filtros secundarios agrupados.
 - Formularios de una o dos columnas según orientación.
 - Acciones críticas siempre visibles sin depender del puntero.
 
 ### Teléfono
 
-- Navegación en panel o menú compacto.
-- Formularios de una columna.
-- Filas de tabla convertidas en tarjetas o vista de columnas prioritarias.
+- Navegación en un panel temporal abierto desde la barra superior.
+- Formularios de una columna; los modales ocupan el ancho disponible y desplazan solo su cuerpo.
+- Filas compactas de dos líneas con identificación, dato principal, estado y total, sin tarjetas grandes ni desplazamiento horizontal de la página.
 - Barra de acciones fija solo cuando no tape contenido ni teclado.
+- Notificaciones temporales a todo el ancho, sin tapar la acción principal.
 - No exigir gestos sin alternativa visible.
 
 ## 11. Impresión y exportación

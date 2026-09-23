@@ -1,4 +1,4 @@
-import { useEffect, type KeyboardEvent, type RefObject } from 'react'
+import { useEffect, useRef, type KeyboardEvent, type RefObject } from 'react'
 
 export const FOCUSABLE_SELECTOR = [
   'button:not([disabled])',
@@ -54,7 +54,12 @@ function applyModalIsolation() {
     if (!parent) break
 
     for (const sibling of Array.from(parent.children)) {
-      if (sibling !== current && sibling instanceof HTMLElement) {
+      if (
+        sibling !== current &&
+        sibling instanceof HTMLElement &&
+        // Regiones vivas no modales, como las notificaciones temporales.
+        !sibling.hasAttribute('data-modal-exempt')
+      ) {
         isolateElement(sibling)
       }
     }
@@ -126,6 +131,18 @@ export function useModalOpen({
   open: boolean
   returnFocusRef?: RefObject<HTMLElement | null> | undefined
 }) {
+  // Control que tenía el foco al abrir. Se lee durante el render de la apertura, antes del
+  // commit: después, un campo con `autoFocus` ya tiene el foco y el aislamiento `inert` se lo
+  // quita a la página, así que una captura en un efecto ya no encontraría el disparador.
+  const openerRef = useRef<HTMLElement | null>(null)
+  const wasOpenRef = useRef(false)
+  if (open && !wasOpenRef.current && typeof document !== 'undefined') {
+    const active = document.activeElement
+    openerRef.current =
+      active instanceof HTMLElement && active !== document.body ? active : null
+  }
+  wasOpenRef.current = open
+
   useEffect(() => {
     if (open) {
       lockScroll()
@@ -149,6 +166,9 @@ export function useModalOpen({
       }
     }
 
-    returnFocusRef?.current?.focus()
+    const preferred = returnFocusRef?.current
+    const target = preferred?.isConnected ? preferred : openerRef.current
+    openerRef.current = null
+    if (target?.isConnected) target.focus()
   }, [open, containerRef, returnFocusRef])
 }

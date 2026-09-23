@@ -17,6 +17,10 @@ export interface FormModalProps {
   description?: string
   dirty?: boolean
   saveLabel?: string
+  /** Impide la acción principal mientras el servidor no la habilite (por ejemplo, una revisión con impedimentos). */
+  saveDisabled?: boolean
+  /** Salida segura; en flujos de dos pasos nombra lo que ocurre al salir. */
+  cancelLabel?: string
   onSaveAndCreateAnother?: SaveHandler
   /** Texto de la acción de crear otro registro; concuerda con el género del sustantivo. */
   createAnotherLabel?: string
@@ -39,6 +43,8 @@ export function FormModal({
   open,
   returnFocusRef,
   saveLabel = 'Guardar',
+  saveDisabled = false,
+  cancelLabel = 'Cancelar',
   title,
 }: FormModalProps) {
   const formId = useId()
@@ -59,7 +65,7 @@ export function FormModal({
 
   async function runSave(action: 'save' | 'another') {
     const handler = action === 'another' ? onSaveAndCreateAnother : onSave
-    if (!handler || pendingAction) return
+    if (!handler || pendingAction || saveDisabled) return
 
     setError('')
     setPendingAction(action)
@@ -95,7 +101,7 @@ export function FormModal({
               onClick={requestClose}
               variant="secondary"
             >
-              Cancelar
+              {cancelLabel}
             </Button>
             {onSaveAndCreateAnother && (
               <Button
@@ -109,6 +115,7 @@ export function FormModal({
               </Button>
             )}
             <Button
+              disabled={saveDisabled}
               form={formId}
               pending={pendingAction === 'save'}
               pendingLabel="Guardando…"

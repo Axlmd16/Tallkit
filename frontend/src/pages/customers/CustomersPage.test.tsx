@@ -27,6 +27,7 @@ vi.mock('@/features/customers/hooks', () => ({
 }))
 
 import { CustomersPage } from './CustomersPage'
+import { ToastProvider } from '@/shared/ui'
 
 const sampleCustomer = {
   id: 1,
@@ -66,7 +67,9 @@ beforeEach(() => {
 it('renders customer list and restricts management actions without permission', () => {
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -107,7 +110,9 @@ it('shows an explicit muted label when a customer has no email', () => {
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -137,7 +142,9 @@ it('identifies RUC customers with the reusable category badge', () => {
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -150,7 +157,14 @@ it('opens the customer detail page when selecting a row', async () => {
   render(
     <MemoryRouter initialEntries={['/customers?search=Carlos']}>
       <Routes>
-        <Route path="/customers" element={<CustomersPage />} />
+        <Route
+          path="/customers"
+          element={
+            <ToastProvider>
+              <CustomersPage />
+            </ToastProvider>
+          }
+        />
         <Route path="/customers/:id" element={<div>Ficha del cliente</div>} />
       </Routes>
     </MemoryRouter>,
@@ -172,7 +186,9 @@ it('renders an empty state when the catalog has no customers', () => {
 
   render(
     <MemoryRouter initialEntries={['/customers']}>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -191,7 +207,9 @@ it('renders an empty state when filters yield no matches', () => {
 
   render(
     <MemoryRouter initialEntries={['/customers?search=inexistente']}>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -210,7 +228,14 @@ it('takes an authorized user to the new customer page', async () => {
   render(
     <MemoryRouter initialEntries={['/customers']}>
       <Routes>
-        <Route path="/customers" element={<CustomersPage />} />
+        <Route
+          path="/customers"
+          element={
+            <ToastProvider>
+              <CustomersPage />
+            </ToastProvider>
+          }
+        />
         <Route path="/customers/new" element={<div>Editor de cliente</div>} />
       </Routes>
     </MemoryRouter>,
@@ -230,7 +255,9 @@ it('allows administrator to deactivate and reactivate customer via dialog', asyn
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -255,11 +282,15 @@ it('shows loading state while data is loading', () => {
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
-  expect(screen.getByRole('status')).toBeInTheDocument()
+  expect(screen.getByRole('status', { name: '' })).toHaveTextContent(
+    'Cargando clientes…',
+  )
 })
 
 it('shows error state on fetch failure', () => {
@@ -267,7 +298,9 @@ it('shows error state on fetch failure', () => {
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -284,7 +317,14 @@ it('takes an authorized user to the customer edit page', async () => {
   render(
     <MemoryRouter initialEntries={['/customers']}>
       <Routes>
-        <Route path="/customers" element={<CustomersPage />} />
+        <Route
+          path="/customers"
+          element={
+            <ToastProvider>
+              <CustomersPage />
+            </ToastProvider>
+          }
+        />
         <Route
           path="/customers/:id/edit"
           element={<div>Editor de cliente</div>}
@@ -319,7 +359,9 @@ it('allows administrator to activate an inactive customer', async () => {
 
   render(
     <MemoryRouter>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 
@@ -349,7 +391,9 @@ it('renders pagination controls when more than one page exists', () => {
 
   render(
     <MemoryRouter initialEntries={['/customers']}>
-      <CustomersPage />
+      <ToastProvider>
+        <CustomersPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
 

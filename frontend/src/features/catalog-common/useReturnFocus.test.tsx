@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { expect, it } from 'vitest'
 
-import { Drawer } from '@/shared/ui'
+import { Modal } from '@/shared/ui'
 
 import { useReturnFocus } from './useReturnFocus'
 
@@ -15,7 +15,7 @@ function Harness() {
       <button onClick={() => setOpen(true)} type="button">
         Abrir panel
       </button>
-      <Drawer
+      <Modal
         description="Panel de prueba"
         onClose={() => setOpen(false)}
         open={open}
@@ -23,7 +23,7 @@ function Harness() {
         title="Panel"
       >
         <button type="button">Dentro</button>
-      </Drawer>
+      </Modal>
     </>
   )
 }

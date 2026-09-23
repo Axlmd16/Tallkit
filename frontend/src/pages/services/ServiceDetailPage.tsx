@@ -12,7 +12,13 @@ import { ServiceDetails } from '@/features/services/ServiceDetails'
 import { ServiceEditorModal } from '@/features/services/ServiceEditorModal'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
+import {
+  Button,
+  InlineNotice,
+  LoadingState,
+  PageHeader,
+  useToast,
+} from '@/shared/ui'
 
 export function ServiceDetailPage() {
   const id = Number(useParams().id)
@@ -26,7 +32,7 @@ export function ServiceDetailPage() {
   const tracker = useIntentTracker()
   const [editing, setEditing] = useState(false)
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const service = query.data
   const notFound =
     query.error instanceof ProblemError && query.error.status === 404
@@ -40,7 +46,7 @@ export function ServiceDetailPage() {
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `Servicio «${target.name}» ${target.active ? 'reactivado' : 'desactivado'}.`,
     )
   }
@@ -48,7 +54,7 @@ export function ServiceDetailPage() {
   return (
     <div className="space-y-6">
       <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
+        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
         to={back}
       >
         <ArrowLeft aria-hidden="true" size={16} />
@@ -99,16 +105,11 @@ export function ServiceDetailPage() {
             }
             title={service.name}
           />
-          {notice && (
-            <InlineNotice title="Operación exitosa" tone="success">
-              {notice}
-            </InlineNotice>
-          )}
           <ServiceDetails service={service} />
           <ServiceEditorModal
             mode={editing ? service : null}
             onClose={() => setEditing(false)}
-            onSaved={setNotice}
+            onSaved={(message) => toast.success(message)}
           />
           <StateChangeDialog
             activateText="¿Reactivar el servicio? Volverá a poder seleccionarse en operaciones nuevas."

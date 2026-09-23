@@ -3,10 +3,7 @@ import { useRef, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
 import type { Role } from '@/features/auth/types'
-import {
-  UserForm,
-  type UserFormHandle,
-} from '@/features/users/UserForm'
+import { UserForm, type UserFormHandle } from '@/features/users/UserForm'
 import { useRoles, useUserMutations, useUsers } from '@/features/users/hooks'
 import type {
   UserFilters,
@@ -83,9 +80,7 @@ export function UsersPage() {
       }
       if (user.is_active) await mutations.deactivate.mutateAsync(user.id)
       else await mutations.activate.mutateAsync(user.id)
-      toast.success(
-        `Usuario ${user.is_active ? 'desactivado' : 'activado'}.`,
-      )
+      toast.success(`Usuario ${user.is_active ? 'desactivado' : 'activado'}.`)
     } catch (caught) {
       const text =
         caught instanceof ProblemError &&

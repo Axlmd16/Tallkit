@@ -176,4 +176,19 @@ describe('Tabs (C15)', () => {
     expect(screen.getByText('4')).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
   })
+
+  it('marca la pestaña activa con el acento de selección, no con la acción principal', () => {
+    render(
+      <Tabs
+        activeId="board"
+        aria-label="Vistas"
+        items={tabs}
+        onChange={() => {}}
+      />,
+    )
+    const active = screen.getByRole('tab', { name: 'Tablero' })
+    expect(active.className).toMatch(/\bborder-accent\b/)
+    expect(active.className).toMatch(/\btext-accent-strong\b/)
+    expect(active.className).not.toMatch(/\b(text|bg|border)-primary\b/)
+  })
 })
