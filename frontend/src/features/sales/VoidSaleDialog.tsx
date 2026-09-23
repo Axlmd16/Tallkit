@@ -49,6 +49,7 @@ export function VoidSaleDialog({
   })
   return (
     <MoneyDialog
+      subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
       description="Anular conserva la venta con su número, revierte exactamente las salidas de inventario y deja el exigible en cero."
       formValid={valid}
       inputSignature={JSON.stringify([trimmed, parts])}

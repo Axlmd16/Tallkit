@@ -33,6 +33,7 @@ export function PaymentDialog({
   const parts = toParts(cash, transfer)
   return (
     <MoneyDialog
+      subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
       description="Registra un cobro ya recibido. El registro en el sistema no entrega ni recibe dinero."
       formValid={partsValid(cash, transfer)}
       inputSignature={JSON.stringify(parts)}

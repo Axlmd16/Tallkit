@@ -39,6 +39,7 @@ vi.mock('@/features/purchases/pickers', () => ({
   }),
 }))
 
+import { ToastProvider } from '@/shared/ui'
 import { InventoryPage } from './InventoryPage'
 
 const row = (name: string, quantity: string, extra: object = {}) => ({
@@ -61,13 +62,15 @@ const row = (name: string, quantity: string, extra: object = {}) => ({
 function renderPage(path = '/inventory') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/inventory" element={<InventoryPage />} />
-        <Route
-          path="/inventory/products/:id/kardex"
-          element={<div>Kardex del producto</div>}
-        />
-      </Routes>
+      <ToastProvider>
+        <Routes>
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route
+            path="/inventory/products/:id/kardex"
+            element={<div>Kardex del producto</div>}
+          />
+        </Routes>
+      </ToastProvider>
     </MemoryRouter>,
   )
 }
@@ -116,7 +119,7 @@ beforeEach(() => {
 it('muestra presentación, unidad y existencia y distingue el cero real sin umbrales', () => {
   renderPage()
   expect(screen.getAllByText('4.000000 gal').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('Sin existencia').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('Agotado').length).toBeGreaterThan(0)
   expect(screen.queryByText(/stock bajo|stock mínimo|por debajo/i)).toBeNull()
 })
 
@@ -124,7 +127,7 @@ it('abre el Kardex al seleccionar una fila', async () => {
   const user = userEvent.setup()
   renderPage()
 
-  await user.click(screen.getAllByText('ACE-1 — Aceite')[0]!)
+  await user.click(screen.getAllByText('Aceite')[0]!)
   expect(await screen.findByText('Kardex del producto')).toBeInTheDocument()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
@@ -248,4 +251,48 @@ it('el ajuste exige motivo y costo explícito solo en entradas, revisa el efecto
     reviewToken: 'tok',
   })
   expect(await screen.findByText(/contabilizada: INV-30/)).toBeInTheDocument()
+})
+
+it('con impedimentos en la revisión no permite confirmar y ofrece abandonar sin cambiar existencias', async () => {
+  mocks.permissions = ['inventario.ver', 'inventario.ajustar']
+  mocks.preview.mockResolvedValue({
+    operation_id: 30,
+    state: 'PREPARED',
+    version: 1,
+    can_confirm: false,
+    issues: [
+      { code: 'insufficient_stock', message: 'La existencia es insuficiente.' },
+    ],
+    effects: [],
+    review_token: null,
+    expires_in_seconds: 900,
+  })
+  renderPage()
+  await userEvent.click(
+    screen.getByRole('button', { name: /carga inicial o ajuste/i }),
+  )
+  const modal = await screen.findByRole('dialog')
+  await userEvent.click(
+    within(modal).getByRole('combobox', { name: 'Producto' }),
+  )
+  await userEvent.click(screen.getByRole('option', { name: /ACE-1 — Aceite/ }))
+  await userEvent.type(
+    within(modal).getByLabelText('Cantidad de presentaciones'),
+    '50',
+  )
+  await userEvent.type(within(modal).getByLabelText('Motivo'), 'Salida')
+  await userEvent.click(
+    within(modal).getByRole('button', { name: 'Preparar y revisar' }),
+  )
+  expect(
+    await within(modal).findByLabelText('Revisión del efecto'),
+  ).toHaveTextContent('La existencia es insuficiente')
+  expect(
+    within(modal).getByRole('button', { name: 'Confirmar operación' }),
+  ).toBeDisabled()
+  await userEvent.click(
+    within(modal).getByRole('button', { name: 'Abandonar sin confirmar' }),
+  )
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(mocks.confirm).not.toHaveBeenCalled()
 })

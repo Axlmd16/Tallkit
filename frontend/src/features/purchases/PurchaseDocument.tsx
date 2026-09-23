@@ -70,17 +70,38 @@ export function PurchaseDocument({
           <tbody>
             {lines.length === 0 && (
               <tr>
-                <td className="empty" colSpan={6}>Sin líneas.</td>
+                <td className="empty" colSpan={6}>
+                  Sin líneas.
+                </td>
               </tr>
             )}
             {lines.map((line) => (
               <tr key={line.key}>
-                <td className="font-mono" data-label="Código">{line.code ?? '—'}</td>
+                <td className="font-mono" data-label="Código">
+                  {line.code ?? '—'}
+                </td>
                 <td data-label="Descripción">{line.name ?? '—'}</td>
-                <td className="amount" data-label="Cantidad">{line.quantity || '—'}</td>
-                <td className={`amount ${stale ? 'pending-value' : ''}`} data-label="Costo">{money(line.unitCost)}</td>
-                <td className={`amount ${stale ? 'pending-value' : ''}`} data-label="Impuesto">{money(line.tax)}</td>
-                <td className={`amount ${stale ? 'pending-value' : ''}`} data-label="Total">{money(line.total)}</td>
+                <td className="amount" data-label="Cantidad">
+                  {line.quantity || '—'}
+                </td>
+                <td
+                  className={`amount ${stale ? 'pending-value' : ''}`}
+                  data-label="Costo"
+                >
+                  {money(line.unitCost)}
+                </td>
+                <td
+                  className={`amount ${stale ? 'pending-value' : ''}`}
+                  data-label="Impuesto"
+                >
+                  {money(line.tax)}
+                </td>
+                <td
+                  className={`amount ${stale ? 'pending-value' : ''}`}
+                  data-label="Total"
+                >
+                  {money(line.total)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -88,9 +109,18 @@ export function PurchaseDocument({
       </section>
       <footer className="sheet-foot">
         <div className={`sheet-totals ${stale ? 'pending-value' : ''}`}>
-          <p><span>Base imponible</span><span>{money(totals?.base)}</span></p>
-          <p><span>Impuesto</span><span>{money(totals?.tax)}</span></p>
-          <p className="grand"><span>Total</span><span>{money(totals?.total)}</span></p>
+          <p>
+            <span>Base imponible</span>
+            <span>{money(totals?.base)}</span>
+          </p>
+          <p>
+            <span>Impuesto</span>
+            <span>{money(totals?.tax)}</span>
+          </p>
+          <p className="grand">
+            <span>Total</span>
+            <span>{money(totals?.total)}</span>
+          </p>
         </div>
       </footer>
     </DocumentSheet>

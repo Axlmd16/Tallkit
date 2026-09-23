@@ -3,35 +3,27 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { CustomerForm } from '@/features/customers/CustomerForm'
 import { useCustomer, useCustomerMutations } from '@/features/customers/hooks'
-import type { CustomerWrite } from '@/features/customers/types'
-import {
-  useCustomerVehicles,
-  useVehicleMutations,
-} from '@/features/vehicles/hooks'
-import type { VehicleCreate, VehicleUpdate } from '@/features/vehicles/types'
-import { VehicleForm } from '@/features/vehicles/VehicleForm'
+import { useCustomerVehicles } from '@/features/vehicles/hooks'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   ConfirmationPanel,
   DetailCard,
-  Modal,
   EmptyState,
   InlineNotice,
   LoadingState,
   PageHeader,
   StatusBadge,
   Toolbar,
+  useToast,
 } from '@/shared/ui'
 
 type Confirmation = 'activate' | 'deactivate'
-type Notice = { text: string; tone: 'success' | 'danger' }
 
 // Clases del catálogo para <Link> que actúa visualmente como Button variant="primary"
 const primaryButtonLinkClass =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-group border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,34 +40,10 @@ export function CustomerDetailPage() {
   const mutations = useCustomerMutations()
 
   const vehiclesQuery = useCustomerVehicles(customerId)
-  const vehicleMutations = useVehicleMutations()
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [formDirty, setFormDirty] = useState(false)
-  const [vehicleDrawerOpen, setVehicleDrawerOpen] = useState(false)
-  const [vehicleFormDirty, setVehicleFormDirty] = useState(false)
-  const [notice, setNotice] = useState<Notice | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
-
-  async function saveCustomer(data: CustomerWrite) {
-    if (!customer) return
-    await mutations.update.mutateAsync({ id: customer.id, data })
-    setNotice({ text: 'Cliente actualizado correctamente.', tone: 'success' })
-    setDrawerOpen(false)
-    setFormDirty(false)
-  }
-
-  async function saveVehicle(
-    data: VehicleCreate | (VehicleUpdate & { id: number }),
-  ) {
-    await vehicleMutations.createVehicle.mutateAsync(data as VehicleCreate)
-    setNotice({
-      text: 'Vehículo registrado correctamente.',
-      tone: 'success',
-    })
-    setVehicleDrawerOpen(false)
-    setVehicleFormDirty(false)
-  }
+  const toast = useToast()
 
   async function runConfirmation() {
     if (!confirmation || !customer) return
@@ -88,19 +56,13 @@ export function CustomerDetailPage() {
           id: customer.id,
           expectedVersion: customer.version,
         })
-        setNotice({
-          text: `Cliente «${customer.name}» desactivado.`,
-          tone: 'success',
-        })
+        toast.success(`Cliente «${customer.name}» desactivado.`)
       } else {
         await mutations.activate.mutateAsync({
           id: customer.id,
           expectedVersion: customer.version,
         })
-        setNotice({
-          text: `Cliente «${customer.name}» activado.`,
-          tone: 'success',
-        })
+        toast.success(`Cliente «${customer.name}» activado.`)
       }
     } catch (caught) {
       const text =
@@ -111,7 +73,7 @@ export function CustomerDetailPage() {
           : caught instanceof Error
             ? caught.message
             : 'No fue posible cambiar el estado del cliente.'
-      setNotice({ text, tone: 'danger' })
+      setNotice(text)
     }
   }
 
@@ -123,7 +85,7 @@ export function CustomerDetailPage() {
     return (
       <div className="customer-detail-page space-y-6">
         <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
           to="/customers"
         >
           <ArrowLeft aria-hidden="true" size={18} />
@@ -146,7 +108,7 @@ export function CustomerDetailPage() {
     <div className="customer-detail-page space-y-6">
       <div>
         <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
           to="/customers"
         >
           <ArrowLeft aria-hidden="true" size={18} />
@@ -158,7 +120,9 @@ export function CustomerDetailPage() {
         actions={
           <Toolbar label="Acciones de la ficha">
             {canManage && (
-              <Button onClick={() => void navigate(`/customers/${customer.id}/edit`)}>
+              <Button
+                onClick={() => void navigate(`/customers/${customer.id}/edit`)}
+              >
                 <PencilSimple aria-hidden="true" size={18} />
                 Editar cliente
               </Button>
@@ -182,7 +146,11 @@ export function CustomerDetailPage() {
         title={customer.name}
       />
 
-      {notice && <InlineNotice title={notice.text} tone={notice.tone} />}
+      {notice && (
+        <InlineNotice title="No se completó la operación" tone="danger">
+          {notice}
+        </InlineNotice>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <DetailCard
@@ -263,7 +231,7 @@ export function CustomerDetailPage() {
                   <div className="min-w-0 flex-1 pr-3">
                     <Link
                       to={`/vehicles/${v.id}`}
-                      className="font-semibold text-primary hover:underline"
+                      className="font-semibold text-accent hover:underline"
                     >
                       {v.plate}
                     </Link>
@@ -288,61 +256,6 @@ export function CustomerDetailPage() {
           )}
         </DetailCard>
       </div>
-
-      <Modal
-        description="Actualice los datos de contacto o identificación del cliente."
-        onClose={() => {
-          if (
-            !formDirty ||
-            window.confirm('Hay cambios sin guardar. ¿Desea descartarlos?')
-          ) {
-            setDrawerOpen(false)
-            setFormDirty(false)
-          }
-        }}
-        open={drawerOpen}
-        title={`Editar cliente: ${customer.name}`}
-      >
-        <CustomerForm
-          customer={customer}
-          onCancel={() => {
-            setDrawerOpen(false)
-            setFormDirty(false)
-          }}
-          onDirtyChange={setFormDirty}
-          onNavigateToCustomer={(targetId) => {
-            setDrawerOpen(false)
-            navigate(`/customers/${targetId}`)
-          }}
-          onSubmit={saveCustomer}
-        />
-      </Modal>
-
-      <Modal
-        description={`Registre un vehículo asignado a ${customer.name}.`}
-        onClose={() => {
-          if (
-            !vehicleFormDirty ||
-            window.confirm('Hay cambios sin guardar. ¿Desea descartarlos?')
-          ) {
-            setVehicleDrawerOpen(false)
-            setVehicleFormDirty(false)
-          }
-        }}
-        open={vehicleDrawerOpen}
-        title="Registrar vehículo"
-      >
-        <VehicleForm
-          defaultOwnerId={customer.id}
-          defaultOwnerName={customer.name}
-          onCancel={() => {
-            setVehicleDrawerOpen(false)
-            setVehicleFormDirty(false)
-          }}
-          onDirtyChange={setVehicleFormDirty}
-          onSubmit={saveVehicle}
-        />
-      </Modal>
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

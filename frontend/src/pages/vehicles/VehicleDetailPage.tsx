@@ -16,13 +16,10 @@ import {
   useVehicleMutations,
   useVehicleOwnershipPeriods,
 } from '@/features/vehicles/hooks'
-import type { VehicleCreate, VehicleUpdate } from '@/features/vehicles/types'
-import { VehicleForm } from '@/features/vehicles/VehicleForm'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   Dialog,
-  Modal,
   EmptyState,
   Field,
   InlineNotice,
@@ -58,8 +55,6 @@ export function VehicleDetailPage() {
       : 0,
   )
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [formDirty, setFormDirty] = useState(false)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [statusConfirmation, setStatusConfirmation] = useState<
     'activate' | 'deactivate' | null
@@ -79,36 +74,6 @@ export function VehicleDetailPage() {
 
   const activeCustomersQuery = useCustomers({ isActive: true })
   const activeCustomers = activeCustomersQuery.data?.results ?? []
-
-  const handleSave = async (
-    data: VehicleCreate | (VehicleUpdate & { id: number }),
-  ) => {
-    if (!('id' in data)) return
-    const { id: targetId, ...updateData } = data
-    await mutations.updateVehicle.mutateAsync({
-      id: targetId,
-      data: updateData,
-    })
-    toast.success('Datos del vehículo actualizados correctamente.')
-    setDrawerOpen(false)
-    setFormDirty(false)
-  }
-
-  const handleCloseDrawer = () => {
-    if (formDirty) {
-      const confirmed = window.confirm(
-        'Tiene cambios sin guardar. ¿Desea descartarlos?',
-      )
-      if (!confirmed) return
-    }
-    setDrawerOpen(false)
-    setFormDirty(false)
-  }
-
-  const handleCancel = () => {
-    setDrawerOpen(false)
-    setFormDirty(false)
-  }
 
   const handleConfirmStateChange = async () => {
     if (!statusConfirmation || !vehicle) return
@@ -374,7 +339,11 @@ export function VehicleDetailPage() {
               </div>
               <div className="flex flex-col gap-2 p-4">
                 {canManage && (
-                  <Button onClick={() => void navigate(`/vehicles/${vehicle.id}/edit`)}>
+                  <Button
+                    onClick={() =>
+                      void navigate(`/vehicles/${vehicle.id}/edit`)
+                    }
+                  >
                     <PencilSimple aria-hidden="true" size={16} />
                     Editar vehículo
                   </Button>
@@ -469,21 +438,6 @@ export function VehicleDetailPage() {
           </section>
         </aside>
       </div>
-
-      {/* Drawer de edición */}
-      <Modal
-        open={drawerOpen}
-        onClose={handleCloseDrawer}
-        title="Editar vehículo"
-        description={`Modifique los datos técnicos del vehículo con placa ${vehicle.plate}.`}
-      >
-        <VehicleForm
-          vehicle={vehicle}
-          onSubmit={handleSave}
-          onCancel={handleCancel}
-          onDirtyChange={setFormDirty}
-        />
-      </Modal>
 
       {/* Modal / Dialog de cambio de propietario */}
       <Dialog

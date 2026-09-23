@@ -8,7 +8,6 @@ import {
   PageHeader,
   Pagination,
   ResponsiveDataView,
-  StatCard,
   Surface,
   Toolbar,
 } from './layout'
@@ -88,18 +87,16 @@ it('disables pagination at its boundaries', () => {
   expect(screen.getByText('Página 1 de 1')).toBeVisible()
 })
 
-it('composes elevated surfaces and operational statistics without inventing navigation', () => {
+it('composes elevated surfaces as labelled regions', () => {
   render(
     <Surface aria-label="Resumen de usuarios">
-      <StatCard label="Usuarios activos" value="12" />
+      <p>Usuarios activos</p>
     </Surface>,
   )
 
   expect(
     screen.getByRole('region', { name: 'Resumen de usuarios' }),
   ).toHaveClass('rounded-panel', 'border', 'border-line')
-  expect(screen.getByText('Usuarios activos')).toBeVisible()
-  expect(screen.getByText('12')).toBeVisible()
 })
 
 it('keeps the elevated data list comparable and complete on narrow screens', () => {

@@ -73,14 +73,20 @@ beforeEach(() => {
   }
 })
 
-it('muestra fechas, estado, ámbito fiscal y totales tal como los entrega el backend', () => {
+it('muestra fechas, estado y totales tal como los entrega el backend; el ámbito fiscal lo muestra el marco', () => {
   renderPage()
   expect(screen.getAllByText('COM-ING-000007').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Repuestos SA').length).toBeGreaterThan(0)
   expect(screen.getAllByText('15/01/2026').length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 22.00').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Confirmado').length).toBeGreaterThan(0)
-  expect(screen.getByText('RUC comercial')).toBeInTheDocument()
+  expect(screen.queryByText('RUC comercial')).toBeNull()
+})
+
+it('filtra por estado con los segmentos de la lista', async () => {
+  renderPage()
+  await userEvent.click(screen.getByRole('radio', { name: 'Anulados' }))
+  expect(screen.getByTestId('where')).toHaveTextContent('state=VOIDED')
 })
 
 it('los filtros de proveedor, estado y período se leen de la dirección', () => {

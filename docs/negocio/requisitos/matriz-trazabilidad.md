@@ -30,7 +30,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Capacidad | Decisiones | Reglas | Requisitos | Casos de uso | Interfaz | Modelo |
 |---|---|---|---|---|---|---|
 | Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009; RF-AUD-001, 003, 005 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol; implementado por `gestion-usuarios-autenticacion-roles` |
-| Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001 | Sin cambio funcional | Recorridos existentes | UI-001, UI-002, UI-010, UI-011, UI-018 | Implementado por `establecer-sistema-visual-frontend`; referencia en `DESIGN.md` |
+| Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001; RNF-MAN-003, RNF-MAN-005 | Sin cambio funcional | Recorridos existentes | Todas las pantallas implementadas (UI-001…002, UI-010…011, UI-014…018, UI-020…025, UI-030…037, UI-040…045, UI-053…063) | Sistema propio Tallkit, implementado por `redisenar-sistema-visual-tallkit` (sustituye a `establecer-sistema-visual-frontend`); referencia en `DESIGN.md` |
 | Separación de los dos RUC | CT-001 | RN-FIS-001…010 | RF-ACC-010…014; RF-PAG-004, RF-PAG-009…010; RF-REP-008 | CU-003, CU-012…013, CU-017…020, CU-026 | UI-014…017, UI-053…063, UI-070…084 | EntidadFiscal, DocumentoInterno, CierreDiario |
 | Clientes compartidos | DP-008 (Cliente) | RN-CLI-001…003, RN-CLI-008 | RF-CLI-001…005, RF-CLI-012 | CU-004 | UI-020…022 | Cliente |
 | Vehículos y propiedad | DP-008 (Vehículo); DM-003 V1 | RN-CLI-004…009 | RF-CLI-006…011 | CU-005 | UI-021, UI-023…025 | Vehiculo, PeriodoPropiedad |
@@ -109,8 +109,22 @@ Antes de implementar una capacidad:
 5. la futura API, el modelo de datos y las pruebas deben trazarse sin cambiar el significado conceptual aprobado.
 
 
-## Corrección del catálogo visual pendiente de aceptación
+## Rediseño visual Tallkit
 
-| Requisitos | Cambio activo | Evidencia requerida |
+El cambio `redisenar-sistema-visual-tallkit` sustituye la dirección SAAS Dashboard y cancela `aplicar-catalogo-visual-frontend`. Solo cambia la presentación: permisos, rutas previas, API y datos no cambian. Las rutas nuevas de formulario (`/products`, `/customers`, `/vehicles` y `/suppliers` con `/new` y `/:id/edit`) reutilizan el permiso de la acción existente.
+
+| Requisito | Origen | Evidencia |
 |---|---|---|
-| RNF-USA-001/002/007/008, RNF-COM-001…005, UI-001/002/010/011/018 | aplicar-catalogo-visual-frontend | `get_design_context` de F01–F22, procedencia C01–C66, capturas Chromium con DPR 1, comparación externa y aprobación visual explícita pendiente |
+| PPF-01 Patrón de lista | RNF-USA-002, 006, 011; sección 4 | `SalesPage.test.tsx`, `PurchasesPage.test.tsx`, `InventoryPage.test.tsx`; `e2e/responsive.spec.ts` |
+| PPF-02 Ficha de detalle | RNF-USA-006, 010; secciones 6 y 9 | `VehicleDetailPage.test.tsx`, `PurchaseDetailPage.test.tsx`, `SaleDetailPage.test.tsx` |
+| PPF-03 Formulario por secciones en página | RNF-USA-004, 005, 007; sección 5 | `catalog-routes.test.tsx` y pruebas de ruta y permisos de las páginas nuevas; `ProductEditorPage.test.tsx` |
+| PPF-04 Formulario corto en modal | RNF-USA-004, 005, 007 | `FormModal.test.tsx`, `VehicleBrandsPage.test.tsx`, `UsersPage.test.tsx`; `e2e/feedback.spec.ts` |
+| PPF-05 Editor con vista previa | DP-004, DP-017, DP-018, DP-025, DP-026; RNF-USA-010, 012 | `SaleEditorPage.test.tsx`, `PurchaseEditorPage.test.tsx`, `DocumentSheet.test.tsx` |
+| PPF-06 Diálogos de confirmación | RNF-USA-003, 006; sección 8.1; DP-027, DP-028 | `dialogs.test.tsx`, `SaleReviewDialog.test.tsx`, `PurchaseDetailPage.test.tsx` |
+| PPF-07 Estados de contenido | RNF-USA-004, 006; sección 4 | `states.test.tsx`, pruebas de carga, error, vacío y sin resultados de cada lista |
+| PPF-08 Notificación temporal | RNF-USA-004, 006, 007; sección 8.2 | `Toast.test.tsx`; `e2e/feedback.spec.ts` |
+| Identidad, tokens y piezas del taller (`sistema-visual-frontend`) | RNF-USA-008, 009; RNF-MAN-003 | `tokens.test.ts`, `legacy-guard.test.ts`, `business.test.tsx`; `e2e/visual-system.spec.ts` |
+| Navegación, modales, listas y formularios adaptables (`experiencia-adaptable-frontend`) | RNF-USA-001, 002, 007; RNF-COM-001, 002 | `AuthenticatedShell.test.tsx`, `NavigationPanel.test.tsx`; `e2e/responsive.spec.ts` con `axe` en 360, 768, 1024, 1280 y 1440 px |
+| Catálogo de componentes y patrones Tallkit (`catalogo-visual-reutilizable`) | RNF-MAN-005 | `registry.test.ts`, `CatalogApp.test.tsx`; `e2e/catalog/` |
+
+Secciones de `interfaz-y-navegacion.md` modificadas: 2.1 (marco y navegación por tamaño), 8.1 (textos breves de botones), 8.2 (éxito mediante toast) y 10 (modal o página, filas compactas). La aceptación visual final del usuario sigue pendiente.

@@ -45,6 +45,7 @@ export function RefundDialog({
   })
   return (
     <MoneyDialog
+      subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
       description="Registra el dinero que ya entregó al cliente. El sistema no realiza la transferencia ni entrega el efectivo."
       formValid={valid}
       inputSignature={JSON.stringify([trimmed, parts])}

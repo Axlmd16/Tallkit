@@ -1,4 +1,4 @@
-import { Printer } from '@phosphor-icons/react'
+import { ArrowLeft, Printer } from '@phosphor-icons/react'
 import { Link, useParams } from 'react-router'
 
 import { useSaleDocument } from '@/features/sales/hooks'
@@ -18,7 +18,10 @@ export function SaleDocumentPage() {
     return (
       <InlineNotice title="No se pudo cargar el comprobante" tone="danger">
         El comprobante solo existe para ventas confirmadas o anuladas.{' '}
-        <Link className="underline" to={`/sales/${id}`}>
+        <Link
+          className="font-semibold text-accent hover:underline"
+          to={`/sales/${id}`}
+        >
           Volver a la venta
         </Link>
       </InlineNotice>
@@ -44,10 +47,21 @@ export function SaleDocumentPage() {
   }
   return (
     <div className="catalog-page space-y-4">
-      <div className="no-print flex flex-wrap items-center justify-between gap-3">
-        <Link className="underline" to={`/sales/${id}`}>
-          Volver a la venta
+      <div className="no-print flex flex-wrap items-center gap-3">
+        <Link
+          aria-label="Volver a la venta"
+          className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
+          title="Volver a la venta"
+          to={`/sales/${id}`}
+        >
+          <ArrowLeft aria-hidden="true" size={18} />
         </Link>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-ink-muted">Comprobante interno</p>
+          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+            {doc.number ?? 'Sin número'}
+          </h1>
+        </div>
         <Button
           onClick={() => window.print()}
           type="button"
@@ -57,7 +71,9 @@ export function SaleDocumentPage() {
           Imprimir comprobante
         </Button>
       </div>
-      <SalesDocument data={sheet} />
+      <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">
+        <SalesDocument data={sheet} />
+      </div>
     </div>
   )
 }

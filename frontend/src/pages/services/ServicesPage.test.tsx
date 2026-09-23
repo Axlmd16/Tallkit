@@ -27,6 +27,7 @@ vi.mock('@/features/services/hooks', () => ({
 }))
 
 import { ServicesPage } from './ServicesPage'
+import { ToastProvider } from '@/shared/ui'
 
 const service = {
   id: 1,
@@ -59,7 +60,9 @@ beforeEach(() => {
 it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   render(
     <MemoryRouter>
-      <ServicesPage />
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
   const table = screen.getByRole('table', { name: 'Servicios' })
@@ -75,7 +78,14 @@ it('al elegir un servicio abre su ficha, sin panel lateral de vista previa', asy
   render(
     <MemoryRouter initialEntries={['/services']}>
       <Routes>
-        <Route element={<ServicesPage />} path="/services" />
+        <Route
+          element={
+            <ToastProvider>
+              <ServicesPage />
+            </ToastProvider>
+          }
+          path="/services"
+        />
         <Route element={<p>Ficha del servicio</p>} path="/services/:id" />
       </Routes>
     </MemoryRouter>,
@@ -89,7 +99,9 @@ it('al elegir un servicio abre su ficha, sin panel lateral de vista previa', asy
 it('la consulta no ofrece gestión ni consulta opciones fiscales administrativas', () => {
   render(
     <MemoryRouter>
-      <ServicesPage />
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
   expect(screen.queryByRole('button', { name: /nuevo servicio/i })).toBeNull()
@@ -102,7 +114,9 @@ it('el Encargado con gestión puede crear, editar y desactivar', async () => {
   const user = userEvent.setup()
   render(
     <MemoryRouter>
-      <ServicesPage />
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
   expect(
@@ -139,7 +153,9 @@ it.each([
   mocks.list = state
   render(
     <MemoryRouter>
-      <ServicesPage />
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
     </MemoryRouter>,
   )
   expect(screen.getAllByText(text)[0]).toBeInTheDocument()

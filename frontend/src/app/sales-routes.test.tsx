@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -40,6 +40,12 @@ vi.mock('@/pages/sales/ReceivablesPage', () => ({
 }))
 
 import { App, appRoutes } from './App'
+
+/** Enlaces de la navegación principal; el inicio repite los mismos accesos. */
+const mainNav = async () =>
+  within(
+    await screen.findByRole('navigation', { name: 'Navegación principal' }),
+  )
 
 const session = (permissions: string[]): Session => ({
   authenticated: true,
@@ -98,11 +104,12 @@ it('la navegación muestra Ventas y Cuentas por cobrar solo con su permiso', asy
   await userEvent.click(
     await screen.findByRole('button', { name: 'Ventas y cobros' }),
   )
-  expect(await screen.findByRole('link', { name: 'Ventas' })).toHaveAttribute(
-    'href',
-    '/sales',
-  )
-  expect(screen.queryByRole('link', { name: 'Cuentas por cobrar' })).toBeNull()
+  expect(
+    await (await mainNav()).findByRole('link', { name: 'Ventas' }),
+  ).toHaveAttribute('href', '/sales')
+  expect(
+    (await mainNav()).queryByRole('link', { name: 'Cuentas por cobrar' }),
+  ).toBeNull()
 })
 
 it('un Vendedor con ambos permisos ve las dos entradas', async () => {
@@ -112,7 +119,7 @@ it('un Vendedor con ambos permisos ve las dos entradas', async () => {
     await screen.findByRole('button', { name: 'Ventas y cobros' }),
   )
   expect(
-    await screen.findByRole('link', { name: 'Cuentas por cobrar' }),
+    await (await mainNav()).findByRole('link', { name: 'Cuentas por cobrar' }),
   ).toHaveAttribute('href', '/sales/receivables')
 })
 

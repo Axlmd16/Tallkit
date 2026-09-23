@@ -11,7 +11,13 @@ import { useSupplier, useSupplierMutations } from '@/features/suppliers/hooks'
 import { SupplierDetails } from '@/features/suppliers/SupplierDetails'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { Button, InlineNotice, LoadingState, PageHeader } from '@/shared/ui'
+import {
+  Button,
+  InlineNotice,
+  LoadingState,
+  PageHeader,
+  useToast,
+} from '@/shared/ui'
 
 export function SupplierDetailPage() {
   const id = Number(useParams().id)
@@ -25,7 +31,7 @@ export function SupplierDetailPage() {
   const mutations = useSupplierMutations()
   const tracker = useIntentTracker()
   const [change, setChange] = useState<StateChange | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const supplier = query.data
   const notFound =
     query.error instanceof ProblemError && query.error.status === 404
@@ -39,7 +45,7 @@ export function SupplierDetailPage() {
         key,
       }),
     )
-    setNotice(
+    toast.success(
       `Proveedor «${target.name}» ${target.active ? 'reactivado' : 'desactivado'}.`,
     )
   }
@@ -47,7 +53,7 @@ export function SupplierDetailPage() {
   return (
     <div className="space-y-6">
       <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
+        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
         to={back}
       >
         <ArrowLeft aria-hidden="true" size={16} />
@@ -71,7 +77,9 @@ export function SupplierDetailPage() {
               canManage && (
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => void navigate(`/suppliers/${supplier.id}/edit`)}
+                    onClick={() =>
+                      void navigate(`/suppliers/${supplier.id}/edit`)
+                    }
                     type="button"
                     variant="secondary"
                   >
@@ -98,11 +106,6 @@ export function SupplierDetailPage() {
             }
             title={supplier.name}
           />
-          {notice && (
-            <InlineNotice title="Operación exitosa" tone="success">
-              {notice}
-            </InlineNotice>
-          )}
           <SupplierDetails supplier={supplier} />
           <StateChangeDialog
             activateText="¿Reactivar el proveedor? Volverá a poder seleccionarse en operaciones nuevas."

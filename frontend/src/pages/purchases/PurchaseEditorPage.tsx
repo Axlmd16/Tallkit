@@ -1,4 +1,3 @@
-import { Calculator, Receipt } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
@@ -13,7 +12,6 @@ import {
   validateDraft,
   type PurchaseDraft,
 } from '@/features/purchases/draft'
-import { usd } from '@/features/purchases/format'
 import {
   usePurchase,
   usePurchaseMutations,
@@ -38,13 +36,14 @@ import {
   Combobox,
   Dialog,
   Field,
-  FiscalScopeBadge,
   InlineNotice,
   Input,
   LoadingState,
-  PageHeader,
+  Money,
   Select,
+  StatusBadge,
   Textarea,
+  useToast,
 } from '@/shared/ui'
 
 const snapshot = (draft: PurchaseDraft) =>
@@ -62,6 +61,7 @@ export function PurchaseEditorPage() {
   const saveTracker = useIntentTracker()
   const confirmTracker = useIntentTracker()
   const latest = useLatestReview<PurchaseReview>()
+  const toast = useToast()
 
   const [draft, setDraftState] = useState<PurchaseDraft>(emptyDraft)
   const [baseline, setBaseline] = useState(() => snapshot(emptyDraft()))
@@ -74,6 +74,9 @@ export function PurchaseEditorPage() {
   const [busy, setBusy] = useState(false)
   const [view, setView] = useState<'edit' | 'preview'>('edit')
   const reviewTrigger = useRef<HTMLButtonElement>(null)
+  // La navegación a /edit llega como transición: hasta que se aplica, `purchaseId` sigue
+  // en null. El borrador ya creado se reutiliza para no crear un segundo ingreso.
+  const createdId = useRef<number | null>(null)
 
   const purchase = query.data
   const dirty = snapshot(draft) !== baseline
@@ -130,10 +133,14 @@ export function PurchaseEditorPage() {
     }
     const input = toInput(draft)
     try {
+      if (purchaseId === null && createdId.current !== null) {
+        return createdId.current
+      }
       if (purchaseId === null) {
         const created = await saveTracker.run(input, (key) =>
           mutations.create.mutateAsync({ data: input, key }),
         )
+        createdId.current = created.id
         navigate(`/purchases/${created.id}/edit`, { replace: true })
         return created.id
       }
@@ -191,8 +198,13 @@ export function PurchaseEditorPage() {
     }
     setBusy(true)
     try {
-      await confirmTracker.run(payload, (key) =>
+      const confirmed = await confirmTracker.run(payload, (key) =>
         mutations.confirm.mutateAsync({ ...payload, key }),
+      )
+      toast.success(
+        confirmed?.internal_number
+          ? `Ingreso ${confirmed.internal_number} confirmado.`
+          : 'Ingreso confirmado.',
       )
       navigate(`/purchases/${purchaseId}`)
     } catch (error) {
@@ -260,20 +272,27 @@ export function PurchaseEditorPage() {
     }
   })
 
+  const note =
+    purchase?.totals_status === 'not_calculable' && !dirty
+      ? 'Totales no calculables: falta una tarifa vigente única para la fecha.'
+      : 'Los importes los calcula el sistema al guardar; confirme solo después de revisarlos.'
+
   return (
-    <div className="sale-screen">
-      <PageHeader
-        description="Complete el documento del proveedor y las líneas. Los importes los calcula el sistema; confirme solo después de revisarlos."
-        title={
-          purchaseId === null
-            ? 'Nuevo ingreso de mercadería'
-            : 'Editar ingreso de mercadería'
-        }
-      />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <FiscalScopeBadge scope="commercial" />
-        {dirty && <span className="sale-unsaved">Cambios sin guardar</span>}
-      </div>
+    <div className="catalog-page sale-screen">
+      <header className="sale-topbar">
+        <div className="sale-topbar-title">
+          <h1>
+            {purchaseId === null
+              ? 'Nuevo ingreso de mercadería'
+              : 'Editar ingreso de mercadería'}
+          </h1>
+          <p>Registre el documento del proveedor y los productos recibidos</p>
+        </div>
+        <div className="sale-topbar-status">
+          <StatusBadge label="Borrador" tone="neutral" />
+          {dirty && <span className="sale-unsaved">Cambios sin guardar</span>}
+        </div>
+      </header>
       <div aria-label="Vista" className="sale-view-switch" role="group">
         {(['edit', 'preview'] as const).map((value) => (
           <button
@@ -289,196 +308,194 @@ export function PurchaseEditorPage() {
       <div className="sale-workspace" data-view={view}>
         <section aria-label="Captura del ingreso" className="sale-editor-panel">
           <div className="sale-editor-scroll">
-      {problem && (
-        <InlineNotice
-          title={
-            problem.staleRecord
-              ? 'El ingreso cambió'
-              : 'No se guardó el ingreso'
-          }
-          tone="danger"
-        >
-          {problem.message}
-          {problem.staleRecord && (
-            <div className="mt-3">
-              <Button
-                onClick={() => {
-                  setLoadedVersion(null)
-                  setProblem(null)
-                  void query.refetch()
-                }}
-                type="button"
-                variant="secondary"
-              >
-                Recargar el ingreso
-              </Button>
-            </div>
-          )}
-        </InlineNotice>
-      )}
-      <form
-        className="catalog-editor-form space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault()
-          void onSave()
-        }}
-      >
-        <section
-          aria-label="Documento"
-          className="form-section grid gap-4 rounded-group border border-line bg-surface-subtle/60 p-5 md:grid-cols-2"
-        >
-          <div className="flex items-start gap-3 md:col-span-2">
-            <span className="grid size-10 shrink-0 place-items-center rounded-group bg-primary-soft text-primary">
-              <Receipt aria-hidden="true" size={22} />
-            </span>
-            <div>
-              <h2 className="font-bold text-ink">Datos del documento</h2>
-              <p className="mt-0.5 text-sm text-ink-muted">
-                Identifique al proveedor y el comprobante recibido.
-              </p>
-            </div>
-          </div>
-          <div className="md:col-span-2">
-            <Combobox
-              clearable
-              error={errors.supplier_id}
-              id="purchase-supplier"
-              inactiveHelp="Proveedor inactivo: se conserva legible, pero impide confirmar mientras siga inactivo."
-              label="Proveedor"
-              onSelect={(supplier) => setDraft({ supplier })}
-              selected={draft.supplier}
-              useOptions={useSupplierOptions}
-            />
-          </div>
-          <Field id="purchase-type" label="Tipo de documento">
-            <Select
-              id="purchase-type"
-              onChange={(event) =>
-                setDraft({ documentType: event.target.value as DocumentType })
-              }
-              value={draft.documentType}
-            >
-              {(Object.keys(documentTypeLabels) as DocumentType[]).map(
-                (type) => (
-                  <option key={type} value={type}>
-                    {documentTypeLabels[type]}
-                  </option>
-                ),
-              )}
-            </Select>
-          </Field>
-          {draft.documentType === 'SIN_DOCUMENTO' ? (
-            <Field
-              error={errors.no_document_reason}
-              id="purchase-reason"
-              label="Explicación de la compra sin documento"
-            >
-              <Textarea
-                id="purchase-reason"
-                onChange={(event) => setDraft({ reason: event.target.value })}
-                value={draft.reason}
-              />
-            </Field>
-          ) : (
-            <Field
-              error={errors.supplier_reference}
-              hint="Se compara sin distinguir mayúsculas ni espacios exteriores."
-              id="purchase-reference"
-              label="Referencia del proveedor"
-            >
-              <Input
-                id="purchase-reference"
-                maxLength={128}
-                onChange={(event) =>
-                  setDraft({ reference: event.target.value })
+            {problem && (
+              <InlineNotice
+                title={
+                  problem.staleRecord
+                    ? 'El ingreso cambió'
+                    : 'No se guardó el ingreso'
                 }
-                value={draft.reference}
-              />
-            </Field>
-          )}
-          <Field
-            error={errors.document_date}
-            id="purchase-date"
-            label="Fecha del documento"
-          >
-            <Input
-              id="purchase-date"
-              onChange={(event) =>
-                setDraft({ documentDate: event.target.value })
-              }
-              type="date"
-              value={draft.documentDate}
-            />
-          </Field>
-          <Field error={errors.notes} id="purchase-notes" label="Observación">
-            <Textarea
-              id="purchase-notes"
-              maxLength={2000}
-              onChange={(event) => setDraft({ notes: event.target.value })}
-              value={draft.notes}
-            />
-          </Field>
-        </section>
-        <LinesEditor
-          amounts={amounts}
-          errors={errors}
-          lines={draft.lines}
-          onChange={(lines) => setDraft({ lines })}
-          taxOptions={taxOptions.data?.results ?? []}
-        />
-        <section
-          aria-label="Totales"
-          className="flex items-start gap-3 rounded-group bg-primary-soft/45 p-5"
-        >
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-primary">
-            <Calculator aria-hidden="true" size={21} />
-          </span>
-          <div>
-            <h2 className="font-bold text-ink">Totales del documento</h2>
-            {!dirty && purchase?.totals ? (
-              <p className="mt-2 text-ink">
-                Base {usd(purchase.totals.base)} · Impuesto{' '}
-                {usd(purchase.totals.tax)} · Total{' '}
-                <strong>{usd(purchase.totals.total)}</strong>
-              </p>
-            ) : (
-              <p className="mt-2 text-ink-muted">
-                {purchase?.totals_status === 'not_calculable' && !dirty
-                  ? 'Totales no calculables: falta una tarifa vigente única para la fecha.'
-                  : 'Los totales se calculan en el servidor al guardar.'}
-              </p>
+                tone="danger"
+              >
+                {problem.message}
+                {problem.staleRecord && (
+                  <div className="mt-3">
+                    <Button
+                      onClick={() => {
+                        setLoadedVersion(null)
+                        setProblem(null)
+                        void query.refetch()
+                      }}
+                      type="button"
+                      variant="secondary"
+                    >
+                      Recargar el ingreso
+                    </Button>
+                  </div>
+                )}
+              </InlineNotice>
             )}
+            <form
+              className="contents"
+              id="purchase-form"
+              onSubmit={(event) => {
+                event.preventDefault()
+                void onSave()
+              }}
+            >
+              <section aria-label="Documento" className="sale-section">
+                <div className="sale-section-head">
+                  <h2>Datos del documento</h2>
+                  <span className="sale-section-hint">
+                    Proveedor y comprobante recibido
+                  </span>
+                </div>
+                <div className="grid gap-3 p-3 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <label
+                      className="mb-1.5 block text-xs font-semibold text-ink"
+                      htmlFor="purchase-supplier"
+                    >
+                      Proveedor
+                    </label>
+                    <Combobox
+                      clearable
+                      error={errors.supplier_id}
+                      id="purchase-supplier"
+                      inactiveHelp="Proveedor inactivo: se conserva legible, pero impide confirmar mientras siga inactivo."
+                      label="Proveedor"
+                      onSelect={(supplier) => setDraft({ supplier })}
+                      selected={draft.supplier}
+                      useOptions={useSupplierOptions}
+                    />
+                  </div>
+                  <Field id="purchase-type" label="Tipo de documento">
+                    <Select
+                      id="purchase-type"
+                      onChange={(event) =>
+                        setDraft({
+                          documentType: event.target.value as DocumentType,
+                        })
+                      }
+                      value={draft.documentType}
+                    >
+                      {(Object.keys(documentTypeLabels) as DocumentType[]).map(
+                        (type) => (
+                          <option key={type} value={type}>
+                            {documentTypeLabels[type]}
+                          </option>
+                        ),
+                      )}
+                    </Select>
+                  </Field>
+                  {draft.documentType === 'SIN_DOCUMENTO' ? (
+                    <Field
+                      error={errors.no_document_reason}
+                      id="purchase-reason"
+                      label="Explicación de la compra sin documento"
+                    >
+                      <Textarea
+                        id="purchase-reason"
+                        onChange={(event) =>
+                          setDraft({ reason: event.target.value })
+                        }
+                        value={draft.reason}
+                      />
+                    </Field>
+                  ) : (
+                    <Field
+                      error={errors.supplier_reference}
+                      hint="Se compara sin distinguir mayúsculas ni espacios exteriores."
+                      id="purchase-reference"
+                      label="Referencia del proveedor"
+                    >
+                      <Input
+                        className="font-mono"
+                        id="purchase-reference"
+                        maxLength={128}
+                        onChange={(event) =>
+                          setDraft({ reference: event.target.value })
+                        }
+                        value={draft.reference}
+                      />
+                    </Field>
+                  )}
+                  <Field
+                    error={errors.document_date}
+                    id="purchase-date"
+                    label="Fecha del documento"
+                  >
+                    <Input
+                      id="purchase-date"
+                      onChange={(event) =>
+                        setDraft({ documentDate: event.target.value })
+                      }
+                      type="date"
+                      value={draft.documentDate}
+                    />
+                  </Field>
+                  <Field
+                    error={errors.notes}
+                    id="purchase-notes"
+                    label="Observación"
+                  >
+                    <Textarea
+                      id="purchase-notes"
+                      maxLength={2000}
+                      onChange={(event) =>
+                        setDraft({ notes: event.target.value })
+                      }
+                      rows={2}
+                      value={draft.notes}
+                    />
+                  </Field>
+                </div>
+              </section>
+              <LinesEditor
+                amounts={amounts}
+                errors={errors}
+                lines={draft.lines}
+                onChange={(lines) => setDraft({ lines })}
+                taxOptions={taxOptions.data?.results ?? []}
+              />
+            </form>
           </div>
-        </section>
-        <div className="flex flex-wrap gap-3">
-          <Button disabled={busy} type="submit">
-            {busy ? 'Guardando…' : 'Guardar borrador'}
-          </Button>
-          <Button
-            disabled={busy}
-            onClick={() => void onReview()}
-            ref={reviewTrigger}
-            type="button"
-            variant="secondary"
-          >
-            Revisar y confirmar
-          </Button>
-          <Button
-            onClick={() =>
-              dirty ? setDiscardOpen(true) : navigate('/purchases')
-            }
-            type="button"
-            variant="quiet"
-          >
-            Cancelar
-          </Button>
-        </div>
-        {dirty && (
-          <p className="text-sm text-warning" role="status">
-            Hay cambios sin guardar.
-          </p>
-        )}
-      </form>
+          <div className="sale-actions">
+            <div className="sale-actions-total">
+              <span>Total del ingreso</span>
+              <Money
+                amount={!dirty ? (purchase?.totals?.total ?? null) : null}
+                className="text-xl font-bold"
+              />
+            </div>
+            <p aria-live="polite" className="sale-actions-note" role="status">
+              {dirty ? 'Hay cambios sin guardar.' : note}
+            </p>
+            <Button
+              onClick={() =>
+                dirty ? setDiscardOpen(true) : navigate('/purchases')
+              }
+              type="button"
+              variant="quiet"
+            >
+              Cancelar
+            </Button>
+            <Button
+              disabled={busy}
+              form="purchase-form"
+              type="submit"
+              variant="secondary"
+            >
+              {busy ? 'Guardando…' : 'Guardar borrador'}
+            </Button>
+            <Button
+              disabled={busy}
+              onClick={() => void onReview()}
+              ref={reviewTrigger}
+              type="button"
+            >
+              Revisar y confirmar
+            </Button>
           </div>
         </section>
         <section aria-label="Vista previa" className="sale-viewer">

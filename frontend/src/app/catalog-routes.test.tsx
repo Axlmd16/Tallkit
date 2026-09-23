@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -70,6 +70,12 @@ vi.mock('@/pages/vehicles/VehicleEditorPage', () => ({
 
 import { App, appRoutes } from './App'
 
+/** Enlaces de la navegación principal; el inicio repite los mismos accesos. */
+const mainNav = async () =>
+  within(
+    await screen.findByRole('navigation', { name: 'Navegación principal' }),
+  )
+
 const session = (permissions: string[]): Session => ({
   authenticated: true,
   username: 'usuario',
@@ -122,13 +128,17 @@ it('muestra en la navegación solo lo que la sesión permite y distingue las mar
   renderPath('/')
   await openGroups('Catálogos', 'Clientes y vehículos')
   expect(
-    await screen.findByRole('link', { name: 'Servicios' }),
+    await (await mainNav()).findByRole('link', { name: 'Servicios' }),
   ).toBeInTheDocument()
   expect(
-    screen.getByRole('link', { name: 'Marcas de vehículos' }),
+    (await mainNav()).getByRole('link', { name: 'Marcas de vehículos' }),
   ).toHaveAttribute('href', '/vehicle-brands')
-  expect(screen.queryByRole('link', { name: 'Productos' })).toBeNull()
-  expect(screen.queryByRole('link', { name: 'Proveedores' })).toBeNull()
+  expect(
+    (await mainNav()).queryByRole('link', { name: 'Productos' }),
+  ).toBeNull()
+  expect(
+    (await mainNav()).queryByRole('link', { name: 'Proveedores' }),
+  ).toBeNull()
 })
 
 it('un Administrador con todos los permisos ve las tres entradas nuevas', async () => {
@@ -140,7 +150,9 @@ it('un Administrador con todos los permisos ve las tres entradas nuevas', async 
   renderPath('/')
   await openGroups('Catálogos', 'Compras e inventario')
   for (const name of ['Productos', 'Servicios', 'Proveedores']) {
-    expect(await screen.findByRole('link', { name })).toBeInTheDocument()
+    expect(
+      await (await mainNav()).findByRole('link', { name }),
+    ).toBeInTheDocument()
   }
 })
 

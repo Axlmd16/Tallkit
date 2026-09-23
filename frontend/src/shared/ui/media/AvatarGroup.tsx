@@ -44,7 +44,7 @@ export function AvatarGroup({
       {extraCount > 0 && (
         <span
           aria-label={`${extraCount} más`}
-          className={`grid place-items-center rounded-full bg-surface-selected font-bold text-ink ring-2 ring-surface ${extraSizeClasses}`}
+          className={`grid place-items-center rounded-full bg-surface-muted font-bold text-ink ring-2 ring-surface ${extraSizeClasses}`}
         >
           +{extraCount}
         </span>

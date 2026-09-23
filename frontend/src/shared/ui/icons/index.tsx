@@ -4,9 +4,11 @@ import {
   CaretLeft,
   CaretRight,
   CaretUp,
+  ChartBar,
   Check,
   Eye,
   EyeSlash,
+  FileText,
   Funnel,
   Gear,
   Key,
@@ -14,16 +16,13 @@ import {
   PencilSimple,
   Plus,
   ShieldCheck,
+  SquaresFour,
   Trash,
   User,
   X,
   type IconProps as PhosphorIconProps,
 } from '@phosphor-icons/react'
-import type { ComponentType, ImgHTMLAttributes, SVGProps } from 'react'
-
-import categoryAsset from '@/assets/figma/category.svg'
-import chartAsset from '@/assets/figma/chart.svg'
-import documentAsset from '@/assets/figma/document.svg'
+import type { ComponentType, SVGProps } from 'react'
 
 export type IconName =
   | 'category'
@@ -50,10 +49,7 @@ export type IconName =
 
 export interface IconDefinition {
   label: string
-  asset?: string
-  component?: ComponentType<
-    SVGProps<SVGSVGElement> & { size?: number | string }
-  >
+  component: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>
 }
 
 function adaptPhosphor(Component: ComponentType<PhosphorIconProps>) {
@@ -66,9 +62,18 @@ function adaptPhosphor(Component: ComponentType<PhosphorIconProps>) {
 }
 
 export const ICON_MAP: Record<IconName, IconDefinition> = {
-  category: { label: 'Categoría / Menú', asset: categoryAsset },
-  chart: { label: 'Gráfico / Estadísticas', asset: chartAsset },
-  document: { label: 'Documento / Factura', asset: documentAsset },
+  category: {
+    label: 'Categoría / Menú',
+    component: adaptPhosphor(SquaresFour),
+  },
+  chart: {
+    label: 'Gráfico / Estadísticas',
+    component: adaptPhosphor(ChartBar),
+  },
+  document: {
+    label: 'Documento / Factura',
+    component: adaptPhosphor(FileText),
+  },
   user: { label: 'Usuario / Perfil', component: adaptPhosphor(User) },
   calendar: {
     label: 'Calendario / Fecha',
@@ -113,24 +118,7 @@ export function Icon({
 
   const isAccessible = Boolean(ariaLabel)
 
-  if (iconDef.asset) {
-    return (
-      <img
-        alt={ariaLabel ?? ''}
-        aria-hidden={!isAccessible}
-        aria-label={ariaLabel}
-        className={`inline-block shrink-0 ${className}`}
-        height={size}
-        role={isAccessible ? 'img' : undefined}
-        src={iconDef.asset}
-        width={size}
-        {...(props as ImgHTMLAttributes<HTMLImageElement>)}
-      />
-    )
-  }
-
   const IconComponent = iconDef.component
-  if (!IconComponent) return null
 
   return (
     <IconComponent

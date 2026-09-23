@@ -26,17 +26,17 @@ export interface ProgressProps {
 const toneLinearClassMap: Record<ProgressTone, string> = {
   default: 'bg-ink',
   primary: 'bg-primary',
-  success: 'bg-emerald-600 dark:bg-emerald-500',
-  warning: 'bg-amber-500 dark:bg-amber-400',
-  danger: 'bg-rose-600 dark:bg-rose-500',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  danger: 'bg-danger',
 }
 
 const toneCircularColorMap: Record<ProgressTone, string> = {
   default: 'currentColor',
-  primary: 'var(--primary, #605bff)',
-  success: '#10b981',
-  warning: '#f59e0b',
-  danger: '#ef4444',
+  primary: 'var(--color-primary)',
+  success: 'var(--color-success)',
+  warning: 'var(--color-warning)',
+  danger: 'var(--color-danger)',
 }
 
 const linearHeightMap: Record<ProgressSize, string> = {
@@ -106,7 +106,7 @@ export function Progress({
           >
             {/* Pista de fondo */}
             <circle
-              className="text-border/30 dark:text-border/40"
+              className="text-line"
               cx={svgSize / 2}
               cy={svgSize / 2}
               fill="transparent"
@@ -180,7 +180,7 @@ export function Progress({
 
       {/* Pista lineal */}
       <div
-        className={`w-full overflow-hidden rounded-full bg-border/30 dark:bg-border/40 ${linearHeightMap[size]}`}
+        className={`w-full overflow-hidden rounded-full bg-surface-muted ${linearHeightMap[size]}`}
       >
         <div
           className={`h-full rounded-full transition-all duration-300 ${toneLinearClassMap[tone]} ${

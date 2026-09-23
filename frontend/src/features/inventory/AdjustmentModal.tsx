@@ -154,10 +154,12 @@ export function AdjustmentModal({
             ? 'Preparando…'
             : 'Preparar y revisar'
       }
+      saveDisabled={operation !== null && !review?.can_confirm}
+      cancelLabel={operation ? 'Abandonar sin confirmar' : 'Cancelar'}
       {...(returnFocusRef ? { returnFocusRef } : {})}
       title="Carga inicial y ajustes"
     >
-      <div className="catalog-editor-form inventory-adjustment-form space-y-4">
+      <div className="space-y-4">
         {problem && (
           <InlineNotice title="No se pudo completar" tone="danger">
             {problem.message}

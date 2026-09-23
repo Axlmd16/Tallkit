@@ -1,15 +1,11 @@
-import {
-  ChartLineUp,
-  Package,
-  Plus,
-} from '@phosphor-icons/react'
+import { ChartLineUp, Plus } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
-import { AdjustmentModal } from '@/features/inventory/AdjustmentDrawer'
+import { AdjustmentModal } from '@/features/inventory/AdjustmentModal'
 import { useStock } from '@/features/inventory/hooks'
 import type { StockRow } from '@/features/inventory/types'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
@@ -18,17 +14,20 @@ import {
   ElevatedDataList,
   Field,
   FilterPanel,
-  InlineNotice,
   Input,
   PageHeader,
   RowActions,
+  SegmentedControl,
   Select,
   StatusBadge,
+  StockIndicator,
+  useToast,
 } from '@/shared/ui'
 
 interface FlatRow {
   id: number
-  label: string
+  code: string
+  name: string
   category: string
   presentation: string
   quantity: string
@@ -39,7 +38,8 @@ interface FlatRow {
 
 const flatten = (row: StockRow): FlatRow => ({
   id: row.product.id,
-  label: `${row.product.code} — ${row.product.name}`,
+  code: row.product.code,
+  name: row.product.name,
   category: row.product.category.name,
   presentation: `${row.product.content_quantity} ${row.product.unit.symbol || row.product.unit.name}`,
   quantity: row.quantity,
@@ -59,7 +59,7 @@ export function InventoryPage() {
   useEffect(() => setText(filters.search), [filters.search])
   const [adjusting, setAdjusting] = useState(false)
   const adjustTrigger = useRef<HTMLButtonElement>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const toast = useToast()
   const categories = useProductCategoryList({ isActive: 'all', pageSize: 100 })
 
   const query = useStock({
@@ -85,15 +85,12 @@ export function InventoryPage() {
   }
 
   return (
-    <div className="catalog-page list-page space-y-6">
+    <div className="catalog-page list-page space-y-4">
       <PageHeader
         actions={
           canAdjust && (
             <Button
-              onClick={() => {
-                setNotice(null)
-                setAdjusting(true)
-              }}
+              onClick={() => setAdjusting(true)}
               ref={adjustTrigger}
               type="button"
             >
@@ -102,91 +99,87 @@ export function InventoryPage() {
             </Button>
           )
         }
-        description="Existencias por presentación completa en la bodega única. El cero es una existencia confirmada; no hay umbrales ni alertas en esta versión."
+        description={`Existencias por presentación completa en la bodega única. El cero es una existencia confirmada; no hay umbrales ni alertas en esta versión.${canSeeValuation ? ' El costo promedio es un costo de compra valorado por el sistema; no es el precio final de venta.' : ''}`}
         title="Inventario"
       />
-      {notice && (
-        <InlineNotice title="Operación exitosa" tone="success">
-          {notice}
-        </InlineNotice>
-      )}
-      {canSeeValuation && (
-        <p className="text-sm text-ink-muted">
-          El costo promedio es un costo de compra valorado por el sistema; no es
-          el precio final de venta.
-        </p>
-      )}
-      <FilterPanel
-        label="Filtros de inventario"
-        layout="inline"
-        {...(filters.filtered
-          ? {
-              onClear: () =>
-                filters.set({
-                  search: '',
-                  category_id: '',
-                  active: '',
-                  stock: '',
-                }),
-            }
-          : {})}
-      >
-        <form className="contents" onSubmit={submit} role="search">
-          <Field
-            id="inventory-search"
-            label="Código, código de fabricante o nombre"
-          >
-            <Input
-              id="inventory-search"
-              onChange={(event) => setText(event.target.value)}
-              value={text}
-            />
-          </Field>
-          <Button type="submit" variant="secondary">
-            Buscar
-          </Button>
-        </form>
-        <Field id="inventory-category" label="Categoría">
-          <Select
-            id="inventory-category"
-            onChange={(event) =>
-              filters.set({ category_id: event.target.value })
-            }
-            value={filters.get('category_id')}
-          >
-            <option value="">Todas</option>
-            {categories.data?.results.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field id="inventory-active" label="Estado del producto">
-          <Select
-            id="inventory-active"
-            onChange={(event) => filters.set({ active: event.target.value })}
-            value={filters.get('active')}
-          >
-            <option value="">Activos e inactivos con historia</option>
-            <option value="true">Solo activos</option>
-            <option value="false">Solo inactivos</option>
-            <option value="all">Todos</option>
-          </Select>
-        </Field>
-        <Field id="inventory-stock" label="Existencias">
-          <Select
-            id="inventory-stock"
-            onChange={(event) => filters.set({ stock: event.target.value })}
-            value={filters.get('stock')}
-          >
-            <option value="">Todas</option>
-            <option value="positive">Con existencia</option>
-            <option value="zero">Sin existencia (cero)</option>
-          </Select>
-        </Field>
-      </FilterPanel>
       <ListStates
+        toolbar={
+          <>
+            <SegmentedControl
+              aria-label="Existencias"
+              onChange={(value) => filters.set({ stock: value })}
+              options={[
+                { value: '', label: 'Todas' },
+                { value: 'positive', label: 'Con existencia' },
+                { value: 'zero', label: 'Agotadas' },
+              ]}
+              value={filters.get('stock')}
+            />
+            <FilterPanel
+              bare
+              className="mt-3"
+              label="Filtros de inventario"
+              layout="inline"
+              {...(filters.filtered
+                ? {
+                    onClear: () =>
+                      filters.set({
+                        search: '',
+                        category_id: '',
+                        active: '',
+                        stock: '',
+                      }),
+                  }
+                : {})}
+            >
+              <form className="contents" onSubmit={submit} role="search">
+                <Field
+                  id="inventory-search"
+                  label="Código, código de fabricante o nombre"
+                >
+                  <Input
+                    id="inventory-search"
+                    onChange={(event) => setText(event.target.value)}
+                    value={text}
+                  />
+                </Field>
+                <Button type="submit" variant="secondary">
+                  Buscar
+                </Button>
+              </form>
+              <Field id="inventory-category" label="Categoría">
+                <Select
+                  id="inventory-category"
+                  onChange={(event) =>
+                    filters.set({ category_id: event.target.value })
+                  }
+                  value={filters.get('category_id')}
+                >
+                  <option value="">Todas</option>
+                  {categories.data?.results.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field id="inventory-active" label="Estado del producto">
+                <Select
+                  id="inventory-active"
+                  onChange={(event) =>
+                    filters.set({ active: event.target.value })
+                  }
+                  value={filters.get('active')}
+                >
+                  <option value="">Activos e inactivos con historia</option>
+                  <option value="true">Solo activos</option>
+                  <option value="false">Solo inactivos</option>
+                  <option value="all">Todos</option>
+                </Select>
+              </Field>
+            </FilterPanel>
+          </>
+        }
         emptyText="Aún no hay productos con existencias registradas."
         emptyTitle="No hay productos"
         errorText="No fue posible consultar las existencias. No se muestra ningún saldo hasta reintentar."
@@ -217,14 +210,16 @@ export function InventoryPage() {
             columns={[
               {
                 header: 'Producto',
-                key: 'label',
+                key: 'name',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="flex items-center gap-2.5 font-semibold text-ink">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-info-soft text-info">
-                      <Package aria-hidden="true" size={17} weight="fill" />
+                  <span className="block min-w-0">
+                    <span className="block font-mono text-xs font-semibold text-ink">
+                      {row.code}
                     </span>
-                    {row.label}
+                    <span className="block truncate font-medium text-ink">
+                      {row.name}
+                    </span>
                   </span>
                 ),
               },
@@ -244,14 +239,8 @@ export function InventoryPage() {
                 header: 'Existencia',
                 key: 'quantity',
                 priority: 'primary',
-                render: (row) =>
-                  row.quantity === '0' ? (
-                    <span>
-                      0 <StatusBadge label="Sin existencia" tone="neutral" />
-                    </span>
-                  ) : (
-                    <strong>{row.quantity}</strong>
-                  ),
+                align: 'end',
+                render: (row) => <StockIndicator quantity={row.quantity} />,
               },
               ...(canSeeValuation
                 ? [
@@ -259,19 +248,25 @@ export function InventoryPage() {
                       header: 'Costo promedio',
                       key: 'average_cost' as const,
                       priority: 'secondary' as const,
+                      align: 'end' as const,
                       render: (row: FlatRow) =>
-                        row.average_cost !== undefined
-                          ? `USD ${row.average_cost}`
-                          : '—',
+                        row.average_cost !== undefined ? (
+                          <span className="tabular-nums">{`USD ${row.average_cost}`}</span>
+                        ) : (
+                          '—'
+                        ),
                     },
                     {
                       header: 'Valor inventariable',
                       key: 'inventory_value' as const,
                       priority: 'secondary' as const,
+                      align: 'end' as const,
                       render: (row: FlatRow) =>
-                        row.inventory_value !== undefined
-                          ? `USD ${row.inventory_value}`
-                          : '—',
+                        row.inventory_value !== undefined ? (
+                          <span className="tabular-nums">{`USD ${row.inventory_value}`}</span>
+                        ) : (
+                          '—'
+                        ),
                     },
                   ]
                 : []),
@@ -303,7 +298,7 @@ export function InventoryPage() {
           onClose={() => setAdjusting(false)}
           onDone={(message) => {
             setAdjusting(false)
-            setNotice(message)
+            toast.success(message)
           }}
           open={adjusting}
           returnFocusRef={adjustTrigger}

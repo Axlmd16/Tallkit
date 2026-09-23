@@ -3,13 +3,7 @@ import { Link, useParams } from 'react-router'
 
 import { useOperation } from '@/features/inventory/hooks'
 import { kindLabels, operationStateLabels } from '@/features/inventory/types'
-import {
-  Button,
-  InlineNotice,
-  LoadingState,
-  PageHeader,
-  StatusBadge,
-} from '@/shared/ui'
+import { Button, InlineNotice, LoadingState, StatusBadge } from '@/shared/ui'
 
 export function InventoryOperationDetailPage() {
   const id = Number(useParams().id)
@@ -30,105 +24,157 @@ export function InventoryOperationDetailPage() {
   }
   const op = query.data
   const originId = (ref: string) => ref.replace('INV-', '')
+  const panel = 'rounded-panel border border-line bg-surface'
+  const link = 'font-mono font-semibold text-accent hover:underline'
   return (
-    <div className="space-y-6">
-      <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
-        to="/inventory"
-      >
-        <ArrowLeft aria-hidden="true" size={16} />
-        Volver a inventario
-      </Link>
-      <PageHeader description={kindLabels[op.kind]} title={op.reference} />
-      <div className="flex flex-wrap gap-3">
-        <StatusBadge
-          label={operationStateLabels[op.state]}
-          tone={op.state === 'POSTED' ? 'success' : 'neutral'}
-        />
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Link
+          aria-label="Volver a inventario"
+          className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
+          title="Volver a inventario"
+          to="/inventory"
+        >
+          <ArrowLeft aria-hidden="true" size={18} />
+        </Link>
+        <div className="min-w-0">
+          <p className="text-xs text-ink-muted">{kindLabels[op.kind]}</p>
+          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+            {op.reference}
+          </h1>
+        </div>
       </div>
-      <dl className="grid gap-3 rounded-group bg-surface p-4 shadow-card sm:grid-cols-2">
-        <div>
-          <dt className="text-sm text-ink-muted">Producto</dt>
-          <dd className="font-semibold">
-            {op.product ? `${op.product.code} — ${op.product.name}` : '—'}
-          </dd>
+      <section
+        aria-label="Resumen de la operación"
+        className={`${panel} px-5 py-4`}
+      >
+        <div className="mb-3">
+          <StatusBadge
+            label={operationStateLabels[op.state]}
+            tone={op.state === 'POSTED' ? 'success' : 'neutral'}
+          />
         </div>
-        <div>
-          <dt className="text-sm text-ink-muted">Cantidad</dt>
-          <dd className="font-semibold">{op.quantity ?? '—'}</dd>
-        </div>
-        <div>
-          <dt className="text-sm text-ink-muted">Origen</dt>
-          <dd>
-            {op.origin.type}{' '}
-            {op.origin.origin_url ? (
-              <Link className="underline" to={op.origin.origin_url}>
-                Abrir origen
-              </Link>
-            ) : (
-              <span>({op.origin.reference})</span>
-            )}
-          </dd>
-        </div>
-        {op.reason !== undefined && (
-          <div>
-            <dt className="text-sm text-ink-muted">Motivo</dt>
-            <dd>{op.reason || '—'}</dd>
-          </div>
-        )}
-        {op.reverses_reference && (
-          <div>
-            <dt className="text-sm text-ink-muted">Compensa a</dt>
-            <dd>
-              <Link
-                className="underline"
-                to={`/inventory/operations/${originId(op.reverses_reference)}`}
-              >
-                {op.reverses_reference}
-              </Link>
+        <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 xl:grid-cols-4">
+          <div className="min-w-0 sm:col-span-2">
+            <dt className="text-xs text-ink-muted">Producto</dt>
+            <dd className="mt-0.5 font-medium">
+              {op.product ? (
+                <>
+                  <span className="font-mono text-xs font-semibold">
+                    {op.product.code}
+                  </span>{' '}
+                  — {op.product.name}
+                </>
+              ) : (
+                '—'
+              )}
             </dd>
           </div>
-        )}
-      </dl>
+          <div>
+            <dt className="text-xs text-ink-muted">Cantidad</dt>
+            <dd className="mt-0.5 font-mono font-semibold tabular-nums">
+              {op.quantity ?? '—'}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-ink-muted">Origen</dt>
+            <dd className="mt-0.5">
+              {op.origin.type}{' '}
+              {op.origin.origin_url ? (
+                <Link
+                  className="font-semibold text-accent hover:underline"
+                  to={op.origin.origin_url}
+                >
+                  Abrir origen
+                </Link>
+              ) : (
+                <span className="font-mono">({op.origin.reference})</span>
+              )}
+            </dd>
+          </div>
+          {op.reason !== undefined && (
+            <div className="sm:col-span-2">
+              <dt className="text-xs text-ink-muted">Motivo</dt>
+              <dd className="mt-0.5">{op.reason || '—'}</dd>
+            </div>
+          )}
+          {op.reverses_reference && (
+            <div>
+              <dt className="text-xs text-ink-muted">Compensa a</dt>
+              <dd className="mt-0.5">
+                <Link
+                  className={link}
+                  to={`/inventory/operations/${originId(op.reverses_reference)}`}
+                >
+                  {op.reverses_reference}
+                </Link>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
       {op.entry_value !== undefined && (
-        <section
-          aria-label="Valoración"
-          className="rounded-group bg-surface p-4 shadow-card"
-        >
-          <h2 className="font-semibold text-ink">Valoración</h2>
-          <p>
+        <section aria-label="Valoración" className={`${panel} px-4 py-3`}>
+          <h2 className="text-[14.5px] font-semibold text-ink">Valoración</h2>
+          <p className="mt-1 text-[13px] tabular-nums">
             Costo unitario USD {op.unit_cost} · valor USD {op.entry_value}
           </p>
         </section>
       )}
       {op.movements && op.movements.length > 0 && (
-        <section aria-label="Movimientos" className="space-y-2">
-          {op.movements.map((m) => (
-            <article
-              className="rounded-group bg-surface p-4 shadow-card"
-              key={m.ordinal}
-            >
-              <h3 className="font-semibold">Movimiento {m.ordinal}</h3>
-              <dl className="grid gap-2 text-sm sm:grid-cols-4">
-                <div>
-                  <dt className="text-ink-muted">Costo aplicado</dt>
-                  <dd>USD {m.applied_unit_cost}</dd>
-                </div>
-                <div>
-                  <dt className="text-ink-muted">Variación de valor</dt>
-                  <dd>USD {m.value_delta}</dd>
-                </div>
-                <div>
-                  <dt className="text-ink-muted">Ajuste de redondeo</dt>
-                  <dd>USD {m.rounding_adjustment}</dd>
-                </div>
-                <div>
-                  <dt className="text-ink-muted">Valor posterior</dt>
-                  <dd>USD {m.value_after}</dd>
-                </div>
-              </dl>
-            </article>
-          ))}
+        <section
+          aria-label="Movimientos"
+          className={`${panel} overflow-hidden`}
+        >
+          <div className="border-b border-line px-4 py-3">
+            <h2 className="text-[14.5px] font-semibold text-ink">
+              Movimientos
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-line bg-surface-subtle text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+                  <th className="h-9 px-4" scope="col">
+                    Movimiento
+                  </th>
+                  <th className="h-9 px-4 text-right" scope="col">
+                    Costo aplicado
+                  </th>
+                  <th className="h-9 px-4 text-right" scope="col">
+                    Variación de valor
+                  </th>
+                  <th className="h-9 px-4 text-right" scope="col">
+                    Ajuste de redondeo
+                  </th>
+                  <th className="h-9 px-4 text-right" scope="col">
+                    Valor posterior
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line tabular-nums">
+                {op.movements.map((m) => (
+                  <tr key={m.ordinal}>
+                    <td className="h-11 px-4 font-medium">
+                      Movimiento {m.ordinal}
+                    </td>
+                    <td className="h-11 px-4 text-right">
+                      USD {m.applied_unit_cost}
+                    </td>
+                    <td className="h-11 px-4 text-right">
+                      USD {m.value_delta}
+                    </td>
+                    <td className="h-11 px-4 text-right">
+                      USD {m.rounding_adjustment}
+                    </td>
+                    <td className="h-11 px-4 text-right">
+                      USD {m.value_after}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
     </div>

@@ -16,3 +16,5 @@ export {
 } from './ConfigurationMap'
 
 export { Sidebar, type SidebarProps } from './Sidebar'
+
+export { NavigationPanel, type NavigationPanelProps } from './NavigationPanel'

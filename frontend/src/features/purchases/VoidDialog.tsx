@@ -85,7 +85,7 @@ export function VoidDialog({
 
   return (
     <Dialog
-      description="Anular compensa exactamente el efecto del ingreso y conserva el original con su número. No representa una devolución física al proveedor."
+      description="Ingreso del RUC comercial. Anular compensa exactamente su efecto en las existencias y conserva el original con su número. No representa una devolución física al proveedor."
       onClose={onClose}
       open={open}
       {...(returnFocusRef ? { returnFocusRef } : {})}
@@ -115,7 +115,7 @@ export function VoidDialog({
                         {' '}
                         Movimiento posterior:{' '}
                         <Link
-                          className="underline"
+                          className="font-mono font-semibold text-accent underline"
                           to={`/inventory/operations/${issue.blocking_reference.replace('INV-', '')}`}
                         >
                           {issue.blocking_reference}
@@ -162,13 +162,13 @@ export function VoidDialog({
         </Field>
         <div className="flex justify-end gap-3">
           <Button onClick={onClose} type="button" variant="secondary">
-            Cancelar
+            Conservar ingreso
           </Button>
           <Button
             disabled={pending || !review?.can_void || Boolean(reasonError)}
             onClick={() => void submit()}
             type="button"
-            variant="danger"
+            variant="danger-solid"
           >
             {pending ? 'Anulando…' : 'Anular ingreso'}
           </Button>

@@ -160,11 +160,13 @@ it('distingue saldo cobrable y exceso por reembolsar sin llamarlo saldo a favor'
   )
 })
 
-it('muestra las líneas históricas y su cantidad devuelta como grupos etiquetados', () => {
+it('muestra las líneas históricas y su cantidad devuelta en filas etiquetadas', () => {
   renderPage()
-  const line = screen.getByRole('group', { name: 'Línea 1' })
+  expect(
+    screen.getByRole('columnheader', { name: 'Devueltas' }),
+  ).toBeInTheDocument()
+  const line = screen.getByRole('row', { name: 'Línea 1' })
   expect(line).toHaveTextContent('ACE-1 · Aceite')
-  expect(line).toHaveTextContent('Devueltas')
   expect(line).toHaveTextContent('USD 20.00')
 })
 

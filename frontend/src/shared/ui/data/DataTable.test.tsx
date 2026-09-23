@@ -249,4 +249,28 @@ describe('DataTable (C34) - Fase 8.1', () => {
 
     expect(handleSort).toHaveBeenCalledWith('plate', 'descending')
   })
+
+  it('resalta las filas seleccionadas con el acento de selección', () => {
+    render(
+      <DataTable
+        columns={columns}
+        getRowKey={(row) => row.id}
+        label="Selección"
+        onSelectRow={() => {}}
+        rows={mockRows}
+        selectedKeys={['1']}
+      />,
+    )
+    const selected = screen
+      .getAllByText('P-1234')
+      .map((cell) => cell.closest('tr'))
+      .find(Boolean)!
+    const other = screen
+      .getAllByText('P-5678')
+      .map((cell) => cell.closest('tr'))
+      .find(Boolean)!
+    expect(selected.className).toMatch(/\bbg-accent-soft/)
+    expect(other.className).not.toMatch(/bg-accent-soft/)
+    expect(selected.className).not.toMatch(/primary/)
+  })
 })

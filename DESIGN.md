@@ -1,167 +1,106 @@
-# Sistema visual de Sys-Inventario
+# Sistema visual Tallkit · Banco de trabajo
 
 ## Propósito
 
-Esta guía define el lenguaje visual implementado en el frontend de Sys-Inventario. Mantiene una experiencia luminosa, amable y operativa en computadora, tableta y teléfono. No define reglas del negocio ni sustituye las especificaciones OpenSpec.
+Esta guía resume el lenguaje visual implementado en el frontend. **Tallkit** es el nombre visible del producto; «Sys-Taller»/«Sys-Inventario» se conserva como nombre técnico del repositorio. La guía no define reglas del negocio ni sustituye las especificaciones OpenSpec:
 
-## Dirección visual y atribución
+- `openspec/specs/sistema-visual-frontend/spec.md`: fundamentos, tokens, piezas del taller y aceptación visual.
+- `openspec/specs/patrones-de-pantalla-frontend/spec.md`: patrones PPF-01…PPF-08.
+- `openspec/specs/experiencia-adaptable-frontend/spec.md`: navegación, modales, listas y formularios por tamaño.
+- `openspec/specs/catalogo-visual-reutilizable/spec.md`: catálogo interno de desarrollo.
 
-El sistema adapta la composición y el lenguaje visual de [SAAS Dashboard (Community)](https://www.figma.com/community/file/1065510379888107603/saas-dashboard), creado por Jiangyu y publicado bajo CC BY 4.0. La plantilla es referencia para color, tipografía, espaciado, geometría, elevación y patrones de interacción.
+Mientras el cambio `redisenar-sistema-visual-tallkit` no se archive, estas especificaciones viven como deltas en `openspec/changes/redisenar-sistema-visual-tallkit/specs/`; `patrones-de-pantalla-frontend` es una capacidad nueva de ese cambio.
 
-Sys-Inventario no reutiliza la marca, el logotipo, los textos demostrativos, nombres, datos, fotografías ni funcionalidades de la plantilla. Conserva los iconos de navegación y la ilustración neutral de confirmación exportados del archivo Figma; el resto del contenido corresponde al producto. Todo contenido visible responde al sistema y a sus permisos reales. El gráfico de acceso `frontend/src/assets/workshop-diagnostic.svg` es un recurso original del proyecto. Se compone con formas neutras e iconos locales dentro de la región 647 × 602 px del frame, conservando la paleta y evitando datos demostrativos.
+## Dirección visual
+
+Sistema propio, pensado para jornadas largas de mostrador y taller; no reproduce plantillas de terceros. Su referencia aprobada es la maqueta «Tallkit — Sistema visual» (2026-09-21), que fija fundamentos y patrones, no pantallas cerradas ni fidelidad píxel a píxel.
+
+- Neutros en capas: lienzo gris claro, paneles blancos y cabeceras de sección en gris suave.
+- Azul Tallkit para la acción principal; petróleo para selección, enlaces y foco; naranja del logotipo solo como acento de marca, nunca como texto.
+- Bordes finos, radios contenidos y elevación reservada a menús, diálogos, notificaciones y la hoja del documento.
+- Densidad alta: filas compactas y sin una tarjeta por registro.
 
 ## Recursos locales
 
-- Interfaz y cifras: Nunito 400, 600, 700 y 800, con números tabulares cuando se comparan valores.
-- Iconos: Category, Document y Chart exportados de Figma para la navegación; Phosphor para las acciones propias, siempre con nombre accesible. Recursos en `frontend/src/assets/figma/`, nodos 4:645, 4:622 y 4:637. Confirmación: 4:9343, 4:9346 y 4:9349, sin marcas ni datos.
-- Ilustración de acceso: SVG local, decorativo y sin contenido remoto.
-- Ningún recurso visual esencial depende de Internet durante la operación.
+- Tipografía: IBM Plex Sans 400, 500, 600 y 700 para la interfaz, e IBM Plex Mono 400, 500 y 600 para códigos, placas, RUC, identificaciones y números internos. Subconjunto latino con tildes y ñ, servido desde la instalación.
+- Iconos: Phosphor en peso regular, siempre con nombre accesible cuando no son decorativos.
+- Logotipo: `frontend/src/assets/brand/` (principal, secundario e isotipo).
+- Ningún recurso visual esencial depende de Internet; una prueba e2e bloquea las solicitudes externas y comprueba que las fuentes cargan.
 
-Las versiones reproducibles son `@fontsource/nunito@5.3.0` (OFL-1.1), `@phosphor-icons/react@2.1.10` (MIT) y, solo para pruebas, `@axe-core/playwright@4.13.0` (MPL-2.0). El lockfile conserva sus versiones exactas.
+Versiones exactas en el lockfile: `@fontsource/ibm-plex-sans@5.3.0` y `@fontsource/ibm-plex-mono@5.3.0` (OFL-1.1), `@phosphor-icons/react@2.1.10` (MIT) y, solo para pruebas, `@axe-core/playwright@4.13.0` (MPL-2.0).
 
 ## Tokens
 
-| Rol | Valor | Uso |
-|---|---:|---|
-| `canvas` | `#FAFAFB` | Fondo general de la aplicación. |
-| `surface` | `#FFFFFF` | Navegación, tarjetas, filas y superposiciones. |
-| `surface-muted` | `#F7F7F8` | Campos y agrupaciones neutras. |
-| `ink` | `#030229` | Texto principal. |
-| `ink-muted` | `#626176` | Texto secundario con contraste accesible. |
-| `line` | `#E7E6EB` | Separación sutil dentro de una superficie. |
-| `primary` | `#605BFF` | Acción principal y ubicación activa. |
-| `primary-soft` | `#EFEEFF` | Selección, iconos y acciones secundarias. |
-| `info` | `#5B93FF` | Información destacada. |
-| `cyan` | `#26C0E2` | Acento auxiliar. |
-| `yellow` | `#FFD66B` | Acento de advertencia. |
-| `coral` | `#FF8F6B` | Acento cálido. |
-| `orange` | `#F29339` | Acento naranja original. |
-| `pink` | `#EF37FF` | Acento rosa original. |
-| `green` | `#3A974C` | Acento verde original. |
-| `success` | `#27763A` | Texto de resultado satisfactorio. |
-| `warning` | `#A65F0C` | Texto de atención. |
-| `danger` | `#D11A2A` | Error o acción destructiva. |
+Dos capas: los valores crudos `--tk-*` viven en `frontend/src/shared/styles/tokens.css`, y `index.css` los expone a Tailwind con `@theme inline` bajo nombres semánticos. Cambiar un valor actualiza todas las pantallas sin editarlas una a una.
 
-Los tonos semánticos de texto se oscurecen frente a los colores originales del kit cuando el contraste lo exige. Cada estado dispone de un fondo pastel y siempre se expresa también con texto o icono.
+| Token | Valor claro | Uso |
+|---|---|---|
+| `canvas` | `#F3F4F6` | Lienzo de la aplicación. |
+| `surface` / `surface-subtle` / `surface-muted` | `#FFFFFF` / `#F8F9FA` / `#EEF0F3` | Panel, cabecera de sección o tabla, fondo de control. |
+| `workspace` | `#E6E9ED` | Fondo del visor de documentos. |
+| `line` / `line-strong` | `#E2E5E9` / `#CBD1D8` | Borde de panel y borde de campo. |
+| `ink` / `ink-muted` | `#15233A` / `#5B6474` | Texto principal y de apoyo. |
+| `primary` / `primary-strong` / `primary-soft` | `#224368` / `#1A3453` / `#E6EDF6` | Acción principal (azul Tallkit). |
+| `accent` / `accent-strong` / `accent-soft` | `#0F6B6F` / `#0A5255` / `#E1F0EF` | Selección, enlaces y foco (petróleo). |
+| `brand` | `#E58439` | Acento de marca; nunca texto. |
+| `scope-commercial` / `-soft` | `#224368` / `#E6EDF6` | RUC comercial. |
+| `scope-artisan` / `-soft` | `#94460B` / `#FCEEE2` | RUC artesanal. |
+| `success`, `warning`, `danger`, `info` y sus `-soft` | ver `tokens.css` | Estados, con contraste AA sobre su fondo. |
 
-La retícula principal usa márgenes y separaciones de 30 px, con 32 px entre las dos filas de paneles de Inicio. Los controles usan radio de 5 px; tarjetas y botones, 10 px. Las tarjetas y filas ordinarias son planas. La sombra `1px 17px 44px rgba(3, 2, 41, 0.07)` corresponde a fila destacada, hover o foco; `0 10px 20px rgba(0, 0, 0, 0.1)` a menús. No se aplica una sombra general a todos los componentes.
+- Radios: `chip` 4 px, `control` 6 px, `panel` 8 px y `dialog` 10 px.
+- Sombras: `menu`, `dialog`, `sheet` y `toast`; los paneles ordinarios no tienen sombra.
+- Tipografía: títulos de página de unos 22 px, títulos de panel de unos 15 px, texto de interfaz de 13–14 px y etiquetas de 12 px. Importes y cantidades con cifras tabulares.
+- Foco visible: contorno de 2 px en `accent`.
 
-## Composición adaptable
+### Tema oscuro
 
-- Bajo 768 px: encabezado compacto y navegación en drawer con etiquetas completas.
-- Entre 768 y 1279 px: rail de 80 px, margen exterior de 30 px y contenido desde x=140, basado en `4:344`.
-- Desde 1280 px: sidebar desplegado blanco de 218 px desde x=0 y contenido desde x=248, basado en `4:2`, `4:233`, `4:234`, `4:329` y `4:330`. El umbral de 1280 px es una adaptación de la aplicación, no una medida atribuida a Figma.
-- Inicio a 1440 × 1047: cuatro tarjetas de 116 px; paneles superiores de 702/430 px, altura 408 px y separación de 30 px, según `4:117`/`4:118` y `4:92`/`4:93`.
-- Usuarios: filas de 60 px y separación de 10 px, según Customer List. Auditoría: filas de 70 px según Invoice List. En tableta la tabla conserva un ancho legible y desplazamiento local accesible por teclado; en teléfono se convierte en tarjetas.
-- Drawer: 409 px con márgenes de 30 px y campos de 349 × 50 px; una columna. En móvil ocupa todo el ancho. Los roles y la advertencia de cambios conservan su comportamiento.
-- Acceso a 1440 × 1112: región blanca de 448 px; contenido desde x=50; marca de 92 px en y=200; título 25/600 en y=332; campos en y=557/657; botón en y=791.
-- Recover: diálogo administrativo cuadrado de 658 px, radio 10; marca en y=331, campo informativo en y=603, botón en y=678 a 1440 × 1112. Confirm: superficie cuadrada de 726 px e ilustración de 184 px. Los avisos y la credencial temporal existentes requieren contenido adicional respecto al frame y se conservan antes de la acción de cierre.
-- No hay rutas públicas de recuperación/confirmación nuevas. Las 22 raíces Figma del catálogo se consultan mediante `get_design_context`; la comparación y aceptación se registran en `docs/tecnico/revision-visual-frontend.md`.
+`tokens.css` documenta un bloque `[data-theme='dark']` con los valores de la maqueta. Ningún código asigna ese atributo ni responde a `prefers-color-scheme`: el tema claro es el único disponible y no hay selector de tema. Una prueba unitaria y otra e2e lo verifican.
 
-## Política de evidencia visual
+## Marco y composición adaptable
 
-- La fuente estructurada es el archivo Figma `GRvgnODulXXrLTz4BsaToK`. Las raíces utilizadas son `4:344`, `4:2`, `4:660`, `4:1140`, `4:1635`, `4:2246`, `4:2803`, `4:3258`, `4:4239`, `4:4567`, `4:4981`, `4:5455`, `4:5816`, `4:6241`, `4:6577`, `4:3637`, `4:3942`, `4:8584`, `4:7725`, `4:9302`, `4:9333` y `4:7438`.
-- `registry.ts` conserva para cada C01–C66 su `frameRef`, nodos exactos o marca de adaptación `A`, prueba y estado real: `pending`, `in-progress`, `divergent` o `verified`.
-- Las referencias Figma se exportan a escala 1. Las capturas de Chromium usan DPR 1 y 360, 768, 1024 y 1440 px; la navegación añade 1279, 1280 y 1366 px para probar el cambio de variante.
-- La evidencia generada vive fuera del repositorio, separada en `figma/`, `actual/`, `diff/` y `approved/`, con manifiesto y checksums SHA-256. No se infieren estilos desde capturas ni se enmascaran componentes completos.
-- Las propiedades estructuradas exactas son bloqueantes. Para regresión de píxeles, Playwright usa umbral por canal `0.2` y máximo `0.5 %` de píxeles distintos sobre regiones equivalentes.
-- Una captura solo pasa a `approved/` y una entrada solo pasa a `verified` después de aceptación visual explícita. Una ejecución sin fallos no equivale por sí sola a aprobación.
+- Desde 1280 px: barra lateral de 240 px con logotipo, grupos de navegación, opción activa en `accent-soft` y usuario, roles y cierre de sesión al pie. Barra superior con ruta de migas y marca de ámbito fiscal en las pantallas económicas; sin búsqueda global.
+- De 768 a 1279 px: barra de iconos de 72 px con nombre accesible y ayuda emergente.
+- Por debajo de 768 px: barra superior con menú y `NavigationPanel`, un panel temporal que se cierra al elegir.
+- El contenido usa todo el ancho disponible.
 
-## Componentes base
+## Patrones de pantalla
 
-- Acciones: `Button`, `IconButton` y `ButtonGroup`.
-- Formularios: `Field`, `Input`, `Select`, `Checkbox` y `FieldError`.
-- Estado: `StatusBadge`, `FiscalScopeBadge`, `InlineNotice`, `LoadingState` y `EmptyState`.
-- Composición: `PageHeader`, `Toolbar`, `FilterPanel`, `Surface`, `StatCard`, `ElevatedDataList`, `ResponsiveDataView`, `Pagination` y `RowActions`.
-- Superposición: `Drawer` para formularios contextuales y `Dialog` para decisiones bloqueantes.
+- **Lista (PPF-01):** encabezado con acción principal según permiso; estados por segmentos y filtros en la franja superior del panel; tabla compacta con encabezado visible, importes con `Money` alineados a la derecha y estado con `StatusBadge`. En teléfono, filas de dos líneas. Los filtros viven en la URL y se conservan al volver de la ficha.
+- **Ficha (PPF-02):** volver, resumen con la identificación principal (placa, código o número interno en monoespaciada) y el estado, bloques con título y una columna lateral de acciones y datos relacionados que en pantallas estrechas pasa debajo.
+- **Formulario en página (PPF-03):** producto, cliente, vehículo, proveedor y configuración del taller, por secciones, con barra de acciones fija y advertencia al abandonar con cambios.
+- **Formulario corto en modal (PPF-04):** `FormModal` para marcas, categorías, unidades de medida, servicio, ajuste de inventario y usuario, con «Guardar y crear otro» cuando procede. No se usan paneles laterales para crear ni editar.
+- **Editor con vista previa (PPF-05):** venta e ingreso; líneas editables fila por fila, importes solo del servidor (guion si faltan), total junto a las acciones y hoja A4 `DocumentSheet` con el aviso del SRI.
+- **Diálogos de confirmación (PPF-06):** objeto y número interno, entidad fiscal, efecto en el cuerpo y valores revisados por el servidor; botón breve que nombra la acción, peligro sólido en las destructivas y salida segura con nombre.
+- **Estados de contenido (PPF-07):** carga con marcadores, vacío con acción de creación, sin resultados con «Limpiar filtros», error con «Reintentar» y sin permiso; nunca datos inventados.
+- **Notificaciones temporales (PPF-08):** `ToastProvider`/`useToast` abajo a la derecha, 6 s, pausa con puntero o foco, cierre con Escape, hasta tres y enlace «Ver». La región se monta fuera de la aplicación y queda exenta del aislamiento de los modales para anunciarse aunque haya uno abierto. Los errores y advertencias permanecen en línea.
 
-Las variantes son cerradas y semánticas. El frontend oculta opciones según el permiso efectivo, pero el backend conserva la autoridad sobre toda acción.
+## Piezas del taller
 
-## Patrones por superficie
+- `PlateTag`: placa en una pieza reconocible y monoespaciada.
+- `PartCode`: código de repuesto monoespaciado con acción de copiar accesible.
+- `StockIndicator`: cantidad disponible y «Agotado» en cero; nunca «Stock bajo», porque el umbral (`RF-INV-011`) sigue sin decidir.
+- `Money`: importe USD con dos decimales o guion, sin aritmética de coma flotante.
+- `FiscalScopeBadge`: «RUC comercial» o «RUC artesanal» con icono y tono propios.
+- `DocumentSheet`: hoja A4 común a la vista previa, el comprobante y la impresión.
 
-- Acceso: formulario prioritario; composición dividida solo en pantalla amplia; sin registro público ni proveedores sociales.
-- Marco autenticado: navegación blanca, selección violeta suave, identidad reemplazable y sesión al pie.
-- Listas: filtros compactos, filas blancas separadas, estado pastel redundante y paginación estable.
-- Formularios contextuales: drawer lateral en tableta y escritorio, ancho completo en teléfono y advertencia de cambios sin guardar.
-- Confirmaciones críticas: diálogo con objeto y consecuencia identificados.
-- Inicio: retícula del dashboard con accesos autorizados, datos reales de sesión y placeholders explícitos en las regiones sin métricas; no se inventan series ni porcentajes.
+## Componentes compartidos
+
+`frontend/src/shared/ui/` agrupa acciones, campos (incluido `Combobox`, que sustituye al antiguo selector de referencias), navegación, superposiciones (`Modal`, `FormModal`, `Dialog`, `ConfirmationPanel`, `DropdownMenu`, `Tooltip`), datos, estados, notificaciones, superficies y piezas del taller. Se retiraron el panel lateral `Drawer`, las familias de gráficos, calendario, tablero, conversación y cronología, y los layouts y tarjetas de métricas de la plantilla anterior; volverán solo cuando una capacidad aprobada los necesite.
+
+El frontend oculta opciones según los permisos efectivos, pero el backend conserva la autoridad sobre toda acción.
 
 ## Accesibilidad e interacción
 
-- Objetivos táctiles mínimos de 44 px con puntero grueso.
-- Foco visible de 2 px con separación suficiente.
-- Errores asociados a sus campos y estados expresados sin depender del color.
-- Drawer y diálogo contienen el foco, cierran con Escape cuando es seguro y lo devuelven al disparador.
+- Objetivos táctiles de al menos 44 px en controles esenciales.
+- Errores asociados a sus campos; estados comprensibles por texto y marcador, sin depender del color.
+- Modales, diálogos y el panel de navegación contienen el foco, cierran con Escape y lo devuelven al disparador. Cerrar un modal con cambios pide «Seguir editando» o «Descartar».
 - Movimiento breve y desactivado con `prefers-reduced-motion`.
-- Las rutas representativas se auditan con axe; infracciones serias o críticas bloquean E2E.
+- `axe` y la comprobación de desplazamiento horizontal se ejecutan en 360, 768, 1024, 1280 y 1440 px (`frontend/e2e/responsive.spec.ts`); las infracciones serias o críticas bloquean la suite.
 
-## Uso futuro del ámbito fiscal
+## Catálogo visual interno
 
-`FiscalScopeBadge` identifica explícitamente “RUC comercial” o “RUC artesanal” con texto, icono y color redundantes. Debe aparecer junto al título o identificador de toda operación económica cuando esas capacidades se implementen; nunca se inferirá únicamente por el color.
+`frontend/visual-catalog.html` (puerto 55175 en desarrollo) muestra los componentes y patrones Tallkit por familias —fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, notificaciones, navegación y patrones de pantalla—, cada uno con su tablero de origen en la maqueta o su marca de adaptación. Queda fuera de la compilación productiva y se prueba con `npm run test:e2e:catalog`.
 
-## Catálogo visual reutilizable
+## Aceptación visual
 
-El cambio **`catalogo-visual-reutilizable`** implementó 66 componentes compartidos (C01–C66) bajo `frontend/src/shared/ui/`, organizados en 14 categorías: `icons`, `actions`, `forms`, `navigation`, `overlays`, `layout`, `surfaces`, `media`, `data`, `feedback`, `charts`, `calendar`, `timeline`, `board` y `conversation`.
-
-### Principio opt-in
-
-Los componentes de `shared/ui` son **opt-in**: las páginas y features existentes (`pages/`, `features/`) no importan estos componentes a menos que lo haga una tarea OpenSpec aprobada. El catálogo visual (`frontend/visual-catalog.html`, puerto 55175) los muestra de forma aislada para desarrollo y revisión sin afectar la aplicación principal.
-
-### Consumo futuro
-
-Para usar un componente en una nueva capacidad:
-
-```ts
-// Importar desde el índice de la subcategoría correspondiente
-import { Button, IconButton } from '@/shared/ui/actions'
-import { DataTable, Pagination } from '@/shared/ui/data'
-import { Modal, Drawer } from '@/shared/ui/overlays'
-import { MonthCalendar } from '@/shared/ui/calendar'
-```
-
-Los índices re-exportan solo los componentes del nivel de `shared/ui`, no los internos de `pages/` o `features/`. Las props, variantes y tokens de cada componente están documentados en el registry (`frontend/src/dev/visual-catalog/registry.ts`) y en las evidencias de cada fase.
-
-### Catálogos por categoría
-
-| Categoría | IDs | Archivo índice |
-|---|---|---|
-| icons | C01 | `shared/ui/icons/index.ts` |
-| actions | C02–C04 | `shared/ui/actions/index.ts` |
-| forms | C05–C12 | `shared/ui/forms/index.ts` |
-| navigation | C13–C16, C27–C28 | `shared/ui/navigation/index.ts` |
-| overlays | C17, C39–C42 | `shared/ui/overlays/index.ts` |
-| layout | C18–C21, C29–C33, C43 | `shared/ui/layout/index.ts` |
-| surfaces | C22–C24, C37 | `shared/ui/surfaces/index.ts` |
-| media | C25–C26, C66 | `shared/ui/media/index.ts` |
-| data | C34–C36, C38, C54 | `shared/ui/data/index.ts` |
-| feedback | C44–C48 | `shared/ui/feedback/index.ts` |
-| charts | C49–C53 | `shared/ui/charts/index.ts` |
-| calendar | C55–C59 | `shared/ui/calendar/index.ts` |
-| timeline | C60 | `shared/ui/timeline/index.ts` |
-| board | C61–C62 | `shared/ui/board/index.ts` |
-| conversation | C63–C65 | `shared/ui/conversation/index.ts` |
-
-### Trazabilidad CVR → C → prueba → evidencia
-
-| Requisito | Componentes | Suite de pruebas | Evidencia |
-|---|---|---|---|
-| CVR-01 Tokens y sistema visual | C01–C04, C22 | `catalog-tokens.test.ts`, `phase3-actions.spec.ts` | `phase3-actions/` |
-| CVR-02 Formularios | C05–C12 | `phase4-forms.spec.ts` | `phase4-forms/` |
-| CVR-03 Layouts de acceso/previa | C33, C43 | `phase10-layouts.spec.ts` | `phase10-layouts/` |
-| CVR-04 Navegación y composición | C13–C16, C27–C32, C66 | `phase6-selection.spec.ts`, `phase7-navigation.spec.ts` | `phase7-navigation/` |
-| CVR-05 Estados y feedback | C44–C48 | `phase5-primitives.spec.ts` | `phase5-primitives/` |
-| CVR-06 Datos tabulares y listas | C34–C36, C38 | `phase8-data.spec.ts` | `phase8-data/` |
-| CVR-07 Paneles y superposiciones | C17, C39–C42 | `phase9-overlays.spec.ts` | `phase9-overlays/` |
-| CVR-08 Gráficos, calendarios, tableros | C49–C62 | `phase11-charts.spec.ts`, `phase12-calendar.spec.ts`, `phase13-timeline-board.spec.ts` | `phase11-charts/`, `phase12-calendar/`, `phase13-timeline-board/` |
-| CVR-09 Medios y avatares | C25–C26, C66 | `phase7-navigation.spec.ts` | `phase7-navigation/` |
-| CVR-10 Conversación | C63–C65 | `phase14-conversation.spec.ts` | `phase14-conversation/` |
-| CVR-11 Verificación final | C01–C66 | `phase15-final.spec.ts` | `phase15-final/` |
-
-### Adaptaciones registradas
-
-- **Inputs nativos de checkbox** (C08): la prueba mide la etiqueta activable completa, no solo el dibujo interno del `<input>`, y exige al menos 44×44 px.
-- **Botones de navegación de calendario** (C55): los controles anterior/siguiente y de vista conservan la composición del frame, con área activable mínima de 44×44 px.
-- **Vista semanal de calendario**: fuera del alcance de este catálogo; no implementada en C55–C59.
-- **Drag-and-drop en tablero**: fuera del alcance; C61–C62 son presentacionales.
-
-Este ajuste no cambia OpenAPI, migraciones, ADR ni diagramas C4. Tampoco altera permisos, sesión, CSRF, rutas o contratos del backend.
+El rediseño se entrega por fases con capturas en los tamaños representativos junto al tablero correspondiente de la maqueta, y registra las diferencias justificadas (por ejemplo, funciones de la maqueta fuera de alcance como la búsqueda global o los indicadores sin dato del servidor). Las pruebas técnicas no equivalen a la aprobación visual del usuario.

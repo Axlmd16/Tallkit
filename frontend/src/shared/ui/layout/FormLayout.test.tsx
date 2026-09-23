@@ -2,28 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { FormLayout } from './FormLayout'
-import { MasterDetailLayout } from './MasterDetailLayout'
 
-describe('MasterDetailLayout (C31) y FormLayout (C32)', () => {
-  it('renders master and detail slots in correct DOM reading order', () => {
-    render(
-      <MasterDetailLayout
-        detail={<aside data-testid="detail-slot">Panel de detalle</aside>}
-        master={<section data-testid="master-slot">Tabla maestra</section>}
-      />,
-    )
-
-    const master = screen.getByTestId('master-slot')
-    const detail = screen.getByTestId('detail-slot')
-
-    expect(master).toBeInTheDocument()
-    expect(detail).toBeInTheDocument()
-    // Verificar orden en el DOM
-    expect(master.compareDocumentPosition(detail)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    )
-  })
-
+describe('FormLayout', () => {
   it('renders FormLayout with 1 and 2 columns and actions', () => {
     const { rerender } = render(
       <FormLayout actions={<button type="button">Guardar</button>} columns={1}>

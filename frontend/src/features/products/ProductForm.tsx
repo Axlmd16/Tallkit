@@ -256,7 +256,7 @@ export function ProductForm({
 
   return (
     <form
-      className="catalog-editor-form grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start"
+      className="catalog-editor-form grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start"
       noValidate
       onSubmit={submit}
     >
@@ -554,7 +554,7 @@ export function ProductForm({
                     <>
                       {' '}
                       <a
-                        className="font-semibold underline"
+                        className="font-semibold text-accent underline"
                         href="/configuration"
                         rel="noopener"
                         target="_blank"

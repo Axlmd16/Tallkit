@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { Modal } from '../overlays/Modal'
 import { ToastProvider, useToast } from './Toast'
 
 function Harness() {
@@ -130,5 +131,32 @@ describe('Toast Tallkit', () => {
     expect(
       screen.getByText('Marca desactivada').closest('[data-toast]'),
     ).toHaveClass('motion-reduce:transition-none', 'motion-reduce:animate-none')
+  })
+
+  it('se sigue anunciando mientras hay un modal abierto: su región no queda inerte', () => {
+    function WithModal() {
+      const toast = useToast()
+      return (
+        <Modal onClose={() => {}} open title="Nueva marca">
+          <button onClick={() => toast.success('Marca creada')} type="button">
+            Guardar y crear otra
+          </button>
+        </Modal>
+      )
+    }
+    render(
+      <ToastProvider>
+        <main>
+          <WithModal />
+        </main>
+      </ToastProvider>,
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar y crear otra' }),
+    )
+    const region = screen.getByRole('status', { name: 'Notificaciones' })
+    expect(region).toHaveTextContent('Marca creada')
+    expect(region.closest('[inert]')).toBeNull()
+    expect(region.closest('[aria-hidden="true"]')).toBeNull()
   })
 })

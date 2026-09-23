@@ -52,6 +52,7 @@ import { VoidSaleDialog } from './VoidSaleDialog'
 const sale = {
   id: 7,
   version: 3,
+  internal_number: 'COM-VEN-000007',
   state: 'CONFIRMED',
   condition: 'CONTADO',
   money: {
@@ -476,4 +477,48 @@ it('anular es una acción de peligro con una salida segura que nombra lo que se 
   expect(
     screen.getByRole('button', { name: 'Anular venta' }).className,
   ).toMatch(/\bbg-danger\b/)
+})
+
+it('cada diálogo económico nombra la venta, su número y la entidad fiscal (PPF-06)', () => {
+  const payment = {
+    id: 1,
+    amount: '100.00',
+    state: 'ACTIVE',
+    parts: [],
+  } as unknown as SalePaymentRow
+  const saleReturn = { id: 2 } as unknown as SaleReturnRow
+  const dialogs = [
+    <PaymentDialog key="p" sale={sale} {...common} />,
+    <ReturnDialog key="r" sale={sale} {...common} />,
+    <VoidSaleDialog key="v" sale={sale} {...common} />,
+    <CorrectionDialog key="c" payment={payment} sale={sale} {...common} />,
+    <RefundDialog key="f" sale={sale} saleReturn={saleReturn} {...common} />,
+  ]
+  for (const element of dialogs) {
+    const { unmount } = render(element)
+    const subject = screen.getByRole('group', { name: 'Operación' })
+    expect(subject).toHaveTextContent('Venta COM-VEN-000007')
+    expect(subject).toHaveTextContent('RUC comercial')
+    unmount()
+  }
+})
+
+it('corregir un pago ofrece una salida segura que conserva el pago', () => {
+  render(
+    <CorrectionDialog
+      payment={
+        {
+          id: 1,
+          amount: '100.00',
+          state: 'ACTIVE',
+          parts: [],
+        } as unknown as SalePaymentRow
+      }
+      sale={sale}
+      {...common}
+    />,
+  )
+  expect(
+    screen.getByRole('button', { name: 'Conservar pago' }),
+  ).toBeInTheDocument()
 })

@@ -1,13 +1,9 @@
 export * from './controls'
 export * from './Dialog'
-export * from './Drawer'
 export * from './layout'
 export * from './navigation'
 export * from './states'
-export * from './timeline'
-export * from './board'
 export * from './business'
-export * from './conversation'
 export * from './media'
 
 // Forms — nuevos controles del catálogo
@@ -38,12 +34,6 @@ export {
   type DetailCardMetadataItem,
 } from './surfaces/DetailCard'
 export { Divider, type DividerProps } from './surfaces/Divider'
-export {
-  MetricCard,
-  type MetricCardProps,
-  type MetricCardAccent,
-  type MetricCardSize,
-} from './surfaces/MetricCard'
 
 // Overlays — paneles y diálogos enriquecidos
 export {
@@ -64,7 +54,6 @@ export {
   type TooltipProps,
   type TooltipPosition,
 } from './overlays/Tooltip'
-export { DetailPanel, type DetailPanelProps } from './overlays/DetailPanel'
 
 // Feedback — estados semánticos compuestos
 export {

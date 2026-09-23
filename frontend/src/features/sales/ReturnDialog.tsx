@@ -63,6 +63,7 @@ export function ReturnDialog({
 
   return (
     <MoneyDialog
+      subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
       description="Corrige el importe exigible con los valores históricos de la venta. Solo lo declarado apto para reventa regresa al inventario."
       formValid={valid}
       inputSignature={JSON.stringify([trimmed, lines])}

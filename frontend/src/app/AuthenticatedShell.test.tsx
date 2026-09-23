@@ -227,7 +227,7 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   await user.click(opener)
   const dialog = screen.getByRole('dialog', { name: 'Navegación principal' })
   expect(
-    within(dialog).getByRole('button', { name: 'Cerrar panel' }),
+    within(dialog).getByRole('button', { name: 'Cerrar navegación' }),
   ).toBeEnabled()
   await user.click(
     within(dialog).getByRole('button', { name: 'Administración y control' }),
@@ -349,14 +349,12 @@ it('makes parent breadcrumbs navigate and names the current nested page', async 
   )
 
   const breadcrumbs = screen.getByRole('navigation', { name: 'Ruta' })
-  expect(within(breadcrumbs).getByRole('link', { name: 'Catálogos' })).toHaveAttribute(
-    'href',
-    '/products',
-  )
-  expect(within(breadcrumbs).getByRole('link', { name: 'Productos' })).toHaveAttribute(
-    'href',
-    '/products',
-  )
+  expect(
+    within(breadcrumbs).getByRole('link', { name: 'Catálogos' }),
+  ).toHaveAttribute('href', '/products')
+  expect(
+    within(breadcrumbs).getByRole('link', { name: 'Productos' }),
+  ).toHaveAttribute('href', '/products')
   expect(within(breadcrumbs).getByText('Editar producto')).toHaveAttribute(
     'aria-current',
     'page',

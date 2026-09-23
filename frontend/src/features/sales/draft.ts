@@ -1,4 +1,4 @@
-import type { PickerOption } from './ReferencePicker'
+import type { ComboboxOption as PickerOption } from '@/shared/ui'
 import type { SaleInput, SaleLine } from './types'
 
 export interface LineDraft {

@@ -15,3 +15,10 @@ export const anonymousSession: Session = {
   permissions: [],
   must_change_password: false,
 }
+
+/** Nombre visible de cada rol fijo. */
+export const roleLabels: Readonly<Record<Role, string>> = {
+  ADMINISTRADOR: 'Administrador',
+  VENDEDOR: 'Vendedor',
+  ENCARGADO_TALLER: 'Encargado del taller',
+}

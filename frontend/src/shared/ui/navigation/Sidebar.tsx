@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 
-import { Drawer } from '../Drawer'
+import { NavigationPanel } from './NavigationPanel'
 import { NavigationItem, type NavigationItemProps } from './NavigationItem'
 
 export interface SidebarProps {
@@ -89,17 +89,16 @@ export function Sidebar({
       </aside>
 
       {mobileOpen && onMobileClose && (
-        <Drawer
+        <NavigationPanel
           description="Navegación general de la aplicación"
           onClose={onMobileClose}
           open={mobileOpen}
           title="Navegación móvil"
-          width="369"
         >
           <nav aria-label={`${ariaLabel} móvil`} className="py-2">
             {navContent}
           </nav>
-        </Drawer>
+        </NavigationPanel>
       )}
     </>
   )

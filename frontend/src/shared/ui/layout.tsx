@@ -116,35 +116,6 @@ export function Surface({
   )
 }
 
-export function StatCard({
-  detail,
-  icon,
-  label,
-  value,
-}: {
-  detail?: ReactNode
-  icon?: ReactNode
-  label: string
-  value: ReactNode
-}) {
-  return (
-    <article className="flex min-h-24 items-center gap-4 rounded-group bg-surface px-5 py-4 shadow-card">
-      {icon && (
-        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
-          {icon}
-        </span>
-      )}
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-ink-muted">{label}</p>
-        <p className="numeric mt-0.5 text-2xl font-extrabold leading-tight text-ink">
-          {value}
-        </p>
-        {detail && <div className="mt-1 text-xs text-ink-muted">{detail}</div>}
-      </div>
-    </article>
-  )
-}
-
 type DataColumn<T> = {
   header: string
   key: keyof T
@@ -191,34 +162,9 @@ export { Pagination, type PaginationProps } from './data/Pagination'
 
 export { RowActions, type RowActionsProps } from './data/RowActions'
 
-export { AppFrame, type AppFrameProps } from './layout/AppFrame'
-
-export {
-  DashboardLayout,
-  type DashboardLayoutProps,
-} from './layout/DashboardLayout'
-
-export {
-  MasterDetailLayout,
-  type MasterDetailLayoutProps,
-  type MasterDetailWidth,
-} from './layout/MasterDetailLayout'
-
 export {
   FormLayout,
   type FormActionsAlignment,
   type FormLayoutColumns,
   type FormLayoutProps,
 } from './layout/FormLayout'
-
-export {
-  AuthLayout,
-  type AuthLayoutProps,
-  type AuthLayoutVariant,
-} from './layout/AuthLayout'
-
-export {
-  PreviewLayout,
-  type PreviewLayoutProps,
-  type PreviewMobileView,
-} from './layout/PreviewLayout'

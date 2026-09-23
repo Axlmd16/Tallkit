@@ -22,24 +22,34 @@ Base ejecutable, reproducible y verificada sobre la que se construirán capacida
 
 Descripción legible por herramientas de las rutas, entradas y respuestas de la API HTTP.
 
+## Combobox
+
+Campo de texto editable con una lista de resultados flotante, conforme al patrón ARIA
+«combobox». En Tallkit busca referencias en el servidor (cliente, proveedor, producto), se
+recorre con el teclado y sus opciones inactivas no se pueden elegir. Sustituye al antiguo
+selector con botones «Elegir».
+
 ## Concurrencia
 
 Ejecución simultánea de operaciones que deben coordinarse para preservar las reglas del sistema.
 
 ## Drawer
 
-Panel contextual superpuesto que entra desde un borde de la interfaz. Conserva el contexto de la
-pantalla de origen y ocupa el ancho completo cuando el espacio disponible es estrecho.
+Panel contextual superpuesto que entra desde un borde de la interfaz. El sistema visual Tallkit
+lo retiró como formato para crear o editar: los formularios cortos usan un modal y los largos
+una página completa. Solo se conserva, como panel temporal, para la navegación en teléfono.
 
 ## Evidencia visual
 
 Conjunto reproducible de referencia, captura actual, diferencia y metadatos que permite revisar
-la fidelidad de una interfaz sin deducir estilos a partir de la imagen.
+la fidelidad de una interfaz sin deducir estilos a partir de la imagen. Con Tallkit, la evidencia
+son capturas por fase en los tamaños representativos, presentadas junto al tablero de la maqueta.
 
 ## Referencia Figma
 
 Frame o nodo identificado de forma estable en Figma y consultado mediante sus propiedades
-estructuradas. Una captura complementa la revisión, pero no sustituye esas propiedades.
+estructuradas. Término histórico: la plantilla Figma dejó de ser referencia normativa con el
+sistema visual Tallkit, que sigue una maqueta propia sin fidelidad por nodo.
 
 ## Identidad de operación
 
@@ -63,10 +73,22 @@ reproducibles. En este repositorio son `uv.lock` y `package-lock.json`.
 Estrategia en la que interfaz y API se publican con el mismo esquema, host y puerto, permitiendo
 cookies de sesión sin una política CORS abierta.
 
+## Modal
+
+Superficie superpuesta y centrada que bloquea la pantalla de origen hasta cerrarse, contiene el
+foco y lo devuelve al control que la abrió. En Tallkit presenta los formularios cortos y las
+confirmaciones; en teléfono ocupa el ancho disponible.
+
 ## Monolito modular
 
 Una sola aplicación backend desplegable, dividida internamente en módulos con fronteras y reglas
 de dependencia explícitas.
+
+## Notificación temporal (toast)
+
+Aviso breve que confirma una acción terminada y desaparece solo. En Tallkit aparece abajo a la
+derecha, dura 6 segundos, se pausa con el puntero o el foco, se cierra con Escape, se anuncia sin
+mover el foco y nunca comunica errores ni advertencias que exigen actuar.
 
 ## OpenSpec
 

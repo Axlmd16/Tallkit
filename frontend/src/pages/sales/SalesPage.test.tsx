@@ -87,8 +87,19 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   expect(screen.getAllByText('COM-VEN-000007').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Ana Pérez').length).toBeGreaterThan(0)
   expect(screen.queryByText('Venta directa')).not.toBeInTheDocument()
-  expect(within(screen.getByRole('table', { name: 'Ventas' })).getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
-    'Número', 'Fecha', 'Cliente', 'Condición', 'Estado', 'Pago', 'Total USD', 'Acciones',
+  expect(
+    within(screen.getByRole('table', { name: 'Ventas' }))
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent),
+  ).toEqual([
+    'Número',
+    'Fecha',
+    'Cliente',
+    'Condición',
+    'Estado',
+    'Pago',
+    'Total USD',
+    'Acciones',
   ])
   expect(screen.getAllByText('20/09/2026').length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 23.00').length).toBeGreaterThan(0)

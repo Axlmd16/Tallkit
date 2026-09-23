@@ -72,7 +72,7 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
 
     const dashboardBtn = screen.getByRole('button', { name: /Tablero/ })
     expect(dashboardBtn).toHaveAttribute('aria-current', 'page')
-    expect(dashboardBtn.className).toContain('linear-gradient')
+    expect(dashboardBtn.className).toContain('bg-accent-soft')
 
     const aside = nav.closest('aside')
     expect(aside?.className).not.toContain('border-r')
@@ -128,5 +128,23 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
 
     await user.click(disabledBtn)
     expect(handleSelect).not.toHaveBeenCalled()
+  })
+
+  it('la opción activa y su contador usan el acento de selección', () => {
+    render(
+      <NavigationItem
+        active
+        badge={3}
+        icon={<span />}
+        id="sales"
+        label="Ventas"
+      />,
+    )
+    const item = screen.getByRole('button', { name: 'Ventas' })
+    expect(item).toHaveAttribute('aria-current', 'page')
+    expect(item.className).toMatch(/\bbg-accent-soft\b/)
+    expect(item.className).toMatch(/focus-visible:ring-accent\b/)
+    expect(screen.getByText('3').className).toMatch(/\bbg-accent\b/)
+    expect(item.innerHTML).not.toMatch(/\b(text|bg|ring)-primary\b/)
   })
 })

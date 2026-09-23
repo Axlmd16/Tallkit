@@ -12,7 +12,13 @@ import {
 } from '@/features/catalog-common/problem'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { useLatestReview } from '@/shared/api/latest-review'
-import { Button, Dialog, InlineNotice, LoadingState } from '@/shared/ui'
+import {
+  Button,
+  Dialog,
+  FiscalScopeBadge,
+  InlineNotice,
+  LoadingState,
+} from '@/shared/ui'
 
 import { useOperationStatus } from './hooks'
 import { clearIntent, getOrCreateIntent, peekIntent } from './moneyIntent'
@@ -50,6 +56,7 @@ export function MoneyDialog({
   returnFocusRef,
   children,
   extraNotice,
+  subject,
 }: {
   title: string
   description: string
@@ -70,6 +77,8 @@ export function MoneyDialog({
   returnFocusRef?: RefObject<HTMLElement | null>
   children: ReactNode
   extraNotice?: ReactNode
+  /** Objeto de la operación con su número interno; todas son del RUC comercial. */
+  subject?: string
 }) {
   const latest = useLatestReview<MoneyReview>()
   const tracker = useIntentTracker()
@@ -149,6 +158,16 @@ export function MoneyDialog({
       tone={submitTone === 'danger' ? 'danger' : 'default'}
     >
       <div className="space-y-4">
+        {subject && (
+          <div
+            aria-label="Operación"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]"
+            role="group"
+          >
+            <span className="font-mono font-semibold text-ink">{subject}</span>
+            <FiscalScopeBadge scope="commercial" />
+          </div>
+        )}
         {pendingLookup && (
           <LoadingState label="Consultando si el registro anterior se guardó…" />
         )}

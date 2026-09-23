@@ -251,51 +251,51 @@ export function DropdownMenu({
             style={position}
             tabIndex={-1}
           >
-          {items.map((item) => {
-            if (item.divider) {
+            {items.map((item) => {
+              if (item.divider) {
+                return (
+                  <div
+                    className="my-1 border-t border-line"
+                    key={item.id}
+                    role="separator"
+                  />
+                )
+              }
+
+              const isDestructive = item.destructive
+              const itemClasses = isDestructive
+                ? 'text-danger hover:bg-danger-soft focus:bg-danger-soft'
+                : 'text-ink hover:bg-surface-subtle focus:bg-accent-soft'
+
               return (
-                <div
-                  className="my-1 border-t border-line"
+                <button
+                  className={`flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
+                  data-item-id={item.id}
+                  disabled={item.disabled}
+                  id={`item-${autoId}-${item.id}`}
                   key={item.id}
-                  role="separator"
-                />
+                  onClick={() => {
+                    if (!item.disabled) {
+                      item.onClick?.()
+                      closeAndFocusTrigger()
+                    }
+                  }}
+                  ref={(el) => {
+                    if (el) {
+                      itemRefs.current.set(item.id, el)
+                    } else {
+                      itemRefs.current.delete(item.id)
+                    }
+                  }}
+                  role="menuitem"
+                  tabIndex={-1}
+                  type="button"
+                >
+                  {item.icon && <span className="shrink-0">{item.icon}</span>}
+                  <span>{item.label}</span>
+                </button>
               )
-            }
-
-            const isDestructive = item.destructive
-            const itemClasses = isDestructive
-              ? 'text-danger hover:bg-danger-soft focus:bg-danger-soft'
-              : 'text-ink hover:bg-surface-subtle focus:bg-accent-soft'
-
-            return (
-              <button
-                className={`flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
-                data-item-id={item.id}
-                disabled={item.disabled}
-                id={`item-${autoId}-${item.id}`}
-                key={item.id}
-                onClick={() => {
-                  if (!item.disabled) {
-                    item.onClick?.()
-                    closeAndFocusTrigger()
-                  }
-                }}
-                ref={(el) => {
-                  if (el) {
-                    itemRefs.current.set(item.id, el)
-                  } else {
-                    itemRefs.current.delete(item.id)
-                  }
-                }}
-                role="menuitem"
-                tabIndex={-1}
-                type="button"
-              >
-                {item.icon && <span className="shrink-0">{item.icon}</span>}
-                <span>{item.label}</span>
-              </button>
-            )
-          })}
+            })}
           </div>,
           document.body,
         )}

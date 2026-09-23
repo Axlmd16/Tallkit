@@ -137,8 +137,9 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await page
       .getByRole('row')
       .filter({ hasText: 'ACE-E2E' })
-      .getByRole('button', { name: 'Desactivar' })
+      .getByRole('button', { name: 'Acciones de ACE-E2E' })
       .click()
+    await page.getByRole('menuitem', { name: 'Desactivar' }).click()
     await page
       .getByRole('dialog', { name: 'Desactivar producto' })
       .getByRole('button', { name: 'Confirmar desactivación' })
@@ -149,7 +150,8 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await page.getByLabel('Estado', { exact: true }).selectOption('false')
     const inactive = page.getByRole('row').filter({ hasText: 'ACE-E2E' })
     await expect(inactive).toContainText('Inactivo')
-    await inactive.getByRole('button', { name: 'Reactivar' }).click()
+    await inactive.getByRole('button', { name: 'Acciones de ACE-E2E' }).click()
+    await page.getByRole('menuitem', { name: 'Reactivar' }).click()
     await page
       .getByRole('dialog', { name: 'Reactivar producto' })
       .getByRole('button', { name: 'Confirmar reactivación' })
@@ -159,21 +161,25 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
       page.getByRole('row').filter({ hasText: 'ACE-E2E' }),
     ).toContainText('Activo')
 
-    // Proveedor sin documento ni contacto y proveedor con cédula.
-    await page.goto('/suppliers')
-    await page.getByRole('button', { name: 'Nuevo proveedor' }).click()
-    const supplier = page.getByRole('dialog', { name: 'Nuevo proveedor' })
+    // Proveedor sin documento ni contacto y proveedor con cédula (formulario en página).
+    const newSupplier = async () => {
+      await page.goto('/suppliers')
+      await page.getByRole('button', { name: 'Nuevo proveedor' }).click()
+      await expect(page).toHaveURL(/\/suppliers\/new$/)
+      return page.getByRole('main')
+    }
+    let supplier = await newSupplier()
     await supplier
       .getByLabel('Nombre o razón social')
       .fill('Juan Ocasional E2E')
     await supplier.getByRole('button', { name: 'Guardar proveedor' }).click()
-    await expect(supplier).not.toBeVisible()
-    const ocasional = page
-      .getByRole('row')
-      .filter({ hasText: 'Juan Ocasional E2E' })
-    await expect(ocasional).toBeVisible()
+    await expect(page).toHaveURL(/\/suppliers\/\d+$/)
+    await page.goto('/suppliers')
+    await expect(
+      page.getByRole('row').filter({ hasText: 'Juan Ocasional E2E' }),
+    ).toBeVisible()
 
-    await page.getByRole('button', { name: 'Nuevo proveedor' }).click()
+    supplier = await newSupplier()
     await supplier
       .getByLabel('Nombre o razón social')
       .fill('Juan Ocasional E2E')
@@ -183,18 +189,23 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await supplier.getByLabel('Tipo de identificación').selectOption('CI')
     await supplier.getByLabel('Número de identificación').fill('0912345678')
     await supplier.getByRole('button', { name: 'Guardar proveedor' }).click()
-    await expect(supplier).not.toBeVisible()
+    await expect(page).toHaveURL(/\/suppliers\/\d+$/)
+    await page.goto('/suppliers')
     await expect(
       page.getByRole('row').filter({ hasText: 'CI 0912345678' }),
     ).toBeVisible()
 
-    await page.getByRole('button', { name: 'Nuevo proveedor' }).click()
+    supplier = await newSupplier()
     await supplier.getByLabel('Nombre o razón social').fill('Otro nombre')
     await supplier.getByLabel('Tipo de identificación').selectOption('CI')
     await supplier.getByLabel('Número de identificación').fill('0912345678')
     await supplier.getByRole('button', { name: 'Guardar proveedor' }).click()
-    await expect(supplier.getByRole('alert')).toContainText(/identificación/i)
+    await expect(supplier.getByRole('alert').first()).toContainText(
+      /identificación/i,
+    )
+    await expect(page).toHaveURL(/\/suppliers\/new$/)
     await supplier.getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page).toHaveURL(/\/suppliers$/)
   })
 
   test('el Encargado del taller administra servicios pero no productos ni proveedores', async ({
@@ -233,7 +244,9 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await expandNavigation(page)
     await expect(page.getByRole('link', { name: 'Proveedores' })).toHaveCount(0)
     await expect(
-      page.getByRole('link', { name: 'Servicios', exact: true }),
+      page
+        .getByRole('navigation', { name: 'Navegación principal' })
+        .getByRole('link', { name: 'Servicios', exact: true }),
     ).toBeVisible()
     expect((await request.get(`${API}/suppliers/`)).status()).toBe(403)
     expect((await request.get(`${API}/products/`)).status()).toBe(200)
@@ -332,8 +345,9 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await page
       .getByRole('row')
       .filter({ hasText: 'ACE-E2E' })
-      .getByRole('button', { name: 'Editar' })
+      .getByRole('button', { name: 'Acciones de ACE-E2E' })
       .click()
+    await page.getByRole('menuitem', { name: 'Editar' }).click()
     await expect(page).toHaveURL(/\/products\/\d+\/edit$/)
     const form = page.locator('main')
     const list = await (

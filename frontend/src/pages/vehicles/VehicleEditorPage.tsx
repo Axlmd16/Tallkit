@@ -1,6 +1,12 @@
 import { ArrowLeft } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router'
+import {
+  Link,
+  useBlocker,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router'
 
 import { VehicleForm } from '@/features/vehicles/VehicleForm'
 import { useVehicle, useVehicleMutations } from '@/features/vehicles/hooks'

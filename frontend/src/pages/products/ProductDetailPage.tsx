@@ -55,7 +55,7 @@ export function ProductDetailPage() {
   return (
     <div className="space-y-6">
       <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
+        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
         to={back}
       >
         <ArrowLeft aria-hidden="true" size={16} />
@@ -152,7 +152,7 @@ export function ProductDetailPage() {
                 </>
               )}
               <Link
-                className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline"
                 state={{ from: `/products/${product.id}` }}
                 to={`/inventory/products/${product.id}/kardex`}
               >

@@ -1,10 +1,10 @@
 import { useCustomerOptions, useProductOptions } from './hooks'
-import type { PickerResults } from './ReferencePicker'
+import type { ComboboxResults } from '@/shared/ui'
 
 export function useCustomerPickerOptions(
   term: string,
   page: number,
-): PickerResults {
+): ComboboxResults {
   const query = useCustomerOptions(term, page)
   return {
     isPending: query.isPending,
@@ -24,7 +24,7 @@ export function useCustomerPickerOptions(
 export function useProductPickerOptions(
   term: string,
   page: number,
-): PickerResults {
+): ComboboxResults {
   const query = useProductOptions(term, page)
   return {
     isPending: query.isPending,

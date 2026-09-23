@@ -136,4 +136,30 @@ describe('FormModal Tallkit', () => {
       'max-sm:rounded-none',
     )
   })
+
+  it('permite deshabilitar la acción principal y nombrar la salida segura', async () => {
+    const onSave = vi.fn()
+    const onClose = vi.fn()
+    render(
+      <FormModal
+        cancelLabel="Abandonar sin confirmar"
+        onClose={onClose}
+        onSave={onSave}
+        open
+        saveDisabled
+        saveLabel="Confirmar operación"
+        title="Carga inicial y ajustes"
+      >
+        <input aria-label="Motivo" />
+      </FormModal>,
+    )
+    const save = screen.getByRole('button', { name: 'Confirmar operación' })
+    expect(save).toBeDisabled()
+    fireEvent.submit(save.closest('form') ?? save)
+    expect(onSave).not.toHaveBeenCalled()
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Abandonar sin confirmar' }),
+    )
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
 })
