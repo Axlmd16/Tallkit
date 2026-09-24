@@ -1,6 +1,6 @@
 # Integración de mantenimiento, repuestos, ventas y cobros por RUC
 
-Estado: **borrador pendiente de aprobación**. Fecha: 2026-09-24, America/Guayaquil. Rama `develop`, árbol limpio al iniciar (HEAD `6c9c0f4`). Esta propuesta no aprueba specs, diseño, tareas ni implementación y no autoriza operaciones Git.
+Estado: **propuesta aprobada para crear specs**. Fecha: 2026-09-24, America/Guayaquil. El usuario respondió «si, esta bien» a la solicitud expresa de aprobar P0…P7 y el alcance, y registró la propuesta en `master` (commit `3dbc652`). Para P0 informó que cerró y archivó los cuatro cambios anteriores; `openspec/specs/` contiene ahora `ventas-comerciales`, `pagos-comerciales-y-credito-simple`, `correcciones-de-ventas-y-reembolsos` y `existencias-y-ajustes-de-inventario`. Las recomendaciones P0…P7 quedan como decisiones aprobadas de este cambio. Esta aprobación no abarca diseño, tareas ni implementación, ni autoriza operaciones Git.
 
 ## Why
 
@@ -46,9 +46,9 @@ La matriz de `actores-y-roles.md` §3.4/§3.5 ya contiene todos los permisos nec
 
 El Encargado **no** obtiene `ventas.confirmar`. El uso real de un repuesto queda registrado desde que se agrega, porque reserva la unidad física y nadie más puede venderla. La salida contable ocurre cuando el Vendedor o el Administrador confirma, y la orden no puede finalizar antes. Esto aplica literalmente CU-018 y DP-021 sin ampliar atribuciones financieras. `mantenimientos.ver` y `ventas.ver` se conceden solo en su forma restringida: el Vendedor ve el origen de una venta vinculada y el Encargado ve las ventas vinculadas a sus órdenes.
 
-## Decisiones pendientes para aprobar la propuesta
+## Decisiones aprobadas P0…P7
 
-Estas recomendaciones no son requisitos aprobados. Cada una indica qué cambia si se elige la alternativa.
+Recomendaciones aprobadas el 2026-09-24; se conserva la alternativa descartada como contexto.
 
 | ID | Información insuficiente o discrepancia | Recomendación | Alternativa e impacto |
 |---|---|---|---|
@@ -108,6 +108,6 @@ Facturación electrónica y SRI; devoluciones, reembolsos y notas de crédito nu
 
 ## Límite de aprobación
 
-Solicito que apruebes o corrijas P0…P7 y el alcance. Después, y con autorización explícita para Git, el artefacto aprobado debe registrarse en `master` antes de redactar specs. No se ha creado código, migración, commit ni rama.
+Propuesta aprobada y registrada en `master`. Las specs requieren su propia aprobación y registro en `master` antes del diseño.
 
 Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).
