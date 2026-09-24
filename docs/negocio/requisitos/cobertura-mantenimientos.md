@@ -11,11 +11,11 @@
 
 | Capacidad | Requisitos | Escenarios | Cumplidos | Parciales | Pendientes |
 |---|---|---|---|---|---|
-| Órdenes de mantenimiento | 14 | 47 | 46 | 1 | 0 |
+| Órdenes de mantenimiento | 14 | 47 | 47 | 0 | 0 |
 | Servicios aplicados al mantenimiento | 7 | 21 | 21 | 0 | 0 |
 | Fotografías de mantenimiento | 4 | 14 | 14 | 0 | 0 |
 | Historial de mantenimientos | 4 | 6 | 6 | 0 | 0 |
-| **Total** | **29** | **88** | **87** | **1** | **0** |
+| **Total** | **29** | **88** | **88** | **0** | **0** |
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el comportamiento del escenario; «Parcial» indica una limitación real descrita en la última columna. Las rutas son relativas a la raíz del repositorio. Comandos de verificación:
 
@@ -46,7 +46,7 @@
 | Autorización de órdenes por acción | Vendedor intenta consultar una orden | Cumplido | `backend/tests/workshop/test_authorization.py::test_seller_is_denied_everywhere`; `backend/tests/workshop/test_queries.py::test_seller_cannot_list`; `frontend/src/app/maintenance-routes.test.tsx`. | — |
 | Autorización de órdenes por acción | Vendedor intenta modificar o cambiar el estado | Cumplido | `backend/tests/workshop/test_authorization.py::test_seller_is_denied_everywhere`. | — |
 | Autorización de órdenes por acción | Roles acumulados | Cumplido | `backend/tests/workshop/test_authorization.py::test_workshop_roles_are_allowed[seller_manager]`. | — |
-| Autorización de órdenes por acción | Sesión vencida durante la edición | Parcial | `backend/tests/workshop/test_api.py::test_csrf_is_enforced_for_session_writes`; `backend/tests/workshop/test_authorization.py::test_anonymous_cannot_read_files`; `frontend/src/pages/maintenance/MaintenanceOrderEditorPage.test.tsx` (conserva lo escrito ante errores). | No hay prueba de interfaz específica de sesión vencida; se verifica el rechazo del servidor y la conservación de datos ante errores recuperables en general. |
+| Autorización de órdenes por acción | Sesión vencida durante la edición | Cumplido | `backend/tests/workshop/test_api.py::test_csrf_is_enforced_for_session_writes`; `backend/tests/workshop/test_authorization.py::test_anonymous_cannot_read_files`; `frontend/src/pages/maintenance/MaintenanceOrderEditorPage.test.tsx` (rechazo 403 conservando lo escrito). | — |
 | Registro de una orden con cliente y vehículo válidos | Crear una orden válida | Cumplido | `backend/tests/workshop/test_orders.py::test_create_valid_order`; `frontend/src/pages/maintenance/MaintenanceOrderEditorPage.test.tsx`. | — |
 | Registro de una orden con cliente y vehículo válidos | Vehículo incompatible con el cliente | Cumplido | `backend/tests/workshop/test_orders.py::test_vehicle_of_another_owner_is_rejected`. | — |
 | Registro de una orden con cliente y vehículo válidos | Cliente o vehículo inactivo | Cumplido | `backend/tests/workshop/test_orders.py::test_inactive_references_are_rejected`. | — |

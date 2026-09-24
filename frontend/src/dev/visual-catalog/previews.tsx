@@ -152,6 +152,7 @@ function ButtonsPreview() {
         <Button>Guardar producto</Button>
         <Button variant="secondary">Guardar borrador</Button>
         <Button variant="quiet">Ver detalle</Button>
+        <Button variant="soft">Agregar servicio</Button>
         <Button variant="danger">Desactivar</Button>
         <Button variant="danger-solid">Anular venta</Button>
       </Row>
@@ -411,10 +412,27 @@ function SheetPreview() {
 
 function FormModalPreview() {
   const [open, setOpen] = useState(false)
+  const [wide, setWide] = useState(false)
   const [name, setName] = useState('')
   return (
-    <div>
+    <div className="flex flex-wrap gap-2">
       <Button onClick={() => setOpen(true)}>Nueva marca</Button>
+      <Button onClick={() => setWide(true)} variant="secondary">
+        Modal ancho (600 px)
+      </Button>
+      <FormModal
+        description="Ancho para nombres de catálogo extensos."
+        onClose={() => setWide(false)}
+        onSave={() => true}
+        open={wide}
+        saveLabel="Agregar servicio"
+        size="wide"
+        title="Agregar servicio"
+      >
+        <Field id="cat-wide-service" label="Servicio del catálogo">
+          <Input defaultValue="Alineación y balanceo de las cuatro ruedas con revisión de suspensión" />
+        </Field>
+      </FormModal>
       <FormModal
         description="Se podrá elegir al registrar vehículos."
         dirty={name !== ''}

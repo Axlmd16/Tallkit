@@ -137,7 +137,7 @@ acceso en esta entrega. Las escrituras exigen `idempotency_key` y, salvo las fot
 
 Fotografías (ADR-0007): JPEG, PNG o WebP estáticas de hasta 10 MiB y 25 megapíxeles, 20 vigentes por orden. Se
 guardan en `PRIVATE_MEDIA_ROOT` (por omisión `backend/private-media/`, ignorada por Git; en Docker, el volumen
-`private_media` montado en `/var/lib/sys-taller/private-media`) y solo se entregan por la API con sesión y permiso.
+`private_media` montado en `/var/lib/sys-taller/private-media`) y solo se entregan por la API con sesión y permiso. En desarrollo, el backend ejecuta `uv sync --frozen` al arrancar para que el entorno del volumen `backend_venv` reciba dependencias nuevas como `pillow`.
 **El volumen debe incluirse en los respaldos junto con PostgreSQL**; su política definitiva queda en DA-003. La
 dependencia `pillow` se usa exclusivamente para verificar el contenido real de las imágenes y generar miniaturas sin
 metadatos. Nginx admite cuerpos de hasta 12 MiB en `/api/`. Para eliminar archivos huérfanos de cargas interrumpidas o

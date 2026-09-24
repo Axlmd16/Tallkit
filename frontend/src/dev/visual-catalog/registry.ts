@@ -109,11 +109,19 @@ export const CATALOG: CatalogEntry[] = (
       name: 'Botones',
       family: 'acciones',
       source: board('Fundamentos'),
-      tokens: ['primary', 'line-strong', 'accent', 'danger', 'radius-control'],
+      tokens: [
+        'primary',
+        'line-strong',
+        'accent',
+        'accent-soft',
+        'danger',
+        'radius-control',
+      ],
       variants: [
         'Principal',
         'Secundario',
         'Discreto',
+        'Suave',
         'Peligro',
         'Peligro sólido',
         'Icono',
@@ -123,8 +131,14 @@ export const CATALOG: CatalogEntry[] = (
       acceptanceCriteria: [
         'La variante procesando impide envíos repetidos.',
         'Las acciones principal, secundaria y destructiva conservan jerarquías distintas.',
+        'La variante suave (adaptación del proyecto) conserva el fondo petróleo suave en reposo para acciones de sección.',
       ],
-      consumers: ['Formularios', 'Listas', 'Diálogos'],
+      consumers: [
+        'Formularios',
+        'Listas',
+        'Diálogos',
+        'Acciones de sección de la ficha de mantenimiento',
+      ],
       description:
         'La acción principal domina; la destructiva se reconoce por texto y tratamiento, no solo por color.',
     },
@@ -233,10 +247,22 @@ export const CATALOG: CatalogEntry[] = (
       family: 'superposiciones',
       source: board('Formulario corto en modal'),
       tokens: ['radius-dialog', 'shadow-dialog', 'surface-subtle'],
-      variants: ['Nuevo', 'Con cambios sin guardar', 'Guardar y crear otro'],
-      consumers: ['Catálogos auxiliares', 'Servicios', 'Usuarios', 'Ajustes'],
+      variants: [
+        'Nuevo',
+        'Con cambios sin guardar',
+        'Guardar y crear otro',
+        'Ancho (600 px)',
+      ],
+      consumers: [
+        'Catálogos auxiliares',
+        'Servicios',
+        'Usuarios',
+        'Ajustes',
+        'Servicios del mantenimiento (ancho)',
+        'Visor de fotografías (tamaño media)',
+      ],
       description:
-        'Formulario de pocos campos sobre la lista de origen; advierte antes de descartar cambios.',
+        'Formulario de pocos campos sobre la lista de origen; advierte antes de descartar cambios. Los tamaños ancho (600 px) y de visor de imagen son adaptaciones del proyecto; el ancho por omisión sigue siendo 466 px.',
     },
     {
       id: 'TK-14',

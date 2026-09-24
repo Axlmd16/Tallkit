@@ -14,7 +14,10 @@ from customer_registry.models import Customer, OwnershipPeriod, Vehicle, Vehicle
 from identity.models import UserRole
 from workshop_configuration.models import FiscalEntity, TaxDefinition, WorkshopConfiguration
 
-# Permite importar ``tests.workshop.workshop_helpers`` con --import-mode=importlib.
+# Convención local de este módulo: las ayudas compartidas viven en ``workshop_helpers`` y se
+# importan como ``tests.workshop.workshop_helpers``. Con --import-mode=importlib la raíz de
+# ``backend`` no está en sys.path; se añade aquí para que pytest y mypy resuelvan el mismo nombre
+# sin convertir ``tests`` en paquete ni cambiar la configuración global.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 _sequence = count(1)

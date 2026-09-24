@@ -223,3 +223,25 @@ it('el resumen refleja cliente, vehículo, fecha y kilometraje mientras se llena
   expect(summary).toHaveTextContent('Toyota Hilux · 2020 · Blanco')
   expect(summary).toHaveTextContent(/80\.000 km/)
 })
+
+it('si la sesión venció, informa el rechazo y conserva lo escrito', async () => {
+  const user = userEvent.setup()
+  mocks.create.mockRejectedValueOnce(
+    new ProblemError(
+      'No tiene permiso para realizar esta acción.',
+      403,
+      'permission_denied',
+    ),
+  )
+  renderEditor('/maintenance/new?customer_id=3')
+  await fillNewOrder(user)
+  await user.type(screen.getByLabelText('Diagnóstico'), 'Ruido en frenos')
+  await user.click(screen.getByRole('button', { name: 'Registrar orden' }))
+  expect(await screen.findByText('No se guardó la orden')).toBeInTheDocument()
+  expect(screen.getByLabelText('Diagnóstico')).toHaveValue('Ruido en frenos')
+  expect(screen.getByLabelText('Kilometraje (km)')).toHaveValue('80000')
+  expect(screen.getByLabelText('Vehículo', { selector: 'select' })).toHaveValue(
+    '4',
+  )
+  expect(screen.queryByTestId('where')).not.toBeInTheDocument()
+})
