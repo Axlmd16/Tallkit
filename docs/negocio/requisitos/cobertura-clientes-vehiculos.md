@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `gestionar-clientes-y-vehiculos` |
-| Estado | 69 de 69 escenarios con evidencia ejecutada (2026-09-20); la aceptación visual humana de las nuevas superficies no está registrada |
+| Cambio OpenSpec | `openspec/changes/archive/2026-09-24-gestionar-clientes-y-vehiculos`; specs principales en `openspec/specs/catalogo-de-marcas-de-vehiculo`, `gestion-de-clientes` y `gestion-de-vehiculos-y-propiedad` |
+| Estado | 69 de 69 escenarios con evidencia ejecutada; cambio verificado y archivado el 2026-09-24. La aceptación visual humana de las nuevas superficies no está registrada |
 | Fecha | 2026-09-20 |
 | Alcance | Gestión de clientes, catálogo de marcas de vehículo y gestión de vehículos y propiedad |
 

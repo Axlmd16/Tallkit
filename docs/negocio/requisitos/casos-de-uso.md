@@ -169,7 +169,7 @@
 
 **Garantía de éxito:** el vehículo queda identificado y conserva su continuidad histórica.
 
-> **Estado de implementación:** `CU-004` y `CU-005` están implementados por `openspec/changes/gestionar-clientes-y-vehiculos` para fichas, propiedad y períodos de propiedad. La consulta cronológica de mantenimientos y documentos vinculados (`RF-CLI-011`) no forma parte de esa entrega y depende de las capacidades de taller y ventas. Evidencia: [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md).
+> **Estado de implementación:** `CU-004` y `CU-005` están implementados por `openspec/changes/archive/2026-09-24-gestionar-clientes-y-vehiculos` para fichas, propiedad y períodos de propiedad. La consulta cronológica de mantenimientos y documentos vinculados (`RF-CLI-011`) no forma parte de esa entrega y depende de las capacidades de taller y ventas. Evidencia: [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md).
 
 > **Estado de implementación:** `CU-006` y `CU-016` están implementados en el cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores` para productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. No incluyen existencias, costos ni operaciones de compra, venta o mantenimiento. Evidencia: [cobertura-catalogos.md](cobertura-catalogos.md).
 
