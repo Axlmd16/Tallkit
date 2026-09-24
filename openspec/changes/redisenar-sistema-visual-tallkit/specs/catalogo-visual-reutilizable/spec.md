@@ -198,23 +198,23 @@ Trazabilidad: RNF-USA-001/002/006/007/008; RNF-COM-001/002; experiencia-adaptabl
 - **WHEN** se abre una variante o aparece una notificación
 - **THEN** presenta el estado final sin animaciones no esenciales
 
-### Requirement: CVR-11 Página interna de demostración y aceptación por fases
+### Requirement: CVR-11 Página interna de demostración y validación directa
 
-La página interna SHALL permitir localizar cada pieza por identificador y familia, seleccionar variantes y estados, consultar su tablero de origen y restablecer ejemplos deterministas. Cada fase del rediseño SHALL entregar pruebas y capturas en los tamaños representativos junto al tablero correspondiente, con las diferencias justificadas explícitas. Los resultados técnicos SHALL NOT sustituir la aceptación visual del usuario. Las capturas generadas SHALL permanecer fuera del repositorio conforme a AGENTS.md.
+La página interna SHALL permitir localizar cada pieza por identificador y familia, seleccionar variantes o estados y uno de los anchos 360, 768, 1024, 1280 o 1440 px, consultar su tablero de origen, sus criterios de aceptación y sus diferencias conocidas, y restablecer ejemplos deterministas. El catálogo SHALL apoyar la validación directa del usuario en la aplicación. Las capturas son opcionales; cuando se generen, SHALL permanecer fuera del repositorio conforme a AGENTS.md.
 
-Trazabilidad: RNF-MAN-003/005; sistema-visual-frontend, «Aceptación visual contra la maqueta Tallkit».
+Trazabilidad: RNF-MAN-003/005; sistema-visual-frontend, «Validación visual contra la maqueta Tallkit».
 
 #### Scenario: Reproducción de un ejemplo
 
 - **GIVEN** un identificador de componente, variante, estado y tamaño registrados
 - **WHEN** otro revisor abre el ejemplo y lo restablece
-- **THEN** obtiene la misma composición y puede consultar su tablero de origen y sus diferencias conocidas
+- **THEN** obtiene la misma composición y puede consultar su tablero de origen, sus criterios de aceptación y sus diferencias conocidas
 
-#### Scenario: Diferencia visual detectada
+#### Scenario: Validación directa sin paquete de evidencias
 
-- **GIVEN** una comparación con desviaciones no justificadas respecto de la maqueta
-- **WHEN** las pruebas unitarias y de accesibilidad pasan
-- **THEN** la fase conserva la diferencia abierta y no se declara aceptada hasta corregirla o recibir la aceptación explícita del usuario
+- **GIVEN** los ejemplos deterministas y las pantallas funcionales disponibles
+- **WHEN** el usuario decide revisarlos directamente
+- **THEN** puede validar el resultado sin que el sistema exija generar capturas comparativas
 
 ## REMOVED Requirements
 

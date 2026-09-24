@@ -85,7 +85,7 @@ Dos capas: los valores crudos `--tk-*` viven en `frontend/src/shared/styles/toke
 
 ## Componentes compartidos
 
-`frontend/src/shared/ui/` agrupa acciones, campos (incluido `Combobox`, que sustituye al antiguo selector de referencias), navegación, superposiciones (`Modal`, `FormModal`, `Dialog`, `ConfirmationPanel`, `DropdownMenu`, `Tooltip`), datos, estados, notificaciones, superficies y piezas del taller. Se retiraron el panel lateral `Drawer`, las familias de gráficos, calendario, tablero, conversación y cronología, y los layouts y tarjetas de métricas de la plantilla anterior; volverán solo cuando una capacidad aprobada los necesite.
+`frontend/src/shared/ui/` agrupa acciones, campos (incluido `Combobox`, que sustituye al antiguo selector de referencias), navegación, superposiciones (`Modal`, `FormModal`, `Dialog`, `ConfirmationPanel`, `DropdownMenu`, `Tooltip`), datos, estados, notificaciones, superficies y piezas del taller. `Drawer` se conserva sin exportación pública ni consumidores funcionales para una capacidad futura; no se usa como formato de creación o edición. Se retiraron las familias de gráficos, calendario, tablero, conversación y cronología, y los layouts y tarjetas de métricas de la plantilla anterior; volverán solo cuando una capacidad aprobada los necesite.
 
 El frontend oculta opciones según los permisos efectivos, pero el backend conserva la autoridad sobre toda acción.
 
@@ -99,8 +99,8 @@ El frontend oculta opciones según los permisos efectivos, pero el backend conse
 
 ## Catálogo visual interno
 
-`frontend/visual-catalog.html` (puerto 55175 en desarrollo) muestra los componentes y patrones Tallkit por familias —fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, notificaciones, navegación y patrones de pantalla—, cada uno con su tablero de origen en la maqueta o su marca de adaptación. Queda fuera de la compilación productiva y se prueba con `npm run test:e2e:catalog`.
+`frontend/visual-catalog.html` (puerto 55175 en desarrollo) muestra los componentes y patrones Tallkit por familias —fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, notificaciones, navegación y patrones de pantalla—, cada uno con su tablero de origen o marca de adaptación, variantes o estados reproducibles en los cinco anchos, criterios de aceptación y diferencias conocidas. Queda fuera de la compilación productiva y se prueba con `npm run test:e2e:catalog`.
 
 ## Aceptación visual
 
-El rediseño se entrega por fases con capturas en los tamaños representativos junto al tablero correspondiente de la maqueta, y registra las diferencias justificadas (por ejemplo, funciones de la maqueta fuera de alcance como la búsqueda global o los indicadores sin dato del servidor). Las pruebas técnicas no equivalen a la aprobación visual del usuario.
+El usuario valida el rediseño directamente en la aplicación y puede apoyarse en el catálogo reproducible. Las capturas comparativas son opcionales y solo se preparan cuando las solicita. Las diferencias justificadas siguen registradas, por ejemplo las funciones de la maqueta fuera de alcance como la búsqueda global o los indicadores sin dato del servidor.

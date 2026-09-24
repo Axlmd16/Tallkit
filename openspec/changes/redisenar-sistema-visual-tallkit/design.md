@@ -84,7 +84,7 @@ Se sustituye `@fontsource/nunito` por `@fontsource/ibm-plex-sans` (pesos 400, 50
 | Acción | Componentes |
 |---|---|
 | **Ajustar**: mismo API, estilo Tallkit | `Button`, `IconButton`, `ButtonGroup`, `Field`, `Input`, `Select`, `Checkbox`, `Textarea`, `SearchInput`, `PasswordInput`, `DateControl`, `FormSection`, `Tabs`, `SegmentedControl`, `Tooltip`, `DropdownMenu`, `DataTable`, `DataList`, `Pagination`, `RowActions`, `StatusBadge`, `FiscalScopeBadge`, `InlineNotice`, `LoadingState`, estados de `feedback/`, `PageHeader`, `Toolbar`, `FilterPanel`, `Surface`, `DetailCard`, `Divider`, `NavigationItem`, `Sidebar`, `FormLayout`, `Avatar`, `ConfirmationPanel` |
-| **Reemplazar** | `Drawer` y `EditorDrawer` → `FormModal` (D5) o página (D6); `ReferencePicker` → `Combobox` (D7); `Dialog` → basado en `Modal`, sin ilustraciones de `assets/figma/` y con la variante de peligro |
+| **Reemplazar** | Todos los consumidores funcionales de `Drawer` y `EditorDrawer` → `FormModal` (D5) o página (D6); `ReferencePicker` → `Combobox` (D7); `Dialog` → basado en `Modal`, sin ilustraciones de `assets/figma/` y con la variante de peligro. El componente base `Drawer` se conserva sin exportación ni consumidores actuales por decisión del usuario, para un cambio futuro. |
 | **Nuevos** | `ToastProvider`/`useToast` (D4), `FormModal` (D5), `Combobox` (D7), `PlateTag`, `PartCode` con copiar, `StockIndicator` (cantidad y «Agotado», sin umbral), `Money` (importe o guion), `DocumentSheet` (hoja A4 común a vista previa, comprobante e impresión) |
 | **Retirar** (sin consumidor funcional) | `MetricCard`, `StatCard`, `DetailPanel`, `AppFrame`, `AuthLayout`, `DashboardLayout`, `MasterDetailLayout`, `PreviewLayout`, familias `charts/`, `calendar/`, `board/`, `conversation/`, `timeline/` y `assets/figma/` |
 
@@ -117,7 +117,7 @@ Con cambios pendientes, Escape, el cierre y Cancelar abren una confirmación «S
 Consumidores, según PPF-04:
 - los catálogos auxiliares (marcas de vehículo y de producto, categorías y unidades de medida), por medio de `AuxiliaryCatalogPage` y `RecordForm`;
 - servicio (`ServiceForm`);
-- ajuste de inventario (`AdjustmentDrawer`);
+- ajuste de inventario (`AdjustmentModal`);
 - usuario (`UserForm`, en `UsersPage`).
 
 Los componentes de formulario existentes conservan su lógica y sus pruebas; cambia el contenedor.
@@ -161,6 +161,7 @@ Una prueba de guarda falla si el CSS de la aplicación contiene `Nunito`, los he
 Se reescriben `registry.ts` y `previews.tsx`:
 - familias Tallkit: fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, toasts, navegación y patrones de pantalla;
 - ficha con el tablero de la maqueta o la marca de adaptación;
+- variantes o estados y anchos reproducibles, criterios de aceptación y diferencias conocidas;
 - sin estados de evidencia Figma.
 
 Se conserva la entrada aislada `visual-catalog.html`, que no forma parte de la compilación productiva. Se eliminan las pruebas `e2e/catalog/phase*` de familias retiradas y se ajustan las demás.
@@ -181,7 +182,7 @@ Se conserva la entrada aislada `visual-catalog.html`, que no forma parte de la c
   - se reescribe `visual-system.spec.ts` para comprobar estilos computados de tokens y fuentes locales sin red externa;
   - los flujos funcionales existentes se conservan con selectores actualizados;
   - `axe` se ejecuta en 360, 768, 1024, 1280 y 1440 px.
-- **Evidencia visual:** capturas por fase fuera del repositorio, presentadas junto a los tableros de la maqueta.
+- **Validación visual:** el usuario revisa directamente la aplicación y el catálogo; las capturas comparativas son opcionales y solo se generan si las solicita.
 
 ### D12. Documentación
 
@@ -203,7 +204,7 @@ Se conserva la entrada aislada `visual-catalog.html`, que no forma parte de la c
 ## Migration Plan
 
 1. Integrar en `master` el cambio `gestionar-ventas-pagos-credito-simple` y crear la rama de trabajo desde `master`.
-2. **Fase 1:** tokens, fuentes, reglas base, marco autenticado y acceso. Capturas y revisión.
+2. **Fase 1:** tokens, fuentes, reglas base, marco autenticado y acceso. Revisión directa o capturas si el usuario las solicita.
 3. **Fase 2:** componentes ajustados y nuevos (toasts, `FormModal`, `Combobox`, piezas del taller, `DocumentSheet`) y el catálogo interno.
 4. **Fase 3, piloto:**
    - lista de ventas;
@@ -213,7 +214,7 @@ Se conserva la entrada aislada `visual-catalog.html`, que no forma parte de la c
    - editor de venta.
 
    Se detiene hasta la aprobación visual explícita del usuario.
-5. **Fase 4:** resto de pantallas por módulo, luego la retirada de `Drawer`, `ReferencePicker`, clases heredadas y componentes sin consumidor, y la documentación.
+5. **Fase 4:** resto de pantallas por módulo, luego la retirada de los consumidores funcionales de `Drawer`, de `ReferencePicker`, de las clases heredadas y de los componentes sin consumidor, y la documentación. El componente base `Drawer` se conserva para un cambio futuro.
 6. Verificación completa: `make check`, `make test`, e2e y `axe`.
 
 **Rollback:** el cambio es solo de frontend y no toca datos; se revierte deshaciendo los commits de la fase afectada. Las fases se integran por separado para poder revertirlas de forma aislada.

@@ -37,13 +37,15 @@ Ejecución simultánea de operaciones que deben coordinarse para preservar las r
 
 Panel contextual superpuesto que entra desde un borde de la interfaz. El sistema visual Tallkit
 lo retiró como formato para crear o editar: los formularios cortos usan un modal y los largos
-una página completa. Solo se conserva, como panel temporal, para la navegación en teléfono.
+una página completa. El componente base se conserva sin exportación pública ni consumidores
+funcionales para una capacidad futura; la navegación en teléfono usa `NavigationPanel`.
 
 ## Evidencia visual
 
 Conjunto reproducible de referencia, captura actual, diferencia y metadatos que permite revisar
 la fidelidad de una interfaz sin deducir estilos a partir de la imagen. Con Tallkit, la evidencia
-son capturas por fase en los tamaños representativos, presentadas junto al tablero de la maqueta.
+visual es opcional: el usuario valida normalmente la aplicación de forma directa y solicita
+capturas comparativas solo cuando las necesita.
 
 ## Referencia Figma
 

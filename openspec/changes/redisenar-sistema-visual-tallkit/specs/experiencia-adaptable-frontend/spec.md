@@ -122,4 +122,4 @@ Cada superficie modificada SHALL verificarse al menos en 360 px, 768 px, 1024 px
 
 ### Requirement: Comparación al tamaño nativo de la referencia
 **Reason**: Los viewports nativos correspondían a los frames de la plantilla Figma retirada.
-**Migration**: La aceptación visual usa los tamaños representativos y la maqueta Tallkit según `sistema-visual-frontend`, «Aceptación visual contra la maqueta Tallkit».
+**Migration**: La validación visual usa los tamaños representativos y la maqueta Tallkit según `sistema-visual-frontend`, «Validación visual contra la maqueta Tallkit», sin exigir capturas comparativas.
