@@ -21,6 +21,8 @@ describe('registro del catálogo Tallkit', () => {
       }
       expect(entry.tokens.length).toBeGreaterThan(0)
       expect(entry.variants.length).toBeGreaterThan(0)
+      expect(entry.acceptanceCriteria.length).toBeGreaterThan(0)
+      expect(Array.isArray(entry.knownDifferences)).toBe(true)
     }
   })
 

@@ -11,8 +11,8 @@ Aplicar TDD en cada tarea de comportamiento:
 
 Solo se cambian frontend y documentación; backend, API, permisos y datos quedan intactos.
 Frontend con npm exclusivamente, desde `frontend/`. Las rutas existentes se confirmaron por
-inspección y los archivos nuevos provienen del design. Las capturas de evidencia se guardan
-fuera del repositorio. Toda evidencia debe ser un resultado real ejecutado.
+inspección y los archivos nuevos provienen del design. Las capturas, cuando el usuario las
+solicite, se guardan fuera del repositorio. Toda evidencia debe ser un resultado real ejecutado.
 
 La fase 3 termina en un punto de control: la fase 4 no empieza sin la aprobación visual
 explícita del usuario.
@@ -98,7 +98,7 @@ explícita del usuario.
 
 ## 6. Fase 2 — Catálogo visual interno
 
-- [x] 6.1 Reescribir `frontend/src/dev/visual-catalog/registry.ts` y `registry.test.ts` con las familias Tallkit (fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, toasts, navegación y patrones de pantalla), cada una con su tablero de origen o marca de adaptación. Eliminar los estados de evidencia Figma.
+- [x] 6.1 Reescribir `frontend/src/dev/visual-catalog/registry.ts` y `registry.test.ts` con las familias Tallkit (fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, toasts, navegación y patrones de pantalla), cada una con su tablero de origen o marca de adaptación, variantes o estados, criterios de aceptación, consumidores y diferencias conocidas. Eliminar los estados de evidencia Figma.
 - [x] 6.2 Reescribir `previews.tsx` y `CatalogApp.tsx` con ejemplos deterministas y restablecibles. Mantener `visual-catalog.html` fuera de la compilación productiva y verificarlo con `npm run build` más la inspección de `dist/`.
 - [x] 6.3 Eliminar las pruebas `frontend/e2e/catalog/phase11-charts`, `phase12-calendar`, `phase13-timeline-board` y `phase14-conversation`. Ajustar las demás de `e2e/catalog/` a las familias Tallkit y ejecutar `npm run test:e2e:catalog`.
 - [x] 6.4 **Evidencia de fase 2:** capturas del catálogo en los cinco anchos y `axe`, presentadas al usuario.
@@ -164,9 +164,9 @@ explícita del usuario.
 
 ## 9. Retiro de legado
 
-- [x] 9.1 Confirmar con `grep` que no hay consumidores fuera de `shared/ui` y `dev/`, y eliminar `Drawer.tsx`, `Drawer.test.tsx`, `features/catalog-common/EditorDrawer.tsx` y `features/purchases/ReferencePicker.tsx`, junto con su reexportación en `features/sales/ReferencePicker.tsx`, conservando `PickerResults` donde lo use `Combobox`.
+- [x] 9.1 Confirmar con `grep` que no quedan consumidores funcionales de `Drawer`, eliminar `EditorDrawer` y `features/purchases/ReferencePicker.tsx` junto con su reexportación en ventas, y conservar `PickerResults` donde lo use `Combobox`. Conservar el componente base `Drawer` y su prueba, sin exportación pública ni consumidores actuales, por decisión posterior del usuario para una capacidad futura.
 
-  Resultado (2026-09-23): el único consumidor fuera de `shared/ui` era el panel de navegación móvil de `AuthenticatedShell`, que D8 permite por no ser un formulario. Se sustituyó por `shared/ui/navigation/NavigationPanel` (panel temporal sin aviso de cambios, con sus pruebas), también usado por `Sidebar`. Se eliminaron `Drawer.tsx`, `Drawer.test.tsx`, `DrawerVariants.test.tsx`, `EditorDrawer.tsx`, `features/purchases/ReferencePicker.tsx` con su prueba y `features/sales/ReferencePicker.tsx`. `PickerResults` tenía la misma forma que `ComboboxResults`, que ahora devuelven directamente los hooks de selección; las pruebas de anidación y retorno de foco usan `Modal`.
+  Resultado (2026-09-23): el único consumidor fuera de `shared/ui` era el panel de navegación móvil de `AuthenticatedShell`, que D8 permite por no ser un formulario. Se sustituyó por `shared/ui/navigation/NavigationPanel` (panel temporal sin aviso de cambios, con sus pruebas), también usado por `Sidebar`. Se eliminaron `DrawerVariants.test.tsx`, `EditorDrawer.tsx`, `features/purchases/ReferencePicker.tsx` con su prueba y `features/sales/ReferencePicker.tsx`. El usuario restauró después `Drawer.tsx` y `Drawer.test.tsx` para una capacidad futura; permanecen sin exportación pública ni consumidores funcionales. `PickerResults` tenía la misma forma que `ComboboxResults`, que ahora devuelven directamente los hooks de selección; las pruebas de anidación y retorno de foco usan `Modal`.
 - [x] 9.2 Eliminar los componentes sin consumidor funcional del design D3 (`MetricCard`, `StatCard`, `DetailPanel`, los layouts de la plantilla y las familias `charts/`, `calendar/`, `board/`, `conversation/` y `timeline/`) con sus pruebas y exportaciones, y el directorio `frontend/src/assets/figma/`.
 
   Resultado (2026-09-23): confirmado con `grep` que ninguno tenía consumidores fuera de `shared/ui`; se eliminaron con sus pruebas y exportaciones, y `assets/figma/`. Los iconos `category`, `chart` y `document` de `shared/ui/icons` usaban esos SVG y pasan a Phosphor (`SquaresFour`, `ChartBar`, `FileText`). La prueba de `FormLayout`, que compartía archivo con `MasterDetailLayout`, se conserva en `layout/FormLayout.test.tsx`. `Progress` no figura en D3 y se conserva: se sustituyeron su violeta de la plantilla, sus colores de paleta y sus variantes `dark:` por tokens, y sus pruebas pasan a `data/Progress.test.tsx`. La deuda de la prueba de guarda queda solo en `index.css`, que limpia la 9.3.

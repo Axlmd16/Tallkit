@@ -55,21 +55,26 @@ La interfaz SHALL representar de forma consistente los datos propios del negocio
 - **WHEN** el usuario activa la acción de copiar de un código de repuesto
 - **THEN** el código SHALL copiarse al portapapeles y la acción SHALL tener un nombre accesible
 
-### Requirement: Aceptación visual contra la maqueta Tallkit
+### Requirement: Validación visual contra la maqueta Tallkit
 El rediseño SHALL entregarse en cuatro fases:
 1. Fundamentos y marco de la aplicación.
 2. Componentes compartidos.
 3. Piloto con una lista, una ficha, un formulario y el editor de venta.
 4. Resto de módulos.
 
-Cada fase SHALL presentar capturas de la aplicación en los tamaños representativos junto al tablero correspondiente de la maqueta aprobada, y SHALL registrar las diferencias justificadas. La maqueta fija fundamentos y patrones, no una fidelidad píxel a píxel. Las pruebas técnicas SHALL NOT equivaler a la aprobación visual, y la fase siguiente SHALL NOT comenzar sin la aprobación explícita del usuario sobre el piloto.
+La maqueta fija fundamentos y patrones, no una fidelidad píxel a píxel. El usuario SHALL poder validar cada fase directamente en la aplicación; las capturas comparativas son opcionales y solo se preparan cuando las solicite. Las diferencias funcionales respecto de la maqueta SHALL permanecer justificadas. La revisión técnica complementa, pero no sustituye, las correcciones que el usuario indique durante su validación directa.
 
 **Trazabilidad:** decisión 11 del proposal; `RNF-USA-008`, `RNF-MAN-005`; sección 13 de `interfaz-y-navegacion.md`.
 
-#### Scenario: Revisión del piloto
+#### Scenario: Revisión directa del piloto
 - **GIVEN** la lista, la ficha, el formulario y el editor de venta del piloto con sus pruebas en verde
-- **WHEN** se presentan al usuario junto a los tableros de la maqueta
+- **WHEN** el usuario los revisa directamente en la aplicación o solicita capturas comparativas
 - **THEN** el resto de módulos SHALL NOT rediseñarse hasta recibir su aprobación explícita o sus correcciones
+
+#### Scenario: Validación final sin capturas obligatorias
+- **GIVEN** el resto de módulos implementado
+- **WHEN** el usuario decide comprobarlo directamente en la aplicación
+- **THEN** el cambio SHALL poder cerrarse sin producir un paquete adicional de capturas
 
 #### Scenario: Diferencia justificada con la maqueta
 - **WHEN** una pantalla difiere de la maqueta porque una función de la maqueta está fuera de alcance
@@ -212,4 +217,4 @@ Toda pantalla funcional posterior SHALL usar los fundamentos Tallkit y los patro
 
 ### Requirement: Aceptación visual explícita y evidencia por etapa
 **Reason**: Las ocho etapas y la comparación contra frames de Figma pertenecían a la corrección de fidelidad cancelada.
-**Migration**: La aceptación se rige por «Aceptación visual contra la maqueta Tallkit», con cuatro fases y un piloto aprobado por el usuario.
+**Migration**: La validación se rige por «Validación visual contra la maqueta Tallkit», con cuatro fases y revisión directa del usuario; las capturas son opcionales.

@@ -58,6 +58,36 @@ describe('CatalogApp - Aislamiento e independencia', () => {
     expect(screen.getByText(/Tablero «Fundamentos»/)).toBeInTheDocument()
   })
 
+  it('documenta y reproduce una variante en un ancho registrado', () => {
+    render(<CatalogApp />)
+    fireEvent.click(screen.getByRole('button', { name: /TK-03 Botones/ }))
+
+    expect(
+      screen.getByText('La variante procesando impide envíos repetidos.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Sin diferencias conocidas.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Variante o estado'), {
+      target: { value: 'Procesando' },
+    })
+    fireEvent.change(screen.getByLabelText('Ancho de revisión'), {
+      target: { value: '360' },
+    })
+
+    expect(screen.getByTestId('catalog-preview-frame')).toHaveAttribute(
+      'data-catalog-variant',
+      'Procesando',
+    )
+    expect(screen.getByTestId('catalog-preview-frame')).toHaveAttribute(
+      'data-catalog-width',
+      '360',
+    )
+    expect(screen.getByRole('link', { name: 'Vista aislada' })).toHaveAttribute(
+      'href',
+      '#isolate=true&id=TK-03&variant=Procesando&width=360',
+    )
+  })
+
   it('permite captura aislada cuando se define el hash con isolate=true e id', () => {
     window.location.hash = '#isolate=true&id=TK-03'
     render(<CatalogApp />)
