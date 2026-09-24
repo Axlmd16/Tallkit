@@ -7,6 +7,8 @@ Design decisión 5 (numeración y transacción del consumidor).
 
 import hashlib
 import json
+from collections.abc import Mapping
+from typing import TypedDict
 
 import pytest
 
@@ -29,7 +31,12 @@ from workshop_configuration.models import (
 # ---------------------------------------------------------------------------
 
 
-def _fingerprint(data: dict) -> str:
+class ScopeAndSeries(TypedDict):
+    scope: NumberingScope
+    series: DocumentSeries
+
+
+def _fingerprint(data: Mapping[str, object]) -> str:
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -40,7 +47,7 @@ def _fingerprint(data: dict) -> str:
 
 
 @pytest.fixture
-def scope_and_series(db: None) -> dict[str, object]:
+def scope_and_series(db: None) -> ScopeAndSeries:
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     entity = FiscalEntity.objects.create(
         entity_type="COMERCIAL",
@@ -66,7 +73,7 @@ def scope_and_series(db: None) -> dict[str, object]:
 
 
 @pytest.mark.django_db
-def test_allocate_number_returns_visible_number(scope_and_series: dict) -> None:
+def test_allocate_number_returns_visible_number(scope_and_series: ScopeAndSeries) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     fingerprint = _fingerprint({"consumer_id": "sale-001", "scope_id": scope.pk})
     result = allocate_number(
@@ -85,7 +92,7 @@ def test_allocate_number_returns_visible_number(scope_and_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_allocate_number_increments_counter(scope_and_series: dict) -> None:
+def test_allocate_number_increments_counter(scope_and_series: ScopeAndSeries) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     fp1 = _fingerprint({"consumer_id": "sale-001", "scope_id": scope.pk})
     fp2 = _fingerprint({"consumer_id": "sale-002", "scope_id": scope.pk})
@@ -115,7 +122,7 @@ def test_allocate_number_increments_counter(scope_and_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_allocate_number_idempotent_same_key(scope_and_series: dict) -> None:
+def test_allocate_number_idempotent_same_key(scope_and_series: ScopeAndSeries) -> None:
     """Mismo consumer_id + request_key devuelve la asignación anterior."""
     scope: NumberingScope = scope_and_series["scope"]
     fp = _fingerprint({"consumer_id": "sale-001", "scope_id": scope.pk})
@@ -141,7 +148,7 @@ def test_allocate_number_idempotent_same_key(scope_and_series: dict) -> None:
 
 @pytest.mark.django_db
 def test_allocate_number_rejects_different_fingerprint_same_key(
-    scope_and_series: dict,
+    scope_and_series: ScopeAndSeries,
 ) -> None:
     """Misma clave con huella diferente: AllocationConflictError."""
     scope: NumberingScope = scope_and_series["scope"]
@@ -183,7 +190,7 @@ def test_allocate_number_rejects_scope_not_found(db: None) -> None:
 
 
 @pytest.mark.django_db
-def test_allocate_number_uses_seven_digits_when_needed(scope_and_series: dict) -> None:
+def test_allocate_number_uses_seven_digits_when_needed(scope_and_series: ScopeAndSeries) -> None:
     """El contador crece más allá de seis dígitos sin reiniciarse."""
     series: DocumentSeries = scope_and_series["series"]
     series.last_number = 999999
@@ -209,7 +216,7 @@ def test_allocate_number_uses_seven_digits_when_needed(scope_and_series: dict) -
 
 @pytest.mark.django_db(transaction=True)
 def test_allocate_number_is_rejected_outside_the_consumer_transaction(
-    scope_and_series: dict,
+    scope_and_series: ScopeAndSeries,
 ) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     with pytest.raises(RuntimeError, match="transacción"):
@@ -225,7 +232,7 @@ def test_allocate_number_is_rejected_outside_the_consumer_transaction(
 
 @pytest.mark.django_db
 def test_same_key_and_fingerprint_for_another_document_never_returns_its_number(
-    scope_and_series: dict,
+    scope_and_series: ScopeAndSeries,
 ) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     fingerprint = _fingerprint({"shared": True})
@@ -249,7 +256,7 @@ def test_same_key_and_fingerprint_for_another_document_never_returns_its_number(
 
 
 @pytest.mark.django_db
-def test_scope_is_found_through_the_public_service(scope_and_series: dict) -> None:
+def test_scope_is_found_through_the_public_service(scope_and_series: ScopeAndSeries) -> None:
     from workshop_configuration.application.numbering import get_numbering_scope_id
 
     scope: NumberingScope = scope_and_series["scope"]

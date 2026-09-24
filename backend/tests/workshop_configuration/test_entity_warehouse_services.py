@@ -4,6 +4,8 @@ Trazabilidad: spec Requirement "Dos entidades fiscales obligatorias y diferencia
 "Historia de los datos fiscales", "Bodega única de V1".
 """
 
+from typing import TypedDict
+
 import pytest
 
 from identity.application.authorization import BusinessPermissionDeniedError
@@ -26,10 +28,15 @@ from workshop_configuration.models import (
     WorkshopConfiguration,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+class InitializedData(TypedDict):
+    comercial_id: int
+    artesanal_id: int
+    warehouse_id: int
 
 
 @pytest.fixture
@@ -47,7 +54,7 @@ def seller(db: None) -> User:
 
 
 @pytest.fixture
-def initialized(db: None) -> dict[str, object]:
+def initialized(db: None) -> InitializedData:
     """Crea la configuración mínima inicializada (sin usar el servicio de app)."""
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     comercial = FiscalEntity.objects.create(
@@ -74,13 +81,15 @@ def initialized(db: None) -> dict[str, object]:
 
 
 @pytest.mark.django_db
-def test_list_fiscal_entities_requires_permission(seller: User, initialized: dict) -> None:
+def test_list_fiscal_entities_requires_permission(
+    seller: User, initialized: InitializedData
+) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         list_fiscal_entities(actor=seller)
 
 
 @pytest.mark.django_db
-def test_list_fiscal_entities_returns_both(admin: User, initialized: dict) -> None:
+def test_list_fiscal_entities_returns_both(admin: User, initialized: InitializedData) -> None:
     entities = list_fiscal_entities(actor=admin)
     assert len(entities) == 2
     types = {e.entity_type for e in entities}
@@ -88,13 +97,15 @@ def test_list_fiscal_entities_returns_both(admin: User, initialized: dict) -> No
 
 
 @pytest.mark.django_db
-def test_get_fiscal_entity_requires_permission(seller: User, initialized: dict) -> None:
+def test_get_fiscal_entity_requires_permission(seller: User, initialized: InitializedData) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         get_fiscal_entity(actor=seller, entity_id=initialized["comercial_id"])
 
 
 @pytest.mark.django_db
-def test_get_fiscal_entity_returns_correct_record(admin: User, initialized: dict) -> None:
+def test_get_fiscal_entity_returns_correct_record(
+    admin: User, initialized: InitializedData
+) -> None:
     entity = get_fiscal_entity(actor=admin, entity_id=initialized["comercial_id"])
     assert entity.entity_type == "COMERCIAL"
     assert entity.ruc == "0991234567001"
@@ -112,7 +123,9 @@ def test_get_fiscal_entity_raises_not_found(admin: User, db: None) -> None:
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_requires_edit_permission(seller: User, initialized: dict) -> None:
+def test_update_fiscal_entity_requires_edit_permission(
+    seller: User, initialized: InitializedData
+) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         update_fiscal_entity(
             actor=seller,
@@ -123,7 +136,7 @@ def test_update_fiscal_entity_requires_edit_permission(seller: User, initialized
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_changes_legal_name(admin: User, initialized: dict) -> None:
+def test_update_fiscal_entity_changes_legal_name(admin: User, initialized: InitializedData) -> None:
     entity = update_fiscal_entity(
         actor=admin,
         entity_id=initialized["comercial_id"],
@@ -138,7 +151,9 @@ def test_update_fiscal_entity_changes_legal_name(admin: User, initialized: dict)
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_rejects_stale_version(admin: User, initialized: dict) -> None:
+def test_update_fiscal_entity_rejects_stale_version(
+    admin: User, initialized: InitializedData
+) -> None:
     with pytest.raises(StaleRecordError):
         update_fiscal_entity(
             actor=admin,
@@ -152,7 +167,9 @@ def test_update_fiscal_entity_rejects_stale_version(admin: User, initialized: di
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_rejects_type_change(admin: User, initialized: dict) -> None:
+def test_update_fiscal_entity_rejects_type_change(
+    admin: User, initialized: InitializedData
+) -> None:
     """El tipo fiscal es inmutable (Scenario: Intento de cambiar el tipo fiscal)."""
     with pytest.raises(FiscalEntityTypeImmutableError):
         update_fiscal_entity(
@@ -166,7 +183,9 @@ def test_update_fiscal_entity_rejects_type_change(admin: User, initialized: dict
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_rejects_duplicate_ruc(admin: User, initialized: dict) -> None:
+def test_update_fiscal_entity_rejects_duplicate_ruc(
+    admin: User, initialized: InitializedData
+) -> None:
     """El RUC actualizado no puede ser igual al de la otra entidad."""
     from workshop_configuration.domain.validation import ConfigurationValidationError
 
@@ -182,13 +201,8 @@ def test_update_fiscal_entity_rejects_duplicate_ruc(admin: User, initialized: di
 
 
 @pytest.mark.django_db
-def test_update_fiscal_entity_no_deletion(admin: User, initialized: dict) -> None:
+def test_update_fiscal_entity_no_deletion(admin: User, initialized: InitializedData) -> None:
     """No debe existir operación de borrado de entidades fiscales."""
-    # Simplemente verificamos que la función no existe en el módulo de aplicación
-    from workshop_configuration import application as app_pkg
-    import pkgutil
-
-    app_files = [name for _, name, _ in pkgutil.iter_modules(app_pkg.__path__)]
     # El módulo no debe exponer ninguna función de borrado en entity_warehouse
     from workshop_configuration.application import entity_warehouse as ew
 
@@ -202,13 +216,13 @@ def test_update_fiscal_entity_no_deletion(admin: User, initialized: dict) -> Non
 
 
 @pytest.mark.django_db
-def test_get_warehouse_requires_permission(seller: User, initialized: dict) -> None:
+def test_get_warehouse_requires_permission(seller: User, initialized: InitializedData) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         get_warehouse(actor=seller)
 
 
 @pytest.mark.django_db
-def test_get_warehouse_returns_correct_record(admin: User, initialized: dict) -> None:
+def test_get_warehouse_returns_correct_record(admin: User, initialized: InitializedData) -> None:
     wh = get_warehouse(actor=admin)
     assert wh.name == "Bodega principal"
     assert wh.is_active is True
@@ -221,7 +235,7 @@ def test_get_warehouse_raises_not_found_when_no_data(admin: User, db: None) -> N
 
 
 @pytest.mark.django_db
-def test_update_warehouse_changes_name(admin: User, initialized: dict) -> None:
+def test_update_warehouse_changes_name(admin: User, initialized: InitializedData) -> None:
     wh = update_warehouse(
         actor=admin,
         expected_version=1,
@@ -234,13 +248,13 @@ def test_update_warehouse_changes_name(admin: User, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_update_warehouse_requires_permission(seller: User, initialized: dict) -> None:
+def test_update_warehouse_requires_permission(seller: User, initialized: InitializedData) -> None:
     with pytest.raises(BusinessPermissionDeniedError):
         update_warehouse(actor=seller, expected_version=1, name="Depósito central")
 
 
 @pytest.mark.django_db
-def test_update_warehouse_rejects_stale_version(admin: User, initialized: dict) -> None:
+def test_update_warehouse_rejects_stale_version(admin: User, initialized: InitializedData) -> None:
     with pytest.raises(StaleRecordError):
         update_warehouse(actor=admin, expected_version=99, name="Depósito central")
     wh = Warehouse.objects.get(pk=1)
@@ -248,7 +262,7 @@ def test_update_warehouse_rejects_stale_version(admin: User, initialized: dict) 
 
 
 @pytest.mark.django_db
-def test_update_warehouse_rejects_blank_name(admin: User, initialized: dict) -> None:
+def test_update_warehouse_rejects_blank_name(admin: User, initialized: InitializedData) -> None:
     from workshop_configuration.domain.validation import ConfigurationValidationError
 
     with pytest.raises(ConfigurationValidationError):
@@ -258,7 +272,7 @@ def test_update_warehouse_rejects_blank_name(admin: User, initialized: dict) -> 
 
 
 @pytest.mark.django_db
-def test_warehouse_no_deactivation(admin: User, initialized: dict) -> None:
+def test_warehouse_no_deactivation(admin: User, initialized: InitializedData) -> None:
     """No debe existir operación de desactivación de bodega."""
     from workshop_configuration.application import entity_warehouse as ew
 

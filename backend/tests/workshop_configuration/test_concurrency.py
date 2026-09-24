@@ -14,7 +14,9 @@ Orden de bloqueos demostrado:
 import hashlib
 import json
 import threading
+from collections.abc import Mapping
 from datetime import date
+from typing import TypedDict
 
 import pytest
 from django.db import transaction
@@ -38,7 +40,12 @@ from workshop_configuration.models import (
 # ---------------------------------------------------------------------------
 
 
-def _fp(data: dict) -> str:
+class ScopeSeries(TypedDict):
+    scope: NumberingScope
+    series: DocumentSeries
+
+
+def _fp(data: Mapping[str, object]) -> str:
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -49,7 +56,7 @@ def _fp(data: dict) -> str:
 
 
 @pytest.fixture
-def scope_series(db: None) -> dict[str, object]:
+def scope_series(db: None) -> ScopeSeries:
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     entity = FiscalEntity.objects.create(
         entity_type="COMERCIAL",
@@ -76,7 +83,7 @@ def scope_series(db: None) -> dict[str, object]:
 
 @pytest.mark.django_db(transaction=True)
 def test_two_concurrent_allocations_get_distinct_consecutive_numbers(
-    scope_series: dict,
+    scope_series: ScopeSeries,
 ) -> None:
     """Dos asignaciones concurrentes producen números distintos y consecutivos."""
     scope: NumberingScope = scope_series["scope"]
@@ -115,7 +122,7 @@ def test_two_concurrent_allocations_get_distinct_consecutive_numbers(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_concurrent_retry_does_not_allocate_twice(scope_series: dict) -> None:
+def test_concurrent_retry_does_not_allocate_twice(scope_series: ScopeSeries) -> None:
     """Reintentos simultáneos del mismo document_id producen el mismo número."""
     scope: NumberingScope = scope_series["scope"]
     barrier = threading.Barrier(2)
@@ -156,14 +163,12 @@ def test_concurrent_retry_does_not_allocate_twice(scope_series: dict) -> None:
 
 
 @pytest.mark.django_db(transaction=True)
-def test_rollback_does_not_confirm_allocation(scope_series: dict) -> None:
+def test_rollback_does_not_confirm_allocation(scope_series: ScopeSeries) -> None:
     """Si la transacción del consumidor falla, la asignación se revierte."""
     scope: NumberingScope = scope_series["scope"]
 
-    with pytest.raises(RuntimeError, match="simulated consumer failure"):
-        import django.db.transaction as tx
-
-        with tx.atomic():
+    def fail_consumer_transaction() -> None:
+        with transaction.atomic():
             allocate_number(
                 scope_id=scope.pk,
                 consumer_type="sale",
@@ -173,6 +178,9 @@ def test_rollback_does_not_confirm_allocation(scope_series: dict) -> None:
             )
             raise RuntimeError("simulated consumer failure")
 
+    with pytest.raises(RuntimeError, match="simulated consumer failure"):
+        fail_consumer_transaction()
+
     # No debe haber asignación persistida
     assert NumberAllocation.objects.filter(numbering_scope=scope).count() == 0
     series = DocumentSeries.objects.get(pk=scope_series["series"].pk)
@@ -180,7 +188,7 @@ def test_rollback_does_not_confirm_allocation(scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_confirmed_number_not_reused_after_void(scope_series: dict) -> None:
+def test_confirmed_number_not_reused_after_void(scope_series: ScopeSeries) -> None:
     """Anulación conserva el número; el siguiente asignado es el siguiente."""
     scope: NumberingScope = scope_series["scope"]
     fp1 = _fp({"consumer_id": "sale-001"})
@@ -207,7 +215,7 @@ def test_confirmed_number_not_reused_after_void(scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_number_grows_beyond_six_digits(scope_series: dict) -> None:
+def test_number_grows_beyond_six_digits(scope_series: ScopeSeries) -> None:
     """El contador crece a 7 dígitos al superar 999999."""
     series: DocumentSeries = scope_series["series"]
     series.last_number = 999999
@@ -226,7 +234,7 @@ def test_number_grows_beyond_six_digits(scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_exhausted_number_raises_atomically(scope_series: dict) -> None:
+def test_exhausted_number_raises_atomically(scope_series: ScopeSeries) -> None:
     """El agotamiento del entero genera NumberExhaustedError sin efectos parciales."""
     series: DocumentSeries = scope_series["series"]
     series.last_number = MAX_SEQUENCE_VALUE
@@ -293,8 +301,6 @@ def test_two_simultaneous_initializations_only_one_succeeds() -> None:
     from workshop_configuration.models import FiscalEntity
 
     successes = [r for r in results if not isinstance(r, Exception)]
-    errors = [r for r in results if isinstance(r, Exception)]
-
     # Invariante central: máximo dos entidades fiscales (atomicidad garantizada)
     assert FiscalEntity.objects.count() <= 2
     # Al menos uno de los dos intentos tuvo resultado (éxito o error controlado)

@@ -5,6 +5,8 @@ Trazabilidad: spec Requirements "Ciclo de vida controlado de las series",
 Design decisión 5 (numeración y transacción del consumidor).
 """
 
+from typing import TypedDict
+
 import pytest
 
 from identity.application.authorization import BusinessPermissionDeniedError
@@ -28,10 +30,15 @@ from workshop_configuration.models import (
     WorkshopConfiguration,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+class ScopeAndSeries(TypedDict):
+    entity: FiscalEntity
+    scope: NumberingScope
+    series: DocumentSeries
 
 
 @pytest.fixture
@@ -49,7 +56,7 @@ def seller(db: None) -> User:
 
 
 @pytest.fixture
-def scope_and_series(db: None) -> dict[str, object]:
+def scope_and_series(db: None) -> ScopeAndSeries:
     """Crea un ámbito y una serie activa sin uso."""
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     entity = FiscalEntity.objects.create(
@@ -71,7 +78,7 @@ def scope_and_series(db: None) -> dict[str, object]:
 
 
 @pytest.fixture
-def used_series(scope_and_series: dict) -> DocumentSeries:
+def used_series(scope_and_series: ScopeAndSeries) -> DocumentSeries:
     """Serie con un número ya asignado (last_number > 0)."""
     series: DocumentSeries = scope_and_series["series"]
     series.last_number = 1
@@ -96,14 +103,14 @@ def used_series(scope_and_series: dict) -> DocumentSeries:
 
 
 @pytest.mark.django_db
-def test_list_series_requires_permission(seller: User, scope_and_series: dict) -> None:
+def test_list_series_requires_permission(seller: User, scope_and_series: ScopeAndSeries) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     with pytest.raises(BusinessPermissionDeniedError):
         list_document_series(actor=seller, scope_id=scope.pk)
 
 
 @pytest.mark.django_db
-def test_list_series_returns_active(admin: User, scope_and_series: dict) -> None:
+def test_list_series_returns_active(admin: User, scope_and_series: ScopeAndSeries) -> None:
     scope: NumberingScope = scope_and_series["scope"]
     results = list_document_series(actor=admin, scope_id=scope.pk)
     assert len(results) == 1
@@ -122,7 +129,7 @@ def test_get_series_not_found(admin: User, db: None) -> None:
 
 
 @pytest.mark.django_db
-def test_update_code_before_use(admin: User, scope_and_series: dict) -> None:
+def test_update_code_before_use(admin: User, scope_and_series: ScopeAndSeries) -> None:
     """Código editable mientras last_number == 0."""
     series: DocumentSeries = scope_and_series["series"]
     updated = update_series_code(
@@ -150,7 +157,7 @@ def test_update_code_rejects_after_first_use(admin: User, used_series: DocumentS
 
 
 @pytest.mark.django_db
-def test_update_code_rejects_stale_version(admin: User, scope_and_series: dict) -> None:
+def test_update_code_rejects_stale_version(admin: User, scope_and_series: ScopeAndSeries) -> None:
     series: DocumentSeries = scope_and_series["series"]
     with pytest.raises(StaleRecordError):
         update_series_code(
@@ -162,9 +169,8 @@ def test_update_code_rejects_stale_version(admin: User, scope_and_series: dict) 
 
 
 @pytest.mark.django_db
-def test_update_code_rejects_duplicate_code(admin: User, scope_and_series: dict) -> None:
+def test_update_code_rejects_duplicate_code(admin: User, scope_and_series: ScopeAndSeries) -> None:
     """El código de serie es global único."""
-    scope: NumberingScope = scope_and_series["scope"]
     entity: FiscalEntity = scope_and_series["entity"]
     # Crear otra serie con el código que queremos usar
     scope2 = NumberingScope.objects.create(
@@ -178,7 +184,7 @@ def test_update_code_rejects_duplicate_code(admin: User, scope_and_series: dict)
         last_number=0,
     )
     series: DocumentSeries = scope_and_series["series"]
-    with pytest.raises(Exception):  # IntegrityError o SeriesScopeConflictError
+    with pytest.raises(SeriesScopeConflictError):
         update_series_code(
             actor=admin,
             series_id=series.pk,
@@ -188,7 +194,7 @@ def test_update_code_rejects_duplicate_code(admin: User, scope_and_series: dict)
 
 
 @pytest.mark.django_db
-def test_update_code_requires_permission(seller: User, scope_and_series: dict) -> None:
+def test_update_code_requires_permission(seller: User, scope_and_series: ScopeAndSeries) -> None:
     series: DocumentSeries = scope_and_series["series"]
     with pytest.raises(BusinessPermissionDeniedError):
         update_series_code(

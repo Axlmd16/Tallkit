@@ -1,3 +1,4 @@
+from typing import TypedDict
 from unittest.mock import patch
 
 import pytest
@@ -35,7 +36,16 @@ def seller(db: None) -> User:
     return user
 
 
-def valid_input() -> dict[str, str]:
+class InitializationInput(TypedDict):
+    commercial_ruc: str
+    commercial_legal_name: str
+    artisanal_ruc: str
+    artisanal_legal_name: str
+    warehouse_name: str
+    idempotency_key: str
+
+
+def valid_input() -> InitializationInput:
     return {
         "commercial_ruc": "0991234567001",
         "commercial_legal_name": "Taller Comercial",
@@ -81,12 +91,11 @@ def test_initialize_workshop_returns_persisted_result_for_compatible_retry(admin
 @pytest.mark.django_db
 def test_initialize_workshop_rejects_reused_key_with_different_input(admin: User) -> None:
     initialize_workshop(actor=admin, **valid_input())
+    incompatible_input = valid_input()
+    incompatible_input["commercial_legal_name"] = "Nombre incompatible"
 
     with pytest.raises(IdempotencyConflictError):
-        initialize_workshop(
-            actor=admin,
-            **{**valid_input(), "commercial_legal_name": "Nombre incompatible"},
-        )
+        initialize_workshop(actor=admin, **incompatible_input)
 
     assert FiscalEntity.objects.get(entity_type="COMERCIAL").legal_name == "Taller Comercial"
     assert ConfigurationCommand.objects.count() == 1
@@ -97,16 +106,12 @@ def test_initialize_workshop_rejects_different_configuration_after_initializatio
     admin: User,
 ) -> None:
     initialize_workshop(actor=admin, **valid_input())
+    different_input = valid_input()
+    different_input["commercial_ruc"] = "0999999999001"
+    different_input["idempotency_key"] = "initialize-workshop-002"
 
     with pytest.raises(WorkshopAlreadyInitializedError):
-        initialize_workshop(
-            actor=admin,
-            **{
-                **valid_input(),
-                "commercial_ruc": "0999999999001",
-                "idempotency_key": "initialize-workshop-002",
-            },
-        )
+        initialize_workshop(actor=admin, **different_input)
 
     assert FiscalEntity.objects.get(entity_type="COMERCIAL").ruc == "0991234567001"
 
@@ -123,11 +128,11 @@ def test_initialize_workshop_requires_both_administrative_permissions(seller: Us
 
 @pytest.mark.django_db
 def test_initialize_workshop_rejects_equal_ruc_before_writing(admin: User) -> None:
+    equal_ruc_input = valid_input()
+    equal_ruc_input["artisanal_ruc"] = "0991234567001"
+
     with pytest.raises(ConfigurationValidationError):
-        initialize_workshop(
-            actor=admin,
-            **{**valid_input(), "artisanal_ruc": "0991234567001"},
-        )
+        initialize_workshop(actor=admin, **equal_ruc_input)
 
     assert FiscalEntity.objects.count() == 0
     assert Warehouse.objects.count() == 0
@@ -135,8 +140,11 @@ def test_initialize_workshop_rejects_equal_ruc_before_writing(admin: User) -> No
 
 @pytest.mark.django_db
 def test_initialize_workshop_rejects_blank_warehouse_before_writing(admin: User) -> None:
+    blank_warehouse_input = valid_input()
+    blank_warehouse_input["warehouse_name"] = "   "
+
     with pytest.raises(ConfigurationValidationError):
-        initialize_workshop(actor=admin, **{**valid_input(), "warehouse_name": "   "})
+        initialize_workshop(actor=admin, **blank_warehouse_input)
 
     assert FiscalEntity.objects.count() == 0
     assert Warehouse.objects.count() == 0
