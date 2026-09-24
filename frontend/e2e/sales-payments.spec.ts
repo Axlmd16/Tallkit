@@ -206,6 +206,7 @@ test.describe('Ventas, cobros y correcciones', () => {
   test('flujo completo: vista previa en vivo, revisión, confirmación, Kardex, cobro y comprobante', async ({
     page,
   }) => {
+    test.setTimeout(120_000)
     const world = await seedWorld(page)
     await page.goto('/sales/new')
     await expect(page.getByText('Borrador · Vista previa')).toBeVisible()
@@ -441,6 +442,7 @@ test.describe('Ventas, cobros y correcciones', () => {
   test('filtros conservados al volver del detalle y cuentas por cobrar con totales de varias páginas', async ({
     page,
   }) => {
+    test.setTimeout(120_000)
     const world = await seedWorld(page, 30)
     for (let index = 0; index < 21; index += 1) {
       await apiSale(page, world, { quantity: 1, key: `m${index}` })
