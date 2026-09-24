@@ -26,6 +26,6 @@ Ninguna salida puede consumir unidades reservadas, aunque un llamador omita la v
 
 ## Referencias
 
-- [Diseño del cambio](../../openspec/changes/integrar-mantenimiento-ventas-cobros-por-ruc/design.md) (D2, D3, D4, D7).
+- [Diseño del cambio](../../openspec/changes/archive/2026-09-24-integrar-mantenimiento-ventas-cobros-por-ruc/design.md) (D2, D3, D4, D7).
 - [ADR-0005](0005-publicacion-transaccional-inventario.md), [ADR-0006](0006-coordinacion-transaccional-ventas-comerciales.md).
 - [Referencia terminológica](0009-reservas-inventario-y-ventas-vinculadas-glossary-reference.md).

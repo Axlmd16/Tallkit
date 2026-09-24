@@ -184,12 +184,17 @@ Cada registro, anulación o sustitución de pago SHALL confirmar conjuntamente s
 
 ### Requirement: Consultas comerciales de deuda e historial
 
-El sistema SHALL mostrar **cuentas por cobrar** comerciales por cliente, venta, estado y antigüedad desde la fecha de confirmación en America/Guayaquil, con filtros y paginación estable. Las sumas SHALL corresponder a todas las coincidencias autorizadas, no solo a la página visible. Los reembolsos pendientes SHALL distinguirse de deudas cobrables y SHALL NOT compensarse entre ventas. El historial SHALL identificar pagos vigentes y corregidos, medios, fecha, actor y relaciones; las acciones administrativas SHALL limitarse al Administrador. La consulta comercial SHALL NOT mezclar importes artesanales ni presentar antigüedad como mora, vencimiento o intereses. Trazabilidad: RF-PAG-005/006/009; RF-REP-006/008/010 en ámbito comercial; UI-060…063; DP-013/014.
+El sistema SHALL mostrar **cuentas por cobrar** comerciales por cliente, venta, origen (directo o mantenimiento, con el número de la orden), estado y antigüedad desde la fecha de confirmación en America/Guayaquil, con filtros, entre ellos el de origen, y paginación estable. Cada fila SHALL identificar el emisor comercial y el tipo de documento. Las sumas SHALL corresponder a todas las coincidencias autorizadas, no solo a la página visible. Los reembolsos pendientes SHALL distinguirse de deudas cobrables y SHALL NOT compensarse entre ventas. El historial SHALL identificar pagos vigentes y corregidos, medios, fecha, actor y relaciones; las acciones administrativas SHALL limitarse al Administrador. La consulta comercial SHALL NOT mezclar importes artesanales, compensar saldos entre RUC, ofrecer un pago que se reparta entre la venta vinculada y la operación artesanal de una misma orden, ni presentar antigüedad como mora, vencimiento o intereses. Trazabilidad: RF-PAG-005/006/009/010; RF-REP-006/008/010 en ámbito comercial; UI-060…063; DP-013/014.
 
 #### Scenario: Consulta de varias ventas del mismo cliente
 - **DADO** dos ventas comerciales con saldos 30.00 y 70.00 y una operación artesanal ajena a esta consulta
 - **CUANDO** se filtra la deuda comercial del cliente
 - **ENTONCES** SHALL mostrar ambas ventas y total comercial 100.00, excluyendo la operación artesanal y sin ofrecer un pago repartido automáticamente.
+
+#### Scenario: Deuda de una venta vinculada
+- **DADO** una venta vinculada a la orden `ART-OT-000020` con saldo 40.00 y una operación artesanal de la misma orden con saldo 60.00
+- **CUANDO** un Vendedor filtra la deuda comercial por origen mantenimiento
+- **ENTONCES** SHALL ver la venta con su orden de origen y saldo 40.00, sin la operación artesanal ni un total de 100.00.
 
 #### Scenario: Historial conserva pagos corregidos
 - **DADO** una venta con pago sustituido y vínculo al reemplazo
@@ -208,4 +213,3 @@ El sistema SHALL mostrar **cuentas por cobrar** comerciales por cliente, venta, 
 
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -29,10 +29,10 @@ Solo Administrador activo y autenticado SHALL anular ventas, registrar devolucio
 
 ### Requirement: Anulación total conservadora de una venta
 
-Una **anulación** SHALL conservar la venta, sus líneas, número e historia, dejar exigible cero y compensar sus efectos como una acción atómica. SHALL admitirse únicamente para venta confirmada sin devoluciones previas, sin anulación anterior y cuando cada salida siga siendo el último efecto de inventario de su producto y pueda restituirse exactamente cantidad y valoración previas sin negativos. Si existen movimientos posteriores, SHALL bloquearse explicando la dependencia; una devolución física real SHALL seguir su flujo propio y SHALL NOT inventarse para sortear el bloqueo. SHALL NOT completarse con pagos sin tratamiento trazable. Trazabilidad: RF-VEN-011; RN-VEN-006/016; RN-INV-011/012; CU-015; propuesta, recomendación 4.
+Una **anulación** SHALL conservar la venta, sus líneas, número e historia, dejar exigible cero y compensar sus efectos como una acción atómica. SHALL admitirse únicamente para una venta directa confirmada sin devoluciones previas, sin anulación anterior y cuando cada salida siga siendo el último efecto de inventario de su producto y pueda restituirse exactamente cantidad y valoración previas sin negativos. Una venta vinculada a un mantenimiento SHALL NOT anularse: el intento SHALL bloquearse explicando que sus repuestos se consideran utilizados en el vehículo y que su corrección requiere un procedimiento de devolución o nota de crédito ajeno a la orden, sin ofrecer una acción que lo simule. Si existen movimientos posteriores, SHALL bloquearse explicando la dependencia; una devolución física real SHALL seguir su flujo propio y SHALL NOT inventarse para sortear el bloqueo. SHALL NOT completarse con pagos sin tratamiento trazable. Reabrir, finalizar o consultar una orden SHALL NOT anular sus ventas vinculadas. Trazabilidad: RF-VEN-011; RN-VEN-006/016; RN-INV-011/012; RN-TAL-013; CU-015; propuesta de ventas, recomendación 4; propuesta P5.
 
 #### Scenario: Anular una venta sin cobros ni dependencias
-- **DADO** una venta confirmada sin pagos ni devoluciones y cuyas salidas son los últimos efectos de sus productos
+- **DADO** una venta directa confirmada sin pagos ni devoluciones y cuyas salidas son los últimos efectos de sus productos
 - **CUANDO** el Administrador confirma su anulación con motivo y revisión vigente
 - **ENTONCES** SHALL quedar anulada, con exigible cero, cantidades y valoración previas restituidas mediante movimientos vinculados y número original conservado.
 
@@ -50,6 +50,13 @@ Una **anulación** SHALL conservar la venta, sus líneas, número e historia, de
 - **DADO** una venta ya anulada
 - **CUANDO** se repite su anulación compatible
 - **ENTONCES** SHALL devolverse el resultado existente sin otros movimientos, reembolsos o cambios de numeración.
+
+#### Scenario: Anulación de una venta vinculada bloqueada
+- **DADO** una venta vinculada confirmada, con o sin pagos, cuyas salidas son los últimos efectos de sus productos
+- **CUANDO** el Administrador solicita anularla
+- **ENTONCES** SHALL rechazarse explicando que sus repuestos se consideran utilizados, sin restituir inventario, modificar pagos ni cambiar la orden.
+
+Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
 
 ### Requirement: Tratamiento de pagos al anular la venta
 
@@ -237,3 +244,4 @@ Las correcciones SHALL conservar original, acción, motivo, responsable, fecha e
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
 
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
+

@@ -400,7 +400,7 @@
 
 > **Estado de implementación:** `CU-017` y `CU-019` están implementados parcialmente por `openspec/changes/archive/2026-09-24-gestionar-ordenes-mantenimiento` (specs principales en `openspec/specs/`): registro y edición de órdenes, kilometraje con confirmación, servicios del catálogo con precio aplicado, fotografías, finalización y reapertura con intervención correctiva sin cargo. No incluyen la operación económica artesanal, pagos, repuestos vinculados (`CU-018`) ni cancelación. Evidencia: [cobertura-mantenimientos.md](cobertura-mantenimientos.md).
 
-> **Estado de implementación (integración económica):** `openspec/changes/integrar-mantenimiento-ventas-cobros-por-ruc` completa `CU-017` (operación económica de servicios y sus pagos), implementa `CU-018` (repuestos como venta comercial vinculada con reserva, confirmada por el Vendedor o el Administrador) y amplía `CU-019` (finalización bloqueada por repuestos pendientes; la reapertura conserva documentos y pagos). La cancelación sigue pendiente. Evidencia: [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).
+> **Estado de implementación (integración económica):** `openspec/changes/archive/2026-09-24-integrar-mantenimiento-ventas-cobros-por-ruc` completa `CU-017` (operación económica de servicios y sus pagos), implementa `CU-018` (repuestos como venta comercial vinculada con reserva, confirmada por el Vendedor o el Administrador) y amplía `CU-019` (finalización bloqueada por repuestos pendientes; la reapertura conserva documentos y pagos). La cancelación sigue pendiente. Evidencia: [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).
 
 ## 19. CU-017 — Registrar mantenimiento y servicios
 
