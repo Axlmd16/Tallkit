@@ -1,40 +1,52 @@
-## ADDED Requirements
+# catalogo-visual-reutilizable Specification
+
+## Purpose
+Documentar y demostrar de forma aislada los componentes y patrones reutilizables del sistema visual Tallkit, con procedencia, variantes, criterios de aceptación y validación adaptable verificables.
+
+## Requirements
 
 ### Requirement: CVR-01 Procedencia verificable y cobertura del catálogo
 
-El catálogo SHALL documentar cada componente y variante con identificador estable, fuente estructurada, frame y node ID, tokens, estado de evidencia, relación con piezas existentes y prioridad. SHALL cubrir los patrones reutilizables de los 22 frames de la matriz de diseño. Una variante sin evidencia explícita SHALL identificarse como adaptación requerida por el proyecto y SHALL NOT atribuirse a un nodo inventado.
+El catálogo SHALL documentar cada componente y patrón Tallkit con:
+- un identificador estable;
+- el tablero de la maqueta que lo origina, o la indicación de que es una adaptación del proyecto;
+- los tokens que usa;
+- sus variantes y estados;
+- las pantallas que lo consumen.
 
-Trazabilidad: petición actual; RNF-MAN-003/005; sistema-visual-frontend, referencias estructuradas.
+SHALL cubrir los fundamentos, los componentes compartidos y los patrones de `patrones-de-pantalla-frontend`. SHALL NOT atribuir un componente a una plantilla de terceros.
+
+Trazabilidad: decisión 1 del proposal; RNF-MAN-003/005; sistema-visual-frontend.
 
 #### Scenario: Consulta de procedencia
 
 - **GIVEN** un componente del catálogo
 - **WHEN** el revisor consulta su ficha
-- **THEN** encuentra su fuente Figma verificable o la indicación explícita de adaptación del proyecto, sus variantes y criterios de aceptación
+- **THEN** encuentra el tablero de la maqueta o la adaptación que lo justifica, sus variantes, sus tokens y sus criterios de aceptación
 
-#### Scenario: Referencia insuficiente
+#### Scenario: Componente sin tablero en la maqueta
 
-- **GIVEN** una variante móvil o estado sin propiedades estructuradas disponibles
+- **GIVEN** un componente necesario que la maqueta no dibuja
 - **WHEN** se registra su ficha
-- **THEN** se distingue lo observado de lo recomendado, sin presentar capturas o inferencias como tokens de Figma
+- **THEN** se identifica como adaptación del proyecto construida con los tokens Tallkit
 
 ### Requirement: CVR-02 Identidad visual y recursos locales
 
-El catálogo SHALL conservar paleta, dimensiones, tipografía, geometría y elevaciones verificadas para cada patrón, salvo adaptaciones documentadas exigidas por las specs aprobadas. SHALL usar recursos esenciales locales y SHALL NOT contener marca, logotipos, ilustraciones, fotografías, personas, productos, textos ni datos de la plantilla. Los contenidos de demostración SHALL ser neutrales y explícitamente sintéticos.
+El catálogo SHALL usar exclusivamente los tokens, la tipografía IBM Plex y la iconografía del sistema Tallkit, servidos desde la instalación local. Los contenidos de demostración SHALL ser neutrales o datos ficticios del taller identificados como ejemplo, y SHALL NOT contener marcas, logotipos, ilustraciones, fotografías ni textos de plantillas de terceros.
 
-Trazabilidad: RNF-USA-006/008/009, RNF-DIS-001, sistema-visual-frontend; petición actual.
+Trazabilidad: RNF-USA-006/008/009, RNF-DIS-001; sistema-visual-frontend.
 
-#### Scenario: Demostración sin contenido de la plantilla
+#### Scenario: Demostración sin contenido de terceros
 
-- **GIVEN** una composición derivada de un frame
-- **WHEN** se muestra en el catálogo
-- **THEN** conserva sus patrones visuales con contenido neutral y no muestra recursos o datos excluidos
+- **GIVEN** un patrón del catálogo
+- **WHEN** se muestra su ejemplo
+- **THEN** usa la identidad Tallkit con contenido de ejemplo y no muestra recursos ni datos de la plantilla retirada
 
 #### Scenario: Red local sin Internet
 
 - **GIVEN** el catálogo disponible localmente
-- **WHEN** se bloquean solicitudes externas
-- **THEN** las fuentes, iconos, controles y superficies permanecen disponibles sin depender de URLs temporales de Figma
+- **WHEN** se bloquean las solicitudes externas
+- **THEN** las fuentes, los iconos, los controles y las superficies permanecen disponibles
 
 ### Requirement: CVR-03 Aislamiento de la aplicación funcional
 
@@ -62,31 +74,44 @@ Trazabilidad: CT-001; RNF-SEG-002/003/005; RNF-MAN-001; ADR-0001/0003; petición
 
 ### Requirement: CVR-04 Navegación y composición reutilizables
 
-El catálogo SHALL mostrar navegación expandida y plegada observadas en Figma, navegación móvil como adaptación, selección activa, cabeceras, barras de herramientas y composiciones de dashboard, lista-detalle, formulario y vista previa. La navegación SHALL recibir únicamente opciones suministradas por el consumidor y SHALL NOT decidir permisos o destinos de negocio.
+El catálogo SHALL mostrar:
+- la navegación desplegada de escritorio, la compacta de tableta y el panel de teléfono, con selección activa;
+- la barra superior;
+- las composiciones de lista, ficha, formulario por secciones, modal y editor con vista previa.
 
-Trazabilidad: RNF-USA-001/002/007; experiencia-adaptable-frontend; frames 4:344, 4:2, 4:2803, 4:4239.
+La navegación SHALL recibir únicamente las opciones que le suministra el consumidor y SHALL NOT decidir permisos ni destinos de negocio.
+
+Trazabilidad: RNF-USA-001/002/007; experiencia-adaptable-frontend; patrones-de-pantalla-frontend.
 
 #### Scenario: Variantes de navegación
 
-- **GIVEN** opciones neutrales y una selección activa
-- **WHEN** se alterna entre navegación expandida, plegada y móvil
-- **THEN** se conserva la selección y el nombre accesible de cada opción, y el panel móvil se cierra al elegir una
+- **GIVEN** opciones de ejemplo y una selección activa
+- **WHEN** se alterna entre navegación desplegada, compacta y de teléfono
+- **THEN** se conservan la selección y el nombre accesible de cada opción, y el panel de teléfono se cierra al elegir una
 
 #### Scenario: Composición estrecha
 
-- **GIVEN** una vista con contenido y panel auxiliar
+- **GIVEN** una ficha con columna lateral
 - **WHEN** el espacio deja de permitir dos regiones legibles
-- **THEN** el contenido se reorganiza sin perder información ni ocultar controles
+- **THEN** el contenido se reorganiza sin perder información ni ocultar acciones
 
 ### Requirement: CVR-05 Controles y formularios accesibles
 
-El catálogo SHALL incluir acciones primarias, secundarias, discretas y destructivas; botones con icono y agrupaciones; campo con etiqueta, ayuda y error; entrada, selector, checkbox, búsqueda, entrada multilínea, contraseña y control de fecha; pestañas y selección segmentada. Los estados disponibles, enfocados, seleccionados, deshabilitados, inválidos y procesando SHALL ser distinguibles y probables aisladamente. Los estados no observados SHALL conservar la semántica aprobada del proyecto.
+El catálogo SHALL incluir:
+- acciones principales, secundarias, discretas, destructivas y de peligro sólido;
+- botones de icono con ayuda emergente;
+- campo con etiqueta, ayuda, obligatoriedad y error;
+- entrada, selector, casilla, búsqueda, entrada multilínea, contraseña, fecha e importe con moneda;
+- combobox con resultados flotantes;
+- selección segmentada, pestañas y etiquetas removibles.
 
-Trazabilidad: RNF-USA-004/006/007/008/011; patrones de formulario vigentes; frames 4:3258, 4:4981, 4:5816, 4:8584 y 4:7725.
+Los estados disponible, enfocado, seleccionado, deshabilitado, inválido y procesando SHALL ser distinguibles y poder probarse de forma aislada.
+
+Trazabilidad: RNF-USA-004/006/007/008/011; patrones-de-pantalla-frontend PPF-03 y PPF-04.
 
 #### Scenario: Campo inválido sin pérdida de valor
 
-- **GIVEN** un campo con contenido neutral y error de ejemplo
+- **GIVEN** un campo con contenido y un error de ejemplo
 - **WHEN** se muestra su estado inválido
 - **THEN** conserva el valor y asocia etiqueta, ayuda y mensaje de error de forma accesible
 
@@ -96,83 +121,74 @@ Trazabilidad: RNF-USA-004/006/007/008/011; patrones de formulario vigentes; fram
 - **WHEN** se intenta activarlo repetidamente
 - **THEN** no vuelve a ejecutar su acción y comunica su estado
 
-#### Scenario: Selección mediante teclado
+#### Scenario: Combobox mediante teclado
 
-- **GIVEN** pestañas, un menú o selector en la demostración
+- **GIVEN** un combobox con resultados de ejemplo
 - **WHEN** se usa únicamente el teclado
-- **THEN** se puede abrir, recorrer, seleccionar y cerrar conforme al rol del control y reconocer el foco y la selección
+- **THEN** se puede abrir, recorrer con flechas, elegir con Enter y cerrar con Escape, y se reconocen el foco y la opción activa
 
 ### Requirement: CVR-06 Tarjetas, tablas y listas
 
-El catálogo SHALL mostrar superficies, tarjetas métricas y de detalle, avatares neutrales y grupos, tablas de filas separadas y tablas contenidas, listas adaptables, paginación, badges, acciones de fila y menú contextual. Los datos, selección, orden y página SHALL ser suministrados por el consumidor; el catálogo SHALL NOT definir reglas de consulta, paginación remota ni estados de negocio.
+El catálogo SHALL mostrar:
+- paneles con cabecera;
+- tablas contenidas con encabezado visible, filas compactas, orden, paginación, acciones por fila y menú contextual;
+- filas compactas de teléfono;
+- estados con marcador;
+- las piezas del taller: placa, código de repuesto, existencias e importes.
 
-Trazabilidad: RNF-USA-002/006/007/011; interfaz-y-navegacion, sección 4; frames 4:2, 4:660, 4:1140, 4:1635, 4:2803, 4:4567, 4:6241.
+Los datos, la selección, el orden y la página SHALL venir del consumidor. El catálogo SHALL NOT definir reglas de consulta, paginación remota ni estados de negocio.
+
+Trazabilidad: RNF-USA-002/006/007/011; interfaz-y-navegacion, sección 4; sistema-visual-frontend, «Piezas visuales propias del taller».
 
 #### Scenario: Fila con datos largos y acciones
 
-- **GIVEN** filas neutrales con textos extensos y acciones
+- **GIVEN** filas de ejemplo con textos extensos y acciones
 - **WHEN** se reduce la pantalla a 360 px
-- **THEN** se conservan datos prioritarios y acciones, con acceso al resto sin desbordamiento horizontal de la página
+- **THEN** se conservan los datos prioritarios y las acciones, con acceso al resto y sin desbordamiento horizontal de la página
 
 #### Scenario: Selección y paginación controladas
 
-- **GIVEN** una tabla con selección parcial y varias páginas neutrales
-- **WHEN** se cambia selección, orden o página
-- **THEN** la demostración comunica el cambio, conserva encabezados comprensibles e impide avanzar fuera de los límites suministrados
+- **GIVEN** una tabla con varias páginas de ejemplo
+- **WHEN** se cambia el orden o la página
+- **THEN** la demostración comunica el cambio, conserva los encabezados e impide avanzar fuera de los límites suministrados
 
 ### Requirement: CVR-07 Superposiciones y confirmaciones
 
-El catálogo SHALL ofrecer detalle lateral no modal, **Drawer**, modal central y composiciones de confirmación y resultado. Cada superposición modal SHALL tener nombre accesible, foco inicial, contención de foco, fondo no interactivo y retorno al disparador; cerrar SHALL conservar o descartar cambios solo mediante la decisión local explícita correspondiente. El detalle no modal SHALL NOT bloquear la navegación del contenido vecino.
+El catálogo SHALL ofrecer:
+- modal de formulario corto;
+- diálogo de confirmación con revisión;
+- diálogo de registro de dinero;
+- diálogo de acción destructiva;
+- menú contextual;
+- notificación temporal con sus variantes y su pila.
 
-Trazabilidad: RNF-USA-003/005/007/008; experiencia-adaptable-frontend; frames 4:2803, 4:3258, 4:4981, 4:5816, 4:9302, 4:9333.
+Cada superposición modal SHALL tener nombre accesible, foco inicial, contención de foco, fondo no interactivo y retorno al disparador. Cerrar con cambios SHALL exigir la decisión explícita de seguir editando o descartar. El catálogo SHALL NOT ofrecer paneles laterales de edición.
+
+Trazabilidad: RNF-USA-003/005/007/008; patrones-de-pantalla-frontend PPF-04, PPF-06 y PPF-08; experiencia-adaptable-frontend.
 
 #### Scenario: Cierre de superposición
 
 - **GIVEN** un modal abierto mediante teclado
-- **WHEN** se cierra con Escape o su control de cierre
+- **WHEN** se cierra con Escape o con su control de cierre
 - **THEN** desaparece y el foco vuelve al disparador sin dejar bloqueado el desplazamiento de la página
 
 #### Scenario: Aviso de edición local
 
-- **GIVEN** un drawer con valores de demostración modificados
+- **GIVEN** un modal con valores de ejemplo modificados
 - **WHEN** se solicita cerrarlo
-- **THEN** ofrece continuar editando o descartar, sin perder valores antes de la elección
+- **THEN** ofrece seguir editando o descartar, sin perder valores antes de la elección
 
-#### Scenario: Superposición sin controles y superposiciones anidadas
+#### Scenario: Notificaciones de ejemplo
 
-- **GIVEN** un modal sin controles o una confirmación sobre un drawer
-- **WHEN** se recorre mediante teclado
-- **THEN** el foco permanece en la superficie modal superior, con destino inicial válido, y al cerrar se restablece la superficie anterior
-
-### Requirement: CVR-08 Patrones visuales especializados sin negocio
-
-El catálogo SHALL demostrar contenedores y representaciones de línea/área, anillo, barras, leyendas y progreso; calendario mensual, anual, diario y compacto; cronograma; tablero con columnas y tarjetas; lista de conversación, burbujas y composición de entrada. SHALL usar series y fechas neutrales suministradas y proporcionar alternativa textual accesible para gráficos. SHALL NOT implementar agenda, mensajería, asignación de trabajos, facturación, cálculos económicos ni persistencia.
-
-Trazabilidad: petición actual; RNF-MAN-001/002; RNF-USA-001/006/007/008; frames 4:2246, 4:3637, 4:3942, 4:5455, 4:6577, 4:7438 y gráficos de 4:2/4:2803/4:4567.
-
-#### Scenario: Serie neutral y sin datos
-
-- **GIVEN** un gráfico con serie sintética o sin serie
-- **WHEN** se alterna el ejemplo
-- **THEN** muestra la representación y su alternativa textual o un estado vacío explícito sin inventar resultados del taller
-
-#### Scenario: Fecha seleccionada y cambio de vista
-
-- **GIVEN** una fecha neutral seleccionada
-- **WHEN** se cambia entre calendario mensual, anual y diario
-- **THEN** conserva el contexto de fecha, distingue selección y fecha actual y no crea eventos reales
-
-#### Scenario: Tablero y conversación aislados
-
-- **GIVEN** ejemplos neutrales de tablero y conversación
-- **WHEN** se activan sus controles
-- **THEN** solo se demuestran selección y composición local, sin envío real, carga de archivos ni modificación de tareas del taller
+- **GIVEN** la demostración de notificaciones temporales
+- **WHEN** se generan cuatro seguidas
+- **THEN** se ven como máximo tres, la más reciente abajo, y cada una se pausa al pasar el puntero
 
 ### Requirement: CVR-09 Estados y layouts de autenticación neutrales
 
-El catálogo SHALL mostrar carga, vacío, error recuperable, éxito y sin resultados como estados diferentes. SHALL mostrar composiciones de acceso corta y extensa, recuperación y confirmación derivadas de los frames, sin registro público, login social ni recuperación real. SHALL NOT reutilizar las ilustraciones del diálogo existente en esos ejemplos.
+El catálogo SHALL mostrar como estados diferentes la carga con marcadores de posición, el vacío inicial, sin resultados, el error recuperable y sin permiso. SHALL mostrar la composición de acceso con la marca Tallkit, sin registro público, acceso social ni recuperación real.
 
-Trazabilidad: CT-001; RNF-USA-004/006/008; sistema-visual-frontend; frames 4:8584, 4:7725, 4:9302, 4:9333.
+Trazabilidad: CT-001; RNF-USA-004/006/008; patrones-de-pantalla-frontend PPF-07; sistema-visual-frontend.
 
 #### Scenario: Consulta sin resultados y error
 
@@ -180,46 +196,53 @@ Trazabilidad: CT-001; RNF-USA-004/006/008; sistema-visual-frontend; frames 4:858
 - **WHEN** se alterna entre sin resultados y error
 - **THEN** el primer estado ofrece limpiar filtros y el segundo reintentar, sin confundirlos con una lista vacía inicial
 
-#### Scenario: Composiciones de acceso
+#### Scenario: Composición de acceso
 
-- **GIVEN** el ejemplo de formulario corto, extenso o resultado
+- **GIVEN** el ejemplo de acceso
 - **WHEN** se activa su botón
-- **THEN** solo aparece retroalimentación neutral local sin autenticar, registrar personas o enviar correo
+- **THEN** solo aparece retroalimentación local, sin autenticar, registrar personas ni enviar correo
 
 ### Requirement: CVR-10 Validación adaptable y accesible
 
-Cada variante SHALL poder revisarse a 360, 768, 1024 y 1440 px, con textos largos y estados relevantes; controles táctiles de al menos 44 × 44 px y 8 px de separación activable conforme a la spec vigente; foco visible, contraste AA evaluado, estados redundantes al color y movimiento reducido. La fidelidad al desktop SHALL NOT justificar recortes, texto ilegible o controles inoperables.
+Cada variante SHALL poder revisarse a 360, 768, 1024, 1280 y 1440 px, con textos largos y estados relevantes. SHALL cumplir:
+- controles táctiles de al menos 44 × 44 px y 8 px de separación activable;
+- foco visible;
+- contraste AA evaluado;
+- estados redundantes al color;
+- movimiento reducido.
+
+La densidad de escritorio SHALL NOT justificar recortes, texto ilegible ni controles inoperables.
 
 Trazabilidad: RNF-USA-001/002/006/007/008; RNF-COM-001/002; experiencia-adaptable-frontend.
 
 #### Scenario: Dispositivo táctil y textos largos
 
 - **GIVEN** una variante con puntero grueso y contenido extenso
-- **WHEN** se revisa en los cuatro anchos objetivo
-- **THEN** conserva objetivos táctiles, lectura, acciones y foco sin solapamientos ni scroll horizontal de página
+- **WHEN** se revisa en los cinco anchos objetivo
+- **THEN** conserva objetivos táctiles, lectura, acciones y foco, sin solapamientos ni desplazamiento horizontal de página
 
 #### Scenario: Movimiento reducido
 
 - **GIVEN** una preferencia de movimiento reducido
-- **WHEN** se abre o cambia una variante
+- **WHEN** se abre una variante o aparece una notificación
 - **THEN** presenta el estado final sin animaciones no esenciales
 
-### Requirement: CVR-11 Página interna de demostración y aceptación por fases
+### Requirement: CVR-11 Página interna de demostración y validación directa
 
-La página interna SHALL permitir localizar cada pieza por identificador y familia, seleccionar variantes y estados, consultar fuentes y restablecer ejemplos deterministas. Cada fase SHALL entregar pruebas y capturas comparativas al tamaño nativo del frame o recorte equivalente, con adaptaciones y regiones excluidas explícitas. Los resultados técnicos SHALL NOT sustituir la aceptación visual humana. Las referencias y capturas generadas SHALL permanecer fuera del repositorio conforme a AGENTS.md.
+La página interna SHALL permitir localizar cada pieza por identificador y familia, seleccionar variantes o estados y uno de los anchos 360, 768, 1024, 1280 o 1440 px, consultar su tablero de origen, sus criterios de aceptación y sus diferencias conocidas, y restablecer ejemplos deterministas. El catálogo SHALL apoyar la validación directa del usuario en la aplicación. Las capturas son opcionales; cuando se generen, SHALL permanecer fuera del repositorio conforme a AGENTS.md.
 
-Trazabilidad: RNF-MAN-003/005; aceptación visual de sistema-visual-frontend; petición actual.
+Trazabilidad: RNF-MAN-003/005; sistema-visual-frontend, «Validación visual contra la maqueta Tallkit».
 
 #### Scenario: Reproducción de un ejemplo
 
-- **GIVEN** un identificador de componente, variante, estado y viewport registrados
+- **GIVEN** un identificador de componente, variante, estado y tamaño registrados
 - **WHEN** otro revisor abre el ejemplo y lo restablece
-- **THEN** obtiene la misma composición neutral y puede consultar sus referencias y diferencias conocidas
+- **THEN** obtiene la misma composición y puede consultar su tablero de origen, sus criterios de aceptación y sus diferencias conocidas
 
-#### Scenario: Diferencia visual detectada
+#### Scenario: Validación directa sin paquete de evidencias
 
-- **GIVEN** una comparación con desviaciones no justificadas
-- **WHEN** las pruebas unitarias y de accesibilidad pasan
-- **THEN** la fase conserva la diferencia abierta y no se declara visualmente aceptada hasta corregirla o recibir aceptación explícita de la adaptación
+- **GIVEN** los ejemplos deterministas y las pantallas funcionales disponibles
+- **WHEN** el usuario decide revisarlos directamente
+- **THEN** puede validar el resultado sin que el sistema exija generar capturas comparativas
 
 [Referencia terminológica](spec-glossary-reference.md).
