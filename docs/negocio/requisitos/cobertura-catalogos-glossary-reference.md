@@ -11,4 +11,4 @@
 | Kardex | `docs/negocio/producto/glosario.md` | Historia de movimientos de inventario; fuera del alcance de esta cobertura. |
 | Idempotencia | `docs/tecnico/glosario-tecnico.md` | Reintento seguro de las escrituras de catálogo mediante clave y recibo. |
 | Contrato OpenAPI | `docs/tecnico/glosario-tecnico.md` | Esquema `backend/schema.yml` que documenta rutas, límites y errores. |
-| OpenSpec | `docs/tecnico/glosario-tecnico.md` | Marco de especificación y cambio que gobierna los 126 escenarios. |
+| OpenSpec | `docs/tecnico/glosario-tecnico.md` | Marco de especificación y cambio que gobierna los 128 escenarios. |

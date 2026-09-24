@@ -11,10 +11,10 @@
 
 | Capacidad | Requisitos | Escenarios | Cumplidos | Parciales | Pendientes |
 |---|---|---|---|---|---|
-| Catálogo de productos y categorías | 10 | 55 | 54 | 1 | 0 |
+| Catálogo de productos y categorías | 10 | 57 | 56 | 1 | 0 |
 | Catálogo de servicios | 7 | 35 | 33 | 2 | 0 |
 | Catálogo de proveedores | 7 | 36 | 35 | 1 | 0 |
-| **Total** | **24** | **126** | **122** | **4** | **0** |
+| **Total** | **24** | **128** | **124** | **4** | **0** |
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el comportamiento descrito por el escenario; «Parcial» indica una garantía local verificada cuyo resto depende de consumidores que aún no existen, con la limitación indicada. Los nombres de prueba son archivos; la columna de tareas remite a `tasks.md`.
 
@@ -46,7 +46,7 @@ Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (s
 
 **Migraciones ensayadas (2026-09-20):** PostgreSQL 17 con bases desechables. Base limpia: todas las migraciones aplican, `catalog.0001_initial` se revierte con `migrate catalog zero` y se vuelve a aplicar. Copia con identidad, clientes y configuración migrada antes de `catalog`/`supplier_registry` y con una marca de vehículo, una entidad fiscal y una definición de impuesto sintéticas: los registros previos se conservan (1/1/…), las tablas nuevas nacen vacías, no hay cambios de modelo pendientes y existen las restricciones de unicidad y `CHECK` del diseño. Las bases se eliminaron al terminar; no se usó ninguna base operativa.
 
-## 3. Catálogo de productos y categorías (55 escenarios)
+## 3. Catálogo de productos y categorías (57 escenarios)
 
 | N.º | Escenario | Requisito de spec | Tareas | Pruebas | Cobertura | Limitación |
 |---|---|---|---|---|---|---|
@@ -66,126 +66,128 @@ Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (s
 | 14 | Reactivar producto de categoría inactiva | Desactivación de categorías sin cascadas | 6.3, 6.5, 10.5 | Backend: `test_catalog_concurrency.py`, `test_catalog_services.py`; Frontend: `ProductsPage.test.tsx` | **Cumplido** | — |
 | 15 | Carrera entre baja y asociación | Desactivación de categorías sin cascadas | 6.5, 12.3 | Backend: `test_catalog_concurrency.py` | **Cumplido** | — |
 | 16 | Producto mínimo persistente | Producto por presentación completa | 3.3, 6.2, 12.1 | Backend: `test_catalog_models.py`, `test_catalog_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 17 | Código duplicado (código interno y código del fabricante por marca) | Producto por presentación completa | 3.3, 6.2, 8.6 | Backend: `test_catalog_models.py`, `test_catalog_services.py`, `test_catalog_errors.py`, `test_manufacturer_code.py`; Frontend: `ProductForm.test.tsx`, `ProductsPage.test.tsx` | **Cumplido** | — |
-| 18 | Código concurrente | Producto por presentación completa | 5.3, 12.3 | Backend: `test_catalog_concurrency.py` | **Cumplido** | — |
-| 19 | Datos obligatorios o relaciones inválidas | Producto por presentación completa | 2.3, 6.2, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_services.py`, `test_catalog_errors.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
-| 20 | Presentaciones independientes | Producto por presentación completa | 6.2 | Backend: `test_catalog_services.py` | **Cumplido** | Cada presentación es un producto propio; no existen variantes ni conversión. |
-| 21 | Edición de ficha | Producto por presentación completa | 6.2, 10.3 | Backend: `test_catalog_services.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 22 | Kit comprado | Producto por presentación completa | 2.3, 6.2, 10.3 | Backend: `test_catalog_services.py`, `test_catalog_validation.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | Solo identifica el kit completo; el desarme queda fuera de alcance. |
-| 23 | Gestión de auxiliares | Unidades marcas y compatibilidad informativa | 6.1, 10.1 | Backend: `test_catalog_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 24 | Auxiliar duplicado | Unidades marcas y compatibilidad informativa | 6.1, 12.3 | Backend: `test_catalog_models.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; Frontend: `AuxiliaryCatalogPage.test.tsx` | **Cumplido** | — |
-| 25 | Varias marcas compatibles | Unidades marcas y compatibilidad informativa | 6.2, 10.4 | Backend: `test_catalog_services.py`; Frontend: `VehicleBrandPicker.test.tsx`, `ProductForm.test.tsx` | **Cumplido** | — |
-| 26 | Baja de auxiliar utilizado | Unidades marcas y compatibilidad informativa | 6.5 | Backend: `test_catalog_concurrency.py`, `test_catalog_services.py` | **Cumplido** | — |
-| 27 | Referencia inactiva nueva | Unidades marcas y compatibilidad informativa | 6.3, 6.5 | Backend: `test_catalog_services.py`, `test_catalog_errors.py`, `test_catalog_concurrency.py` | **Cumplido** | — |
-| 28 | Corrección conservando referencia | Unidades marcas y compatibilidad informativa | 6.3, 10.3 | Backend: `test_catalog_services.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
-| 29 | Reactivación del auxiliar | Unidades marcas y compatibilidad informativa | 6.1 | Backend: `test_catalog_services.py` | **Cumplido** | — |
-| 30 | Precio exacto y cero | Precios finales y selección tributaria comercial | 2.2, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_models.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 31 | Precio inválido | Precios finales y selección tributaria comercial | 2.2, 8.4, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 32 | Impuesto ausente o de otro ámbito | Precios finales y selección tributaria comercial | 4.2, 6.2 | Backend: `test_catalog_services.py`, `test_reference_interfaces.py`, `test_catalog_errors.py` | **Cumplido** | — |
-| 33 | Cambio de vigencia | Precios finales y selección tributaria comercial | 4.4 | Backend: `test_reference_interfaces.py` | **Cumplido** | El precio no se recalcula al cambiar la tarifa. |
-| 34 | Configuración pendiente | Precios finales y selección tributaria comercial | 4.2, 10.5 | Backend: `test_reference_interfaces.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
-| 35 | Tarifa cero configurada | Precios finales y selección tributaria comercial | 4.2 | Backend: `test_reference_interfaces.py` | **Cumplido** | — |
-| 36 | Filtros combinados | Consulta filtrada y paginada de productos y auxiliares | 6.6, 10.2 | Backend: `test_catalog_services.py`; Frontend: `ProductsPage.test.tsx` | **Cumplido** | — |
-| 37 | Páginas estables | Consulta filtrada y paginada de productos y auxiliares | 6.6 | Backend: `test_catalog_services.py` | **Cumplido** | — |
-| 38 | Sin coincidencias | Consulta filtrada y paginada de productos y auxiliares | 10.1, 10.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx` | **Cumplido** | — |
-| 39 | Estado y retorno desde ficha | Consulta filtrada y paginada de productos y auxiliares | 10.2, 11.4 | Frontend: `ProductsPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 40 | Desactivación y selección | Estados del producto y separación de inventario | 6.3, 10.2 | Backend: `test_catalog_services.py`; Frontend: `ProductsPage.test.tsx`, `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Parcial** | Probado: baja con identidad y referencias conservadas y ausencia de nuevas selecciones inválidas en catálogo. La validación al seleccionar en operaciones futuras corresponde a sus consumidores. |
-| 41 | Reactivación válida | Estados del producto y separación de inventario | 6.3, 12.1 | Backend: `test_catalog_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 42 | Estado repetido | Estados del producto y separación de inventario | 6.3 | Backend: `test_catalog_services.py` | **Cumplido** | Solicitud con la versión vigente no incrementa versión ni crea evento. |
-| 43 | Escritura de stock o costo | Estados del producto y separación de inventario | 8.4, 12.4 | Backend: `test_catalog_errors.py`, `test_catalog_api.py`, `test_boundaries.py` | **Cumplido** | — |
-| 44 | Eliminación ordinaria | Estados del producto y separación de inventario | 8.4, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_errors.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 45 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de productos y auxiliares | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 46 | Reintento incompatible | Escrituras consistentes y auditables de productos y auxiliares | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 47 | Edición concurrente | Escrituras consistentes y auditables de productos y auxiliares | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 48 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de productos y auxiliares | 5.4 | Backend: `test_catalog_services.py`, `test_supplier_services.py`, `test_idempotent_commands.py` | **Cumplido** | — |
-| 49 | Intento denegado | Escrituras consistentes y auditables de productos y auxiliares | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
-| 50 | Carga y lista vacía | Experiencia integrada de productos y auxiliares | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 51 | Consulta fallida recuperable | Experiencia integrada de productos y auxiliares | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
-| 52 | Error de formulario y doble envío | Experiencia integrada de productos y auxiliares | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 53 | Confirmación cancelada | Experiencia integrada de productos y auxiliares | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 54 | Navegación por teclado y teléfono | Experiencia integrada de productos y auxiliares | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
-| 55 | Salida con cambios pendientes | Experiencia integrada de productos y auxiliares | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
+| 17 | Código duplicado | Producto por presentación completa | 3.3, 6.2, 8.6 | Backend: `test_catalog_models.py`, `test_catalog_services.py`, `test_catalog_errors.py`, `test_manufacturer_code.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | El código interno sigue siendo único aunque exista código del fabricante. |
+| 18 | Código del fabricante repetido en la misma marca | Producto por presentación completa | 14.1 | Backend: `test_manufacturer_code.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | Único por marca, incluidos inactivos y productos sin marca; con otra marca se acepta. |
+| 19 | Código del fabricante opcional y buscable | Producto por presentación completa | 14.1 | Backend: `test_manufacturer_code.py`; Frontend: `ProductForm.test.tsx`, `ProductsPage.test.tsx` | **Cumplido** | Búsqueda OR con código interno y nombre, sin distinguir mayúsculas; ficha y listado muestran ambos códigos. |
+| 20 | Código concurrente | Producto por presentación completa | 5.3, 12.3 | Backend: `test_catalog_concurrency.py` | **Cumplido** | — |
+| 21 | Datos obligatorios o relaciones inválidas | Producto por presentación completa | 2.3, 6.2, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_services.py`, `test_catalog_errors.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
+| 22 | Presentaciones independientes | Producto por presentación completa | 6.2 | Backend: `test_catalog_services.py` | **Cumplido** | Cada presentación es un producto propio; no existen variantes ni conversión. |
+| 23 | Edición de ficha | Producto por presentación completa | 6.2, 10.3 | Backend: `test_catalog_services.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 24 | Kit comprado | Producto por presentación completa | 2.3, 6.2, 10.3 | Backend: `test_catalog_services.py`, `test_catalog_validation.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | Solo identifica el kit completo; el desarme queda fuera de alcance. |
+| 25 | Gestión de auxiliares | Unidades marcas y compatibilidad informativa | 6.1, 10.1 | Backend: `test_catalog_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 26 | Auxiliar duplicado | Unidades marcas y compatibilidad informativa | 6.1, 12.3 | Backend: `test_catalog_models.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; Frontend: `AuxiliaryCatalogPage.test.tsx` | **Cumplido** | — |
+| 27 | Varias marcas compatibles | Unidades marcas y compatibilidad informativa | 6.2, 10.4 | Backend: `test_catalog_services.py`; Frontend: `VehicleBrandPicker.test.tsx`, `ProductForm.test.tsx` | **Cumplido** | — |
+| 28 | Baja de auxiliar utilizado | Unidades marcas y compatibilidad informativa | 6.5 | Backend: `test_catalog_concurrency.py`, `test_catalog_services.py` | **Cumplido** | — |
+| 29 | Referencia inactiva nueva | Unidades marcas y compatibilidad informativa | 6.3, 6.5 | Backend: `test_catalog_services.py`, `test_catalog_errors.py`, `test_catalog_concurrency.py` | **Cumplido** | — |
+| 30 | Corrección conservando referencia | Unidades marcas y compatibilidad informativa | 6.3, 10.3 | Backend: `test_catalog_services.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
+| 31 | Reactivación del auxiliar | Unidades marcas y compatibilidad informativa | 6.1 | Backend: `test_catalog_services.py` | **Cumplido** | — |
+| 32 | Precio exacto y cero | Precios finales y selección tributaria comercial | 2.2, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_models.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 33 | Precio inválido | Precios finales y selección tributaria comercial | 2.2, 8.4, 10.3 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 34 | Impuesto ausente o de otro ámbito | Precios finales y selección tributaria comercial | 4.2, 6.2 | Backend: `test_catalog_services.py`, `test_reference_interfaces.py`, `test_catalog_errors.py` | **Cumplido** | — |
+| 35 | Cambio de vigencia | Precios finales y selección tributaria comercial | 4.4 | Backend: `test_reference_interfaces.py` | **Cumplido** | El precio no se recalcula al cambiar la tarifa. |
+| 36 | Configuración pendiente | Precios finales y selección tributaria comercial | 4.2, 10.5 | Backend: `test_reference_interfaces.py`; Frontend: `ProductForm.test.tsx` | **Cumplido** | — |
+| 37 | Tarifa cero configurada | Precios finales y selección tributaria comercial | 4.2 | Backend: `test_reference_interfaces.py` | **Cumplido** | — |
+| 38 | Filtros combinados | Consulta filtrada y paginada de productos y auxiliares | 6.6, 10.2 | Backend: `test_catalog_services.py`; Frontend: `ProductsPage.test.tsx` | **Cumplido** | — |
+| 39 | Páginas estables | Consulta filtrada y paginada de productos y auxiliares | 6.6 | Backend: `test_catalog_services.py` | **Cumplido** | — |
+| 40 | Sin coincidencias | Consulta filtrada y paginada de productos y auxiliares | 10.1, 10.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx` | **Cumplido** | — |
+| 41 | Estado y retorno desde ficha | Consulta filtrada y paginada de productos y auxiliares | 10.2, 11.4 | Frontend: `ProductsPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 42 | Desactivación y selección | Estados del producto y separación de inventario | 6.3, 10.2 | Backend: `test_catalog_services.py`; Frontend: `ProductsPage.test.tsx`, `ProductForm.test.tsx`; E2E: `catalogs.spec.ts` | **Parcial** | Probado: baja con identidad y referencias conservadas y ausencia de nuevas selecciones inválidas en catálogo. La validación al seleccionar en operaciones futuras corresponde a sus consumidores. |
+| 43 | Reactivación válida | Estados del producto y separación de inventario | 6.3, 12.1 | Backend: `test_catalog_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 44 | Estado repetido | Estados del producto y separación de inventario | 6.3 | Backend: `test_catalog_services.py` | **Cumplido** | Solicitud con la versión vigente no incrementa versión ni crea evento. |
+| 45 | Escritura de stock o costo | Estados del producto y separación de inventario | 8.4, 12.4 | Backend: `test_catalog_errors.py`, `test_catalog_api.py`, `test_boundaries.py` | **Cumplido** | — |
+| 46 | Eliminación ordinaria | Estados del producto y separación de inventario | 8.4, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_errors.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 47 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de productos y auxiliares | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 48 | Reintento incompatible | Escrituras consistentes y auditables de productos y auxiliares | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 49 | Edición concurrente | Escrituras consistentes y auditables de productos y auxiliares | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 50 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de productos y auxiliares | 5.4 | Backend: `test_catalog_services.py`, `test_supplier_services.py`, `test_idempotent_commands.py` | **Cumplido** | — |
+| 51 | Intento denegado | Escrituras consistentes y auditables de productos y auxiliares | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
+| 52 | Carga y lista vacía | Experiencia integrada de productos y auxiliares | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 53 | Consulta fallida recuperable | Experiencia integrada de productos y auxiliares | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
+| 54 | Error de formulario y doble envío | Experiencia integrada de productos y auxiliares | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 55 | Confirmación cancelada | Experiencia integrada de productos y auxiliares | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 56 | Navegación por teclado y teléfono | Experiencia integrada de productos y auxiliares | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
+| 57 | Salida con cambios pendientes | Experiencia integrada de productos y auxiliares | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
 
 ## 4. Catálogo de servicios (35 escenarios)
 
 | N.º | Escenario | Requisito de spec | Tareas | Pruebas | Cobertura | Limitación |
 |---|---|---|---|---|---|---|
-| 56 | Lectura por los tres roles | Autorización del catálogo de servicios | 8.2, 8.5, 11.3 | Backend: `test_catalog_api.py`; Frontend: `catalog-routes.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 57 | Gestión por Encargado o Administrador | Autorización del catálogo de servicios | 7.1, 8.5, 11.1 | Backend: `test_catalog_api.py`, `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 58 | Vendedor intenta escribir | Autorización del catálogo de servicios | 8.5, 12.2 | Backend: `test_catalog_api.py`, `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 59 | Sesión inválida | Autorización del catálogo de servicios | 8.5 | Backend: `test_catalog_api.py`, `test_catalog_session_states.py` | **Cumplido** | — |
-| 60 | Roles acumulados | Autorización del catálogo de servicios | 8.5 | Backend: `test_catalog_api.py` | **Cumplido** | — |
-| 61 | Alta mínima | Ficha persistente de servicio referencial | 7.1, 11.1, 12.1 | Backend: `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 62 | Nombre vacío | Ficha persistente de servicio referencial | 2.3, 7.1, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 63 | Edición referencial | Ficha persistente de servicio referencial | 7.1, 11.1 | Backend: `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 64 | Nombres coincidentes | Ficha persistente de servicio referencial | 2.3, 7.1 | Backend: `test_catalog_services.py`, `test_catalog_validation.py`, `test_catalog_models.py` | **Cumplido** | Los nombres repetidos se permiten; no hay código ni identidad única. |
-| 65 | Importe válido | Precio decimal e impuesto artesanal | 2.2, 7.1, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 66 | Importe inválido | Precio decimal e impuesto artesanal | 2.2, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 67 | Impuesto cruzado o ausente | Precio decimal e impuesto artesanal | 4.2, 7.1, 11.1 | Backend: `test_catalog_services.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 68 | Opciones fiscales del Encargado | Precio decimal e impuesto artesanal | 8.3, 11.1 | Backend: `test_catalog_api.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 69 | Nueva vigencia | Precio decimal e impuesto artesanal | 4.4 | Backend: `test_reference_interfaces.py` | **Cumplido** | Verificada sobre la proyección tributaria común a productos y servicios. |
-| 70 | Sin vigencia y tarifa cero | Precio decimal e impuesto artesanal | 4.2, 11.1 | Backend: `test_reference_interfaces.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
-| 71 | Búsqueda combinada | Consulta paginada de servicios | 7.2, 11.1 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
-| 72 | Paginación | Consulta paginada de servicios | 7.2, 8.4 | Backend: `test_catalog_services.py`, `test_catalog_api.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
-| 73 | Vacío de búsqueda | Consulta paginada de servicios | 11.1, 11.4 | Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
-| 74 | Retorno desde ficha | Consulta paginada de servicios | 11.1, 11.4 | E2E: `catalogs.spec.ts`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | El servicio se consulta en una vista previa fija junto a la lista, sin salir de ella; los filtros y la página se conservan. |
-| 75 | Baja conservando historia | Estado e independencia económica de servicios | 7.2, 3.3 | Backend: `test_catalog_services.py`, `test_catalog_models.py`; Frontend: `ServicesPage.test.tsx` | **Parcial** | Probado: identidad estable y relaciones PROTECT. No existen operaciones históricas que verificar; su conservación es obligación de consumidores futuros. |
-| 76 | Reactivación | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
-| 77 | Repetición del estado | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py` | **Cumplido** | — |
-| 78 | Stock y eliminación no admitidos | Estado e independencia económica de servicios | 7.2, 8.4, 12.4 | Backend: `test_catalog_errors.py`, `test_catalog_api.py`, `test_boundaries.py` | **Cumplido** | — |
-| 79 | Guardado sin efectos económicos | Estado e independencia económica de servicios | 12.4 | Backend: `test_boundaries.py` | **Cumplido** | — |
-| 80 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de servicios | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 81 | Reintento incompatible | Escrituras consistentes y auditables de servicios | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 82 | Edición concurrente | Escrituras consistentes y auditables de servicios | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 83 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de servicios | 5.4 | Backend: `test_catalog_services.py`, `test_idempotent_commands.py` | **Parcial** | La falla inyectada se prueba con productos y comandos genéricos; los servicios comparten el mismo mecanismo transaccional sin una prueba propia. |
-| 84 | Intento denegado | Escrituras consistentes y auditables de servicios | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
-| 85 | Carga y lista vacía | Experiencia integrada de servicios | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 86 | Consulta fallida recuperable | Experiencia integrada de servicios | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
-| 87 | Error de formulario y doble envío | Experiencia integrada de servicios | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 88 | Confirmación cancelada | Experiencia integrada de servicios | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 89 | Navegación por teclado y teléfono | Experiencia integrada de servicios | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
-| 90 | Salida con cambios pendientes | Experiencia integrada de servicios | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
+| 58 | Lectura por los tres roles | Autorización del catálogo de servicios | 8.2, 8.5, 11.3 | Backend: `test_catalog_api.py`; Frontend: `catalog-routes.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 59 | Gestión por Encargado o Administrador | Autorización del catálogo de servicios | 7.1, 8.5, 11.1 | Backend: `test_catalog_api.py`, `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 60 | Vendedor intenta escribir | Autorización del catálogo de servicios | 8.5, 12.2 | Backend: `test_catalog_api.py`, `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 61 | Sesión inválida | Autorización del catálogo de servicios | 8.5 | Backend: `test_catalog_api.py`, `test_catalog_session_states.py` | **Cumplido** | — |
+| 62 | Roles acumulados | Autorización del catálogo de servicios | 8.5 | Backend: `test_catalog_api.py` | **Cumplido** | — |
+| 63 | Alta mínima | Ficha persistente de servicio referencial | 7.1, 11.1, 12.1 | Backend: `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 64 | Nombre vacío | Ficha persistente de servicio referencial | 2.3, 7.1, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 65 | Edición referencial | Ficha persistente de servicio referencial | 7.1, 11.1 | Backend: `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 66 | Nombres coincidentes | Ficha persistente de servicio referencial | 2.3, 7.1 | Backend: `test_catalog_services.py`, `test_catalog_validation.py`, `test_catalog_models.py` | **Cumplido** | Los nombres repetidos se permiten; no hay código ni identidad única. |
+| 67 | Importe válido | Precio decimal e impuesto artesanal | 2.2, 7.1, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_services.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 68 | Importe inválido | Precio decimal e impuesto artesanal | 2.2, 11.1 | Backend: `test_catalog_validation.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 69 | Impuesto cruzado o ausente | Precio decimal e impuesto artesanal | 4.2, 7.1, 11.1 | Backend: `test_catalog_services.py`, `test_catalog_errors.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 70 | Opciones fiscales del Encargado | Precio decimal e impuesto artesanal | 8.3, 11.1 | Backend: `test_catalog_api.py`; Frontend: `ServicesPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 71 | Nueva vigencia | Precio decimal e impuesto artesanal | 4.4 | Backend: `test_reference_interfaces.py` | **Cumplido** | Verificada sobre la proyección tributaria común a productos y servicios. |
+| 72 | Sin vigencia y tarifa cero | Precio decimal e impuesto artesanal | 4.2, 11.1 | Backend: `test_reference_interfaces.py`; Frontend: `ServiceForm.test.tsx` | **Cumplido** | — |
+| 73 | Búsqueda combinada | Consulta paginada de servicios | 7.2, 11.1 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
+| 74 | Paginación | Consulta paginada de servicios | 7.2, 8.4 | Backend: `test_catalog_services.py`, `test_catalog_api.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
+| 75 | Vacío de búsqueda | Consulta paginada de servicios | 11.1, 11.4 | Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
+| 76 | Retorno desde ficha | Consulta paginada de servicios | 11.1, 11.4 | E2E: `catalogs.spec.ts`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | El servicio se consulta en una vista previa fija junto a la lista, sin salir de ella; los filtros y la página se conservan. |
+| 77 | Baja conservando historia | Estado e independencia económica de servicios | 7.2, 3.3 | Backend: `test_catalog_services.py`, `test_catalog_models.py`; Frontend: `ServicesPage.test.tsx` | **Parcial** | Probado: identidad estable y relaciones PROTECT. No existen operaciones históricas que verificar; su conservación es obligación de consumidores futuros. |
+| 78 | Reactivación | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
+| 79 | Repetición del estado | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py` | **Cumplido** | — |
+| 80 | Stock y eliminación no admitidos | Estado e independencia económica de servicios | 7.2, 8.4, 12.4 | Backend: `test_catalog_errors.py`, `test_catalog_api.py`, `test_boundaries.py` | **Cumplido** | — |
+| 81 | Guardado sin efectos económicos | Estado e independencia económica de servicios | 12.4 | Backend: `test_boundaries.py` | **Cumplido** | — |
+| 82 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de servicios | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 83 | Reintento incompatible | Escrituras consistentes y auditables de servicios | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 84 | Edición concurrente | Escrituras consistentes y auditables de servicios | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 85 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de servicios | 5.4 | Backend: `test_catalog_services.py`, `test_idempotent_commands.py` | **Parcial** | La falla inyectada se prueba con productos y comandos genéricos; los servicios comparten el mismo mecanismo transaccional sin una prueba propia. |
+| 86 | Intento denegado | Escrituras consistentes y auditables de servicios | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
+| 87 | Carga y lista vacía | Experiencia integrada de servicios | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 88 | Consulta fallida recuperable | Experiencia integrada de servicios | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
+| 89 | Error de formulario y doble envío | Experiencia integrada de servicios | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 90 | Confirmación cancelada | Experiencia integrada de servicios | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 91 | Navegación por teclado y teléfono | Experiencia integrada de servicios | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
+| 92 | Salida con cambios pendientes | Experiencia integrada de servicios | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
 
 ## 5. Catálogo de proveedores (36 escenarios)
 
 | N.º | Escenario | Requisito de spec | Tareas | Pruebas | Cobertura | Limitación |
 |---|---|---|---|---|---|---|
-| 91 | Consulta y gestión autorizadas | Acceso exclusivo de administración a proveedores | 7.3, 8.5, 11.2 | Backend: `test_catalog_api.py`, `test_supplier_services.py`; Frontend: `catalog-routes.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 92 | Acceso operativo directo | Acceso exclusivo de administración a proveedores | 8.5, 12.2 | Backend: `test_catalog_api.py`, `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 93 | Sesión inválida | Acceso exclusivo de administración a proveedores | 8.5 | Backend: `test_catalog_api.py`, `test_catalog_session_states.py` | **Cumplido** | — |
-| 94 | Unión de roles | Acceso exclusivo de administración a proveedores | 8.5 | Backend: `test_catalog_api.py` | **Cumplido** | — |
-| 95 | Proveedor ocasional mínimo | Proveedor mínimo y contacto opcional | 2.4, 3.4, 7.3 | Backend: `test_supplier_services.py`, `test_supplier_models.py`, `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 96 | Edición de contacto | Proveedor mínimo y contacto opcional | 7.3, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 97 | Nombre o correo inválido | Proveedor mínimo y contacto opcional | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 98 | Dato excedido | Proveedor mínimo y contacto opcional | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 99 | Nombres coincidentes | Proveedor mínimo y contacto opcional | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 100 | Identificación válida | Identificación opcional y duplicados | 2.4, 7.3 | Backend: `test_supplier_validation.py`, `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 101 | Par incompleto o tipo inválido | Identificación opcional y duplicados | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 102 | Longitud incorrecta | Identificación opcional y duplicados | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 103 | Duplicado incluyendo inactivos | Identificación opcional y duplicados | 3.4, 7.3 | Backend: `test_supplier_models.py`, `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 104 | Alta simultánea duplicada | Identificación opcional y duplicados | 5.3, 12.3 | Backend: `test_catalog_concurrency.py` | **Cumplido** | — |
-| 105 | Coincidencia con cliente | Identificación opcional y duplicados | 7.3, 7.4 | Backend: `test_supplier_services.py` | **Cumplido** | Un cliente con el mismo documento no bloquea ni se fusiona con el proveedor. |
-| 106 | Retiro de identificación | Identificación opcional y duplicados | 7.3, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
-| 107 | Búsqueda por identificación o nombre | Consulta paginada de proveedores | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 108 | Filtro y paginación | Consulta paginada de proveedores | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 109 | Sin coincidencias | Consulta paginada de proveedores | 11.2, 11.4 | Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 110 | Ficha y retorno | Consulta paginada de proveedores | 11.2, 11.4 | E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 111 | Baja de proveedor referenciado | Estado sin pérdida histórica ni operaciones de compra | 7.5, 3.4 | Backend: `test_supplier_services.py`, `test_supplier_models.py` | **Parcial** | Probado: identidad y relaciones conservadas. No existen compras ni saldos que referencien al proveedor; su rechazo es obligación de consumidores futuros. |
-| 112 | Reactivación | Estado sin pérdida histórica ni operaciones de compra | 7.5 | Backend: `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 113 | Estado repetido | Estado sin pérdida histórica ni operaciones de compra | 7.5 | Backend: `test_supplier_services.py` | **Cumplido** | — |
-| 114 | Intento de eliminación | Estado sin pérdida histórica ni operaciones de compra | 8.4, 12.2 | Backend: `test_catalog_api.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 115 | Operación ajena al catálogo | Estado sin pérdida histórica ni operaciones de compra | 7.5, 12.4 | Backend: `test_boundaries.py`, `test_catalog_api.py` | **Cumplido** | No existen rutas de compra, saldo ni pago; el módulo no depende de catálogo ni de abastecimiento. |
-| 116 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de proveedores | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 117 | Reintento incompatible | Escrituras consistentes y auditables de proveedores | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 118 | Edición concurrente | Escrituras consistentes y auditables de proveedores | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 119 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de proveedores | 5.4 | Backend: `test_catalog_services.py`, `test_supplier_services.py`, `test_idempotent_commands.py` | **Cumplido** | — |
-| 120 | Intento denegado | Escrituras consistentes y auditables de proveedores | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
-| 121 | Carga y lista vacía | Experiencia integrada de proveedores | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
-| 122 | Consulta fallida recuperable | Experiencia integrada de proveedores | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
-| 123 | Error de formulario y doble envío | Experiencia integrada de proveedores | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 124 | Confirmación cancelada | Experiencia integrada de proveedores | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
-| 125 | Navegación por teclado y teléfono | Experiencia integrada de proveedores | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
-| 126 | Salida con cambios pendientes | Experiencia integrada de proveedores | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
+| 93 | Consulta y gestión autorizadas | Acceso exclusivo de administración a proveedores | 7.3, 8.5, 11.2 | Backend: `test_catalog_api.py`, `test_supplier_services.py`; Frontend: `catalog-routes.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 94 | Acceso operativo directo | Acceso exclusivo de administración a proveedores | 8.5, 12.2 | Backend: `test_catalog_api.py`, `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 95 | Sesión inválida | Acceso exclusivo de administración a proveedores | 8.5 | Backend: `test_catalog_api.py`, `test_catalog_session_states.py` | **Cumplido** | — |
+| 96 | Unión de roles | Acceso exclusivo de administración a proveedores | 8.5 | Backend: `test_catalog_api.py` | **Cumplido** | — |
+| 97 | Proveedor ocasional mínimo | Proveedor mínimo y contacto opcional | 2.4, 3.4, 7.3 | Backend: `test_supplier_services.py`, `test_supplier_models.py`, `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 98 | Edición de contacto | Proveedor mínimo y contacto opcional | 7.3, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 99 | Nombre o correo inválido | Proveedor mínimo y contacto opcional | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 100 | Dato excedido | Proveedor mínimo y contacto opcional | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 101 | Nombres coincidentes | Proveedor mínimo y contacto opcional | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 102 | Identificación válida | Identificación opcional y duplicados | 2.4, 7.3 | Backend: `test_supplier_validation.py`, `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 103 | Par incompleto o tipo inválido | Identificación opcional y duplicados | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 104 | Longitud incorrecta | Identificación opcional y duplicados | 2.4, 11.2 | Backend: `test_supplier_validation.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 105 | Duplicado incluyendo inactivos | Identificación opcional y duplicados | 3.4, 7.3 | Backend: `test_supplier_models.py`, `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 106 | Alta simultánea duplicada | Identificación opcional y duplicados | 5.3, 12.3 | Backend: `test_catalog_concurrency.py` | **Cumplido** | — |
+| 107 | Coincidencia con cliente | Identificación opcional y duplicados | 7.3, 7.4 | Backend: `test_supplier_services.py` | **Cumplido** | Un cliente con el mismo documento no bloquea ni se fusiona con el proveedor. |
+| 108 | Retiro de identificación | Identificación opcional y duplicados | 7.3, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SupplierForm.test.tsx` | **Cumplido** | — |
+| 109 | Búsqueda por identificación o nombre | Consulta paginada de proveedores | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 110 | Filtro y paginación | Consulta paginada de proveedores | 7.4, 11.2 | Backend: `test_supplier_services.py`; Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 111 | Sin coincidencias | Consulta paginada de proveedores | 11.2, 11.4 | Frontend: `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 112 | Ficha y retorno | Consulta paginada de proveedores | 11.2, 11.4 | E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 113 | Baja de proveedor referenciado | Estado sin pérdida histórica ni operaciones de compra | 7.5, 3.4 | Backend: `test_supplier_services.py`, `test_supplier_models.py` | **Parcial** | Probado: identidad y relaciones conservadas. No existen compras ni saldos que referencien al proveedor; su rechazo es obligación de consumidores futuros. |
+| 114 | Reactivación | Estado sin pérdida histórica ni operaciones de compra | 7.5 | Backend: `test_supplier_services.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 115 | Estado repetido | Estado sin pérdida histórica ni operaciones de compra | 7.5 | Backend: `test_supplier_services.py` | **Cumplido** | — |
+| 116 | Intento de eliminación | Estado sin pérdida histórica ni operaciones de compra | 8.4, 12.2 | Backend: `test_catalog_api.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 117 | Operación ajena al catálogo | Estado sin pérdida histórica ni operaciones de compra | 7.5, 12.4 | Backend: `test_boundaries.py`, `test_catalog_api.py` | **Cumplido** | No existen rutas de compra, saldo ni pago; el módulo no depende de catálogo ni de abastecimiento. |
+| 118 | Reintento después de perder la respuesta | Escrituras consistentes y auditables de proveedores | 5.1–5.4, 9.4 | Backend: `test_idempotent_commands.py`, `test_catalog_api.py`, `test_catalog_errors.py`; Frontend: `idempotency.test.ts`, `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 119 | Reintento incompatible | Escrituras consistentes y auditables de proveedores | 5.1–5.3, 8.6 | Backend: `test_idempotent_commands.py`, `test_catalog_errors.py`, `test_catalog_services.py`, `test_catalog_concurrency.py`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 120 | Edición concurrente | Escrituras consistentes y auditables de proveedores | 5.5, 8.6, 12.2 | Backend: `test_catalog_errors.py`, `test_catalog_services.py`, `test_supplier_services.py`; Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 121 | Falla de persistencia o auditoría | Escrituras consistentes y auditables de proveedores | 5.4 | Backend: `test_catalog_services.py`, `test_supplier_services.py`, `test_idempotent_commands.py` | **Cumplido** | — |
+| 122 | Intento denegado | Escrituras consistentes y auditables de proveedores | 5.5, 8.5 | Backend: `test_catalog_api.py`, `test_catalog_services.py`, `test_supplier_services.py`, `test_catalog_session_states.py` | **Cumplido** | — |
+| 123 | Carga y lista vacía | Experiencia integrada de proveedores | 10.1, 10.2, 11.1, 11.2, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | — |
+| 124 | Consulta fallida recuperable | Experiencia integrada de proveedores | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductsPage.test.tsx`, `ServicesPage.test.tsx`, `SuppliersPage.test.tsx` | **Cumplido** | El botón «Reintentar» vuelve a consultar; los filtros permanecen en la URL. |
+| 125 | Error de formulario y doble envío | Experiencia integrada de proveedores | 9.4, 10.5, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`, `ProductForm.test.tsx`, `ServiceForm.test.tsx`, `SupplierForm.test.tsx`, `idempotency.test.ts`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 126 | Confirmación cancelada | Experiencia integrada de proveedores | 10.1, 11.4 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 127 | Navegación por teclado y teléfono | Experiencia integrada de proveedores | 11.5, 12.5 | E2E: `catalogs-quality.spec.ts`, `catalogs-styles.spec.ts` | **Cumplido** | Axe, desbordamiento, tamaño táctil y foco a 360/768/1024/1440 px; la revisión visual humana sigue pendiente. |
+| 128 | Salida con cambios pendientes | Experiencia integrada de proveedores | 11.4, 12.5 | Frontend: `AuxiliaryCatalogPage.test.tsx`; E2E: `catalogs-quality.spec.ts` | **Cumplido** | — |
 
 ## 6. Obligaciones de consumidores futuros y límites de esta cobertura
 
