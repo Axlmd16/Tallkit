@@ -94,7 +94,9 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
   await page.screenshot({ path: `${EVIDENCE}/06-agregar-servicio.png` })
   await dialog.getByLabel('Precio aplicado a esta orden (USD)').fill('30.00')
   await dialog.getByRole('button', { name: 'Agregar servicio' }).click()
-  await expect(page.getByText('Total de servicios de la orden')).toBeVisible()
+  await expect(
+    page.getByText('Total de servicios de la orden').first(),
+  ).toBeVisible()
 
   await page.getByRole('button', { name: /Adjuntar fotografía/ }).click()
   const upload = page.getByRole('dialog')
@@ -128,7 +130,14 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
     .getByLabel('Causa de la reapertura')
     .fill('Vibración tras la alineación')
   await page.getByRole('button', { name: 'Reabrir orden' }).click()
-  await expect(page.getByText('Orden reabierta', { exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { name: 'Corrección 1 en curso' }),
+  ).toBeVisible()
+  await page
+    .getByLabel('Trabajo correctivo realizado')
+    .fill('Se reajustó la convergencia y se verificó el balanceo.')
+  await page.getByRole('button', { name: 'Guardar corrección' }).click()
+  await expect(page.getByText('Sin cambios pendientes.')).toBeVisible()
   await page.screenshot({
     path: `${EVIDENCE}/03-detalle-reabierta.png`,
     fullPage: true,

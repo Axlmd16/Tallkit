@@ -2,7 +2,9 @@ import {
   ArrowCounterClockwise,
   ArrowLeft,
   CheckCircle,
+  Info,
   NotePencil,
+  Stethoscope,
 } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
@@ -14,7 +16,10 @@ import {
   timestamp,
 } from '@/features/maintenance/format'
 import { useMaintenanceOrder } from '@/features/maintenance/hooks'
+import type { MaintenanceOrder } from '@/features/maintenance/types'
+import { OrderSummary } from '@/features/maintenance/OrderSummary'
 import { PhotosSection } from '@/features/maintenance/Photos'
+import { SectionPanel } from '@/features/maintenance/SectionPanel'
 import { ServiceLinesSection } from '@/features/maintenance/ServiceLines'
 import {
   FinalizeDialog,
@@ -73,7 +78,7 @@ export function MaintenanceOrderDetailPage() {
   }
   const from = (location.state as { from?: string } | null)?.from ?? ''
   const back = `/maintenance${from.startsWith('?') ? from : ''}`
-  const panel = 'rounded-panel border border-line bg-surface'
+  const reopened = order.state === 'REOPENED'
 
   return (
     <div className="catalog-page space-y-4">
@@ -111,15 +116,11 @@ export function MaintenanceOrderDetailPage() {
           {actions.has('finalize') && (
             <Button onClick={(event) => open('finalize', event)} type="button">
               <CheckCircle aria-hidden="true" size={16} />
-              Finalizar
+              {reopened ? 'Finalizar corrección' : 'Finalizar'}
             </Button>
           )}
           {actions.has('reopen') && (
-            <Button
-              onClick={(event) => open('reopen', event)}
-              type="button"
-              variant="secondary"
-            >
+            <Button onClick={(event) => open('reopen', event)} type="button">
               <ArrowCounterClockwise aria-hidden="true" size={16} />
               Reabrir
             </Button>
@@ -133,122 +134,50 @@ export function MaintenanceOrderDetailPage() {
           {timestamp(order.last_finalized_at)}. Para modificarla debe reabrirse.
         </InlineNotice>
       )}
-      {order.state === 'REOPENED' && (
-        <InlineNotice title="Orden reabierta" tone="warning">
-          Solo la intervención correctiva abierta admite cambios; sus servicios
-          se registran sin cargo.
-        </InlineNotice>
-      )}
 
-      <section
-        aria-label="Información general"
-        className={`${panel} px-5 py-4`}
-      >
-        <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <dt className="text-xs text-ink-muted">Cliente</dt>
-            <dd className="mt-1 font-medium text-ink">
-              <Link
-                className="hover:underline"
-                to={`/customers/${order.customer.id}`}
-              >
-                {order.customer.name}
-              </Link>
-              {!order.customer.is_active && (
-                <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
-              )}
-              <span className="block text-xs text-ink-muted">
-                {order.customer.identification_type}{' '}
-                {order.customer.identification}
-              </span>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Vehículo</dt>
-            <dd className="mt-1">
-              <Link
-                aria-label={`Vehículo ${order.vehicle.plate}`}
-                to={`/vehicles/${order.vehicle.id}`}
-              >
-                <PlateTag plate={order.vehicle.plate} />
-              </Link>
-              {!order.vehicle.is_active && (
-                <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
-              )}
-              <span className="block text-xs text-ink-muted">
-                {order.vehicle.brand} {order.vehicle.model}
-              </span>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Apertura</dt>
-            <dd className="mt-1">{documentDate(order.opened_on)}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Kilometraje</dt>
-            <dd className="mt-1">
-              {kilometers(order.odometer_km)}
-              {order.odometer_confirmation && (
-                <span className="block text-xs text-ink-muted">
-                  Menor al último conocido; confirmado por{' '}
-                  {order.odometer_confirmation.by.name}
-                </span>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Registrada por</dt>
-            <dd className="mt-1">
-              {order.created_by.name} · {timestamp(order.created_at)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Última actualización</dt>
-            <dd className="mt-1">
-              {order.updated_by.name} · {timestamp(order.updated_at)}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs text-ink-muted">RUC artesanal</dt>
-            <dd className="mt-1">
-              {order.fiscal_entity.legal_name} · {order.fiscal_entity.ruc}
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section
-        aria-labelledby="order-diagnosis-title"
-        className={`${panel} px-5 py-4 text-[13px]`}
-      >
-        <h2
-          className="text-[14.5px] font-semibold text-ink"
-          id="order-diagnosis-title"
-        >
-          Diagnóstico y observaciones
-        </h2>
-        <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-ink-muted">Diagnóstico</dt>
-            <dd className="mt-1 whitespace-pre-line">
-              {order.diagnosis || (
-                <span className="text-ink-muted">Pendiente de registrar.</span>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs text-ink-muted">Observaciones</dt>
-            <dd className="mt-1 whitespace-pre-line">
-              {order.notes || <span className="text-ink-muted">—</span>}
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <InterventionsSection onDone={done} order={order} />
-      <ServiceLinesSection onDone={done} order={order} />
-      <PhotosSection onDone={done} order={order} />
-      <TransitionTimeline order={order} />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-4">
+          {reopened && <InterventionsSection onDone={done} order={order} />}
+          <SectionPanel
+            icon={<Info size={17} />}
+            id="order-general-title"
+            title="Información general"
+          >
+            <GeneralInfo order={order} />
+          </SectionPanel>
+          <SectionPanel
+            icon={<Stethoscope size={17} />}
+            id="order-diagnosis-title"
+            title="Diagnóstico y observaciones"
+          >
+            <dl className="grid gap-4 p-4 text-[13px] sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-ink-muted">Diagnóstico</dt>
+                <dd className="mt-1 whitespace-pre-line">
+                  {order.diagnosis || (
+                    <span className="text-ink-muted">
+                      Pendiente de registrar.
+                    </span>
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Observaciones</dt>
+                <dd className="mt-1 whitespace-pre-line">
+                  {order.notes || <span className="text-ink-muted">—</span>}
+                </dd>
+              </div>
+            </dl>
+          </SectionPanel>
+          {!reopened && <InterventionsSection onDone={done} order={order} />}
+          <ServiceLinesSection onDone={done} order={order} />
+          <PhotosSection onDone={done} order={order} />
+        </div>
+        <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+          <OrderSummary order={order} />
+          <TransitionTimeline order={order} />
+        </aside>
+      </div>
 
       {dialog === 'finalize' && (
         <FinalizeDialog
@@ -267,5 +196,80 @@ export function MaintenanceOrderDetailPage() {
         />
       )}
     </div>
+  )
+}
+
+function GeneralInfo({ order }: { order: MaintenanceOrder }) {
+  return (
+    <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 xl:grid-cols-4 p-4">
+      <div>
+        <dt className="text-xs text-ink-muted">Cliente</dt>
+        <dd className="mt-1 font-medium text-ink">
+          <Link
+            className="hover:underline"
+            to={`/customers/${order.customer.id}`}
+          >
+            {order.customer.name}
+          </Link>
+          {!order.customer.is_active && (
+            <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
+          )}
+          <span className="block text-xs text-ink-muted">
+            {order.customer.identification_type} {order.customer.identification}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs text-ink-muted">Vehículo</dt>
+        <dd className="mt-1">
+          <Link
+            aria-label={`Vehículo ${order.vehicle.plate}`}
+            to={`/vehicles/${order.vehicle.id}`}
+          >
+            <PlateTag plate={order.vehicle.plate} />
+          </Link>
+          {!order.vehicle.is_active && (
+            <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
+          )}
+          <span className="block text-xs text-ink-muted">
+            {order.vehicle.brand} {order.vehicle.model}
+          </span>
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs text-ink-muted">Apertura</dt>
+        <dd className="mt-1">{documentDate(order.opened_on)}</dd>
+      </div>
+      <div>
+        <dt className="text-xs text-ink-muted">Kilometraje</dt>
+        <dd className="mt-1">
+          {kilometers(order.odometer_km)}
+          {order.odometer_confirmation && (
+            <span className="block text-xs text-ink-muted">
+              Menor al último conocido; confirmado por{' '}
+              {order.odometer_confirmation.by.name}
+            </span>
+          )}
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs text-ink-muted">Registrada por</dt>
+        <dd className="mt-1">
+          {order.created_by.name} · {timestamp(order.created_at)}
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs text-ink-muted">Última actualización</dt>
+        <dd className="mt-1">
+          {order.updated_by.name} · {timestamp(order.updated_at)}
+        </dd>
+      </div>
+      <div className="sm:col-span-2">
+        <dt className="text-xs text-ink-muted">RUC artesanal</dt>
+        <dd className="mt-1">
+          {order.fiscal_entity.legal_name} · {order.fiscal_entity.ruc}
+        </dd>
+      </div>
+    </dl>
   )
 }

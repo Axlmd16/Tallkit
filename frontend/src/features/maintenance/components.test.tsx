@@ -33,6 +33,7 @@ vi.mock('./hooks', () => ({
   }),
 }))
 
+import { OrderSummary } from './OrderSummary'
 import { PhotosSection } from './Photos'
 import { ServiceLinesSection } from './ServiceLines'
 import { InterventionsSection, TransitionTimeline } from './Transitions'
@@ -197,6 +198,9 @@ describe('servicios de una orden reabierta', () => {
       screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Sin cargo')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Inactivo en catálogo')).toBeInTheDocument()
   })
 
@@ -329,8 +333,19 @@ describe('intervención correctiva e historial', () => {
       .mockResolvedValueOnce(reopened())
     wrap(<InterventionsSection onDone={onDone} order={reopened()} />)
     expect(screen.getByText('Ruido')).toBeInTheDocument()
-    const save = screen.getByRole('button', { name: 'Guardar intervención' })
+    const save = screen.getByRole('button', { name: 'Guardar corrección' })
     expect(save).toBeDisabled()
+    expect(
+      screen.getByRole('heading', { name: 'Corrección 1 en curso' }),
+    ).toBeInTheDocument()
+    const steps = screen.getByRole('list', { name: 'Pasos de la corrección' })
+    expect(within(steps).getByText('Trabajo correctivo')).toHaveTextContent(
+      '(pendiente)',
+    )
+    expect(within(steps).getByText('Servicios sin cargo')).toHaveTextContent(
+      '(completo)',
+    )
+    expect(screen.getByText('Sin cambios pendientes.')).toBeInTheDocument()
     await u.type(
       screen.getByLabelText('Trabajo correctivo realizado'),
       'Ajuste',
@@ -366,7 +381,7 @@ describe('intervención correctiva e historial', () => {
     expect(screen.getByText('Ajuste hecho')).toBeInTheDocument()
     expect(screen.getByText('Sin costo')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Guardar intervención' }),
+      screen.queryByRole('button', { name: 'Guardar corrección' }),
     ).not.toBeInTheDocument()
   })
 
@@ -376,5 +391,30 @@ describe('intervención correctiva e historial', () => {
     expect(screen.getByText('Registrada → Finalizada')).toBeInTheDocument()
     expect(screen.getByText('Finalizada → Reabierta')).toBeInTheDocument()
     expect(screen.getByText('Causa: Ruido')).toBeInTheDocument()
+  })
+})
+
+describe('resumen de la orden', () => {
+  it('lista los requisitos de la intervención abierta con su estado', () => {
+    wrap(<OrderSummary order={reopened()} />)
+    const list = screen.getByRole('list', { name: 'Requisitos para finalizar' })
+    expect(
+      within(list).getByText(/Trabajo correctivo registrado/),
+    ).toHaveTextContent('(pendiente)')
+    expect(screen.getByText('USD 120.00')).toBeInTheDocument()
+  })
+
+  it('una orden finalizada muestra quién la cerró en lugar de requisitos', () => {
+    const order = reopened()
+    order.state = 'FINALIZED'
+    order.interventions = order.interventions.map((i) => ({
+      ...i,
+      is_open: false,
+    }))
+    wrap(<OrderSummary order={order} />)
+    expect(
+      screen.queryByRole('list', { name: 'Requisitos para finalizar' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText(/Finalizada por Encargado/)).toBeInTheDocument()
   })
 })

@@ -1,4 +1,11 @@
-import { useState } from 'react'
+import {
+  CheckCircle,
+  Circle,
+  ClockCounterClockwise,
+  FloppyDisk,
+  Wrench,
+} from '@phosphor-icons/react'
+import { useState, type FormEvent } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
 import { useIntentTracker } from '@/shared/api/idempotency'
@@ -13,7 +20,12 @@ import {
 
 import { kilometers, timestamp } from './format'
 import { useMaintenanceMutations } from './hooks'
-import { orderStateLabels, type MaintenanceOrder } from './types'
+import { SectionPanel } from './SectionPanel'
+import {
+  orderStateLabels,
+  type Intervention,
+  type MaintenanceOrder,
+} from './types'
 
 /** Resumen antes de finalizar; los requisitos pendientes los calcula el servidor. */
 export function FinalizeDialog({
@@ -176,7 +188,49 @@ export function ReopenDialog({
   )
 }
 
-/** Intervenciones inicial y correctivas; solo la correctiva abierta es editable. */
+/** Paso de la corrección con su estado; los opcionales nunca bloquean la finalización. */
+function Step({
+  done,
+  title,
+  detail,
+}: {
+  done: boolean
+  title: string
+  detail: string
+}) {
+  return (
+    <li className="flex gap-2.5">
+      {done ? (
+        <CheckCircle
+          aria-hidden="true"
+          className="mt-0.5 shrink-0 text-success"
+          size={18}
+          weight="fill"
+        />
+      ) : (
+        <Circle
+          aria-hidden="true"
+          className="mt-0.5 shrink-0 text-ink-muted"
+          size={18}
+        />
+      )}
+      <div className="min-w-0">
+        <p className="text-[13px] font-medium text-ink">
+          {title}
+          <span className="sr-only">
+            {done ? ' (completo)' : ' (pendiente)'}
+          </span>
+        </p>
+        <p className="text-xs text-ink-muted">{detail}</p>
+      </div>
+    </li>
+  )
+}
+
+/**
+ * Intervenciones correctivas. La abierta se presenta como un espacio de trabajo con el tono
+ * del RUC artesanal, su causa, los pasos y el registro; las cerradas, como línea de tiempo.
+ */
 export function InterventionsSection({
   order,
   onDone,
@@ -186,55 +240,183 @@ export function InterventionsSection({
 }) {
   const correctives = order.interventions.filter((i) => i.kind === 'CORRECTIVE')
   if (correctives.length === 0) return null
+  const open = correctives.find((i) => i.is_open)
+  const closed = correctives.filter((i) => !i.is_open)
+  return (
+    <>
+      {open && (
+        <CorrectionWorkspace
+          intervention={open}
+          onDone={onDone}
+          order={order}
+        />
+      )}
+      {closed.length > 0 && (
+        <SectionPanel
+          description="Se conservan tal como se cerraron."
+          icon={<ClockCounterClockwise size={17} />}
+          id="order-closed-corrections-title"
+          title={
+            open ? 'Correcciones anteriores' : 'Intervenciones correctivas'
+          }
+        >
+          <ol className="relative space-y-4 px-4 py-4 before:absolute before:top-5 before:bottom-5 before:left-[27px] before:w-px before:bg-line">
+            {closed.map((intervention) => (
+              <li className="relative flex gap-3" key={intervention.id}>
+                <span
+                  aria-hidden="true"
+                  className="z-10 mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-scope-artisan-soft text-[11px] font-bold text-scope-artisan ring-4 ring-surface"
+                >
+                  {intervention.ordinal - 1}
+                </span>
+                <div className="min-w-0 flex-1 rounded-control border border-line px-3 py-2.5 text-[13px]">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-ink">
+                      Corrección {intervention.ordinal - 1}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      Cerrada {timestamp(intervention.closed_at)}
+                    </p>
+                  </div>
+                  <p className="mt-1">
+                    <span className="text-ink-muted">Causa: </span>
+                    {intervention.cause}
+                  </p>
+                  <p className="mt-1 whitespace-pre-line">
+                    <span className="text-ink-muted">Trabajo realizado: </span>
+                    {intervention.work_performed || '—'}
+                  </p>
+                  {intervention.notes && (
+                    <p className="mt-1 whitespace-pre-line">
+                      <span className="text-ink-muted">Observaciones: </span>
+                      {intervention.notes}
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </SectionPanel>
+      )}
+    </>
+  )
+}
+
+function CorrectionWorkspace({
+  order,
+  intervention,
+  onDone,
+}: {
+  order: MaintenanceOrder
+  intervention: Intervention
+  onDone: (message: string) => void
+}) {
+  const number = intervention.ordinal - 1
+  const editable = order.allowed_actions.includes('edit_intervention')
+  const photos = order.photos.filter(
+    (p) => p.intervention_id === intervention.id,
+  )
+  const workDone = intervention.work_performed.trim().length > 0
   return (
     <section
-      aria-labelledby="order-interventions-title"
-      className="rounded-panel border border-line bg-surface"
+      aria-labelledby="order-correction-title"
+      className="overflow-hidden rounded-panel border border-scope-artisan/30 bg-surface shadow-[inset_4px_0_0_var(--color-scope-artisan)]"
     >
-      <h2
-        className="border-b border-line px-4 py-3 text-[14.5px] font-semibold text-ink"
-        id="order-interventions-title"
-      >
-        Intervenciones correctivas
-      </h2>
-      <ol className="divide-y divide-line">
-        {correctives.map((intervention) => (
-          <li className="space-y-2 px-4 py-3 text-[13px]" key={intervention.id}>
-            <p className="font-semibold text-ink">
-              Corrección {intervention.ordinal - 1} ·{' '}
-              {intervention.is_open
-                ? 'abierta'
-                : `cerrada ${timestamp(intervention.closed_at)}`}
-            </p>
-            <p>
-              <span className="text-ink-muted">Causa: </span>
-              {intervention.cause}
-            </p>
-            {intervention.is_open &&
-            order.allowed_actions.includes('edit_intervention') ? (
-              <CorrectiveEditor
-                initialNotes={intervention.notes}
-                initialWork={intervention.work_performed}
-                onDone={onDone}
-                order={order}
-              />
-            ) : (
-              <>
-                <p>
-                  <span className="text-ink-muted">Trabajo realizado: </span>
+      <div className="space-y-3 border-b border-scope-artisan/20 bg-scope-artisan-soft px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden="true"
+              className="grid size-8 shrink-0 place-items-center rounded-control bg-surface text-scope-artisan ring-1 ring-scope-artisan/25"
+            >
+              <Wrench size={17} />
+            </span>
+            <h2
+              className="text-[15px] font-semibold text-ink"
+              id="order-correction-title"
+            >
+              Corrección {number} en curso
+            </h2>
+            <span className="rounded-chip bg-surface px-2 py-0.5 text-xs font-semibold text-scope-artisan ring-1 ring-scope-artisan/25">
+              Sin cargo al cliente
+            </span>
+          </div>
+          <p className="text-xs text-ink-muted">
+            Reabierta por {intervention.opened_by.name} ·{' '}
+            {timestamp(intervention.opened_at)}
+          </p>
+        </div>
+        <div className="rounded-control bg-surface/70 px-3 py-2 text-[13px]">
+          <p className="text-xs font-semibold text-scope-artisan">
+            Causa de la reapertura
+          </p>
+          <p className="mt-0.5 whitespace-pre-line text-ink">
+            {intervention.cause}
+          </p>
+        </div>
+      </div>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <div className="p-5">
+          {editable ? (
+            <CorrectiveEditor
+              initialNotes={intervention.notes}
+              initialWork={intervention.work_performed}
+              onDone={onDone}
+              order={order}
+            />
+          ) : (
+            <dl className="space-y-3 text-[13px]">
+              <div>
+                <dt className="text-xs text-ink-muted">
+                  Trabajo correctivo realizado
+                </dt>
+                <dd className="mt-1 whitespace-pre-line">
                   {intervention.work_performed || '—'}
-                </p>
-                {intervention.notes && (
-                  <p>
-                    <span className="text-ink-muted">Observaciones: </span>
-                    {intervention.notes}
-                  </p>
-                )}
-              </>
-            )}
-          </li>
-        ))}
-      </ol>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">
+                  Observaciones de la corrección
+                </dt>
+                <dd className="mt-1 whitespace-pre-line">
+                  {intervention.notes || '—'}
+                </dd>
+              </div>
+            </dl>
+          )}
+        </div>
+        <div className="border-t border-line bg-surface-subtle p-5 lg:border-t-0 lg:border-l">
+          <h3 className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            Pasos de la corrección
+          </h3>
+          <ol aria-label="Pasos de la corrección" className="mt-3 space-y-3">
+            <Step
+              detail={workDone ? 'Guardado.' : 'Obligatorio para finalizar.'}
+              done={workDone}
+              title="Trabajo correctivo"
+            />
+            <Step
+              detail={`${intervention.lines.length} registrados · opcional`}
+              done={intervention.lines.length > 0}
+              title="Servicios sin cargo"
+            />
+            <Step
+              detail={`${photos.length} adjuntas · opcional`}
+              done={photos.length > 0}
+              title="Fotografías de la corrección"
+            />
+            <Step
+              detail={
+                order.pending_requirements.length === 0
+                  ? 'Todo listo: use «Finalizar corrección» arriba.'
+                  : 'Disponible al completar lo obligatorio.'
+              }
+              done={false}
+              title="Finalizar la corrección"
+            />
+          </ol>
+        </div>
+      </div>
     </section>
   )
 }
@@ -258,7 +440,9 @@ function CorrectiveEditor({
   const dirty = work !== initialWork || notes !== initialNotes
   const saving = mutations.updateIntervention.isPending
 
-  async function save() {
+  async function save(event: FormEvent) {
+    event.preventDefault()
+    if (!dirty || saving) return
     setError('')
     const data = { work_performed: work, notes }
     try {
@@ -277,13 +461,23 @@ function CorrectiveEditor({
   }
 
   return (
-    <div className="space-y-3">
-      <Field id="corrective-work" label="Trabajo correctivo realizado" required>
+    <form
+      className="space-y-4"
+      noValidate
+      onSubmit={(event) => void save(event)}
+    >
+      <Field
+        hint="Describa qué se revisó y corrigió. Es obligatorio para finalizar."
+        id="corrective-work"
+        label="Trabajo correctivo realizado"
+        required
+      >
         <Textarea
           id="corrective-work"
           maxLength={5000}
           onChange={(event) => setWork(event.target.value)}
-          rows={3}
+          placeholder="Ej.: se reajustaron los calipers y se verificó el torque de las ruedas."
+          rows={4}
           value={work}
         />
       </Field>
@@ -301,50 +495,66 @@ function CorrectiveEditor({
           {error}
         </InlineNotice>
       )}
-      <Button
-        disabled={!dirty || saving}
-        onClick={() => void save()}
-        type="button"
-        variant="secondary"
-      >
-        {saving ? 'Guardando…' : 'Guardar intervención'}
-      </Button>
-    </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <p aria-live="polite" className="text-xs text-ink-muted">
+          {saving
+            ? 'Guardando…'
+            : dirty
+              ? 'Cambios sin guardar.'
+              : 'Sin cambios pendientes.'}
+        </p>
+        <Button disabled={!dirty || saving} type="submit">
+          <FloppyDisk aria-hidden="true" size={16} />
+          {saving ? 'Guardando…' : 'Guardar corrección'}
+        </Button>
+      </div>
+    </form>
   )
 }
 
-/** Historial inmutable de finalizaciones y reaperturas. */
+/** Historial inmutable de registro, finalizaciones y reaperturas, como línea de tiempo. */
 export function TransitionTimeline({ order }: { order: MaintenanceOrder }) {
+  const events = [
+    {
+      key: 'created',
+      title: 'Orden registrada',
+      who: order.created_by.name,
+      when: order.created_at,
+      reason: '',
+      tone: 'bg-primary',
+    },
+    ...order.transitions.map((t) => ({
+      key: String(t.id),
+      title: `${orderStateLabels[t.from_state]} → ${orderStateLabels[t.to_state]}`,
+      who: t.actor.name,
+      when: t.occurred_at,
+      reason: t.reason,
+      tone: t.to_state === 'REOPENED' ? 'bg-scope-artisan' : 'bg-success',
+    })),
+  ]
   return (
-    <section
-      aria-labelledby="order-history-title"
-      className="rounded-panel border border-line bg-surface"
+    <SectionPanel
+      icon={<ClockCounterClockwise size={17} />}
+      id="order-history-title"
+      title="Historial"
     >
-      <h2
-        className="border-b border-line px-4 py-3 text-[14.5px] font-semibold text-ink"
-        id="order-history-title"
-      >
-        Historial
-      </h2>
-      <ol className="space-y-3 px-4 py-3 text-[13px]">
-        <li>
-          <p className="font-medium text-ink">Orden registrada</p>
-          <p className="text-xs text-ink-muted">
-            {order.created_by.name} · {timestamp(order.created_at)}
-          </p>
-        </li>
-        {order.transitions.map((t) => (
-          <li key={t.id}>
-            <p className="font-medium text-ink">
-              {orderStateLabels[t.from_state]} → {orderStateLabels[t.to_state]}
-            </p>
-            <p className="text-xs text-ink-muted">
-              {t.actor.name} · {timestamp(t.occurred_at)}
-            </p>
-            {t.reason && <p className="mt-0.5">Causa: {t.reason}</p>}
+      <ol className="relative space-y-3 px-4 py-4 before:absolute before:top-6 before:bottom-6 before:left-[20px] before:w-px before:bg-line">
+        {events.map((event) => (
+          <li className="relative flex gap-3 text-[13px]" key={event.key}>
+            <span
+              aria-hidden="true"
+              className={`z-10 mt-1.5 size-2.5 shrink-0 rounded-full ring-4 ring-surface ${event.tone}`}
+            />
+            <div className="min-w-0">
+              <p className="font-medium text-ink">{event.title}</p>
+              <p className="text-xs text-ink-muted">
+                {event.who} · {timestamp(event.when)}
+              </p>
+              {event.reason && <p className="mt-0.5">Causa: {event.reason}</p>}
+            </div>
           </li>
         ))}
       </ol>
-    </section>
+    </SectionPanel>
   )
 }

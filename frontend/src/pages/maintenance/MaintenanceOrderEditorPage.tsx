@@ -178,18 +178,16 @@ export function MaintenanceOrderEditorPage() {
           Sus cambios se conservaron. Revíselos y guarde de nuevo.
         </InlineNotice>
       )}
-      <section className="rounded-panel border border-line bg-surface p-5">
-        <OrderForm
-          fieldErrors={problem?.fields ?? {}}
-          odometerWarning={warning}
-          onCancel={() => void navigate(back)}
-          onChange={setValues}
-          onSubmit={save}
-          order={order}
-          pending={pending}
-          values={values}
-        />
-      </section>
+      <OrderForm
+        fieldErrors={problem?.fields ?? {}}
+        odometerWarning={warning}
+        onCancel={() => void navigate(back)}
+        onChange={setValues}
+        onSubmit={save}
+        order={order}
+        pending={pending}
+        values={values}
+      />
     </div>
   )
 }

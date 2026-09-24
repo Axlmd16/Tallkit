@@ -40,6 +40,14 @@ it.each([
   },
 )
 
+it('keeps the soft action tinted at rest, not only on hover', () => {
+  render(<Button variant="soft">Agregar servicio</Button>)
+
+  const button = screen.getByRole('button', { name: 'Agregar servicio' })
+  expect(button).toHaveClass('bg-accent-soft', 'text-accent')
+  expect(button.className).not.toContain('bg-transparent')
+})
+
 it('gives an icon-only action an accessible name', () => {
   render(<IconButton icon={<User />} label="Ver usuario" />)
 

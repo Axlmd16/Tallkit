@@ -172,7 +172,10 @@ it('organiza la ficha en secciones con precios aplicados y total operativo', () 
   expect(screen.getByText('Diagnóstico y observaciones')).toBeInTheDocument()
   expect(screen.getByText('Pendiente de registrar.')).toBeInTheDocument()
   expect(screen.getByText('Precio aplicado')).toBeInTheDocument()
-  expect(screen.getByText('Total de servicios de la orden')).toBeInTheDocument()
+  expect(screen.getAllByText('Total de servicios de la orden').length).toBe(2)
+  expect(
+    screen.getByRole('list', { name: 'Requisitos para finalizar' }),
+  ).toHaveTextContent('Diagnóstico registrado (pendiente)')
   expect(screen.getByAltText('Golpe')).toHaveAttribute(
     'src',
     '/api/v1/maintenance-orders/9/photos/5/thumbnail/',

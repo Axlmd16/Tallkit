@@ -1,4 +1,4 @@
-import { Camera, Trash } from '@phosphor-icons/react'
+import { Camera, Images, Trash } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
@@ -15,6 +15,7 @@ import {
 } from '@/shared/ui'
 
 import { timestamp } from './format'
+import { SectionPanel } from './SectionPanel'
 import { useMaintenanceMutations } from './hooks'
 import type { MaintenanceOrder, OrderPhoto } from './types'
 
@@ -43,6 +44,9 @@ export function PhotosSection({
   const mutations = useMaintenanceMutations()
   const tracker = useIntentTracker()
   const full = order.photos.length >= MAX_PHOTOS
+  const correctiveIds = new Set(
+    order.interventions.filter((i) => i.kind === 'CORRECTIVE').map((i) => i.id),
+  )
 
   async function remove(photo: OrderPhoto) {
     setRemoveError('')
@@ -62,24 +66,10 @@ export function PhotosSection({
   }
 
   return (
-    <section
-      aria-labelledby="order-photos-title"
-      className="rounded-panel border border-line bg-surface"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
-        <div>
-          <h2
-            className="text-[14.5px] font-semibold text-ink"
-            id="order-photos-title"
-          >
-            Fotografías
-          </h2>
-          <p className="text-xs text-ink-muted">
-            {order.photos.length} de {MAX_PHOTOS} · JPEG, PNG o WebP hasta 10
-            MiB.
-          </p>
-        </div>
-        {canManage && openIntervention && (
+    <SectionPanel
+      actions={
+        canManage &&
+        openIntervention && (
           <Button
             disabled={full}
             onClick={(event) => {
@@ -87,13 +77,18 @@ export function PhotosSection({
               setUploading(true)
             }}
             type="button"
-            variant="secondary"
+            variant="soft"
           >
             <Camera aria-hidden="true" size={16} />
             Adjuntar fotografía
           </Button>
-        )}
-      </div>
+        )
+      }
+      description={`${order.photos.length} de ${MAX_PHOTOS} · JPEG, PNG o WebP hasta 10 MiB.`}
+      icon={<Images size={17} />}
+      id="order-photos-title"
+      title="Fotografías"
+    >
       <div className="p-4">
         {order.photos.length === 0 ? (
           <p className="text-[13px] text-ink-muted">
@@ -105,6 +100,7 @@ export function PhotosSection({
               const label = photo.description || `Fotografía ${index + 1}`
               const removable =
                 canManage && photo.intervention_id === openIntervention?.id
+              const corrective = correctiveIds.has(photo.intervention_id)
               return (
                 <li
                   className="overflow-hidden rounded-control border border-line"
@@ -129,6 +125,11 @@ export function PhotosSection({
                   <div className="flex items-start justify-between gap-1 p-2">
                     <div className="min-w-0 text-xs">
                       <p className="truncate font-medium text-ink">{label}</p>
+                      {corrective && (
+                        <span className="mt-0.5 inline-block rounded-chip bg-scope-artisan-soft px-1.5 py-px text-[11px] font-semibold text-scope-artisan">
+                          Corrección
+                        </span>
+                      )}
                       <p className="text-ink-muted">
                         {photo.uploaded_by.name} ·{' '}
                         {timestamp(photo.uploaded_at)}
@@ -196,7 +197,7 @@ export function PhotosSection({
           </InlineNotice>
         )}
       </ConfirmationPanel>
-    </section>
+    </SectionPanel>
   )
 }
 

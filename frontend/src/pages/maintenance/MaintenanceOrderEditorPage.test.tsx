@@ -209,3 +209,17 @@ it('no permite editar una orden finalizada', () => {
   renderEditor('/maintenance/9/edit')
   expect(screen.getByText('La orden no admite edición')).toBeInTheDocument()
 })
+
+it('el resumen refleja cliente, vehículo, fecha y kilometraje mientras se llena', async () => {
+  const user = userEvent.setup()
+  renderEditor(
+    '/maintenance/new?customer_id=3&customer_name=Transportes%20Andinos%20S.A.',
+  )
+  const summary = screen.getByRole('region', { name: 'Resumen de la orden' })
+  expect(summary).toHaveTextContent('Transportes Andinos S.A.')
+  expect(summary).toHaveTextContent('VehículoSin seleccionar')
+  await fillNewOrder(user)
+  expect(summary).toHaveTextContent('ABC-1234')
+  expect(summary).toHaveTextContent('Toyota Hilux · 2020 · Blanco')
+  expect(summary).toHaveTextContent(/80\.000 km/)
+})

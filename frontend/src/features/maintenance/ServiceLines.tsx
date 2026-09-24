@@ -1,4 +1,4 @@
-import { NotePencil, Plus, Trash } from '@phosphor-icons/react'
+import { NotePencil, Plus, Toolbox, Trash } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
@@ -17,6 +17,7 @@ import {
   type ComboboxOption,
 } from '@/shared/ui'
 
+import { SectionPanel } from './SectionPanel'
 import { useMaintenanceMutations, useServicePickerOptions } from './hooks'
 import type { Intervention, MaintenanceOrder, ServiceLine } from './types'
 
@@ -64,36 +65,30 @@ export function ServiceLinesSection({
   }
 
   return (
-    <section
-      aria-labelledby="order-services-title"
-      className="rounded-panel border border-line bg-surface"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
-        <div>
-          <h2
-            className="text-[14.5px] font-semibold text-ink"
-            id="order-services-title"
-          >
-            Servicios
-          </h2>
-          <p className="text-xs text-ink-muted">
-            Precios aplicados a esta orden; el catálogo no cambia.
-          </p>
-        </div>
-        {canManage && open && (
+    <SectionPanel
+      actions={
+        canManage &&
+        open && (
           <Button
             onClick={(event) => {
               returnFocus.current = event.currentTarget
               setEditing({ line: null })
             }}
             type="button"
-            variant="secondary"
+            variant="soft"
           >
             <Plus aria-hidden="true" size={16} />
-            Agregar servicio
+            {open.kind === 'CORRECTIVE'
+              ? 'Agregar servicio sin cargo'
+              : 'Agregar servicio'}
           </Button>
-        )}
-      </div>
+        )
+      }
+      description="Precios aplicados a esta orden; el catálogo no cambia."
+      icon={<Toolbox size={17} />}
+      id="order-services-title"
+      title="Servicios"
+    >
       <div className="space-y-4 p-4">
         {order.interventions.map((intervention) => (
           <InterventionLines
@@ -152,7 +147,7 @@ export function ServiceLinesSection({
           </InlineNotice>
         )}
       </ConfirmationPanel>
-    </section>
+    </SectionPanel>
   )
 }
 
