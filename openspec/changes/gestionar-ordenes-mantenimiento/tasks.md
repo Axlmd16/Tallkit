@@ -1,8 +1,7 @@
 <!--
-Tareas para revisión. El usuario aprobó expresamente la propuesta (557d59c), las specs (0510577)
-y el diseño con ADR-0007 (6e331e4), todos registrados en master. Este artefacto no autoriza
-implementación: apply requiere aprobación explícita posterior, conforme a openspec/config.yaml
-y AGENTS.md.
+Tareas aprobadas el 2026-09-24: el usuario invocó `/opsx:apply` sobre este artefacto después de
+la solicitud expresa de aprobación. La propuesta (557d59c), las specs (0510577) y el diseño con
+ADR-0007 (6e331e4) están registrados en master; las tareas se registran en master antes de aplicar.
 
 Aplicar TDD en cada grupo de comportamiento: primero la prueba que falla por la razón esperada,
 después la implementación mínima y por último la refactorización. Las rutas existentes se
