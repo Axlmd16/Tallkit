@@ -128,7 +128,7 @@ Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (s
 | 71 | Búsqueda combinada | Consulta paginada de servicios | 7.2, 11.1 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
 | 72 | Paginación | Consulta paginada de servicios | 7.2, 8.4 | Backend: `test_catalog_services.py`, `test_catalog_api.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
 | 73 | Vacío de búsqueda | Consulta paginada de servicios | 11.1, 11.4 | Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
-| 74 | Retorno desde ficha | Consulta paginada de servicios | 11.1, 11.4 | E2E: `catalogs.spec.ts` | **Cumplido** | — |
+| 74 | Retorno desde ficha | Consulta paginada de servicios | 11.1, 11.4 | E2E: `catalogs.spec.ts`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | El servicio se consulta en una vista previa fija junto a la lista, sin salir de ella; los filtros y la página se conservan. |
 | 75 | Baja conservando historia | Estado e independencia económica de servicios | 7.2, 3.3 | Backend: `test_catalog_services.py`, `test_catalog_models.py`; Frontend: `ServicesPage.test.tsx` | **Parcial** | Probado: identidad estable y relaciones PROTECT. No existen operaciones históricas que verificar; su conservación es obligación de consumidores futuros. |
 | 76 | Reactivación | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py`; Frontend: `ServicesPage.test.tsx` | **Cumplido** | — |
 | 77 | Repetición del estado | Estado e independencia económica de servicios | 7.2 | Backend: `test_catalog_services.py` | **Cumplido** | — |

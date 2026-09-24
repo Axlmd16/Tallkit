@@ -35,10 +35,14 @@ Ejecución simultánea de operaciones que deben coordinarse para preservar las r
 
 ## Drawer
 
-Panel contextual superpuesto que entra desde un borde de la interfaz. El sistema visual Tallkit
-lo retiró como formato para crear o editar: los formularios cortos usan un modal y los largos
-una página completa. El componente base se conserva sin exportación pública ni consumidores
-funcionales para una capacidad futura; la navegación en teléfono usa `NavigationPanel`.
+Panel contextual que muestra información de un registro sin salir de la pantalla de origen.
+El componente `Drawer` tiene dos modos configurables: `docked`, un panel fijo en la columna
+derecha que no bloquea el contenido (en teléfono ocupa la pantalla), y `overlay`, un panel
+superpuesto y modal sobre un fondo oscurecido. Hoy se usa en modo `docked` para la vista previa
+de un servicio desde su lista, que reemplazó a la ficha en página propia porque el servicio tiene
+pocos datos. El sistema visual Tallkit lo retiró como formato para crear o editar: los
+formularios cortos usan un modal y los largos una página completa. La navegación en teléfono
+usa `NavigationPanel`.
 
 ## Evidencia visual
 

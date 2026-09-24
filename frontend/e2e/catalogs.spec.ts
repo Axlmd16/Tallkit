@@ -320,9 +320,24 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
         .getByRole('button', { name: 'Desactivar' }),
     ).toBeFocused()
 
-    // Servicios y proveedores conservan filtros al volver desde su ficha.
+    // Un servicio se consulta en una vista previa fija, sin salir de la lista filtrada.
+    await page.goto('/services?search=Alineaci&is_active=all')
+    await page
+      .getByRole('row')
+      .filter({ hasText: 'Alineación E2E' })
+      .getByText('Alineación E2E')
+      .first()
+      .click()
+    const servicePreview = page.getByRole('complementary', {
+      name: 'Alineación E2E',
+    })
+    await expect(servicePreview).toContainText('USD 25.00')
+    await expect(page).toHaveURL(/search=Alineaci/)
+    await servicePreview.getByRole('button', { name: 'Cerrar panel' }).click()
+    await expect(servicePreview).not.toBeVisible()
+
+    // Los proveedores conservan filtros al volver desde su ficha.
     for (const [route, search, name, back] of [
-      ['/services', 'Alineaci', 'Alineación E2E', 'Volver a servicios'],
       ['/suppliers', 'Juan', 'Juan Ocasional E2E', 'Volver a proveedores'],
     ] as const) {
       await page.goto(`${route}?search=${search}&is_active=all`)

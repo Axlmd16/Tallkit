@@ -6,6 +6,7 @@ import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
   Combobox,
+  type ComboboxOption,
   ConfirmationPanel,
   Field,
   FormModal,
@@ -13,11 +14,10 @@ import {
   InlineNotice,
   Input,
   Money,
+  SectionPanel,
   StatusBadge,
-  type ComboboxOption,
 } from '@/shared/ui'
 
-import { SectionPanel } from './SectionPanel'
 import { useMaintenanceMutations, useServicePickerOptions } from './hooks'
 import type { Intervention, MaintenanceOrder, ServiceLine } from './types'
 

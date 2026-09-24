@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 /**
- * Panel de la ficha de mantenimiento: cabecera sobre `surface-subtle` con ícono, título,
+ * Panel de sección de fichas y formularios: cabecera sobre `surface-subtle` con ícono, título,
  * descripción opcional y acciones, separada del cuerpo blanco para que cada sección se
  * distinga del lienzo de la página.
  */

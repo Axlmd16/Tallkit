@@ -34,6 +34,8 @@ export {
   type DetailCardMetadataItem,
 } from './surfaces/DetailCard'
 export { Divider, type DividerProps } from './surfaces/Divider'
+export { DetailItem } from './surfaces/DetailItem'
+export { SectionPanel } from './surfaces/SectionPanel'
 
 // Overlays — paneles y diálogos enriquecidos
 export {
@@ -43,6 +45,12 @@ export {
   type ConfirmationTone,
 } from './overlays/ConfirmationPanel'
 export { Modal, type ModalProps, type ModalSize } from './overlays/Modal'
+export {
+  Drawer,
+  type DrawerMode,
+  type DrawerProps,
+  type DrawerWidth,
+} from './overlays/Drawer'
 export { FormModal, type FormModalProps } from './overlays/FormModal'
 export {
   DropdownMenu,

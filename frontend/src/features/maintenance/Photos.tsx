@@ -11,11 +11,11 @@ import {
   IconButton,
   InlineNotice,
   Modal,
+  SectionPanel,
   Textarea,
 } from '@/shared/ui'
 
 import { timestamp } from './format'
-import { SectionPanel } from './SectionPanel'
 import { useMaintenanceMutations } from './hooks'
 import type { MaintenanceOrder, OrderPhoto } from './types'
 

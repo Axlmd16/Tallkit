@@ -34,7 +34,6 @@ import { SaleDetailPage } from '@/pages/sales/SaleDetailPage'
 import { SaleDocumentPage } from '@/pages/sales/SaleDocumentPage'
 import { SaleEditorPage } from '@/pages/sales/SaleEditorPage'
 import { SalesPage } from '@/pages/sales/SalesPage'
-import { ServiceDetailPage } from '@/pages/services/ServiceDetailPage'
 import { ServicesPage } from '@/pages/services/ServicesPage'
 import { SupplierDetailPage } from '@/pages/suppliers/SupplierDetailPage'
 import { SupplierEditorPage } from '@/pages/suppliers/SupplierEditorPage'
@@ -203,14 +202,6 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="servicios.ver">
                 <ServicesPage />
-              </PermissionGuard>
-            ),
-          },
-          {
-            path: '/services/:id',
-            element: (
-              <PermissionGuard permission="servicios.ver">
-                <ServiceDetailPage />
               </PermissionGuard>
             ),
           },

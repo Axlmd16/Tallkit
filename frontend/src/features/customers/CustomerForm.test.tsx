@@ -61,10 +61,20 @@ it('validates required fields, changes name label by person type, and preserves 
   })
 })
 
-it('uses the compact two-column field layout for the customer drawer', () => {
+it('groups fields in identification and contact sections with a live summary', async () => {
+  const user = userEvent.setup()
   render(<CustomerForm api={dummyApi} onSubmit={vi.fn()} />)
 
-  expect(document.querySelector('.customer-fields')).toBeInTheDocument()
+  expect(
+    screen.getByRole('region', { name: 'Identificación' }),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('region', { name: 'Contacto' })).toBeInTheDocument()
+  const summary = screen.getByRole('region', { name: 'Resumen del cliente' })
+  expect(summary).toHaveTextContent('Sin nombre')
+
+  await user.type(screen.getByLabelText(/nombres y apellidos/i), 'Ana Loor')
+  expect(summary).toHaveTextContent('Ana Loor')
+  expect(summary).toHaveTextContent('AL')
 })
 
 it('validates CI length of 10 and RUC length of 13', async () => {

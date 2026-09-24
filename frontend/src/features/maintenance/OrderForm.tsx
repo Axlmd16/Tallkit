@@ -14,19 +14,19 @@ import {
   Button,
   Checkbox,
   Combobox,
+  type ComboboxOption,
   Field,
   InlineNotice,
   Input,
   LeadingIcon,
   PlateTag,
+  SectionPanel,
   Select,
   Textarea,
-  type ComboboxOption,
 } from '@/shared/ui'
 
 import { documentDate, kilometers } from './format'
 import { useCustomerPickerOptions, useVehicleOptions } from './hooks'
-import { SectionPanel } from './SectionPanel'
 import type { MaintenanceOrder, OdometerWarning, OrderInput } from './types'
 
 /** Fecha actual del negocio (America/Guayaquil) en formato AAAA-MM-DD. */
