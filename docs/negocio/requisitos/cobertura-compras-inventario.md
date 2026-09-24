@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `gestionar-compras-entradas-inventario-kardex` |
-| Estado | Evidencia local de implementación; **no** es aprobación humana ni archivo del cambio |
+| Cambio OpenSpec | `openspec/changes/archive/2026-09-24-gestionar-compras-entradas-inventario-kardex`; specs principales en `openspec/specs/compras-e-ingresos-de-mercaderia`, `existencias-y-ajustes-de-inventario` y `kardex-de-productos` |
+| Estado | Cambio verificado y archivado el 2026-09-24; la evidencia local no sustituye la revisión visual humana pendiente |
 | Fecha | 2026-09-20 |
 | Alcance | Ingresos de mercadería, existencias, ajustes, cargas iniciales, Kardex y sus correcciones. Excluye alertas de stock mínimo, adjuntos, ventas, mantenimientos y pagos |
 

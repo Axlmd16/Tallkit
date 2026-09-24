@@ -103,7 +103,7 @@
 | RF-INV-018 | El Administrador debe poder confirmar una reposición por corrección vinculada a una intervención correctiva. | Debe | La salida reduce existencia, queda auditada y no crea cobro al cliente. |
 | RF-INV-019 | El Administrador debe poder registrar una devolución a proveedor vinculada al ingreso original. | Debe | La salida reduce existencia sin registrar cuentas por pagar ni reembolso del proveedor. |
 
-**Estado de implementación (cambio `openspec/changes/gestionar-compras-entradas-inventario-kardex`).** Cubiertos en su alcance: RF-INV-001 (borrador, referencia y observación; **sin** evidencias adjuntas, que quedan pendientes), RF-INV-002…010, RF-INV-012 (para salidas y ajustes manuales), RF-INV-013 y RF-INV-014. **Pendientes:** RF-INV-011 (alertas de umbral), las evidencias adjuntas de RF-INV-001 y RF-INV-015…019 (reservas, desarme, consumo interno, reposición y devolución a proveedor). Con esto no se declara implementado todo RF-INV. La evidencia por escenario está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md).
+**Estado de implementación (cambio `openspec/changes/archive/2026-09-24-gestionar-compras-entradas-inventario-kardex`).** Cubiertos en su alcance: RF-INV-001 (borrador, referencia y observación; **sin** evidencias adjuntas, que quedan pendientes), RF-INV-002…010, RF-INV-012 (para salidas y ajustes manuales), RF-INV-013 y RF-INV-014. **Pendientes:** RF-INV-011 (alertas de umbral), las evidencias adjuntas de RF-INV-001 y RF-INV-015…019 (reservas, desarme, consumo interno, reposición y devolución a proveedor). Con esto no se declara implementado todo RF-INV. La evidencia por escenario está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md).
 
 ## 6. Proformas
 
