@@ -12,6 +12,7 @@ from django.db import connection
 from catalog.application.inventory_references import lock_product_references
 from inventory.application import posting
 from inventory.application.reconciliation import reconcile
+from inventory.application.reservations import reserve
 from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
 
 pytestmark = pytest.mark.django_db
@@ -108,6 +109,27 @@ def test_stock_without_history_is_a_difference(product: Any, warehouse: Any) -> 
         product=product, warehouse=warehouse, quantity=D(5), value=D(5), average=D(1)
     )
     assert [d.scope for d in reconcile()] == ["posición"]
+
+
+def test_reserved_aggregate_must_match_active_reservations(
+    history: dict[str, Any], product: Any, warehouse: Any
+) -> None:
+    refs = lock_product_references([product.pk], require_active=False)
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=product.pk,
+        source_type="SALE_LINE",
+        source_id=601,
+        source_reference={"sale_id": 61, "order_id": 12},
+        quantity=D(2),
+    )
+    assert reconcile() == []
+
+    InventoryPosition.objects.filter(product=product).update(reserved=D(1))
+
+    differences = reconcile()
+    assert [difference.scope for difference in differences] == ["reserva"]
+    assert "reservada" in differences[0].message
 
 
 def test_a_broken_previous_next_chain_and_bad_average_are_detected(

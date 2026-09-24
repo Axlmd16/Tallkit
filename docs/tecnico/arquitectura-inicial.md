@@ -9,8 +9,9 @@ clientes y vehículos, catálogos de productos, servicios y proveedores, y compr
 (ingresos de mercadería, existencias, carga inicial, ajustes y Kardex). Ventas comerciales, cobros,
 crédito simple, devoluciones y reembolsos (módulo `sales`) se suman en el cambio `gestionar-ventas-pagos-credito-simple`;
 Las órdenes de mantenimiento del RUC artesanal (módulo `workshop`) se suman en el cambio
-`gestionar-ordenes-mantenimiento`; proformas, alertas de stock mínimo y adjuntos de compras continúan sin
-implementación.
+`gestionar-ordenes-mantenimiento`; la integración de repuestos, ventas vinculadas, operación artesanal ART-SER y
+cobros por RUC se suma en `integrar-mantenimiento-ventas-cobros-por-ruc` (ADR-0008 y ADR-0009); proformas,
+alertas de stock mínimo y adjuntos de compras continúan sin implementación.
 
 ### Frontera del módulo de taller
 
@@ -18,8 +19,12 @@ implementación.
 transiciones y recibos idempotentes del RUC artesanal. Solo usa interfaces públicas de lectura y bloqueo:
 `customer_registry.application.workshop_references`, `catalog.application.workshop_references` y
 `workshop_configuration.application.workshop_references`, además de los servicios de autorización y auditoría de
-`identity`. Ningún otro módulo importa `workshop` y `workshop/domain/` no depende de Django ni de DRF. La orden es la
-raíz de consistencia; no crea ventas, pagos, deuda ni movimientos de inventario. Sus fotografías se guardan en
+`identity`. Para la integración económica usa además `sales.application.workshop_links` (repuestos como venta
+vinculada) y las reglas monetarias puras de `shared.money`. Ningún otro módulo importa `workshop` y
+`workshop/domain/` no depende de Django ni de DRF. La orden es la raíz de consistencia de su trabajo; es además
+propietaria de la operación artesanal ART-SER y de sus pagos (ADR-0008). Sus acciones operativas no crean ventas,
+pagos, deuda ni movimientos: esos efectos nacen solo de las acciones explícitas de repuestos, documentación de
+servicios y cobro. Sus fotografías se guardan en
 almacenamiento privado local y solo se entregan por la API autorizada
 ([ADR-0007](../adr/0007-almacenamiento-privado-fotografias.md)). Detalle en el
 [modelo de datos](../arquitectura/modelo-datos.md#módulo-workshop-órdenes-de-mantenimiento).
@@ -30,8 +35,9 @@ almacenamiento privado local y solo se entregan por la API autorizada
 ([ADR-0006](../adr/0006-coordinacion-transaccional-ventas-comerciales.md)). Solo usa interfaces públicas:
 `catalog.application.sales_references`, `customer_registry.application.sales_references`,
 `inventory.application.posting`/`queries` (tipos `SALE_OUT` y `CUSTOMER_RETURN_IN`) y
-`workshop_configuration.application.operation_context`, `configuration_resolver` y `numbering`. Ningún otro
-módulo importa `sales` y `sales/domain/` no depende de Django ni de DRF. La venta es la raíz de consistencia:
+`workshop_configuration.application.operation_context`, `configuration_resolver` y `numbering`, e
+`inventory.application.reservations` para las ventas vinculadas (ADR-0009). Solo `workshop` importa `sales`, y
+únicamente su interfaz `sales.application.workshop_links`; `sales/domain/` no depende de Django ni de DRF. La venta es la raíz de consistencia:
 toda acción que cambie exigible, dinero o cantidades devueltas la bloquea primero, dentro de una única
 transacción exterior. El saldo, el exceso y el estado de pago se derivan de los hechos; nunca se almacenan.
 Reversión y conciliación: [modelo de datos](../arquitectura/modelo-datos.md#módulo-sales-ventas-comerciales-cobros-y-correcciones).

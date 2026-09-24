@@ -70,6 +70,73 @@ def make_line(sale: Sale, product: Any, position: int = 1, **overrides: Any) -> 
 
 @pytest.mark.django_db
 class TestSale:
+    def test_origin_defaults_to_direct(self, sale: Sale) -> None:
+        assert (sale.origin_type, sale.origin_order_id, sale.origin_reference) == (
+            "DIRECT",
+            None,
+            "",
+        )
+
+    def test_origin_type_and_order_are_coherent(
+        self,
+        customer: Any,
+        commercial: Any,
+        warehouse: Any,
+        actor: Any,
+        maintenance_order: Any,
+    ) -> None:
+        linked = make_sale(
+            customer,
+            commercial,
+            warehouse,
+            actor,
+            origin_type="MAINTENANCE",
+            origin_order=maintenance_order,
+            origin_reference=maintenance_order.number,
+        )
+        assert linked.origin_order_id == maintenance_order.pk
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_sale(
+                customer,
+                commercial,
+                warehouse,
+                actor,
+                origin_type="MAINTENANCE",
+            )
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_sale(
+                customer,
+                commercial,
+                warehouse,
+                actor,
+                origin_order=maintenance_order,
+            )
+
+    def test_only_one_draft_can_exist_per_maintenance_order(
+        self,
+        customer: Any,
+        commercial: Any,
+        warehouse: Any,
+        actor: Any,
+        maintenance_order: Any,
+    ) -> None:
+        linked = {
+            "origin_type": "MAINTENANCE",
+            "origin_order": maintenance_order,
+            "origin_reference": maintenance_order.number,
+        }
+        make_sale(customer, commercial, warehouse, actor, **linked)
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_sale(customer, commercial, warehouse, actor, **linked)
+        make_sale(
+            customer,
+            commercial,
+            warehouse,
+            actor,
+            **linked,
+            **confirmed_values(internal_number="COM-VEN-000099"),
+        )
+
     def test_draft_has_no_number_and_confirmed_requires_one(
         self, customer: Any, commercial: Any, warehouse: Any, actor: Any
     ) -> None:

@@ -9,7 +9,18 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum, Value
+from django.db.models import (
+    Case,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 
 from catalog.application.workshop_references import list_service_options
@@ -23,8 +34,9 @@ from identity.models import User
 from workshop.application import projection
 from workshop.application.commands import TARGET_TYPE
 from workshop.application.errors import WorkshopError
+from workshop.application.support import business_today
 from workshop.domain.states import OrderState
-from workshop.models import MaintenanceOrder, ServiceLine
+from workshop.models import ArtisanPayment, MaintenanceOrder, ServiceLine, ServiceOperation
 
 MAX_PAGE_SIZE = 100
 SUMMARY_NAMES = 3
@@ -231,4 +243,107 @@ def service_options(
         "total_count": result.total_count,
         "page": page,
         "page_size": page_size,
+    }
+
+
+# --- Cuentas por cobrar artesanales ---------------------------------------------------------
+
+PAYMENT_STATES = ("PENDING", "PARTIAL", "PAID")
+_MONEY: "DecimalField[Decimal, Decimal]" = DecimalField(max_digits=24, decimal_places=2)
+
+
+def _receivable_rows() -> Any:
+    paid = (
+        ArtisanPayment.objects.filter(service_operation=OuterRef("pk"), correction__isnull=True)
+        .values("service_operation")
+        .annotate(total=Sum("amount"))
+        .values("total")
+    )
+    return (
+        ServiceOperation.objects.filter(state="CONFIRMED")
+        .annotate(paid_amount=Coalesce(Subquery(paid, output_field=_MONEY), Value(Decimal(0))))
+        .annotate(
+            balance_amount=ExpressionWrapper(F("grand_total") - F("paid_amount"), _MONEY),
+            payment_state=Case(
+                When(balance_amount__lte=0, then=Value("PAID")),
+                When(paid_amount__gt=0, then=Value("PARTIAL")),
+                default=Value("PENDING"),
+            ),
+        )
+    )
+
+
+def artisan_receivables(
+    *,
+    actor: User,
+    customer_id: int | None = None,
+    order_id: int | None = None,
+    payment_state: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+    request_id: UUID | None = None,
+) -> dict[str, Any]:
+    """Deuda del RUC artesanal por operación; nunca incluye ventas comerciales ni compensa RUC.
+
+    Sin filtro de estado de pago muestra solo lo pendiente o parcial. Las sumas corresponden a
+    todas las coincidencias, no a la página. La antigüedad cuenta días desde la confirmación y
+    no expresa mora ni vencimiento.
+    """
+    require_permission(
+        actor=actor,
+        permission="pagos_artesanales.ver",
+        request_id=request_id,
+        denial_action="maintenance.artisan_receivables",
+        target_type="service_operation",
+        target_id="list",
+    )
+    page, page_size = _page(page, page_size)
+    if payment_state is not None and payment_state not in PAYMENT_STATES:
+        raise _bad("payment_state", "Use PENDING, PARTIAL o PAID.")
+    rows = _receivable_rows()
+    if customer_id is not None:
+        rows = rows.filter(customer_id=customer_id)
+    if order_id is not None:
+        rows = rows.filter(order_id=order_id)
+    if payment_state is None:
+        rows = rows.filter(balance_amount__gt=0)
+    else:
+        rows = rows.filter(payment_state=payment_state)
+    sums = rows.aggregate(
+        grand_total=Coalesce(Sum("grand_total"), Value(Decimal(0)), output_field=_MONEY),
+        paid=Coalesce(Sum("paid_amount"), Value(Decimal(0)), output_field=_MONEY),
+        balance=Coalesce(Sum("balance_amount"), Value(Decimal(0)), output_field=_MONEY),
+    )
+    count = rows.count()
+    today = business_today()
+    start = (page - 1) * page_size
+    page_rows = rows.select_related("order").order_by("operational_date", "id")[
+        start : start + page_size
+    ]
+    return {
+        "count": count,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (count + page_size - 1) // page_size if count else 0,
+        "totals": {key: f"{value:.2f}" for key, value in sums.items()},
+        "results": [
+            {
+                "id": row.pk,
+                "internal_number": row.internal_number,
+                "fiscal_entity": "ARTESANAL",
+                "document_type": "SERVICIO",
+                "order_id": row.order_id,
+                "order_number": row.order.number,
+                "customer_id": row.customer_id,
+                "customer_name": row.customer_snapshot.get("name", ""),
+                "condition": row.condition,
+                "operational_date": row.operational_date.isoformat(),
+                "age_days": (today - row.operational_date).days,
+                "grand_total": f"{row.grand_total:.2f}",
+                "paid": f"{row.paid_amount:.2f}",
+                "balance": f"{row.balance_amount:.2f}",
+                "payment_state": row.payment_state,
+            }
+            for row in page_rows
+        ],
     }

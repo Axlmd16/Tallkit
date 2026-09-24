@@ -185,3 +185,5 @@ Resultados reales de los comandos ejecutados sobre el árbol de trabajo. Los fal
 - Aceptación humana del editor de ventas y de los comprobantes (las capturas son evidencia técnica).
 - Las brechas preexistentes señaladas arriba (lint de `tests/workshop_configuration/`, formato de `DetailCard.tsx`, umbrales de cobertura del frontend, especificación `catalogo-visual-reutilizable` y contraste del ítem activo del riel) requieren su propio cambio.
 - Sincronizar las specs principales, archivar el cambio y cualquier operación Git o despliegue requieren autorización explícita.
+
+> Ampliación posterior: la integración con repuestos, ventas vinculadas, operación artesanal y cobros por RUC se documenta en [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).

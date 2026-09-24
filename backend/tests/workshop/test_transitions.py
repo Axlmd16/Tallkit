@@ -5,6 +5,8 @@ from typing import Any
 import pytest
 from tests.workshop.workshop_helpers import (
     add_line,
+    add_part,
+    confirm_linked_sale,
     create,
     error_of,
     finalize,
@@ -187,3 +189,81 @@ def test_seller_cannot_reopen(seller, manager, order, make_service) -> None:  # 
     with pytest.raises(BusinessPermissionDeniedError):
         reopen(seller, order["id"])
     assert MaintenanceOrder.objects.get(pk=order["id"]).state == "FINALIZED"
+
+
+# --- Coordinación con repuestos (DP-021) ------------------------------------------------------
+
+
+def _stock(product_id: int) -> tuple[Any, Any]:
+    from inventory.models import InventoryPosition
+
+    position = InventoryPosition.objects.get(product_id=product_id)
+    return position.quantity, position.reserved
+
+
+def test_finalize_with_pending_parts_is_rejected_without_effects(  # type: ignore[no-untyped-def]
+    manager, order, make_service, stocked
+) -> None:
+    from sales.models import Sale
+
+    complete(manager, order, make_service)
+    product = stocked(10)
+    add_part(manager, order["id"], product.pk, 2)
+    add_part(manager, order["id"], product.pk, 1)
+    sale = Sale.objects.get(origin_order_id=order["id"])
+
+    error = error_of(lambda: finalize(manager, order["id"]))
+
+    assert error.code == "finalize_requirements"
+    assert error.details is not None
+    assert "pending_parts" in error.details["pending"]
+    assert any("2 líneas" in message for message in error.errors["requirements"])
+    sale.refresh_from_db()
+    assert (sale.state, sale.internal_number) == ("DRAFT", None)
+    assert _stock(product.pk) == (10, 3)
+    assert MaintenanceOrder.objects.get(pk=order["id"]).state == "REGISTERED"
+
+
+def test_detail_lists_pending_parts_requirement(  # type: ignore[no-untyped-def]
+    manager, order, make_service, stocked
+) -> None:
+    complete(manager, order, make_service)
+    add_part(manager, order["id"], stocked(5).pk, 1)
+    from workshop.application import queries
+
+    detail = queries.get_order(actor=manager, order_id=order["id"])
+    assert [r["code"] for r in detail["pending_requirements"]] == ["pending_parts"]
+    assert "finalize" in detail["allowed_actions"]
+
+
+def test_finalize_after_confirmed_credit_sale_with_undocumented_services(  # type: ignore[no-untyped-def]
+    manager, seller, order, make_service, stocked
+) -> None:
+    complete(manager, order, make_service)
+    product = stocked(10)
+    add_part(manager, order["id"], product.pk, 2)
+    sale = confirm_linked_sale(seller, order["id"], "CREDITO")
+
+    body = finalize(manager, order["id"])
+
+    assert body["state"] == "FINALIZED"
+    assert sale["state"] == "CONFIRMED"
+    assert _stock(product.pk) == (8, 0)
+
+
+def test_reopen_keeps_confirmed_documents_and_inventory(  # type: ignore[no-untyped-def]
+    manager, seller, order, make_service, stocked
+) -> None:
+    from sales.models import Sale
+
+    complete(manager, order, make_service)
+    product = stocked(10)
+    add_part(manager, order["id"], product.pk, 2)
+    confirmed = confirm_linked_sale(seller, order["id"], "CREDITO")
+    finalize(manager, order["id"])
+
+    reopen(manager, order["id"], reason="Ruido al frenar")
+
+    sale = Sale.objects.get(pk=confirmed["id"])
+    assert (sale.state, sale.internal_number) == ("CONFIRMED", confirmed["internal_number"])
+    assert _stock(product.pk) == (8, 0)

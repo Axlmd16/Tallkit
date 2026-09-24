@@ -23,11 +23,13 @@ from inventory.application.posting import (
     prepare_operation,
     reverse_operation,
 )
+from inventory.application.reservations import reserve
 from inventory.domain.validation import InsufficientStockError
 from inventory.models import (
     InventoryMovement,
     InventoryOperationLine,
     InventoryPosition,
+    InventoryReservation,
 )
 from workshop_configuration.application.operation_context import lock_operation_context
 
@@ -223,6 +225,78 @@ class TestPostEntriesAndExits:
         assert InventoryPosition.objects.get(product=product).quantity == D(5)
         assert not InventoryPosition.objects.filter(quantity__lt=0).exists()
 
+    def test_exit_without_own_reservations_cannot_consume_reserved_stock(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry(product.pk, 5, "5.00")])
+        refs = refs_for(product)
+        reserve(
+            lock_positions(refs, warehouse_id=warehouse.pk),
+            product_id=product.pk,
+            source_type="SALE_LINE",
+            source_id=101,
+            source_reference={"sale_id": 11, "order_id": 7},
+            quantity=D(2),
+        )
+        operation = prepare_operation(
+            kind="ADJUSTMENT_OUT",
+            actor=actor,
+            source_type="",
+            source_id=None,
+            exit_lines=[ExitLine(product.pk, D(4))],
+        )
+
+        with pytest.raises(InsufficientStockError) as error, transaction.atomic():
+            post_operation(
+                operation,
+                lock_positions(refs, warehouse_id=warehouse.pk),
+                refs,
+            )
+
+        assert (error.value.available, error.value.requested) == (D(3), D(4))
+        position = InventoryPosition.objects.get(product=product)
+        assert (position.quantity, position.reserved) == (D(5), D(2))
+        operation.refresh_from_db()
+        assert operation.state == "PREPARED"
+
+    def test_exit_consumes_and_links_its_own_reservations(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry(product.pk, 5, "5.00")])
+        refs = refs_for(product)
+        for source_id, quantity in ((101, 2), (102, 1)):
+            reserve(
+                lock_positions(refs, warehouse_id=warehouse.pk),
+                product_id=product.pk,
+                source_type="SALE_LINE",
+                source_id=source_id,
+                source_reference={"sale_id": 11, "order_id": 7},
+                quantity=D(quantity),
+            )
+        operation = prepare_operation(
+            kind="SALE_OUT",
+            actor=actor,
+            source_type="SALE",
+            source_id=11,
+            exit_lines=[ExitLine(product.pk, D(3))],
+        )
+
+        post_operation(
+            operation,
+            lock_positions(refs, warehouse_id=warehouse.pk),
+            refs,
+            consume_reservations=(("SALE_LINE", 101), ("SALE_LINE", 102)),
+        )
+
+        position = InventoryPosition.objects.get(product=product)
+        assert (position.quantity, position.reserved) == (D(2), D(0))
+        reservations = InventoryReservation.objects.order_by("source_id")
+        assert list(reservations.values_list("state", flat=True)) == ["CONSUMED", "CONSUMED"]
+        assert list(reservations.values_list("consumed_by_id", flat=True)) == [
+            operation.pk,
+            operation.pk,
+        ]
+
 
 class TestOrdinalsAndTime:
     def test_ordinals_are_consecutive_per_position(
@@ -364,6 +438,42 @@ class TestExactReversal:
             D("1.000000"),
             D("0.333333"),
         )
+
+    def test_reversal_of_entry_is_blocked_when_it_would_consume_reserved_stock(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        original, _ = receive(
+            actor,
+            refs_for(product),
+            warehouse,
+            [entry(product.pk, 5, "5.00")],
+        )
+        refs = refs_for(product)
+        reserve(
+            lock_positions(refs, warehouse_id=warehouse.pk),
+            product_id=product.pk,
+            source_type="SALE_LINE",
+            source_id=101,
+            source_reference={"sale_id": 11, "order_id": 7},
+            quantity=D(4),
+        )
+
+        with pytest.raises(InsufficientStockError) as error, transaction.atomic():
+            reverse_operation(
+                original,
+                actor=actor,
+                source_type="PURCHASE_VOID",
+                source_id=1,
+                reason="Error",
+                locked=lock_positions(refs, warehouse_id=warehouse.pk),
+                product_refs=refs,
+            )
+
+        assert (error.value.available, error.value.requested) == (D(1), D(5))
+        position = InventoryPosition.objects.get(product=product)
+        assert (position.quantity, position.reserved) == (D(5), D(4))
+        original.refresh_from_db()
+        assert original.state == "POSTED"
 
     def test_any_later_movement_blocks_the_whole_reversal_even_if_compensated(
         self, actor: Any, product: Any, warehouse: Any, refs_for: Any

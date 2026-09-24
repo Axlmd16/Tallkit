@@ -17,6 +17,7 @@ from workshop.application.commands import CommandOutcome, CommandResult, execute
 from workshop.application.errors import WorkshopError
 from workshop.application.support import (
     business_today,
+    ensure_no_linked_documents,
     ensure_state,
     ensure_version,
     lock_order,
@@ -172,6 +173,7 @@ def update_order(
         customer_id = fields.get("customer_id", order.customer_id)
         vehicle_id = fields.get("vehicle_id", order.vehicle_id)
         if "customer_id" in fields or "vehicle_id" in fields:
+            ensure_no_linked_documents(order)
             pair = lock_pair(customer_id, vehicle_id)
             open_order_conflict(vehicle_id, exclude_id=order.pk)
             order.customer_snapshot, order.vehicle_snapshot = snapshots(pair)

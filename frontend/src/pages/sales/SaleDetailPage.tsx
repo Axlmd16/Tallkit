@@ -98,7 +98,9 @@ export function SaleDetailPage() {
   const canPay =
     confirmed && balance > 0 && permissions.has('pagos_comerciales.registrar')
   const canReturn = confirmed && permissions.has('ventas.devolver')
-  const canVoid = confirmed && permissions.has('ventas.anular')
+  const linked = sale.origin?.type === 'MAINTENANCE'
+  // Una venta vinculada corresponde a repuestos instalados: su anulación está bloqueada.
+  const canVoid = confirmed && !linked && permissions.has('ventas.anular')
   const canEdit = sale.state === 'DRAFT' && permissions.has('ventas.crear')
   const hasDocument = sale.state !== 'DRAFT'
 
@@ -124,6 +126,27 @@ export function SaleDetailPage() {
       {sale.state === 'VOIDED' && (
         <InlineNotice title="Venta anulada" tone="warning">
           Motivo: {sale.void_reason}
+        </InlineNotice>
+      )}
+
+      {linked && (
+        <InlineNotice
+          title={`Venta vinculada a ${sale.origin.order_number}`}
+          tone="info"
+        >
+          Repuestos de un mantenimiento (RUC comercial). Sus líneas se gestionan
+          desde la orden. Una vez confirmada no puede anularse: sus repuestos se
+          consideran instalados en el vehículo.{' '}
+          <Link
+            className="font-semibold hover:underline"
+            to={
+              permissions.has('mantenimientos.ver')
+                ? `/maintenance/${sale.origin.order_id}`
+                : `/maintenance/${sale.origin.order_id}/commercial`
+            }
+          >
+            Ver orden de origen
+          </Link>
         </InlineNotice>
       )}
 

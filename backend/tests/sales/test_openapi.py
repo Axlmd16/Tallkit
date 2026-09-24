@@ -113,3 +113,12 @@ def test_existing_contracts_were_not_changed(schema: dict[str, Any]) -> None:
         assert any(p.startswith(path) for p in schema["paths"]), path
     assert "Confirm" in schema["components"]["schemas"]  # compras conserva su componente
     assert "SaleConfirm" in schema["components"]["schemas"]
+
+
+def test_sale_list_and_receivables_publish_origin_filter(admin: Any) -> None:
+    client = APIClient()
+    client.force_authenticate(user=admin)
+    schema = client.get("/api/v1/schema/", HTTP_ACCEPT="application/json").json()
+    for path in (P, P + "receivables/"):
+        params = {p["name"]: p for p in schema["paths"][path]["get"]["parameters"]}
+        assert set(params["origin"]["schema"]["enum"]) == {"DIRECT", "MAINTENANCE"}

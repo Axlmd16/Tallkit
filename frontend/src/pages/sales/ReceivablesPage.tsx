@@ -3,7 +3,11 @@ import { ListStates } from '@/features/catalog-common/ListStates'
 import { documentDate, PaymentStateBadge } from '@/features/sales/format'
 import { useReceivables } from '@/features/sales/hooks'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
-import type { PaymentState, SaleSummary } from '@/features/sales/types'
+import type {
+  PaymentState,
+  SaleOriginType,
+  SaleSummary,
+} from '@/features/sales/types'
 import {
   Combobox,
   ElevatedDataList,
@@ -25,8 +29,10 @@ export function ReceivablesPage() {
   const filters = useUrlFilters()
   const paymentState = filters.get('payment_state') as PaymentState | ''
   const customerId = filters.getNumber('customer_id')
+  const origin = filters.get('origin') as SaleOriginType | ''
   const query = useReceivables({
     customerId,
+    origin: origin || undefined,
     paymentState: (paymentState || undefined) as PaymentState | undefined,
     minAgeDays: filters.getNumber('min_age_days'),
     page: filters.page,
@@ -81,6 +87,7 @@ export function ReceivablesPage() {
                       customer_id: '',
                       customer_name: '',
                       payment_state: '',
+                      origin: '',
                       min_age_days: '',
                     }),
                 }
@@ -133,6 +140,19 @@ export function ReceivablesPage() {
                 <option value="PARTIAL">Parcial</option>
               </Select>
             </Field>
+            <Field id="receivables-origin" label="Origen">
+              <Select
+                id="receivables-origin"
+                onChange={(event) =>
+                  filters.set({ origin: event.target.value })
+                }
+                value={origin}
+              >
+                <option value="">Todos</option>
+                <option value="DIRECT">Venta directa</option>
+                <option value="MAINTENANCE">Mantenimiento</option>
+              </Select>
+            </Field>
             <Field id="receivables-age" label="Antigüedad mínima (días)">
               <Input
                 id="receivables-age"
@@ -169,6 +189,15 @@ export function ReceivablesPage() {
                     {row.internal_number}
                   </Link>
                 ),
+              },
+              {
+                header: 'Origen',
+                key: 'origin',
+                priority: 'secondary',
+                render: (row) =>
+                  row.origin?.type === 'MAINTENANCE'
+                    ? `Mantenimiento ${row.origin.order_number ?? ''}`
+                    : 'Directa',
               },
               {
                 header: 'Cliente',

@@ -166,6 +166,14 @@ export function ReopenDialog({
           correctiva, con servicios sin cargo. La intervención inicial y los
           cierres anteriores se conservan sin cambios.
         </InlineNotice>
+        <InlineNotice
+          title="Documentos y pagos conservan sus efectos"
+          tone="warning"
+        >
+          Reabrir no anula ventas ni operaciones de servicios, no repone
+          inventario ni revierte pagos. Durante la corrección no se agregan
+          repuestos cobrables.
+        </InlineNotice>
         <Field
           error={error}
           id="reopen-reason"

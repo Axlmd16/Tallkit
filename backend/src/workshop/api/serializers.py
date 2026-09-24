@@ -103,6 +103,9 @@ class MaintenanceLineSerializer(_Base):
     subtotal = serializers.CharField()
     tax_name = serializers.CharField()
     no_charge = serializers.BooleanField()
+    documented_by = serializers.DictField(
+        allow_null=True, help_text="Operación ART-SER vigente que documenta la línea."
+    )
 
 
 class MaintenanceInterventionSerializer(_Base):
@@ -185,6 +188,10 @@ class MaintenanceOrderSerializer(_Base):
     transitions = MaintenanceTransitionSerializer(many=True)
     pending_requirements = MaintenanceRequirementSerializer(many=True)
     allowed_actions = serializers.ListField(child=serializers.CharField())
+    billing_actions = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="manage_parts, document_services o view_service_operations.",
+    )
 
 
 class MaintenanceServiceSummarySerializer(_Base):
@@ -255,3 +262,145 @@ class MaintenanceServiceOptionSerializer(_Base):
 
 class MaintenanceServiceOptionPageSerializer(MaintenancePageFields):
     results = MaintenanceServiceOptionSerializer(many=True)
+
+
+# --- Integración económica: repuestos, operación artesanal, pagos y resumen -----------------
+
+
+class MaintenancePartCreateSerializer(MaintenanceVersionedCommandFields):
+    product_id = serializers.IntegerField(min_value=1)
+    quantity = serializers.CharField(help_text="Entero positivo de presentaciones completas.")
+
+
+class MaintenancePartUpdateSerializer(MaintenanceVersionedCommandFields):
+    quantity = serializers.CharField(help_text="Entero positivo de presentaciones completas.")
+
+
+class LinkedSaleSerializer(_Base):
+    id = serializers.IntegerField()
+    state = serializers.CharField()
+    internal_number = serializers.CharField(allow_null=True)
+    condition = serializers.CharField()
+    origin = serializers.DictField()
+    lines = serializers.ListField(child=serializers.DictField())
+    money = serializers.DictField()
+    estimate = serializers.DictField(required=False, help_text="Solo en el borrador abierto.")
+
+
+class PartProductOptionsSerializer(_Base):
+    count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    results = serializers.ListField(
+        child=serializers.DictField(),
+        help_text="Producto con existencia, reservado y disponible; sin costos.",
+    )
+
+
+class EconomicSummarySerializer(_Base):
+    order_id = serializers.IntegerField()
+    order_number = serializers.CharField()
+    commercial = serializers.DictField()
+    artisan = serializers.DictField()
+    combined = serializers.DictField(
+        allow_null=True, help_text="Solo informativo; no es una deuda única ni una factura."
+    )
+    notice = serializers.CharField()
+
+
+class CommercialOrderViewSerializer(_Base):
+    id = serializers.IntegerField()
+    number = serializers.CharField()
+    state = serializers.CharField()
+    opened_on = serializers.DateField()
+    customer = serializers.DictField()
+    vehicle = serializers.DictField()
+    parts = LinkedSaleSerializer(many=True)
+
+
+class ServiceOperationPreviewRequestSerializer(_Base):
+    condition = serializers.ChoiceField(choices=["CONTADO", "CREDITO"])
+
+
+class ServiceOperationPreviewSerializer(_Base):
+    order_id = serializers.IntegerField()
+    order_number = serializers.CharField()
+    condition = serializers.CharField()
+    operational_date = serializers.DateField()
+    lines = serializers.ListField(child=serializers.DictField())
+    totals = serializers.DictField(allow_null=True)
+    effects = serializers.DictField()
+    issues = serializers.ListField(child=serializers.DictField())
+    warnings = serializers.ListField(child=serializers.DictField())
+    review_digest = serializers.CharField()
+
+
+class ServiceOperationConfirmSerializer(MaintenanceVersionedCommandFields):
+    condition = serializers.ChoiceField(choices=["CONTADO", "CREDITO"])
+    review_digest = serializers.CharField(help_text="Huella devuelta por la vista previa.")
+
+
+class ServiceOperationSerializer(_Base):
+    id = serializers.IntegerField()
+    internal_number = serializers.CharField()
+    order_id = serializers.IntegerField()
+    order_number = serializers.CharField(required=False)
+    state = serializers.ChoiceField(choices=["CONFIRMED", "VOIDED"])
+    condition = serializers.CharField()
+    operational_date = serializers.DateField()
+    grand_total = serializers.CharField()
+    paid = serializers.CharField()
+    balance = serializers.CharField()
+    payment_state = serializers.CharField()
+    replaces = serializers.DictField(allow_null=True)
+    replaced_by = serializers.ListField(child=serializers.DictField())
+    lines = serializers.ListField(child=serializers.DictField(), required=False)
+    payments = serializers.ListField(child=serializers.DictField(), required=False)
+    allowed_actions = serializers.ListField(child=serializers.CharField(), required=False)
+    fiscal_notice = serializers.CharField(required=False)
+
+
+class ServiceOperationVoidPreviewSerializer(_Base):
+    id = serializers.IntegerField()
+    internal_number = serializers.CharField()
+    grand_total = serializers.CharField()
+    paid = serializers.CharField()
+    can_void = serializers.BooleanField()
+    blockers = serializers.ListField(child=serializers.CharField())
+    effects = serializers.DictField()
+    version = serializers.IntegerField()
+
+
+class ServiceOperationVoidSerializer(MaintenanceVersionedCommandFields):
+    reason = serializers.CharField(max_length=500)
+
+
+class ArtisanPaymentPartSerializer(_Base):
+    method = serializers.ChoiceField(choices=["EFECTIVO", "TRANSFERENCIA"])
+    amount = serializers.CharField(help_text="USD con hasta dos decimales.")
+
+
+class ArtisanPaymentCreateSerializer(MaintenanceCommandFields):
+    operation_id = serializers.UUIDField(help_text="Identidad estable del cobro.")
+    parts = ArtisanPaymentPartSerializer(many=True)
+
+
+class ArtisanPaymentReplacementSerializer(_Base):
+    operation_id = serializers.UUIDField()
+    parts = ArtisanPaymentPartSerializer(many=True)
+
+
+class ArtisanPaymentCorrectionSerializer(MaintenanceCommandFields):
+    operation_id = serializers.UUIDField()
+    reason = serializers.CharField(max_length=500)
+    replacement = ArtisanPaymentReplacementSerializer(required=False)
+
+
+class ArtisanReceivablePageSerializer(_Base):
+    count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    totals = serializers.DictField(help_text="Sumas de todas las coincidencias.")
+    results = serializers.ListField(child=serializers.DictField())

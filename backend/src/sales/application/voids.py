@@ -97,6 +97,11 @@ def _blockers(sale: Sale) -> list[dict[str, Any]]:
 
 def evaluate_void(sale: Sale, ledger: Ledger, refund: RefundInput | None) -> None:
     """Rechaza toda anulación que dejaría dinero, devoluciones o inventario sin resolver."""
+    if sale.origin_type == "MAINTENANCE":
+        raise SalesApplicationError(
+            "linked_sale_not_voidable",
+            "Una venta vinculada al mantenimiento no puede anularse.",
+        )
     if sale.state == "DRAFT":
         raise SalesApplicationError("not_editable", "Un borrador no se anula.")
     if sale.state != "CONFIRMED":

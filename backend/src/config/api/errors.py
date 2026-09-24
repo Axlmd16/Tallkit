@@ -138,6 +138,14 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "invalid_image": (400, "Imagen no admitida"),
     "image_too_large": (400, "Imagen demasiado grande"),
     "photo_limit_reached": (409, "Límite de fotografías alcanzado"),
+    "insufficient_availability": (409, "Disponibilidad insuficiente"),
+    "parts_not_allowed": (409, "Repuestos no admitidos en el estado de la orden"),
+    "linked_sale_locked": (409, "Venta vinculada protegida"),
+    "linked_sale_not_voidable": (409, "Venta vinculada no anulable"),
+    "line_documented": (409, "Línea documentada"),
+    "nothing_to_document": (409, "Nada por documentar"),
+    "payments_block_void": (409, "Pagos vigentes impiden anular"),
+    "customer_locked_by_documents": (409, "Cliente fijado por documentos vinculados"),
 }
 
 

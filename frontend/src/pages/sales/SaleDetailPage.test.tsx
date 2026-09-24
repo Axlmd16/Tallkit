@@ -307,3 +307,30 @@ it('abre y cierra devolución, anulación, corrección y reembolso desde sus acc
     expect(screen.queryByRole('dialog')).toBeNull()
   }
 })
+
+it('una venta vinculada enlaza a su orden y no ofrece anulación', () => {
+  mocks.permissions = [...mocks.permissions, 'ventas.anular', 'ventas.devolver']
+  mocks.query = {
+    ...mocks.query,
+    data: {
+      ...sale,
+      origin: {
+        type: 'MAINTENANCE',
+        order_id: 9,
+        order_number: 'ART-OT-000009',
+      },
+    },
+  }
+  renderPage()
+  expect(
+    screen.getByText('Venta vinculada a ART-OT-000009'),
+  ).toBeInTheDocument()
+  expect(screen.getByText(/no puede anularse/)).toBeInTheDocument()
+  expect(
+    screen.getByRole('link', { name: 'Ver orden de origen' }),
+  ).toHaveAttribute('href', '/maintenance/9/commercial')
+  expect(screen.queryByRole('button', { name: 'Anular venta' })).toBeNull()
+  expect(
+    screen.getByRole('button', { name: 'Registrar devolución' }),
+  ).toBeInTheDocument()
+})

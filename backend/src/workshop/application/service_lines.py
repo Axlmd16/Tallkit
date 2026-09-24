@@ -25,7 +25,7 @@ from workshop.application.support import (
 )
 from workshop.domain.input import parse_line_create, parse_line_update, parse_version_only
 from workshop.domain.states import InterventionKind, OrderState
-from workshop.models import Intervention, ServiceLine
+from workshop.models import Intervention, ServiceLine, ServiceOperationLine
 
 ZERO = Decimal("0.00")
 PRICE_PERMISSION = "mantenimientos.cambiar_precio_servicio"
@@ -64,6 +64,18 @@ def _open_line(order: Any, line_id: int) -> tuple[Intervention, ServiceLine]:
     if line.intervention_id != intervention.pk:
         raise WorkshopError(
             "not_editable", "La línea pertenece a una intervención ya finalizada y se conserva."
+        )
+    documented = (
+        ServiceOperationLine.objects.filter(service_line=line, is_current=True)
+        .select_related("operation")
+        .first()
+    )
+    if documented is not None:
+        number = documented.operation.internal_number
+        raise WorkshopError(
+            "line_documented",
+            f"La línea pertenece a la operación confirmada {number}; no puede modificarse.",
+            details={"operation_id": documented.operation_id, "operation_number": number},
         )
     return intervention, line
 

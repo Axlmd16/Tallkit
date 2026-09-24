@@ -15,10 +15,12 @@ from decimal import Decimal
 from typing import Any, Protocol
 
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from identity.models import User
 from inventory.domain.validation import (
+    InsufficientStockError,
     InventoryValidationError,
     parse_entry_value,
     parse_movement_quantity,
@@ -34,8 +36,10 @@ from inventory.models import (
     InventoryOperation,
     InventoryOperationLine,
     InventoryPosition,
+    InventoryReservation,
     OperationKind,
     OperationState,
+    ReservationState,
 )
 
 
@@ -289,6 +293,7 @@ def _insert_movement(
     applied_unit_cost: Decimal,
     rounding_adjustment: Decimal = Decimal(0),
     reverses_movement: InventoryMovement | None = None,
+    reserved_after: Decimal | None = None,
 ) -> InventoryMovement:
     ordinal = position.last_ordinal + 1
     movement = InventoryMovement.objects.create(
@@ -315,20 +320,23 @@ def _insert_movement(
         reverses_movement=reverses_movement,
     )
     position.quantity, position.value, position.average = after.quantity, after.value, after.average
+    if reserved_after is not None:
+        position.reserved = reserved_after
     position.last_ordinal = ordinal
     position.last_effective_at = effective_at
     position.version += 1
-    position.save(
-        update_fields=[
-            "quantity",
-            "value",
-            "average",
-            "last_ordinal",
-            "last_effective_at",
-            "version",
-            "updated_at",
-        ]
-    )
+    update_fields = [
+        "quantity",
+        "value",
+        "average",
+        "last_ordinal",
+        "last_effective_at",
+        "version",
+        "updated_at",
+    ]
+    if reserved_after is not None:
+        update_fields.append("reserved")
+    position.save(update_fields=update_fields)
     return movement
 
 
@@ -348,6 +356,8 @@ def post_operation(
     operation: InventoryOperation,
     locked: LockedPositions,
     product_refs: Mapping[int, ProductReference],
+    *,
+    consume_reservations: Iterable[tuple[str, int]] = (),
 ) -> PostingResult:
     """Publica la operación PREPARED: valora todo primero y después inserta los efectos."""
     _require_transaction()
@@ -357,22 +367,71 @@ def post_operation(
         raise InventoryValidationError("operation", "La operación ya fue publicada.")
     is_entry = operation.kind in ENTRY_KINDS
 
-    planned: list[tuple[InventoryOperationLine, Position, Position, Decimal, Decimal]] = []
+    reservation_keys = tuple(dict.fromkeys(consume_reservations))
+    if is_entry and reservation_keys:
+        raise InventoryValidationError(
+            "reservations", "Solo una salida puede consumir reservas de inventario."
+        )
+    reservations: list[InventoryReservation] = []
+    if reservation_keys:
+        requested = Q()
+        for source_type, source_id in reservation_keys:
+            requested |= Q(source_type=source_type, source_id=source_id)
+        reservations = list(
+            InventoryReservation.objects.select_for_update()
+            .filter(requested, state=ReservationState.ACTIVE)
+            .order_by("product_id", "source_type", "source_id")
+        )
+        found = {(row.source_type, row.source_id) for row in reservations}
+        missing = set(reservation_keys) - found
+        if missing:
+            raise InventoryValidationError(
+                "reservations", "Una reserva indicada no existe o ya no está activa."
+            )
+
+    own_reserved: dict[int, Decimal] = defaultdict(Decimal)
+    line_product_ids = {line.product_id for line in lines}
+    for reservation in reservations:
+        if (
+            reservation.product_id not in line_product_ids
+            or reservation.product_id not in locked.positions
+            or reservation.position_id != locked.positions[reservation.product_id].pk
+            or reservation.warehouse_id != locked.warehouse_id
+        ):
+            raise InventoryValidationError(
+                "reservations", "La reserva no corresponde a la salida bloqueada."
+            )
+        own_reserved[reservation.product_id] += reservation.quantity
+
+    planned: list[
+        tuple[InventoryOperationLine, Position, Position, Decimal, Decimal, Decimal | None]
+    ] = []
     for line in lines:  # valoración pura: el saldo insuficiente falla antes de escribir
-        before = _state(locked.positions[line.product_id])
+        position = locked.positions[line.product_id]
+        before = _state(position)
         if is_entry:
             value = line.entry_value if line.entry_value is not None else Decimal(0)
             after = apply_entry(before, line.quantity, value)
-            planned.append((line, before, after, after.value - before.value, Decimal(0)))
+            planned.append((line, before, after, after.value - before.value, Decimal(0), None))
         else:
+            available = position.quantity - position.reserved + own_reserved[line.product_id]
+            if line.quantity > available:
+                raise InsufficientStockError(available, line.quantity)
             result = apply_exit(before, line.quantity)
             planned.append(
-                (line, before, result.position, -result.applied_value, result.rounding_adjustment)
+                (
+                    line,
+                    before,
+                    result.position,
+                    -result.applied_value,
+                    result.rounding_adjustment,
+                    position.reserved - own_reserved[line.product_id],
+                )
             )
 
     now = _now()  # posterior a los bloqueos
     movements = []
-    for line, before, after, delta, adjustment in planned:
+    for line, before, after, delta, adjustment, reserved_after in planned:
         position = locked.positions[line.product_id]
         if is_entry:
             unit_cost = (delta / line.quantity).quantize(Decimal("0.000001"))
@@ -392,7 +451,14 @@ def post_operation(
                 value_delta=delta,
                 applied_unit_cost=unit_cost,
                 rounding_adjustment=adjustment,
+                reserved_after=reserved_after,
             )
+        )
+    if reservations:
+        InventoryReservation.objects.filter(pk__in=[row.pk for row in reservations]).update(
+            state=ReservationState.CONSUMED,
+            consumed_by=operation,
+            updated_at=now,
         )
     _finish(operation, now)
     return PostingResult(operation, tuple(movements))
@@ -445,6 +511,11 @@ def reverse_operation(
             reverse_exactly(_state(position), before=before, after=after)
         except InventoryValidationError as error:
             raise ReversalBlockedError("inconsistent", str(error), movement.product_id) from error
+        if before.quantity < position.reserved:
+            raise InsufficientStockError(
+                position.quantity - position.reserved,
+                position.quantity - before.quantity,
+            )
         restored.append((movement, after, before))
 
     reversal = InventoryOperation.objects.create(

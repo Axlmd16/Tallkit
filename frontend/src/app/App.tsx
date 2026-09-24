@@ -27,6 +27,10 @@ import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
 import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
 import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
 import { MaintenanceOrderDetailPage } from '@/pages/maintenance/MaintenanceOrderDetailPage'
+import { ArtisanReceivablesPage } from '@/pages/maintenance/ArtisanReceivablesPage'
+import { CommercialOrderViewPage } from '@/pages/maintenance/CommercialOrderViewPage'
+import { ServiceOperationDetailPage } from '@/pages/maintenance/ServiceOperationDetailPage'
+import { ServiceOperationDocumentPage } from '@/pages/maintenance/ServiceOperationDocumentPage'
 import { MaintenanceOrderEditorPage } from '@/pages/maintenance/MaintenanceOrderEditorPage'
 import { MaintenanceOrdersPage } from '@/pages/maintenance/MaintenanceOrdersPage'
 import { ReceivablesPage } from '@/pages/sales/ReceivablesPage'
@@ -290,6 +294,38 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="mantenimientos.ver">
                 <MaintenanceOrdersPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/receivables',
+            element: (
+              <PermissionGuard permission="pagos_artesanales.ver">
+                <ArtisanReceivablesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/service-operations/:id',
+            element: (
+              <PermissionGuard permission="servicios_economicos.ver">
+                <ServiceOperationDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/service-operations/:id/document',
+            element: (
+              <PermissionGuard permission="servicios_economicos.ver">
+                <ServiceOperationDocumentPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/:id/commercial',
+            element: (
+              <PermissionGuard permission="ventas.ver">
+                <CommercialOrderViewPage />
               </PermissionGuard>
             ),
           },

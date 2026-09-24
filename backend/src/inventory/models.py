@@ -45,6 +45,16 @@ class OperationState(models.TextChoices):
     REVERSED = "REVERSED"
 
 
+class ReservationSourceType(models.TextChoices):
+    SALE_LINE = "SALE_LINE"
+
+
+class ReservationState(models.TextChoices):
+    ACTIVE = "ACTIVE"
+    RELEASED = "RELEASED"
+    CONSUMED = "CONSUMED"
+
+
 def _in(field: str, choices: type[models.TextChoices]) -> models.Q:
     return models.Q(**{f"{field}__in": [value for value, _ in choices.choices]})
 
@@ -57,6 +67,7 @@ class InventoryPosition(models.Model):
         "workshop_configuration.Warehouse", on_delete=models.PROTECT, related_name="+"
     )
     quantity = models.DecimalField(max_digits=18, decimal_places=6, default=0)
+    reserved = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     value = models.DecimalField(max_digits=38, decimal_places=6, default=0)
     average = models.DecimalField(max_digits=24, decimal_places=6, default=0)
     version = models.PositiveBigIntegerField(default=1)
@@ -82,6 +93,14 @@ class InventoryPosition(models.Model):
             models.CheckConstraint(
                 condition=models.Q(quantity=Floor("quantity")),
                 name="inv_position_quantity_whole",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(reserved__gte=0) & models.Q(reserved__lte=models.F("quantity")),
+                name="inv_position_reserved_range",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(reserved=Floor("reserved")),
+                name="inv_position_reserved_whole",
             ),
             models.CheckConstraint(
                 condition=models.Q(quantity__gt=0) | models.Q(value=0, average=0),
@@ -152,6 +171,74 @@ class InventoryOperation(models.Model):
     @property
     def public_reference(self) -> str:
         return f"INV-{self.pk}"
+
+
+class InventoryReservation(models.Model):
+    """Historia de unidades comprometidas por una venta vinculada abierta."""
+
+    position = models.ForeignKey(
+        InventoryPosition, on_delete=models.PROTECT, related_name="reservations"
+    )
+    product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, related_name="+")
+    warehouse = models.ForeignKey(
+        "workshop_configuration.Warehouse", on_delete=models.PROTECT, related_name="+"
+    )
+    source_type = models.CharField(max_length=24, choices=ReservationSourceType.choices)
+    source_id = models.PositiveBigIntegerField()
+    source_reference = models.JSONField(default=dict)
+    quantity = models.DecimalField(max_digits=18, decimal_places=6)
+    state = models.CharField(
+        max_length=12, choices=ReservationState.choices, default=ReservationState.ACTIVE
+    )
+    consumed_by = models.ForeignKey(
+        InventoryOperation,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="consumed_reservations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=_in("source_type", ReservationSourceType),
+                name="inv_reservation_source_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=_in("state", ReservationState),
+                name="inv_reservation_state_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~models.Q(state=ReservationState.ACTIVE)
+                    | (models.Q(quantity__gt=0) & models.Q(quantity=Floor("quantity")))
+                ),
+                name="inv_reservation_active_quantity_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(state=ReservationState.CONSUMED, consumed_by__isnull=False)
+                    | (
+                        ~models.Q(state=ReservationState.CONSUMED)
+                        & models.Q(consumed_by__isnull=True)
+                    )
+                ),
+                name="inv_reservation_consumption_coherent",
+            ),
+            models.UniqueConstraint(
+                fields=["source_type", "source_id"],
+                condition=models.Q(state=ReservationState.ACTIVE),
+                name="inv_reservation_active_source_unique",
+            ),
+        ]
+        indexes: ClassVar[list[models.Index]] = [
+            models.Index(fields=["position", "state"], name="inv_res_position_state_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.source_type}:{self.source_id}:{self.state}"
 
 
 class InventoryOperationLine(models.Model):

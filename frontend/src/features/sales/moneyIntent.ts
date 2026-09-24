@@ -24,6 +24,9 @@ export type IntentAction =
   | 'return'
   | 'refund'
   | 'void-refund'
+  | 'artisan-payment'
+  | 'artisan-correction'
+  | 'artisan-replacement'
 
 export function intentKey(
   userScope: string | number,

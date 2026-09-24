@@ -225,6 +225,10 @@ Registro de un importe recibido mediante una forma de pago real y aplicado a una
 
 Cobro de una operación mediante dos o más formas de pago, por ejemplo una parte en efectivo y otra por transferencia.
 
+### Pendiente de documentar
+
+Importe de líneas de servicio aún no incluidas en una operación de servicios, o de repuestos reservados en la venta vinculada abierta. Es informativo: no constituye deuda ni se suma a los saldos hasta que el documento se confirma.
+
 ### Período de propiedad
 
 Intervalo en el que un cliente es el propietario vigente de un vehículo, con inicio y fin opcional. Cambiar el propietario cierra el período anterior y abre otro; los períodos anteriores se conservan y no se editan retroactivamente.

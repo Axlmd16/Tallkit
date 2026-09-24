@@ -133,6 +133,40 @@ def lock_operation_context(
     if warehouse is None:
         raise OperationContextError("missing_warehouse", "No existe la bodega configurada.")
 
+    _, taxes = _lock_taxes(
+        COMMERCIAL,
+        tax_definition_ids=tax_definition_ids,
+        on=on,
+        locked_entity=entity,
+    )
+    return LockedOperationContext(context=_context(entity, warehouse), taxes=taxes)
+
+
+def _lock_taxes(
+    entity_type: str,
+    *,
+    tax_definition_ids: Iterable[int],
+    on: date,
+    locked_entity: FiscalEntity | None = None,
+) -> tuple[FiscalEntity, dict[int, TaxSnapshot]]:
+    """Bloquea una entidad fiscal y resuelve sus tarifas vigentes.
+
+    ``locked_entity`` permite que el contexto comercial preserve su orden histórico de
+    bloqueos (entidad, bodega, impuestos). Los consumidores sin bodega dejan que este
+    helper adquiera el bloqueo de la entidad.
+    """
+    if not transaction.get_connection().in_atomic_block:
+        raise RuntimeError("El contexto de operación requiere una transacción atómica.")
+    entity = locked_entity
+    if entity is None:
+        entity = FiscalEntity.objects.select_for_update().filter(entity_type=entity_type).first()
+    if entity is None:
+        label = "comercial" if entity_type == COMMERCIAL else "artesanal"
+        raise OperationContextError(
+            "missing_entity",
+            f"No existe la entidad fiscal {label}.",
+        )
+
     requested = sorted(set(tax_definition_ids))
     definitions = {
         d.pk: d
@@ -158,9 +192,12 @@ def lock_operation_context(
             raise OperationContextError(
                 "missing_tax", f"La definición tributaria {pk} no existe.", pk
             )
-        if definition.fiscal_entity.entity_type != COMMERCIAL:
+        if definition.fiscal_entity.entity_type != entity_type:
+            label = "comercial" if entity_type == COMMERCIAL else "artesanal"
             raise OperationContextError(
-                "invalid_tax_scope", f"La definición {definition.code} no es comercial.", pk
+                "invalid_tax_scope",
+                f"La definición {definition.code} no es {label}.",
+                pk,
             )
         periods = periods_by_definition[pk]
         if not periods:
@@ -183,7 +220,7 @@ def lock_operation_context(
             starts_on=period.starts_on,
             ends_on=period.ends_on,
         )
-    return LockedOperationContext(context=_context(entity, warehouse), taxes=taxes)
+    return entity, taxes
 
 
 def list_commercial_tax_options(

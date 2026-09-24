@@ -16,6 +16,28 @@ const mocks = vi.hoisted(() => {
   const mutation = () => ({ mutateAsync: vi.fn(), isPending: false })
   return {
     detail: {} as Record<string, unknown>,
+    permissions: [] as string[],
+    parts: [] as unknown[],
+    summary: {
+      order_id: 9,
+      order_number: 'ART-OT-000009',
+      commercial: {
+        visible: true,
+        documents: [],
+        pending: null,
+        confirmed_total: '0.00',
+        balance_total: '0.00',
+      },
+      artisan: {
+        visible: true,
+        documents: [],
+        pending: null,
+        confirmed_total: '0.00',
+        balance_total: '0.00',
+      },
+      combined: null,
+      notice: 'Los importes de cada RUC se cobran por separado.',
+    } as Record<string, unknown>,
     mutations: {
       finalize: mutation(),
       reopen: mutation(),
@@ -42,6 +64,37 @@ vi.mock('@/features/maintenance/hooks', () => ({
       ],
     },
   }),
+}))
+
+vi.mock('@/features/auth/hooks', () => ({
+  useSession: () => ({
+    data: { username: 'encargado', permissions: mocks.permissions },
+  }),
+}))
+
+vi.mock('@/features/maintenance/billingHooks', () => ({
+  useOrderParts: () => ({
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+    data: mocks.parts,
+  }),
+  useEconomicSummary: () => ({
+    isPending: false,
+    isError: false,
+    data: mocks.summary,
+  }),
+  useBillingMutations: () => ({
+    addPart: mocks.mutations.addLine,
+    changePart: mocks.mutations.updateLine,
+    removePart: mocks.mutations.removeLine,
+    confirmServices: mocks.mutations.finalize,
+    pay: mocks.mutations.finalize,
+    voidOperation: mocks.mutations.finalize,
+    correctPayment: mocks.mutations.finalize,
+  }),
+  usePartProductPicker: () => ({ isPending: false, isError: false }),
+  useVoidPreview: () => ({ isPending: false }),
 }))
 
 import { MaintenanceOrderDetailPage } from './MaintenanceOrderDetailPage'
@@ -161,32 +214,59 @@ beforeEach(() => {
   mocks.detail = { isPending: false, isError: false, data: order() }
 })
 
-it('organiza la ficha en secciones con precios aplicados y total operativo', () => {
+it('organiza la ficha en pestañas: trabajo, repuestos, documentos y fotografías', async () => {
+  const u = userEvent.setup()
   renderDetail()
   expect(
     screen.getByRole('heading', { name: 'ART-OT-000009' }),
   ).toBeInTheDocument()
+  const tabs = screen.getByRole('tablist', { name: 'Secciones de la orden' })
+  expect(
+    within(tabs)
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent),
+  ).toEqual([
+    'Trabajo y servicios',
+    'Repuestos',
+    'Documentos y cobros',
+    'Fotografías1',
+  ])
+  // Pestaña inicial: solo el trabajo; repuestos, dinero y fotos no se amontonan.
   expect(screen.getByLabelText('Información general')).toHaveTextContent(
     'Ana Pérez',
   )
-  expect(screen.getByText('Diagnóstico y observaciones')).toBeInTheDocument()
   expect(screen.getByText('Pendiente de registrar.')).toBeInTheDocument()
   expect(screen.getByText('Precio aplicado')).toBeInTheDocument()
   expect(screen.getAllByText('Total de servicios de la orden').length).toBe(2)
   expect(
+    screen.queryByLabelText('Resumen económico por RUC'),
+  ).not.toBeInTheDocument()
+  expect(screen.queryByAltText('Golpe')).not.toBeInTheDocument()
+  // El resumen lateral y el historial permanecen visibles en todas las pestañas.
+  expect(
     screen.getByRole('list', { name: 'Requisitos para finalizar' }),
   ).toHaveTextContent('Diagnóstico registrado (pendiente)')
+  expect(screen.getByText('Historial')).toBeInTheDocument()
+
+  await u.click(within(tabs).getByRole('tab', { name: 'Repuestos' }))
+  expect(
+    screen.getByRole('heading', { name: 'Repuestos', level: 2 }),
+  ).toBeInTheDocument()
+
+  await u.click(within(tabs).getByRole('tab', { name: 'Documentos y cobros' }))
+  const economy = screen.getByLabelText('Resumen económico por RUC')
+  expect(
+    within(economy).getByLabelText('Ámbito fiscal: RUC comercial'),
+  ).toBeInTheDocument()
+  expect(
+    within(economy).getByLabelText('Ámbito fiscal: RUC artesanal'),
+  ).toBeInTheDocument()
+
+  await u.click(within(tabs).getByRole('tab', { name: /Fotografías/ }))
   expect(screen.getByAltText('Golpe')).toHaveAttribute(
     'src',
     '/api/v1/maintenance-orders/9/photos/5/thumbnail/',
   )
-  expect(screen.getByText('Historial')).toBeInTheDocument()
-  expect(screen.getByText('Inactivo')).toBeInTheDocument()
-  for (const word of [/repuesto/i, /saldo/i, /pago/i, /factura/i]) {
-    expect(
-      screen.queryByRole('heading', { name: word }),
-    ).not.toBeInTheDocument()
-  }
 })
 
 it('una orden finalizada solo ofrece reabrir', () => {
@@ -335,6 +415,7 @@ it('una carga rechazada conserva archivo y descripción', async () => {
   URL.createObjectURL = vi.fn(() => 'blob:preview')
   URL.revokeObjectURL = vi.fn()
   renderDetail()
+  await u.click(screen.getByRole('tab', { name: /Fotografías/ }))
   await u.click(screen.getByRole('button', { name: /Adjuntar fotografía/ }))
   const dialog = await screen.findByRole('dialog')
   const file = new File(['x'], 'foto.jpg', { type: 'image/jpeg' })

@@ -10,10 +10,16 @@ import pytest
 from catalog.models import Product
 from identity.models import AuditEvent
 from inventory.application import posting
-from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
+from inventory.models import (
+    InventoryMovement,
+    InventoryOperation,
+    InventoryPosition,
+    InventoryReservation,
+)
 from sales.application import reviews, sales
 from sales.application.commands import IdempotencyConflictError
 from sales.application.errors import SalesApplicationError
+from sales.application.workshop_links import add_linked_line
 from sales.models import (
     CommercialPayment,
     Sale,
@@ -128,6 +134,78 @@ def test_repeated_lines_of_the_same_product_split_the_published_value_exactly(
     assert len(allocations) == 2
     assert sum(x.applied_value for x in allocations) == -movement.value_delta
     assert all(x.movement_id == movement.pk for x in allocations)
+
+
+def test_linked_confirmation_consumes_own_reservations_once_for_repeated_products(
+    seller: Any, maintenance_order: Any, product: Any, stock: Any
+) -> None:
+    stock(product, 3, "9.00")
+    add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="1",
+    )
+    add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="2",
+    )
+    sale = Sale.objects.get(origin_order=maintenance_order)
+    review = reviews.preview_confirmation(actor=seller, sale_id=sale.pk)
+    assert review["can_confirm"], review["issues"]
+    payload = {
+        "idempotency_key": "cf-linked-0001",
+        "expected_version": sale.version,
+        "review_token": review["review_token"],
+    }
+
+    first = sales.confirm_sale(actor=seller, sale_id=sale.pk, payload=payload)
+    replay = sales.confirm_sale(actor=seller, sale_id=sale.pk, payload=payload)
+
+    assert replay.replayed
+    assert replay.body["internal_number"] == first.body["internal_number"]
+    position = InventoryPosition.objects.get(product=product)
+    assert (position.quantity, position.reserved) == (D(0), D(0))
+    reservations = InventoryReservation.objects.order_by("source_id")
+    assert list(reservations.values_list("state", flat=True)) == ["CONSUMED", "CONSUMED"]
+    assert set(reservations.values_list("consumed_by_id", flat=True)) == {
+        Sale.objects.get(pk=sale.pk).inventory_operation_id
+    }
+    assert InventoryMovement.objects.filter(movement_type="SALE_OUT").count() == 1
+
+
+def test_direct_confirmation_cannot_consume_stock_reserved_by_a_linked_sale(
+    seller: Any,
+    customer: Any,
+    maintenance_order: Any,
+    product: Any,
+    stock: Any,
+) -> None:
+    stock(product, 3, "9.00")
+    direct = make_draft(seller, customer, [(product, "2")])
+    review = reviews.preview_confirmation(actor=seller, sale_id=direct["id"])
+    add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="2",
+    )
+
+    with pytest.raises(SalesApplicationError) as error:
+        sales.confirm_sale(
+            actor=seller,
+            sale_id=direct["id"],
+            payload={
+                "idempotency_key": "cf-direct-reserved-1",
+                "expected_version": direct["version"],
+                "review_token": review["review_token"],
+            },
+        )
+    assert error.value.code in {"insufficient_stock", "review_required"}
+    assert InventoryPosition.objects.get(product=product).quantity == 3
+    assert not InventoryMovement.objects.filter(movement_type="SALE_OUT").exists()
 
 
 def test_confirmed_sale_is_pending_payment_and_an_internal_document(

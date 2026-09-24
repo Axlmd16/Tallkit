@@ -33,6 +33,11 @@ class SaleCondition(models.TextChoices):
     CREDITO = "CREDITO"
 
 
+class SaleOriginType(models.TextChoices):
+    DIRECT = "DIRECT"
+    MAINTENANCE = "MAINTENANCE"
+
+
 class PaymentMethodChoice(models.TextChoices):
     EFECTIVO = "EFECTIVO"
     TRANSFERENCIA = "TRANSFERENCIA"
@@ -81,6 +86,17 @@ class Sale(models.Model):
     warehouse = models.ForeignKey(
         "workshop_configuration.Warehouse", on_delete=models.PROTECT, related_name="+"
     )
+    origin_type = models.CharField(
+        max_length=12, choices=SaleOriginType.choices, default=SaleOriginType.DIRECT
+    )
+    origin_order = models.ForeignKey(
+        "workshop.MaintenanceOrder",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    origin_reference = models.CharField(max_length=64, blank=True, default="")
     condition = models.CharField(max_length=10, choices=SaleCondition.choices)
     notes = models.CharField(max_length=2000, blank=True, default="")
     state = models.CharField(max_length=10, choices=SaleState.choices, default=SaleState.DRAFT)
@@ -134,12 +150,38 @@ class Sale(models.Model):
                 condition=_in("condition", SaleCondition), name="sal_sale_condition_valid"
             ),
             models.CheckConstraint(
+                condition=_in("origin_type", SaleOriginType), name="sal_sale_origin_type_valid"
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        origin_type=SaleOriginType.DIRECT,
+                        origin_order__isnull=True,
+                        origin_reference="",
+                    )
+                    | models.Q(
+                        origin_type=SaleOriginType.MAINTENANCE,
+                        origin_order__isnull=False,
+                        origin_reference__regex=r"\S",
+                    )
+                ),
+                name="sal_sale_origin_coherent",
+            ),
+            models.CheckConstraint(
                 condition=models.Q(version__gte=1), name="sal_sale_version_positive"
             ),
             models.UniqueConstraint(
                 fields=["internal_number"],
                 condition=models.Q(internal_number__isnull=False),
                 name="sal_sale_internal_number_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["origin_order"],
+                condition=models.Q(
+                    state=SaleState.DRAFT,
+                    origin_order__isnull=False,
+                ),
+                name="sal_sale_draft_origin_unique",
             ),
             models.CheckConstraint(
                 condition=(
@@ -171,6 +213,7 @@ class Sale(models.Model):
         indexes: ClassVar[list[models.Index]] = [
             models.Index(fields=["customer", "created_at", "id"], name="sal_sale_customer_idx"),
             models.Index(fields=["state", "created_at", "id"], name="sal_sale_state_idx"),
+            models.Index(fields=["origin_order", "state"], name="sal_sale_origin_state_idx"),
         ]
 
     def __str__(self) -> str:

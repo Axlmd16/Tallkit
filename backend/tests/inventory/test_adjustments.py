@@ -5,10 +5,12 @@ from typing import Any
 
 import pytest
 
+from catalog.application.inventory_references import lock_product_references
 from catalog.models import Product
 from identity.application.authorization import BusinessPermissionDeniedError
-from inventory.application import operations
+from inventory.application import operations, posting
 from inventory.application.errors import InventoryApplicationError
+from inventory.application.reservations import reserve
 from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
 
 from .test_initial_load import confirm, prepare
@@ -160,6 +162,40 @@ def test_confirmation_revalidates_stock(admin: Any, stocked: Any) -> None:
         )
     assert error.value.code in {"insufficient_stock", "review_required"}
     assert InventoryPosition.objects.get().quantity == D(5)
+
+
+def test_preview_and_review_token_use_available_stock(
+    admin: Any, stocked: Any, warehouse: Any
+) -> None:
+    body = adjust(admin, stocked, "ADJUSTMENT_OUT", "adj-key-00028", quantity="7")
+    review = operations.preview_operation(actor=admin, operation_id=body["id"])
+    assert review["can_confirm"] is True
+    refs = lock_product_references([stocked.pk])
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=stocked.pk,
+        source_type="SALE_LINE",
+        source_id=101,
+        source_reference={"sale_id": 11, "order_id": 7},
+        quantity=D(4),
+    )
+
+    current = operations.preview_operation(actor=admin, operation_id=body["id"])
+    assert current["can_confirm"] is False
+    assert current["issues"][0]["code"] == "insufficient_stock"
+    with pytest.raises(InventoryApplicationError) as error:
+        operations.confirm_operation(
+            actor=admin,
+            operation_id=body["id"],
+            payload={
+                "idempotency_key": "adj-key-00029",
+                "expected_version": body["version"],
+                "review_token": review["review_token"],
+            },
+        )
+    assert error.value.code == "review_required"
+    position = InventoryPosition.objects.get(product=stocked)
+    assert (position.quantity, position.reserved) == (D(10), D(4))
 
 
 def test_exit_of_an_inactive_product_with_stock_is_allowed_but_new_entries_are_not(

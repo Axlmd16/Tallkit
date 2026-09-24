@@ -194,3 +194,44 @@ def test_line_and_intervention_payloads() -> None:
         parse_line_create({"service_name": "Libre", "expected_version": 1})
     intervention = parse_intervention_update({"work_performed": " Ajuste ", "expected_version": 5})
     assert intervention.fields == {"work_performed": "Ajuste"}
+
+
+def test_pending_parts_block_finalization_for_any_intervention() -> None:
+    from workshop.domain.finalization import FinalizationFacts, pending_requirements
+    from workshop.domain.states import InterventionKind
+
+    ready = FinalizationFacts(InterventionKind.INITIAL, "Frenos", 1, "", pending_part_lines=0)
+    blocked = FinalizationFacts(InterventionKind.INITIAL, "Frenos", 1, "", pending_part_lines=1)
+    assert pending_requirements(ready) == ()
+    [requirement] = pending_requirements(blocked)
+    assert requirement.code == "pending_parts"
+    assert "1 línea" in requirement.message
+
+
+def test_billing_actions_follow_state_permissions_and_pending_services() -> None:
+    from workshop.domain.states import OrderState, billing_actions
+
+    manager = frozenset(
+        {
+            "mantenimientos.ver",
+            "mantenimientos.gestionar_repuestos",
+            "ventas.preparar_vinculada",
+            "servicios_economicos.ver",
+            "servicios_economicos.confirmar",
+            "pagos_artesanales.registrar",
+        }
+    )
+    assert billing_actions(OrderState.REGISTERED, manager, pending_services=True) == (
+        "manage_parts",
+        "document_services",
+        "view_service_operations",
+    )
+    assert billing_actions(OrderState.REOPENED, manager, pending_services=False) == (
+        "view_service_operations",
+    )
+    assert billing_actions(OrderState.FINALIZED, manager, pending_services=True) == (
+        "document_services",
+        "view_service_operations",
+    )
+    only_parts = frozenset({"mantenimientos.gestionar_repuestos"})
+    assert billing_actions(OrderState.REGISTERED, only_parts, pending_services=True) == ()

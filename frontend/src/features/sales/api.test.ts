@@ -25,6 +25,19 @@ describe('salesApi', () => {
     )
   })
 
+  it('lista y cuentas por cobrar filtran por origen de mantenimiento', async () => {
+    const { client, request } = fakeClient()
+    const api = createSalesApi(client)
+    await api.list({ origin: 'MAINTENANCE', state: 'DRAFT' })
+    expect(request).toHaveBeenLastCalledWith(
+      '/sales/?state=DRAFT&origin=MAINTENANCE',
+    )
+    await api.receivables({ origin: 'MAINTENANCE' })
+    expect(request).toHaveBeenLastCalledWith(
+      '/sales/receivables/?origin=MAINTENANCE',
+    )
+  })
+
   it('las cuentas por cobrar filtran por antigüedad', async () => {
     const { client, request } = fakeClient()
     await createSalesApi(client).receivables({ minAgeDays: 10, customerId: 4 })

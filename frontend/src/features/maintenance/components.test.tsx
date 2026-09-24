@@ -272,6 +272,53 @@ describe('servicios de una orden reabierta', () => {
   })
 })
 
+describe('servicios documentados en una operación artesanal', () => {
+  it('rotula la documentación y bloquea la edición de la línea documentada', () => {
+    const base = reopened()
+    const initial = base.interventions.find((i) => i.kind === 'INITIAL')!
+    const documented = {
+      ...base,
+      state: 'REGISTERED' as const,
+      interventions: [
+        {
+          ...initial,
+          is_open: true,
+          lines: [
+            {
+              ...line,
+              id: 20,
+              service_name: 'Alineación',
+              no_charge: false,
+              documented_by: { id: 4, number: 'ART-SER-000004' },
+            },
+            {
+              ...line,
+              id: 21,
+              service_name: 'Balanceo',
+              no_charge: false,
+              documented_by: null,
+            },
+          ],
+        },
+      ],
+    }
+    wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
+    expect(
+      screen.getByText('Documentado en ART-SER-000004'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Pendiente de documentar')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Editar Alineación' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Bloqueada: pertenece a una operación confirmada'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Editar Balanceo' }),
+    ).toBeInTheDocument()
+  })
+})
+
 describe('fotografías', () => {
   it('solo permite retirar las de la intervención abierta y amplía la imagen', async () => {
     const u = userEvent.setup()

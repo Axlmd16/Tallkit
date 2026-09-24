@@ -114,3 +114,76 @@ def upload(content: bytes, name: str = "foto.jpg", content_type: str = "image/jp
     from django.core.files.uploadedfile import SimpleUploadedFile
 
     return SimpleUploadedFile(name, content, content_type=content_type)
+
+
+def add_part(actor: Any, order_id: int, product_id: int, quantity: int | str = 1) -> Any:
+    from workshop.application import parts
+
+    return parts.add_part(
+        actor=actor,
+        order_id=order_id,
+        payload={
+            "product_id": product_id,
+            "quantity": str(quantity),
+            "expected_version": version(order_id),
+            "idempotency_key": key(),
+        },
+    )
+
+
+def open_linked_sale(order_id: int) -> Any:
+    from sales.models import Sale
+
+    return Sale.objects.get(origin_order_id=order_id, state="DRAFT")
+
+
+def confirm_linked_sale(seller: Any, order_id: int, condition: str = "CREDITO") -> dict[str, Any]:
+    """El Vendedor fija la condición del borrador vinculado, lo revisa y lo confirma."""
+    from sales.application import reviews, sales
+
+    sale = open_linked_sale(order_id)
+    if sale.condition != condition:
+        sales.update_draft(
+            actor=seller,
+            sale_id=sale.pk,
+            payload={
+                "condition": condition,
+                "expected_version": sale.version,
+                "idempotency_key": key(),
+            },
+        )
+        sale.refresh_from_db()
+    review = reviews.preview_confirmation(actor=seller, sale_id=sale.pk)
+    return sales.confirm_sale(
+        actor=seller,
+        sale_id=sale.pk,
+        payload={
+            "idempotency_key": key(),
+            "expected_version": sale.version,
+            "review_token": review["review_token"],
+        },
+    ).body
+
+
+def preview_services(actor: Any, order_id: int, condition: str = "CONTADO") -> dict[str, Any]:
+    from workshop.application import service_operations
+
+    return service_operations.preview_operation(
+        actor=actor, order_id=order_id, payload={"condition": condition}
+    )
+
+
+def confirm_services(
+    actor: Any, order_id: int, condition: str = "CONTADO", **payload: Any
+) -> dict[str, Any]:
+    """Revisa y confirma la operación artesanal con la huella de la vista previa."""
+    from workshop.application import service_operations
+
+    if "review_digest" not in payload:
+        payload["review_digest"] = preview_services(actor, order_id, condition)["review_digest"]
+    payload.setdefault("condition", condition)
+    payload.setdefault("idempotency_key", key())
+    payload.setdefault("expected_version", version(order_id))
+    return service_operations.confirm_operation(
+        actor=actor, order_id=order_id, payload=payload
+    ).body

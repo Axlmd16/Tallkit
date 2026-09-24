@@ -34,7 +34,7 @@ const summary = {
   version: 2,
   internal_number: 'COM-VEN-000007',
   customer: { id: 3, name: 'Ana Pérez' },
-  origin: 'DIRECT',
+  origin: { type: 'DIRECT', order_id: null, order_number: null },
   sale_date: '2026-09-20',
   condition: 'CREDITO',
   grand_total: '23.00',
@@ -86,7 +86,8 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   renderPage()
   expect(screen.getAllByText('COM-VEN-000007').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Ana Pérez').length).toBeGreaterThan(0)
-  expect(screen.queryByText('Venta directa')).not.toBeInTheDocument()
+  expect(screen.getAllByText('Directa').length).toBeGreaterThan(0)
+  expect(screen.getByLabelText('Origen')).toHaveValue('')
   expect(
     within(screen.getByRole('table', { name: 'Ventas' }))
       .getAllByRole('columnheader')
@@ -94,6 +95,7 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   ).toEqual([
     'Número',
     'Fecha',
+    'Origen',
     'Cliente',
     'Condición',
     'Estado',

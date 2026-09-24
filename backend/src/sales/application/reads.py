@@ -48,6 +48,7 @@ MONEY: Any = DecimalField(max_digits=38, decimal_places=2)
 PAGE_SIZE_MAX = 100
 PAYMENT_STATES = {"PENDING", "PARTIAL", "PAID"}
 DOCUMENT_STATES = {"DRAFT", "CONFIRMED", "VOIDED"}
+ORIGIN_TYPES = {"DIRECT", "MAINTENANCE"}
 
 
 @contextmanager
@@ -113,7 +114,6 @@ def _row(sale: Any) -> dict[str, Any]:
     result = queries.sale_base(sale)
     balance = compute_balance(sale.exigible, sale.paid, sale.refunded)
     result.update(
-        origin="DIRECT",
         sale_date=sale.sale_date.isoformat(),
         money={
             "exigible": queries.money(sale.exigible),
@@ -145,6 +145,7 @@ def _filters(
     customer_id: int | None,
     state: str | None,
     payment_state: str | None,
+    origin: str | None,
     date_from: date | None,
     date_to: date | None,
 ) -> QuerySet[Any]:
@@ -154,6 +155,10 @@ def _filters(
         queryset = queryset.filter(state=state)
     if customer_id:
         queryset = queryset.filter(customer_id=customer_id)
+    if origin:
+        if origin not in ORIGIN_TYPES:
+            raise field_error("validation_error", "origin", "Origen de venta no válido.")
+        queryset = queryset.filter(origin_type=origin)
     if date_from:
         queryset = queryset.filter(sale_date__gte=date_from)
     if date_to:
@@ -177,6 +182,7 @@ def list_sales(
     customer_id: int | None = None,
     state: str | None = None,
     payment_state: str | None = None,
+    origin: str | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     page: int = 1,
@@ -198,6 +204,7 @@ def list_sales(
             customer_id=customer_id,
             state=state,
             payment_state=payment_state,
+            origin=origin,
             date_from=date_from,
             date_to=date_to,
         ).order_by("-sale_date", "-id")
@@ -212,6 +219,7 @@ def receivables(
     actor: User,
     customer_id: int | None = None,
     payment_state: str | None = None,
+    origin: str | None = None,
     min_age_days: int | None = None,
     page: int = 1,
     page_size: int = 20,
@@ -234,6 +242,7 @@ def receivables(
             customer_id=customer_id,
             state=None,
             payment_state=payment_state,
+            origin=origin,
             date_from=None,
             date_to=None,
         ).filter(Q(balance__gt=0) | Q(excess__gt=0))
@@ -378,6 +387,7 @@ def sale_document(*, actor: User, sale_id: int, request_id: UUID | None = None) 
         "issuer": snapshot.get("entity"),
         "series_code": snapshot.get("series_code"),
         "customer": detail["customer"],
+        "origin": detail["origin"],
         "condition": sale.condition,
         "operational_date": detail["operational_date"],
         "lines": [

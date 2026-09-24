@@ -82,7 +82,9 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
   await page.getByLabel('Kilometraje (km)').fill('85000')
   await page.screenshot({ path: `${EVIDENCE}/01-editor.png`, fullPage: true })
   await page.getByRole('button', { name: 'Registrar orden' }).click()
-  await expect(page.getByRole('heading', { name: /ART-OT-/ })).toBeVisible()
+  const heading = page.getByRole('heading', { name: /ART-OT-/ })
+  await expect(heading).toBeVisible()
+  const orderNumber = (await heading.textContent())?.trim() ?? ''
   await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
 
   await page.getByRole('button', { name: /Agregar servicio/ }).click()
@@ -98,6 +100,8 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
     page.getByText('Total de servicios de la orden').first(),
   ).toBeVisible()
 
+  // Las fotografías viven en su pestaña de la ficha de la orden.
+  await page.getByRole('tab', { name: /Fotografías/ }).click()
   await page.getByRole('button', { name: /Adjuntar fotografía/ }).click()
   const upload = page.getByRole('dialog')
   await upload
@@ -106,6 +110,7 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
   await upload.getByLabel('Descripción (opcional)').fill('Golpe lateral')
   await upload.getByRole('button', { name: 'Adjuntar' }).click()
   await expect(page.getByAltText('Golpe lateral')).toBeVisible()
+  await page.getByRole('tab', { name: 'Trabajo y servicios' }).click()
 
   await page.getByRole('button', { name: 'Finalizar' }).click()
   await expect(
@@ -155,7 +160,7 @@ test('ciclo de una orden de mantenimiento y acceso por rol', async ({
   await expect(
     page.getByRole('heading', { name: 'Historial de mantenimientos' }),
   ).toBeVisible()
-  await expect(page.getByRole('link', { name: 'ART-OT-000001' })).toBeVisible()
+  await expect(page.getByRole('link', { name: orderNumber })).toBeVisible()
   await page.screenshot({
     path: `${EVIDENCE}/05-historial-vehiculo.png`,
     fullPage: true,

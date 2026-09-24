@@ -138,3 +138,96 @@ def private_media(tmp_path: Path, settings: Any) -> Path:
     root = tmp_path / "private-media"
     settings.PRIVATE_MEDIA_ROOT = root
     return root
+
+
+@pytest.fixture
+def commercial(db: None) -> dict[str, Any]:
+    """Entidad comercial con tarifa de prueba 15 %, bodega y serie COM-VEN para repuestos."""
+    from workshop_configuration.models import DocumentSeries, NumberingScope, TaxPeriod, Warehouse
+
+    WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
+    entity, _ = FiscalEntity.objects.get_or_create(
+        entity_type="COMERCIAL",
+        defaults={"legal_name": "Comercial SA", "ruc": "1790000000001"},
+    )
+    tax, _ = TaxDefinition.objects.get_or_create(
+        fiscal_entity=entity, code="IVA", defaults={"name": "IVA"}
+    )
+    TaxPeriod.objects.get_or_create(
+        tax_definition=tax, starts_on=date(2025, 1, 1), defaults={"rate": Decimal("15")}
+    )
+    scope, _ = NumberingScope.objects.get_or_create(fiscal_entity=entity, document_type="VENTA")
+    DocumentSeries.objects.get_or_create(
+        numbering_scope=scope, code="COM-VEN", defaults={"is_active": True}
+    )
+    warehouse, _ = Warehouse.objects.get_or_create(id=1, defaults={"name": "Principal"})
+    return {"entity": entity, "tax": tax, "warehouse": warehouse}
+
+
+@pytest.fixture
+def stocked(commercial: dict[str, Any], admin: Any):  # type: ignore[no-untyped-def]
+    """Fábrica de productos comerciales con existencia publicada mediante inventario."""
+    from django.db import transaction
+
+    from catalog.application.inventory_references import lock_product_references
+    from catalog.models import MeasurementUnit, Product, ProductCategory
+    from inventory.application import posting
+
+    category, _ = ProductCategory.objects.get_or_create(name="Repuestos")
+    unit, _ = MeasurementUnit.objects.get_or_create(name="Unidad")
+    sources = count(5000)
+
+    def factory(quantity: int = 10, price: str = "11.50", **overrides: Any) -> Product:
+        number = next(_sequence)
+        values: dict[str, Any] = {
+            "code": f"REP-{number}",
+            "name": f"Repuesto {number}",
+            "category": category,
+            "unit": unit,
+            "content_quantity": Decimal("1"),
+            "sale_price": Decimal(price),
+            "tax_definition": commercial["tax"],
+        }
+        values.update(overrides)
+        product = Product.objects.create(**values)
+        if quantity:
+            with transaction.atomic():
+                _publish_stock(product, quantity)
+        return product
+
+    def _publish_stock(product: Product, quantity: int) -> None:
+        if quantity:
+            refs = lock_product_references([product.pk])
+            operation = posting.prepare_operation(
+                kind="PURCHASE_RECEIPT",
+                actor=admin,
+                source_type="PURCHASE",
+                source_id=next(sources),
+                entry_lines=[
+                    posting.EntryLine(product.pk, Decimal(quantity), Decimal(quantity * 4))
+                ],
+            )
+            posting.post_operation(
+                operation,
+                posting.lock_positions(refs, warehouse_id=commercial["warehouse"].pk),
+                refs,
+            )
+
+    return factory
+
+
+@pytest.fixture
+def artisan_billing(artisan: dict[str, Any]) -> dict[str, Any]:
+    """Tarifa artesanal de prueba de 15 % vigente y serie activa ART-SER."""
+    from workshop_configuration.models import DocumentSeries, NumberingScope, TaxPeriod
+
+    TaxPeriod.objects.get_or_create(
+        tax_definition=artisan["tax"], starts_on=date(2025, 1, 1), defaults={"rate": Decimal("15")}
+    )
+    scope, _ = NumberingScope.objects.get_or_create(
+        fiscal_entity=artisan["entity"], document_type="SERVICIO"
+    )
+    series, _ = DocumentSeries.objects.get_or_create(
+        numbering_scope=scope, code="ART-SER", defaults={"is_active": True}
+    )
+    return {**artisan, "scope": scope, "series": series}

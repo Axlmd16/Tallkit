@@ -3,8 +3,17 @@ import { buildQuery, type Page } from '@/shared/api/catalog-resource'
 import { environment } from '@/shared/config/env'
 
 import type {
+  ArtisanReceivableFilters,
+  ArtisanReceivablesPage,
+  CommercialOrderView,
   CustomerOption,
+  EconomicSummary,
+  LinkedSale,
   MaintenanceOrder,
+  PartProductOption,
+  ServiceOperation,
+  ServiceOperationPreview,
+  VoidPreview,
   OrderFilters,
   OrderInput,
   OrderListItem,
@@ -13,6 +22,12 @@ import type {
 } from './types'
 
 const BASE = '/maintenance-orders'
+const OPERATIONS = '/service-operations'
+
+export interface PaymentPartInput {
+  method: 'EFECTIVO' | 'TRANSFERENCIA'
+  amount: string
+}
 
 export interface LineInput {
   service_id: number
@@ -160,6 +175,146 @@ export function createMaintenanceApi(client: ApiClient) {
     },
     serviceOptions(term: string, page = 1): Promise<Page<ServiceOption>> {
       return get(`/service-options/${buildQuery({ search: term, page })}`)
+    },
+    // --- Repuestos: venta comercial vinculada --------------------------------------------
+    parts(id: number): Promise<LinkedSale[]> {
+      return get(`/${id}/parts/`)
+    },
+    partProductOptions(
+      id: number,
+      term: string,
+      page = 1,
+    ): Promise<Page<PartProductOption>> {
+      return get(
+        `/${id}/parts/product-options/${buildQuery({ search: term, page })}`,
+      )
+    },
+    addPart(
+      id: number,
+      data: { product_id: number; quantity: string },
+      expectedVersion: number,
+      key: string,
+    ): Promise<MaintenanceOrder> {
+      return send('POST', `/${id}/parts/`, {
+        ...data,
+        expected_version: expectedVersion,
+        idempotency_key: key,
+      })
+    },
+    changePart(
+      id: number,
+      lineId: number,
+      quantity: string,
+      expectedVersion: number,
+      key: string,
+    ): Promise<MaintenanceOrder> {
+      return send('PATCH', `/${id}/parts/${lineId}/`, {
+        quantity,
+        expected_version: expectedVersion,
+        idempotency_key: key,
+      })
+    },
+    removePart(
+      id: number,
+      lineId: number,
+      expectedVersion: number,
+      key: string,
+    ): Promise<MaintenanceOrder> {
+      return send('POST', `/${id}/parts/${lineId}/remove/`, {
+        expected_version: expectedVersion,
+        idempotency_key: key,
+      })
+    },
+    economicSummary(id: number): Promise<EconomicSummary> {
+      return get(`/${id}/economic-summary/`)
+    },
+    commercialView(id: number): Promise<CommercialOrderView> {
+      return get(`/${id}/commercial-view/`)
+    },
+    // --- Operación artesanal de servicios ------------------------------------------------
+    previewServiceOperation(
+      id: number,
+      condition: string,
+    ): Promise<ServiceOperationPreview> {
+      return send('POST', `/${id}/service-operations/preview/`, { condition })
+    },
+    confirmServiceOperation(
+      id: number,
+      data: { condition: string; review_digest: string },
+      expectedVersion: number,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return send('POST', `/${id}/service-operations/`, {
+        ...data,
+        expected_version: expectedVersion,
+        idempotency_key: key,
+      })
+    },
+    serviceOperation(operationId: number): Promise<ServiceOperation> {
+      return client.request(`${OPERATIONS}/${operationId}/`)
+    },
+    serviceOperationDocument(operationId: number): Promise<ServiceOperation> {
+      return client.request(`${OPERATIONS}/${operationId}/document/`)
+    },
+    voidPreview(operationId: number): Promise<VoidPreview> {
+      return client.request(`${OPERATIONS}/${operationId}/void-preview/`)
+    },
+    voidServiceOperation(
+      operationId: number,
+      reason: string,
+      expectedVersion: number,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(`${OPERATIONS}/${operationId}/void/`, {
+        method: 'POST',
+        body: {
+          reason,
+          expected_version: expectedVersion,
+          idempotency_key: key,
+        },
+      })
+    },
+    registerArtisanPayment(
+      operationId: number,
+      parts: PaymentPartInput[],
+      factId: string,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(`${OPERATIONS}/${operationId}/payments/`, {
+        method: 'POST',
+        body: { operation_id: factId, parts, idempotency_key: key },
+      })
+    },
+    correctArtisanPayment(
+      operationId: number,
+      paymentId: number,
+      data: {
+        reason: string
+        replacement?: { operation_id: string; parts: PaymentPartInput[] }
+      },
+      factId: string,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(
+        `${OPERATIONS}/${operationId}/payments/${paymentId}/corrections/`,
+        {
+          method: 'POST',
+          body: { ...data, operation_id: factId, idempotency_key: key },
+        },
+      )
+    },
+    artisanReceivables(
+      filters: ArtisanReceivableFilters = {},
+    ): Promise<ArtisanReceivablesPage> {
+      return client.request(
+        `${OPERATIONS}/${buildQuery({
+          customer_id: filters.customerId,
+          order_id: filters.orderId,
+          payment_state: filters.paymentState,
+          page: filters.page,
+          page_size: filters.pageSize,
+        })}`,
+      )
     },
   }
 }

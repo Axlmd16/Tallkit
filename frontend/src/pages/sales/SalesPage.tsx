@@ -15,6 +15,7 @@ import {
   conditionLabels,
   paymentStateLabels,
   type PaymentState,
+  type SaleOriginType,
   type SaleState,
   type SaleSummary,
 } from '@/features/sales/types'
@@ -52,8 +53,10 @@ export function SalesPage() {
   const paymentState = filters.get('payment_state') as PaymentState | ''
   const customerId = filters.getNumber('customer_id')
   const customerName = filters.get('customer_name')
+  const origin = filters.get('origin') as SaleOriginType | ''
   const query = useSales({
     customerId,
+    origin: origin || undefined,
     state: state || undefined,
     paymentState: paymentState || undefined,
     dateFrom: filters.get('date_from') || undefined,
@@ -105,6 +108,7 @@ export function SalesPage() {
                         customer_name: '',
                         state: '',
                         payment_state: '',
+                        origin: '',
                         date_from: '',
                         date_to: '',
                       }),
@@ -159,6 +163,19 @@ export function SalesPage() {
                       </option>
                     ),
                   )}
+                </Select>
+              </Field>
+              <Field id="sales-origin" label="Origen">
+                <Select
+                  id="sales-origin"
+                  onChange={(event) =>
+                    filters.set({ origin: event.target.value })
+                  }
+                  value={origin}
+                >
+                  <option value="">Todos</option>
+                  <option value="DIRECT">Venta directa</option>
+                  <option value="MAINTENANCE">Mantenimiento</option>
                 </Select>
               </Field>
               <Field id="sales-date-from" label="Fecha desde">
@@ -244,6 +261,22 @@ export function SalesPage() {
                 key: 'sale_date',
                 priority: 'secondary',
                 render: (row) => documentDate(row.sale_date),
+              },
+              {
+                header: 'Origen',
+                key: 'origin',
+                priority: 'secondary',
+                render: (row) =>
+                  row.origin?.type === 'MAINTENANCE' ? (
+                    <span className="text-[13px]">
+                      Mantenimiento{' '}
+                      <span className="font-mono">
+                        {row.origin.order_number}
+                      </span>
+                    </span>
+                  ) : (
+                    'Directa'
+                  ),
               },
               {
                 header: 'Cliente',

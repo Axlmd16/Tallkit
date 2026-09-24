@@ -1,4 +1,10 @@
-"""Un ciclo completo del taller no crea ni modifica datos económicos, de inventario ni ajenos."""
+"""Las acciones operativas de la orden no producen efectos económicos ni de inventario.
+
+Sustituye al requisito eliminado «Ausencia de efectos económicos e inventario»: crear, editar,
+finalizar, reabrir y gestionar servicios o fotografías siguen sin crear ventas, reservas,
+movimientos, operaciones artesanales ni pagos. Esos efectos solo nacen con las acciones
+explícitas de repuestos, confirmación de venta, documentación de servicios y cobro.
+"""
 
 from typing import Any
 
@@ -17,6 +23,12 @@ from tests.workshop.workshop_helpers import (
 )
 
 from workshop.application import orders, photos
+from workshop.models import (
+    ArtisanPayment,
+    ArtisanPaymentCorrection,
+    ServiceOperation,
+    ServiceOperationLine,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -67,3 +79,10 @@ def test_full_cycle_has_no_side_effects(manager, artisan, customer, vehicle, mak
     update_intervention(manager, order["id"], work_performed="Ajuste")
     finalize(manager, order["id"])
     assert snapshot() == before
+    for model in (
+        ServiceOperation,
+        ServiceOperationLine,
+        ArtisanPayment,
+        ArtisanPaymentCorrection,
+    ):
+        assert not model.objects.exists()

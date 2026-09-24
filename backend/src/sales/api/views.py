@@ -41,6 +41,7 @@ _NOT_FOUND = {404: ProblemSerializer}
 _TAG = "Sales"
 _STATES = ("DRAFT", "CONFIRMED", "VOIDED")
 _PAYMENT_STATES = ("PENDING", "PARTIAL", "PAID")
+_ORIGINS = ("DIRECT", "MAINTENANCE")
 _PAGE_PARAMS = [
     OpenApiParameter("page", OpenApiTypes.INT, description="Desde 1; omisión 1."),
     OpenApiParameter("page_size", OpenApiTypes.INT, description="1 a 100; omisión 20."),
@@ -49,6 +50,7 @@ _LIST_PARAMS = [
     OpenApiParameter("customer_id", OpenApiTypes.INT),
     OpenApiParameter("state", OpenApiTypes.STR, enum=list(_STATES)),
     OpenApiParameter("payment_state", OpenApiTypes.STR, enum=list(_PAYMENT_STATES)),
+    OpenApiParameter("origin", OpenApiTypes.STR, enum=list(_ORIGINS)),
     OpenApiParameter("date_from", OpenApiTypes.DATE, description="Inclusiva, zona del negocio."),
     OpenApiParameter("date_to", OpenApiTypes.DATE, description="Inclusiva, zona del negocio."),
     *_PAGE_PARAMS,
@@ -56,6 +58,7 @@ _LIST_PARAMS = [
 _RECEIVABLE_PARAMS = [
     OpenApiParameter("customer_id", OpenApiTypes.INT),
     OpenApiParameter("payment_state", OpenApiTypes.STR, enum=["PENDING", "PARTIAL"]),
+    OpenApiParameter("origin", OpenApiTypes.STR, enum=list(_ORIGINS)),
     OpenApiParameter(
         "min_age_days", OpenApiTypes.INT, description="Días desde la confirmación, fechas locales."
     ),
@@ -192,6 +195,7 @@ class SaleListCreateView(_SalesView):
                     customer_id=_int(request, "customer_id", minimum=1),
                     state=request.query_params.get("state"),
                     payment_state=request.query_params.get("payment_state"),
+                    origin=request.query_params.get("origin"),
                     date_from=_date(request, "date_from"),
                     date_to=_date(request, "date_to"),
                     request_id=request_id_from(request),
@@ -615,6 +619,7 @@ class ReceivablesView(_SalesView):
                     actor=_actor(request),
                     customer_id=_int(request, "customer_id", minimum=1),
                     payment_state=request.query_params.get("payment_state"),
+                    origin=request.query_params.get("origin"),
                     min_age_days=_int(request, "min_age_days"),
                     request_id=request_id_from(request),
                     **_page_args(request),
