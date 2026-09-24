@@ -17,6 +17,18 @@ import { ProblemError } from '@/shared/api/client'
 
 import { VehicleDetailPage } from './VehicleDetailPage'
 
+const maintenanceArgs = vi.hoisted(() => [] as unknown[])
+vi.mock('@/features/maintenance/hooks', () => ({
+  useMaintenanceOrders: (filters: unknown) => {
+    maintenanceArgs.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      data: { count: 0, page: 1, page_size: 10, total_pages: 0, results: [] },
+    }
+  },
+}))
+
 vi.mock('@/features/vehicle-brands/hooks', () => ({
   useVehicleBrands: () => ({
     data: {
@@ -502,5 +514,37 @@ describe('ficha de vehículo Tallkit (PPF-02)', () => {
     expect(
       within(actions).getByRole('button', { name: 'Editar vehículo' }),
     ).toBeInTheDocument()
+  })
+
+  it('muestra el historial de mantenimientos del vehículo solo al taller', () => {
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'vendedor',
+        roles: ['VENDEDOR'],
+        permissions: ['vehiculos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+    const view = renderComponent()
+    expect(
+      screen.queryByRole('heading', { name: 'Historial de mantenimientos' }),
+    ).not.toBeInTheDocument()
+    view.unmount()
+
+    vi.spyOn(authHooks, 'useSession').mockReturnValue({
+      data: {
+        authenticated: true,
+        username: 'encargado',
+        roles: ['ENCARGADO_TALLER'],
+        permissions: ['vehiculos.ver', 'mantenimientos.ver'],
+        must_change_password: false,
+      },
+    } as unknown as ReturnType<typeof authHooks.useSession>)
+    renderComponent()
+    expect(
+      screen.getByRole('heading', { name: 'Historial de mantenimientos' }),
+    ).toBeInTheDocument()
+    expect(maintenanceArgs.at(-1)).toMatchObject({ vehicleId: 42 })
   })
 })

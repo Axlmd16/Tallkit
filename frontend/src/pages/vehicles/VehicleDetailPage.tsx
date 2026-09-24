@@ -9,6 +9,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
+import { MaintenanceHistorySection } from '@/features/maintenance/MaintenanceHistorySection'
 import { useCustomer, useCustomers } from '@/features/customers/hooks'
 import { timestamp } from '@/features/purchases/format'
 import {
@@ -321,6 +322,24 @@ export function VehicleDetailPage() {
               </div>
             )}
           </section>
+          {permissions.has('mantenimientos.ver') && (
+            <MaintenanceHistorySection
+              canCreate={
+                vehicle.is_active &&
+                Boolean(vehicle.current_owner) &&
+                permissions.has('mantenimientos.gestionar')
+              }
+              customer={
+                vehicle.current_owner
+                  ? {
+                      id: vehicle.current_owner.id,
+                      name: vehicle.current_owner.name,
+                    }
+                  : undefined
+              }
+              vehicleId={vehicle.id}
+            />
+          )}
         </div>
 
         <aside className="space-y-4">

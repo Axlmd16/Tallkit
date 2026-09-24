@@ -11,6 +11,8 @@ export class ProblemError extends Error {
     public readonly requestId?: string,
     public readonly errors?: Record<string, string[]>,
     public readonly conflict?: ProblemConflict,
+    /** Datos estructurados opcionales del problema (por ejemplo, el último kilometraje). */
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message)
   }
@@ -70,8 +72,10 @@ export class ApiClient {
     const method = options.method ?? 'GET'
     if (isMutation(method) && !this.csrfToken) await this.refreshCsrf()
 
+    const isForm = options.body instanceof FormData
     const headers: Record<string, string> = { Accept: 'application/json' }
-    if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+    if (options.body !== undefined && !isForm)
+      headers['Content-Type'] = 'application/json'
     if (isMutation(method) && this.csrfToken)
       headers['X-CSRFToken'] = this.csrfToken
 
@@ -83,7 +87,11 @@ export class ApiClient {
         headers,
         ...(options.body === undefined
           ? {}
-          : { body: JSON.stringify(options.body) }),
+          : {
+              body: isForm
+                ? (options.body as FormData)
+                : JSON.stringify(options.body),
+            }),
       })
     } catch {
       throw new ProblemError(
@@ -129,6 +137,12 @@ export class ApiClient {
           conflict = { type: c.type, id: c.id }
         }
       }
+      const details =
+        typeof problem.details === 'object' &&
+        problem.details !== null &&
+        !Array.isArray(problem.details)
+          ? (problem.details as Record<string, unknown>)
+          : undefined
       throw new ProblemError(
         typeof problem.detail === 'string'
           ? problem.detail
@@ -138,6 +152,7 @@ export class ApiClient {
         typeof problem.request_id === 'string' ? problem.request_id : undefined,
         errors,
         conflict,
+        details,
       )
     }
     throw new ProblemError(

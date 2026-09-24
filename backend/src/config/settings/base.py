@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "inventory.apps.InventoryConfig",
     "purchasing.apps.PurchasingConfig",
     "sales.apps.SalesConfig",
+    "workshop.apps.WorkshopConfig",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +85,9 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+# Archivos privados (fotografías de mantenimiento): sin URL pública, entregados solo por la API
+# autorizada. Debe montarse como volumen persistente e incluirse en los respaldos (ADR-0007).
+PRIVATE_MEDIA_ROOT = Path(env("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private-media")))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "identity.User"
 AUTH_PASSWORD_VALIDATORS = [

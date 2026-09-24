@@ -5,6 +5,7 @@ spec "Acceso administrativo a la configuración", "Idempotencia de comandos admi
 """
 
 from datetime import date, timedelta
+from typing import TypedDict
 
 import pytest
 from rest_framework import status
@@ -22,10 +23,20 @@ from workshop_configuration.models import (
     WorkshopConfiguration,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures comunes
 # ---------------------------------------------------------------------------
+
+
+class InitializedData(TypedDict):
+    comercial: FiscalEntity
+    artesanal: FiscalEntity
+    warehouse: Warehouse
+
+
+class ScopeSeries(TypedDict):
+    scope: NumberingScope
+    series: DocumentSeries
 
 
 @pytest.fixture
@@ -52,7 +63,7 @@ def anon_client(db: None) -> APIClient:
 
 
 @pytest.fixture
-def initialized(db: None) -> dict[str, object]:
+def initialized(db: None) -> InitializedData:
     """Estado post-inicialización directo (sin pasar por el API)."""
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     comercial = FiscalEntity.objects.create(
@@ -89,7 +100,7 @@ def test_status_not_initialized(admin_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
-def test_status_initialized(admin_client: APIClient, initialized: dict) -> None:
+def test_status_initialized(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.get(f"{BASE}/status/")
     assert resp.status_code == status.HTTP_200_OK
     assert resp.data["is_initialized"] is True
@@ -147,7 +158,9 @@ def test_initialize_success(admin_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
-def test_initialize_conflict_if_already_done(admin_client: APIClient, initialized: dict) -> None:
+def test_initialize_conflict_if_already_done(
+    admin_client: APIClient, initialized: InitializedData
+) -> None:
     resp = admin_client.post(
         f"{BASE}/initialize/",
         {
@@ -206,7 +219,7 @@ def test_initialize_validation_error(admin_client: APIClient) -> None:
 
 
 @pytest.mark.django_db
-def test_list_entities(admin_client: APIClient, initialized: dict) -> None:
+def test_list_entities(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.get(f"{BASE}/entities/")
     assert resp.status_code == status.HTTP_200_OK
     types = {e["entity_type"] for e in resp.data}
@@ -214,13 +227,15 @@ def test_list_entities(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_list_entities_seller_denied(seller_client: APIClient, initialized: dict) -> None:
+def test_list_entities_seller_denied(
+    seller_client: APIClient, initialized: InitializedData
+) -> None:
     resp = seller_client.get(f"{BASE}/entities/")
     assert resp.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
-def test_get_entity(admin_client: APIClient, initialized: dict) -> None:
+def test_get_entity(admin_client: APIClient, initialized: InitializedData) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = admin_client.get(f"{BASE}/entities/{entity.pk}/")
     assert resp.status_code == status.HTTP_200_OK
@@ -229,14 +244,14 @@ def test_get_entity(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_get_entity_not_found(admin_client: APIClient, initialized: dict) -> None:
+def test_get_entity_not_found(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.get(f"{BASE}/entities/99999/")
     assert resp.status_code == status.HTTP_404_NOT_FOUND
     assert resp["Content-Type"] == "application/problem+json"
 
 
 @pytest.mark.django_db
-def test_update_entity_legal_name(admin_client: APIClient, initialized: dict) -> None:
+def test_update_entity_legal_name(admin_client: APIClient, initialized: InitializedData) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = admin_client.patch(
         f"{BASE}/entities/{entity.pk}/",
@@ -249,7 +264,7 @@ def test_update_entity_legal_name(admin_client: APIClient, initialized: dict) ->
 
 
 @pytest.mark.django_db
-def test_update_entity_stale_version(admin_client: APIClient, initialized: dict) -> None:
+def test_update_entity_stale_version(admin_client: APIClient, initialized: InitializedData) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = admin_client.patch(
         f"{BASE}/entities/{entity.pk}/",
@@ -261,7 +276,9 @@ def test_update_entity_stale_version(admin_client: APIClient, initialized: dict)
 
 
 @pytest.mark.django_db
-def test_update_entity_type_immutable(admin_client: APIClient, initialized: dict) -> None:
+def test_update_entity_type_immutable(
+    admin_client: APIClient, initialized: InitializedData
+) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = admin_client.patch(
         f"{BASE}/entities/{entity.pk}/",
@@ -278,7 +295,7 @@ def test_update_entity_type_immutable(admin_client: APIClient, initialized: dict
 
 
 @pytest.mark.django_db
-def test_get_warehouse(admin_client: APIClient, initialized: dict) -> None:
+def test_get_warehouse(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.get(f"{BASE}/warehouse/")
     assert resp.status_code == status.HTTP_200_OK
     assert resp.data["name"] == "Bodega principal"
@@ -286,7 +303,7 @@ def test_get_warehouse(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_update_warehouse(admin_client: APIClient, initialized: dict) -> None:
+def test_update_warehouse(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.patch(
         f"{BASE}/warehouse/",
         {"name": "Depósito central", "expected_version": 1},
@@ -298,7 +315,7 @@ def test_update_warehouse(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_update_warehouse_stale(admin_client: APIClient, initialized: dict) -> None:
+def test_update_warehouse_stale(admin_client: APIClient, initialized: InitializedData) -> None:
     resp = admin_client.patch(
         f"{BASE}/warehouse/",
         {"name": "Nuevo nombre", "expected_version": 99},
@@ -308,7 +325,7 @@ def test_update_warehouse_stale(admin_client: APIClient, initialized: dict) -> N
 
 
 @pytest.mark.django_db
-def test_warehouse_seller_denied(seller_client: APIClient, initialized: dict) -> None:
+def test_warehouse_seller_denied(seller_client: APIClient, initialized: InitializedData) -> None:
     resp = seller_client.get(f"{BASE}/warehouse/")
     assert resp.status_code == status.HTTP_403_FORBIDDEN
 
@@ -319,7 +336,7 @@ def test_warehouse_seller_denied(seller_client: APIClient, initialized: dict) ->
 
 
 @pytest.fixture
-def tax_def(initialized: dict, admin_client: APIClient) -> TaxDefinition:
+def tax_def(initialized: InitializedData, admin_client: APIClient) -> TaxDefinition:
     entity: FiscalEntity = initialized["comercial"]
     return TaxDefinition.objects.create(
         fiscal_entity=entity,
@@ -338,7 +355,7 @@ def test_list_taxes(admin_client: APIClient, tax_def: TaxDefinition) -> None:
 
 
 @pytest.mark.django_db
-def test_create_tax_def(admin_client: APIClient, initialized: dict) -> None:
+def test_create_tax_def(admin_client: APIClient, initialized: InitializedData) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = admin_client.post(
         f"{BASE}/taxes/",
@@ -350,7 +367,9 @@ def test_create_tax_def(admin_client: APIClient, initialized: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_create_tax_def_seller_denied(seller_client: APIClient, initialized: dict) -> None:
+def test_create_tax_def_seller_denied(
+    seller_client: APIClient, initialized: InitializedData
+) -> None:
     entity: FiscalEntity = initialized["comercial"]
     resp = seller_client.post(
         f"{BASE}/taxes/",
@@ -453,7 +472,7 @@ def test_schedule_successor_past_date(admin_client: APIClient, period: TaxPeriod
 
 
 @pytest.fixture
-def scope_series(initialized: dict) -> dict[str, object]:
+def scope_series(initialized: InitializedData) -> ScopeSeries:
     entity: FiscalEntity = initialized["comercial"]
     scope = NumberingScope.objects.create(
         fiscal_entity=entity,
@@ -469,7 +488,7 @@ def scope_series(initialized: dict) -> dict[str, object]:
 
 
 @pytest.mark.django_db
-def test_list_series(admin_client: APIClient, scope_series: dict) -> None:
+def test_list_series(admin_client: APIClient, scope_series: ScopeSeries) -> None:
     scope: NumberingScope = scope_series["scope"]
     resp = admin_client.get(f"{BASE}/series/?scope_id={scope.pk}")
     assert resp.status_code == status.HTTP_200_OK
@@ -477,7 +496,7 @@ def test_list_series(admin_client: APIClient, scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_get_series(admin_client: APIClient, scope_series: dict) -> None:
+def test_get_series(admin_client: APIClient, scope_series: ScopeSeries) -> None:
     series: DocumentSeries = scope_series["series"]
     resp = admin_client.get(f"{BASE}/series/{series.pk}/")
     assert resp.status_code == status.HTTP_200_OK
@@ -485,7 +504,7 @@ def test_get_series(admin_client: APIClient, scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_update_series_code(admin_client: APIClient, scope_series: dict) -> None:
+def test_update_series_code(admin_client: APIClient, scope_series: ScopeSeries) -> None:
     series: DocumentSeries = scope_series["series"]
     resp = admin_client.patch(
         f"{BASE}/series/{series.pk}/",
@@ -497,7 +516,7 @@ def test_update_series_code(admin_client: APIClient, scope_series: dict) -> None
 
 
 @pytest.mark.django_db
-def test_update_series_code_after_use(admin_client: APIClient, scope_series: dict) -> None:
+def test_update_series_code_after_use(admin_client: APIClient, scope_series: ScopeSeries) -> None:
     series: DocumentSeries = scope_series["series"]
     series.last_number = 1
     series.save()
@@ -510,7 +529,7 @@ def test_update_series_code_after_use(admin_client: APIClient, scope_series: dic
 
 
 @pytest.mark.django_db
-def test_replace_series(admin_client: APIClient, scope_series: dict) -> None:
+def test_replace_series(admin_client: APIClient, scope_series: ScopeSeries) -> None:
     series: DocumentSeries = scope_series["series"]
     series.last_number = 1
     series.save()
@@ -525,7 +544,7 @@ def test_replace_series(admin_client: APIClient, scope_series: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_series_seller_denied(seller_client: APIClient, scope_series: dict) -> None:
+def test_series_seller_denied(seller_client: APIClient, scope_series: ScopeSeries) -> None:
     scope: NumberingScope = scope_series["scope"]
     resp = seller_client.get(f"{BASE}/series/?scope_id={scope.pk}")
     assert resp.status_code == status.HTTP_403_FORBIDDEN

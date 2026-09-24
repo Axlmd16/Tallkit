@@ -15,6 +15,7 @@ export type ButtonVariant =
   | 'primary'
   | 'secondary'
   | 'quiet'
+  | 'soft'
   | 'danger'
   | 'danger-solid'
   | 'ghost'
@@ -26,6 +27,8 @@ const buttonVariants: Record<ButtonVariant, string> = {
   secondary: 'border-line-strong bg-surface text-ink hover:bg-surface-subtle',
   quiet:
     'border-transparent bg-transparent text-accent hover:bg-accent-soft hover:text-accent-strong',
+  /** Acción de sección siempre visible: petróleo suave en reposo, borde petróleo al pasar el cursor. */
+  soft: 'border-transparent bg-accent-soft text-accent hover:border-accent/40 hover:text-accent-strong',
   danger:
     'border-danger/30 bg-surface text-danger hover:border-danger/45 hover:bg-danger-soft',
   'danger-solid':

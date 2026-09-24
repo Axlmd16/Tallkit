@@ -32,13 +32,16 @@ services:
       APP_LANGUAGE_CODE: ${APP_LANGUAGE_CODE:-es-ec}
       APP_TIME_ZONE: ${APP_TIME_ZONE:-America/Guayaquil}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    command: ["sh", "-c", "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
+      PRIVATE_MEDIA_ROOT: /var/lib/sys-taller/private-media
+    # El venv vive en el volumen backend_venv: se sincroniza con uv.lock en cada arranque.
+    command: ["sh", "-c", "uv sync --frozen && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"]
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend:/app
       - backend_venv:/app/.venv
       - uv_cache:/root/.cache/uv
+      - private_media:/var/lib/sys-taller/private-media
     depends_on:
       db:
         condition: service_healthy
@@ -78,6 +81,7 @@ services:
 volumes:
   postgres_data:
   backend_venv:
+  private_media:
   frontend_node_modules:
   npm_cache:
   uv_cache:

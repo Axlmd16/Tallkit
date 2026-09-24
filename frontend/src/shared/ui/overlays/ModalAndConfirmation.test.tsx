@@ -37,6 +37,23 @@ function MobileSidebarExample() {
 }
 
 describe('Modal (C41), ConfirmationPanel (C42) y Sidebar Móvil - Fase 9.4', () => {
+  it.each([
+    ['wide', 'max-w-[600px]'],
+    ['media', 'max-w-[min(90vw,1100px)]'],
+  ] as const)(
+    'applies the %s size without keeping the default width',
+    (size, expected) => {
+      render(
+        <Modal onClose={vi.fn()} open size={size} title={`Modal ${size}`}>
+          <p>Contenido</p>
+        </Modal>,
+      )
+      const dialog = screen.getByRole('dialog', { name: `Modal ${size}` })
+      expect(dialog.className).toContain(expected)
+      expect(dialog.className).not.toContain('max-w-[466px]')
+    },
+  )
+
   it('renders Modal with 466px width (F12 4:6177) and accessible header/actions', async () => {
     const user = userEvent.setup()
     const handleClose = vi.fn()

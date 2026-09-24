@@ -5,6 +5,7 @@ Trazabilidad: spec "Configuración obligatoria para operaciones dependientes",
 """
 
 from datetime import date
+from typing import TypedDict
 
 import pytest
 
@@ -29,6 +30,12 @@ from workshop_configuration.models import (
 # ---------------------------------------------------------------------------
 
 
+class ConfiguredData(TypedDict):
+    entity: FiscalEntity
+    tax_def: TaxDefinition
+    period: TaxPeriod
+
+
 @pytest.fixture
 def admin(db: None) -> User:
     user = User.objects.create_user(username="res-admin", password="password123")
@@ -37,7 +44,7 @@ def admin(db: None) -> User:
 
 
 @pytest.fixture
-def configured(db: None) -> dict[str, object]:
+def configured(db: None) -> ConfiguredData:
     """Configuración mínima con entidad COMERCIAL y período de IVA activo."""
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     entity = FiscalEntity.objects.create(
@@ -69,7 +76,7 @@ def configured(db: None) -> dict[str, object]:
 
 
 @pytest.mark.django_db
-def test_resolve_configuration_returns_result(configured: dict) -> None:
+def test_resolve_configuration_returns_result(configured: ConfiguredData) -> None:
     result = resolve_configuration(
         entity_type="COMERCIAL",
         tax_codes=["IVA"],
@@ -85,7 +92,7 @@ def test_resolve_configuration_returns_result(configured: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_resolve_configuration_saves_use_snapshot(configured: dict) -> None:
+def test_resolve_configuration_saves_use_snapshot(configured: ConfiguredData) -> None:
     """Uso y copia se guardan juntos en la misma transacción."""
     result = resolve_configuration(
         entity_type="COMERCIAL",
@@ -100,7 +107,7 @@ def test_resolve_configuration_saves_use_snapshot(configured: dict) -> None:
         consumer_id="sale-001",
     )
     assert uses.count() == 1
-    use = uses.first()
+    use = uses.get()
     assert use.entity_type_snapshot == "COMERCIAL"
     assert use.ruc_snapshot == "0991234567001"
     assert use.tax_code_snapshot == "IVA"
@@ -122,7 +129,7 @@ def test_resolve_configuration_fails_if_entity_not_found(db: None) -> None:
 
 
 @pytest.mark.django_db
-def test_resolve_configuration_fails_if_tax_code_not_found(configured: dict) -> None:
+def test_resolve_configuration_fails_if_tax_code_not_found(configured: ConfiguredData) -> None:
     with pytest.raises(MissingConfigurationError):
         resolve_configuration(
             entity_type="COMERCIAL",
@@ -132,7 +139,7 @@ def test_resolve_configuration_fails_if_tax_code_not_found(configured: dict) -> 
 
 
 @pytest.mark.django_db
-def test_resolve_configuration_fails_if_no_period_for_date(configured: dict) -> None:
+def test_resolve_configuration_fails_if_no_period_for_date(configured: ConfiguredData) -> None:
     """Antes de la fecha de inicio del período: MissingConfigurationError."""
     with pytest.raises(MissingConfigurationError):
         resolve_configuration(
@@ -143,7 +150,7 @@ def test_resolve_configuration_fails_if_no_period_for_date(configured: dict) -> 
 
 
 @pytest.mark.django_db
-def test_resolve_configuration_fails_on_ambiguous_period(configured: dict) -> None:
+def test_resolve_configuration_fails_on_ambiguous_period(configured: ConfiguredData) -> None:
     """Si por algún bug hubiera dos períodos activos en la misma fecha: ambigüedad."""
     # Crear un segundo período solapado directamente (bypass del servicio)
     period: TaxPeriod = configured["period"]
@@ -170,7 +177,7 @@ def test_resolve_configuration_fails_on_ambiguous_period(configured: dict) -> No
 
 @pytest.mark.django_db
 def test_resolve_configuration_snapshot_unaffected_by_subsequent_edit(
-    configured: dict, admin: User
+    configured: ConfiguredData, admin: User
 ) -> None:
     """Una vez guardada la copia histórica, editar la entidad no la altera."""
     resolve_configuration(
@@ -201,7 +208,7 @@ def test_resolve_configuration_snapshot_unaffected_by_subsequent_edit(
 
 @pytest.mark.django_db(transaction=True)
 def test_confirmed_resolution_is_rejected_outside_an_active_transaction(
-    configured: dict,
+    configured: ConfiguredData,
 ) -> None:
     with pytest.raises(RuntimeError, match="transacción"):
         resolve_configuration(
@@ -215,7 +222,7 @@ def test_confirmed_resolution_is_rejected_outside_an_active_transaction(
 
 
 @pytest.mark.django_db
-def test_definitions_are_locked_by_id_before_their_periods(configured: dict) -> None:
+def test_definitions_are_locked_by_id_before_their_periods(configured: ConfiguredData) -> None:
     import re
 
     from django.db import connection
@@ -244,7 +251,7 @@ def test_definitions_are_locked_by_id_before_their_periods(configured: dict) -> 
 
 
 @pytest.mark.django_db
-def test_result_is_immutable_snapshots(configured: dict) -> None:
+def test_result_is_immutable_snapshots(configured: ConfiguredData) -> None:
     import dataclasses
 
     result = resolve_configuration(
@@ -258,7 +265,9 @@ def test_result_is_immutable_snapshots(configured: dict) -> None:
 
 
 @pytest.mark.django_db
-def test_preview_without_consumer_takes_no_locks_and_writes_no_uses(configured: dict) -> None:
+def test_preview_without_consumer_takes_no_locks_and_writes_no_uses(
+    configured: ConfiguredData,
+) -> None:
     from django.db import connection
     from django.test.utils import CaptureQueriesContext
 

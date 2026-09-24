@@ -10,6 +10,9 @@ Verifica que:
 Trazabilidad: spec "Auditoría de cambios de configuración", design decisión 6.
 """
 
+from datetime import date
+from typing import TypedDict
+
 import pytest
 
 from identity.domain.authorization import Role
@@ -32,12 +35,15 @@ from workshop_configuration.models import (
     WorkshopConfiguration,
 )
 
-from datetime import date
-
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+class InitializedData(TypedDict):
+    comercial_id: int
+    artesanal_id: int
+    warehouse_id: int
 
 
 @pytest.fixture
@@ -64,7 +70,7 @@ def multi_role_admin(db: None) -> User:
 
 
 @pytest.fixture
-def initialized(db: None) -> dict[str, object]:
+def initialized(db: None) -> InitializedData:
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
     comercial = FiscalEntity.objects.create(
         entity_type="COMERCIAL",
@@ -107,7 +113,7 @@ def test_initialize_workshop_creates_audit_event_on_success(admin: User) -> None
     )
     assert events.count() == 1
     # Metadatos no deben contener RUC
-    metadata = events.first().metadata
+    metadata = events.get().metadata
     for value in metadata.values():
         assert "099" not in str(value)
         assert "179" not in str(value)
@@ -141,7 +147,7 @@ def test_initialize_workshop_creates_audit_event_on_permission_denial(seller: Us
 
 
 @pytest.mark.django_db
-def test_update_entity_creates_audit_on_success(admin: User, initialized: dict) -> None:
+def test_update_entity_creates_audit_on_success(admin: User, initialized: InitializedData) -> None:
     update_fiscal_entity(
         actor=admin,
         entity_id=initialized["comercial_id"],
@@ -154,12 +160,14 @@ def test_update_entity_creates_audit_on_success(admin: User, initialized: dict) 
         result=AuditResult.SUCCESS,
     )
     assert events.count() == 1
-    metadata = events.first().metadata
+    metadata = events.get().metadata
     assert "legal_name" in metadata.get("changed_fields", [])
 
 
 @pytest.mark.django_db
-def test_update_entity_type_creates_failure_audit(admin: User, initialized: dict) -> None:
+def test_update_entity_type_creates_failure_audit(
+    admin: User, initialized: InitializedData
+) -> None:
     with pytest.raises(FiscalEntityTypeImmutableError):
         update_fiscal_entity(
             actor=admin,
@@ -181,7 +189,9 @@ def test_update_entity_type_creates_failure_audit(admin: User, initialized: dict
 
 
 @pytest.mark.django_db
-def test_multi_role_admin_can_update_warehouse(multi_role_admin: User, initialized: dict) -> None:
+def test_multi_role_admin_can_update_warehouse(
+    multi_role_admin: User, initialized: InitializedData
+) -> None:
     """Usuario con roles acumulados tiene permisos administrativos."""
     wh = update_warehouse(
         actor=multi_role_admin,
@@ -203,7 +213,7 @@ def test_multi_role_admin_can_update_warehouse(multi_role_admin: User, initializ
 
 
 @pytest.mark.django_db
-def test_create_tax_definition_creates_audit(admin: User, initialized: dict) -> None:
+def test_create_tax_definition_creates_audit(admin: User, initialized: InitializedData) -> None:
     td = create_tax_definition(
         actor=admin,
         entity_id=initialized["comercial_id"],
@@ -221,7 +231,7 @@ def test_create_tax_definition_creates_audit(admin: User, initialized: dict) -> 
 
 @pytest.mark.django_db
 def test_create_tax_period_permission_denial_audited(
-    seller: User, initialized: dict, admin: User
+    seller: User, initialized: InitializedData, admin: User
 ) -> None:
     """Denegación al crear período: auditada correctamente."""
     from identity.application.authorization import BusinessPermissionDeniedError

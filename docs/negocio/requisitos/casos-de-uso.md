@@ -398,6 +398,8 @@
 **Alternativa:** cambiar el precio no altera servicios ya copiados a mantenimientos.  
 **Garantía de éxito:** el catálogo vigente queda disponible para mantenimientos futuros.
 
+> **Estado de implementación:** `CU-017` y `CU-019` están implementados parcialmente por `openspec/changes/gestionar-ordenes-mantenimiento`: registro y edición de órdenes, kilometraje con confirmación, servicios del catálogo con precio aplicado, fotografías, finalización y reapertura con intervención correctiva sin cargo. No incluyen la operación económica artesanal, pagos, repuestos vinculados (`CU-018`) ni cancelación. Evidencia: [cobertura-mantenimientos.md](cobertura-mantenimientos.md).
+
 ## 19. CU-017 — Registrar mantenimiento y servicios
 
 **Actor principal:** Administrador o Encargado del taller.  

@@ -70,7 +70,7 @@ def test_fiscal_entity_rejects_duplicate_type_or_ruc() -> None:
     ],
 )
 def test_fiscal_entity_rejects_invalid_types_ruc_and_blank_name(
-    entity_type: object, ruc: str, legal_name: str
+    entity_type: str | FiscalEntityType, ruc: str, legal_name: str
 ) -> None:
     with pytest.raises(IntegrityError), transaction.atomic():
         FiscalEntity.objects.create(

@@ -26,6 +26,9 @@ import { ProductsPage } from '@/pages/products/ProductsPage'
 import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
 import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
 import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
+import { MaintenanceOrderDetailPage } from '@/pages/maintenance/MaintenanceOrderDetailPage'
+import { MaintenanceOrderEditorPage } from '@/pages/maintenance/MaintenanceOrderEditorPage'
+import { MaintenanceOrdersPage } from '@/pages/maintenance/MaintenanceOrdersPage'
 import { ReceivablesPage } from '@/pages/sales/ReceivablesPage'
 import { SaleDetailPage } from '@/pages/sales/SaleDetailPage'
 import { SaleDocumentPage } from '@/pages/sales/SaleDocumentPage'
@@ -288,6 +291,38 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="ventas.ver">
                 <SaleDocumentPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance',
+            element: (
+              <PermissionGuard permission="mantenimientos.ver">
+                <MaintenanceOrdersPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/new',
+            element: (
+              <PermissionGuard permission="mantenimientos.gestionar">
+                <MaintenanceOrderEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/:id',
+            element: (
+              <PermissionGuard permission="mantenimientos.ver">
+                <MaintenanceOrderDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/:id/edit',
+            element: (
+              <PermissionGuard permission="mantenimientos.gestionar">
+                <MaintenanceOrderEditorPage />
               </PermissionGuard>
             ),
           },

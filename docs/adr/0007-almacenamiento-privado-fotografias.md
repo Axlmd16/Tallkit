@@ -1,6 +1,6 @@
 # ADR-0007: Almacenamiento privado de fotografías de mantenimiento
 
-- Estado: Propuesta en el diseño del cambio `gestionar-ordenes-mantenimiento`; pasará a Aceptada al aplicar el cambio tras la aprobación del diseño.
+- Estado: Aceptada el 2026-09-24 al aplicar el cambio `gestionar-ordenes-mantenimiento`; el diseño y este ADR fueron aprobados por el usuario el 2026-09-24.
 - Fecha: 2026-09-24
 
 ## Contexto

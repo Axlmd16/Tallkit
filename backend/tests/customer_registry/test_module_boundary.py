@@ -38,6 +38,7 @@ def test_only_published_customer_interfaces_are_imported_by_other_modules() -> N
     published = {
         "customer_registry.application.catalog_references",
         "customer_registry.application.sales_references",
+        "customer_registry.application.workshop_references",
         "customer_registry.domain.identification",
     }
     # Dependencia previa al módulo comercial: la FK de marcas del catálogo.
@@ -64,6 +65,16 @@ def test_sales_references_interface_never_writes_customer_persistence() -> None:
     from pathlib import Path
 
     import customer_registry.application.sales_references as interface
+
+    source = Path(interface.__file__).read_text(encoding="utf-8")
+    for write in (".save(", ".create(", ".update(", ".delete(", "bulk_", "get_or_create"):
+        assert write not in source, write
+
+
+def test_workshop_references_interface_never_writes_customer_persistence() -> None:
+    from pathlib import Path
+
+    import customer_registry.application.workshop_references as interface
 
     source = Path(interface.__file__).read_text(encoding="utf-8")
     for write in (".save(", ".create(", ".update(", ".delete(", "bulk_", "get_or_create"):

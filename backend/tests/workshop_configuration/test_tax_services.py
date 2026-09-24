@@ -8,6 +8,7 @@ Design decisiones 4 (vigencias y sucesión prospectiva).
 from datetime import date, timedelta
 
 import pytest
+from django.db import IntegrityError
 
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.domain.authorization import Role
@@ -115,7 +116,7 @@ def test_create_tax_definition_rejects_duplicate_entity_code(
     admin: User, comercial: FiscalEntity
 ) -> None:
     create_tax_definition(actor=admin, entity_id=comercial.pk, code="IVA", name="IVA")
-    with pytest.raises(Exception):  # IntegrityError o validación propia
+    with pytest.raises(IntegrityError):
         create_tax_definition(actor=admin, entity_id=comercial.pk, code="IVA", name="IVA 2")
 
 

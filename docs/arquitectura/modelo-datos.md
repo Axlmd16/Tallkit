@@ -275,3 +275,27 @@ Recibo del comando, venta (raíz de consistencia) y hechos comerciales, operaci�
 - `manage.py reconcile_sales` (solo lectura, sin `--fix`) verifica número y configuración, movimientos frente a asignaciones de costo, cantidades devueltas, E/P/R, partes, reembolsos y ausencia de pagos huérfanos; termina con código distinto de cero ante diferencias.
 - Las tablas nacen vacías: no se siembran ventas, pagos, saldos iniciales ni movimientos comerciales, y ninguna numeración previa se renumera.
 - **Reversión.** Antes del primer uso: retirar las rutas y revertir `sales` a `zero` y `inventory` a `0003` solo con las tablas nuevas vacías y sin operaciones `SALE_OUT`/`CUSTOMER_RETURN_IN`. Después de registrar ventas: no revertir destructivamente; detener nuevas escrituras comerciales, conservar esquema e historia, corregir hacia adelante o restaurar un respaldo completo con conciliación del dinero recibido desde ese respaldo. Una versión anterior de inventario no debe operar sobre tipos que desconoce.
+
+## Módulo: workshop (órdenes de mantenimiento)
+
+Modelo implementado por el cambio `gestionar-ordenes-mantenimiento` (migraciones `workshop.0001` y `workshop.0002`, esta última siembra el contador). Pertenece únicamente al RUC artesanal. Las FK hacia cliente, vehículo, servicio, entidad fiscal, definición tributaria e identidad usan `PROTECT` y `related_name="+"`; ningún módulo ajeno referencia `workshop`. **No se almacenan** subtotales ni totales: se calculan desde las líneas. No se crean ventas, pagos, deuda, documentos internos, reservas ni movimientos de inventario.
+
+### Tablas de `workshop`
+| Tabla | Datos y restricciones |
+|---|---|
+| `workshop_maintenancecounter` | Fila única (`id = 1`) con `last_number`; se bloquea en la transacción de creación para asignar `ART-OT-NNNNNN` sin huecos por rollback. Independiente de las series fiscales. |
+| `workshop_maintenanceorder` | `sequence` y `number` únicos (`^ART-OT-[0-9]{6,}$`), entidad fiscal, cliente, vehículo, snapshots JSON de cliente (nombre, tipo e identificación) y vehículo (placa, marca, modelo) con `schema_version`, `opened_on`, `odometer_km` entero 0…9 999 999 con confirmación opcional (usuario y fecha), diagnóstico, observaciones, `state` (`REGISTERED`, `FINALIZED`, `REOPENED`), `version`, creador/actualizador y fechas, última finalización. **Índice único parcial** `(vehicle)` con estado abierto: una sola orden abierta por vehículo. Índices por fecha de apertura, cliente, vehículo y estado. |
+| `workshop_intervention` | Orden, `kind` (`INITIAL`, `CORRECTIVE`), `ordinal` único por orden, causa (obligatoria en correctivas), trabajo realizado, observaciones, apertura y cierre. Únicos parciales: una inicial por orden y una sola abierta (`closed_at IS NULL`). |
+| `workshop_serviceline` | Intervención, servicio, copia del nombre, `reference_price` y `applied_price` `numeric(14,2)` no negativos, `quantity` entera 1…9999, definición tributaria y su nombre copiado, posición y auditoría. Las líneas correctivas llevan precio aplicado 0,00 (regla de aplicación). |
+| `workshop_orderphoto` | Orden, intervención, nombres privados únicos de original y miniatura (UUID), tipo (`image/jpeg`, `image/png`, `image/webp`), tamaño, dimensiones, SHA-256, descripción ≤ 200, carga y retiro (usuario y fecha). El retiro conserva el registro y elimina los archivos. |
+| `workshop_statetransition` | Transición inmutable con pares permitidos `REGISTERED→FINALIZED`, `REOPENED→FINALIZED`, `FINALIZED→REOPENED`, intervención, causa (reapertura), actor y fecha. |
+| `workshop_workshopcommand` | Recibo idempotente `(actor, action, idempotency_key)` único con formato 8…128 caracteres, huella e identidad del resultado; sin purga automática. |
+
+### Orden de bloqueo y concurrencia
+Recibo del comando → orden → cliente → vehículo → período de propiedad vigente (mismo orden que la transferencia de propiedad) → servicio → contador. Toda modificación de datos, líneas, intervención o estado exige `expected_version` e incrementa `version`; las fotografías respetan el estado bloqueado pero no cambian la versión. El índice único parcial respalda la regla de una orden abierta por vehículo frente a carreras.
+
+### Archivos privados
+Las fotografías viven fuera de la base, en `PRIVATE_MEDIA_ROOT/maintenance/<orden>/` (ADR-0007). Un registro solo existe con sus archivos completos; `manage.py purge_workshop_files` elimina de forma idempotente los archivos sin registro vigente más antiguos que el margen indicado. El volumen debe respaldarse junto con PostgreSQL.
+
+### Reversión
+Antes del primer uso: retirar las rutas y revertir `workshop` a `zero` con las tablas vacías. Después de registrar órdenes: no revertir destructivamente; conservar esquema, historia y archivos, y corregir hacia adelante.

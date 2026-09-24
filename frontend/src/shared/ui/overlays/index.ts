@@ -6,7 +6,7 @@ export {
   type DropdownMenuProps,
 } from './DropdownMenu'
 
-export { Modal, type ModalProps } from './Modal'
+export { Modal, type ModalProps, type ModalSize } from './Modal'
 export { FormModal, type FormModalProps } from './FormModal'
 
 export {
