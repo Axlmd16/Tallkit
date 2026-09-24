@@ -129,7 +129,7 @@ Comandos: `cd frontend && npm run test:e2e -- e2e/catalogs.spec.ts`, pruebas Pos
 - [x] 13.4 Completar `cobertura-catalogos.md` con las 126 filas y pruebas/resultados recientes; distinguir garantías locales de historia y obligaciones de consumidores futuros sin declarar implementadas compras/ventas/mantenimientos.
 - [x] 13.5 Ejecutar `make check`, `make test`, `make audit`, `make compose-check`, `cd frontend && npm run test:e2e`, `cd backend && uv run python manage.py spectacular --validate`, `openspec validate --all --strict` y `git diff --check`; registrar comandos, resultados y bloqueos reales sin bajar umbrales.
 - [x] 13.6 Revisar diff, migraciones, OpenAPI, dependencias/lockfiles y ausencia de secretos, archivos generados o datos personales; verificar que cada tarea marcada tenga implementación y evidencia. Preparar verificación OpenSpec sin archivar, hacer push o integrar automáticamente.
-- [ ] 13.7 Entregar resumen de alcance real, migraciones/pasos operativos, decisiones y limitaciones. Dejar sincronización final de specs principales y archivo para el flujo autorizado desde master, después de verificar e integrar; no dar por terminado el software porque los cuatro artefactos existan.
+- [x] 13.7 Entregar resumen de alcance real, migraciones/pasos operativos, decisiones y limitaciones. Dejar sincronización final de specs principales y archivo para el flujo autorizado desde master, después de verificar e integrar; no dar por terminado el software porque los cuatro artefactos existan.
 
 ## Ajuste posterior: código del fabricante
 
