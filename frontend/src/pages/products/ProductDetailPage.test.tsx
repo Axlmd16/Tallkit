@@ -100,6 +100,9 @@ it('sin permiso de inventario no consulta ni muestra existencias', () => {
   mocks.permissions = ['productos.ver']
   renderPage()
   expect(screen.queryByLabelText('Existencias')).toBeNull()
+  expect(screen.getByRole('region', { name: 'Precio' })).toHaveTextContent(
+    'USD 99.99',
+  )
   expect(mocks.stockArgs.at(-1)).toEqual([7, false])
 })
 
@@ -115,6 +118,12 @@ it('no habilita la edición de saldos y distingue el costo del precio final de v
   }
   renderPage()
   expect(screen.getByText('Precio final')).toBeInTheDocument()
+  expect(screen.getByLabelText('Existencias')).toHaveTextContent(
+    'Costo promedioUSD 2.50',
+  )
+  expect(screen.getByLabelText('Existencias')).toHaveTextContent(
+    'Valor inventariableUSD 30.00',
+  )
   expect(screen.getByLabelText('Existencias')).toHaveTextContent(
     'no es el precio final de venta',
   )
@@ -132,4 +141,20 @@ it('un fallo de consulta no presenta cero como saldo confirmado', () => {
   expect(screen.getByLabelText('Existencias')).not.toHaveTextContent(
     'Existencia actual',
   )
+})
+
+it('muestra la ficha en paneles con códigos, compatibilidad e impuesto', () => {
+  renderPage()
+  expect(
+    screen.getByRole('region', { name: 'Datos generales' }),
+  ).toHaveTextContent('Lubricantes')
+  expect(
+    screen.getByRole('region', { name: 'Compatibilidad' }),
+  ).toHaveTextContent('Universal')
+  expect(
+    screen.getByRole('region', { name: 'Precio y existencias' }),
+  ).toHaveTextContent('Sin impuesto asignado')
+  expect(
+    screen.getByRole('button', { name: 'Copiar código ACE-1' }),
+  ).toBeInTheDocument()
 })

@@ -1,14 +1,23 @@
-import { User } from '@phosphor-icons/react'
+import {
+  AddressBook,
+  Buildings,
+  Envelope,
+  FloppyDisk,
+  IdentificationCard,
+  MapPin,
+  Phone,
+  User,
+} from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
-  ButtonGroup,
   Field,
-  FormLayout,
   InlineNotice,
   Input,
+  LeadingIcon,
+  SectionPanel,
   Select,
 } from '@/shared/ui'
 
@@ -17,7 +26,6 @@ import type {
   CustomerMatch,
   CustomerSummary,
   CustomerWrite,
-  IdentificationType,
   PersonType,
 } from './types'
 
@@ -201,205 +209,295 @@ export function CustomerForm({
 
   const nameLabel =
     draft.person_type === 'JURIDICA' ? 'Razón social' : 'Nombres y apellidos'
+  const identificationLength = draft.identification_type === 'RUC' ? 13 : 10
+  const initials = draft.name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join('')
+  const setField = (field: keyof CustomerWrite, value: string) => {
+    setDraft({ ...draft, [field]: value })
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+  const missing = (
+    <span className="font-normal text-ink-muted">Sin ingresar</span>
+  )
 
   return (
     <form
-      className="customer-form space-y-6"
+      className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
       noValidate
       onSubmit={(event) => void submit(event)}
     >
-      <div className="customer-form-avatar" aria-hidden="true">
-        {customer ? (
-          customer.name.slice(0, 2).toUpperCase()
-        ) : (
-          <User size={62} weight="fill" />
+      <div className="min-w-0 space-y-4">
+        {summary && !conflictId && (
+          <InlineNotice title={summary} tone="danger" />
         )}
+
+        <SectionPanel
+          description="Una misma identificación no puede registrarse dos veces."
+          icon={<IdentificationCard size={17} />}
+          id="customer-form-identity"
+          title="Identificación"
+        >
+          <div className="space-y-4 p-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Field
+                error={fieldErrors.person_type}
+                id="customer-person-type"
+                label="Tipo de persona"
+              >
+                <Select
+                  onChange={(event) => {
+                    const pt = event.target.value as PersonType
+                    setDraft({
+                      ...draft,
+                      person_type: pt,
+                      identification_type:
+                        pt === 'JURIDICA' ? 'RUC' : draft.identification_type,
+                    })
+                    setFieldErrors((prev) => ({ ...prev, person_type: '' }))
+                  }}
+                  value={draft.person_type}
+                >
+                  <option value="NATURAL">Persona natural</option>
+                  <option value="JURIDICA">Persona jurídica</option>
+                </Select>
+              </Field>
+
+              <Field
+                error={fieldErrors.identification_type}
+                id="customer-identification-type"
+                label="Tipo de identificación"
+              >
+                <Select
+                  onChange={(event) =>
+                    setField('identification_type', event.target.value)
+                  }
+                  value={draft.identification_type}
+                >
+                  <option value="CI">Cédula de identidad (CI)</option>
+                  <option value="RUC">RUC</option>
+                </Select>
+              </Field>
+
+              <Field
+                error={fieldErrors.identification}
+                id="customer-identification"
+                label="Número de identificación"
+                required
+              >
+                <div className="relative">
+                  <Input
+                    className="pr-14 tabular-nums"
+                    inputMode="numeric"
+                    onChange={(event) =>
+                      setField('identification', event.target.value)
+                    }
+                    value={draft.identification}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-ink-muted tabular-nums"
+                  >
+                    {draft.identification.trim().length}/{identificationLength}
+                  </span>
+                </div>
+              </Field>
+
+              <Field
+                className="md:col-span-3"
+                error={fieldErrors.name}
+                id="customer-name"
+                label={nameLabel}
+                required
+              >
+                <Input
+                  data-autofocus
+                  onBlur={() => void checkMatches(draft.name, draft.phone)}
+                  onChange={(event) => setField('name', event.target.value)}
+                  value={draft.name}
+                />
+              </Field>
+            </div>
+
+            {summary && conflictId && (
+              <InlineNotice title={summary} tone="danger">
+                {onNavigateToCustomer && (
+                  <div className="mt-2">
+                    <Button
+                      onClick={() => onNavigateToCustomer(conflictId)}
+                      type="button"
+                      variant="secondary"
+                    >
+                      Ver ficha del cliente registrado
+                    </Button>
+                  </div>
+                )}
+              </InlineNotice>
+            )}
+
+            {matches.length > 0 && (
+              <InlineNotice
+                title="Coincidencias encontradas: existen clientes con datos similares"
+                tone="warning"
+              >
+                <p className="mb-2">
+                  Esta advertencia no bloquea el registro si se trata de una
+                  identidad diferente.
+                </p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {matches.map((m) => (
+                    <li key={m.id}>
+                      <span className="font-semibold">{m.name}</span> (
+                      {m.identification_type}: {m.identification}) – Tel:{' '}
+                      {m.phone}{' '}
+                      <span className="text-xs">
+                        [{m.is_active ? 'Activo' : 'Inactivo'}]
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </InlineNotice>
+            )}
+          </div>
+        </SectionPanel>
+
+        <SectionPanel
+          description="El teléfono es obligatorio; correo y dirección son opcionales."
+          icon={<Phone size={17} />}
+          id="customer-form-contact"
+          title="Contacto"
+        >
+          <div className="grid gap-4 p-4 md:grid-cols-3">
+            <Field
+              error={fieldErrors.phone}
+              id="customer-phone"
+              label="Teléfono"
+              required
+            >
+              <LeadingIcon icon={<Phone size={17} />}>
+                <Input
+                  className="pl-10"
+                  onBlur={() => void checkMatches(draft.name, draft.phone)}
+                  onChange={(event) => setField('phone', event.target.value)}
+                  type="tel"
+                  value={draft.phone}
+                />
+              </LeadingIcon>
+            </Field>
+
+            <Field
+              error={fieldErrors.email}
+              id="customer-email"
+              label="Correo electrónico (opcional)"
+            >
+              <LeadingIcon icon={<Envelope size={17} />}>
+                <Input
+                  autoComplete="email"
+                  className="pl-10"
+                  onChange={(event) => setField('email', event.target.value)}
+                  type="email"
+                  value={draft.email}
+                />
+              </LeadingIcon>
+            </Field>
+
+            <Field
+              error={fieldErrors.address}
+              id="customer-address"
+              label="Dirección (opcional)"
+            >
+              <LeadingIcon icon={<MapPin size={17} />}>
+                <Input
+                  className="pl-10"
+                  onChange={(event) => setField('address', event.target.value)}
+                  value={draft.address}
+                />
+              </LeadingIcon>
+            </Field>
+          </div>
+        </SectionPanel>
       </div>
 
-      {summary && (
-        <InlineNotice title={summary} tone="danger">
-          {conflictId && onNavigateToCustomer && (
-            <div className="mt-2">
-              <Button
-                onClick={() => onNavigateToCustomer(conflictId)}
-                type="button"
-                variant="secondary"
-              >
-                Ver ficha del cliente registrado
-              </Button>
+      <aside className="lg:sticky lg:top-4 lg:self-start">
+        <SectionPanel
+          icon={<AddressBook size={17} />}
+          id="customer-form-summary"
+          title={customer ? 'Ficha del cliente' : 'Resumen del cliente'}
+        >
+          <div className="flex items-center gap-3 border-b border-line p-4">
+            <span
+              aria-hidden="true"
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-muted text-sm font-semibold text-ink-muted"
+            >
+              {initials ||
+                (draft.person_type === 'JURIDICA' ? (
+                  <Buildings size={20} />
+                ) : (
+                  <User size={20} />
+                ))}
+            </span>
+            <div className="min-w-0">
+              <p className="font-medium break-words text-ink">
+                {draft.name.trim() || (
+                  <span className="font-normal text-ink-muted">Sin nombre</span>
+                )}
+              </p>
+              <p className="text-xs text-ink-muted">
+                {draft.person_type === 'JURIDICA'
+                  ? 'Persona jurídica'
+                  : 'Persona natural'}
+              </p>
             </div>
-          )}
-        </InlineNotice>
-      )}
-
-      {matches.length > 0 && (
-        <InlineNotice
-          title="Coincidencias encontradas: existen clientes con datos similares"
-          tone="warning"
-        >
-          <p className="mb-2">
-            Esta advertencia no bloquea el registro si se trata de una identidad
-            diferente.
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            {matches.map((m) => (
-              <li key={m.id}>
-                <span className="font-semibold">{m.name}</span> (
-                {m.identification_type}: {m.identification}) – Tel: {m.phone}{' '}
-                <span className="text-xs">
-                  [{m.is_active ? 'Activo' : 'Inactivo'}]
-                </span>
-              </li>
-            ))}
-          </ul>
-        </InlineNotice>
-      )}
-
-      <FormLayout
-        className="customer-form-layout"
-        columns={2}
-        fieldsClassName="customer-fields"
-      >
-        <Field
-          error={fieldErrors.person_type}
-          id="customer-person-type"
-          label="Tipo de persona"
-        >
-          <Select
-            onChange={(event) => {
-              const pt = event.target.value as PersonType
-              setDraft({
-                ...draft,
-                person_type: pt,
-                identification_type:
-                  pt === 'JURIDICA' ? 'RUC' : draft.identification_type,
-              })
-              setFieldErrors((prev) => ({ ...prev, person_type: '' }))
-            }}
-            value={draft.person_type}
-          >
-            <option value="NATURAL">Persona natural</option>
-            <option value="JURIDICA">Persona jurídica</option>
-          </Select>
-        </Field>
-
-        <Field
-          error={fieldErrors.identification_type}
-          id="customer-identification-type"
-          label="Tipo de identificación"
-        >
-          <Select
-            onChange={(event) => {
-              setDraft({
-                ...draft,
-                identification_type: event.target.value as IdentificationType,
-              })
-              setFieldErrors((prev) => ({ ...prev, identification_type: '' }))
-            }}
-            value={draft.identification_type}
-          >
-            <option value="CI">Cédula de identidad (CI)</option>
-            <option value="RUC">RUC</option>
-          </Select>
-        </Field>
-
-        <Field
-          className="md:col-span-2"
-          error={fieldErrors.name}
-          id="customer-name"
-          label={nameLabel}
-        >
-          <Input
-            data-autofocus
-            onBlur={() => void checkMatches(draft.name, draft.phone)}
-            onChange={(event) => {
-              setDraft({ ...draft, name: event.target.value })
-              setFieldErrors((prev) => ({ ...prev, name: '' }))
-            }}
-            value={draft.name}
-          />
-        </Field>
-
-        <Field
-          error={fieldErrors.identification}
-          id="customer-identification"
-          label="Número de identificación"
-          // hint={
-          //   draft.identification_type === 'CI'
-          //     ? 'Exactamente 10 dígitos'
-          //     : 'Exactamente 13 dígitos'
-          // }
-        >
-          <Input
-            onChange={(event) => {
-              setDraft({ ...draft, identification: event.target.value })
-              setFieldErrors((prev) => ({ ...prev, identification: '' }))
-            }}
-            value={draft.identification}
-          />
-        </Field>
-
-        <Field error={fieldErrors.phone} id="customer-phone" label="Teléfono">
-          <Input
-            onBlur={() => void checkMatches(draft.name, draft.phone)}
-            onChange={(event) => {
-              setDraft({ ...draft, phone: event.target.value })
-              setFieldErrors((prev) => ({ ...prev, phone: '' }))
-            }}
-            type="tel"
-            value={draft.phone}
-          />
-        </Field>
-
-        <Field
-          className="md:col-span-2"
-          error={fieldErrors.email}
-          id="customer-email"
-          label="Correo electrónico (opcional)"
-        >
-          <Input
-            autoComplete="email"
-            onChange={(event) => {
-              setDraft({ ...draft, email: event.target.value })
-              setFieldErrors((prev) => ({ ...prev, email: '' }))
-            }}
-            type="email"
-            value={draft.email}
-          />
-        </Field>
-
-        <Field
-          className="md:col-span-2"
-          error={fieldErrors.address}
-          id="customer-address"
-          label="Dirección (opcional)"
-        >
-          <Input
-            onChange={(event) => {
-              setDraft({ ...draft, address: event.target.value })
-              setFieldErrors((prev) => ({ ...prev, address: '' }))
-            }}
-            value={draft.address}
-          />
-        </Field>
-      </FormLayout>
-
-      {dirty && (
-        <p className="text-sm text-warning" role="status">
-          Hay cambios sin guardar.
-        </p>
-      )}
-
-      <ButtonGroup label="Acciones del formulario">
-        <Button pending={pending} pendingLabel="Guardando…" type="submit">
-          Guardar cliente
-        </Button>
-        {onCancel && (
-          <Button onClick={onCancel} variant="secondary">
-            Cancelar
-          </Button>
-        )}
-      </ButtonGroup>
+          </div>
+          <dl className="space-y-3 p-4 text-[13px]">
+            <div>
+              <dt className="text-xs text-ink-muted">Identificación</dt>
+              <dd className="mt-0.5 text-ink tabular-nums">
+                {draft.identification.trim()
+                  ? `${draft.identification_type} · ${draft.identification.trim()}`
+                  : missing}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-ink-muted">Teléfono</dt>
+              <dd className="mt-0.5 text-ink">
+                {draft.phone.trim() || missing}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-ink-muted">Correo</dt>
+              <dd className="mt-0.5 break-words text-ink">
+                {draft.email?.trim() || missing}
+              </dd>
+            </div>
+            {!customer && (
+              <p className="rounded-control bg-surface-subtle px-3 py-2 text-xs text-ink-muted">
+                Los vehículos se registran después, desde la ficha del cliente.
+              </p>
+            )}
+            {dirty && (
+              <p className="text-xs font-semibold text-warning" role="status">
+                Hay cambios sin guardar.
+              </p>
+            )}
+          </dl>
+          <div className="flex flex-col gap-2 border-t border-line p-4">
+            <Button pending={pending} pendingLabel="Guardando…" type="submit">
+              <FloppyDisk aria-hidden="true" size={16} />
+              Guardar cliente
+            </Button>
+            {onCancel && (
+              <Button onClick={onCancel} type="button" variant="secondary">
+                Cancelar
+              </Button>
+            )}
+          </div>
+        </SectionPanel>
+      </aside>
     </form>
   )
 }

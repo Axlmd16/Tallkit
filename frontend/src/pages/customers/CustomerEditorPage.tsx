@@ -87,16 +87,14 @@ export function CustomerEditorPage() {
         </div>
         {dirty && <StatusBadge label="Sin guardar" tone="warning" />}
       </div>
-      <div className="rounded-panel border border-line bg-surface p-5">
-        <CustomerForm
-          customer={customer}
-          key={customer ? `edit-${customer.id}-${customer.version}` : 'new'}
-          onCancel={() => leave(backTo)}
-          onDirtyChange={setDirty}
-          onNavigateToCustomer={(targetId) => leave(`/customers/${targetId}`)}
-          onSubmit={save}
-        />
-      </div>
+      <CustomerForm
+        customer={customer}
+        key={customer ? `edit-${customer.id}-${customer.version}` : 'new'}
+        onCancel={() => leave(backTo)}
+        onDirtyChange={setDirty}
+        onNavigateToCustomer={(targetId) => leave(`/customers/${targetId}`)}
+        onSubmit={save}
+      />
       <Dialog
         description="Si sale ahora, perderá los datos que no ha guardado."
         onClose={() => blocker.reset?.()}

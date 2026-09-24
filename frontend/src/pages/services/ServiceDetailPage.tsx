@@ -16,7 +16,7 @@ import {
   Button,
   InlineNotice,
   LoadingState,
-  PageHeader,
+  StatusBadge,
   useToast,
 } from '@/shared/ui'
 
@@ -51,76 +51,96 @@ export function ServiceDetailPage() {
     )
   }
 
+  const backLink = (
+    <Link
+      aria-label="Volver a servicios"
+      className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
+      title="Volver a servicios"
+      to={back}
+    >
+      <ArrowLeft aria-hidden="true" size={18} />
+    </Link>
+  )
+
+  if (!service) {
+    return (
+      <div className="space-y-4">
+        {backLink}
+        {query.isPending && <LoadingState label="Cargando servicio…" />}
+        {query.isError && (
+          <InlineNotice
+            title={notFound ? 'Servicio no encontrado' : 'Error de carga'}
+            tone="danger"
+          >
+            {notFound
+              ? 'El servicio no existe o fue retirado.'
+              : 'No fue posible consultar el servicio. Reintente en unos instantes.'}
+          </InlineNotice>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
-        to={back}
-      >
-        <ArrowLeft aria-hidden="true" size={16} />
-        Volver a servicios
-      </Link>
-      {query.isPending && <LoadingState label="Cargando servicio…" />}
-      {query.isError && (
-        <InlineNotice
-          title={notFound ? 'Servicio no encontrado' : 'Error de carga'}
-          tone="danger"
-        >
-          {notFound
-            ? 'El servicio no existe o fue retirado.'
-            : 'No fue posible consultar el servicio. Reintente en unos instantes.'}
-        </InlineNotice>
-      )}
-      {service && (
-        <>
-          <PageHeader
-            actions={
-              canManage && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => setEditing(true)}
-                    type="button"
-                    variant="secondary"
-                  >
-                    <Pencil aria-hidden="true" size={15} />
-                    Editar
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      setChange({
-                        id: service.id,
-                        name: service.name,
-                        version: service.version,
-                        active: !service.is_active,
-                      })
-                    }
-                    type="button"
-                    variant={service.is_active ? 'danger' : 'primary'}
-                  >
-                    <Power aria-hidden="true" size={15} />
-                    {service.is_active ? 'Desactivar' : 'Reactivar'}
-                  </Button>
-                </div>
-              )
-            }
-            title={service.name}
-          />
-          <ServiceDetails service={service} />
-          <ServiceEditorModal
-            mode={editing ? service : null}
-            onClose={() => setEditing(false)}
-            onSaved={(message) => toast.success(message)}
-          />
-          <StateChangeDialog
-            activateText="¿Reactivar el servicio? Volverá a poder seleccionarse en operaciones nuevas."
-            change={change}
-            deactivateText="¿Desactivar el servicio? Conserva su identidad y referencias, pero no se podrá seleccionar en operaciones nuevas."
-            noun="servicio"
-            onClose={() => setChange(null)}
-            onConfirm={changeState}
-          />
-        </>
-      )}
+    <div className="catalog-page space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {backLink}
+          <div className="min-w-0">
+            <p className="text-xs text-ink-muted">Servicios</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-[22px] leading-7 font-semibold break-words text-ink">
+                {service.name}
+              </h1>
+              <StatusBadge
+                label={service.is_active ? 'Activo' : 'Inactivo'}
+                tone={service.is_active ? 'success' : 'neutral'}
+              />
+            </div>
+          </div>
+        </div>
+        {canManage && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => setEditing(true)}
+              type="button"
+              variant="secondary"
+            >
+              <Pencil aria-hidden="true" size={15} />
+              Editar
+            </Button>
+            <Button
+              onClick={() =>
+                setChange({
+                  id: service.id,
+                  name: service.name,
+                  version: service.version,
+                  active: !service.is_active,
+                })
+              }
+              type="button"
+              variant={service.is_active ? 'danger' : 'primary'}
+            >
+              <Power aria-hidden="true" size={15} />
+              {service.is_active ? 'Desactivar' : 'Reactivar'}
+            </Button>
+          </div>
+        )}
+      </div>
+      <ServiceDetails service={service} />
+      <ServiceEditorModal
+        mode={editing ? service : null}
+        onClose={() => setEditing(false)}
+        onSaved={(message) => toast.success(message)}
+      />
+      <StateChangeDialog
+        activateText="¿Reactivar el servicio? Volverá a poder seleccionarse en operaciones nuevas."
+        change={change}
+        deactivateText="¿Desactivar el servicio? Conserva su identidad y referencias, pero no se podrá seleccionar en operaciones nuevas."
+        noun="servicio"
+        onClose={() => setChange(null)}
+        onConfirm={changeState}
+      />
     </div>
   )
 }

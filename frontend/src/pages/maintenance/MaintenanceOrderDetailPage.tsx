@@ -19,7 +19,6 @@ import { useMaintenanceOrder } from '@/features/maintenance/hooks'
 import type { MaintenanceOrder } from '@/features/maintenance/types'
 import { OrderSummary } from '@/features/maintenance/OrderSummary'
 import { PhotosSection } from '@/features/maintenance/Photos'
-import { SectionPanel } from '@/features/maintenance/SectionPanel'
 import { ServiceLinesSection } from '@/features/maintenance/ServiceLines'
 import {
   FinalizeDialog,
@@ -32,6 +31,7 @@ import {
   InlineNotice,
   LoadingState,
   PlateTag,
+  SectionPanel,
   StatusBadge,
   useToast,
 } from '@/shared/ui'

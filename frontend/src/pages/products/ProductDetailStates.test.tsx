@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import type * as ProductDetailsModule from '@/features/products/ProductDetails'
 import { ProblemError } from '@/shared/api/client'
 import { ToastProvider } from '@/shared/ui'
 
@@ -23,7 +24,8 @@ vi.mock('@/features/products/hooks', () => ({
 vi.mock('@/features/inventory/hooks', () => ({
   useStockItem: () => mocks.stock,
 }))
-vi.mock('@/features/products/ProductDetails', () => ({
+vi.mock('@/features/products/ProductDetails', async (importOriginal) => ({
+  ...(await importOriginal<typeof ProductDetailsModule>()),
   ProductDetails: ({ product }: { product: { code: string } }) => (
     <p>Detalle {product.code}</p>
   ),
@@ -105,7 +107,6 @@ it('distinguishes product loading, not found and generic failures', () => {
 it('navigates to edit when product management is allowed', async () => {
   const user = userEvent.setup()
   renderPage()
-  expect(screen.getByText(/Fabricante FAB-1/)).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Editar' }))
   expect(screen.getByText('Editor')).toBeInTheDocument()
 })

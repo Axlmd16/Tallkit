@@ -1,93 +1,119 @@
-import { FiscalScopeBadge, StatusBadge } from '@/shared/ui'
+import {
+  Barcode,
+  Car,
+  Cube,
+  Factory,
+  Hash,
+  Info,
+  Ruler,
+  Tag,
+  TextAlignLeft,
+} from '@phosphor-icons/react'
 
-import { presentation, usd } from './format'
-import type { Product } from './types'
+import { RecordFooter } from '@/features/catalog-common/RecordFooter'
+import { DetailItem, PartCode, SectionPanel, StatusBadge } from '@/shared/ui'
 
-function Group({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+import { presentation } from './format'
+import type { CatalogRef, Product } from './types'
+
+const empty = <span className="font-normal text-ink-muted">—</span>
+
+function Reference({ item }: { item: CatalogRef | null }) {
+  if (!item) return empty
   return (
-    <section
-      aria-label={title}
-      className="space-y-3 rounded-group bg-surface p-5 shadow-card"
-    >
-      <h2 className="text-base font-bold text-ink">{title}</h2>
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">{children}</dl>
-    </section>
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      {item.name}
+      {!item.is_active && (
+        <StatusBadge kind="category" label="Inactiva" tone="neutral" />
+      )}
+    </span>
   )
 }
 
-function Item({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="min-w-0">
-      <dt className="font-semibold text-ink-muted">{label}</dt>
-      <dd className="break-words text-ink">{children}</dd>
-    </div>
-  )
-}
-
-const taxText = (product: Product) => {
-  if (!product.tax) return '—'
-  const { code, name, tax_status: status, rate } = product.tax
-  if (status === 'applicable') return `${code} — ${name} (${rate}%)`
-  return `${code} — ${name} (${status === 'missing' ? 'vigencia pendiente' : 'vigencias ambiguas'})`
-}
-
-/** Ficha de solo lectura agrupada; el catálogo no guarda existencias ni costos; se consultan en Inventario. */
+/** Columna principal: identificación, clasificación, descripción y compatibilidad. */
 export function ProductDetails({ product }: { product: Product }) {
-  const ref = (item: { name: string; is_active: boolean } | null) =>
-    item ? `${item.name}${item.is_active ? '' : ' (inactiva)'}` : '—'
   return (
     <div className="space-y-4">
-      <Group title="Identificación">
-        <Item label="Código interno">{product.code}</Item>
-        <Item label="Código del fabricante">
-          {product.manufacturer_code || '—'}
-        </Item>
-        <Item label="Nombre">{product.name}</Item>
-        <Item label="Descripción">{product.description || '—'}</Item>
-        <Item label="Estado">
-          <StatusBadge
-            label={product.is_active ? 'Activo' : 'Inactivo'}
-            tone={product.is_active ? 'success' : 'neutral'}
-          />
-        </Item>
-      </Group>
-      <Group title="Presentación">
-        <Item label="Contenido">{presentation(product)}</Item>
-        <Item label="Kit comprado completo">
-          {product.is_kit ? 'Sí' : 'No'}
-        </Item>
-      </Group>
-      <Group title="Referencias">
-        <Item label="Categoría">{ref(product.category)}</Item>
-        <Item label="Unidad de medida">{ref(product.unit)}</Item>
-        <Item label="Marca de producto">{ref(product.product_brand)}</Item>
-        <Item label="Marcas de vehículo compatibles">
-          {product.vehicle_brands.length === 0
-            ? '—'
-            : product.vehicle_brands.map((b) => ref(b)).join(', ')}
-        </Item>
-      </Group>
-      <Group title="Importe e impuesto">
-        <Item label="Precio final">{usd(product.sale_price)}</Item>
-        <Item label="Impuesto">
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <FiscalScopeBadge scope="commercial" />
-            {taxText(product)}
-          </span>
-        </Item>
-      </Group>
+      <SectionPanel
+        icon={<Info size={17} />}
+        id="product-general"
+        title="Datos generales"
+      >
+        <dl className="grid gap-x-6 gap-y-4 p-4 sm:grid-cols-2 xl:grid-cols-3">
+          <DetailItem icon={<Barcode size={15} />} label="Código interno">
+            <PartCode code={product.code} />
+          </DetailItem>
+          <DetailItem icon={<Hash size={15} />} label="Código del fabricante">
+            {product.manufacturer_code ? (
+              <PartCode code={product.manufacturer_code} />
+            ) : (
+              empty
+            )}
+          </DetailItem>
+          <DetailItem icon={<Cube size={15} />} label="Presentación">
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              {presentation(product)}
+              {product.is_kit && (
+                <StatusBadge kind="category" label="Kit completo" tone="info" />
+              )}
+            </span>
+          </DetailItem>
+          <DetailItem icon={<Tag size={15} />} label="Categoría">
+            <Reference item={product.category} />
+          </DetailItem>
+          <DetailItem icon={<Ruler size={15} />} label="Unidad de medida">
+            <Reference item={product.unit} />
+          </DetailItem>
+          <DetailItem icon={<Factory size={15} />} label="Marca de producto">
+            <Reference item={product.product_brand} />
+          </DetailItem>
+          <DetailItem
+            className="border-t border-line pt-4 sm:col-span-2 xl:col-span-3"
+            icon={<TextAlignLeft size={15} />}
+            label="Descripción"
+          >
+            <span className="font-normal whitespace-pre-line">
+              {product.description || (
+                <span className="text-ink-muted">Sin descripción</span>
+              )}
+            </span>
+          </DetailItem>
+        </dl>
+        <RecordFooter
+          createdAt={product.created_at}
+          updatedAt={product.updated_at}
+        />
+      </SectionPanel>
+
+      <SectionPanel
+        description="Marcas de vehículo con las que se usa este repuesto."
+        icon={<Car size={17} />}
+        id="product-compatibility"
+        title="Compatibilidad"
+      >
+        <div className="p-4">
+          {product.vehicle_brands.length === 0 ? (
+            <p className="text-[13px] text-ink-muted">
+              Universal: sin marcas de vehículo asignadas.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {product.vehicle_brands.map((brand) => (
+                <li
+                  className={`inline-flex min-h-7 items-center gap-1.5 rounded-chip border border-line bg-surface-subtle px-2.5 text-[12.5px] font-medium ${brand.is_active ? 'text-ink' : 'text-ink-muted'}`}
+                  key={brand.id}
+                >
+                  <Car aria-hidden="true" size={14} />
+                  {brand.name}
+                  {!brand.is_active && (
+                    <span className="text-xs">(inactiva)</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </SectionPanel>
     </div>
   )
 }

@@ -34,6 +34,8 @@ export {
   type DetailCardMetadataItem,
 } from './surfaces/DetailCard'
 export { Divider, type DividerProps } from './surfaces/Divider'
+export { DetailItem } from './surfaces/DetailItem'
+export { SectionPanel } from './surfaces/SectionPanel'
 
 // Overlays — paneles y diálogos enriquecidos
 export {

@@ -1,9 +1,8 @@
 import { CheckCircle, Circle, ClipboardText } from '@phosphor-icons/react'
 
-import { Money } from '@/shared/ui'
+import { Money, SectionPanel } from '@/shared/ui'
 
 import { OrderStateBadge, timestamp } from './format'
-import { SectionPanel } from './SectionPanel'
 import type { MaintenanceOrder } from './types'
 
 const REQUIREMENT_LABELS: Record<string, string> = {

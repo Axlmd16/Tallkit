@@ -15,12 +15,12 @@ import {
   FormModal,
   InlineNotice,
   Money,
+  SectionPanel,
   Textarea,
 } from '@/shared/ui'
 
 import { kilometers, timestamp } from './format'
 import { useMaintenanceMutations } from './hooks'
-import { SectionPanel } from './SectionPanel'
 import {
   orderStateLabels,
   type Intervention,
