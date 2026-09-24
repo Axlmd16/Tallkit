@@ -112,10 +112,23 @@ class OperationReviewSerializer(_Base):
 class StockRowSerializer(_Base):
     product = serializers.DictField()
     quantity = serializers.CharField()
+    reserved = serializers.CharField(help_text="Reservado por ventas vinculadas abiertas.")
+    available = serializers.CharField(help_text="Existencia menos reservas vigentes.")
     version = serializers.IntegerField()
     last_ordinal = serializers.IntegerField()
     average_cost = serializers.CharField(required=False)
     inventory_value = serializers.CharField(required=False)
+
+
+class StockReservationSerializer(_Base):
+    quantity = serializers.CharField()
+    sale_id = serializers.IntegerField(allow_null=True)
+    order_id = serializers.IntegerField(allow_null=True)
+    order_number = serializers.CharField(allow_null=True)
+
+
+class StockItemSerializer(StockRowSerializer):
+    reservations = StockReservationSerializer(many=True)
 
 
 class StockPageSerializer(_Base):

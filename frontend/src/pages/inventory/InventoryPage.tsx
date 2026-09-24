@@ -31,6 +31,8 @@ interface FlatRow {
   category: string
   presentation: string
   quantity: string
+  reserved: string
+  available: string
   average_cost: string | undefined
   inventory_value: string | undefined
   is_active: boolean
@@ -43,6 +45,8 @@ const flatten = (row: StockRow): FlatRow => ({
   category: row.product.category.name,
   presentation: `${row.product.content_quantity} ${row.product.unit.symbol || row.product.unit.name}`,
   quantity: row.quantity,
+  reserved: row.reserved,
+  available: row.available,
   average_cost: row.average_cost,
   inventory_value: row.inventory_value,
   is_active: row.product.is_active,
@@ -241,6 +245,26 @@ export function InventoryPage() {
                 priority: 'primary',
                 align: 'end',
                 render: (row) => <StockIndicator quantity={row.quantity} />,
+              },
+              {
+                header: 'Reservado',
+                key: 'reserved',
+                priority: 'secondary',
+                align: 'end',
+                render: (row) => (
+                  <span className="tabular-nums">{row.reserved}</span>
+                ),
+              },
+              {
+                header: 'Disponible',
+                key: 'available',
+                priority: 'secondary',
+                align: 'end',
+                render: (row) => (
+                  <span className="tabular-nums font-medium">
+                    {row.available}
+                  </span>
+                ),
               },
               ...(canSeeValuation
                 ? [

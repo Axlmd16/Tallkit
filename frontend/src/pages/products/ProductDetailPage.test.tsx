@@ -158,3 +158,33 @@ it('muestra la ficha en paneles con códigos, compatibilidad e impuesto', () => 
     screen.getByRole('button', { name: 'Copiar código ACE-1' }),
   ).toBeInTheDocument()
 })
+
+it('muestra reservado, disponible y las órdenes que sostienen la reserva', () => {
+  mocks.permissions = ['productos.ver', 'inventario.ver', 'mantenimientos.ver']
+  mocks.stock = {
+    isPending: false,
+    isError: false,
+    data: {
+      quantity: '12',
+      reserved: '2',
+      available: '10',
+      reservations: [
+        {
+          quantity: '2',
+          sale_id: 31,
+          order_id: 9,
+          order_number: 'ART-OT-000009',
+        },
+      ],
+    },
+  }
+  renderPage()
+  const stock = screen.getByLabelText('Existencias')
+  expect(stock).toHaveTextContent('Reservado2')
+  expect(stock).toHaveTextContent('Disponible10')
+  expect(stock).toHaveTextContent('no descuentan existencia')
+  expect(screen.getByRole('link', { name: 'ART-OT-000009' })).toHaveAttribute(
+    'href',
+    '/maintenance/9?tab=parts',
+  )
+})

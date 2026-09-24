@@ -67,6 +67,24 @@ def lock_artisan_operation_context(
     )
 
 
+def review_artisan_operation_context(
+    *,
+    tax_definition_ids: Iterable[int],
+    on: date,
+) -> LockedArtisanOperationContext:
+    """Lectura sin bloqueos para vistas previas; aplica las mismas reglas de vigencia."""
+    entity, taxes = _lock_taxes(
+        FiscalEntityType.ARTESANAL.value,
+        tax_definition_ids=tax_definition_ids,
+        on=on,
+        lock=False,
+    )
+    return LockedArtisanOperationContext(
+        entity=ArtisanEntity(id=entity.pk, ruc=entity.ruc, legal_name=entity.legal_name),
+        taxes=taxes,
+    )
+
+
 def artisan_numbering_scope_id() -> int:
     """Devuelve el ámbito ARTESANAL/SERVICIO aprobado para ART-SER."""
     return get_numbering_scope_id(

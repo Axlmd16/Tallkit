@@ -199,3 +199,20 @@ def test_part_queries_return_linked_sales_and_product_availability_without_costs
     assert linked[0]["origin"]["order_id"] == order["id"]
     assert options["results"][0]["available"] == "8"
     assert "cost" not in repr((linked, options)).lower()
+
+
+def test_reservation_identifies_the_order_for_the_inventory_sheet(
+    manager: Any,
+    order: dict[str, Any],
+    stocked_product: Product,
+) -> None:
+    from inventory.application import queries as inventory_queries
+
+    _add(manager, order["id"], stocked_product.pk)
+    item = inventory_queries.get_stock_item(stocked_product.pk, include_valuation=False)
+    [reservation] = item["reservations"]
+    assert (reservation["order_id"], reservation["order_number"], reservation["quantity"]) == (
+        order["id"],
+        order["number"],
+        "2",
+    )

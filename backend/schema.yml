@@ -1018,7 +1018,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StockRow'
+                $ref: '#/components/schemas/StockItem'
           description: ''
         '403':
           content:
@@ -11937,6 +11937,40 @@ components:
           type: boolean
       required:
       - is_initialized
+    StockItem:
+      type: object
+      properties:
+        product:
+          type: object
+          additionalProperties: {}
+        quantity:
+          type: string
+        reserved:
+          type: string
+          description: Reservado por ventas vinculadas abiertas.
+        available:
+          type: string
+          description: Existencia menos reservas vigentes.
+        version:
+          type: integer
+        last_ordinal:
+          type: integer
+        average_cost:
+          type: string
+        inventory_value:
+          type: string
+        reservations:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockReservation'
+      required:
+      - available
+      - last_ordinal
+      - product
+      - quantity
+      - reservations
+      - reserved
+      - version
     StockPage:
       type: object
       properties:
@@ -11958,6 +11992,25 @@ components:
       - page_size
       - results
       - total_pages
+    StockReservation:
+      type: object
+      properties:
+        quantity:
+          type: string
+        sale_id:
+          type: integer
+          nullable: true
+        order_id:
+          type: integer
+          nullable: true
+        order_number:
+          type: string
+          nullable: true
+      required:
+      - order_id
+      - order_number
+      - quantity
+      - sale_id
     StockRow:
       type: object
       properties:
@@ -11966,6 +12019,12 @@ components:
           additionalProperties: {}
         quantity:
           type: string
+        reserved:
+          type: string
+          description: Reservado por ventas vinculadas abiertas.
+        available:
+          type: string
+          description: Existencia menos reservas vigentes.
         version:
           type: integer
         last_ordinal:
@@ -11975,9 +12034,11 @@ components:
         inventory_value:
           type: string
       required:
+      - available
       - last_ordinal
       - product
       - quantity
+      - reserved
       - version
     Supplier:
       type: object

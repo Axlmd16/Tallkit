@@ -54,6 +54,8 @@ const row = (name: string, quantity: string, extra: object = {}) => ({
     is_active: true,
   },
   quantity,
+  reserved: '0',
+  available: quantity,
   version: 2,
   last_ordinal: 4,
   ...extra,
@@ -295,4 +297,10 @@ it('con impedimentos en la revisión no permite confirmar y ofrece abandonar sin
   )
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(mocks.confirm).not.toHaveBeenCalled()
+})
+
+it('muestra reservado y disponible junto a la existencia', () => {
+  renderPage()
+  expect(screen.getAllByText('Reservado').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('Disponible').length).toBeGreaterThan(0)
 })

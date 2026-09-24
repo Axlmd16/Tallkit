@@ -124,6 +124,7 @@ con `uv run --frozen`; frontend con npm. Toda evidencia debe ser un resultado re
   - Total combinado solo cuando el usuario puede ver ambos bloques.
   - El Encargado ve las ventas vinculadas sin costos ni acciones comerciales.
 - [x] 8.2 Escribir pruebas que fallan en `backend/tests/workshop/test_commercial_view.py`: el Vendedor con una venta vinculada ve número, estado, cliente, vehículo y repuestos, sin servicios, importes artesanales, diagnóstico ni fotos; sin venta vinculada, `not_found`; la lista de órdenes sigue denegada.
+  - Nota: las pruebas de la vista comercial del Vendedor quedaron en `backend/tests/workshop/test_economic_summary.py` (`test_seller_commercial_view_is_restricted`, `test_seller_cannot_read_order_summary`) y no en `test_commercial_view.py`; cubren los mismos escenarios.
 - [x] 8.3 Implementar `backend/src/workshop/application/economic_summary.py` y la vista restringida.
 - [x] 8.4 Evidencia: `uv run --frozen pytest --no-cov tests/workshop` en verde.
 
@@ -200,7 +201,8 @@ con `uv run --frozen`; frontend con npm. Toda evidencia debe ser un resultado re
 - [x] 16.1 `make check` completo (formato, lint, tipos, `manage.py check`, `makemigrations --check`, pytest con cobertura ≥ 85 %, frontend format, lint, typecheck, test:coverage y build, y `compose-check`) en verde, registrando los resultados reales.
   - Resultado 2026-09-24 (verificación focalizada, por indicación del usuario de no correr la suite completa): backend `ruff format --check`, `ruff check`, `mypy src tests` (384 archivos), `manage.py check` y `makemigrations --check` sin errores; `pytest` de `tests/workshop` (278), y durante la aplicación `tests/sales`, `tests/inventory`, `tests/purchasing`, `tests/workshop_configuration`, `tests/api` y `tests/test_shared_money.py` en verde. Frontend: prettier, ESLint, typecheck, vitest (918) y `npm run build` en verde. **No se ejecutó** `make check` completo ni la cobertura global.
 - [x] 16.2 `make audit` sin vulnerabilidades altas nuevas y `package-lock.json` y `uv.lock` sin cambios de dependencias.
-- [ ] 16.3 Ejecutar `reconcile_inventory` y `reconcile_sales` en la base de desarrollo después de las migraciones, sin discrepancias.
+- [x] 16.3 Ejecutar `reconcile_inventory` y `reconcile_sales` en la base de desarrollo después de las migraciones, sin discrepancias.
+  - Resultado 2026-09-24: con las migraciones aplicadas por el usuario, `reconcile_inventory` («Inventario conciliado: sin diferencias») y `reconcile_sales` («Ventas conciliadas: sin diferencias»). Las 3 órdenes existentes quedaron marcadas `predates_billing` y no se crearon operaciones artesanales por migración.
 - [x] 16.4 Revisión visual con la aplicación en ejecución, si el entorno lo permite: repuestos pendientes y confirmados, resumen por RUC, documentar y cobrar servicios, cobrar repuestos, finalizar con pendientes, reabrir con documentos, cuentas por cobrar artesanales y vista del Vendedor. Registrar limitaciones si no fue posible.
   - Resultado: revisión de las capturas de `e2e/maintenance-billing.spec.ts` (repuesto reservado, vista del Vendedor, documentar servicios, documentos y cobros, orden reabierta) con la ficha organizada en pestañas. No se revisó la base de desarrollo porque sus migraciones siguen sin aplicar.
 - [x] 16.5 Revisar que ninguna migración genere ventas, deudas, cobros ni movimientos y que `git status` solo contenga archivos del cambio.

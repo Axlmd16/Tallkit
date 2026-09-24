@@ -115,14 +115,14 @@ Las consultas `GET parts/` y `GET parts/product-options/` usan `linked_sales_sum
 
 Flujo de confirmación (`service_operations.confirm`, permiso `servicios_economicos.confirmar`):
 
-1. Bloquea en orden: recibo → orden → líneas iniciales pendientes (`select_for_update`, sin `is_current`) → cliente (`lock_customer_and_vehicle`) → `lock_artisan_operation_context(tax_ids, on=today)` → ámbito de numeración.
+1. Bloquea en orden: recibo → orden → líneas iniciales pendientes (`select_for_update`, sin `is_current`) → `lock_artisan_operation_context(tax_ids, on=today)` → ámbito de numeración. **No** bloquea ni revalida al cliente: la operación copia los snapshots de cliente y vehículo conservados en la orden. Así una orden anterior se documenta aunque el vehículo haya cambiado de propietario (spec «Datos históricos de cliente y vehículo»).
 2. Calcula los importes con `shared.money.calculate_line` usando la tarifa artesanal vigente. Si falta vigencia o hay ambigüedad, responde `configuration_missing` identificando la línea.
 3. Recalcula la huella: ids, cantidades y precios de las líneas, definición, periodo y tarifa, fecha, condición y cliente. Si no coincide con `review_digest`, responde `review_required`.
 4. Rechaza sin líneas o con total cero (`nothing_to_document`).
 5. Llama a `allocate_artisan_number(request_key=f"service-operation:{order}:{digest}")` e inserta la operación, las líneas y los vínculos. Enlaza `replaces` si alguna línea procede de una operación anulada.
 6. Incrementa `order.version` y audita.
 
-La vista previa (`POST …/service-operations/preview/`) ejecuta el mismo cálculo sin bloqueos ni escrituras y devuelve la huella, los importes, los efectos y, si procede, `predates_billing_warning`.
+La vista previa (`POST …/service-operations/preview/`) ejecuta el mismo cálculo sin bloqueos ni escrituras, con la lectura sin bloqueo `review_artisan_operation_context`, y devuelve la huella, los importes, los efectos y, si procede, `predates_billing_warning`.
 
 Las líneas de servicio documentadas se bloquean en `service_lines.py`, que rechaza la edición con `line_documented` si existe un `ServiceOperationLine` vigente para la línea. La proyección de la orden añade a cada línea `documented_by {id, number}`.
 
@@ -151,7 +151,9 @@ Alternativa descartada: un «motor de pagos» común con `sales`. ADR-0006 lo de
 
 Cada acción toma una subsecuencia ordenada de esta lista y puede omitir recursos. Confirmar venta, cobrar y devolver empiezan en «venta». Las acciones del taller empiezan en «orden». Los cobros artesanales toman solo la operación. Ninguna acción toma un recurso anterior después de uno posterior, así que no hay ciclos. Los interbloqueos y errores de serialización residuales los reintenta `shared.transactions.retryable_transaction`, que ya usan ambos módulos.
 
-### D8. API (JSON, `problem+json`, sesión + CSRF, `Idempotency-Key` en escrituras)
+### D8. API (JSON, `problem+json`, sesión + CSRF, `idempotency_key` en el cuerpo de las escrituras)
+
+Siguiendo la convención existente del taller y de ventas, la clave de idempotencia viaja en el cuerpo JSON (`idempotency_key`), no en un encabezado. Los cobros llevan además `operation_id` (UUID) como identidad estable del hecho.
 
 | Método y ruta | Permiso | Notas |
 |---|---|---|
@@ -178,8 +180,12 @@ Paginación con `page` y `page_size`, igual que ahora (20 por defecto, 100 como 
 
 ### D10. Frontend
 
-- **Detalle de la orden** (`MaintenanceOrderDetailPage`), con nuevas secciones en `features/maintenance`:
-  - `PartsSection`: buscador `Combobox` con disponibilidad; tabla con la venta abierta, rotulada «Reservado, pendiente de confirmar», y las confirmadas con su número y sin acciones; modal corto para agregar o editar la cantidad.
+- **Detalle de la orden** (`MaintenanceOrderDetailPage`), organizado en pestañas del componente `Tabs` del sistema visual (variante de línea) para no amontonar información, a pedido del usuario durante la aplicación:
+  - «Trabajo y servicios» (predeterminada): información general, diagnóstico, intervenciones y servicios con su estado de documentación.
+  - «Repuestos», «Documentos y cobros» y «Fotografías».
+  - La pestaña activa se conserva en la URL (`?tab=`); el resumen lateral y el historial permanecen visibles en todas.
+- Componentes nuevos en `features/maintenance`:
+  - `PartsSection`: buscador `Combobox` con disponibilidad; tabla con la venta abierta, rotulada «Reservado, pendiente de confirmar», y las confirmadas con su número y sin acciones; modal corto para agregar o editar la cantidad. Con `inventario.ver`, cada repuesto confirmado enlaza a su Kardex.
   - `EconomicSummary`: dos `SectionPanel` («Repuestos — RUC comercial» y «Servicios — RUC artesanal») con documentos, total, pagado, saldo y estado; acciones «Cobrar repuestos», que reutiliza `PaymentDialog` de ventas y solo aparece con `ventas.ver` y el permiso de pago comercial, y «Cobrar servicios»; total combinado con la leyenda informativa.
   - `ServiceOperationDialog`: vista previa, condición y efectos antes de confirmar.
   - `ArtisanPaymentDialog`, que reutiliza `MoneyDialog`, `PartsFields` y `moneyIntent` con la acción `artisan-payment`.
@@ -193,6 +199,7 @@ Paginación con `page` y `page_size`, igual que ahora (20 por defecto, 100 como 
   - Filtro y columna «Origen» en `SalesPage` y `ReceivablesPage`; enlace a la orden en `SaleDetailPage` y en el comprobante.
   - `SaleEditorPage` en modo vinculado: líneas de solo lectura, con un aviso y el enlace a la orden; solo se editan condición y notas.
   - La anulación de una venta vinculada no se ofrece y se explica el motivo.
+- **Inventario**: la lista muestra existencia, reservado y disponible. La ficha del producto muestra además las reservas activas con la orden que las sostiene (dato copiado en la reserva, sin que inventario lea ventas) y enlaza a la orden según los permisos.
 - Se aplican las memorias de interfaz (formularios cortos en modal, confirmaciones como toast, ancho completo), con estados de carga, vacío y error, prevención de doble envío y conservación de la captura. No se añaden dependencias.
 
 ### D11. ADR

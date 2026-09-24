@@ -156,7 +156,11 @@ def add_linked_line(
             product_id=product.id,
             source_type="SALE_LINE",
             source_id=line.pk,
-            source_reference={"sale_id": sale.pk, "order_id": order_ref.pk},
+            source_reference={
+                "sale_id": sale.pk,
+                "order_id": order_ref.pk,
+                "order_number": order_ref.number,
+            },
             quantity=parsed,
         )
     except InsufficientAvailabilityError as error:

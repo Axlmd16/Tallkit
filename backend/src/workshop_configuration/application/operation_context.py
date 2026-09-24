@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from django.db import transaction
 from django.db.models import Q
@@ -148,18 +148,24 @@ def _lock_taxes(
     tax_definition_ids: Iterable[int],
     on: date,
     locked_entity: FiscalEntity | None = None,
+    lock: bool = True,
 ) -> tuple[FiscalEntity, dict[int, TaxSnapshot]]:
     """Bloquea una entidad fiscal y resuelve sus tarifas vigentes.
 
     ``locked_entity`` permite que el contexto comercial preserve su orden histórico de
     bloqueos (entidad, bodega, impuestos). Los consumidores sin bodega dejan que este
-    helper adquiera el bloqueo de la entidad.
+    helper adquiera el bloqueo de la entidad. Con ``lock=False`` solo lee (vistas previas):
+    no exige transacción ni toma bloqueos, y aplica las mismas reglas de vigencia.
     """
-    if not transaction.get_connection().in_atomic_block:
+    if lock and not transaction.get_connection().in_atomic_block:
         raise RuntimeError("El contexto de operación requiere una transacción atómica.")
+
+    def rows(queryset: Any) -> Any:
+        return queryset.select_for_update() if lock else queryset
+
     entity = locked_entity
     if entity is None:
-        entity = FiscalEntity.objects.select_for_update().filter(entity_type=entity_type).first()
+        entity = rows(FiscalEntity.objects).filter(entity_type=entity_type).first()
     if entity is None:
         label = "comercial" if entity_type == COMMERCIAL else "artesanal"
         raise OperationContextError(
@@ -170,14 +176,14 @@ def _lock_taxes(
     requested = sorted(set(tax_definition_ids))
     definitions = {
         d.pk: d
-        for d in TaxDefinition.objects.select_for_update()
+        for d in rows(TaxDefinition.objects)
         .select_related("fiscal_entity")
         .filter(pk__in=requested)
         .order_by("pk")
     }
     periods_by_definition: dict[int, list[TaxPeriod]] = {pk: [] for pk in definitions}
     covering = (
-        TaxPeriod.objects.select_for_update()
+        rows(TaxPeriod.objects)
         .filter(tax_definition_id__in=definitions, starts_on__lte=on)
         .filter(Q(ends_on__isnull=True) | Q(ends_on__gte=on))
         .order_by("tax_definition_id", "pk")

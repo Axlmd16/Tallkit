@@ -169,7 +169,7 @@ class StockItemView(_InventoryView):
     @extend_schema(
         tags=["Inventory"],
         operation_id="inventory_stock_retrieve",
-        responses={200: sz.StockRowSerializer, 403: ProblemSerializer, **_NOT_FOUND},
+        responses={200: sz.StockItemSerializer, 403: ProblemSerializer, **_NOT_FOUND},
     )
     def get(self, request: Request, pk: int) -> Response:
         def call() -> dict[str, Any]:

@@ -141,6 +141,10 @@ def test_stock_list_and_item_show_reserved_and_available(catalog: Any, warehouse
     assert (row["quantity"], row["reserved"], row["available"]) == ("5", "2", "3")
     item = queries.get_stock_item(product.pk, include_valuation=False)
     assert (item["quantity"], item["reserved"], item["available"]) == ("5", "2", "3")
+    assert item["reservations"] == [
+        {"quantity": "2", "sale_id": 51, "order_id": 11, "order_number": None}
+    ]
+    assert "reservations" not in row
 
     empty = queries.get_stock_item(catalog["idle"].pk, include_valuation=False)
     assert (empty["quantity"], empty["reserved"], empty["available"]) == ("0", "0", "0")
