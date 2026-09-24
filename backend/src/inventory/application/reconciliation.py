@@ -11,13 +11,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.db.models import Sum
+
 from inventory.application.queries import read_snapshot
 from inventory.models import (
     InventoryMovement,
     InventoryOperation,
     InventoryPosition,
+    InventoryReservation,
     OperationKind,
     OperationState,
+    ReservationState,
 )
 
 SIX = Decimal("0.000001")
@@ -194,6 +198,28 @@ def _check_operations() -> list[Difference]:
     return found
 
 
+def _check_reservations(positions: list[InventoryPosition]) -> list[Difference]:
+    active = {
+        row["position_id"]: row["total"] or ZERO
+        for row in InventoryReservation.objects.filter(state=ReservationState.ACTIVE)
+        .values("position_id")
+        .annotate(total=Sum("quantity"))
+    }
+    found: list[Difference] = []
+    for position in positions:
+        expected = active.get(position.pk, ZERO)
+        if position.reserved != expected:
+            found.append(
+                Difference(
+                    "reserva",
+                    f"la cantidad reservada {position.reserved:.0f} difiere de la suma activa"
+                    f" {expected:.0f}",
+                    position.product_id,
+                )
+            )
+    return found
+
+
 def reconcile() -> list[Difference]:
     """Devuelve todas las diferencias encontradas; una lista vacía significa conciliado."""
     with read_snapshot():
@@ -203,6 +229,8 @@ def reconcile() -> list[Difference]:
         differences: list[Difference] = []
         for product_id, movements in grouped.items():
             differences += _check_chain(product_id, movements)
-        differences += _check_positions(list(InventoryPosition.objects.all()), grouped)
+        positions = list(InventoryPosition.objects.all())
+        differences += _check_positions(positions, grouped)
+        differences += _check_reservations(positions)
         differences += _check_operations()
     return differences

@@ -91,6 +91,11 @@ def sale_base(sale: Sale) -> dict[str, Any]:
         "condition": sale.condition,
         "notes": sale.notes,
         "internal_number": sale.internal_number,
+        "origin": {
+            "type": sale.origin_type,
+            "order_id": sale.origin_order_id,
+            "order_number": sale.origin_reference or None,
+        },
         "customer": _customer(sale),
         "operational_date": sale.operational_date.isoformat() if sale.operational_date else None,
         "base_total": money(sale.base_total),

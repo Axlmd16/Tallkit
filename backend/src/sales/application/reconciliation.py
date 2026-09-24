@@ -11,6 +11,7 @@ from decimal import Decimal
 from django.db.models import Sum
 
 import inventory.application.queries as inventory_queries
+import inventory.application.reservations as inventory_reservations
 from sales.application.ledger import ledger_for
 from sales.application.reads import read_snapshot
 from sales.models import (
@@ -20,6 +21,7 @@ from sales.models import (
     RefundPart,
     Sale,
     SaleCostAllocation,
+    SaleLine,
     SaleReturn,
     SaleReturnLine,
 )
@@ -141,6 +143,50 @@ def _money(sale: Sale) -> list[Difference]:
     return found
 
 
+def _reservations() -> list[Difference]:
+    expected = {
+        line.pk: (line.sale_id, line.product_id, line.quantity)
+        for line in SaleLine.objects.filter(
+            sale__origin_type="MAINTENANCE",
+            sale__state="DRAFT",
+        ).order_by("pk")
+    }
+    active = {
+        reservation.source_id: reservation
+        for reservation in inventory_reservations.read_active_reservations(source_type="SALE_LINE")
+    }
+    found: list[Difference] = []
+    for line_id in sorted(expected.keys() | active.keys()):
+        wanted = expected.get(line_id)
+        actual = active.get(line_id)
+        sale_id = wanted[0] if wanted else None
+        if wanted is None:
+            found.append(
+                Difference(
+                    "reservas",
+                    f"la reserva activa de la línea {line_id} no corresponde a un borrador "
+                    "vinculado",
+                )
+            )
+        elif actual is None:
+            found.append(
+                Difference(
+                    "reservas",
+                    f"la línea vinculada {line_id} no tiene reserva activa",
+                    sale_id,
+                )
+            )
+        elif (actual.product_id, actual.quantity) != (wanted[1], wanted[2]):
+            found.append(
+                Difference(
+                    "reservas",
+                    f"la reserva de la línea {line_id} difiere en producto o cantidad",
+                    sale_id,
+                )
+            )
+    return found
+
+
 def reconcile() -> list[Difference]:
     """Todas las diferencias encontradas; lista vacía significa conciliado."""
     differences: list[Difference] = []
@@ -150,4 +196,5 @@ def reconcile() -> list[Difference]:
             differences += _costs(sale)
             differences += _returns(sale)
             differences += _money(sale)
+        differences += _reservations()
     return differences

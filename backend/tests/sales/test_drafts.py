@@ -1,5 +1,6 @@
 """Borradores: sin efectos de inventario, deuda, numeración ni usos fiscales."""
 
+from decimal import Decimal
 from itertools import count
 from typing import Any
 
@@ -8,9 +9,15 @@ import pytest
 from catalog.models import Product
 from customer_registry.models import Customer
 from identity.application.authorization import BusinessPermissionDeniedError
-from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
+from inventory.models import (
+    InventoryMovement,
+    InventoryOperation,
+    InventoryPosition,
+    InventoryReservation,
+)
 from sales.application import sales
 from sales.application.errors import SalesApplicationError
+from sales.application.workshop_links import add_linked_line
 from sales.models import CommercialPayment, Sale, SaleLine, SalesCommand
 from workshop_configuration.models import ConfigurationUse, NumberAllocation, Warehouse
 
@@ -86,6 +93,59 @@ def test_draft_can_be_listed_retrieved_and_edited_with_expected_version(
     assert listing["total_count"] == 1
     assert listing["items"][0]["id"] == draft["id"]
     no_side_effects()
+
+
+def test_linked_draft_ordinary_edit_only_allows_condition_and_notes(
+    seller: Any,
+    customer: Any,
+    maintenance_order: Any,
+    product: Any,
+    stock: Any,
+    make_product: Any,
+) -> None:
+    stock(product, 5, "5.00")
+    line = add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="2",
+    )
+    sale = Sale.objects.get(pk=line.sale_id)
+    updated = sales.update_draft(
+        actor=seller,
+        sale_id=sale.pk,
+        payload={
+            "idempotency_key": key(),
+            "expected_version": sale.version,
+            "condition": "CREDITO",
+            "notes": "Confirmar con el cliente",
+        },
+    ).body
+    assert (updated["condition"], updated["notes"], updated["lines"][0]["id"]) == (
+        "CREDITO",
+        "Confirmar con el cliente",
+        line.pk,
+    )
+    assert InventoryReservation.objects.get(source_id=line.pk).state == "ACTIVE"
+
+    other = make_product()
+    for change in (
+        {"customer_id": customer.pk},
+        {"lines": [{"product_id": other.pk, "quantity": "1"}]},
+    ):
+        with pytest.raises(SalesApplicationError) as error:
+            sales.update_draft(
+                actor=seller,
+                sale_id=sale.pk,
+                payload={
+                    "idempotency_key": key(),
+                    "expected_version": updated["version"],
+                    **change,
+                },
+            )
+        assert error.value.code == "linked_sale_locked"
+    line.refresh_from_db()
+    assert (line.product_id, line.quantity) == (product.pk, Decimal(2))
 
 
 def test_stale_version_is_rejected_and_the_first_edit_survives(

@@ -8,13 +8,14 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from catalog.models import MeasurementUnit, Product, ProductCategory
-from customer_registry.models import Customer
+from customer_registry.models import Customer, Vehicle, VehicleBrand
 from identity.models import UserRole
 from inventory.models import (
     InventoryMovement,
     InventoryOperation,
     InventoryPosition,
 )
+from workshop.models import MaintenanceOrder
 from workshop_configuration.models import (
     DocumentSeries,
     FiscalEntity,
@@ -65,6 +66,29 @@ def customer(db: None) -> Customer:
         identification_type="CI",
         identification="1712345678",
         phone="0999999999",
+    )
+
+
+@pytest.fixture
+def maintenance_order(customer: Customer, actor: Any) -> MaintenanceOrder:
+    artisan, _ = FiscalEntity.objects.get_or_create(
+        entity_type="ARTESANAL",
+        defaults={"legal_name": "Taller Artesanal", "ruc": "1790000000002"},
+    )
+    brand, _ = VehicleBrand.objects.get_or_create(name="Toyota")
+    vehicle = Vehicle.objects.create(plate="SAL-1234", brand=brand, model="Hilux")
+    return MaintenanceOrder.objects.create(
+        sequence=1,
+        number="ART-OT-000001",
+        fiscal_entity=artisan,
+        customer=customer,
+        vehicle=vehicle,
+        customer_snapshot={"schema_version": 1},
+        vehicle_snapshot={"schema_version": 1},
+        opened_on=PAST,
+        odometer_km=1000,
+        created_by=actor,
+        updated_by=actor,
     )
 
 

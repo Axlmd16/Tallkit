@@ -1328,6 +1328,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/maintenance-orders/{id}/commercial-view/:
+    get:
+      operationId: maintenance_commercial_view
+      description: Vista restringida de la orden de origen de una venta vinculada.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommercialOrderView'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/maintenance-orders/{id}/current-intervention/:
     patch:
       operationId: maintenance_intervention_update
@@ -1383,6 +1416,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/maintenance-orders/{id}/economic-summary/:
+    get:
+      operationId: maintenance_economic_summary
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EconomicSummary'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/maintenance-orders/{id}/finalize/:
     post:
       operationId: maintenance_order_finalize
@@ -1416,6 +1481,280 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/parts/:
+    get:
+      operationId: maintenance_part_list
+      description: Ventas vinculadas de la orden, sin costos. El borrador incluye
+        `estimate`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LinkedSale'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: maintenance_part_add
+      description: Agrega una línea a la única venta comercial abierta vinculada y
+        reserva su cantidad; no descuenta existencia ni genera deuda. Exige además
+        `ventas.preparar_vinculada`. Solo órdenes REGISTERED (`parts_not_allowed`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenancePartCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenancePartCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenancePartCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/parts/{line_id}/:
+    patch:
+      operationId: maintenance_part_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: line_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenancePartUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenancePartUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenancePartUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/parts/{line_id}/remove/:
+    post:
+      operationId: maintenance_part_remove
+      description: Retira la línea pendiente y libera exactamente su reserva.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: line_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/parts/product-options/:
+    get:
+      operationId: maintenance_part_product_options
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartProductOptions'
           description: ''
         '400':
           content:
@@ -1840,6 +2179,121 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/service-operations/:
+    post:
+      operationId: maintenance_service_operation_confirm
+      description: Confirma la operación ART-SER con las líneas iniciales pendientes;
+        exige la huella de la vista previa. No afecta inventario ni registra pagos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationConfirm'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/service-operations/preview/:
+    post:
+      operationId: maintenance_service_operation_preview
+      description: 'Sin efectos: no numera, no crea deuda ni bloquea líneas.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationPreviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationPreviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationPreviewRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperationPreview'
           description: ''
         '400':
           content:
@@ -3699,6 +4153,13 @@ paths:
           format: date
         description: Inclusiva, zona del negocio.
       - in: query
+        name: origin
+        schema:
+          type: string
+          enum:
+          - DIRECT
+          - MAINTENANCE
+      - in: query
         name: page
         schema:
           type: integer
@@ -4797,6 +5258,13 @@ paths:
           type: integer
         description: Días desde la confirmación, fechas locales.
       - in: query
+        name: origin
+        schema:
+          type: string
+          enum:
+          - DIRECT
+          - MAINTENANCE
+      - in: query
         name: page
         schema:
           type: integer
@@ -4980,6 +5448,373 @@ paths:
               schema:
                 type: object
                 additionalProperties: {}
+          description: ''
+  /api/v1/service-operations/:
+    get:
+      operationId: artisan_receivables
+      description: Solo RUC artesanal. La antigüedad no expresa mora ni vencimiento.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: order_id
+        schema:
+          type: integer
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: payment_state
+        schema:
+          type: string
+          enum:
+          - PAID
+          - PARTIAL
+          - PENDING
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtisanReceivablePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/:
+    get:
+      operationId: service_operation_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/document/:
+    get:
+      operationId: service_operation_document
+      description: Comprobante interno del RUC artesanal; no es factura autorizada
+        por el SRI.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/payments/:
+    get:
+      operationId: artisan_payment_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: artisan_payment_register
+      description: Cobro de una sola operación artesanal con EFECTIVO, TRANSFERENCIA
+        o ambos. Contado exige el saldo completo; sin anticipos ni sobrepagos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/payments/{payment_id}/corrections/:
+    post:
+      operationId: artisan_payment_correct
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: payment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCorrection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCorrection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtisanPaymentCorrection'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/void/:
+    post:
+      operationId: service_operation_void
+      description: Solo sin pagos vigentes (`payments_block_void`); conserva número
+        y líneas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationVoid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationVoid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceOperationVoid'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/void-preview/:
+    get:
+      operationId: service_operation_void_preview
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperationVoidPreview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
           description: ''
   /api/v1/services/:
     get:
@@ -7285,6 +8120,95 @@ components:
       - state
       - unit_cost
       - version
+    ArtisanPaymentCorrection:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 500
+        replacement:
+          $ref: '#/components/schemas/ArtisanPaymentReplacement'
+      required:
+      - idempotency_key
+      - operation_id
+      - reason
+    ArtisanPaymentCreate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        operation_id:
+          type: string
+          format: uuid
+          description: Identidad estable del cobro.
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtisanPaymentPart'
+      required:
+      - idempotency_key
+      - operation_id
+      - parts
+    ArtisanPaymentPart:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/MethodEnum'
+        amount:
+          type: string
+          description: USD con hasta dos decimales.
+      required:
+      - amount
+      - method
+    ArtisanPaymentReplacement:
+      type: object
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtisanPaymentPart'
+      required:
+      - operation_id
+      - parts
+    ArtisanReceivablePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        totals:
+          type: object
+          additionalProperties: {}
+          description: Sumas de todas las coincidencias.
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+      - totals
     AuditActor:
       type: object
       properties:
@@ -7485,6 +8409,44 @@ components:
       required:
       - idempotency_key
       - name
+    CommercialOrderView:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        state:
+          type: string
+        opened_on:
+          type: string
+          format: date
+        customer:
+          type: object
+          additionalProperties: {}
+        vehicle:
+          type: object
+          additionalProperties: {}
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedSale'
+      required:
+      - customer
+      - id
+      - number
+      - opened_on
+      - parts
+      - state
+      - vehicle
+    ConditionEnum:
+      enum:
+      - CONTADO
+      - CREDITO
+      type: string
+      description: |-
+        * `CONTADO` - CONTADO
+        * `CREDITO` - CREDITO
     Confirm:
       type: object
       properties:
@@ -7702,6 +8664,9 @@ components:
         customer:
           type: object
           additionalProperties: {}
+        origin:
+          type: object
+          additionalProperties: {}
         lines:
           type: array
           items:
@@ -7724,6 +8689,7 @@ components:
       - lines
       - notice
       - number
+      - origin
       - state
       - tax_total
       - voided
@@ -7836,6 +8802,33 @@ components:
       - operational_date
       - status
       - totals
+    EconomicSummary:
+      type: object
+      properties:
+        order_id:
+          type: integer
+        order_number:
+          type: string
+        commercial:
+          type: object
+          additionalProperties: {}
+        artisan:
+          type: object
+          additionalProperties: {}
+        combined:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: Solo informativo; no es una deuda única ni una factura.
+        notice:
+          type: string
+      required:
+      - artisan
+      - combined
+      - commercial
+      - notice
+      - order_id
+      - order_number
     FiscalEntity:
       type: object
       properties:
@@ -7972,6 +8965,41 @@ components:
       - period_totals
       - results
       - total_pages
+    LinkedSale:
+      type: object
+      properties:
+        id:
+          type: integer
+        state:
+          type: string
+        internal_number:
+          type: string
+          nullable: true
+        condition:
+          type: string
+        origin:
+          type: object
+          additionalProperties: {}
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        money:
+          type: object
+          additionalProperties: {}
+        estimate:
+          type: object
+          additionalProperties: {}
+          description: Solo en el borrador abierto.
+      required:
+      - condition
+      - id
+      - internal_number
+      - lines
+      - money
+      - origin
+      - state
     Login:
       type: object
       properties:
@@ -8142,8 +9170,14 @@ components:
           type: string
         no_charge:
           type: boolean
+        documented_by:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: Operación ART-SER vigente que documenta la línea.
       required:
       - applied_price
+      - documented_by
       - id
       - no_charge
       - quantity
@@ -8269,8 +9303,14 @@ components:
           type: array
           items:
             type: string
+        billing_actions:
+          type: array
+          items:
+            type: string
+          description: manage_parts, document_services o view_service_operations.
       required:
       - allowed_actions
+      - billing_actions
       - created_at
       - created_by
       - customer
@@ -8392,6 +9432,27 @@ components:
         * `REGISTERED` - REGISTERED
         * `FINALIZED` - FINALIZED
         * `REOPENED` - REOPENED
+    MaintenancePartCreate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+          description: Entero positivo de presentaciones completas.
+      required:
+      - expected_version
+      - idempotency_key
+      - product_id
+      - quantity
     MaintenancePhoto:
       type: object
       properties:
@@ -8641,6 +9702,14 @@ components:
       required:
       - expected_version
       - idempotency_key
+    MethodEnum:
+      enum:
+      - EFECTIVO
+      - TRANSFERENCIA
+      type: string
+      description: |-
+        * `EFECTIVO` - EFECTIVO
+        * `TRANSFERENCIA` - TRANSFERENCIA
     MoneyBlock:
       type: object
       properties:
@@ -8978,6 +10047,29 @@ components:
       required:
       - amount
       - method
+    PartProductOptions:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Producto con existencia, reservado y disponible; sin costos.
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     PasswordChange:
       type: object
       properties:
@@ -9142,6 +10234,19 @@ components:
         notes:
           type: string
           maxLength: 5000
+    PatchedMaintenancePartUpdate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+          description: Entero positivo de presentaciones completas.
     PatchedOperationPatch:
       type: object
       properties:
@@ -10273,6 +11378,9 @@ components:
         internal_number:
           type: string
           nullable: true
+        origin:
+          type: object
+          additionalProperties: {}
         customer:
           type: object
           additionalProperties: {}
@@ -10326,6 +11434,7 @@ components:
       - money
       - notes
       - operational_date
+      - origin
       - state
       - tax_total
       - version
@@ -10440,7 +11549,8 @@ components:
           type: object
           additionalProperties: {}
         origin:
-          type: string
+          type: object
+          additionalProperties: {}
         sale_date:
           type: string
           format: date
@@ -10543,6 +11653,200 @@ components:
       - reference_price
       - tax
       - updated_at
+      - version
+    ServiceOperation:
+      type: object
+      properties:
+        id:
+          type: integer
+        internal_number:
+          type: string
+        order_id:
+          type: integer
+        order_number:
+          type: string
+        state:
+          $ref: '#/components/schemas/ServiceOperationStateEnum'
+        condition:
+          type: string
+        operational_date:
+          type: string
+          format: date
+        grand_total:
+          type: string
+        paid:
+          type: string
+        balance:
+          type: string
+        payment_state:
+          type: string
+        replaces:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        replaced_by:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        payments:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        allowed_actions:
+          type: array
+          items:
+            type: string
+        fiscal_notice:
+          type: string
+      required:
+      - balance
+      - condition
+      - grand_total
+      - id
+      - internal_number
+      - operational_date
+      - order_id
+      - paid
+      - payment_state
+      - replaced_by
+      - replaces
+      - state
+    ServiceOperationConfirm:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        condition:
+          $ref: '#/components/schemas/ConditionEnum'
+        review_digest:
+          type: string
+          description: Huella devuelta por la vista previa.
+      required:
+      - condition
+      - expected_version
+      - idempotency_key
+      - review_digest
+    ServiceOperationPreview:
+      type: object
+      properties:
+        order_id:
+          type: integer
+        order_number:
+          type: string
+        condition:
+          type: string
+        operational_date:
+          type: string
+          format: date
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        totals:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        effects:
+          type: object
+          additionalProperties: {}
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        warnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        review_digest:
+          type: string
+      required:
+      - condition
+      - effects
+      - issues
+      - lines
+      - operational_date
+      - order_id
+      - order_number
+      - review_digest
+      - totals
+      - warnings
+    ServiceOperationPreviewRequest:
+      type: object
+      properties:
+        condition:
+          $ref: '#/components/schemas/ConditionEnum'
+      required:
+      - condition
+    ServiceOperationStateEnum:
+      enum:
+      - CONFIRMED
+      - VOIDED
+      type: string
+      description: |-
+        * `CONFIRMED` - CONFIRMED
+        * `VOIDED` - VOIDED
+    ServiceOperationVoid:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+      required:
+      - expected_version
+      - idempotency_key
+      - reason
+    ServiceOperationVoidPreview:
+      type: object
+      properties:
+        id:
+          type: integer
+        internal_number:
+          type: string
+        grand_total:
+          type: string
+        paid:
+          type: string
+        can_void:
+          type: boolean
+        blockers:
+          type: array
+          items:
+            type: string
+        effects:
+          type: object
+          additionalProperties: {}
+        version:
+          type: integer
+      required:
+      - blockers
+      - can_void
+      - effects
+      - grand_total
+      - id
+      - internal_number
+      - paid
       - version
     ServicePage:
       type: object

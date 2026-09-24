@@ -5,8 +5,10 @@ from typing import Any
 
 import pytest
 
-from inventory.application import operations
+from catalog.application.inventory_references import lock_product_references
+from inventory.application import operations, posting
 from inventory.application.errors import InventoryApplicationError
+from inventory.application.reservations import reserve
 from inventory.models import InventoryOperation, InventoryPosition
 
 from .test_initial_load import confirm, prepare
@@ -124,6 +126,36 @@ def test_a_physical_difference_can_be_linked_to_the_operation_it_corrects(
     confirm(admin, linked, "cor-key-0015")
     position = InventoryPosition.objects.get()
     assert (position.quantity, position.average) == (D(4), D("1.000000"))
+
+
+def test_linked_negative_correction_cannot_consume_reserved_stock(
+    admin: Any, product: Any, warehouse: Any, stocked: dict[str, Any]
+) -> None:
+    refs = lock_product_references([product.pk])
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=product.pk,
+        source_type="SALE_LINE",
+        source_id=201,
+        source_reference={"sale_id": 21, "order_id": 8},
+        quantity=D(2),
+    )
+    correction = op(
+        admin,
+        product,
+        "ADJUSTMENT_OUT",
+        "cor-key-0024",
+        quantity="2",
+        corrects_operation_id=stocked["id"],
+    )
+
+    review = operations.preview_operation(actor=admin, operation_id=correction["id"])
+
+    assert review["can_confirm"] is False
+    assert review["issues"][0]["code"] == "insufficient_stock"
+    position = InventoryPosition.objects.get(product=product)
+    assert (position.quantity, position.reserved) == (D(3), D(2))
+    assert not InventoryOperation.objects.filter(kind="ADJUSTMENT_OUT", state="POSTED").exists()
 
 
 def test_linked_entry_uses_the_current_average_and_rejects_a_cost_only_correction(

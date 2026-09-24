@@ -46,6 +46,7 @@ class OperationEffect:
     quantity_after: Decimal
     value_after: Decimal
     current_quantity: Decimal
+    current_reserved: Decimal
     current_value: Decimal
     last_ordinal: int
     applied_unit_cost: Decimal
@@ -60,7 +61,7 @@ class OperationEffect:
 @dataclass(frozen=True)
 class ReversalBlocker:
     product_id: int
-    code: str  # later_movements | inconsistent
+    code: str  # later_movements | inconsistent | reserved_stock
     blocking_operation_id: int | None
 
 
@@ -81,6 +82,7 @@ def operation_effects(operation_id: int) -> list[OperationEffect]:
             quantity_after=m.quantity_after,
             value_after=m.value_after,
             current_quantity=m.position.quantity,
+            current_reserved=m.position.reserved,
             current_value=m.position.value,
             last_ordinal=m.position.last_ordinal,
             applied_unit_cost=m.applied_unit_cost,
@@ -123,6 +125,9 @@ def reversal_blockers(operation_id: int) -> list[ReversalBlocker]:
             )
         except InventoryValidationError:
             blockers.append(ReversalBlocker(movement.product_id, "inconsistent", None))
+            continue
+        if movement.quantity_in > 0 and movement.quantity_before < position.reserved:
+            blockers.append(ReversalBlocker(movement.product_id, "reserved_stock", None))
     return blockers
 
 
@@ -166,6 +171,8 @@ def _stock_row(
     result: dict[str, Any] = {
         "product": _product_dict(row),
         "quantity": f"{position.quantity:.0f}" if position else "0",
+        "reserved": f"{position.reserved:.0f}" if position else "0",
+        "available": f"{position.quantity - position.reserved:.0f}" if position else "0",
         "version": position.version if position else 0,
         "last_ordinal": position.last_ordinal if position else 0,
     }

@@ -6,19 +6,36 @@ from typing import Any
 from catalog.application.workshop_references import get_service_active_states
 from customer_registry.application.workshop_references import get_active_states
 from identity.models import User
+from sales.application.workshop_links import open_linked_line_count
 from workshop.application.errors import not_found
 from workshop.application.support import actor_permissions, user_label
 from workshop.domain.amounts import line_subtotal, services_total
 from workshop.domain.finalization import FinalizationFacts, pending_requirements
-from workshop.domain.states import InterventionKind, OrderState, allowed_actions
-from workshop.models import Intervention, MaintenanceOrder, OrderPhoto, ServiceLine
+from workshop.domain.states import (
+    InterventionKind,
+    OrderState,
+    allowed_actions,
+    billing_actions,
+)
+from workshop.models import (
+    Intervention,
+    MaintenanceOrder,
+    OrderPhoto,
+    ServiceLine,
+    ServiceOperationLine,
+)
 
 
 def money(value: Decimal) -> str:
     return f"{value:.2f}"
 
 
-def _line(line: ServiceLine, active: dict[int, bool], corrective: bool) -> dict[str, Any]:
+def _line(
+    line: ServiceLine,
+    active: dict[int, bool],
+    corrective: bool,
+    documented: dict[int, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     return {
         "id": line.pk,
         "service_id": line.service_id,
@@ -30,6 +47,7 @@ def _line(line: ServiceLine, active: dict[int, bool], corrective: bool) -> dict[
         "subtotal": money(line_subtotal(line.quantity, line.applied_price)),
         "tax_name": line.tax_name,
         "no_charge": corrective,
+        "documented_by": (documented or {}).get(line.pk),
     }
 
 
@@ -58,6 +76,7 @@ def facts_for(
         diagnosis=order.diagnosis,
         line_count=line_count,
         work_performed=intervention.work_performed,
+        pending_part_lines=open_linked_line_count(order.pk),
     )
 
 
@@ -91,6 +110,13 @@ def order_detail(order_id: int, actor: User) -> dict[str, Any]:
     transitions = list(order.transitions.select_related("actor"))
     customers_active, vehicles_active = get_active_states({order.customer_id}, {order.vehicle_id})
     services_active = get_service_active_states({line.service_id for line in lines})
+    documented = {
+        row.service_line_id: {"id": row.operation_id, "number": row.operation.internal_number}
+        for row in ServiceOperationLine.objects.filter(
+            service_line__in=lines, is_current=True
+        ).select_related("operation")
+        if row.service_line_id is not None
+    }
     by_intervention: dict[int, list[ServiceLine]] = {}
     for line in lines:
         by_intervention.setdefault(line.intervention_id, []).append(line)
@@ -161,7 +187,7 @@ def order_detail(order_id: int, actor: User) -> dict[str, Any]:
                 "closed_by": user_label(i.closed_by),
                 "closed_at": i.closed_at.isoformat() if i.closed_at else None,
                 "lines": [
-                    _line(line, services_active, i.kind == "CORRECTIVE")
+                    _line(line, services_active, i.kind == "CORRECTIVE", documented)
                     for line in by_intervention.get(i.pk, [])
                 ],
                 "subtotal": money(
@@ -187,4 +213,13 @@ def order_detail(order_id: int, actor: User) -> dict[str, Any]:
         ],
         "pending_requirements": pending,
         "allowed_actions": list(allowed_actions(state, actor_permissions(actor))),
+        "billing_actions": list(
+            billing_actions(
+                state,
+                actor_permissions(actor),
+                pending_services=any(
+                    line.applied_price > 0 and line.pk not in documented for line in initial_lines
+                ),
+            )
+        ),
     }

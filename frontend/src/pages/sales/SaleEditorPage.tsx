@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 
 import {
   describeProblem,
@@ -70,6 +70,9 @@ export function SaleEditorPage() {
   const [requestedFor, setRequestedFor] = useState<string | null>(null)
   const { request } = latest
   const currentSignature = signature(draft) + draft.notes
+  // Venta vinculada a un mantenimiento: cliente y líneas se gestionan desde la orden.
+  const origin = saved.data?.origin
+  const linked = origin?.type === 'MAINTENANCE'
   const dirty = savedSignature !== currentSignature
 
   useEffect(() => {
@@ -115,12 +118,16 @@ export function SaleEditorPage() {
       notes: draft.notes,
       lines: toInput(draft).lines ?? [],
     }
+    // En una venta vinculada solo se envían condición y notas; el resto es de la orden.
+    const update = linked
+      ? { condition: draft.condition, notes: draft.notes }
+      : data
     try {
       const result = await tracker.run({ saleId, data }, (key) =>
         saleId
           ? mutations.update.mutateAsync({
               id: saleId,
-              data,
+              data: update,
               expectedVersion: saved.data?.version ?? 1,
               key,
             })
@@ -278,19 +285,25 @@ export function SaleEditorPage() {
               <div className="sale-data-grid">
                 <div className="sale-field">
                   <label htmlFor="sale-customer">Cliente</label>
-                  <Combobox
-                    clearable
-                    error={errors.customer_id}
-                    id="sale-customer"
-                    inactiveHelp="El cliente está inactivo: no puede iniciarse una venta nueva."
-                    label="Cliente"
-                    onSelect={(customer) =>
-                      setDraft((d) => ({ ...d, customer }))
-                    }
-                    placeholder="Buscar cliente por nombre o identificación"
-                    selected={draft.customer}
-                    useOptions={useCustomerPickerOptions}
-                  />
+                  {linked ? (
+                    <p className="font-medium" id="sale-customer">
+                      {saved.data?.customer.name}
+                    </p>
+                  ) : (
+                    <Combobox
+                      clearable
+                      error={errors.customer_id}
+                      id="sale-customer"
+                      inactiveHelp="El cliente está inactivo: no puede iniciarse una venta nueva."
+                      label="Cliente"
+                      onSelect={(customer) =>
+                        setDraft((d) => ({ ...d, customer }))
+                      }
+                      placeholder="Buscar cliente por nombre o identificación"
+                      selected={draft.customer}
+                      useOptions={useCustomerPickerOptions}
+                    />
+                  )}
                 </div>
                 <div className="sale-field">
                   <span className="sale-field-label" id="sale-condition-label">
@@ -325,13 +338,45 @@ export function SaleEditorPage() {
                 </div>
               </div>
             </section>
-            <SaleLinesEditor
-              errors={errors}
-              lines={draft.lines}
-              onChange={(lines) => setDraft((d) => ({ ...d, lines }))}
-              pending={!fresh}
-              priced={priced}
-            />
+            {linked ? (
+              <section
+                aria-label="Repuestos de la orden"
+                className="sale-section"
+              >
+                <div className="sale-section-head">
+                  <h2>Repuestos de la orden {origin?.order_number}</h2>
+                </div>
+                <InlineNotice
+                  title="Venta vinculada a un mantenimiento"
+                  tone="info"
+                >
+                  El cliente y los repuestos se gestionan desde la orden; aquí
+                  solo se eligen la condición y las notas antes de confirmar.{' '}
+                  <Link
+                    className="font-semibold hover:underline"
+                    to={`/maintenance/${origin?.order_id}/commercial`}
+                  >
+                    Ver orden de origen
+                  </Link>
+                </InlineNotice>
+                <ul className="mt-2 text-[13px]">
+                  {(saved.data?.lines ?? []).map((line) => (
+                    <li key={line.id}>
+                      {line.product_code} · {line.product_name} ×{' '}
+                      {line.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : (
+              <SaleLinesEditor
+                errors={errors}
+                lines={draft.lines}
+                onChange={(lines) => setDraft((d) => ({ ...d, lines }))}
+                pending={!fresh}
+                priced={priced}
+              />
+            )}
             <div className="sale-section">
               <div className="sale-section-head">
                 <h2>Notas</h2>

@@ -529,3 +529,45 @@ it('la condición es una selección exclusiva y el total del servidor acompaña 
     ),
   )
 })
+
+it('una venta vinculada solo edita condición y notas; los repuestos vienen de la orden', async () => {
+  mocks.sale = {
+    id: 31,
+    version: 2,
+    state: 'DRAFT',
+    condition: 'CONTADO',
+    notes: '',
+    origin: { type: 'MAINTENANCE', order_id: 9, order_number: 'ART-OT-000009' },
+    customer: { id: 1, name: 'Ana Pérez' },
+    lines: [
+      {
+        id: 1,
+        position: 1,
+        product_id: 5,
+        product_code: 'ACE-1',
+        product_name: 'Aceite',
+        quantity: '2',
+      },
+    ],
+  }
+  mocks.update.mockResolvedValue({ ...(mocks.sale as object), version: 3 })
+  const user = userEvent.setup()
+  renderEditor('/sales/31/edit')
+  expect(
+    await screen.findByText('Venta vinculada a un mantenimiento'),
+  ).toBeInTheDocument()
+  expect(
+    screen.queryByRole('combobox', { name: 'Cliente' }),
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('combobox', { name: 'Producto de la línea 1' }),
+  ).not.toBeInTheDocument()
+  await user.click(screen.getByRole('radio', { name: /Crédito/ }))
+  await user.click(screen.getByRole('button', { name: 'Guardar borrador' }))
+  expect(mocks.update).toHaveBeenCalledWith(
+    expect.objectContaining({
+      id: 31,
+      data: { condition: 'CREDITO', notes: '' },
+    }),
+  )
+})

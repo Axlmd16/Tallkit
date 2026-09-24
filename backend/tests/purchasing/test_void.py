@@ -5,9 +5,11 @@ from typing import Any
 
 import pytest
 
+from catalog.application.inventory_references import lock_product_references
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.models import AuditEvent
 from inventory.application import posting
+from inventory.application.reservations import reserve
 from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
 from purchasing.application import purchases
 from purchasing.application.errors import PurchaseApplicationError
@@ -161,6 +163,42 @@ def test_later_movement_blocks_even_with_enough_stock(
     assert error.value.code in {"unsafe_reversal", "validation_error"}
     assert Purchase.objects.get(pk=first["id"]).state == "CONFIRMED"
     assert InventoryPosition.objects.get().quantity == D(15)
+
+
+def test_void_is_blocked_when_the_received_stock_is_reserved(
+    admin: Any,
+    commercial: Any,
+    draft_payload: Any,
+    product: Any,
+    line: Any,
+    warehouse: Any,
+) -> None:
+    body = confirmed(
+        admin,
+        commercial,
+        draft_payload,
+        [line(product, commercial["ten"], "5", "1.00")],
+        "confirm-key-413",
+    )
+    refs = lock_product_references([product.pk])
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=product.pk,
+        source_type="SALE_LINE",
+        source_id=401,
+        source_reference={"sale_id": 41, "order_id": 10},
+        quantity=D(2),
+    )
+
+    review = purchases.void_preview(actor=admin, purchase_id=body["id"])
+
+    assert review["can_void"] is False
+    assert review["review_token"] is None
+    assert review["issues"][0]["code"] == "insufficient_stock"
+    assert Purchase.objects.get(pk=body["id"]).state == "CONFIRMED"
+    position = InventoryPosition.objects.get(product=product)
+    assert (position.quantity, position.reserved) == (D(5), D(2))
+    assert InventoryOperation.objects.filter(kind="REVERSAL").count() == 0
 
 
 def test_unsafe_reversal_names_the_product_and_the_first_blocking_reference(

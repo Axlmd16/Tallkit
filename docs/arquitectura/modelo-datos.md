@@ -299,3 +299,32 @@ Las fotografías viven fuera de la base, en `PRIVATE_MEDIA_ROOT/maintenance/<ord
 
 ### Reversión
 Antes del primer uso: retirar las rutas y revertir `workshop` a `zero` con las tablas vacías. Después de registrar órdenes: no revertir destructivamente; conservar esquema, historia y archivos, y corregir hacia adelante.
+
+## Integración: reservas, ventas vinculadas, operación artesanal y cobros por RUC
+
+Cambio OpenSpec `integrar-mantenimiento-ventas-cobros-por-ruc` (ADR-0008 y ADR-0009). Migraciones aditivas: `inventory.0005`, `sales.0005` (depende de `workshop.0002`), `workshop.0003` y `workshop.0004`. La única escritura de datos es `workshop.0004`, que marca `predates_billing = true` en las órdenes existentes. Ninguna migración crea ventas, operaciones, deudas, cobros, reservas ni movimientos.
+
+### Reservas en `inventory`
+| Tabla o campo | Datos y restricciones |
+|---|---|
+| `inventory_inventoryposition.reserved` | `numeric(18,6)` entero; check `0 ≤ reserved ≤ quantity`. Garantiza en la base que ninguna salida, reversión o ajuste deje la disponibilidad negativa. |
+| `inventory_inventoryreservation` | Posición, producto y bodega (`PROTECT`), `source_type` (`SALE_LINE`), `source_id` (línea de venta vinculada), `source_reference` JSON, `quantity` entera, `state` (`ACTIVE`, `RELEASED`, `CONSUMED`), `consumed_by` (operación de inventario) y marcas de tiempo. Índice único parcial `(source_type, source_id)` con `state = ACTIVE`. `reserved` debe igualar la suma de las reservas activas (`reconcile_inventory`). |
+
+### Origen en `sales`
+`sales_sale` añade `origin_type` (`DIRECT` por defecto en todas las filas existentes, o `MAINTENANCE`), `origin_order` (FK `workshop_maintenanceorder`, `PROTECT`, sin relación inversa) y `origin_reference` (número ART-OT copiado). Checks: `MAINTENANCE ⇔ origin_order` presente. **Índice único parcial** `(origin_order)` con `state = DRAFT`: una sola venta abierta por orden. `reconcile_sales` comprueba que las reservas activas correspondan 1:1 a las líneas de las ventas vinculadas abiertas.
+
+### Operación artesanal y pagos en `workshop`
+| Tabla | Datos y restricciones |
+|---|---|
+| `workshop_maintenanceorder.predates_billing` | Booleano; solo activa una advertencia al documentar servicios de órdenes anteriores. |
+| `workshop_serviceoperation` | Orden, entidad fiscal y cliente (`PROTECT`), snapshots de cliente, vehículo y emisor, asignación de número, `internal_number` único (serie ART-SER), `condition` (`CONTADO`, `CREDITO`), `operational_date`, `base_total`, `tax_total` y `grand_total` con `grand_total = base + tax > 0`, `state` (`CONFIRMED`, `VOIDED`), `replaces` (cadena de reemplazo), huella revisada, anulación (motivo, usuario, fecha; coherente con el estado), `version` y auditoría. |
+| `workshop_serviceoperationline` | Operación, `service_line` (`SET_NULL` para conservar la copia si la línea se retira tras una anulación), posición, servicio, nombre, cantidad, precios referencial y aplicado, definición tributaria, snapshot tributario, tarifa, base, impuesto y total (`total = base + impuesto`), `is_current`. **Índice único parcial** `(service_line)` con `is_current`: una línea no se documenta dos veces mientras su operación esté vigente. |
+| `workshop_artisanpayment` | `operation_id` UUID único (identidad del hecho), operación, importe `> 0`, fecha efectiva, usuario. |
+| `workshop_artisanpaymentpart` | Pago, medio (`EFECTIVO`, `TRANSFERENCIA`) y importe `> 0`; único `(payment, method)`. |
+| `workshop_artisanpaymentcorrection` | `operation_id` UUID único, operación, pago original (único), reemplazo opcional (único) y motivo obligatorio. El saldo se deriva: exigible vigente menos pagos sin corrección; nunca se almacena. |
+
+### Orden de bloqueo global
+Recibo → orden de mantenimiento → operación artesanal / líneas de servicio → venta → cliente/vehículo → productos → posiciones (por producto) → configuración → numeración → inserciones. Cada acción toma una subsecuencia ordenada; los cobros artesanales bloquean solo la operación.
+
+### Reversión
+Antes de usar la integración: retirar las líneas de las ventas vinculadas abiertas (libera las reservas) y revertir las migraciones con tablas vacías. Con operaciones, ventas vinculadas o cobros ya registrados, no revertir destructivamente: corregir hacia adelante con respaldo previo (DA-003).

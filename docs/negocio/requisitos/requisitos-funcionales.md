@@ -189,6 +189,8 @@
 | RF-TAL-020 | Los servicios correctivos atribuibles al taller deben registrarse sin nuevo cobro. | Debe | La intervención conserva el trabajo realizado y no aumenta la deuda artesanal. |
 | RF-TAL-021 | Los repuestos aportados por el cliente deben quedar fuera de inventario y ventas. | Debe | Solo pueden mencionarse en observaciones del mantenimiento. |
 
+**Estado de implementación (cambio `openspec/changes/integrar-mantenimiento-ventas-cobros-por-ruc`).** Cubiertos: RF-TAL-007…013 (operación artesanal ART-SER, pagos artesanales, repuestos como venta vinculada con reserva, consulta conjunta separada por RUC y finalización condicionada por repuestos pendientes); RF-VEN-002 y RF-VEN-016 para el origen mantenimiento; RF-PAG-010; la parte artesanal de RF-REP-006 (cuentas por cobrar de servicios); y RF-INV-015 (reservas de mantenimiento). **Siguen pendientes:** RF-TAL-014 (cancelación), RF-INV-016…019 (desarme, consumo interno, reposición por corrección y devolución a proveedor), el origen desde proforma de RF-VEN-002 y los reembolsos artesanales. La evidencia está en [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).
+
 ## 10. Reportes, documentos y consultas
 
 | ID | Requisito | Prioridad | Criterio de cumplimiento resumido |

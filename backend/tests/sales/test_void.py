@@ -9,8 +9,9 @@ import pytest
 
 from identity.application.authorization import BusinessPermissionDeniedError
 from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
-from sales.application import refunds, voids
+from sales.application import refunds, reviews, sales, voids
 from sales.application.errors import SalesApplicationError
+from sales.application.workshop_links import add_linked_line
 from sales.models import CommercialPayment, CommercialRefund, Sale, SaleVoid
 from workshop_configuration.models import NumberAllocation, Warehouse
 
@@ -75,6 +76,51 @@ def test_voiding_an_untouched_sale_restores_stock_and_keeps_the_number(
     assert movement.reverses_movement is not None
     assert SaleVoid.objects.get().sale_id == sale["id"]
     assert NumberAllocation.objects.filter(consumer_type="sale").count() == 1
+
+
+def test_linked_sale_void_preview_and_command_are_not_available(
+    admin: Any,
+    seller: Any,
+    maintenance_order: Any,
+    product: Any,
+    stock: Any,
+) -> None:
+    stock(product, 2, "8.00")
+    line = add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="1",
+    )
+    linked = Sale.objects.get(pk=line.sale_id)
+    review = reviews.preview_confirmation(actor=seller, sale_id=linked.pk)
+    sales.confirm_sale(
+        actor=seller,
+        sale_id=linked.pk,
+        payload={
+            "idempotency_key": "void-linked-confirm-1",
+            "expected_version": linked.version,
+            "review_token": review["review_token"],
+        },
+    )
+    linked.refresh_from_db()
+
+    preview = voids.preview_void(actor=admin, sale_id=linked.pk, payload=void_data())
+    assert preview["can_void"] is False
+    assert preview["issues"][0]["code"] == "linked_sale_not_voidable"
+    with pytest.raises(SalesApplicationError) as error:
+        voids.void_sale(
+            actor=admin,
+            sale_id=linked.pk,
+            payload={
+                **void_data(),
+                "idempotency_key": "void-linked-1",
+                "expected_version": linked.version,
+                "review_token": "not-applicable",
+            },
+        )
+    assert error.value.code == "linked_sale_not_voidable"
+    assert Sale.objects.get(pk=linked.pk).state == "CONFIRMED"
 
 
 def test_a_later_movement_in_one_of_several_products_rejects_the_whole_void(

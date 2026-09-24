@@ -36,6 +36,8 @@ export async function invalidateAfterSaleMutation(
   }
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: saleKeys.root }),
+    // Una venta vinculada cambia repuestos y resumen económico de su orden.
+    queryClient.invalidateQueries({ queryKey: ['maintenance'] }),
     ...(options.physical
       ? [queryClient.invalidateQueries({ queryKey: ['inventory'] })]
       : []),

@@ -113,6 +113,13 @@ export const navigationGroups: readonly NavGroup[] = [
         label: 'Mantenimientos',
         to: '/maintenance',
         permission: 'mantenimientos.ver',
+        excludes: ['/maintenance/receivables'],
+      },
+      {
+        icon: Coins,
+        label: 'Cobros de servicios',
+        to: '/maintenance/receivables',
+        permission: 'pagos_artesanales.ver',
       },
     ],
   },

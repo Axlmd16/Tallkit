@@ -40,6 +40,7 @@ export function createSalesApi(client: ApiClient) {
         `/${buildQuery({
           customer_id: filters.customerId,
           state: filters.state,
+          origin: filters.origin,
           payment_state: filters.paymentState,
           date_from: filters.dateFrom,
           date_to: filters.dateTo,
@@ -52,6 +53,7 @@ export function createSalesApi(client: ApiClient) {
       return get(
         `/receivables/${buildQuery({
           customer_id: filters.customerId,
+          origin: filters.origin,
           payment_state: filters.paymentState,
           min_age_days: filters.minAgeDays,
           page: filters.page,

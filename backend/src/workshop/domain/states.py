@@ -66,3 +66,25 @@ def allowed_actions(state: OrderState, permissions: frozenset[str]) -> tuple[str
     if state is OrderState.FINALIZED and "mantenimientos.reabrir" in permissions:
         actions.append("reopen")
     return tuple(actions)
+
+
+def billing_actions(
+    state: OrderState, permissions: frozenset[str], *, pending_services: bool
+) -> tuple[str, ...]:
+    """Acciones económicas visibles; el servidor vuelve a autorizarlas al ejecutarlas.
+
+    Los repuestos solo se gestionan en órdenes registradas (una reapertura es corrección sin
+    cobro). Documentar servicios procede en cualquier estado si hay importe pendiente.
+    """
+    actions: list[str] = []
+    if (
+        state is OrderState.REGISTERED
+        and "mantenimientos.gestionar_repuestos" in permissions
+        and "ventas.preparar_vinculada" in permissions
+    ):
+        actions.append("manage_parts")
+    if pending_services and "servicios_economicos.confirmar" in permissions:
+        actions.append("document_services")
+    if "servicios_economicos.ver" in permissions:
+        actions.append("view_service_operations")
+    return tuple(actions)

@@ -15,10 +15,12 @@ OTHERS = {
     "workshop_configuration",
     "catalog",
     "inventory",
+    "workshop",
 }
 ALLOWED_CROSS_MODULE = {
     "inventory.application.posting",
     "inventory.application.queries",
+    "inventory.application.reservations",
     # Excepciones de dominio publicadas para traducir el rechazo por existencia insuficiente.
     "inventory.domain.validation",
     "catalog.application.sales_references",
@@ -121,6 +123,27 @@ def test_other_modules_never_import_sales() -> None:
             if any(m.split(".")[0] == PACKAGE for m in imported_modules(path)):
                 offenders.append(str(path.relative_to(SRC)))
     assert not offenders, offenders
+
+
+def test_sales_uses_only_inventory_interfaces_and_never_imports_workshop() -> None:
+    inventory_modules = {
+        module
+        for path in package_files(PACKAGE)
+        for module in imported_modules(path)
+        if module.split(".")[0] == "inventory"
+    }
+    assert inventory_modules <= {
+        "inventory.application.posting",
+        "inventory.application.queries",
+        "inventory.application.reservations",
+        "inventory.domain.validation",
+    }
+    assert not {
+        module
+        for path in package_files(PACKAGE)
+        for module in imported_modules(path)
+        if module.split(".")[0] == "workshop"
+    }
 
 
 def test_domain_rules_do_not_depend_on_framework_or_persistence() -> None:

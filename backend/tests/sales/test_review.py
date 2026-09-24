@@ -12,6 +12,7 @@ from identity.application.authorization import BusinessPermissionDeniedError
 from inventory.models import InventoryMovement
 from sales.application import reviews, sales
 from sales.application.errors import SalesApplicationError
+from sales.application.workshop_links import add_linked_line
 from sales.models import Sale
 from workshop_configuration.models import ConfigurationUse, NumberAllocation, Warehouse
 
@@ -54,6 +55,35 @@ def test_review_returns_amounts_effects_and_a_token_without_costs_for_the_seller
     assert "current_average_cost" not in review["effects"][0]
     assert "cost" not in str(review["issues"]).lower()
     assert review["expires_in_seconds"] == 900
+
+
+def test_review_uses_availability_and_adds_back_only_the_linked_sale_own_reservations(
+    seller: Any,
+    customer: Any,
+    maintenance_order: Any,
+    product: Any,
+    stock: Any,
+) -> None:
+    stock(product, 2, "8.00")
+    line = add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="2",
+    )
+    linked = reviews.preview_confirmation(actor=seller, sale_id=line.sale_id)
+    assert linked["can_confirm"] is True
+    assert linked["effects"][0]["current_quantity"] == "2"
+
+    direct = make_draft(
+        seller,
+        customer,
+        [{"product_id": product.pk, "quantity": "1"}],
+    )
+    ordinary = reviews.preview_confirmation(actor=seller, sale_id=direct["id"])
+    assert ordinary["can_confirm"] is False
+    assert ordinary["issues"][0]["code"] == "insufficient_stock"
+    assert ordinary["effects"][0]["current_quantity"] == "0"
 
 
 def test_authorized_role_sees_the_current_average_cost(admin: Any, draft: dict[str, Any]) -> None:

@@ -237,3 +237,48 @@ def test_client_amounts_are_not_accepted(manager, order, make_service, field) ->
     )
     assert error.code == "unknown_field"
     assert not ServiceLine.objects.exists()
+
+
+# --- Líneas documentadas en una operación artesanal ------------------------------------------
+
+
+def test_documented_line_is_locked_until_its_operation_is_voided(  # type: ignore[no-untyped-def]
+    manager, admin, artisan_billing, customer, vehicle, make_service
+) -> None:
+    from tests.workshop.workshop_helpers import confirm_services
+
+    from workshop.application import service_operations
+
+    order = create(manager, customer_id=customer.pk, vehicle_id=vehicle.pk, odometer_km=5)
+    [line] = lines_of(add_line(manager, order["id"], service_id=make_service().pk))
+    operation = confirm_services(manager, order["id"])
+
+    for call in (
+        lambda: update_line(manager, order["id"], line["id"], applied_price="30.00"),
+        lambda: remove_line(manager, order["id"], line["id"]),
+    ):
+        error = error_of(call)
+        assert error.code == "line_documented"
+        assert operation["internal_number"] in error.message
+
+    detail = lines_of(orders_detail(manager, order["id"]))[0]
+    assert detail["documented_by"] == {
+        "id": operation["id"],
+        "number": operation["internal_number"],
+    }
+
+    service_operations.void_operation(
+        actor=admin,
+        operation_id=operation["id"],
+        payload={"reason": "Precio equivocado", "expected_version": 1, "idempotency_key": key()},
+    )
+    body = update_line(manager, order["id"], line["id"], applied_price="30.00")
+    [edited] = lines_of(body)
+    assert (edited["applied_price"], edited["documented_by"]) == ("30.00", None)
+    assert version(order["id"]) > 1
+
+
+def orders_detail(actor: Any, order_id: int) -> dict[str, Any]:
+    from workshop.application import queries
+
+    return queries.get_order(actor=actor, order_id=order_id)

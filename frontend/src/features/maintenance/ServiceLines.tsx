@@ -217,6 +217,20 @@ function InterventionLines({
                         tone="info"
                       />
                     )}
+                    {!line.no_charge &&
+                      (line.documented_by ? (
+                        <StatusBadge
+                          className="ml-2"
+                          label={`Documentado en ${line.documented_by.number}`}
+                          tone="success"
+                        />
+                      ) : (
+                        <StatusBadge
+                          className="ml-2"
+                          label="Pendiente de documentar"
+                          tone="neutral"
+                        />
+                      ))}
                   </td>
                   <td className="py-2 pr-3 text-right text-ink-muted">
                     <Money amount={line.reference_price} />
@@ -228,7 +242,12 @@ function InterventionLines({
                   <td className="py-2 pr-3 text-right font-medium">
                     <Money amount={line.subtotal} />
                   </td>
-                  {canManage && (
+                  {canManage && line.documented_by && (
+                    <td className="py-1 text-right text-xs text-ink-muted">
+                      Bloqueada: pertenece a una operación confirmada
+                    </td>
+                  )}
+                  {canManage && !line.documented_by && (
                     <td className="py-1 text-right whitespace-nowrap">
                       <IconButton
                         icon={<NotePencil size={16} />}

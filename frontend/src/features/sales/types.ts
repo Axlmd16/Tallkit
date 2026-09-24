@@ -92,8 +92,18 @@ export interface SaleRefundRow {
   effective_date: string
 }
 
+export type SaleOriginType = 'DIRECT' | 'MAINTENANCE'
+
+/** Origen inmutable de la venta; las vinculadas conservan el número de su orden. */
+export interface SaleOrigin {
+  type: SaleOriginType
+  order_id: number | null
+  order_number: string | null
+}
+
 export interface Sale {
   id: number
+  origin: SaleOrigin
   state: SaleState
   version: number
   condition: SaleCondition
@@ -125,7 +135,7 @@ export interface SaleSummary {
   version: number
   internal_number: string | null
   customer: SaleCustomer
-  origin: 'DIRECT'
+  origin: SaleOrigin
   sale_date: string
   condition: SaleCondition
   grand_total: string | null
@@ -135,6 +145,7 @@ export interface SaleSummary {
 
 export interface SaleFilters {
   customerId?: number | undefined
+  origin?: SaleOriginType | undefined
   state?: SaleState | undefined
   paymentState?: PaymentState | undefined
   dateFrom?: string | undefined

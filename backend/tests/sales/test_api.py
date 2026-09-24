@@ -9,6 +9,8 @@ from rest_framework.test import APIClient
 
 from customer_registry.models import Customer
 from inventory.models import InventoryMovement
+from sales.application import reviews, sales
+from sales.application.workshop_links import add_linked_line
 from sales.models import CommercialPayment, Sale, SaleReturn, SalesCommand
 from shared.transactions import RetryableConflictError
 from workshop_configuration.models import NumberAllocation, TaxPeriod
@@ -117,6 +119,57 @@ class TestSalesRoutes:
         )
         assert (patched.status_code, patched.json()["version"]) == (200, 2)
         assert api.delete(f"{BASE}{body['id']}/").status_code == 405
+
+    def test_origin_filter_and_field_are_exposed_by_all_sale_reads(
+        self,
+        seller_api: APIClient,
+        seller: Any,
+        maintenance_order: Any,
+        product: Any,
+        stock: Any,
+    ) -> None:
+        stock(product, 2, "8.00")
+        line = add_linked_line(
+            actor=seller,
+            order_ref=maintenance_order,
+            product_id=product.pk,
+            quantity="1",
+        )
+        linked = Sale.objects.get(pk=line.sale_id)
+        sales.update_draft(
+            actor=seller,
+            sale_id=linked.pk,
+            payload={
+                "idempotency_key": key("linked-edit"),
+                "expected_version": linked.version,
+                "condition": "CREDITO",
+            },
+        )
+        linked.refresh_from_db()
+        review = reviews.preview_confirmation(actor=seller, sale_id=linked.pk)
+        sales.confirm_sale(
+            actor=seller,
+            sale_id=linked.pk,
+            payload={
+                "idempotency_key": key("linked-conf"),
+                "expected_version": linked.version,
+                "review_token": review["review_token"],
+            },
+        )
+        expected = {
+            "type": "MAINTENANCE",
+            "order_id": maintenance_order.pk,
+            "order_number": maintenance_order.number,
+        }
+
+        listing = seller_api.get(f"{BASE}?origin=MAINTENANCE")
+        assert listing.status_code == 200
+        assert listing.json()["results"][0]["origin"] == expected
+        assert seller_api.get(f"{BASE}?origin=OTHER").status_code == 400
+        assert seller_api.get(f"{BASE}{linked.pk}/").json()["origin"] == expected
+        assert seller_api.get(f"{BASE}{linked.pk}/document/").json()["origin"] == expected
+        receivables = seller_api.get(f"{BASE}receivables/?origin=MAINTENANCE")
+        assert receivables.json()["results"][0]["origin"] == expected
 
     def test_permissions_ver_and_crear(
         self, seller_api: APIClient, api: APIClient, customer: Any, stocked: Any

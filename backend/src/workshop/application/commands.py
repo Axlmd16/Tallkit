@@ -37,7 +37,7 @@ class CommandOutcome:
 
 @dataclass(frozen=True)
 class CommandResult:
-    """Identidad de la orden afectada y campos cambiados para la auditoría."""
+    """Identidad del recurso afectado (orden u operación) y campos cambiados para la auditoría."""
 
     status: int
     order_id: int
@@ -65,6 +65,7 @@ def execute_write(
     work: Callable[[], CommandResult],
     project: Projector,
     request_id: UUID | None = None,
+    target_type: str = TARGET_TYPE,
 ) -> CommandOutcome:
     """Autoriza, reclama el recibo, ejecuta ``work`` una sola vez y audita el resultado."""
     for permission in permissions:
@@ -73,18 +74,18 @@ def execute_write(
             permission=permission,
             request_id=request_id,
             denial_action=action,
-            target_type=TARGET_TYPE,
+            target_type=target_type,
             target_id=target_id,
         )
     try:
         key = validated_key(payload)
         fingerprint = canonical_fingerprint(fingerprint_payload or payload)
-        return _run(actor, action, key, fingerprint, work, project, request_id)
+        return _run(actor, action, key, fingerprint, work, project, request_id, target_type)
     except WorkshopError as exc:
         record_audit_event(
             actor=actor,
             action=action,
-            target_type=TARGET_TYPE,
+            target_type=target_type,
             target_id=target_id,
             result=AuditResult.FAILURE,
             reason=exc.code,
@@ -101,6 +102,7 @@ def _run(
     work: Callable[[], CommandResult],
     project: Projector,
     request_id: UUID | None,
+    target_type: str = TARGET_TYPE,
 ) -> CommandOutcome:
     with retryable_transaction():
         try:
@@ -125,14 +127,14 @@ def _run(
             )
         result = work()
         receipt.response_status = result.status
-        receipt.result_kind = TARGET_TYPE
+        receipt.result_kind = target_type
         receipt.result_id = result.order_id
         receipt.save(update_fields=["response_status", "result_kind", "result_id"])
         if result.changed:
             record_audit_event(
                 actor=actor,
                 action=action,
-                target_type=TARGET_TYPE,
+                target_type=target_type,
                 target_id=str(result.order_id),
                 result=AuditResult.SUCCESS,
                 request_id=request_id,

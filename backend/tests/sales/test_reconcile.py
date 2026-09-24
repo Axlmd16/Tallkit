@@ -13,8 +13,9 @@ from django.core.management.base import CommandError
 from django.db import connection
 from django.utils import timezone
 
-from inventory.models import InventoryPosition
+from inventory.models import InventoryPosition, InventoryReservation
 from sales.application import reconciliation
+from sales.application.workshop_links import add_linked_line
 from sales.models import (
     CommercialPayment,
     CommercialRefund,
@@ -145,6 +146,25 @@ def test_orphan_payments_on_drafts_are_reported(
     )
     PaymentPart.objects.create(payment=payment, method="EFECTIVO", amount=D("1.00"))
     assert "pagos huérfanos" in areas()
+
+
+def test_open_linked_lines_match_active_reservations_one_to_one(
+    seller: Any, maintenance_order: Any, product: Any, stock: Any
+) -> None:
+    stock(product, 5, "10.00")
+    line = add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="2",
+    )
+    assert reconciliation.reconcile() == []
+
+    InventoryReservation.objects.filter(source_id=line.pk).update(quantity=D(1))
+
+    differences = reconciliation.reconcile()
+    assert [difference.area for difference in differences] == ["reservas"]
+    assert "línea" in differences[0].detail
 
 
 def test_the_command_exits_nonzero_on_differences_and_never_repairs(

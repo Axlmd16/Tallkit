@@ -979,7 +979,11 @@ def create_replacement(
 VOID_ACTION = "purchase.void"
 VOID_FIELDS = frozenset({"idempotency_key", "expected_version", "review_token", "reason"})
 REASON_MAX = 2000
-_BLOCKER_CODES = {"later_movements": "unsafe_reversal", "inconsistent": "inventory_inconsistent"}
+_BLOCKER_CODES = {
+    "later_movements": "unsafe_reversal",
+    "inconsistent": "inventory_inconsistent",
+    "reserved_stock": "insufficient_stock",
+}
 
 
 def _void_digest(purchase: Purchase) -> str:
@@ -994,6 +998,7 @@ def _void_digest(purchase: Purchase) -> str:
                     str(e.quantity_after),
                     str(e.value_after),
                     str(e.current_quantity),
+                    str(e.current_reserved),
                     str(e.current_value),
                     e.last_ordinal,
                 ]
@@ -1022,7 +1027,11 @@ def _blocker_issues(
                 "message": (
                     "El producto tiene movimientos posteriores; no se puede anular el ingreso."
                     if blocker.code == "later_movements"
-                    else "Los saldos actuales no coinciden con el historial del ingreso."
+                    else (
+                        "La disponibilidad es insuficiente para anular el ingreso."
+                        if blocker.code == "reserved_stock"
+                        else "Los saldos actuales no coinciden con el historial del ingreso."
+                    )
                 ),
             }
         )

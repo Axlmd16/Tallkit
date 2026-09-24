@@ -201,3 +201,61 @@ def test_general_data_not_editable_outside_registered(manager, base, state) -> N
 
 def test_missing_order_is_not_found(manager, artisan) -> None:  # type: ignore[no-untyped-def]
     assert error_of(lambda: update(manager, 999999, expected_version=1)).code == "not_found"
+
+
+def test_customer_and_vehicle_locked_by_linked_documents(  # type: ignore[no-untyped-def]
+    manager, seller, base, make_vehicle, customer, stocked
+) -> None:
+    from tests.workshop.workshop_helpers import add_part, confirm_linked_sale, version
+
+    created = create(manager, **base)
+    add_part(manager, created["id"], stocked(5).pk, 1)
+    confirmed = confirm_linked_sale(seller, created["id"])
+    other = make_vehicle(customer, plate="XYZ-9", model="Corolla")
+
+    error = error_of(
+        lambda: update(
+            manager, created["id"], vehicle_id=other.pk, expected_version=version(created["id"])
+        )
+    )
+
+    assert error.code == "customer_locked_by_documents"
+    assert confirmed["internal_number"] in error.message + str(error.errors)
+    update(
+        manager, created["id"], diagnosis="Sigue editable", expected_version=version(created["id"])
+    )
+    assert MaintenanceOrder.objects.get(pk=created["id"]).diagnosis == "Sigue editable"
+
+
+def test_open_linked_sale_with_lines_blocks_customer_change(  # type: ignore[no-untyped-def]
+    manager, base, make_vehicle, customer, stocked
+) -> None:
+    from tests.workshop.workshop_helpers import add_part, version
+
+    created = create(manager, **base)
+    add_part(manager, created["id"], stocked(5).pk, 1)
+    other = make_vehicle(customer, plate="XYZ-8", model="Yaris")
+    error = error_of(
+        lambda: update(
+            manager, created["id"], vehicle_id=other.pk, expected_version=version(created["id"])
+        )
+    )
+    assert error.code == "customer_locked_by_documents"
+
+
+def test_confirmed_service_operation_locks_customer(  # type: ignore[no-untyped-def]
+    manager, base, make_vehicle, customer, make_service, artisan_billing
+) -> None:
+    from tests.workshop.workshop_helpers import add_line, confirm_services, version
+
+    created = create(manager, **base)
+    add_line(manager, created["id"], service_id=make_service().pk)
+    operation = confirm_services(manager, created["id"])
+    other = make_vehicle(customer, plate="XYZ-7", model="Rav4")
+    error = error_of(
+        lambda: update(
+            manager, created["id"], vehicle_id=other.pk, expected_version=version(created["id"])
+        )
+    )
+    assert error.code == "customer_locked_by_documents"
+    assert operation["internal_number"] in error.message

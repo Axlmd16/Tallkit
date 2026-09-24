@@ -2,6 +2,7 @@
 
 from django.urls import URLPattern, URLResolver, path
 
+from workshop.api import billing_views as b
 from workshop.api import views as v
 
 urlpatterns: list[URLPattern | URLResolver] = [
@@ -43,5 +44,39 @@ urlpatterns: list[URLPattern | URLResolver] = [
         "<int:pk>/photos/<int:photo_id>/thumbnail/",
         v.PhotoThumbnailView.as_view(),
         name="maintenance-photo-thumbnail",
+    ),
+    path(
+        "<int:pk>/parts/product-options/",
+        b.PartProductOptionsView.as_view(),
+        name="maintenance-part-product-options",
+    ),
+    path("<int:pk>/parts/", b.PartListCreateView.as_view(), name="maintenance-parts"),
+    path(
+        "<int:pk>/parts/<int:line_id>/", b.PartDetailView.as_view(), name="maintenance-part-detail"
+    ),
+    path(
+        "<int:pk>/parts/<int:line_id>/remove/",
+        b.PartRemoveView.as_view(),
+        name="maintenance-part-remove",
+    ),
+    path(
+        "<int:pk>/economic-summary/",
+        b.EconomicSummaryView.as_view(),
+        name="maintenance-economic-summary",
+    ),
+    path(
+        "<int:pk>/commercial-view/",
+        b.CommercialOrderView.as_view(),
+        name="maintenance-commercial-view",
+    ),
+    path(
+        "<int:pk>/service-operations/preview/",
+        b.ServiceOperationPreviewView.as_view(),
+        name="maintenance-service-operation-preview",
+    ),
+    path(
+        "<int:pk>/service-operations/",
+        b.ServiceOperationCreateView.as_view(),
+        name="maintenance-service-operations",
     ),
 ]

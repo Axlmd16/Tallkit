@@ -5,8 +5,10 @@ from typing import Any
 
 import pytest
 
-from inventory.application import operations
+from catalog.application.inventory_references import lock_product_references
+from inventory.application import operations, posting
 from inventory.application.errors import InventoryApplicationError
+from inventory.application.reservations import reserve
 from inventory.models import InventoryMovement, InventoryOperation, InventoryPosition
 
 pytestmark = pytest.mark.django_db
@@ -101,6 +103,30 @@ def test_load_already_compensated_cannot_be_repeated(
     with pytest.raises(InventoryApplicationError) as error:
         prepare(admin, product, "prep-key-0006")
     assert error.value.code == "already_initialized"
+
+
+def test_initial_load_reversal_is_blocked_while_stock_is_reserved(
+    admin: Any, product: Any, warehouse: Any
+) -> None:
+    body = confirm(admin, prepare(admin, product, "prep-key-0010"), "conf-key-0010").body
+    refs = lock_product_references([product.pk])
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=product.pk,
+        source_type="SALE_LINE",
+        source_id=301,
+        source_reference={"sale_id": 31, "order_id": 9},
+        quantity=D(3),
+    )
+
+    review = operations.reverse_preview(actor=admin, operation_id=body["id"])
+
+    assert review["can_reverse"] is False
+    assert review["review_token"] is None
+    assert review["issues"][0]["code"] == "insufficient_stock"
+    position = InventoryPosition.objects.get(product=product)
+    assert (position.quantity, position.reserved) == (D(8), D(3))
+    assert InventoryOperation.objects.filter(kind="REVERSAL").count() == 0
 
 
 def test_confirmation_rechecks_history_under_the_position_lock(

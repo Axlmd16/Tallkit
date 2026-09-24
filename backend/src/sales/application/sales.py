@@ -12,6 +12,7 @@ from uuid import UUID
 from django.utils import timezone
 
 import inventory.application.posting as posting
+import inventory.application.reservations as inventory_reservations
 from catalog.application.sales_references import (
     SaleProductReference,
     SaleProductReferenceError,
@@ -187,6 +188,20 @@ def update_draft(
             )
         if sale.version != expected:
             raise stale_record()
+        if sale.origin_type == "MAINTENANCE":
+            forbidden = set(payload) & (DRAFT_FIELDS - {"condition", "notes"})
+            if forbidden:
+                raise SalesApplicationError(
+                    "linked_sale_locked",
+                    "Las líneas y el cliente de una venta vinculada se gestionan desde la orden.",
+                    {name: ["Gestione este campo desde la orden."] for name in sorted(forbidden)},
+                )
+            inp = parse(_merge(sale, payload))
+            sale.condition = inp.condition.value
+            sale.notes = inp.notes
+            sale.version += 1
+            sale.save(update_fields=["condition", "notes", "version", "updated_at"])
+            return CommandResult(200, "sale", sale.pk, ("condition", "notes"))
         inp = parse(_merge(sale, payload))
         lock_customer(inp.customer_id)
         lock_products(inp.lines)
@@ -223,6 +238,7 @@ def list_sales(
     actor: User,
     state: str | None = None,
     customer_id: int | None = None,
+    origin: str | None = None,
     page: int = 1,
     page_size: int = 20,
     request_id: UUID | None = None,
@@ -233,6 +249,7 @@ def list_sales(
         actor=actor,
         state=state,
         customer_id=customer_id,
+        origin=origin,
         page=page,
         page_size=page_size,
         request_id=request_id,
@@ -405,6 +422,12 @@ def confirm_sale(
             products,
             rates,
         )
+        reservation_keys = (
+            tuple(("SALE_LINE", line.pk) for line in lines)
+            if sale.origin_type == "MAINTENANCE"
+            else ()
+        )
+        own_reserved = inventory_reservations.read_reserved_by_sources(reservation_keys)
         snapshot = reviews.ReviewSnapshot(
             sale=sale,
             lines=lines,
@@ -414,7 +437,10 @@ def confirm_sale(
             computations=computations,
             context=locked.context,
             operational_date=on,
-            availability={pid: pos.quantity for pid, pos in positions.positions.items()},
+            availability={
+                pid: pos.quantity - pos.reserved + own_reserved.get(pid, Decimal(0))
+                for pid, pos in positions.positions.items()
+            },
         )
         _raise_issues(reviews.collect_issues(snapshot))
         digest = reviews.confirmation_digest(snapshot)
@@ -456,7 +482,12 @@ def confirm_sale(
             fingerprint=digest,
         )
         try:
-            result = posting.post_operation(operation, positions, products)
+            result = posting.post_operation(
+                operation,
+                positions,
+                products,
+                consume_reservations=reservation_keys,
+            )
         except (InsufficientStockError, InventoryValidationError):
             raise SalesApplicationError(
                 "insufficient_stock", "La existencia es insuficiente para confirmar la venta."

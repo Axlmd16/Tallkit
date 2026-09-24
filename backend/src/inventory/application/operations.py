@@ -466,6 +466,7 @@ def _confirm_digest(
     line: InventoryOperationLine,
     position: Position,
     last_ordinal: int,
+    reserved: Decimal,
 ) -> str:
     return canonical_fingerprint(
         {
@@ -475,16 +476,21 @@ def _confirm_digest(
             "product_id": line.product_id,
             "quantity": f"{line.quantity:.0f}",
             "entry_value": None if line.entry_value is None else f"{line.entry_value:.6f}",
-            "position": [f"{position.quantity:.0f}", f"{position.value:.6f}", last_ordinal],
+            "position": [
+                f"{position.quantity:.0f}",
+                f"{position.value:.6f}",
+                last_ordinal,
+                f"{reserved:.0f}",
+            ],
         }
     )
 
 
-def _position_state(product_id: int, warehouse_id: int) -> tuple[Position, int]:
+def _position_state(product_id: int, warehouse_id: int) -> tuple[Position, int, Decimal]:
     row = queries.get_position(product_id, warehouse_id=warehouse_id)
     if row is None:
-        return Position(Decimal(0), Decimal(0), Decimal(0)), 0
-    return Position(row.quantity, row.value, row.average), row.last_ordinal
+        return Position(Decimal(0), Decimal(0), Decimal(0)), 0, Decimal(0)
+    return Position(row.quantity, row.value, row.average), row.last_ordinal, row.reserved
 
 
 def _evaluate(
@@ -492,6 +498,7 @@ def _evaluate(
     line: InventoryOperationLine,
     position: Position,
     ref: ProductReference | None,
+    reserved: Decimal,
 ) -> tuple[list[dict[str, str]], dict[str, str]]:
     issues: list[dict[str, str]] = []
     effect: dict[str, str] = {}
@@ -521,6 +528,9 @@ def _evaluate(
         if is_entry:
             after = apply_entry(position, line.quantity, line.entry_value or Decimal(0))
         else:
+            available = position.quantity - reserved
+            if line.quantity > available:
+                raise InsufficientStockError(available, line.quantity)
             after = apply_exit(position, line.quantity).position
         effect = {
             "product_id": str(line.product_id),
@@ -570,8 +580,8 @@ def preview_operation(
         return result
     line = operation.lines.get()
     ref = get_product_references([line.product_id]).get(line.product_id)
-    position, last_ordinal = _position_state(line.product_id, _warehouse_id())
-    issues, effect = _evaluate(operation, line, position, ref)
+    position, last_ordinal, reserved = _position_state(line.product_id, _warehouse_id())
+    issues, effect = _evaluate(operation, line, position, ref, reserved)
     result["issues"] = issues
     result["effects"] = [effect] if effect else []
     if not issues:
@@ -580,7 +590,7 @@ def preview_operation(
             actor,
             "operation.confirm",
             operation.pk,
-            _confirm_digest(operation, line, position, last_ordinal),
+            _confirm_digest(operation, line, position, last_ordinal, reserved),
         )
     return result
 
@@ -634,7 +644,13 @@ def confirm_operation(
         if operation.kind == "INITIAL_LOAD" and _has_history(line.product_id):
             raise _already_initialized()
         state = Position(locked.quantity, locked.value, locked.average)
-        digest = _confirm_digest(operation, line, state, locked.last_ordinal)
+        digest = _confirm_digest(
+            operation,
+            line,
+            state,
+            locked.last_ordinal,
+            locked.reserved,
+        )
         if digest != reviewed:
             raise InventoryApplicationError(
                 "review_required", "Las existencias cambiaron desde la revisión. Revise nuevamente."
@@ -668,7 +684,11 @@ def confirm_operation(
 # Reversión manual
 # ---------------------------------------------------------------------------
 
-_BLOCKER_CODES = {"later_movements": "unsafe_reversal", "inconsistent": "inventory_inconsistent"}
+_BLOCKER_CODES = {
+    "later_movements": "unsafe_reversal",
+    "inconsistent": "inventory_inconsistent",
+    "reserved_stock": "insufficient_stock",
+}
 
 
 def _check_reversible_origin(operation: InventoryOperation) -> None:
@@ -696,7 +716,11 @@ def _blockers(operation_id: int) -> list[dict[str, Any]]:
             "message": (
                 "El producto tiene movimientos posteriores."
                 if b.code == "later_movements"
-                else "Los saldos actuales no coinciden con el historial."
+                else (
+                    "La disponibilidad es insuficiente para revertir la entrada."
+                    if b.code == "reserved_stock"
+                    else "Los saldos actuales no coinciden con el historial."
+                )
             ),
         }
         for b in queries.reversal_blockers(operation_id)
@@ -715,6 +739,7 @@ def _reverse_digest(operation: InventoryOperation) -> str:
                     str(e.quantity_after),
                     str(e.value_after),
                     str(e.current_quantity),
+                    str(e.current_reserved),
                     str(e.current_value),
                     e.last_ordinal,
                 ]

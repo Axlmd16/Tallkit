@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 from django.core import signing
 
 import inventory.application.queries as inventory_queries
+import inventory.application.reservations as inventory_reservations
 from catalog.application.sales_references import (
     SaleProductReference,
     get_sale_product_references,
@@ -217,10 +218,17 @@ def build_snapshot(sale: Sale) -> ReviewSnapshot:
     except OperationContextError:
         context = None
     availability: dict[int, Decimal] = {}
+    own_reserved = (
+        inventory_reservations.read_reserved_by_sources([("SALE_LINE", line.pk) for line in lines])
+        if sale.origin_type == "MAINTENANCE"
+        else {}
+    )
     if context is not None:
         for product_id in {line.product_id for line in lines}:
             position = inventory_queries.get_position(product_id, warehouse_id=context.warehouse_id)
-            availability[product_id] = position.quantity if position else Decimal(0)
+            availability[product_id] = (
+                position.quantity - position.reserved if position else Decimal(0)
+            ) + own_reserved.get(product_id, Decimal(0))
     return ReviewSnapshot(
         sale=sale,
         lines=lines,

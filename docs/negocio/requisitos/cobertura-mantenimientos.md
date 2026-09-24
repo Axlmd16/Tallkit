@@ -147,3 +147,5 @@
 | Autorización del historial | Historial vacío | Cumplido | `frontend/src/features/maintenance/MaintenanceHistorySection.test.tsx`. | — |
 
 Referencia terminológica: [cobertura-mantenimientos-glossary-reference.md](cobertura-mantenimientos-glossary-reference.md).
+
+> Ampliación posterior: la integración con repuestos, ventas vinculadas, operación artesanal y cobros por RUC se documenta en [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).

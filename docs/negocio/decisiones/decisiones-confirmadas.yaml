@@ -157,6 +157,16 @@ context: |
     real, como hecho ya realizado; mientras tanto la obligación pendiente permanece visible y
     no existe saldo a favor. Estas cuatro decisiones no cierran DM-001 ni las validaciones
     contables y tributarias externas.
+  - DP-029 (integración de mantenimiento, aprobada 2026-09-24 en la propuesta de
+    integrar-mantenimiento-ventas-cobros-por-ruc, P1…P7): DM-001 se cierra para V1 con
+    estructuras separadas por RUC (la operación artesanal ART-SER y sus pagos son propios del
+    taller) y reglas monetarias puras compartidas. La operación artesanal extiende a los
+    servicios la condición contado/crédito de DP-027 y el desglose inclusivo de DP-025 con la
+    tarifa artesanal configurada. Se documentan, una sola vez, las líneas iniciales pendientes
+    en cualquier estado de la orden; finalizar no exige documentarlas ni cobrarlas. La venta
+    vinculada confirmada no se anula; la operación artesanal la anula solo el Administrador y
+    sin pagos vigentes. En una orden reabierta no se agregan repuestos cobrables. Cliente y
+    vehículo se bloquean cuando existen documentos vinculados.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
@@ -203,7 +213,8 @@ context: |
   Decisiones todavía no cerradas:
   - DA-002: límites, almacenamiento y conservación de fotografías.
   - DA-003: empaquetado, instalación, actualización, respaldo y restauración local.
-  - DM-001: estructura técnica común o separada de documentos económicos.
+  - DM-001: cerrada para V1 por DP-029 (estructuras separadas por RUC); una estructura común
+    futura requiere una nueva decisión.
   - Validación contable y tributaria de consumos internos y reposiciones sin cargo entre
     las dos entidades fiscales.
   - Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos futuros

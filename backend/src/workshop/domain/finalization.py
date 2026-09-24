@@ -1,7 +1,7 @@
 """Requisitos para finalizar la intervención abierta.
 
-Las comprobaciones son funciones puras. La coordinación con repuestos y ventas (DP-021) se
-añadirá como comprobación adicional en la funcionalidad correspondiente; hoy no existe.
+Las comprobaciones son funciones puras. ``pending_parts_check`` aplica DP-021: la venta de
+repuestos abierta no puede conservar líneas; finalizar nunca la confirma.
 """
 
 from collections.abc import Callable, Iterable
@@ -22,6 +22,7 @@ class FinalizationFacts:
     diagnosis: str
     line_count: int
     work_performed: str
+    pending_part_lines: int = 0
 
 
 FinalizationCheck = Callable[[FinalizationFacts], Iterable[Requirement]]
@@ -39,7 +40,21 @@ def operational_data_check(facts: FinalizationFacts) -> tuple[Requirement, ...]:
     return tuple(pending)
 
 
-DEFAULT_CHECKS: tuple[FinalizationCheck, ...] = (operational_data_check,)
+def pending_parts_check(facts: FinalizationFacts) -> tuple[Requirement, ...]:
+    count = facts.pending_part_lines
+    if count <= 0:
+        return ()
+    noun = "línea" if count == 1 else "líneas"
+    return (
+        Requirement(
+            "pending_parts",
+            f"La venta de repuestos abierta tiene {count} {noun} reservada(s): el Vendedor o el "
+            "Administrador debe confirmarla, o deben retirarse los repuestos no utilizados.",
+        ),
+    )
+
+
+DEFAULT_CHECKS: tuple[FinalizationCheck, ...] = (operational_data_check, pending_parts_check)
 
 
 def pending_requirements(

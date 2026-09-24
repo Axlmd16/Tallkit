@@ -7,7 +7,13 @@ import {
   Stethoscope,
 } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router'
 
 import {
   documentDate,
@@ -15,7 +21,10 @@ import {
   OrderStateBadge,
   timestamp,
 } from '@/features/maintenance/format'
+import { useSession } from '@/features/auth/hooks'
+import { EconomicSummary } from '@/features/maintenance/EconomicSummary'
 import { useMaintenanceOrder } from '@/features/maintenance/hooks'
+import { PartsSection } from '@/features/maintenance/PartsSection'
 import type { MaintenanceOrder } from '@/features/maintenance/types'
 import { OrderSummary } from '@/features/maintenance/OrderSummary'
 import { PhotosSection } from '@/features/maintenance/Photos'
@@ -33,10 +42,13 @@ import {
   PlateTag,
   SectionPanel,
   StatusBadge,
+  Tabs,
   useToast,
 } from '@/shared/ui'
 
 type Dialogs = 'finalize' | 'reopen' | null
+type OrderTab = 'work' | 'parts' | 'billing' | 'photos'
+const TABS: OrderTab[] = ['work', 'parts', 'billing', 'photos']
 
 /**
  * Ficha de la orden: información general, diagnóstico y observaciones, intervenciones,
@@ -48,7 +60,14 @@ export function MaintenanceOrderDetailPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const query = useMaintenanceOrder(Number.isFinite(id) ? id : null)
+  const session = useSession().data
+  const permissions = new Set(session?.permissions ?? [])
   const [dialog, setDialog] = useState<Dialogs>(null)
+  // La pestaña vive en la URL: se conserva al recargar y al volver desde una venta.
+  const [params, setParams] = useSearchParams()
+  const requested = params.get('tab') as OrderTab | null
+  const tab: OrderTab =
+    requested && TABS.includes(requested) ? requested : 'work'
   const toast = useToast()
   const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -137,41 +156,98 @@ export function MaintenanceOrderDetailPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-4">
-          {reopened && <InterventionsSection onDone={done} order={order} />}
-          <SectionPanel
-            icon={<Info size={17} />}
-            id="order-general-title"
-            title="Información general"
-          >
-            <GeneralInfo order={order} />
-          </SectionPanel>
-          <SectionPanel
-            icon={<Stethoscope size={17} />}
-            id="order-diagnosis-title"
-            title="Diagnóstico y observaciones"
-          >
-            <dl className="grid gap-4 p-4 text-[13px] sm:grid-cols-2">
-              <div>
-                <dt className="text-xs text-ink-muted">Diagnóstico</dt>
-                <dd className="mt-1 whitespace-pre-line">
-                  {order.diagnosis || (
-                    <span className="text-ink-muted">
-                      Pendiente de registrar.
-                    </span>
-                  )}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-ink-muted">Observaciones</dt>
-                <dd className="mt-1 whitespace-pre-line">
-                  {order.notes || <span className="text-ink-muted">—</span>}
-                </dd>
-              </div>
-            </dl>
-          </SectionPanel>
-          {!reopened && <InterventionsSection onDone={done} order={order} />}
-          <ServiceLinesSection onDone={done} order={order} />
-          <PhotosSection onDone={done} order={order} />
+          <Tabs
+            activeId={tab}
+            aria-label="Secciones de la orden"
+            items={[
+              {
+                id: 'work',
+                label: 'Trabajo y servicios',
+                content: (
+                  <div className="space-y-4">
+                    {reopened && (
+                      <InterventionsSection onDone={done} order={order} />
+                    )}
+                    <SectionPanel
+                      icon={<Info size={17} />}
+                      id="order-general-title"
+                      title="Información general"
+                    >
+                      <GeneralInfo order={order} />
+                    </SectionPanel>
+                    <SectionPanel
+                      icon={<Stethoscope size={17} />}
+                      id="order-diagnosis-title"
+                      title="Diagnóstico y observaciones"
+                    >
+                      <dl className="grid gap-4 p-4 text-[13px] sm:grid-cols-2">
+                        <div>
+                          <dt className="text-xs text-ink-muted">
+                            Diagnóstico
+                          </dt>
+                          <dd className="mt-1 whitespace-pre-line">
+                            {order.diagnosis || (
+                              <span className="text-ink-muted">
+                                Pendiente de registrar.
+                              </span>
+                            )}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-ink-muted">
+                            Observaciones
+                          </dt>
+                          <dd className="mt-1 whitespace-pre-line">
+                            {order.notes || (
+                              <span className="text-ink-muted">—</span>
+                            )}
+                          </dd>
+                        </div>
+                      </dl>
+                    </SectionPanel>
+                    {!reopened && (
+                      <InterventionsSection onDone={done} order={order} />
+                    )}
+                    <ServiceLinesSection onDone={done} order={order} />
+                  </div>
+                ),
+              },
+              {
+                id: 'parts',
+                label: 'Repuestos',
+                content: (
+                  <PartsSection
+                    canOpenSales={permissions.has('ventas.ver')}
+                    onDone={done}
+                    order={order}
+                  />
+                ),
+              },
+              {
+                id: 'billing',
+                label: 'Documentos y cobros',
+                content: (
+                  <EconomicSummary
+                    onDone={done}
+                    order={order}
+                    userScope={session?.username ?? ''}
+                  />
+                ),
+              },
+              {
+                id: 'photos',
+                label: 'Fotografías',
+                count: order.photos.length,
+                content: <PhotosSection onDone={done} order={order} />,
+              },
+            ]}
+            onChange={(next) => {
+              const nextParams = new URLSearchParams(params)
+              if (next === 'work') nextParams.delete('tab')
+              else nextParams.set('tab', next)
+              setParams(nextParams, { replace: true, state: location.state })
+            }}
+          />
         </div>
         <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
           <OrderSummary order={order} />

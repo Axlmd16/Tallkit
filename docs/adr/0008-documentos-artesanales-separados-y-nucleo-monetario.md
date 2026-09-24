@@ -1,6 +1,6 @@
 # ADR-0008: Documentos económicos artesanales separados y núcleo monetario compartido
 
-- Estado: Propuesta con el diseño de `integrar-mantenimiento-ventas-cobros-por-ruc` (2026-09-24); pasará a Aceptada al aplicar el cambio.
+- Estado: Aceptada el 2026-09-24 al aplicar el cambio `integrar-mantenimiento-ventas-cobros-por-ruc`; el diseño y este ADR fueron aprobados por el usuario el 2026-09-24.
 - Fecha: 2026-09-24
 
 ## Contexto

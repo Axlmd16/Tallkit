@@ -8,6 +8,7 @@ import pytest
 from catalog.models import MeasurementUnit, ProductCategory
 from inventory.application import posting, queries
 from inventory.application.errors import InventoryApplicationError
+from inventory.application.reservations import reserve
 from inventory.models import InventoryPosition
 
 pytestmark = pytest.mark.django_db
@@ -119,6 +120,30 @@ def test_operational_projection_hides_valuation_and_administrative_shows_it(cata
     assert not {"average_cost", "inventory_value"} & operative.keys()
     admin_view = queries.get_stock_item(catalog["oil"].pk, include_valuation=True)
     assert (admin_view["average_cost"], admin_view["inventory_value"]) == ("2.000000", "10.000000")
+
+
+def test_stock_list_and_item_show_reserved_and_available(catalog: Any, warehouse: Any) -> None:
+    from catalog.application.inventory_references import lock_product_references
+
+    product = catalog["oil"]
+    refs = lock_product_references([product.pk])
+    reserve(
+        posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_id=product.pk,
+        source_type="SALE_LINE",
+        source_id=501,
+        source_reference={"sale_id": 51, "order_id": 11},
+        quantity=D(2),
+    )
+
+    listed = queries.list_stock(include_valuation=False)
+    row = next(item for item in listed["results"] if item["product"]["id"] == product.pk)
+    assert (row["quantity"], row["reserved"], row["available"]) == ("5", "2", "3")
+    item = queries.get_stock_item(product.pk, include_valuation=False)
+    assert (item["quantity"], item["reserved"], item["available"]) == ("5", "2", "3")
+
+    empty = queries.get_stock_item(catalog["idle"].pk, include_valuation=False)
+    assert (empty["quantity"], empty["reserved"], empty["available"]) == ("0", "0", "0")
 
 
 def test_unknown_product_and_invalid_filters_are_corrigible_errors(catalog: Any) -> None:

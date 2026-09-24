@@ -17,9 +17,15 @@ from customer_registry.application.workshop_references import (
 )
 from identity.application.authorization import has_permission
 from identity.models import User
+from sales.application.workshop_links import blocking_linked_documents
 from workshop.application.errors import WorkshopError, not_editable, not_found, stale_record
 from workshop.domain.states import OrderState
-from workshop.models import SNAPSHOT_SCHEMA_VERSION, Intervention, MaintenanceOrder
+from workshop.models import (
+    SNAPSHOT_SCHEMA_VERSION,
+    Intervention,
+    MaintenanceOrder,
+    ServiceOperation,
+)
 
 WORKSHOP_PERMISSIONS = (
     "mantenimientos.ver",
@@ -28,6 +34,16 @@ WORKSHOP_PERMISSIONS = (
     "mantenimientos.gestionar_fotos",
     "mantenimientos.finalizar",
     "mantenimientos.reabrir",
+    "mantenimientos.gestionar_repuestos",
+    "ventas.preparar_vinculada",
+    "ventas.ver",
+    "servicios_economicos.ver",
+    "servicios_economicos.confirmar",
+    "servicios_economicos.anular",
+    "pagos_artesanales.ver",
+    "pagos_artesanales.registrar",
+    "pagos_artesanales.anular",
+    "pagos_comerciales.registrar",
 )
 
 
@@ -139,3 +155,25 @@ def user_label(user: User | None) -> dict[str, Any] | None:
     if user is None:
         return None
     return {"id": user.pk, "name": user.get_full_name() or user.username}
+
+
+def linked_document_numbers(order: MaintenanceOrder) -> list[str]:
+    """Documentos que fijan cliente y vehículo: venta vinculada con líneas o confirmada y
+    operaciones artesanales vigentes."""
+    artisan = ServiceOperation.objects.filter(order=order, state="CONFIRMED").order_by("id")
+    return [
+        *blocking_linked_documents(order.pk),
+        *artisan.values_list("internal_number", flat=True),
+    ]
+
+
+def ensure_no_linked_documents(order: MaintenanceOrder) -> None:
+    numbers = linked_document_numbers(order)
+    if numbers:
+        joined = ", ".join(numbers)
+        raise WorkshopError(
+            "customer_locked_by_documents",
+            f"No se puede cambiar el cliente ni el vehículo: la orden tiene documentos "
+            f"vinculados ({joined}).",
+            {"vehicle_id": [f"Documentos vinculados: {joined}."]},
+        )

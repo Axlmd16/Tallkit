@@ -16,12 +16,17 @@ OTHERS = {
     "inventory",
     "purchasing",
     "sales",
+    "shared",
     "supplier_registry",
 }
 ALLOWED_CROSS_MODULE = {
     "customer_registry.application.workshop_references",
     "catalog.application.workshop_references",
     "workshop_configuration.application.workshop_references",
+    "sales.application.workshop_links",
+    "shared.command_values",
+    "shared.money",
+    "shared.transactions",
     "identity.api.permissions",
     "identity.api.request_context",
     "identity.application.audit",
@@ -39,6 +44,16 @@ SQL_MARKERS = (
 LOCKING_INTERFACES = {
     "customer_registry.application.workshop_references": {"lock_customer_and_vehicle"},
     "catalog.application.workshop_references": {"lock_service_reference"},
+    "sales.application.workshop_links": {
+        "add_linked_line",
+        "change_linked_line",
+        "lock_open_linked_sale",
+        "remove_linked_line",
+    },
+    "workshop_configuration.application.workshop_references": {
+        "allocate_artisan_number",
+        "lock_artisan_operation_context",
+    },
 }
 
 

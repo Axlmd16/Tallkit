@@ -8,8 +8,10 @@ from typing import Any
 import pytest
 
 from customer_registry.models import Customer
-from sales.application import reads, reviews
-from sales.models import SaleReturn
+from sales.application import reads, reviews, sales
+from sales.application.errors import SalesApplicationError
+from sales.application.workshop_links import add_linked_line
+from sales.models import Sale, SaleReturn
 from workshop_configuration.models import Warehouse
 
 from .test_payments import parts, pay
@@ -45,7 +47,7 @@ def test_list_shows_number_customer_origin_date_total_and_independent_states(
     row = listing["items"][0]
     assert row["internal_number"] == "COM-VEN-000001"
     assert row["customer"]["name"] == "Cliente Uno"
-    assert row["origin"] == "DIRECT"
+    assert row["origin"] == {"type": "DIRECT", "order_id": None, "order_number": None}
     assert row["grand_total"] == "100.00"
     assert row["state"] == "CONFIRMED"
     assert row["money"]["payment_state"] == "PARTIAL"
@@ -75,6 +77,63 @@ def test_filters_by_customer_state_date_and_payment_state(
     assert reads.list_sales(actor=seller, date_from=today, date_to=today)["total_count"] == 2
     assert reads.list_sales(actor=seller, date_to=today - timedelta(days=1))["total_count"] == 0
     assert reads.list_sales(actor=seller, date_from=today + timedelta(days=1))["total_count"] == 0
+
+
+def test_origin_filter_and_projection_cover_list_detail_document_and_receivables(
+    seller: Any,
+    customer: Any,
+    maintenance_order: Any,
+    product: Any,
+    stock: Any,
+    confirmed_sale: Any,
+) -> None:
+    direct = confirmed_sale(price="10.00")
+    stock(product, 2, "8.00")
+    line = add_linked_line(
+        actor=seller,
+        order_ref=maintenance_order,
+        product_id=product.pk,
+        quantity="1",
+    )
+    linked = Sale.objects.get(pk=line.sale_id)
+    sales.update_draft(
+        actor=seller,
+        sale_id=linked.pk,
+        payload={
+            "idempotency_key": "query-linked-edit-1",
+            "expected_version": linked.version,
+            "condition": "CREDITO",
+        },
+    )
+    linked.refresh_from_db()
+    review = reviews.preview_confirmation(actor=seller, sale_id=linked.pk)
+    sales.confirm_sale(
+        actor=seller,
+        sale_id=linked.pk,
+        payload={
+            "idempotency_key": "query-linked-conf-1",
+            "expected_version": linked.version,
+            "review_token": review["review_token"],
+        },
+    )
+
+    listed = reads.list_sales(actor=seller, origin="MAINTENANCE")
+    assert [row["id"] for row in listed["items"]] == [linked.pk]
+    expected = {
+        "type": "MAINTENANCE",
+        "order_id": maintenance_order.pk,
+        "order_number": maintenance_order.number,
+    }
+    assert listed["items"][0]["origin"] == expected
+    assert [row["id"] for row in reads.list_sales(actor=seller, origin="DIRECT")["items"]] == [
+        direct["id"]
+    ]
+    assert reads.sale_detail(actor=seller, sale_id=linked.pk)["origin"] == expected
+    assert reads.sale_document(actor=seller, sale_id=linked.pk)["origin"] == expected
+    items = reads.receivables(actor=seller, origin="MAINTENANCE")["items"]
+    assert [row["id"] for row in items] == [linked.pk]
+    with pytest.raises(SalesApplicationError):
+        reads.list_sales(actor=seller, origin="OTHER")
 
 
 def test_full_pagination_walk_returns_each_match_exactly_once(
