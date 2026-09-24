@@ -45,6 +45,7 @@ ALLOWED_CROSS_MODULE = {
 PUBLISHED_APPLICATION_INTERFACES = {
     "catalog.application.inventory_references",
     "catalog.application.sales_references",
+    "catalog.application.workshop_references",
     "supplier_registry.application.purchase_references",
 }
 
@@ -204,3 +205,11 @@ def test_using_catalogs_writes_no_configuration_numbering_or_foreign_state(
     assert ProductCategory.objects.count() == 1
     assert MeasurementUnit.objects.count() == 1
     assert ProductBrand.objects.count() == 1
+
+
+def test_workshop_references_interface_never_writes_catalog_persistence() -> None:
+    import catalog.application.workshop_references as interface
+
+    source = Path(interface.__file__).read_text(encoding="utf-8")
+    for write in (".save(", ".create(", ".update(", ".delete(", "bulk_", "get_or_create"):
+        assert write not in source, write

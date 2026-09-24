@@ -122,6 +122,29 @@ funcionales y luego frontend. Las migraciones son aditivas y se ensayaron en una
 identidad previa; ante problemas con datos reales se prefiere la corrección hacia adelante, sin deshacer migraciones ni
 restaurar sin respaldo comprobado y autorización. Detalle en `docs/arquitectura/modelo-datos.md`.
 
+## Órdenes de mantenimiento
+
+El módulo `workshop` registra órdenes del RUC artesanal (`ART-OT-000001`, numeración interna propia que no consume
+series fiscales), con servicios del catálogo a precio aplicado, fotografías privadas, finalización y reapertura con
+intervención correctiva. No crea ventas, pagos, deudas ni movimientos de inventario. Sus tablas nacen vacías; la única
+fila sembrada es el contador de numeración.
+
+Rutas bajo `/api/v1/maintenance-orders/`: lista y creación, detalle y edición (`PATCH`, solo en estado registrado),
+`current-intervention/`, `service-lines/` (con `<id>/` y `<id>/remove/`), `finalize/`, `reopen/`, `photos/` (carga
+multipart, `<id>/remove/`, `<id>/file/` y `<id>/thumbnail/`) y los selectores `customer-options/`,
+`vehicle-options/` y `service-options/`. Administrador y Encargado del taller operan el módulo; el Vendedor no tiene
+acceso en esta entrega. Las escrituras exigen `idempotency_key` y, salvo las fotografías, `expected_version`.
+
+Fotografías (ADR-0007): JPEG, PNG o WebP estáticas de hasta 10 MiB y 25 megapíxeles, 20 vigentes por orden. Se
+guardan en `PRIVATE_MEDIA_ROOT` (por omisión `backend/private-media/`, ignorada por Git; en Docker, el volumen
+`private_media` montado en `/var/lib/sys-taller/private-media`) y solo se entregan por la API con sesión y permiso.
+**El volumen debe incluirse en los respaldos junto con PostgreSQL**; su política definitiva queda en DA-003. La
+dependencia `pillow` se usa exclusivamente para verificar el contenido real de las imágenes y generar miniaturas sin
+metadatos. Nginx admite cuerpos de hasta 12 MiB en `/api/`. Para eliminar archivos huérfanos de cargas interrumpidas o
+fotografías retiradas, ejecute periódicamente (por ejemplo, a diario desde el cron del host):
+`cd backend && uv run python manage.py purge_workshop_files --older-than-minutes 60`
+(`docker compose exec backend python manage.py purge_workshop_files` en contenedores). Es idempotente.
+
 ## Documentación
 
 - [Arquitectura técnica inicial](docs/tecnico/arquitectura-inicial.md)

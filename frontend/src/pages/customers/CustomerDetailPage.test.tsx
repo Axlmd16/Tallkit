@@ -51,6 +51,38 @@ vi.mock('@/features/vehicle-brands/hooks', () => ({
   }),
 }))
 
+vi.mock('@/features/maintenance/hooks', () => ({
+  useMaintenanceOrders: () => ({
+    isPending: false,
+    isError: false,
+    data: {
+      count: 1,
+      page: 1,
+      page_size: 10,
+      total_pages: 1,
+      results: [
+        {
+          id: 7,
+          number: 'ART-OT-000007',
+          state: 'REGISTERED',
+          opened_on: '2026-09-20',
+          odometer_km: 1,
+          customer: { id: 1, name: 'x', identification: '1', is_active: true },
+          vehicle: {
+            id: 4,
+            plate: 'ABC-1234',
+            brand: 'T',
+            model: 'H',
+            is_active: true,
+          },
+          services_total: '0.00',
+          service_summary: { names: [], line_count: 0 },
+        },
+      ],
+    },
+  }),
+}))
+
 import { CustomerDetailPage } from './CustomerDetailPage'
 import { ToastProvider } from '@/shared/ui'
 
@@ -453,4 +485,37 @@ it('navigates to edit from the customer detail actions', async () => {
 
   expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+it('muestra el historial de mantenimientos solo con su permiso', () => {
+  const view = render(
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/customers/1']}>
+        <Routes>
+          <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
+  )
+  expect(
+    screen.queryByRole('heading', { name: 'Historial de mantenimientos' }),
+  ).not.toBeInTheDocument()
+  view.unmount()
+  mocks.permissions = ['clientes.ver', 'mantenimientos.ver']
+  render(
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/customers/1']}>
+        <Routes>
+          <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
+  )
+  expect(
+    screen.getByRole('heading', { name: 'Historial de mantenimientos' }),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'ART-OT-000007' })).toHaveAttribute(
+    'href',
+    '/maintenance/7',
+  )
 })

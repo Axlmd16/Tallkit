@@ -22,6 +22,16 @@ export interface ModalProps {
   className?: string | undefined
   portalContainer?: HTMLElement | null | undefined
   mobileFullWidth?: boolean | undefined
+  /** Ancho máximo: `default` 466 px, `wide` 600 px para formularios con nombres largos, `media` para imágenes. */
+  size?: ModalSize | undefined
+}
+
+export type ModalSize = 'default' | 'wide' | 'media'
+
+const sizeClasses: Record<ModalSize, string> = {
+  default: 'max-w-[466px]',
+  wide: 'max-w-[600px]',
+  media: 'max-w-[min(90vw,1100px)]',
 }
 
 export function Modal({
@@ -35,6 +45,7 @@ export function Modal({
   returnFocusRef,
   title,
   mobileFullWidth = false,
+  size = 'default',
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
@@ -73,7 +84,7 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`max-h-[min(90vh,45rem)] w-full max-w-[466px] overflow-y-auto rounded-dialog bg-surface p-5 text-ink shadow-overlay sm:p-6 ${mobileFullWidth ? 'max-sm:flex max-sm:min-h-dvh max-sm:max-w-none max-sm:flex-col max-sm:rounded-none' : ''} ${className}`.trim()}
+        className={`max-h-[min(90vh,45rem)] w-full ${sizeClasses[size]} overflow-y-auto rounded-dialog bg-surface p-5 text-ink shadow-overlay sm:p-6 ${mobileFullWidth ? 'max-sm:flex max-sm:min-h-dvh max-sm:max-w-none max-sm:flex-col max-sm:rounded-none' : ''} ${className}`.trim()}
         onKeyDown={handleKeyDown}
         ref={modalRef}
         role="dialog"

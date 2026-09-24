@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
+import { MaintenanceHistorySection } from '@/features/maintenance/MaintenanceHistorySection'
 import { useCustomer, useCustomerMutations } from '@/features/customers/hooks'
 import { useCustomerVehicles } from '@/features/vehicles/hooks'
 import { ProblemError } from '@/shared/api/client'
@@ -256,6 +257,15 @@ export function CustomerDetailPage() {
           )}
         </DetailCard>
       </div>
+
+      {permissions.has('mantenimientos.ver') && (
+        <MaintenanceHistorySection
+          canCreate={
+            customer.is_active && permissions.has('mantenimientos.gestionar')
+          }
+          customer={{ id: customer.id, name: customer.name }}
+        />
+      )}
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

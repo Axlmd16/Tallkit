@@ -24,6 +24,7 @@ class ProblemSerializer(serializers.Serializer[dict[str, object]]):
         allow_null=True,
     )
     conflict = ConflictInfoSerializer(required=False, allow_null=True)
+    details = serializers.DictField(required=False, allow_null=True)
 
 
 def problem_response(
@@ -35,6 +36,7 @@ def problem_response(
     detail: str,
     errors: dict[str, list[str]] | None = None,
     conflict: dict[str, Any] | None = None,
+    details: dict[str, Any] | None = None,
 ) -> Response:
     payload: dict[str, Any] = {
         "type": "about:blank",
@@ -51,6 +53,8 @@ def problem_response(
             "type": str(conflict.get("type", "")),
             "id": int(conflict["id"]),
         }
+    if details:
+        payload["details"] = details
     response = Response(
         payload,
         status=status_code,
@@ -128,6 +132,12 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "invalid_state": (409, "Estado no válido para la acción"),
     "dependency_conflict": (409, "Dependencia que impide la acción"),
     "concurrent_operation": (409, "Operación concurrente"),
+    "open_order_exists": (409, "Orden abierta existente"),
+    "odometer_confirmation_required": (400, "Confirmación de kilometraje requerida"),
+    "finalize_requirements": (400, "Requisitos pendientes para finalizar"),
+    "invalid_image": (400, "Imagen no admitida"),
+    "image_too_large": (400, "Imagen demasiado grande"),
+    "photo_limit_reached": (409, "Límite de fotografías alcanzado"),
 }
 
 
@@ -137,6 +147,8 @@ def application_error_response(
     code: str,
     message: str,
     errors: dict[str, list[str]] | None = None,
+    conflict: dict[str, Any] | None = None,
+    details: dict[str, Any] | None = None,
 ) -> Response:
     """Traduce un error de aplicación con código estable a ``application/problem+json``."""
     status_code, title = _APPLICATION_ERROR_STATUS.get(code, (400, "Solicitud inválida"))
@@ -147,4 +159,6 @@ def application_error_response(
         code=code,
         detail=message,
         errors=errors,
+        conflict=conflict,
+        details=details,
     )

@@ -8,7 +8,21 @@ CSRF, pruebas y empaquetado. Sobre esa base están implementadas identidad y acc
 clientes y vehículos, catálogos de productos, servicios y proveedores, y compras e inventario
 (ingresos de mercadería, existencias, carga inicial, ajustes y Kardex). Ventas comerciales, cobros,
 crédito simple, devoluciones y reembolsos (módulo `sales`) se suman en el cambio `gestionar-ventas-pagos-credito-simple`;
-proformas, mantenimientos, alertas de stock mínimo y adjuntos continúan sin implementación.
+Las órdenes de mantenimiento del RUC artesanal (módulo `workshop`) se suman en el cambio
+`gestionar-ordenes-mantenimiento`; proformas, alertas de stock mínimo y adjuntos de compras continúan sin
+implementación.
+
+### Frontera del módulo de taller
+
+`workshop` es propietario de órdenes de mantenimiento, intervenciones, servicios aplicados, fotografías,
+transiciones y recibos idempotentes del RUC artesanal. Solo usa interfaces públicas de lectura y bloqueo:
+`customer_registry.application.workshop_references`, `catalog.application.workshop_references` y
+`workshop_configuration.application.workshop_references`, además de los servicios de autorización y auditoría de
+`identity`. Ningún otro módulo importa `workshop` y `workshop/domain/` no depende de Django ni de DRF. La orden es la
+raíz de consistencia; no crea ventas, pagos, deuda ni movimientos de inventario. Sus fotografías se guardan en
+almacenamiento privado local y solo se entregan por la API autorizada
+([ADR-0007](../adr/0007-almacenamiento-privado-fotografias.md)). Detalle en el
+[modelo de datos](../arquitectura/modelo-datos.md#módulo-workshop-órdenes-de-mantenimiento).
 
 ### Frontera del módulo comercial
 

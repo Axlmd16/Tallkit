@@ -135,3 +135,35 @@ def test_internal_error_is_not_transformed_into_duplicate() -> None:
     # By default, unhandled 500 exceptions return None from DRF exception handler
     # and must never be masked as duplicate or 409
     assert response is None
+
+
+def test_application_error_with_details_and_conflict_is_backward_compatible() -> None:
+    from rest_framework.test import APIRequestFactory
+
+    from config.api.errors import ProblemSerializer, application_error_response
+
+    request = APIRequestFactory().post("/api/v1/maintenance-orders/")
+    plain = application_error_response(request=request, code="stale_record", message="Cambió.")
+    assert plain.status_code == 409
+    assert "details" not in plain.data
+    assert "conflict" not in plain.data
+
+    response = application_error_response(
+        request=request,
+        code="odometer_confirmation_required",
+        message="Kilometraje menor.",
+        errors={"odometer_km": ["Kilometraje menor."]},
+        details={"last_known_km": 90000, "order_number": "ART-OT-000001"},
+    )
+    assert response.status_code == 400
+    assert response.data["details"] == {"last_known_km": 90000, "order_number": "ART-OT-000001"}
+    assert ProblemSerializer(data=response.data).is_valid()
+
+    conflict = application_error_response(
+        request=request,
+        code="open_order_exists",
+        message="Ya existe una orden abierta.",
+        conflict={"type": "maintenance_order", "id": 7},
+    )
+    assert conflict.status_code == 409
+    assert conflict.data["conflict"] == {"type": "maintenance_order", "id": 7}

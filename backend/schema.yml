@@ -1117,6 +1117,869 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/maintenance-orders/:
+    get:
+      operationId: maintenance_order_list
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+        description: Historial por cliente.
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+        description: Apertura inclusiva.
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
+        description: Apertura inclusiva.
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Número, cliente o placa.
+      - in: query
+        name: state
+        schema:
+          type: string
+          enum:
+          - FINALIZED
+          - REGISTERED
+          - REOPENED
+      - in: query
+        name: vehicle_id
+        schema:
+          type: integer
+        description: Historial por vehículo.
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrderPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: maintenance_order_create
+      description: 'El número ART-OT, el estado, el creador y las fechas los asigna
+        el servidor. Un kilometraje menor al último conocido responde `odometer_confirmation_required`
+        con `details` hasta enviar `odometer_confirmed: true`.'
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceOrderCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceOrderCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceOrderCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/:
+    get:
+      operationId: maintenance_order_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: maintenance_order_update
+      description: Solo órdenes REGISTERED. El estado cambia únicamente con finalize/reopen.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceOrderUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceOrderUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceOrderUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/current-intervention/:
+    patch:
+      operationId: maintenance_intervention_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceInterventionUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceInterventionUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceInterventionUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/finalize/:
+    post:
+      operationId: maintenance_order_finalize
+      description: 'Requisitos pendientes: `finalize_requirements` con `errors.requirements`
+        y `details.pending`. No crea ventas, pagos, deuda ni movimientos de inventario.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/photos/:
+    post:
+      operationId: maintenance_photo_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenancePhotoUpload'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/photos/{photo_id}/file/:
+    get:
+      operationId: maintenance_photo_file
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: photo_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: Imagen privada.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/photos/{photo_id}/remove/:
+    post:
+      operationId: maintenance_photo_remove
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: photo_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCommandFields'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCommandFields'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCommandFields'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/photos/{photo_id}/thumbnail/:
+    get:
+      operationId: maintenance_photo_thumbnail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: photo_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: Imagen privada.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/reopen/:
+    post:
+      operationId: maintenance_order_reopen
+      description: Agrega una intervención correctiva sin cargo; conserva cierres
+        anteriores.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceReopen'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceReopen'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceReopen'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/service-lines/:
+    post:
+      operationId: maintenance_service_line_create
+      description: Solo servicios activos del catálogo; sin descuentos ni servicios
+        libres.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceLineCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceLineCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceLineCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/service-lines/{line_id}/:
+    patch:
+      operationId: maintenance_service_line_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: line_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceLineUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceLineUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMaintenanceLineUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/{id}/service-lines/{line_id}/remove/:
+    post:
+      operationId: maintenance_service_line_remove
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: line_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MaintenanceVersionedCommandFields'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceOrder'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/customer-options/:
+    get:
+      operationId: maintenance_customer_options
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceCustomerOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/service-options/:
+    get:
+      operationId: maintenance_service_options
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceServiceOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/maintenance-orders/vehicle-options/:
+    get:
+      operationId: maintenance_vehicle_options
+      description: Vehículos activos cuyo propietario vigente es el cliente.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceVehicleOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/measurement-units/:
     get:
       operationId: catalog_unit_list
@@ -7109,16 +7972,6 @@ components:
       - period_totals
       - results
       - total_pages
-    KindEnum:
-      enum:
-      - INITIAL_LOAD
-      - ADJUSTMENT_IN
-      - ADJUSTMENT_OUT
-      type: string
-      description: |-
-        * `INITIAL_LOAD` - INITIAL_LOAD
-        * `ADJUSTMENT_IN` - ADJUSTMENT_IN
-        * `ADJUSTMENT_OUT` - ADJUSTMENT_OUT
     Login:
       type: object
       properties:
@@ -7131,6 +7984,663 @@ components:
       required:
       - password
       - username
+    MaintenanceCommandFields:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+      required:
+      - idempotency_key
+    MaintenanceCustomerOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+      required:
+      - id
+      - identification
+      - identification_type
+      - name
+      - phone
+    MaintenanceCustomerOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceCustomerOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    MaintenanceCustomerSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - identification
+      - is_active
+      - name
+    MaintenanceFiscalEntity:
+      type: object
+      properties:
+        ruc:
+          type: string
+        legal_name:
+          type: string
+      required:
+      - legal_name
+      - ruc
+    MaintenanceIntervention:
+      type: object
+      properties:
+        id:
+          type: integer
+        kind:
+          $ref: '#/components/schemas/MaintenanceInterventionKindEnum'
+        ordinal:
+          type: integer
+        cause:
+          type: string
+        work_performed:
+          type: string
+        notes:
+          type: string
+        is_open:
+          type: boolean
+        opened_by:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        opened_at:
+          type: string
+          format: date-time
+        closed_by:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceUserLabel'
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceLine'
+        subtotal:
+          type: string
+      required:
+      - cause
+      - closed_at
+      - closed_by
+      - id
+      - is_open
+      - kind
+      - lines
+      - notes
+      - opened_at
+      - opened_by
+      - ordinal
+      - subtotal
+      - work_performed
+    MaintenanceInterventionKindEnum:
+      enum:
+      - INITIAL
+      - CORRECTIVE
+      type: string
+      description: |-
+        * `INITIAL` - INITIAL
+        * `CORRECTIVE` - CORRECTIVE
+    MaintenanceLine:
+      type: object
+      properties:
+        id:
+          type: integer
+        service_id:
+          type: integer
+        service_name:
+          type: string
+        service_is_active:
+          type: boolean
+        reference_price:
+          type: string
+        applied_price:
+          type: string
+        quantity:
+          type: integer
+        subtotal:
+          type: string
+        tax_name:
+          type: string
+        no_charge:
+          type: boolean
+      required:
+      - applied_price
+      - id
+      - no_charge
+      - quantity
+      - reference_price
+      - service_id
+      - service_is_active
+      - service_name
+      - subtotal
+      - tax_name
+    MaintenanceLineCreate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        service_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          maximum: 9999
+          minimum: 1
+        applied_price:
+          type: string
+          description: USD con hasta dos decimales; por omisión el referencial.
+      required:
+      - expected_version
+      - idempotency_key
+      - service_id
+    MaintenanceOdometerConfirmation:
+      type: object
+      properties:
+        by:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        at:
+          type: string
+          format: date-time
+      required:
+      - at
+      - by
+    MaintenanceOpenOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+      required:
+      - id
+      - number
+    MaintenanceOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        state:
+          $ref: '#/components/schemas/MaintenanceOrderStateEnum'
+        version:
+          type: integer
+        fiscal_entity:
+          $ref: '#/components/schemas/MaintenanceFiscalEntity'
+        customer:
+          $ref: '#/components/schemas/MaintenanceCustomerSnapshot'
+        vehicle:
+          $ref: '#/components/schemas/MaintenanceVehicleSnapshot'
+        opened_on:
+          type: string
+          format: date
+        odometer_km:
+          type: integer
+        odometer_confirmation:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceOdometerConfirmation'
+          nullable: true
+        diagnosis:
+          type: string
+        notes:
+          type: string
+        created_by:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        created_at:
+          type: string
+          format: date-time
+        updated_by:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        updated_at:
+          type: string
+          format: date-time
+        last_finalized_by:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceUserLabel'
+          nullable: true
+        last_finalized_at:
+          type: string
+          format: date-time
+          nullable: true
+        services_total:
+          type: string
+          description: Total de servicios de la orden (USD).
+        interventions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceIntervention'
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenancePhoto'
+        transitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceTransition'
+        pending_requirements:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceRequirement'
+        allowed_actions:
+          type: array
+          items:
+            type: string
+      required:
+      - allowed_actions
+      - created_at
+      - created_by
+      - customer
+      - diagnosis
+      - fiscal_entity
+      - id
+      - interventions
+      - last_finalized_at
+      - last_finalized_by
+      - notes
+      - number
+      - odometer_confirmation
+      - odometer_km
+      - opened_on
+      - pending_requirements
+      - photos
+      - services_total
+      - state
+      - transitions
+      - updated_at
+      - updated_by
+      - vehicle
+      - version
+    MaintenanceOrderCreate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        customer_id:
+          type: integer
+          minimum: 1
+        vehicle_id:
+          type: integer
+          minimum: 1
+        opened_on:
+          type: string
+          format: date
+          description: Hoy por omisión; no futura.
+        odometer_km:
+          type: integer
+          maximum: 9999999
+          minimum: 0
+        odometer_confirmed:
+          type: boolean
+          description: Confirma un kilometraje menor al último conocido.
+        diagnosis:
+          type: string
+          maxLength: 5000
+        notes:
+          type: string
+          maxLength: 5000
+      required:
+      - customer_id
+      - idempotency_key
+      - odometer_km
+      - vehicle_id
+    MaintenanceOrderListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        state:
+          type: string
+        opened_on:
+          type: string
+          format: date
+        odometer_km:
+          type: integer
+        customer:
+          $ref: '#/components/schemas/MaintenanceCustomerSnapshot'
+        vehicle:
+          $ref: '#/components/schemas/MaintenanceVehicleSnapshot'
+        services_total:
+          type: string
+        service_summary:
+          $ref: '#/components/schemas/MaintenanceServiceSummary'
+      required:
+      - customer
+      - id
+      - number
+      - odometer_km
+      - opened_on
+      - service_summary
+      - services_total
+      - state
+      - vehicle
+    MaintenanceOrderPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceOrderListItem'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    MaintenanceOrderStateEnum:
+      enum:
+      - REGISTERED
+      - FINALIZED
+      - REOPENED
+      type: string
+      description: |-
+        * `REGISTERED` - REGISTERED
+        * `FINALIZED` - FINALIZED
+        * `REOPENED` - REOPENED
+    MaintenancePhoto:
+      type: object
+      properties:
+        id:
+          type: integer
+        intervention_id:
+          type: integer
+        description:
+          type: string
+        content_type:
+          type: string
+        size_bytes:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+        uploaded_by:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        uploaded_at:
+          type: string
+          format: date-time
+        file_url:
+          type: string
+        thumbnail_url:
+          type: string
+      required:
+      - content_type
+      - description
+      - file_url
+      - height
+      - id
+      - intervention_id
+      - size_bytes
+      - thumbnail_url
+      - uploaded_at
+      - uploaded_by
+      - width
+    MaintenancePhotoUpload:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        file:
+          type: string
+          format: uri
+          description: JPEG, PNG o WebP estático, máximo 10 MiB.
+        description:
+          type: string
+          maxLength: 200
+      required:
+      - file
+      - idempotency_key
+    MaintenanceReopen:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          description: Causa atribuible al trabajo.
+          maxLength: 1000
+      required:
+      - expected_version
+      - idempotency_key
+      - reason
+    MaintenanceRequirement:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
+    MaintenanceServiceOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        reference_price:
+          type: string
+      required:
+      - description
+      - id
+      - name
+      - reference_price
+    MaintenanceServiceOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceServiceOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    MaintenanceServiceSummary:
+      type: object
+      properties:
+        names:
+          type: array
+          items:
+            type: string
+        line_count:
+          type: integer
+      required:
+      - line_count
+      - names
+    MaintenanceTransition:
+      type: object
+      properties:
+        id:
+          type: integer
+        from_state:
+          type: string
+        to_state:
+          type: string
+        reason:
+          type: string
+        actor:
+          $ref: '#/components/schemas/MaintenanceUserLabel'
+        occurred_at:
+          type: string
+          format: date-time
+        intervention_id:
+          type: integer
+      required:
+      - actor
+      - from_state
+      - id
+      - intervention_id
+      - occurred_at
+      - reason
+      - to_state
+    MaintenanceUserLabel:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    MaintenanceVehicleOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        plate:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+          nullable: true
+        color:
+          type: string
+        open_order:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceOpenOrder'
+          nullable: true
+      required:
+      - brand
+      - color
+      - id
+      - model
+      - open_order
+      - plate
+      - year
+    MaintenanceVehicleOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenanceVehicleOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    MaintenanceVehicleSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+        plate:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - brand
+      - id
+      - is_active
+      - model
+      - plate
+    MaintenanceVersionedCommandFields:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+      - idempotency_key
     MoneyBlock:
       type: object
       properties:
@@ -7345,7 +8855,7 @@ components:
           pattern: ^[A-Za-z0-9._:-]{8,128}$
         kind:
           allOf:
-          - $ref: '#/components/schemas/KindEnum'
+          - $ref: '#/components/schemas/OperationWriteKindEnum'
           description: |-
             No se aceptan PURCHASE_RECEIPT ni REVERSAL.
 
@@ -7378,6 +8888,16 @@ components:
       - kind
       - product_id
       - quantity
+    OperationWriteKindEnum:
+      enum:
+      - INITIAL_LOAD
+      - ADJUSTMENT_IN
+      - ADJUSTMENT_OUT
+      type: string
+      description: |-
+        * `INITIAL_LOAD` - INITIAL_LOAD
+        * `ADJUSTMENT_IN` - ADJUSTMENT_IN
+        * `ADJUSTMENT_OUT` - ADJUSTMENT_OUT
     OptionPage:
       type: object
       properties:
@@ -7559,6 +9079,69 @@ components:
           type: string
         expected_version:
           type: integer
+    PatchedMaintenanceInterventionUpdate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        work_performed:
+          type: string
+          maxLength: 5000
+        notes:
+          type: string
+          maxLength: 5000
+    PatchedMaintenanceLineUpdate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          maximum: 9999
+          minimum: 1
+        applied_price:
+          type: string
+    PatchedMaintenanceOrderUpdate:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        customer_id:
+          type: integer
+          minimum: 1
+        vehicle_id:
+          type: integer
+          minimum: 1
+        opened_on:
+          type: string
+          format: date
+        odometer_km:
+          type: integer
+          maximum: 9999999
+          minimum: 0
+        odometer_confirmed:
+          type: boolean
+        diagnosis:
+          type: string
+          maxLength: 5000
+        notes:
+          type: string
+          maxLength: 5000
     PatchedOperationPatch:
       type: object
       properties:
@@ -7951,6 +9534,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/ConflictInfo'
           nullable: true
+        details:
+          type: object
+          additionalProperties: {}
+          nullable: true
       required:
       - code
       - detail
@@ -8121,7 +9708,7 @@ components:
         id:
           type: integer
         state:
-          $ref: '#/components/schemas/StateEnum'
+          $ref: '#/components/schemas/PurchaseStateEnum'
         version:
           type: integer
         internal_number:
@@ -8275,6 +9862,16 @@ components:
       - page_size
       - results
       - total_pages
+    PurchaseStateEnum:
+      enum:
+      - DRAFT
+      - CONFIRMED
+      - VOIDED
+      type: string
+      description: |-
+        * `DRAFT` - DRAFT
+        * `CONFIRMED` - CONFIRMED
+        * `VOIDED` - VOIDED
     PurchaseSummary:
       type: object
       properties:
@@ -9029,16 +10626,6 @@ components:
       required:
       - expected_version
       - idempotency_key
-    StateEnum:
-      enum:
-      - DRAFT
-      - CONFIRMED
-      - VOIDED
-      type: string
-      description: |-
-        * `DRAFT` - DRAFT
-        * `CONFIRMED` - CONFIRMED
-        * `VOIDED` - VOIDED
     Status:
       type: object
       properties:

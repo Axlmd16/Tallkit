@@ -3,7 +3,7 @@ import { useId, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { Button } from '../actions'
 import { InlineNotice } from '../states'
 import { ConfirmationPanel } from './ConfirmationPanel'
-import { Modal } from './Modal'
+import { Modal, type ModalSize } from './Modal'
 
 type SaveResult = boolean | void
 type SaveHandler = () => SaveResult | Promise<SaveResult>
@@ -25,6 +25,7 @@ export interface FormModalProps {
   /** Texto de la acción de crear otro registro; concuerda con el género del sustantivo. */
   createAnotherLabel?: string
   returnFocusRef?: RefObject<HTMLElement | null>
+  size?: ModalSize
 }
 
 function errorMessage(error: unknown) {
@@ -46,6 +47,7 @@ export function FormModal({
   saveDisabled = false,
   cancelLabel = 'Cancelar',
   title,
+  size = 'default',
 }: FormModalProps) {
   const formId = useId()
   const fieldsRef = useRef<HTMLDivElement>(null)
@@ -94,6 +96,7 @@ export function FormModal({
   return (
     <>
       <Modal
+        size={size}
         actions={
           <>
             <Button

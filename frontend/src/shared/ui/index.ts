@@ -42,7 +42,7 @@ export {
   type ConfirmationWidth,
   type ConfirmationTone,
 } from './overlays/ConfirmationPanel'
-export { Modal, type ModalProps } from './overlays/Modal'
+export { Modal, type ModalProps, type ModalSize } from './overlays/Modal'
 export { FormModal, type FormModalProps } from './overlays/FormModal'
 export {
   DropdownMenu,

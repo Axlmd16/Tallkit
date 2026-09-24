@@ -21,7 +21,8 @@ RUN uv sync --frozen --no-dev
 COPY backend/ ./
 RUN python manage.py collectstatic --noinput --settings=config.settings.base
 RUN addgroup --system app && adduser --system --ingroup app app \
-    && chown -R app:app /app
+    && mkdir -p /var/lib/sys-taller/private-media \
+    && chown -R app:app /app /var/lib/sys-taller
 USER app
 EXPOSE 8000
 CMD ["gunicorn", "--chdir", "src", "--bind", "0.0.0.0:8000", "--workers", "1", "--threads", "4", "--access-logfile", "-", "config.wsgi:application"]

@@ -195,6 +195,8 @@ Nueva atención dentro del mismo mantenimiento por una falla atribuible al traba
 
 Caso operativo completo del trabajo realizado sobre un vehículo bajo el RUC artesanal. Contiene una o más intervenciones con diagnóstico, kilometraje, servicios, observaciones y evidencias.
 
+En la interfaz se presenta como **orden de mantenimiento**, con número interno `ART-OT-NNNNNN` independiente de las series fiscales. Sus estados son registrado, finalizado y reabierto.
+
 ### Marca de vehículo
 
 Catálogo administrable que identifica la marca de un vehículo del cliente; es independiente de la marca de producto. Los tres roles la consultan, Administrador y Encargado del taller la crean y editan, y solo el Administrador la desactiva o reactiva.
@@ -322,6 +324,10 @@ Sinónimo operativo de existencia. En documentación formal se prefiere **existe
 ### Stock bajo
 
 Condición en la que la existencia alcanza o desciende del umbral configurado para un producto.
+
+### Total de servicios de la orden
+
+Suma de cantidad por precio aplicado de los servicios de una orden de mantenimiento, calculada por el servidor. Es un valor operativo: no constituye saldo por cobrar, deuda, documento interno ni factura. Los servicios de una intervención correctiva no lo aumentan.
 
 ### Transacción atómica
 

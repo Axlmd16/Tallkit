@@ -16,6 +16,7 @@ backend/.venv/
 backend/htmlcov/
 backend/src/staticfiles/
 /media/
+backend/private-media/
 
 frontend/coverage/
 frontend/dist/

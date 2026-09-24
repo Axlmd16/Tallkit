@@ -43,6 +43,7 @@ const singularLabels: Record<string, string> = {
   Proveedores: 'proveedor',
   Ingresos: 'ingreso',
   Ventas: 'venta',
+  Mantenimientos: 'mantenimiento',
 }
 
 function currentBreadcrumbLabel(pathname: string, itemLabel: string) {
