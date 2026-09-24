@@ -158,7 +158,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-036 | Lista de proveedores | Nombre, identificación opcional, contacto opcional y estado. |
 | UI-037 | Formulario de proveedor | Nombre obligatorio, datos opcionales y advertencias de coincidencias pertinentes. |
 
-**Estado de implementación de UI-030…037 (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** Se entregan listas, fichas y formularios de productos, servicios y proveedores, y la gestión de categorías, unidades y marcas de producto, con permisos en servidor y presentación. Las pantallas de producto no muestran existencia, reserva, disponibilidad, Kardex, costos ni umbral porque dependen de inventario. La navegación principal añade Productos, Servicios y Proveedores; la entrada existente de marcas de vehículo se etiqueta «Marcas de vehículo». Los catálogos de apoyo se alcanzan desde Productos. Cobertura: [cobertura-catalogos.md](cobertura-catalogos.md).
+**Estado de implementación de UI-030…037 (cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores`).** Se entregan listas, fichas y formularios de productos, servicios y proveedores, y la gestión de categorías, unidades y marcas de producto, con permisos en servidor y presentación. Las pantallas de producto no muestran existencia, reserva, disponibilidad, Kardex, costos ni umbral porque dependen de inventario. La navegación principal añade Productos, Servicios y Proveedores; la entrada existente de marcas de vehículo se etiqueta «Marcas de vehículo». Los catálogos de apoyo se alcanzan desde Productos. Cobertura: [cobertura-catalogos.md](cobertura-catalogos.md).
 
 ### 6.4 Ingresos e inventario
 

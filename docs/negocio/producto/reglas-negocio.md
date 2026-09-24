@@ -87,7 +87,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-CAT-015 | Para un proveedor ocasional solo el nombre es obligatorio; identificación y contacto son opcionales. |
 | RN-CAT-016 | El precio de catálogo de un producto representa el valor final para el cliente, con impuesto incluido cuando aplique. |
 
-**Concreciones de catálogo (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** No modifican decisiones confirmadas; precisan cómo se capturan y protegen los datos de las tres capacidades entregadas:
+**Concreciones de catálogo (cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores`).** No modifican decisiones confirmadas; precisan cómo se capturan y protegen los datos de las tres capacidades entregadas:
 
 - Precios de productos y servicios: USD, no negativos, con hasta dos decimales; el sistema rechaza el exceso de escala en lugar de redondear. Esta escala solo cubre la captura de precios y no decide el redondeo de bases, impuestos, costos ni documentos (decisión abierta). El contenido de una presentación admite hasta seis decimales y debe ser mayor que cero.
 - Una categoría con productos activos no puede desactivarse; con productos únicamente inactivos sí, y reactivar un producto exige categoría activa. No hay cambios en cascada.

@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `gestionar-catalogos-productos-servicios-proveedores` |
-| Estado | Evidencia local de implementación; **no** es aprobación humana ni archivo del cambio |
+| Cambio OpenSpec | `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores`; specs principales en `openspec/specs/catalogo-de-productos-y-categorias`, `catalogo-de-servicios` y `catalogo-de-proveedores` |
+| Estado | Cambio verificado y archivado el 2026-09-24; la evidencia local no sustituye la revisión visual humana pendiente |
 | Fecha | 2026-09-20 |
 | Alcance | Productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. Excluye existencias, costos, disponibilidad y toda operación de compra, venta o mantenimiento |
 

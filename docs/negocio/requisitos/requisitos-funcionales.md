@@ -77,7 +77,7 @@
 | RF-CAT-015 | El precio del catálogo de productos debe representar el valor final para el cliente, con impuesto incluido cuando aplique. | Debe | La operación desglosa base e impuesto sin cambiar el total mostrado. |
 | RF-CAT-016 | Para un proveedor ocasional el sistema debe exigir nombre y permitir identificación y contacto opcionales. | Debe | Una compra ocasional puede confirmarse sin inventar un proveedor genérico. |
 
-**Estado de implementación (cambio `openspec/changes/gestionar-catalogos-productos-servicios-proveedores`).** Entregados en el alcance de catálogos: RF-CAT-001…003, RF-CAT-004 (sin el filtro de disponibilidad), RF-CAT-006…007, RF-CAT-008 (solo la identificación del kit completo, sin desarme), RF-CAT-009, RF-CAT-010…016. RF-CAT-005 (existencias y costos) y la disponibilidad de RF-CAT-004 dependen de inventario y **no** están implementados. La evidencia por escenario está en [cobertura-catalogos.md](cobertura-catalogos.md).
+**Estado de implementación (cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores`).** Entregados en el alcance de catálogos: RF-CAT-001…003, RF-CAT-004 (sin el filtro de disponibilidad), RF-CAT-006…007, RF-CAT-008 (solo la identificación del kit completo, sin desarme), RF-CAT-009, RF-CAT-010…016. RF-CAT-005 (existencias y costos) y la disponibilidad de RF-CAT-004 dependen de inventario y **no** están implementados. La evidencia por escenario está en [cobertura-catalogos.md](cobertura-catalogos.md).
 
 ## 5. Ingresos de mercadería, inventario y Kardex
 
