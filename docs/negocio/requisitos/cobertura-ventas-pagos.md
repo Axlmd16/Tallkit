@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `gestionar-ventas-pagos-credito-simple` |
-| Estado | Evidencia local de implementación; **no** es aprobación humana ni archivo del cambio |
+| Cambio OpenSpec | `openspec/changes/archive/2026-09-24-gestionar-ventas-pagos-credito-simple`; specs principales en `openspec/specs/ventas-comerciales`, `pagos-comerciales-y-credito-simple` y `correcciones-de-ventas-y-reembolsos` |
+| Estado | Cambio verificado y archivado el 2026-09-24; la evidencia local no sustituye la revisión visual humana pendiente |
 | Fecha | 2026-09-21 |
 | Alcance | Ventas directas de repuestos del RUC comercial, cobros y crédito simple, cuentas por cobrar, correcciones de pagos, devoluciones, reembolsos y anulación conservadora. Excluye proformas, mantenimientos, cobros artesanales, cierres, contabilidad y facturación electrónica |
 

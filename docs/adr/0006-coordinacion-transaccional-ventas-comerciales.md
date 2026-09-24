@@ -30,7 +30,7 @@ Complementa ADR-0001, ADR-0004 y ADR-0005, sin reemplazarlos. Implementación ve
 
 ## Referencias
 
-- [Diseño aprobado](../../openspec/changes/gestionar-ventas-pagos-credito-simple/design.md).
+- [Diseño aprobado](../../openspec/changes/archive/2026-09-24-gestionar-ventas-pagos-credito-simple/design.md).
 - [ADR-0004](0004-contrato-transaccional-configuracion-y-numeracion.md).
 - [ADR-0005](0005-publicacion-transaccional-inventario.md).
 - [Referencia terminológica](0006-coordinacion-transaccional-ventas-comerciales-glossary-reference.md).
