@@ -3,57 +3,61 @@
 ## Purpose
 Establecer el sistema visual aprobado para las superficies presentes y futuras de Sys-Taller.
 ## Requirements
-### Requirement: Fidelidad estructural a los frames Figma y adaptación al taller
-La interfaz SHALL aplicar de forma coherente el lenguaje visual aprobado a la navegación, las páginas, los controles y los mensajes: lienzo neutro gris lavanda muy claro, superficies blancas, texto principal azul marino oscuro, violeta como acento primario y acentos pastel para estados o categorías. La adaptación SHALL conservar la identidad y terminología de Sys-Taller y SHALL NOT copiar la marca Base, su logotipo, ilustraciones, textos ni datos demostrativos.
-
-**Trazabilidad:** `RNF-USA-004`, `RNF-USA-006`, `RNF-USA-008`, `RNF-USA-009`, `RNF-MAN-003`; principios 1, 2 y 8 de `interfaz-y-navegacion.md`; referencia visual SAAS Dashboard aprobada en `proposal.md`.
-
-#### Scenario: Pantallas funcionales con una misma identidad
-- **WHEN** un usuario recorre acceso, inicio, usuarios, auditoría y estado técnico
-- **THEN** SHALL reconocer en todas las pantallas la misma paleta, tipografía, geometría, elevación, iconografía y jerarquía de acciones
-
-#### Scenario: Adaptación sin copiar la identidad de la plantilla
-- **WHEN** una pantalla adopta un patrón observado en SAAS Dashboard
-- **THEN** SHALL presentar la marca, el vocabulario, los permisos y los datos propios de Sys-Taller sin mostrar elementos demostrativos de la plantilla
 
 ### Requirement: Jerarquía mediante lienzo y superficies elevadas
-La interfaz SHALL organizar el contenido sobre un lienzo claro mediante superficies blancas de bordes redondeados, separación medida en Figma y elevación únicamente donde la referencia la declara. Las superficies SHALL agrupar contenido relacionado y facilitar el escaneo sin convertir cada texto o control en una tarjeta ni depender de divisores oscuros o decoración industrial.
+La interfaz SHALL organizar el contenido en capas diferenciadas por tono y borde:
+- lienzo gris claro;
+- paneles blancos con borde fino y radio contenido;
+- cabeceras de sección y de tabla en gris suave;
+- espacio de trabajo gris para los documentos.
 
-**Trazabilidad:** `RNF-USA-001`, `RNF-USA-002`, `RNF-USA-008`; secciones 1, 4, 5 y 8 de `interfaz-y-navegacion.md`; referencia visual aprobada en `proposal.md`.
+La sombra SHALL reservarse a menús flotantes, diálogos, notificaciones y la hoja del documento. Las superficies SHALL agrupar contenido relacionado y facilitar el escaneo sin convertir cada dato en una tarjeta ni inflar los espacios.
+
+**Trazabilidad:** `RNF-USA-001`, `RNF-USA-002`, `RNF-USA-008`; secciones 1, 4, 5 y 8 de `interfaz-y-navegacion.md`; tablero «Fundamentos», sección «Forma».
 
 #### Scenario: Página de consulta con varias regiones
 - **WHEN** una página contiene encabezado, filtros, resumen y una lista
-- **THEN** SHALL distinguir cada región mediante espacio, superficie o elevación suave y SHALL mantener clara la relación entre los elementos de una misma región
+- **THEN** SHALL distinguir cada región mediante tono de fondo, borde o espacio, y SHALL mantener clara la relación entre los elementos de una misma región
 
 #### Scenario: Densidad de información operativa
 - **WHEN** una superficie muestra varios registros o indicadores
-- **THEN** SHALL permitir compararlos con rapidez sin presentar ruido decorativo, bordes dominantes ni espacios que oculten la relación entre sus datos
+- **THEN** SHALL permitir compararlos con rapidez con filas compactas, tipografía contenida y sin sombras ni tarjetas repetidas por registro
 
 ### Requirement: Jerarquía cromática y de acciones consistente
-El violeta SHALL identificar la acción principal, la selección activa y el foco destacado sin aplicarse indiscriminadamente a contenido ordinario. Las acciones secundarias SHALL tener menor peso visual y las destructivas SHALL diferenciarse mediante texto, iconografía y tratamiento semántico, no solo mediante color.
+El azul Tallkit SHALL identificar la acción principal. El petróleo SHALL identificar la selección activa, los enlaces y el foco. Ninguno de los dos SHALL aplicarse a contenido ordinario. Las acciones secundarias SHALL tener menor peso visual. Las destructivas SHALL diferenciarse mediante texto, iconografía y tratamiento de peligro, no solo mediante color. El naranja del logotipo SHALL NOT usarse como color de texto.
 
-**Trazabilidad:** `RNF-USA-003`, `RNF-USA-006`, `RNF-USA-007`, `RNF-USA-008`; secciones 4, 5 y 8 de `interfaz-y-navegacion.md`.
+**Trazabilidad:** decisión 2 del proposal; `RNF-USA-003`, `RNF-USA-006`, `RNF-USA-007`, `RNF-USA-008`; secciones 4, 5 y 8 de `interfaz-y-navegacion.md`.
 
 #### Scenario: Jerarquías distintas dentro de una operación
 - **WHEN** una pantalla presenta una acción principal, una secundaria y una destructiva
-- **THEN** SHALL distinguir claramente su prioridad y efecto sin que compitan por la misma prominencia visual
+- **THEN** SHALL distinguir claramente su prioridad y su efecto sin que compitan por la misma prominencia visual
 
 #### Scenario: Acción equivalente en pantallas diferentes
 - **WHEN** una misma clase de acción principal aparece en dos pantallas
 - **THEN** ambas SHALL conservar un tratamiento visual e interactivo equivalente
 
-### Requirement: Tipografía amable, legible y jerarquizada
-La interfaz SHALL usar Nunito local en los pesos 400, 600, 700 y 800 extraídos de Figma, con una escala limitada que distinga títulos, contenido, etiquetas y datos operativos. El texto ordinario SHALL conservar un tamaño legible y los códigos, secuenciales, fechas e importes SHALL poder compararse sin confusión entre caracteres.
+#### Scenario: Contraste de los colores de marca
+- **WHEN** se evalúa el contraste de textos y controles esenciales
+- **THEN** SHALL alcanzar el nivel AA de WCAG 2.2, y ningún texto SHALL usar el naranja del logotipo
 
-**Trazabilidad:** `RNF-USA-008`, `RNF-USA-009`; secciones 1, 4 y 5 de `interfaz-y-navegacion.md`.
+### Requirement: Tipografía amable, legible y jerarquizada
+La interfaz SHALL usar IBM Plex Sans en los pesos 400, 500, 600 y 700, e IBM Plex Mono para códigos, placas, RUC, identificaciones y números internos. Ambas tipografías SHALL servirse desde la instalación. La escala SHALL ser contenida:
+- títulos de página de unos 22 px;
+- títulos de panel de unos 15 px;
+- texto de interfaz de unos 13–14 px;
+- etiquetas y texto auxiliar de 12 px.
+
+Importes y cantidades SHALL usar cifras de ancho uniforme.
+
+**Trazabilidad:** decisión 3 del proposal; `RNF-USA-008`, `RNF-USA-009`; secciones 1, 4 y 5 de `interfaz-y-navegacion.md`; tablero «Fundamentos», sección «Tipografía».
 
 #### Scenario: Lectura de información operativa
 - **WHEN** un usuario consulta una pantalla con títulos, etiquetas, valores y ayuda contextual
 - **THEN** SHALL identificar la jerarquía y asociar cada valor con su etiqueta sin ampliar manualmente la página
 
 #### Scenario: Código o cifra sensible a confusión
-- **WHEN** se muestra un identificador, placa, secuencial o importe
-- **THEN** su tratamiento tipográfico SHALL preservar la distinción entre caracteres y la alineación necesaria para compararlo
+- **WHEN** se muestra un código de repuesto, placa, RUC, número interno o importe
+- **THEN** los códigos SHALL usar IBM Plex Mono y los importes SHALL alinearse con cifras de ancho uniforme, preservando la distinción entre caracteres como 0/O y 1/l
 
 ### Requirement: Iconografía comprensible y consistente
 Los iconos SHALL pertenecer a una familia visual consistente, de trazo o peso equivalente, y SHALL reforzar acciones o conceptos conocidos. Todo icono interactivo SHALL tener un nombre accesible, y las acciones críticas SHALL conservar una etiqueta textual visible cuando el icono por sí solo pueda ser ambiguo.
@@ -69,9 +73,9 @@ Los iconos SHALL pertenecer a una familia visual consistente, de trazo o peso eq
 - **THEN** SHALL mostrarse una descripción textual del efecto y el icono SHALL ser únicamente un refuerzo
 
 ### Requirement: Estados y retroalimentación consistentes
-Los controles y operaciones SHALL comunicar de manera consistente los estados disponible, enfocado, activo, deshabilitado, procesando, completado, advertencia y error. Los estados semánticos SHALL poder usar fondos pastel, pero SHALL mantener contraste suficiente y SHALL NOT depender únicamente del color. La interfaz SHALL impedir que una acción crítica parezca disponible mientras su envío anterior continúa en proceso.
+Los controles y las operaciones SHALL comunicar de manera consistente los estados disponible, enfocado, activo, deshabilitado, procesando, completado, advertencia y error. Los estados semánticos SHALL usar fondos suaves con texto de contraste suficiente y un marcador o icono, sin depender únicamente del color. La finalización de una acción SHALL confirmarse con una notificación temporal. Advertencias y errores SHALL permanecer en línea junto a lo afectado. La interfaz SHALL impedir que una acción crítica parezca disponible mientras su envío anterior continúa en proceso.
 
-**Trazabilidad:** `RNF-USA-003` a `RNF-USA-008`; secciones 5 y 8 de `interfaz-y-navegacion.md`.
+**Trazabilidad:** `RNF-USA-003` a `RNF-USA-008`; secciones 5 y 8 de `interfaz-y-navegacion.md`; decisión 7 del proposal; `patrones-de-pantalla-frontend` PPF-07 y PPF-08.
 
 #### Scenario: Operación en proceso
 - **WHEN** un usuario inicia una acción que no debe enviarse dos veces
@@ -85,27 +89,31 @@ Los controles y operaciones SHALL comunicar de manera consistente los estados di
 - **WHEN** una lista no tiene resultados o no puede cargarse
 - **THEN** la pantalla SHALL distinguir ambos estados y, cuando el fallo sea recuperable, SHALL ofrecer una acción explícita para reintentar
 
-### Requirement: Estados y ámbitos comprensibles sin depender del color
-Los estados del negocio y el ámbito de **RUC comercial** o **RUC artesanal** SHALL comunicarse mediante texto y, cuando resulte útil, iconografía o forma además del color. Los colores semánticos SHALL conservar el mismo significado en todas las pantallas.
+#### Scenario: Acción completada
+- **WHEN** una creación o edición termina con éxito
+- **THEN** SHALL mostrarse una notificación temporal y SHALL NOT quedar una franja de éxito fija en la página
 
-**Trazabilidad:** separación fiscal confirmada; `RNF-USA-006`, `RNF-USA-010`; principios 3, 4 y 10 de `interfaz-y-navegacion.md`.
+### Requirement: Estados y ámbitos comprensibles sin depender del color
+Los estados del negocio SHALL comunicarse mediante texto y un marcador de forma, además del color. El ámbito **RUC comercial** o **RUC artesanal** SHALL mostrarse con su nombre, un icono propio y un tono propio distinto para cada uno. Los colores semánticos SHALL conservar el mismo significado en todas las pantallas.
+
+**Trazabilidad:** separación fiscal confirmada; `RNF-USA-006`, `RNF-USA-010`; principios 3, 4 y 10 de `interfaz-y-navegacion.md`; tablero «Fundamentos», sección «Estados y ámbitos fiscales».
 
 #### Scenario: Operación económica con ámbito fiscal
 - **WHEN** un usuario abre una operación, documento, cobro o reporte económico
-- **THEN** SHALL identificar de forma visible la entidad fiscal correspondiente mediante su nombre y un indicador visual redundante
+- **THEN** SHALL identificar la entidad fiscal mediante su nombre, su icono y su tono
 
 #### Scenario: Estado comunicado a una persona que no distingue el color
 - **WHEN** se muestra un estado como activo, pendiente, confirmado, anulado, éxito o error
-- **THEN** SHALL ser comprensible mediante texto o iconografía aunque no se perciba su color
+- **THEN** SHALL ser comprensible por su texto y su marcador aunque no se perciba su color
 
 ### Requirement: Acceso con composición propia y amable
-La pantalla de acceso SHALL priorizar el formulario y, cuando exista espacio suficiente, SHALL complementarlo con una composición visual propia relacionada con el taller. Esa composición SHALL respetar el lenguaje aprobado y SHALL NOT introducir proveedores de acceso, registro público ni funciones que el producto no ofrece.
+La pantalla de acceso SHALL priorizar el formulario y mostrar la marca Tallkit. Cuando exista espacio suficiente, SHALL complementarlo con una composición visual propia relacionada con el taller y construida con el lenguaje Tallkit. La composición SHALL NOT introducir proveedores de acceso, registro público ni funciones que el producto no ofrece.
 
-**Trazabilidad:** `CT-001`, `RNF-SEG-002`, `RNF-USA-001`, `RNF-USA-008`, `RNF-USA-009`; `UI-001`.
+**Trazabilidad:** `CT-001`, `RNF-SEG-002`, `RNF-USA-001`, `RNF-USA-008`, `RNF-USA-009`; `UI-001`; decisión 4 del proposal.
 
 #### Scenario: Acceso en pantalla amplia
 - **WHEN** un usuario abre el inicio de sesión en una pantalla amplia
-- **THEN** SHALL encontrar el formulario claramente delimitado y una composición complementaria que no compita con la tarea de autenticarse
+- **THEN** SHALL encontrar el formulario claramente delimitado, el logotipo Tallkit y una composición complementaria que no compita con la tarea de autenticarse
 
 #### Scenario: Funciones ajenas a la autenticación vigente
 - **WHEN** se presenta la pantalla de acceso
@@ -121,42 +129,102 @@ Las fuentes, iconos, ilustraciones y demás recursos necesarios para operar la i
 - **THEN** la interfaz SHALL conservar su tipografía, iconografía, controles, composición y contenido esenciales sin solicitudes obligatorias a proveedores externos
 
 ### Requirement: Adopción por las superficies existentes y futuras
-Las pantallas existentes de acceso, cambio de contraseña, inicio, usuarios, auditoría y estado técnico SHALL adoptar el sistema visual sin cambiar sus permisos ni resultados funcionales. Toda pantalla funcional posterior SHALL reutilizar la referencia visual aprobada salvo que un cambio posterior justifique una excepción.
+Todas las pantallas existentes SHALL adoptar el sistema Tallkit sin cambiar sus permisos, rutas, validaciones ni resultados funcionales. Son:
+- acceso, cambio de contraseña, inicio y estado técnico;
+- usuarios, auditoría y configuración del taller;
+- catálogos auxiliares, productos, servicios y proveedores;
+- clientes y vehículos;
+- ingresos e inventario;
+- ventas, cobros y cuentas por cobrar.
 
-**Trazabilidad:** `CT-001`, `RNF-SEG-003`, `RNF-MAN-003`, `RNF-MAN-005`; `UI-001`, `UI-002`, `UI-010`, `UI-011`, `UI-018`, `UI-082`.
+Toda pantalla funcional posterior SHALL usar los fundamentos Tallkit y los patrones de `patrones-de-pantalla-frontend`, salvo que un cambio posterior justifique una excepción.
+
+**Trazabilidad:** `CT-001`, `RNF-SEG-003`, `RNF-MAN-003`, `RNF-MAN-005`; sección 6 de `interfaz-y-navegacion.md`.
 
 #### Scenario: Actualización visual de una pantalla existente
-- **WHEN** una pantalla existente adopta el nuevo sistema visual
-- **THEN** SHALL conservar las mismas acciones autorizadas, validaciones y resultados observables definidos para esa pantalla
+- **WHEN** una pantalla existente adopta el sistema Tallkit
+- **THEN** SHALL conservar las mismas acciones autorizadas, validaciones y resultados observables definidos para esa pantalla, y sus pruebas funcionales SHALL seguir pasando
 
 #### Scenario: Usuario sin permiso
 - **WHEN** un **Usuario** carece del permiso necesario para una opción de navegación o acción
-- **THEN** el nuevo sistema visual SHALL NOT hacerla visible ni alterar la denegación obligatoria del backend
+- **THEN** el sistema visual SHALL NOT hacerla visible ni alterar la denegación obligatoria del backend
 
-### Requirement: Referencias estructuradas y mapeo obligatorio
-La corrección SHALL usar las propiedades estructuradas del archivo `GRvgnODulXXrLTz4BsaToK`, consultando individualmente `4:344`, `4:660`, `4:1140`, `4:2803`, `4:3258`, `4:4567`, `4:4981`, `4:8584`, `4:9302` y `4:9333`. Antes del código SHALL presentar la comparación entre valores actuales y extraídos y enumerar componentes afectados.
+### Requirement: Identidad visual Tallkit
+La interfaz SHALL aplicar a todas sus pantallas el sistema visual propio **Tallkit · Banco de trabajo**:
+- neutros en capas: lienzo gris claro, paneles blancos y cabeceras de sección en gris suave;
+- azul Tallkit para la acción principal;
+- petróleo para la selección, los enlaces y el foco;
+- naranja del logotipo solo como acento de marca;
+- bordes finos y radios contenidos;
+- elevación reservada a menús, diálogos, notificaciones y la hoja del documento.
 
-**Trazabilidad:** instrucción correctiva del usuario del 2026-09-10; `RNF-USA-002`, `RNF-USA-008`; `UI-001`, `UI-002`, `UI-010`, `UI-011`, `UI-018`.
+La interfaz SHALL mostrar el nombre **Tallkit** con el logotipo del producto y SHALL NOT reproducir marcas, logotipos, ilustraciones, textos ni datos de plantillas de terceros.
 
-#### Scenario: Mapeo de las superficies existentes
-- **GIVEN** los diez frames consultados y sus propiedades disponibles
-- **WHEN** se corrigen las pantallas existentes
-- **THEN** Inicio SHALL reproducir la retícula de `4:344`; Usuarios y Auditoría las filas y columnas de `4:660` y `4:2803`; el drawer de usuario `4:3258`; el acceso `4:8584`; el restablecimiento administrativo y su resultado `4:9302` y `4:9333`
-- **AND** SHALL preservar rutas, permisos, API, validaciones y pruebas de comportamiento; Recover SHALL NOT introducir envío de correo ni recuperación pública
+**Trazabilidad:** decisiones 1, 2, 4 y 9 del proposal; `RNF-USA-008`, `RNF-USA-009`, `RNF-MAN-003`; maqueta Tallkit, tablero «Fundamentos».
 
-#### Scenario: Sustitución del contenido demostrativo
-- **GIVEN** una región de la referencia cuyo módulo todavía no existe en Sys-Taller
-- **WHEN** se reproduce su composición
-- **THEN** SHALL conservar sus dimensiones, densidad y proporciones con contenido real disponible o placeholders neutrales identificados como sin datos, sin inventar métricas, personas, productos ni rutas
+#### Scenario: Recorrido por pantallas de distintos módulos
+- **WHEN** un usuario recorre acceso, inicio, una lista, una ficha, un formulario y el editor de venta
+- **THEN** SHALL reconocer en todas la misma paleta, tipografía, geometría, elevación, iconografía y jerarquía de acciones
 
-### Requirement: Aceptación visual explícita y evidencia por etapa
-La corrección SHALL ejecutarse en ocho etapas: fuente/tokens; shell/sidebar/fondo; controles/tarjetas/filas; dashboard; usuarios/drawer; auditoría; acceso/recuperación/confirmación; responsive/accesibilidad. Cada etapa SHALL ejecutar pruebas, capturar con Playwright y comparar contra Figma antes de continuar. Las pruebas técnicas SHALL NOT equivaler a aprobación visual.
+#### Scenario: Marca visible
+- **WHEN** se muestra el marco autenticado o la pantalla de acceso
+- **THEN** SHALL aparecer el logotipo y el nombre «Tallkit», sin elementos de la plantilla SAAS Dashboard
 
-**Trazabilidad:** instrucción correctiva del usuario del 2026-09-10; `RNF-USA-008`, `RNF-MAN-005`.
+### Requirement: Tokens semánticos con bases para tema oscuro
+Colores, superficies, bordes, textos, estados, radios, sombras y tipografía SHALL definirse como tokens semánticos con nombre (por ejemplo lienzo, superficie, línea, tinta, acción, selección, éxito, advertencia o error), no como valores sueltos en cada pantalla. La estructura SHALL permitir definir más adelante un tema oscuro cambiando solo los valores de los tokens. Esta versión SHALL NOT ofrecer un tema oscuro ni un selector de tema.
 
-#### Scenario: Revisión final por el usuario
-- **GIVEN** las pruebas y capturas de todas las etapas
-- **WHEN** se presenta el resultado visual
-- **THEN** SHALL mostrar capturas comparativas de Figma y la aplicación al mismo viewport y registrar diferencias o adaptaciones de contenido
-- **AND** el cambio SHALL permanecer sin aceptación visual, commit, merge ni archivo hasta recibir aprobación visual explícita del usuario
+**Trazabilidad:** decisión 5 del proposal; `RNF-MAN-003`; tablero «Fundamentos», sección «Tema oscuro».
 
+#### Scenario: Cambio de un valor de marca
+- **WHEN** se modifica el valor del token de acción principal
+- **THEN** todos los botones principales, la paginación activa y los demás usos de ese token SHALL reflejar el cambio sin editar cada pantalla
+
+#### Scenario: Tema oscuro no disponible
+- **WHEN** el dispositivo del usuario prefiere el esquema oscuro
+- **THEN** la aplicación SHALL mantener el tema claro y SHALL NOT mostrar un selector de tema
+
+### Requirement: Piezas visuales propias del taller
+La interfaz SHALL representar de forma consistente los datos propios del negocio:
+- **Placa:** en una pieza reconocible, con tipografía monoespaciada.
+- **Código de repuesto:** en una etiqueta monoespaciada que permite copiarlo.
+- **Existencias:** cantidad disponible acompañada del estado «Agotado» cuando es cero, sin clasificarla como baja mediante un umbral no decidido.
+- **Importes:** con moneda, dos decimales y alineación a la derecha, y guion cuando no existe dato del servidor.
+
+**Trazabilidad:** `DP-002`, `DP-017`; pendiente `RF-INV-011`; `RNF-USA-006`, `RNF-USA-009`; tablero «Fundamentos», sección «Componentes del negocio».
+
+#### Scenario: Producto sin existencias
+- **WHEN** un producto tiene existencia cero
+- **THEN** SHALL mostrarse su cantidad y el texto «Agotado» con un indicador redundante al color
+
+#### Scenario: Producto con pocas unidades
+- **WHEN** un producto tiene pocas unidades disponibles
+- **THEN** SHALL mostrarse la cantidad y SHALL NOT mostrarse «Stock bajo» ni otra clasificación basada en un umbral
+
+#### Scenario: Copiar un código
+- **WHEN** el usuario activa la acción de copiar de un código de repuesto
+- **THEN** el código SHALL copiarse al portapapeles y la acción SHALL tener un nombre accesible
+
+### Requirement: Validación visual contra la maqueta Tallkit
+El rediseño SHALL entregarse en cuatro fases:
+1. Fundamentos y marco de la aplicación.
+2. Componentes compartidos.
+3. Piloto con una lista, una ficha, un formulario y el editor de venta.
+4. Resto de módulos.
+
+La maqueta fija fundamentos y patrones, no una fidelidad píxel a píxel. El usuario SHALL poder validar cada fase directamente en la aplicación; las capturas comparativas son opcionales y solo se preparan cuando las solicite. Las diferencias funcionales respecto de la maqueta SHALL permanecer justificadas. La revisión técnica complementa, pero no sustituye, las correcciones que el usuario indique durante su validación directa.
+
+**Trazabilidad:** decisión 11 del proposal; `RNF-USA-008`, `RNF-MAN-005`; sección 13 de `interfaz-y-navegacion.md`.
+
+#### Scenario: Revisión directa del piloto
+- **GIVEN** la lista, la ficha, el formulario y el editor de venta del piloto con sus pruebas en verde
+- **WHEN** el usuario los revisa directamente en la aplicación o solicita capturas comparativas
+- **THEN** el resto de módulos SHALL NOT rediseñarse hasta recibir su aprobación explícita o sus correcciones
+
+#### Scenario: Validación final sin capturas obligatorias
+- **GIVEN** el resto de módulos implementado
+- **WHEN** el usuario decide comprobarlo directamente en la aplicación
+- **THEN** el cambio SHALL poder cerrarse sin producir un paquete adicional de capturas
+
+#### Scenario: Diferencia justificada con la maqueta
+- **WHEN** una pantalla difiere de la maqueta porque una función de la maqueta está fuera de alcance
+- **THEN** la diferencia SHALL registrarse y la pantalla SHALL NOT simular la función ausente
