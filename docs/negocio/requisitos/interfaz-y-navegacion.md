@@ -202,7 +202,7 @@ Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dine
 
 ### 6.7 Mantenimientos
 
-**Estado de implementación de UI-070…073, UI-075, UI-076 y UI-078 (cambio `openspec/changes/gestionar-ordenes-mantenimiento`).** Se entregan lista con búsqueda por número, cliente o placa y filtros de estado y fechas, editor de página completa, detalle por secciones, servicios con precio aplicado en modal, fotografías privadas, finalización con resumen y requisitos pendientes, reapertura con causa e historial en las fichas de cliente y vehículo. La lista muestra el total de servicios de la orden en lugar de saldos artesanales; no hay repuestos (UI-074), comprobante artesanal (UI-077) ni cancelación. Evidencia: [cobertura-mantenimientos.md](cobertura-mantenimientos.md).
+**Estado de implementación de UI-070…073, UI-075, UI-076 y UI-078 (cambio `openspec/changes/archive/2026-09-24-gestionar-ordenes-mantenimiento` (specs principales en `openspec/specs/`)).** Se entregan lista con búsqueda por número, cliente o placa y filtros de estado y fechas, editor de página completa, detalle por secciones, servicios con precio aplicado en modal, fotografías privadas, finalización con resumen y requisitos pendientes, reapertura con causa e historial en las fichas de cliente y vehículo. La lista muestra el total de servicios de la orden en lugar de saldos artesanales; no hay repuestos (UI-074), comprobante artesanal (UI-077) ni cancelación. Evidencia: [cobertura-mantenimientos.md](cobertura-mantenimientos.md).
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
