@@ -12,6 +12,17 @@ export function recordTimestamp(iso: string): string {
   })
 }
 
+/** Fecha del registro, sin hora, en la zona del negocio; `—` si falta. */
+export function recordDate(iso: string): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('es-EC', {
+    timeZone: 'America/Guayaquil',
+    dateStyle: 'medium',
+  })
+}
+
 /** Pie gris de un panel de ficha con las fechas de alta y última modificación. */
 export function RecordFooter({
   createdAt,

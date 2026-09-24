@@ -49,9 +49,6 @@ vi.mock('@/pages/product-brands/ProductBrandsPage', () => ({
 vi.mock('@/pages/services/ServicesPage', () => ({
   ServicesPage: stub('servicios'),
 }))
-vi.mock('@/pages/services/ServiceDetailPage', () => ({
-  ServiceDetailPage: stub('ficha de servicio'),
-}))
 vi.mock('@/pages/suppliers/SuppliersPage', () => ({
   SuppliersPage: stub('proveedores'),
 }))
@@ -101,7 +98,6 @@ const routes: Array<[string, string, string]> = [
   ['/measurement-units', 'productos.ver', 'Pantalla unidades'],
   ['/product-brands', 'productos.ver', 'Pantalla marcas de producto'],
   ['/services', 'servicios.ver', 'Pantalla servicios'],
-  ['/services/7', 'servicios.ver', 'Pantalla ficha de servicio'],
   ['/suppliers', 'proveedores.ver', 'Pantalla proveedores'],
   ['/suppliers/7', 'proveedores.ver', 'Pantalla ficha de proveedor'],
 ]

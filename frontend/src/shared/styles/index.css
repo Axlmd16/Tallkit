@@ -458,18 +458,6 @@ samp {
 }
 
 @media (min-width: 768px) {
-  .service-form {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px 16px;
-  }
-
-  .service-form > [role='alert'],
-  .service-form > .service-description-field,
-  .service-form > [role='group'] {
-    grid-column: 1 / -1;
-  }
-
   .supplier-form > .ui-field:first-of-type,
   .supplier-form > [role='alert'],
   .supplier-form > [role='group'] {

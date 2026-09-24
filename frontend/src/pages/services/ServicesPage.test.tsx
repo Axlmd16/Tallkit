@@ -73,7 +73,8 @@ it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   expect(table.textContent).not.toMatch(/stock|existencia|costo|cobro/i)
 })
 
-it('al elegir un servicio abre su ficha, sin panel lateral de vista previa', async () => {
+it('al elegir un servicio muestra su vista previa fija junto a la lista, sin navegar', async () => {
+  mocks.permissions = ['servicios.ver', 'servicios.gestionar']
   const user = userEvent.setup()
   render(
     <MemoryRouter initialEntries={['/services']}>
@@ -92,8 +93,35 @@ it('al elegir un servicio abre su ficha, sin panel lateral de vista previa', asy
   )
 
   await user.click(screen.getAllByText('Alineación')[0]!)
-  expect(await screen.findByText('Ficha del servicio')).toBeInTheDocument()
+  const preview = screen.getByRole('complementary', { name: 'Alineación' })
+  expect(preview).toHaveTextContent('USD 25.00')
+  expect(preview).toHaveTextContent('Sin descripción')
+  expect(screen.queryByText('Ficha del servicio')).toBeNull()
   expect(screen.queryByRole('dialog')).toBeNull()
+  expect(screen.getByRole('table', { name: 'Servicios' })).toBeInTheDocument()
+
+  await user.click(within(preview).getByRole('button', { name: 'Editar' }))
+  expect(
+    await screen.findByRole('dialog', { name: /editar servicio/i }),
+  ).toBeInTheDocument()
+})
+
+it('cierra la vista previa con su control de cierre', async () => {
+  const user = userEvent.setup()
+  render(
+    <MemoryRouter>
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
+    </MemoryRouter>,
+  )
+  await user.click(screen.getAllByText('Alineación')[0]!)
+  const preview = screen.getByRole('complementary', { name: 'Alineación' })
+  expect(within(preview).queryByRole('button', { name: 'Editar' })).toBeNull()
+  await user.click(
+    within(preview).getByRole('button', { name: 'Cerrar panel' }),
+  )
+  expect(screen.queryByRole('complementary')).toBeNull()
 })
 
 it('la consulta no ofrece gestión ni consulta opciones fiscales administrativas', () => {

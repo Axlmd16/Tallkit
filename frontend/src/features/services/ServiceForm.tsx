@@ -79,19 +79,33 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
     },
     ref,
   ) {
-    const [draft, setDraft] = useState<Draft>(() => toDraft(service))
+    const [edited, setDraft] = useState<Draft>(() => toDraft(service))
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [problem, setProblem] = useState<ProblemView | null>(null)
     const [pending, setPending] = useState(false)
     const taxes = useServiceTaxOptions({ pageSize: 100 })
     const taxOptions = taxes.data?.results ?? []
+
+    // Un servicio nuevo parte con el primer impuesto disponible mientras no se elija otro;
+    // ese valor inicial no cuenta como cambio sin guardar.
+    const defaultTaxId =
+      !service && taxOptions[0] ? String(taxOptions[0].id) : ''
+    const draft =
+      edited.taxId || !defaultTaxId
+        ? edited
+        : { ...edited, taxId: defaultTaxId }
+    const original = useMemo(
+      () => ({
+        ...toDraft(service),
+        ...(defaultTaxId ? { taxId: defaultTaxId } : {}),
+      }),
+      [service, defaultTaxId],
+    )
     const selectedTax =
       taxOptions.find((option) => String(option.id) === draft.taxId) ??
       (service?.tax && String(service.tax.id) === draft.taxId
         ? service.tax
         : null)
-
-    const original = useMemo(() => toDraft(service), [service])
     const dirty = (Object.keys(draft) as Array<keyof Draft>).some(
       (name) => draft[name].trim() !== original[name].trim(),
     )
@@ -190,18 +204,18 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
             )}
           </InlineNotice>
         )}
-        <Field error={errors.name} id="service-name" label="Nombre">
+        <Field error={errors.name} id="service-name" label="Nombre" required>
           <Input
             autoFocus
             disabled={pending}
             id="service-name"
             maxLength={255}
             onChange={(e) => update('name', e.target.value, 'name')}
+            placeholder="Por ejemplo: Alineación y balanceo"
             value={draft.name}
           />
         </Field>
         <Field
-          className="service-description-field"
           error={errors.description}
           id="service-description"
           label="Descripción (opcional)"
@@ -213,61 +227,78 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
             onChange={(e) =>
               update('description', e.target.value, 'description')
             }
+            rows={3}
             value={draft.description}
           />
         </Field>
-        <Field
-          error={errors.reference_price}
-          hint="Valor final con impuesto incluido. Puede ajustarse al confirmar cada mantenimiento sin cambiar el catálogo."
-          id="service-price"
-          label="Precio referencial final (USD)"
-        >
-          <Input
-            disabled={pending}
-            id="service-price"
-            inputMode="decimal"
-            onChange={(e) => update('price', e.target.value, 'reference_price')}
-            value={draft.price}
-          />
-        </Field>
-        {noTaxConfiguration ? (
-          <InlineNotice
-            title="Configuración tributaria pendiente"
-            tone="warning"
-          >
-            No hay definiciones de impuesto del RUC artesanal. Un Administrador
-            debe configurarlas antes de registrar servicios.
-          </InlineNotice>
-        ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field
-            error={errors.tax_definition_id}
-            hint="El precio no se recalcula al cambiar la tarifa del impuesto."
-            id="service-tax"
-            label="Impuesto (RUC artesanal)"
+            error={errors.reference_price}
+            hint="Valor final con impuesto incluido. Puede ajustarse al confirmar cada mantenimiento sin cambiar el catálogo."
+            id="service-price"
+            label="Precio referencial final (USD)"
+            required
           >
-            <Select
-              disabled={pending || taxes.isPending}
-              id="service-tax"
-              onChange={(e) =>
-                update('taxId', e.target.value, 'tax_definition_id')
-              }
-              value={draft.taxId}
-            >
-              <option value="">Seleccione…</option>
-              {selectedTax &&
-                !taxOptions.some((o) => o.id === selectedTax.id) && (
-                  <option value={selectedTax.id}>
-                    {taxLabel(selectedTax)}
-                  </option>
-                )}
-              {taxOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {taxLabel(option)}
-                </option>
-              ))}
-            </Select>
+            <div className="relative">
+              <Input
+                className="pr-12 text-right tabular-nums"
+                disabled={pending}
+                id="service-price"
+                inputMode="decimal"
+                onChange={(e) =>
+                  update('price', e.target.value, 'reference_price')
+                }
+                placeholder="0.00"
+                value={draft.price}
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-ink-muted"
+              >
+                USD
+              </span>
+            </div>
           </Field>
-        )}
+          {noTaxConfiguration ? (
+            <InlineNotice
+              title="Configuración tributaria pendiente"
+              tone="warning"
+            >
+              No hay definiciones de impuesto del RUC artesanal. Un
+              Administrador debe configurarlas antes de registrar servicios.
+            </InlineNotice>
+          ) : (
+            <Field
+              error={errors.tax_definition_id}
+              hint="El precio no se recalcula al cambiar la tarifa del impuesto."
+              id="service-tax"
+              label="Impuesto (RUC artesanal)"
+              required
+            >
+              <Select
+                disabled={pending || taxes.isPending}
+                id="service-tax"
+                onChange={(e) =>
+                  update('taxId', e.target.value, 'tax_definition_id')
+                }
+                value={draft.taxId}
+              >
+                <option value="">Seleccione…</option>
+                {selectedTax &&
+                  !taxOptions.some((o) => o.id === selectedTax.id) && (
+                    <option value={selectedTax.id}>
+                      {taxLabel(selectedTax)}
+                    </option>
+                  )}
+                {taxOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {taxLabel(option)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+        </div>
         {selectedTax && selectedTax.tax_status !== 'applicable' && (
           <InlineNotice title="Vigencia tributaria pendiente" tone="warning">
             Puede guardar el servicio, pero no podrá usarse en operaciones
@@ -278,19 +309,11 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
     )
 
     if (embedded) {
-      return (
-        <div className="catalog-editor-form service-form space-y-6">
-          {fields}
-        </div>
-      )
+      return <div className="space-y-4">{fields}</div>
     }
 
     return (
-      <form
-        className="catalog-editor-form service-form space-y-6"
-        noValidate
-        onSubmit={submit}
-      >
+      <form className="space-y-4" noValidate onSubmit={submit}>
         {fields}
         <ButtonGroup
           className="justify-end pt-2"

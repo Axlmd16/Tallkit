@@ -70,6 +70,7 @@ export function ServiceEditorModal({
       open={mode !== null}
       returnFocusRef={returnFocus}
       saveLabel={saveLabel}
+      size="wide"
       title={record ? 'Editar servicio' : 'Nuevo servicio'}
     >
       {mode !== null && (

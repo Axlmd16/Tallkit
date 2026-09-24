@@ -135,3 +135,34 @@ it('muestra una definición no válida devuelta por el servidor en su campo', as
   ).toBeInTheDocument()
   expect(screen.getByLabelText(/^nombre/i)).toHaveValue('Alineación 3D')
 })
+
+it('un servicio nuevo parte con el primer impuesto seleccionado sin marcarse como modificado', async () => {
+  const other = { ...tax, id: 9, code: 'ART2', name: 'Artesanal 15' }
+  mocks.taxes = taxPage([tax, other])
+  const onDirtyChange = vi.fn()
+  render(
+    <ServiceForm
+      onCancel={vi.fn()}
+      onDirtyChange={onDirtyChange}
+      onSubmit={vi.fn()}
+    />,
+  )
+
+  await waitFor(() =>
+    expect(screen.getByLabelText(/impuesto/i)).toHaveValue('4'),
+  )
+  expect(onDirtyChange).not.toHaveBeenCalledWith(true)
+})
+
+it('al editar conserva el impuesto del servicio aunque no sea el primero', () => {
+  const other = { ...tax, id: 9, code: 'ART2', name: 'Artesanal 15' }
+  mocks.taxes = taxPage([tax, other])
+  render(
+    <ServiceForm
+      onCancel={vi.fn()}
+      onSubmit={vi.fn()}
+      service={{ ...service, tax: other }}
+    />,
+  )
+  expect(screen.getByLabelText(/impuesto/i)).toHaveValue('9')
+})
