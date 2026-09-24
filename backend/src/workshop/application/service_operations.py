@@ -46,6 +46,7 @@ from workshop_configuration.application.workshop_references import (
     ArtisanTaxSnapshot,
     allocate_artisan_number,
     lock_artisan_operation_context,
+    review_artisan_operation_context,
 )
 
 TARGET_TYPE = "service_operation"
@@ -123,8 +124,13 @@ class _Resolution:
     entity: Any
 
 
-def _resolve_taxes(tax_ids: set[int], on: Any) -> _Resolution:
-    """Resuelve cada definición por separado para identificar la que falta; requiere atomic."""
+def _resolve_taxes(tax_ids: set[int], on: Any, *, lock: bool = True) -> _Resolution:
+    """Resuelve cada definición por separado para identificar la que falta.
+
+    Con ``lock`` (confirmación) bloquea dentro de la transacción exterior; sin él (vista previa)
+    solo lee, sin bloquear filas de configuración.
+    """
+    resolve = lock_artisan_operation_context if lock else review_artisan_operation_context
     rates: dict[int, RateInfo | None] = {}
     taxes: dict[int, ArtisanTaxSnapshot] = {}
     issues: list[dict[str, Any]] = []
@@ -132,7 +138,7 @@ def _resolve_taxes(tax_ids: set[int], on: Any) -> _Resolution:
     for tax_id in sorted(tax_ids):
         try:
             with transaction.atomic():
-                locked = lock_artisan_operation_context(tax_definition_ids=[tax_id], on=on)
+                locked = resolve(tax_definition_ids=[tax_id], on=on)
         except ArtisanContextError as error:
             rates[tax_id] = None
             issues.append(
@@ -225,8 +231,7 @@ def preview_operation(
     on = business_today()
     lines = _pending_lines(order, lock=False)
     documentable = _documentable(lines)
-    with transaction.atomic():
-        resolution = _resolve_taxes({line.tax_definition_id for line in documentable}, on)
+    resolution = _resolve_taxes({line.tax_definition_id for line in documentable}, on, lock=False)
     computations = compute_lines(documentable, resolution.rates)
     totals = document_totals(computations)
     issues = list(resolution.issues)

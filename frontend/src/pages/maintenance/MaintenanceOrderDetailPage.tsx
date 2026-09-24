@@ -218,6 +218,7 @@ export function MaintenanceOrderDetailPage() {
                 content: (
                   <PartsSection
                     canOpenSales={permissions.has('ventas.ver')}
+                    canSeeKardex={permissions.has('inventario.ver')}
                     onDone={done}
                     order={order}
                   />

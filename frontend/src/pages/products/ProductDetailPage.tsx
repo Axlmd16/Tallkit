@@ -43,6 +43,8 @@ export function ProductDetailPage() {
   const [change, setChange] = useState<StateChange | null>(null)
   const product = query.data
   const canSeeStock = permissions.has('inventario.ver')
+  const canSeeOrders = permissions.has('mantenimientos.ver')
+  const canSeeSales = permissions.has('ventas.ver')
   const stock = useStockItem(product?.id ?? null, canSeeStock)
 
   async function changeState(target: StateChange) {
@@ -198,6 +200,60 @@ export function ProductDetailPage() {
                         <StatusBadge label="Agotado" tone="danger" />
                       )}
                     </div>
+                    <dl className="grid grid-cols-2 gap-3">
+                      <div>
+                        <dt className="text-xs text-ink-muted">Reservado</dt>
+                        <dd className="mt-0.5 font-medium text-ink tabular-nums">
+                          {stock.data.reserved}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-ink-muted">Disponible</dt>
+                        <dd className="mt-0.5 font-medium text-ink tabular-nums">
+                          {stock.data.available}
+                        </dd>
+                      </div>
+                    </dl>
+                    {(stock.data.reservations ?? []).length > 0 && (
+                      <div>
+                        <p className="text-xs text-ink-muted">
+                          Reservas de mantenimiento (no descuentan existencia):
+                        </p>
+                        <ul className="mt-1 space-y-1 text-[13px]">
+                          {(stock.data.reservations ?? []).map(
+                            (reservation) => (
+                              <li
+                                className="flex justify-between gap-3"
+                                key={`${reservation.sale_id}-${reservation.order_id}-${reservation.quantity}`}
+                              >
+                                {reservation.order_id &&
+                                (canSeeOrders || canSeeSales) ? (
+                                  <Link
+                                    className="font-mono hover:underline"
+                                    to={
+                                      canSeeOrders
+                                        ? `/maintenance/${reservation.order_id}?tab=parts`
+                                        : `/maintenance/${reservation.order_id}/commercial`
+                                    }
+                                  >
+                                    {reservation.order_number ??
+                                      `Orden ${reservation.order_id}`}
+                                  </Link>
+                                ) : (
+                                  <span className="font-mono">
+                                    {reservation.order_number ??
+                                      `Orden ${reservation.order_id ?? '—'}`}
+                                  </span>
+                                )}
+                                <span className="tabular-nums">
+                                  {reservation.quantity}
+                                </span>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      </div>
+                    )}
                     {stock.data.average_cost !== undefined && (
                       <>
                         <dl className="grid grid-cols-2 gap-3">

@@ -25,7 +25,9 @@ from inventory.models import (
     InventoryMovement,
     InventoryOperation,
     InventoryPosition,
+    InventoryReservation,
     OperationKind,
+    ReservationState,
 )
 from shared.command_values import canonical_fingerprint
 
@@ -231,7 +233,21 @@ def get_stock_item(product_id: int, *, include_valuation: bool) -> dict[str, Any
     if row is None:
         raise not_found()
     position = InventoryPosition.objects.filter(product_id=product_id).first()
-    return _stock_row(row, position, include_valuation)
+    result = _stock_row(row, position, include_valuation)
+    # Reservas activas que explican la diferencia entre existencia y disponibilidad; el origen
+    # se muestra con los datos que la venta vinculada dejó en la reserva (inventario no lee ventas).
+    result["reservations"] = [
+        {
+            "quantity": f"{reservation.quantity:.0f}",
+            "sale_id": reservation.source_reference.get("sale_id"),
+            "order_id": reservation.source_reference.get("order_id"),
+            "order_number": reservation.source_reference.get("order_number"),
+        }
+        for reservation in InventoryReservation.objects.filter(
+            product_id=product_id, state=ReservationState.ACTIVE
+        ).order_by("created_at", "id")
+    ]
+    return result
 
 
 # ---------------------------------------------------------------------------

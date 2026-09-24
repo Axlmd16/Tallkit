@@ -47,10 +47,13 @@ export function PartsSection({
   order,
   onDone,
   canOpenSales,
+  canSeeKardex = false,
 }: {
   order: MaintenanceOrder
   onDone: (message: string) => void
   canOpenSales: boolean
+  /** Con `inventario.ver`, cada repuesto confirmado enlaza a su Kardex. */
+  canSeeKardex?: boolean
 }) {
   const canManage = (order.billing_actions ?? []).includes('manage_parts')
   const query = useOrderParts(order.id)
@@ -154,6 +157,7 @@ export function PartsSection({
         {confirmed.map((sale) => (
           <ConfirmedSale
             canOpenSales={canOpenSales}
+            canSeeKardex={canSeeKardex}
             key={sale.id}
             sale={sale}
           />
@@ -266,9 +270,11 @@ function DraftSale({
 function ConfirmedSale({
   sale,
   canOpenSales,
+  canSeeKardex,
 }: {
   sale: LinkedSale
   canOpenSales: boolean
+  canSeeKardex: boolean
 }) {
   return (
     <div className="rounded-control border border-line p-3">
@@ -297,7 +303,11 @@ function ConfirmedSale({
         Venta confirmada: sus líneas no se modifican desde la orden. Una
         corrección requiere el procedimiento comercial correspondiente.
       </p>
-      <PartTable amounts={(line) => line} lines={sale.lines} />
+      <PartTable
+        amounts={(line) => line}
+        kardex={canSeeKardex && sale.state === 'CONFIRMED'}
+        lines={sale.lines}
+      />
     </div>
   )
 }
@@ -306,7 +316,9 @@ function PartTable({
   lines,
   amounts,
   actions,
+  kardex = false,
 }: {
+  kardex?: boolean
   lines: DraftLine[]
   amounts: (line: DraftLine) =>
     | {
@@ -340,9 +352,19 @@ function PartTable({
             return (
               <tr className="border-b border-line last:border-0" key={line.id}>
                 <td className="py-2 pr-3">
-                  <span className="font-mono text-xs text-ink-muted">
-                    {line.product_code}
-                  </span>{' '}
+                  {kardex ? (
+                    <Link
+                      aria-label={`Kardex de ${line.product_name ?? ''}`}
+                      className="font-mono text-xs hover:underline"
+                      to={`/inventory/products/${line.product_id}/kardex`}
+                    >
+                      {line.product_code}
+                    </Link>
+                  ) : (
+                    <span className="font-mono text-xs text-ink-muted">
+                      {line.product_code}
+                    </span>
+                  )}{' '}
                   <span className="font-medium text-ink">
                     {line.product_name}
                   </span>

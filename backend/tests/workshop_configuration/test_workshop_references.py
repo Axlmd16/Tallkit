@@ -162,3 +162,18 @@ def test_allocate_artisan_number_uses_art_ser_and_is_idempotent_by_request_key()
     series.refresh_from_db()
     assert series.last_number == 1
     assert NumberAllocation.objects.filter(numbering_scope=scope).count() == 1
+
+
+def test_review_artisan_context_reads_without_transaction_or_locks() -> None:
+    from workshop_configuration.application.workshop_references import (
+        review_artisan_operation_context,
+    )
+
+    artisan = _entity("ARTESANAL", suffix="02")
+    iva = _tax(artisan, "IVA-ART", "15")
+
+    # Fuera de una transacción: la lectura de vista previa no bloquea filas.
+    context = review_artisan_operation_context(tax_definition_ids=[iva.pk], on=ON)
+
+    assert context.entity.id == artisan.pk
+    assert context.taxes[iva.pk].rate == Decimal("15")

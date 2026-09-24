@@ -38,9 +38,22 @@ export interface StockProduct {
   is_active: boolean
 }
 
+export interface StockReservation {
+  quantity: string
+  sale_id: number | null
+  order_id: number | null
+  order_number: string | null
+}
+
 export interface StockRow {
   product: StockProduct
   quantity: string
+  /** Reservado por ventas vinculadas abiertas; no es una salida. */
+  reserved: string
+  /** Existencia menos reservas vigentes. */
+  available: string
+  /** Solo en la ficha de un producto. */
+  reservations?: StockReservation[]
   version: number
   last_ordinal: number
   /** Solo con `inventario.ver_valorizacion`. */

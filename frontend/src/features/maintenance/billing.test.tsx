@@ -120,7 +120,17 @@ describe('PartsSection', () => {
         },
       }),
     ]
-    renderIn(<PartsSection canOpenSales onDone={vi.fn()} order={order()} />)
+    renderIn(
+      <PartsSection
+        canOpenSales
+        canSeeKardex
+        onDone={vi.fn()}
+        order={order()}
+      />,
+    )
+    expect(
+      screen.getByRole('link', { name: 'Kardex de Filtro' }),
+    ).toHaveAttribute('href', '/inventory/products/7/kardex')
     expect(
       screen.getByText('Reservado, pendiente de confirmar'),
     ).toBeInTheDocument()
