@@ -216,3 +216,27 @@ def test_reservation_identifies_the_order_for_the_inventory_sheet(
         order["number"],
         "2",
     )
+
+
+def test_removing_the_last_part_discards_the_draft_and_retry_is_harmless(
+    manager: Any,
+    order: dict[str, Any],
+    stocked_product: Product,
+) -> None:
+    _add(manager, order["id"], stocked_product.pk)
+    line = SaleLine.objects.get(sale__origin_order_id=order["id"])
+    payload = {"expected_version": version(order["id"]), "idempotency_key": key()}
+
+    first = parts.remove_part(
+        actor=manager, order_id=order["id"], line_id=line.pk, payload=dict(payload)
+    )
+    second = parts.remove_part(
+        actor=manager, order_id=order["id"], line_id=line.pk, payload=dict(payload)
+    )
+
+    assert second.replayed is True
+    assert first.body["id"] == second.body["id"]
+    assert not Sale.objects.filter(origin_order_id=order["id"]).exists()
+    assert [r["code"] for r in first.body["pending_requirements"]].count("pending_parts") == 0
+    assert parts.list_parts(actor=manager, order_id=order["id"]) == []
+    assert InventoryPosition.objects.get(product=stocked_product).reserved == 0

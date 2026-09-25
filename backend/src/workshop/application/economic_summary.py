@@ -85,7 +85,7 @@ def _artisan_block(order: MaintenanceOrder, actor: User) -> dict[str, Any]:
     pending = None
     if pending_lines and estimated > 0:
         pending = {
-            "label": "Pendiente de documentar: todavía no genera deuda.",
+            "label": "Sin comprobante: todavía no genera deuda.",
             "line_count": len(pending_lines),
             "estimated_total": _money(estimated),
         }

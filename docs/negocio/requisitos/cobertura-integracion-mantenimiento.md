@@ -12,7 +12,7 @@
 ## Comandos ejecutados (focalizados)
 
 - Backend: `uv run --frozen pytest --no-cov tests/workshop tests/sales tests/inventory tests/purchasing tests/workshop_configuration tests/test_shared_money.py tests/api`.
-- Concurrencia real sobre PostgreSQL: `tests/workshop/test_integration_concurrency.py`, 10 escenarios, tres corridas consecutivas en verde.
+- Concurrencia real sobre PostgreSQL: `tests/workshop/test_integration_concurrency.py`, 11 escenarios, incluido retirar la última línea frente a confirmar la venta; tres corridas consecutivas en verde para la entrega original y una corrida focalizada en verde para este ajuste.
 - Frontend: `npx vitest run` sobre `src/features/maintenance`, `src/features/sales`, `src/pages/maintenance`, `src/pages/sales` y `src/app`.
 - E2E: `npx playwright test e2e/maintenance-billing.spec.ts e2e/maintenance.spec.ts`. Las capturas están en `frontend/test-results/maintenance-billing-evidence/`; son evidencia técnica, no una línea base aprobada.
 
@@ -23,13 +23,14 @@
 | Venta abierta vinculada única por orden | Cumplido | `sales/test_workshop_links.py::test_first_line_creates_and_later_lines_reuse_a_linked_draft`; `sales/test_models.py::test_origin_type_and_order_are_coherent`; `workshop/test_integration_concurrency.py::test_two_orders_reserving_the_last_unit` |
 | Selección de productos vendibles con ayuda de disponibilidad | Cumplido | `workshop/test_parts.py::test_part_queries_return_linked_sales_and_product_availability_without_costs`; `frontend/src/features/maintenance/billingHooks.test.tsx` |
 | Líneas pendientes que reservan sin descontar | Cumplido | `sales/test_workshop_links.py::test_linked_line_rejects_unavailable_inactive_service_and_client_prices`, `::test_linked_line_rejects_invalid_quantity`; `workshop/test_parts.py::test_part_retry_with_same_key_does_not_duplicate_line_or_reservation`; `inventory/test_reservations.py` |
-| Modificar y retirar líneas pendientes | Cumplido | `workshop/test_parts.py::test_add_change_and_remove_parts_increment_order_version_and_adjust_reservation`; `sales/test_workshop_links.py::test_confirmed_linked_sale_lines_cannot_be_changed`; `workshop/test_integration_concurrency.py::test_change_line_against_confirming_linked_sale` |
+| Modificar y retirar líneas pendientes | Cumplido | `workshop/test_parts.py::test_add_change_and_remove_parts_increment_order_version_and_adjust_reservation`, `::test_removing_the_last_part_discards_the_draft_and_retry_is_harmless`; `sales/test_workshop_links.py::test_confirmed_linked_sale_lines_cannot_be_changed`, `::test_removing_the_last_line_discards_the_empty_draft_and_audits_it`, `::test_removing_one_of_two_lines_keeps_the_draft_and_a_new_part_creates_another`; `workshop/test_integration_concurrency.py::test_change_line_against_confirming_linked_sale`, `::test_removing_the_last_line_against_confirming_the_linked_sale` |
 | Confirmación comercial de la venta vinculada | Cumplido | `sales/test_confirm.py::test_linked_confirmation_consumes_own_reservations_once_for_repeated_products`; `workshop/test_integration_concurrency.py::test_repeated_linked_confirmation_confirms_once`; `workshop/test_billing_api.py::test_full_http_flow_keeps_documents_separated` |
 | Dos órdenes por las últimas unidades | Cumplido | `workshop/test_integration_concurrency.py::test_two_orders_reserving_the_last_unit`, `::test_direct_sale_and_reservation_compete_for_last_unit` |
 | Repuestos solo en órdenes registradas | Cumplido | `workshop/test_parts.py::test_parts_are_not_allowed_outside_registered_order`; `workshop/test_billing_api.py::test_finalized_order_rejects_parts` |
 | Trazabilidad entre orden, líneas, venta y movimientos | Cumplido | `frontend/src/features/maintenance/billing.test.tsx` (enlace al Kardex); `inventory/test_posting.py::test_exit_consumes_and_links_its_own_reservations`; `sales/test_queries.py::test_origin_filter_and_projection_cover_list_detail_document_and_receivables`; `sales/test_reconcile.py::test_open_linked_lines_match_active_reservations_one_to_one` |
 | Autorización de las acciones sobre repuestos | Cumplido | `workshop/test_parts.py::test_seller_and_anonymous_are_denied_without_effects`, `::test_accumulated_seller_and_manager_roles_allow_part_changes`; `workshop/test_billing_api.py::test_permission_matrix_for_billing_endpoints` |
 | Experiencia de repuestos en la orden | Cumplido | `frontend/src/features/maintenance/billing.test.tsx` (PartsSection); `e2e/maintenance-billing.spec.ts` |
+| Limpieza explícita de borradores vinculados vacíos | Cumplido | `sales/test_purge_empty_linked_drafts.py` (informe sin cambios, confirmación selectiva y repetible, protección de ventas no elegibles y contrato del comando) |
 
 ## Operación artesanal de servicios
 
@@ -63,7 +64,7 @@
 | Requisito | Estado | Pruebas |
 |---|---|---|
 | Bloques separados por RUC y documento | Cumplido | `workshop/test_economic_summary.py::test_both_blocks_are_separated_by_ruc`, `::test_only_services_block_and_no_empty_documents`, `::test_only_parts_with_zero_priced_services`, `::test_historical_documents_show_void_and_replacement` |
-| Pendiente de documentar frente a obligaciones confirmadas | Cumplido | `workshop/test_economic_summary.py::test_pending_amounts_are_separated_from_confirmed` |
+| Sin comprobante frente a obligaciones confirmadas | Cumplido | `workshop/test_economic_summary.py::test_pending_amounts_are_separated_from_confirmed`; `frontend/src/features/maintenance/billing.test.tsx` |
 | Total combinado solo informativo | Cumplido | `workshop/test_economic_summary.py::test_both_blocks_are_separated_by_ruc`, `::test_manager_sees_commercial_block_without_actions_or_combined`; `frontend/src/features/maintenance/billing.test.tsx` |
 | Visibilidad por rol en el resumen | Cumplido | `workshop/test_economic_summary.py::test_seller_cannot_read_order_summary`, `::test_seller_commercial_view_is_restricted` |
 
@@ -78,6 +79,7 @@
 | Órdenes: detalle y acciones visibles (pestañas) | Cumplido | `frontend/src/pages/maintenance/MaintenanceOrderDetailPage.test.tsx`; `workshop/test_domain_rules.py::test_billing_actions_follow_state_permissions_and_pending_services` |
 | Órdenes: requisito eliminado «Ausencia de efectos» (migración de la garantía) | Cumplido | `workshop/test_no_side_effects.py::test_full_cycle_has_no_side_effects` |
 | Servicios aplicados: líneas documentadas y total | Cumplido | `workshop/test_service_lines.py::test_documented_line_is_locked_until_its_operation_is_voided`; `frontend/src/features/maintenance/components.test.tsx` |
+| Servicios y resumen: textos de comprobante interno | Cumplido | `frontend/src/features/maintenance/billing.test.tsx`, `frontend/src/features/maintenance/components.test.tsx`; `e2e/maintenance-billing.spec.ts` |
 | Ventas: autorización, borradores vinculados, disponibilidad, consulta por origen | Cumplido | `sales/test_drafts.py::test_linked_draft_ordinary_edit_only_allows_condition_and_notes`; `sales/test_confirm.py::test_direct_confirmation_cannot_consume_stock_reserved_by_a_linked_sale`; `sales/test_review.py::test_review_uses_availability_and_adds_back_only_the_linked_sale_own_reservations`; `sales/test_api.py::test_origin_filter_and_field_are_exposed_by_all_sale_reads`; `frontend/src/pages/sales/*.test.tsx` |
 | Existencias: reservas, disponibilidad y concurrencia | Cumplido | `inventory/test_reservations.py`; `inventory/test_posting.py` (3 pruebas de reservas); `inventory/test_adjustments.py::test_preview_and_review_token_use_available_stock`; `inventory/test_initial_load.py::test_initial_load_reversal_is_blocked_while_stock_is_reserved`; `purchasing/test_void.py::test_void_is_blocked_when_the_received_stock_is_reserved`; `inventory/test_stock_queries.py::test_stock_list_and_item_show_reserved_and_available`; `workshop/test_parts.py::test_reservation_identifies_the_order_for_the_inventory_sheet`; `frontend/src/pages/inventory/InventoryPage.test.tsx`; `frontend/src/pages/products/ProductDetailPage.test.tsx`; `inventory/test_reconcile.py::test_reserved_aggregate_must_match_active_reservations`; `workshop/test_integration_concurrency.py::test_reservation_against_negative_adjustment` |
 | Correcciones: anulación de venta vinculada bloqueada | Cumplido | `sales/test_void.py::test_linked_sale_void_preview_and_command_are_not_available`; `frontend/src/pages/sales/SaleDetailPage.test.tsx` |

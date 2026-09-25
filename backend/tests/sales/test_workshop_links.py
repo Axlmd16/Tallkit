@@ -154,15 +154,16 @@ def test_change_and_remove_validate_version_and_adjust_the_reservation(
         D(4),
     )
 
-    remove_linked_line(
+    discarded = remove_linked_line(
         actor=actor,
         order_ref=maintenance_order,
         line_id=line.pk,
         expected_sale_version=sale.version,
     )
-    sale.refresh_from_db()
     reservation = InventoryReservation.objects.get(source_id=line.pk)
-    assert (sale.lines.count(), sale.version, reservation.state) == (0, 4, "RELEASED")
+    assert discarded is True
+    assert not Sale.objects.filter(pk=sale.pk).exists()
+    assert reservation.state == "RELEASED"
     assert InventoryPosition.objects.get().reserved == 0
 
 
@@ -211,3 +212,57 @@ def test_linked_queries_return_summaries_counts_blockers_and_availability_withou
     option = options["results"][0]
     assert (option["quantity"], option["reserved"], option["available"]) == ("5", "2", "3")
     assert "cost" not in option
+
+
+def test_removing_the_last_line_discards_the_empty_draft_and_audits_it(
+    actor: Any, maintenance_order: Any, product: Any, stock: Any
+) -> None:
+    from identity.models import AuditEvent
+
+    stock(product, 5, "5.00")
+    line = add(actor, maintenance_order, product, "2")
+    sale = Sale.objects.get(pk=line.sale_id)
+
+    discarded = remove_linked_line(
+        actor=actor,
+        order_ref=maintenance_order,
+        line_id=line.pk,
+        expected_sale_version=sale.version,
+    )
+
+    assert discarded is True
+    assert not Sale.objects.filter(origin_order=maintenance_order).exists()
+    event = AuditEvent.objects.get(action="sales.linked_draft_discarded")
+    assert (event.target_type, event.target_id) == ("sale", str(sale.pk))
+    assert maintenance_order.number in event.reason
+    assert open_linked_line_count(maintenance_order.pk) == 0
+
+
+def test_removing_one_of_two_lines_keeps_the_draft_and_a_new_part_creates_another(
+    actor: Any, maintenance_order: Any, product: Any, stock: Any
+) -> None:
+    stock(product, 5, "5.00")
+    first = add(actor, maintenance_order, product, "1")
+    add(actor, maintenance_order, product, "1")
+    sale = Sale.objects.get(pk=first.sale_id)
+
+    kept = remove_linked_line(
+        actor=actor,
+        order_ref=maintenance_order,
+        line_id=first.pk,
+        expected_sale_version=sale.version,
+    )
+    assert kept is False
+    assert Sale.objects.get(pk=sale.pk).lines.count() == 1
+
+    last = SaleLine.objects.get(sale=sale)
+    sale.refresh_from_db()
+    remove_linked_line(
+        actor=actor,
+        order_ref=maintenance_order,
+        line_id=last.pk,
+        expected_sale_version=sale.version,
+    )
+    again = add(actor, maintenance_order, product, "1")
+    assert again.sale_id != sale.pk
+    assert Sale.objects.filter(origin_order=maintenance_order, state="DRAFT").count() == 1

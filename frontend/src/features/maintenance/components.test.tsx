@@ -304,14 +304,14 @@ describe('servicios documentados en una operación artesanal', () => {
     }
     wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
     expect(
-      screen.getByText('Documentado en ART-SER-000004'),
+      screen.getByText('En comprobante ART-SER-000004'),
     ).toBeInTheDocument()
-    expect(screen.getByText('Pendiente de documentar')).toBeInTheDocument()
+    expect(screen.getByText('Sin comprobante')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Editar Alineación' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText('Bloqueada: pertenece a una operación confirmada'),
+      screen.getByText('Bloqueada: incluida en un comprobante'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Editar Balanceo' }),

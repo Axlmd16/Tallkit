@@ -206,6 +206,8 @@ Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dine
 
 **Estado de implementación de UI-074…077 (cambio `openspec/changes/archive/2026-09-24-integrar-mantenimiento-ventas-cobros-por-ruc`).** El detalle de la orden se organiza en pestañas: «Trabajo y servicios», «Repuestos» (UI-074: reserva pendiente separada de las ventas confirmadas), «Documentos y cobros» (UI-075: bloques por RUC comercial y artesanal, pendientes frente a confirmados, total combinado solo informativo y acciones de cobro separadas) y «Fotografías»; el resumen lateral y el historial permanecen visibles. UI-076 muestra repuestos pendientes al finalizar y avisa al reabrir que documentos y pagos conservan sus efectos. UI-077 se entrega como detalle y comprobante interno de la operación ART-SER. Se añaden «Cobros de servicios» (cuentas por cobrar artesanales) y la vista de la orden de origen para el Vendedor. Evidencia: [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).
 
+**Ajuste de UI-074…077 (`ajustar-venta-vinculada-vacia-y-textos-de-servicios`).** Retirar el último repuesto elimina el borrador vinculado vacío, por lo que deja de aparecer como venta pendiente. La interfaz usa «Generar comprobante de servicios» y «Sin comprobante», identifica las líneas incluidas «En comprobante ART-SER-…» y aclara en el diálogo que el comprobante interno no es una factura electrónica autorizada por el SRI.
+
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-070 | Lista de mantenimientos | Identificador, fecha, cliente, vehículo, kilometraje, estado y saldos artesanales permitidos. |

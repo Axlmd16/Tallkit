@@ -38,7 +38,7 @@ function PaymentBadge({ state }: { state: keyof typeof paymentLabels | null }) {
 
 /**
  * Resumen por RUC: repuestos (comercial) y servicios (artesanal) en bloques separados, con
- * lo pendiente de documentar distinguido de lo confirmado. El total combinado es solo
+ * lo que todavía no tiene comprobante distinguido de lo confirmado. El total combinado es solo
  * informativo: cada documento se cobra por separado con su propia acción.
  */
 export function EconomicSummary({
@@ -138,7 +138,7 @@ export function EconomicSummary({
                 variant="soft"
               >
                 <FileText aria-hidden="true" size={16} />
-                Documentar servicios
+                Generar comprobante de servicios
               </Button>
             )}
           </header>
@@ -185,8 +185,7 @@ export function EconomicSummary({
               Confirmado: <Money amount={summary.combined.confirmed_total} />
             </span>
             <span>
-              Pendiente de documentar:{' '}
-              <Money amount={summary.combined.pending_total} />
+              Sin comprobante: <Money amount={summary.combined.pending_total} />
             </span>
           </p>
         </div>

@@ -245,14 +245,21 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
   await expect(
     economy.getByRole('button', { name: 'Cobrar repuestos (RUC comercial)' }),
   ).toHaveCount(0)
-  await economy.getByRole('button', { name: 'Documentar servicios' }).click()
+  await economy
+    .getByRole('button', { name: 'Generar comprobante de servicios' })
+    .click()
   const serviceDialog = page.getByRole('dialog')
   await expect(
     serviceDialog.getByText(/No afecta inventario ni registra pagos/),
   ).toBeVisible()
+  await expect(
+    serviceDialog.getByText(
+      'Comprobante interno: no es una factura electrónica autorizada por el SRI.',
+    ),
+  ).toBeVisible()
   await page.screenshot({ path: `${EVIDENCE}/03-documentar-servicios.png` })
   await serviceDialog
-    .getByRole('button', { name: 'Confirmar operación de servicios' })
+    .getByRole('button', { name: 'Generar comprobante' })
     .click()
   await expect(economy.getByRole('link', { name: /ART-SER-/ })).toBeVisible()
   await economy

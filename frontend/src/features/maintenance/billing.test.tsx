@@ -242,7 +242,7 @@ describe('EconomicSummary', () => {
           },
         ],
         pending: {
-          label: 'Pendiente de documentar: todavía no genera deuda.',
+          label: 'Sin comprobante: todavía no genera deuda.',
           line_count: 1,
           estimated_total: '15.00',
         },
@@ -270,8 +270,14 @@ describe('EconomicSummary', () => {
       screen.getByText(/no es una deuda única ni una\s+factura/),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Pendiente de documentar: todavía no genera deuda.'),
+      screen.getByText('Sin comprobante: todavía no genera deuda.'),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Generar comprobante de servicios',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Sin comprobante:')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'ART-SER-000004' }),
     ).toHaveAttribute('href', '/maintenance/service-operations/4')
@@ -324,8 +330,13 @@ describe('Diálogos de servicios', () => {
     expect(
       screen.getByText(/No afecta inventario ni registra pagos/),
     ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /Comprobante interno: no es una factura electrónica autorizada por el SRI\./,
+      ),
+    ).toBeInTheDocument()
     await events.click(
-      screen.getByRole('button', { name: 'Confirmar operación de servicios' }),
+      screen.getByRole('button', { name: 'Generar comprobante' }),
     )
     await waitFor(() =>
       expect(mocks.mutations.confirmServices.mutateAsync).toHaveBeenCalledWith(
@@ -337,7 +348,7 @@ describe('Diálogos de servicios', () => {
       ),
     )
     expect(onDone).toHaveBeenCalledWith(
-      expect.stringContaining('ART-SER-000001'),
+      'Comprobante de servicios ART-SER-000001 generado (RUC artesanal).',
     )
   })
 
@@ -366,7 +377,7 @@ describe('Diálogos de servicios', () => {
       await screen.findByText('No hay importe de servicios por documentar.'),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Confirmar operación de servicios' }),
+      screen.getByRole('button', { name: 'Generar comprobante' }),
     ).toBeDisabled()
   })
 
