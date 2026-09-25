@@ -36,7 +36,7 @@ import type {
 type Condition = 'CONTADO' | 'CREDITO'
 
 /**
- * Documentar servicios (RUC artesanal): vista previa sin efectos con importes, condición y
+ * Generar el comprobante de servicios (RUC artesanal): vista previa sin efectos con importes, condición y
  * efectos; la confirmación exige la huella revisada. No afecta inventario ni registra pagos.
  */
 export function ServiceOperationDialog({
@@ -91,7 +91,7 @@ export function ServiceOperationDialog({
           }),
       )
       onDone(
-        `Servicios documentados en ${operation.internal_number} (RUC artesanal).`,
+        `Comprobante de servicios ${operation.internal_number} generado (RUC artesanal).`,
       )
       return true
     } catch (problem) {
@@ -102,15 +102,15 @@ export function ServiceOperationDialog({
 
   return (
     <FormModal
-      description="Genera la operación ART-SER con los servicios pendientes. No descuenta inventario ni registra cobros."
+      description="Genera la operación ART-SER con los servicios pendientes. Comprobante interno: no es una factura electrónica autorizada por el SRI. No descuenta inventario ni registra cobros."
       onClose={onClose}
       onSave={save}
       open
       {...(returnFocusRef ? { returnFocusRef } : {})}
       saveDisabled={blocked}
-      saveLabel="Confirmar operación de servicios"
+      saveLabel="Generar comprobante"
       size="wide"
-      title="Documentar servicios"
+      title="Generar comprobante de servicios"
     >
       <div className="space-y-4">
         <FiscalScopeBadge scope="artesanal" />

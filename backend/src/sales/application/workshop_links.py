@@ -19,7 +19,8 @@ from catalog.application.sales_references import (
     list_sale_product_options,
     lock_product_references,
 )
-from identity.models import User
+from identity.application.audit import record_audit_event
+from identity.models import AuditResult, User
 from inventory.application.reservations import (
     InsufficientAvailabilityError,
     read_availability,
@@ -35,6 +36,8 @@ from workshop_configuration.application.operation_context import (
     OperationContextError,
     get_operation_context,
 )
+
+DISCARD_ACTION = "sales.linked_draft_discarded"
 
 # Error público del contrato: el taller no importa ``sales.application.errors``.
 LinkedSaleError = SalesApplicationError
@@ -241,9 +244,12 @@ def remove_linked_line(
     order_ref: MaintenanceOrderReference,
     line_id: int,
     expected_sale_version: int,
-) -> None:
-    """Libera la reserva y retira la línea del borrador vinculado."""
-    del actor
+) -> bool:
+    """Libera la reserva y retira la línea del borrador vinculado.
+
+    Si era la última línea, elimina el borrador vacío en la misma transacción: nunca tuvo
+    número, deuda ni movimientos, y agregar otro repuesto crea uno nuevo. Devuelve si lo eliminó.
+    """
     _require_transaction()
     sale, line = _editable_line(
         order_ref=order_ref,
@@ -254,7 +260,26 @@ def remove_linked_line(
     locked = _position_for(sale, product)
     release(locked, source_type="SALE_LINE", source_id=line.pk)
     line.delete()
-    _bump(sale)
+    if sale.lines.exists():
+        _bump(sale)
+        return False
+    _discard_empty_draft(sale, actor=actor)
+    return True
+
+
+def _discard_empty_draft(sale: Sale, *, actor: User | None) -> None:
+    """Elimina un borrador vinculado sin líneas y deja el rastro en la auditoría."""
+    sale_id = sale.pk
+    reference = sale.origin_reference or f"orden {sale.origin_order_id}"
+    sale.delete()
+    record_audit_event(
+        actor=actor,
+        action=DISCARD_ACTION,
+        target_type="sale",
+        target_id=str(sale_id),
+        result=AuditResult.SUCCESS,
+        reason=f"Borrador vinculado vacío de {reference}",
+    )
 
 
 def linked_sales_summary(order_id: int) -> list[dict[str, Any]]:
@@ -326,3 +351,41 @@ def linked_product_options(
             for product in catalog.items
         ],
     }
+
+
+def purge_empty_linked_drafts(*, confirm: bool) -> list[dict[str, Any]]:
+    """Informa, o elimina con ``confirm``, los borradores vinculados vacíos existentes.
+
+    Solo toca ventas de origen mantenimiento en ``DRAFT`` y sin líneas; cada eliminación
+    revalida bajo bloqueo y se audita. Nunca se ejecuta desde migraciones.
+    """
+    candidates = (
+        Sale.objects.filter(
+            origin_type=SaleOriginType.MAINTENANCE, state=SaleState.DRAFT, lines__isnull=True
+        )
+        .order_by("id")
+        .values_list("pk", "origin_order_id", "origin_reference")
+    )
+    rows: list[dict[str, Any]] = [
+        {"sale_id": int(pk), "order_id": order_id, "order_number": number or None}
+        for pk, order_id, number in candidates
+    ]
+    if not confirm:
+        return rows
+    deleted: list[dict[str, Any]] = []
+    for row in rows:
+        with transaction.atomic():
+            sale = (
+                Sale.objects.select_for_update()
+                .filter(
+                    pk=int(row["sale_id"]),
+                    origin_type=SaleOriginType.MAINTENANCE,
+                    state=SaleState.DRAFT,
+                )
+                .first()
+            )
+            if sale is None or sale.lines.exists():
+                continue
+            _discard_empty_draft(sale, actor=None)
+            deleted.append(row)
+    return deleted

@@ -324,3 +324,35 @@ def test_payment_against_voiding_the_operation(  # type: ignore[no-untyped-def]
     final = ServiceOperation.objects.get(pk=operation["id"])
     paid = ArtisanPayment.objects.filter(service_operation=final).count()
     assert (final.state, paid) in {("VOIDED", 0), ("CONFIRMED", 1)}
+
+
+def test_removing_the_last_line_against_confirming_the_linked_sale(  # type: ignore[no-untyped-def]
+    run_parallel, manager, seller, artisan, commercial, customer, vehicle, stocked
+) -> None:
+    product = stocked(10)
+    order = open_order(manager, customer, vehicle)
+    add_part(manager, order["id"], product.pk, 2)
+    sale = open_linked_sale(order["id"])
+    line = sale.lines.get()
+    reviewed = reviewed_confirmation(seller, sale.pk)
+
+    def remove() -> Any:
+        return parts.remove_part(
+            actor=manager,
+            order_id=order["id"],
+            line_id=line.pk,
+            payload={"expected_version": version(order["id"]), "idempotency_key": key()},
+        )
+
+    run_parallel(remove, lambda: confirm_sale(seller, sale.pk, reviewed))
+    remaining = Sale.objects.filter(pk=sale.pk).first()
+    if remaining is None:
+        # Ganó el retiro: no hay venta, ni salida, ni reserva activa.
+        assert position(product).quantity == 10
+        assert not InventoryMovement.objects.filter(operation__source_type="SALE").exists()
+    else:
+        # Ganó la confirmación: la línea se conserva y salió una sola vez.
+        assert remaining.state == "CONFIRMED"
+        assert position(product).quantity == 8
+    assert position(product).reserved == 0
+    assert InventoryReservation.objects.filter(state="ACTIVE").count() == 0

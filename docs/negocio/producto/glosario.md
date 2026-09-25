@@ -225,9 +225,9 @@ Registro de un importe recibido mediante una forma de pago real y aplicado a una
 
 Cobro de una operación mediante dos o más formas de pago, por ejemplo una parte en efectivo y otra por transferencia.
 
-### Pendiente de documentar
+### Sin comprobante
 
-Importe de líneas de servicio aún no incluidas en una operación de servicios, o de repuestos reservados en la venta vinculada abierta. Es informativo: no constituye deuda ni se suma a los saldos hasta que el documento se confirma.
+Importe de líneas de servicio aún no incluidas en un comprobante de servicios, o de repuestos reservados en la venta vinculada abierta. Es informativo: no constituye deuda ni se suma a los saldos hasta que el comprobante se confirma.
 
 ### Período de propiedad
 

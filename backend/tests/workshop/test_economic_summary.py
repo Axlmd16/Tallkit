@@ -98,6 +98,7 @@ def test_pending_amounts_are_separated_from_confirmed(  # type: ignore[no-untype
     assert body["artisan"]["confirmed_total"] == "60.00"
     assert body["artisan"]["balance_total"] == "60.00"
     assert body["artisan"]["pending"]["estimated_total"] == "15.00"
+    assert body["artisan"]["pending"]["label"] == "Sin comprobante: todavía no genera deuda."
     assert body["commercial"]["pending"]["estimated_total"] == "23.00"
     assert body["commercial"]["pending"]["label"].startswith("Reservado")
     assert body["commercial"]["confirmed_total"] == "0.00"
