@@ -32,3 +32,5 @@ frontend/actual/
 *.sqlite3
 *.sql
 tmp/
+# Local Pi runtime state
+.atl/
