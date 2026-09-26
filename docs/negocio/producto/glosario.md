@@ -133,7 +133,23 @@ Imagen asociada a un mantenimiento para documentar el estado del vehículo, un d
 
 ### Facturación electrónica
 
-Proceso de generación, firma, autorización y entrega de comprobantes electrónicos conforme a las disposiciones del SRI. Está fuera de la versión 1.
+Proceso de generación, firma, autorización y entrega de comprobantes electrónicos conforme a las disposiciones del SRI. El sistema implementa preparación local, identidad de ensayo y archivo; la firma, transmisión y autorización productiva continúan fuera de esta entrega.
+
+### Preparación fiscal
+
+Expediente local versionado que conserva emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales históricos antes de una futura emisión. Sus estados no son estados del SRI y no alteran cobros ni operaciones comerciales.
+
+### Archivo fiscal
+
+Conjunto protegido de XML externos, bytes originales, hashes, identidades, procedencias y vínculos administrativos conservados en PostgreSQL. Una incorporación externa permanece no verificada por el sistema.
+
+### Evidencia fiscal externa
+
+Comprobante o envoltorio incorporado desde fuera del sistema. Su contenido puede declarar autorización, pero el sistema no la confirma ante el SRI en esta entrega.
+
+### Solicitud de corrección fiscal
+
+Preparación administrativa local de una anulación en línea o nota de crédito. Puede quedar pendiente, bloqueada, preparada o cancelada localmente y nunca prueba ejecución oficial.
 
 ### Forma de pago
 

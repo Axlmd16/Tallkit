@@ -16,7 +16,12 @@ const mocks = vi.hoisted(() => ({
     error: null as Error | null,
     data: null as unknown,
   },
-  exportArchive: { mutate: vi.fn(), isPending: false, isError: false, error: null as Error | null },
+  exportArchive: {
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null as Error | null,
+  },
 }))
 
 vi.mock('@/features/auth/hooks', () => ({
@@ -34,7 +39,12 @@ vi.mock('@/features/fiscal/hooks', () => ({
     exportArchive: mocks.exportArchive,
   }),
 }))
-vi.mock('@/features/fiscal/api', () => ({ fiscalApi: { downloadArchive: vi.fn() } }))
+vi.mock('@/features/fiscal/api', () => ({
+  fiscalApi: { downloadArchive: vi.fn() },
+}))
+vi.mock('@/features/fiscal/FiscalReadinessSection', () => ({
+  FiscalReadinessSection: () => <div>Readiness fiscal</div>,
+}))
 
 function dossier(): ArchiveSummary {
   return {
@@ -66,7 +76,9 @@ it('restringe el archivo al Administrador', () => {
 it('muestra la condición externa no verificada y los comprobantes', () => {
   mocks.archive = { isPending: false, isError: false, data: [dossier()] }
   render(<FiscalArchivePage />)
-  expect(screen.getByText('Evidencia externa no verificada')).toBeInTheDocument()
+  expect(
+    screen.getByText('Evidencia externa no verificada'),
+  ).toBeInTheDocument()
   expect(screen.getByText('Externa no verificada')).toBeInTheDocument()
   expect(screen.getByText('USD 100.00')).toBeInTheDocument()
 })

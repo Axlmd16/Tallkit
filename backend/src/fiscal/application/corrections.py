@@ -60,6 +60,112 @@ class CorrectionCommandResult(NamedTuple):
     replayed: bool
 
 
+class CorrectionSummary(NamedTuple):
+    request_id: UUID
+    action: str
+    state: str
+    version: int
+    reason: str
+    reference_date: str
+    requested_total: str
+    evaluation_outcome: str
+    has_evidence: bool
+    reconciliation_pending: bool
+    officially_executed: bool
+
+
+class CorrectionDetail(NamedTuple):
+    request_id: UUID
+    original: dict[str, object]
+    action: str
+    reason: str
+    reference_date: str
+    normative_version: str
+    facts: dict[str, object]
+    evaluation: dict[str, object]
+    state: str
+    version: int
+    requested_base: str
+    requested_tax: str
+    requested_total: str
+    lines: tuple[dict[str, object], ...]
+    evidence_dossier_id: UUID | None
+    reconciliation_pending: bool
+    cancellation_reason: str
+    replaces_id: UUID | None
+    officially_executed: bool
+
+
+def _reconciliation_pending(request: FiscalCorrectionRequest) -> bool:
+    return bool(
+        request.original_dossier_id
+        and FiscalCorrectionReconciliationHold.objects.filter(
+            original_dossier_id=request.original_dossier_id, is_active=True
+        ).exists()
+    )
+
+
+def list_correction_requests(*, actor: User) -> tuple[CorrectionSummary, ...]:
+    require_permission(actor=actor, permission="fiscal.correcciones.gestionar")
+    requests = FiscalCorrectionRequest.objects.all()
+    return tuple(
+        CorrectionSummary(
+            request.id,
+            request.action,
+            request.state,
+            request.version,
+            request.reason,
+            request.reference_date.isoformat(),
+            str(request.requested_total),
+            str(request.evaluation.get("outcome", "PENDING")),
+            request.evidence_dossier_id is not None,
+            _reconciliation_pending(request),
+            False,
+        )
+        for request in requests
+    )
+
+
+def get_correction_request(*, actor: User, request_id: UUID) -> CorrectionDetail:
+    require_permission(actor=actor, permission="fiscal.correcciones.gestionar")
+    request = FiscalCorrectionRequest.objects.prefetch_related("lines").get(pk=request_id)
+    original: dict[str, object]
+    if request.original_dossier_id is not None:
+        original = {"kind": "DOSSIER", "id": str(request.original_dossier_id)}
+    else:
+        original = {"kind": "TEST_IDENTITY", "id": request.original_identity_id or 0}
+    return CorrectionDetail(
+        request.id,
+        original,
+        request.action,
+        request.reason,
+        request.reference_date.isoformat(),
+        request.normative_version,
+        request.facts,
+        request.evaluation,
+        request.state,
+        request.version,
+        str(request.requested_base),
+        str(request.requested_tax),
+        str(request.requested_total),
+        tuple(
+            {
+                "position": line.position,
+                "quantity": str(line.quantity),
+                "base_amount": str(line.base_amount),
+                "tax_amount": str(line.tax_amount),
+                "total_amount": str(line.total_amount),
+            }
+            for line in request.lines.all()
+        ),
+        request.evidence_dossier_id,
+        _reconciliation_pending(request),
+        request.cancellation_reason,
+        request.replaces_id,
+        False,
+    )
+
+
 class _OriginalFacts(NamedTuple):
     issue_date: date
     fiscal_entity_id: int

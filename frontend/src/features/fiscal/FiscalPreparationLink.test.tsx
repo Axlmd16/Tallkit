@@ -5,7 +5,12 @@ import { FiscalPreparationLink } from './FiscalPreparationLink'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
-  createPreparation: { mutate: vi.fn(), isPending: false, isError: false, error: null as Error | null },
+  createPreparation: {
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null as Error | null,
+  },
 }))
 
 vi.mock('react-router', () => ({ useNavigate: () => vi.fn() }))

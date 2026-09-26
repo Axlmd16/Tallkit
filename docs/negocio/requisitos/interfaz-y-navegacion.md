@@ -184,7 +184,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-052 | Detalle de proforma | Valores históricos, estado, venta generada y acciones permitidas. |
 | UI-053 | Lista de ventas | Secuencial, cliente, origen, fecha, estado de venta, estado de pago, estado del documento interno y total. |
 | UI-054 | Editor de venta | Cliente, origen, condición, líneas, precios finales, impuestos y totales; guardar borrador y confirmar. Una venta vinculada a mantenimiento muestra y administra sus reservas. |
-| UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado y correcciones. Una futura referencia fiscal aparecerá separada. |
+| UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado, correcciones y acceso separado a preparación fiscal cuando el rol lo permite. |
 | UI-056 | Devolución | Venta original, cantidades vendidas y ya devueltas, aptitud para reventa por línea, motivo, efecto de inventario y exceso pagado por reembolsar. |
 | UI-057 | Corrección comercial | Venta o devolución original, motivo, operación compensatoria y reembolso trazable cuando corresponda. |
 | UI-058 | Comprobante interno comercial | Vista imprimible con RUC comercial, cliente, líneas, totales, estado y aviso fiscal correspondiente. |
@@ -317,7 +317,7 @@ Información, advertencias y errores nunca se comunican solo con una notificaci�
 | Mantenimiento | Reabierto | Añadir intervención correctiva sin cargo, solicitar reposición y volver a finalizar. |
 | Mantenimiento | Cancelado | Consultar historial; no generar nuevos cobros. |
 
-El formato exacto de secuenciales internos y el ciclo de una futura referencia fiscal se definirán en cambios posteriores; no alterarán estos estados de negocio.
+Los secuenciales internos permanecen separados de la identidad fiscal de ensayo. Un futuro ciclo oficial se añadirá sin alterar estos estados de negocio.
 
 ## 10. Comportamiento adaptable
 
@@ -351,8 +351,17 @@ Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como m
 - Las proformas y comprobantes internos deben tener vista específica de impresión A4.
 - Cada documento debe mostrar la entidad fiscal correcta y no mezclar conceptos de la otra.
 - Debe indicar estado (`BORRADOR`, `ANULADO`, etc.) cuando corresponda.
-- Mientras no exista facturación electrónica, debe aclarar que el documento interno no constituye una factura electrónica autorizada.
+- Mientras no exista emisión electrónica productiva, debe aclarar que el documento interno y la preparación local no constituyen una factura electrónica autorizada.
+
 - Las exportaciones tabulares deben incluir los filtros y fecha de generación o mantenerlos en metadatos visibles.
+
+### 11.1 Pantallas fiscales locales
+
+| ID | Pantalla | Contenido mínimo |
+|---|---|---|
+| UI-085 | Preparación fiscal | Página extensa con origen, estado local, cobro separado, ambiente, receptor, pagos declarados, impedimentos, snapshot y discrepancias. |
+| UI-086 | Archivo fiscal | Carga administrativa limitada, condición externa no verificada, descarga original, exportación y readiness por entidad. |
+| UI-087 | Correcciones fiscales | Lista y detalle administrativos con revisión, hechos pendientes, conciliación, preparación y cancelación local. |
 
 ## 12. Decisiones de interfaz pendientes
 

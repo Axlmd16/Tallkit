@@ -39,6 +39,10 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-FIS-008 | La venta de repuestos y la operación de servicios deben conservar secuenciales, impuestos, pagos, saldos, facturación, anulaciones y estados independientes. |
 | RN-FIS-009 | Todo documento, pantalla de cobro y reporte económico debe identificar claramente su entidad fiscal. |
 | RN-FIS-010 | Los parámetros tributarios deben configurarse por entidad fiscal y período de vigencia; no deben quedar fijados permanentemente en el código. |
+| RN-FIS-011 | Una preparación fiscal local debe pertenecer a exactamente una operación confirmada y conservar un snapshot histórico; no cobra, mueve inventario ni equivale a emisión. |
+| RN-FIS-012 | La numeración fiscal propia solo se asigna en ambiente de pruebas y es independiente de COM-VEN y ART-SER. |
+| RN-FIS-013 | Un XML externo debe conservarse con bytes, hash, identidad, procedencia y vínculo, sin presentarlo como verificado ante el SRI. |
+| RN-FIS-014 | La incorporación productiva debe permanecer bloqueada sin política por entidad y restauración aplicable documentadas. |
 
 ## 3. Usuarios, roles y auditoría
 
@@ -231,4 +235,4 @@ Estas condiciones nunca deben romperse:
 - Límites y conservación definitiva de fotografías.
 - Tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre RUC.
 - Tarifas, clasificaciones tributarias y reglas de redondeo aplicables.
-- Requisitos futuros de consumidor final y facturación electrónica.
+- Firma, transmisión, autorización, entrega y consulta oficial de comprobantes electrónicos.

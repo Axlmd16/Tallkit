@@ -159,6 +159,16 @@ def archive_xml(
     parsed = parse_fiscal_xml(original_bytes)
     if parsed.issuer_ruc != issuer_ruc:
         raise IssuerMismatchError("El emisor no corresponde a la entidad fiscal seleccionada.")
+    if parsed.environment == "2":
+        from fiscal.application.readiness import get_readiness
+
+        if not get_readiness(
+            actor=actor, fiscal_entity_id=fiscal_entity_id
+        ).productive_archive_ready:
+            raise FiscalArchiveError(
+                "La incorporación productiva requiere política vigente y evidencia "
+                "aplicable de restauración."
+            )
 
     with transaction.atomic():
         dossier = (

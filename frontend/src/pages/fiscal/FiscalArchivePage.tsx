@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
 import { fiscalApi } from '@/features/fiscal/api'
+import { FiscalReadinessSection } from '@/features/fiscal/FiscalReadinessSection'
 import { useArchive, useFiscalMutations } from '@/features/fiscal/hooks'
 import type { ArchiveSummary } from '@/features/fiscal/types'
 import { useFiscalEntities } from '@/features/workshop-configuration/queries'
@@ -29,7 +30,11 @@ async function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-function UploadForm({ entityIds }: { entityIds: { id: number; label: string }[] }) {
+function UploadForm({
+  entityIds,
+}: {
+  entityIds: { id: number; label: string }[]
+}) {
   const { uploadArchive } = useFiscalMutations()
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -51,12 +56,17 @@ function UploadForm({ entityIds }: { entityIds: { id: number; label: string }[] 
       <h2 className="font-bold text-ink">Incorporar comprobante externo</h2>
       <p className="mt-1 text-sm text-ink-muted">
         Un XML por carga, máximo 2 MiB. Se conserva como evidencia externa no
-        verificada; su declaración de autorización no equivale a comprobación oficial.
+        verificada; su declaración de autorización no equivale a comprobación
+        oficial.
       </p>
       <form className="mt-4 grid gap-4 md:grid-cols-3" onSubmit={submit}>
         <label className="text-sm font-semibold text-ink">
           Entidad fiscal
-          <select className={`${getControlClasses()} mt-1.5`} name="fiscal_entity_id" required>
+          <select
+            className={`${getControlClasses()} mt-1.5`}
+            name="fiscal_entity_id"
+            required
+          >
             {entityIds.map((entity) => (
               <option key={entity.id} value={entity.id}>
                 {entity.label}
@@ -66,7 +76,11 @@ function UploadForm({ entityIds }: { entityIds: { id: number; label: string }[] 
         </label>
         <label className="text-sm font-semibold text-ink">
           Procedencia
-          <input className={`${getControlClasses()} mt-1.5`} name="source_label" required />
+          <input
+            className={`${getControlClasses()} mt-1.5`}
+            name="source_label"
+            required
+          />
         </label>
         <label className="text-sm font-semibold text-ink">
           Archivo XML
@@ -81,7 +95,10 @@ function UploadForm({ entityIds }: { entityIds: { id: number; label: string }[] 
         <div className="md:col-span-3">
           {uploadArchive.isError && (
             <div className="mb-3">
-              <InlineNotice title="No se incorporó el comprobante" tone="warning">
+              <InlineNotice
+                title="No se incorporó el comprobante"
+                tone="warning"
+              >
                 {uploadArchive.error.message}
               </InlineNotice>
             </div>
@@ -143,7 +160,9 @@ export function FiscalArchivePage() {
       await triggerDownload(blob, `${dossier.access_key}.xml`)
     } catch (error) {
       setDownloadError(
-        error instanceof Error ? error.message : 'No se pudo descargar el original.',
+        error instanceof Error
+          ? error.message
+          : 'No se pudo descargar el original.',
       )
     }
   }
@@ -165,9 +184,12 @@ export function FiscalArchivePage() {
         <label className="text-sm font-semibold text-ink">
           Entidad
           <select
+            aria-label="Filtrar por entidad"
             className={`${getControlClasses()} mt-1.5`}
             onChange={(event) =>
-              setEntityId(event.target.value ? Number(event.target.value) : undefined)
+              setEntityId(
+                event.target.value ? Number(event.target.value) : undefined,
+              )
             }
             value={entityId ?? ''}
           >
@@ -182,16 +204,22 @@ export function FiscalArchivePage() {
       </div>
 
       <InlineNotice title="Evidencia externa no verificada" tone="info">
-        Los comprobantes del archivo se conservan tal cual se incorporaron. El sistema no
-        comprueba su autenticidad ni su autorización ante el SRI.
+        Los comprobantes del archivo se conservan tal cual se incorporaron. El
+        sistema no comprueba su autenticidad ni su autorización ante el SRI.
       </InlineNotice>
 
       <UploadForm entityIds={entityOptions} />
+      <FiscalReadinessSection entityId={entityId} />
 
       {downloadError && <ErrorState message={downloadError} />}
-      {exportArchive.isError && <ErrorState message={exportArchive.error.message} />}
+      {exportArchive.isError && (
+        <ErrorState message={exportArchive.error.message} />
+      )}
 
-      <Surface className="overflow-hidden p-0" aria-label="Comprobantes archivados">
+      <Surface
+        className="overflow-hidden p-0"
+        aria-label="Comprobantes archivados"
+      >
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
           <h2 className="font-bold text-ink">Comprobantes archivados</h2>
           <Button
@@ -200,7 +228,8 @@ export function FiscalArchivePage() {
             pending={exportArchive.isPending}
             variant="secondary"
           >
-            <DownloadSimple aria-hidden="true" size={16} /> Exportar seleccionados
+            <DownloadSimple aria-hidden="true" size={16} /> Exportar
+            seleccionados
           </Button>
         </div>
         {archive.isPending ? (
@@ -232,25 +261,40 @@ export function FiscalArchivePage() {
                         type="checkbox"
                       />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs">{dossier.access_key}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      {dossier.access_key}
+                    </td>
                     <td className="px-4 py-3">{dossier.document_type}</td>
                     <td className="px-4 py-3">
                       {dossier.environment === '1' ? 'Pruebas' : 'Producción'}
                     </td>
-                    <td className="px-4 py-3 text-right">USD {dossier.total}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge label="Externa no verificada" tone="neutral" shape="pill" />
+                    <td className="px-4 py-3 text-right">
+                      USD {dossier.total}
                     </td>
                     <td className="px-4 py-3">
-                      <Button onClick={() => void download(dossier)} variant="secondary">
-                        <DownloadSimple aria-hidden="true" size={16} /> Descargar
+                      <StatusBadge
+                        label="Externa no verificada"
+                        tone="neutral"
+                        shape="pill"
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button
+                        onClick={() => void download(dossier)}
+                        variant="secondary"
+                      >
+                        <DownloadSimple aria-hidden="true" size={16} />{' '}
+                        Descargar
                       </Button>
                     </td>
                   </tr>
                 ))}
                 {!archive.data?.length && (
                   <tr>
-                    <td className="px-4 py-6 text-center text-ink-muted" colSpan={7}>
+                    <td
+                      className="px-4 py-6 text-center text-ink-muted"
+                      colSpan={7}
+                    >
                       No hay comprobantes archivados.
                     </td>
                   </tr>

@@ -716,3 +716,63 @@ class FiscalCorrectionReconciliationHold(models.Model):
 
     def __str__(self) -> str:
         return f"{self.original_dossier_id}:{self.evidence_dossier_id}:{self.is_active}"
+
+
+class FiscalArchivePolicy(models.Model):
+    fiscal_entity = models.ForeignKey(
+        "workshop_configuration.FiscalEntity", on_delete=models.PROTECT, related_name="+"
+    )
+    version = models.PositiveBigIntegerField()
+    responsible = models.CharField(max_length=300)
+    purpose = models.TextField()
+    legal_basis = models.TextField()
+    retention = models.JSONField()
+    rights_channel = models.CharField(max_length=500)
+    rights_procedure = models.TextField()
+    end_of_retention_review = models.TextField()
+    storage_fingerprint = models.CharField(max_length=128)
+    procedure_version = models.CharField(max_length=100)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["fiscal_entity", "version"], name="fiscal_archive_policy_version_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(version__gte=1), name="fiscal_archive_policy_version_positive"
+            ),
+        ]
+        ordering: ClassVar[list[str]] = ["fiscal_entity_id", "-version"]
+
+    def __str__(self) -> str:
+        return f"{self.fiscal_entity_id}:{self.version}"
+
+
+class FiscalRestorationEvidence(models.Model):
+    procedure_version = models.CharField(max_length=100)
+    storage_fingerprint = models.CharField(max_length=128)
+    restored_at = models.DateTimeField()
+    responsible = models.CharField(max_length=300)
+    backup_identifier = models.CharField(max_length=300)
+    report_reference = models.CharField(max_length=500)
+    destination = models.CharField(max_length=500)
+    content_hashes_ok = models.BooleanField()
+    identities_ok = models.BooleanField()
+    permissions_ok = models.BooleanField()
+    links_ok = models.BooleanField()
+    deletion_reviewed = models.BooleanField()
+    notes = models.TextField(blank=True, default="")
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering: ClassVar[list[str]] = ["-restored_at", "-id"]
+
+    def __str__(self) -> str:
+        return f"{self.procedure_version}:{self.backup_identifier}"

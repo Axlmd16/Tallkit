@@ -8,7 +8,11 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 
-from fiscal.application.corrections import CorrectionCommandResult
+from fiscal.application.corrections import (
+    CorrectionCommandResult,
+    CorrectionDetail,
+    CorrectionSummary,
+)
 from fiscal.application.identity import IdentityResult
 from fiscal.application.preparations import (
     FiscalDiscrepancy,
@@ -17,6 +21,7 @@ from fiscal.application.preparations import (
     PreparationVersionConflictError,
     ReviewResult,
 )
+from fiscal.application.readiness import ArchiveReadiness
 from fiscal.application.xml_archive import (
     ArchivedDocumentSummary,
     ArchiveResult,
@@ -311,6 +316,72 @@ def test_preparation_detail_exposes_history_and_discrepancy_without_official_sta
     assert response.data["discrepancy"]["current_correction_ids"] == [6]
     assert response.data["official_status"] is None
     assert response.data["official_submission"] == "NOT_PERFORMED"
+
+
+def test_correction_queries_expose_local_evaluation_and_never_official_execution(
+    role_admin: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    request_id = uuid4()
+    summary = CorrectionSummary(
+        request_id,
+        "ONLINE_CANCELLATION",
+        "DRAFT",
+        1,
+        "Evaluar anulación",
+        "2026-09-26",
+        "10.00",
+        "PENDING",
+        False,
+        True,
+        False,
+    )
+    detail = CorrectionDetail(
+        request_id,
+        {"kind": "DOSSIER", "id": str(uuid4())},
+        "ONLINE_CANCELLATION",
+        "Evaluar anulación",
+        "2026-09-26",
+        "norma-v1",
+        {"holidays_complete": False},
+        {"outcome": "PENDING", "pending_facts": ["holidays"]},
+        "DRAFT",
+        1,
+        "10.00",
+        "0.00",
+        "10.00",
+        (),
+        None,
+        True,
+        "",
+        None,
+        False,
+    )
+    monkeypatch.setattr(
+        "fiscal.api.views.corrections.list_correction_requests", lambda **_: (summary,)
+    )
+    monkeypatch.setattr("fiscal.api.views.corrections.get_correction_request", lambda **_: detail)
+    client = _client(role_admin)
+    listed = client.get(f"{BASE}/corrections/")
+    retrieved = client.get(f"{BASE}/corrections/{request_id}/")
+    assert listed.status_code == retrieved.status_code == 200
+    assert listed.data[0]["officially_executed"] is False
+    assert retrieved.data["evaluation"]["pending_facts"] == ["holidays"]
+    assert retrieved.data["reconciliation_pending"] is True
+
+
+def test_readiness_api_keeps_declarations_administrative(
+    role_admin: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = ArchiveReadiness(1, None, None, False, False, False, ("policy", "restoration"))
+    monkeypatch.setattr("fiscal.api.views.readiness.get_readiness", lambda **_: result)
+    response = _client(role_admin).get(f"{BASE}/readiness/?fiscal_entity_id=1")
+    assert response.status_code == 200
+    assert response.data["productive_archive_ready"] is False
+    assert response.data["pending"] == ("policy", "restoration")
+
+    invalid = _client(role_admin).get(f"{BASE}/readiness/?fiscal_entity_id=invalid")
+    assert invalid.status_code == 400
+    assert invalid.data["code"] == "fiscal_invalid_request"
 
 
 def test_archive_endpoints_preserve_original_bytes_and_unverified_origin(

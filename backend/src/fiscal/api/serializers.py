@@ -77,7 +77,7 @@ class FiscalDiscrepancy(serializers.Serializer[dict[str, Any]]):
 class FiscalPreparationDetail(serializers.Serializer[dict[str, Any]]):
     preparation_id = serializers.UUIDField()
     fiscal_entity_id = serializers.IntegerField()
-    source = FiscalPreparationSource()
+    source = FiscalPreparationSource()  # type: ignore[assignment]
     state = serializers.CharField()
     version = serializers.IntegerField()
     draft = serializers.DictField(allow_null=True)
@@ -200,6 +200,42 @@ class FiscalCorrectionResult(serializers.Serializer[dict[str, Any]]):
     officially_executed = serializers.BooleanField(default=False)
 
 
+class FiscalCorrectionSummary(serializers.Serializer[dict[str, Any]]):
+    request_id = serializers.UUIDField()
+    action = serializers.CharField()
+    state = serializers.CharField()
+    version = serializers.IntegerField()
+    reason = serializers.CharField()
+    reference_date = serializers.DateField()
+    requested_total = serializers.CharField()
+    evaluation_outcome = serializers.CharField()
+    has_evidence = serializers.BooleanField()
+    reconciliation_pending = serializers.BooleanField()
+    officially_executed = serializers.BooleanField()
+
+
+class FiscalCorrectionDetail(serializers.Serializer[dict[str, Any]]):
+    request_id = serializers.UUIDField()
+    original = serializers.DictField()
+    action = serializers.CharField()
+    reason = serializers.CharField()
+    reference_date = serializers.DateField()
+    normative_version = serializers.CharField()
+    facts = serializers.DictField()
+    evaluation = serializers.DictField()
+    state = serializers.CharField()
+    version = serializers.IntegerField()
+    requested_base = serializers.CharField()
+    requested_tax = serializers.CharField()
+    requested_total = serializers.CharField()
+    lines = serializers.ListField(child=serializers.DictField())
+    evidence_dossier_id = serializers.UUIDField(allow_null=True)
+    reconciliation_pending = serializers.BooleanField()
+    cancellation_reason = serializers.CharField(allow_blank=True)
+    replaces_id = serializers.UUIDField(allow_null=True)
+    officially_executed = serializers.BooleanField()
+
+
 class FiscalCorrectionPrepare(StrictSerializer):
     expected_version = serializers.IntegerField(min_value=1)
 
@@ -214,6 +250,45 @@ class FiscalCorrectionReplace(FiscalCorrectionCreate):
 
 class FiscalCorrectionEvidence(StrictSerializer):
     evidence_dossier_id = serializers.UUIDField()
+
+
+class FiscalArchivePolicyWrite(StrictSerializer):
+    fiscal_entity_id = serializers.IntegerField(min_value=1)
+    responsible = serializers.CharField(min_length=1, max_length=300)
+    purpose = serializers.CharField(min_length=1)
+    legal_basis = serializers.CharField(min_length=1)
+    retention = serializers.DictField()
+    rights_channel = serializers.CharField(min_length=1, max_length=500)
+    rights_procedure = serializers.CharField(min_length=1)
+    end_of_retention_review = serializers.CharField(min_length=1)
+    storage_fingerprint = serializers.CharField(min_length=1, max_length=128)
+    procedure_version = serializers.CharField(min_length=1, max_length=100)
+
+
+class FiscalRestorationWrite(StrictSerializer):
+    restored_at = serializers.DateTimeField()
+    procedure_version = serializers.CharField(min_length=1, max_length=100)
+    storage_fingerprint = serializers.CharField(min_length=1, max_length=128)
+    responsible = serializers.CharField(min_length=1, max_length=300)
+    backup_identifier = serializers.CharField(min_length=1, max_length=300)
+    report_reference = serializers.CharField(min_length=1, max_length=500)
+    destination = serializers.CharField(min_length=1, max_length=500)
+    content_hashes_ok = serializers.BooleanField()
+    identities_ok = serializers.BooleanField()
+    permissions_ok = serializers.BooleanField()
+    links_ok = serializers.BooleanField()
+    deletion_reviewed = serializers.BooleanField()
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class FiscalReadiness(serializers.Serializer[dict[str, Any]]):
+    fiscal_entity_id = serializers.IntegerField()
+    policy = serializers.DictField(allow_null=True)
+    restoration = serializers.DictField(allow_null=True)
+    policy_ready = serializers.BooleanField()
+    restoration_ready = serializers.BooleanField()
+    productive_archive_ready = serializers.BooleanField()
+    pending = serializers.ListField(child=serializers.CharField())
 
 
 class FiscalElectronicProfileWrite(StrictSerializer):

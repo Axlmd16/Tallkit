@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 from config.api.errors import ProblemSerializer, problem_response
 from fiscal.api import serializers as sz
-from fiscal.application import corrections, preparations, xml_archive
+from fiscal.application import corrections, preparations, readiness, xml_archive
 from fiscal.application.corrections import (
     CorrectionApplicationError,
     CorrectionConflictError,
@@ -121,6 +121,12 @@ def _problem(request: Request, exc: Exception) -> Response:
         ),
     ):
         code, response_status, title = "stale_record", 409, "Conflicto con el estado actual"
+    elif isinstance(exc, readiness.FiscalReadinessError):
+        code, response_status, title = (
+            "fiscal_readiness_required",
+            409,
+            "Preparación operativa pendiente",
+        )
     elif isinstance(exc, (FiscalPreparationError, FiscalArchiveError, IdentityError)):
         code = "fiscal_invalid_request"
     if isinstance(exc, ConfigurationValidationError):
@@ -150,6 +156,7 @@ def _respond(request: Request, operation: Callable[[], Response]) -> Response:
         FiscalXmlError,
         IdentityError,
         CorrectionApplicationError,
+        readiness.FiscalReadinessError,
         ConfigurationValidationError,
         StaleRecordError,
         FiscalEntityNotFoundError,
@@ -454,6 +461,22 @@ class CorrectionCreateView(APIView):
 
     @extend_schema(
         tags=[_TAG],
+        responses={200: sz.FiscalCorrectionSummary(many=True), **_PROBLEMS},
+        description="Lista solicitudes locales; ninguna implica ejecución oficial.",
+    )
+    def get(self, request: Request) -> Response:
+        return _respond(
+            request,
+            lambda: Response(
+                [
+                    item._asdict()
+                    for item in corrections.list_correction_requests(actor=_actor(request))
+                ]
+            ),
+        )
+
+    @extend_schema(
+        tags=[_TAG],
         request=sz.FiscalCorrectionCreate,
         responses={201: sz.FiscalCorrectionResult, **_PROBLEMS},
         description="Registra una solicitud local; no ejecuta una corrección oficial.",
@@ -474,6 +497,77 @@ class CorrectionCreateView(APIView):
                 **data,
             )
             return Response({**result._asdict(), "officially_executed": False}, status=201)
+
+        return _respond(request, operation)
+
+
+class CorrectionDetailView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    required_business_permission = "fiscal.correcciones.gestionar"
+
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalCorrectionDetail, **_PROBLEMS})
+    def get(self, request: Request, request_id: UUID) -> Response:
+        return _respond(
+            request,
+            lambda: Response(
+                corrections.get_correction_request(
+                    actor=_actor(request), request_id=request_id
+                )._asdict()
+            ),
+        )
+
+
+class FiscalReadinessView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    required_business_permission = "fiscal.archivo.gestionar"
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalReadiness, **_PROBLEMS})
+    def get(self, request: Request) -> Response:
+        def operation() -> Response:
+            raw_entity_id = request.query_params.get("fiscal_entity_id", "")
+            if not raw_entity_id.isdigit() or int(raw_entity_id) < 1:
+                raise FiscalArchiveError("La entidad fiscal consultada es inválida.")
+            entity_id = int(raw_entity_id)
+            return Response(
+                readiness.get_readiness(actor=_actor(request), fiscal_entity_id=entity_id).__dict__
+            )
+
+        return _respond(request, operation)
+
+    @extend_schema(
+        tags=[_TAG],
+        request=sz.FiscalArchivePolicyWrite,
+        responses={200: sz.FiscalReadiness, **_PROBLEMS},
+    )
+    def post(self, request: Request) -> Response:
+        def operation() -> Response:
+            data = _validated(sz.FiscalArchivePolicyWrite, request)
+            entity_id = data.pop("fiscal_entity_id")
+            result = readiness.record_policy(
+                actor=_actor(request), fiscal_entity_id=entity_id, data=data
+            )
+            return Response(result.__dict__)
+
+        return _respond(request, operation)
+
+
+class FiscalRestorationEvidenceView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    required_business_permission = "fiscal.archivo.gestionar"
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG], request=sz.FiscalRestorationWrite, responses={201: None, **_PROBLEMS}
+    )
+    def post(self, request: Request) -> Response:
+        def operation() -> Response:
+            data = _validated(sz.FiscalRestorationWrite, request)
+            restored_at = data.pop("restored_at")
+            evidence = readiness.record_restoration(
+                actor=_actor(request), restored_at=restored_at, data=data
+            )
+            return Response({"evidence_id": evidence.id}, status=201)
 
         return _respond(request, operation)
 

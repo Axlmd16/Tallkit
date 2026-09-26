@@ -14,7 +14,7 @@
 
 Entregar una aplicación web operativa para la red local del taller que cubra los procesos esenciales de repuestos y mantenimientos, comparta clientes, vehículos y usuarios, y mantenga una separación estricta entre las operaciones del RUC comercial y las del RUC artesanal.
 
-La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolver todavía la facturación electrónica ni todos los procesos administrativos posibles de un taller.
+La versión 1 prioriza control, trazabilidad y consistencia. Incorpora preparación fiscal local y archivo de evidencia, pero no resuelve todavía firma, transmisión, autorización ni entrega electrónica ante el SRI, ni todos los procesos administrativos posibles de un taller.
 
 ## 2. Límites del producto
 
@@ -27,6 +27,7 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 - Relación explícita entre un mantenimiento y la venta de los repuestos utilizados.
 - Documentos, pagos, saldos, anulaciones, secuenciales y reportes independientes por entidad fiscal.
 - Acceso concurrente desde dispositivos conectados a la red local.
+- Configuración fiscal declarada, preparación local, numeración de ensayo, archivo XML externo y solicitudes locales de corrección, independientes de un proveedor.
 
 ### 2.2 No incluido
 
@@ -37,6 +38,8 @@ La versión 1 prioriza control, trazabilidad y consistencia. No pretende resolve
 - Descuentos, anticipos, sobrepagos, planes de pago y saldos a favor.
 
 ## 3. Módulos incluidos
+
+La capacidad fiscal local comprende perfil declarado por emisor, establecimientos y puntos, correspondencias tributarias, preparación/revisión, identidad exclusiva de ensayo, archivo XML y readiness de restauración. Los documentos internos, pagos y operaciones siguen siendo independientes.
 
 ### 3.1 Configuración e identidad
 
@@ -302,3 +305,6 @@ Toda adición o exclusión posterior debe:
 3. Evaluar efectos fiscales, de inventario y seguridad.
 4. Crear un cambio OpenSpec separado cuando corresponda.
 5. Ser aprobada antes de modificar el código de producción.
+# Extensión fiscal local aprobada
+
+El alcance incorpora configuración tributaria declarada, preparación local de facturas, numeración exclusiva de ensayo, archivo de XML externos y solicitudes administrativas de corrección. No incorpora firma electrónica, transmisión, autorización, entrega de comprobantes ni integración con un proveedor; esos resultados futuros permanecen separados de ventas, servicios y cobros.

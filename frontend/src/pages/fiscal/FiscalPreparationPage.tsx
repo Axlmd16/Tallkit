@@ -7,7 +7,10 @@ import {
   useFiscalMutations,
   usePreparation,
 } from '@/features/fiscal/hooks'
-import type { DraftUpdate, FiscalPreparationDetail } from '@/features/fiscal/types'
+import type {
+  DraftUpdate,
+  FiscalPreparationDetail,
+} from '@/features/fiscal/types'
 import {
   Button,
   ErrorState,
@@ -101,11 +104,7 @@ function DraftForm({ detail }: { detail: FiscalPreparationDetail }) {
       {mutations.updateDraft.isError && (
         <ErrorState message={mutations.updateDraft.error.message} />
       )}
-      <form
-        className="space-y-5"
-        key={detail.version}
-        onSubmit={submitDraft}
-      >
+      <form className="space-y-5" key={detail.version} onSubmit={submitDraft}>
         <Surface>
           <h2 className="font-bold text-ink">Datos del comprobante</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -290,7 +289,8 @@ function DraftForm({ detail }: { detail: FiscalPreparationDetail }) {
           ) : (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <p className="flex items-center gap-2 text-sm text-success">
-                <CheckCircle aria-hidden="true" /> Revisión local sin impedimentos.
+                <CheckCircle aria-hidden="true" /> Revisión local sin
+                impedimentos.
               </p>
               <Button
                 disabled={!review.review_token}
@@ -363,14 +363,20 @@ function PreparedSnapshot({ detail }: { detail: FiscalPreparationDetail }) {
               {lines.map((line, index) => (
                 <tr key={`${text(line.position)}-${index}`}>
                   <td className="px-4 py-3">
-                    <span className="font-mono text-xs">{text(line.item_code)}</span>
+                    <span className="font-mono text-xs">
+                      {text(line.item_code)}
+                    </span>
                     <span className="block">{text(line.description)}</span>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {text(line.quantity)}
                   </td>
-                  <td className="px-4 py-3 text-right">USD {text(line.base_amount)}</td>
-                  <td className="px-4 py-3 text-right">USD {text(line.tax_amount)}</td>
+                  <td className="px-4 py-3 text-right">
+                    USD {text(line.base_amount)}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    USD {text(line.tax_amount)}
+                  </td>
                   <td className="px-4 py-3 text-right font-semibold">
                     USD {text(line.total_amount)}
                   </td>
@@ -387,7 +393,8 @@ function PreparedSnapshot({ detail }: { detail: FiscalPreparationDetail }) {
 export function FiscalPreparationPage() {
   const preparationId = useParams().id
   const query = usePreparation(preparationId)
-  if (query.isPending) return <LoadingState label="Cargando preparación fiscal…" />
+  if (query.isPending)
+    return <LoadingState label="Cargando preparación fiscal…" />
   if (query.isError || !query.data) {
     return (
       <ErrorState
@@ -421,14 +428,24 @@ export function FiscalPreparationPage() {
             </h1>
           </div>
         </div>
-        <StatusBadge label={stateLabels[detail.state]} tone="neutral" shape="pill" />
+        <StatusBadge
+          label={stateLabels[detail.state]}
+          tone="neutral"
+          shape="pill"
+        />
       </div>
 
       <Surface>
         <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <Datum label="Estado fiscal local" value={stateLabels[detail.state]} />
+          <Datum
+            label="Estado fiscal local"
+            value={stateLabels[detail.state]}
+          />
           <Datum label="Estado oficial SRI" value="Sin envío realizado" />
-          <Datum label="Cobro real" value="Independiente; consulte la operación" />
+          <Datum
+            label="Cobro real"
+            value="Independiente; consulte la operación"
+          />
           <Datum
             label="Origen"
             value={`${detail.source.kind === 'COMMERCIAL' ? 'Venta' : 'Operación artesanal'} #${detail.source.id}`}
@@ -437,7 +454,10 @@ export function FiscalPreparationPage() {
       </Surface>
 
       {changed && (
-        <InlineNotice title="La operación cambió después de esta preparación" tone="warning">
+        <InlineNotice
+          title="La operación cambió después de esta preparación"
+          tone="warning"
+        >
           La instantánea histórica se conserva. El origen está ahora en versión{' '}
           {detail.discrepancy.current_source_version}
           {detail.discrepancy.corrections_changed
@@ -464,7 +484,13 @@ export function FiscalPreparationPage() {
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
   return (
     <label className="ui-field block text-sm font-semibold text-ink">
       {label}

@@ -48,6 +48,10 @@
 | CU-024 | Registrar reposición por corrección | Administrador | RF-INV-018, RF-TAL-016, RF-TAL-020 |
 | CU-025 | Devolver mercadería a proveedor | Administrador | RF-INV-019 |
 | CU-026 | Confirmar cierre diario | Administrador | RF-REP-011, RF-REP-012 |
+| CU-027 | Preparar información fiscal | Administrador / Vendedor / Encargado según ámbito | RF-FIS-001…003 |
+| CU-028 | Incorporar evidencia fiscal externa | Administrador | RF-FIS-004, RF-FIS-006 |
+| CU-029 | Preparar una corrección fiscal | Administrador | RF-FIS-005 |
+| CU-030 | Registrar readiness del archivo | Administrador | RF-FIS-006 |
 
 ## 3. CU-001 — Iniciar y cerrar sesión
 
@@ -603,3 +607,20 @@
 - `CU-019` incluye `CU-024` cuando una corrección requiere reponer inventario a cargo del taller.
 - `CU-014` y `CU-015` incluyen registro de auditoría y pueden requerir corrección de pagos.
 - `CU-020` puede abrir los documentos generados por los demás casos, sujeto a permisos.
+## 29. Casos de uso fiscales locales
+
+### CU-027 — Preparar información fiscal
+
+**Actores:** Administrador o Vendedor para venta comercial; Administrador o Encargado para operación artesanal. **Precondición:** operación confirmada y vigente. El actor crea el borrador, declara receptor, punto, ambiente de pruebas y formas fiscales, revisa impedimentos y completa una instantánea local. El sistema no cobra, transmite ni autoriza.
+
+### CU-028 — Incorporar evidencia fiscal externa
+
+**Actor:** Administrador. Selecciona entidad, declara procedencia y carga un XML acotado. El sistema valida estructura/identidad, conserva bytes y hash y permite vínculo motivado. En ambiente productivo exige readiness aplicable; la evidencia queda marcada como externa no verificada.
+
+### CU-029 — Preparar una corrección fiscal
+
+**Actor:** Administrador. Selecciona factura original o identidad de ensayo, acción, motivo, hechos y líneas afectadas. El sistema evalúa impedimentos y remanente, y permite preparar o cancelar la solicitud local sin afirmar ejecución oficial.
+
+### CU-030 — Registrar readiness del archivo
+
+**Actor:** Administrador. Registra política versionada por entidad y evidencia de restauración. El sistema vincula la evidencia a procedimiento y almacenamiento; una versión incompatible bloquea nuevas cargas productivas.
