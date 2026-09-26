@@ -76,7 +76,7 @@ export function TaxMappingsSection({
               <p className="font-semibold text-ink">Impuesto interno</p>
               <p className="mt-1.5 text-ink">
                 {single.name}
-                {single.current_rate !== null && ` · ${single.current_rate} %`}
+                {single.current_rate != null && ` · ${single.current_rate} %`}
               </p>
               <FieldHelp id={`single-${entityId}`}>
                 Es el único impuesto interno de esta entidad.
@@ -92,7 +92,7 @@ export function TaxMappingsSection({
                 {definitions.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
-                    {item.current_rate !== null
+                    {item.current_rate != null
                       ? ` · ${item.current_rate} %`
                       : ''}
                   </option>

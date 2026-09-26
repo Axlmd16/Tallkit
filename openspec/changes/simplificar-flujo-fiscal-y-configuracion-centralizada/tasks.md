@@ -233,17 +233,18 @@ Evidencia: vitest de los archivos tocados, más `tsc`, ESLint y prettier.
 
 Dependencias: grupos 4, 6 y 7.
 
-- [ ] 8.1 Ampliar `frontend/e2e/workshop-configuration.spec.ts`:
+- [x] 8.1 Ampliar `frontend/e2e/workshop-configuration.spec.ts`:
   - pestañas, enlace directo y teclado;
   - vista de 360 px sin desplazamiento de la página;
   - designación del punto predeterminado y catálogo de formas;
   - cambio de entidad;
   - denegación a un Vendedor.
-- [ ] 8.2 Ampliar `frontend/e2e/fiscal.spec.ts`:
+- [x] 8.2 Ampliar `frontend/e2e/fiscal.spec.ts`:
   - venta confirmada, «Preparar datos fiscales», resumen precargado, solo faltantes, sugerencia de formas, revisión y preparación local con el aviso;
   - operación artesanal preparada por el Encargado;
   - preparación intacta tras cambiar el punto predeterminado.
-- [ ] 8.3 Ejecutar solo esos dos archivos E2E y registrar el resultado; no ejecutar el resto de Playwright.
+- [x] 8.3 Ejecutar solo esos dos archivos E2E y registrar el resultado; no ejecutar el resto de Playwright.
+  - Resultado: `npx playwright test e2e/fiscal.spec.ts e2e/workshop-configuration.spec.ts` → 9 pruebas pasan. Las respuestas de configuración y preparación se simulan con `page.route`, porque el servidor E2E solo carga usuarios; el resto de Playwright no se ejecutó.
 
 ## 9. Documentación, trazabilidad y cierre
 
