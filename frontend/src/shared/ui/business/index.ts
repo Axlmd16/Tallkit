@@ -1,5 +1,7 @@
 export { Money, type MoneyProps } from './Money'
 export { PartCode, type PartCodeProps } from './PartCode'
 export { PlateTag, type PlateTagProps } from './PlateTag'
+export { RucPlate, type RucPlateProps } from './RucPlate'
 export { StockIndicator, type StockIndicatorProps } from './StockIndicator'
 export { DocumentSheet, type DocumentSheetMeta } from './DocumentSheet'
+export { ScopeLabel, type ScopeLabelScope } from './ScopeLabel'

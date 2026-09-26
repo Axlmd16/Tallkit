@@ -6,6 +6,11 @@ export {
 } from './SegmentedControl'
 
 export { Tabs, type TabItem, type TabsProps, type TabsVariant } from './Tabs'
+export {
+  SectionNav,
+  type SectionNavItem,
+  type SectionNavProps,
+} from './SectionNav'
 
 export { NavigationItem, type NavigationItemProps } from './NavigationItem'
 
