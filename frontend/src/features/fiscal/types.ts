@@ -139,6 +139,79 @@ export interface CorrectionResult {
   officially_executed: false
 }
 
+export interface CorrectionSummary {
+  request_id: string
+  action: CorrectionAction
+  state: 'DRAFT' | 'PREPARED' | 'CANCELLED'
+  version: number
+  reason: string
+  reference_date: string
+  requested_total: string
+  evaluation_outcome: 'ELIGIBLE' | 'PENDING' | 'BLOCKED'
+  has_evidence: boolean
+  reconciliation_pending: boolean
+  officially_executed: false
+}
+
+export interface CorrectionDetail extends CorrectionSummary {
+  original: { kind: 'DOSSIER' | 'TEST_IDENTITY'; id: string | number }
+  normative_version: string
+  facts: CorrectionFacts
+  evaluation: {
+    outcome: 'ELIGIBLE' | 'PENDING' | 'BLOCKED'
+    reasons?: string[]
+    pending_facts?: string[]
+    deadline?: string | null
+  }
+  requested_base: string
+  requested_tax: string
+  lines: CorrectionLineInput[]
+  evidence_dossier_id: string | null
+  cancellation_reason: string
+  replaces_id: string | null
+}
+
+export interface ArchivePolicyWrite {
+  fiscal_entity_id: number
+  responsible: string
+  purpose: string
+  legal_basis: string
+  retention: Record<string, string>
+  rights_channel: string
+  rights_procedure: string
+  end_of_retention_review: string
+  storage_fingerprint: string
+  procedure_version: string
+}
+
+export interface RestorationEvidenceWrite {
+  restored_at: string
+  procedure_version: string
+  storage_fingerprint: string
+  responsible: string
+  backup_identifier: string
+  report_reference: string
+  destination: string
+  content_hashes_ok: boolean
+  identities_ok: boolean
+  permissions_ok: boolean
+  links_ok: boolean
+  deletion_reviewed: boolean
+  notes?: string
+}
+
+export interface ArchiveReadiness {
+  fiscal_entity_id: number
+  policy: (ArchivePolicyWrite & { version: number; recorded_at: string }) | null
+  restoration:
+    | (RestorationEvidenceWrite & { id: number; recorded_at: string })
+    | null
+  policy_ready: boolean
+  restoration_ready: boolean
+  productive_archive_ready: boolean
+  pending: string[]
+}
+
 export type ConditionStatus = 'UNKNOWN' | 'APPLICABLE' | 'NOT_APPLICABLE'
 export interface DeclaredCondition {
   status: ConditionStatus

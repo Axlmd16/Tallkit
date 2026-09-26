@@ -229,4 +229,15 @@
 
 ## 13. Exclusiones funcionales expresas
 
-No se derivarán requisitos V1 para facturación electrónica ante el SRI, migración desde Flutter, funcionamiento sin conexión, portal de clientes, asignación a mecánicos, agenda, módulo completo de garantías, presupuesto y aprobación previa del mantenimiento, contabilidad general, conciliación bancaria, cuentas por pagar, armado de kits con piezas sueltas ni múltiples sucursales avanzadas.
+## 14. Preparación y archivo fiscal local
+
+| ID | Requisito | Prioridad | Criterio verificable |
+|---|---|---|---|
+| RF-FIS-001 | El sistema debe preparar una factura local desde una venta comercial o una operación artesanal confirmada. | Debe | Conserva origen, emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales sin mutar la operación. |
+| RF-FIS-002 | El sistema debe separar estado local, cobro, evidencia externa y resultado oficial. | Debe | Preparada nunca se presenta como enviada o autorizada. |
+| RF-FIS-003 | El sistema debe permitir identidad y numeración únicamente en ambiente de pruebas. | Debe | Producción se rechaza y no consume secuencia. |
+| RF-FIS-004 | El Administrador debe poder archivar, consultar, descargar y exportar XML externos. | Debe | Se preservan bytes y SHA-256 y se etiqueta su procedencia como no verificada. |
+| RF-FIS-005 | El Administrador debe preparar solicitudes locales de anulación y nota de crédito. | Debe | Impedimentos y remanentes se muestran sin ejecutar efecto oficial. |
+| RF-FIS-006 | El archivo productivo debe exigir política y restauración aplicables. | Debe | El cambio de procedimiento o almacenamiento vuelve a bloquearlo hasta nueva evidencia. |
+
+No se derivarán requisitos V1 para firma, transmisión, autorización o entrega electrónica ante el SRI, migración desde Flutter, funcionamiento sin conexión, portal de clientes, asignación a mecánicos, agenda, módulo completo de garantías, presupuesto y aprobación previa del mantenimiento, contabilidad general, conciliación bancaria, cuentas por pagar, armado de kits con piezas sueltas ni múltiples sucursales avanzadas.

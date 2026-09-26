@@ -3,10 +3,14 @@ import { environment } from '@/shared/config/env'
 
 import type {
   ArchiveLinkInput,
+  ArchivePolicyWrite,
+  ArchiveReadiness,
   ArchiveResult,
   ArchiveSummary,
   CorrectionCreateInput,
+  CorrectionDetail,
   CorrectionResult,
+  CorrectionSummary,
   DraftUpdate,
   ElectronicProfile,
   ElectronicProfileWrite,
@@ -17,6 +21,7 @@ import type {
   NumberingAntecedentWrite,
   PreparationResult,
   ReviewResult,
+  RestorationEvidenceWrite,
   TaxMappingWrite,
   TestIdentity,
 } from './types'
@@ -108,6 +113,10 @@ export function createFiscalApi(client: ApiClient) {
         headers: attempt(attemptKey),
         body: data,
       }),
+    listCorrections: () =>
+      client.request<CorrectionSummary[]>(`${BASE}/corrections/`),
+    getCorrection: (requestId: string) =>
+      client.request<CorrectionDetail>(`${BASE}/corrections/${requestId}/`),
     prepareCorrection: (requestId: string, expectedVersion: number) =>
       client.request<CorrectionResult>(
         `${BASE}/corrections/${requestId}/prepare/`,
@@ -178,6 +187,20 @@ export function createFiscalApi(client: ApiClient) {
         method: 'POST',
         body: data,
       }),
+    getReadiness: (entityId: number) =>
+      client.request<ArchiveReadiness>(
+        `${BASE}/readiness/?fiscal_entity_id=${entityId}`,
+      ),
+    saveArchivePolicy: (data: ArchivePolicyWrite) =>
+      client.request<ArchiveReadiness>(`${BASE}/readiness/`, {
+        method: 'POST',
+        body: data,
+      }),
+    recordRestoration: (data: RestorationEvidenceWrite) =>
+      client.request<{ evidence_id: number }>(
+        `${BASE}/readiness/restorations/`,
+        { method: 'POST', body: data },
+      ),
   }
 }
 

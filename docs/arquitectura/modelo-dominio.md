@@ -205,7 +205,7 @@ Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `CT-001` y
 ### 11.2 Recomendaciones todavía no aprobadas
 
 - Definir en una especificación futura una política decimal y de redondeo compatible con la normativa aplicable.
-- Definir mediante diseño técnico y, si aparecen alternativas relevantes, un ADR para la coordinación transaccional entre reservas, confirmación de venta y Kardex.
+- La coordinación transaccional entre reservas, confirmación de venta y Kardex quedó resuelta por ADR-0009.
 - Conservar una abstracción conceptual de bodega aunque V1 habilite solo una, sin construir transferencias ni pantallas multibodega.
 
 Estas recomendaciones no autorizan implementación.
@@ -224,7 +224,7 @@ Estas recomendaciones no autorizan implementación.
 ### 11.4 Decisiones aplazadas
 
 - `DA-002`: límites, almacenamiento y conservación de fotografías.
-- `DA-003`: instalación, actualización, respaldo y restauración local.
+- `DA-003`: instalación, actualización, respaldo y restauración local continúa pendiente en general. ADR-0010 resuelve únicamente el archivo fiscal en PostgreSQL.
 - `DM-001`: estructura técnica común o separada de documentos económicos.
 
 ### 11.5 Información insuficiente o validación externa
@@ -232,6 +232,12 @@ Estas recomendaciones no autorizan implementación.
 - Tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos contribuyentes.
 - Tarifas y clasificación tributaria reales de productos y servicios.
 - Reglas de redondeo, consumidor final y futuros requisitos de facturación electrónica en Ecuador.
+
+### 11.6 Extensión fiscal local aprobada
+
+ADR-0010 añade el módulo fiscal como referencia posterior a una venta comercial o una operación artesanal, sin sustituir sus documentos económicos. `PreparacionFiscal` conserva borrador, snapshot e historia; `IdentidadFiscalEnsayo` pertenece a un ámbito RUC/tipo/establecimiento/punto/ambiente independiente de las series internas; `ExpedienteXmlFiscal` conserva evidencia externa inmutable; y `SolicitudCorreccionFiscal` registra trabajo administrativo sin efecto oficial. Pago, estado comercial, preparación local, evidencia externa y respuesta futura del SRI son conceptos separados.
+
+La política del archivo se versiona por entidad fiscal. La evidencia de restauración solo habilita incorporación productiva cuando coincide con la versión del procedimiento y almacenamiento vigentes. Esta extensión no implementa firma, transmisión, consulta de autorización ni emisión productiva.
 
 Estos puntos afectan obligaciones reales y deben validarse con un contador y la normativa ecuatoriana vigente; el modelo no los presenta como asesoría tributaria.
 

@@ -14,6 +14,7 @@ import { CustomerEditorPage } from '@/pages/customers/CustomerEditorPage'
 import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
 import { FiscalArchivePage } from '@/pages/fiscal/FiscalArchivePage'
+import { FiscalCorrectionsPage } from '@/pages/fiscal/FiscalCorrectionsPage'
 import { FiscalPreparationPage } from '@/pages/fiscal/FiscalPreparationPage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { MeasurementUnitsPage } from '@/pages/measurement-units/MeasurementUnitsPage'
@@ -82,6 +83,14 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="fiscal.archivo.gestionar">
                 <FiscalArchivePage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/fiscal/corrections',
+            element: (
+              <PermissionGuard permission="fiscal.correcciones.gestionar">
+                <FiscalCorrectionsPage />
               </PermissionGuard>
             ),
           },

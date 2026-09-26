@@ -14,6 +14,10 @@ export const fiscalKeys = {
     [...fiscalKeys.all, 'configuration', 'profile', entityId] as const,
   establishments: (entityId: number) =>
     [...fiscalKeys.all, 'configuration', 'establishments', entityId] as const,
+  corrections: () => [...fiscalKeys.all, 'corrections'] as const,
+  correction: (id: string) => [...fiscalKeys.corrections(), id] as const,
+  readiness: (entityId: number) =>
+    [...fiscalKeys.all, 'readiness', entityId] as const,
 }
 
 export function useArchive(entityId?: number) {
@@ -47,6 +51,29 @@ export function useEstablishments(entityId: number) {
   })
 }
 
+export function useCorrections() {
+  return useQuery({
+    queryKey: fiscalKeys.corrections(),
+    queryFn: fiscalApi.listCorrections,
+  })
+}
+
+export function useCorrection(requestId: string | null) {
+  return useQuery({
+    queryKey: fiscalKeys.correction(requestId ?? 'missing'),
+    queryFn: () => fiscalApi.getCorrection(requestId!),
+    enabled: Boolean(requestId),
+  })
+}
+
+export function useArchiveReadiness(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.readiness(entityId),
+    queryFn: () => fiscalApi.getReadiness(entityId),
+    enabled: entityId > 0,
+  })
+}
+
 export function useFiscalMutations() {
   const queryClient = useQueryClient()
   return {
@@ -64,6 +91,53 @@ export function useFiscalMutations() {
         queryClient.invalidateQueries({
           queryKey: fiscalKeys.origin(variables.sourceKind, variables.sourceId),
         }),
+    }),
+    createCorrection: useMutation({
+      mutationFn: ({
+        data,
+        attemptKey,
+      }: {
+        data: Parameters<typeof fiscalApi.createCorrection>[0]
+        attemptKey: string
+      }) => fiscalApi.createCorrection(data, attemptKey),
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.corrections() }),
+    }),
+    prepareCorrection: useMutation({
+      mutationFn: ({
+        requestId,
+        version,
+      }: {
+        requestId: string
+        version: number
+      }) => fiscalApi.prepareCorrection(requestId, version),
+      onSuccess: (_, variables) => {
+        void queryClient.invalidateQueries({
+          queryKey: fiscalKeys.corrections(),
+        })
+        void queryClient.invalidateQueries({
+          queryKey: fiscalKeys.correction(variables.requestId),
+        })
+      },
+    }),
+    cancelCorrection: useMutation({
+      mutationFn: ({
+        requestId,
+        version,
+        reason,
+      }: {
+        requestId: string
+        version: number
+        reason: string
+      }) => fiscalApi.cancelCorrection(requestId, version, reason),
+      onSuccess: (_, variables) => {
+        void queryClient.invalidateQueries({
+          queryKey: fiscalKeys.corrections(),
+        })
+        void queryClient.invalidateQueries({
+          queryKey: fiscalKeys.correction(variables.requestId),
+        })
+      },
     }),
     updateDraft: useMutation({
       mutationFn: ({
@@ -182,6 +256,21 @@ export function useFiscalMutations() {
           queryKey: ['workshop-configuration', 'taxes'],
         })
       },
+    }),
+    saveArchivePolicy: useMutation({
+      mutationFn: fiscalApi.saveArchivePolicy,
+      onSuccess: (result) =>
+        queryClient.setQueryData(
+          fiscalKeys.readiness(result.fiscal_entity_id),
+          result,
+        ),
+    }),
+    recordRestoration: useMutation({
+      mutationFn: fiscalApi.recordRestoration,
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: [...fiscalKeys.all, 'readiness'],
+        }),
     }),
   }
 }

@@ -7,21 +7,39 @@ import type { FiscalPreparationDetail } from '@/features/fiscal/types'
 import { FiscalPreparationPage } from './FiscalPreparationPage'
 
 const mocks = vi.hoisted(() => ({
-  preparation: { isPending: false, isError: false, data: null as unknown, refetch: vi.fn() },
-  review: { mutate: vi.fn(), isPending: false, isError: false, error: null as Error | null, data: null as unknown },
+  preparation: {
+    isPending: false,
+    isError: false,
+    data: null as unknown,
+    refetch: vi.fn(),
+  },
+  review: {
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null as Error | null,
+    data: null as unknown,
+  },
 }))
 
 vi.mock('@/features/fiscal/hooks', () => ({
   usePreparation: () => mocks.preparation,
   useEstablishments: () => ({ data: [], isError: false }),
   useFiscalMutations: () => ({
-    updateDraft: { mutate: vi.fn(), isPending: false, isError: false, error: null },
+    updateDraft: {
+      mutate: vi.fn(),
+      isPending: false,
+      isError: false,
+      error: null,
+    },
     review: mocks.review,
     prepare: { mutate: vi.fn(), isPending: false, isError: false, error: null },
   }),
 }))
 
-function detail(overrides: Partial<FiscalPreparationDetail> = {}): FiscalPreparationDetail {
+function detail(
+  overrides: Partial<FiscalPreparationDetail> = {},
+): FiscalPreparationDetail {
   return {
     preparation_id: '11111111-1111-1111-1111-111111111111',
     fiscal_entity_id: 1,
@@ -61,7 +79,10 @@ function renderPage() {
   return render(
     <MemoryRouter initialEntries={['/fiscal/preparations/x']}>
       <Routes>
-        <Route path="/fiscal/preparations/:id" element={<FiscalPreparationPage />} />
+        <Route
+          path="/fiscal/preparations/:id"
+          element={<FiscalPreparationPage />}
+        />
       </Routes>
     </MemoryRouter>,
   )
@@ -90,7 +111,9 @@ it('muestra el formulario del borrador con el receptor previo', () => {
 it('lista los datos faltantes de la revisión como impedimentos', () => {
   mocks.preparation.data = detail()
   mocks.review.data = {
-    impediments: [{ field: 'receiver.identification', message: 'Formato inválido' }],
+    impediments: [
+      { field: 'receiver.identification', message: 'Formato inválido' },
+    ],
     review_token: null,
   }
   renderPage()
@@ -102,8 +125,15 @@ it('muestra la instantánea histórica cuando está preparada', () => {
   mocks.preparation.data = detail({
     state: 'PREPARED',
     snapshot: {
-      issuer: { legal_name: 'Comercial SA', ruc: '1790000000001', environment: '1' },
-      receiver: { legal_name: 'Cliente Fiscal', identification: '0999999999001' },
+      issuer: {
+        legal_name: 'Comercial SA',
+        ruc: '1790000000001',
+        environment: '1',
+      },
+      receiver: {
+        legal_name: 'Cliente Fiscal',
+        identification: '0999999999001',
+      },
       base_total: '86.96',
       tax_total: '13.04',
       grand_total: '100.00',

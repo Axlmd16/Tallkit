@@ -35,12 +35,15 @@ export function FiscalPreparationLink({
     <Surface aria-label="Preparación fiscal">
       <h2 className="font-bold text-ink">Preparación fiscal</h2>
       <p className="mt-1 text-sm text-ink-muted">
-        Prepare una factura local para esta operación. No se envía al SRI ni obtiene
-        autorización; el cobro real se gestiona por separado.
+        Prepare una factura local para esta operación. No se envía al SRI ni
+        obtiene autorización; el cobro real se gestiona por separado.
       </p>
       {createPreparation.isError && (
         <div className="mt-3">
-          <InlineNotice title="No se pudo iniciar la preparación" tone="warning">
+          <InlineNotice
+            title="No se pudo iniciar la preparación"
+            tone="warning"
+          >
             {createPreparation.error.message}
           </InlineNotice>
         </div>
