@@ -104,6 +104,8 @@ Las entradas son inmutables mediante servicios: una corrección se registra como
 
 **Incorporación.** Un manifiesto versionado en el repositorio, `workshop_configuration/catalogs/sri-<version>.json`, contiene las entradas y su procedencia. Una migración de datos lo carga y comprueba el SHA-256 declarado. Si faltan campos de procedencia, falla sin cargar parcialmente. El manifiesto se construye desde la ficha técnica vigente descargada del SRI durante la implementación. Si la ficha difiere de la tabla de la spec, prevalece la ficha y la diferencia se registra en el manifiesto y en `cobertura-modulo-fiscal.md`.
 
+**Vigencias no publicadas.** Si la ficha no publica la vigencia de una entrada, como ocurre con la Tabla 17 en la versión 2.34, `valid_from` queda vacío y `validity_note` lo explica. No se infieren fechas. Una entrada sin vigencia publicada se considera vigente mientras esté activa.
+
 **Compatibilidad.** Las correspondencias existentes usan `catalog_version = "SRI-2.34-IVA-subset-v1"`. El manifiesto incorpora también esa versión, con su procedencia original (ficha 2.34), para que sigan siendo resolubles. `FiscalTaxMapping` recibe un FK nullable `catalog_entry`, que la migración rellena por `(catalog_version, percentage_code)`. Las nuevas correspondencias exigen `catalog_entry`, y `percentage_code` y `catalog_version` se derivan de la entrada. `resolve_mapping` consulta la entrada en lugar de `IVA_CODES`, y ambas constantes se eliminan.
 
 **Alternativa descartada:** seguir con constantes en el código, porque contradice la decisión de catálogos versionados y obligaría a desplegar código para una actualización normativa.

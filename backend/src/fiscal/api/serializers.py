@@ -346,7 +346,7 @@ class FiscalPoint(serializers.Serializer[dict[str, Any]]):
 
 class FiscalTaxMappingWrite(StrictSerializer):
     definition_id = serializers.IntegerField(min_value=1)
-    percentage_code = serializers.CharField(max_length=4)
+    catalog_entry_id = serializers.IntegerField(min_value=1)
     starts_on = serializers.DateField()
     ends_on = serializers.DateField(required=False, allow_null=True)
     source: Any = serializers.CharField(min_length=1, max_length=500, trim_whitespace=True)
@@ -357,6 +357,8 @@ class FiscalTaxMapping(serializers.Serializer[dict[str, Any]]):
     definition_id = serializers.IntegerField()
     catalog_version = serializers.CharField()
     percentage_code = serializers.CharField()
+    catalog_entry_id = serializers.IntegerField(allow_null=True)
+    display_name = serializers.CharField(allow_null=True)
     starts_on = serializers.DateField()
     ends_on = serializers.DateField(allow_null=True)
     source: Any = serializers.CharField()

@@ -11,31 +11,31 @@ Por instrucción del usuario se ejecutan solo pruebas focalizadas:
 
 No se ejecutan `make check`, `make test` ni Playwright completo; si una tarea los pide, se registra qué se ejecutó y qué no. Cada tarea de comportamiento sigue TDD: prueba roja por la razón esperada, implementación mínima, refactorización y prueba verde.
 
-- [ ] 1.1 Comprobar el estado Git, que los artefactos aprobados estén en `master` y el estado del cambio activo `ajustar-venta-vinculada-vacia-y-textos-de-servicios`. Registrar cualquier contradicción nueva sin cambiar reglas de negocio.
-- [ ] 1.2 Ampliar `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con los requisitos y escenarios de las cinco specs delta, enlazando cada uno con su tarea y su prueba o evidencia en estado pendiente.
-- [ ] 1.3 Descargar desde el sitio del SRI la ficha técnica vigente de facturación electrónica y registrar la versión exacta, la URL, la fecha de descarga y el SHA-256 del archivo. Extraer de ella las tarifas de IVA (códigos, descripciones, tarifas, tratamientos y vigencias) y las formas de pago de la Tabla 24. Anotar toda diferencia con la tabla de la spec, sabiendo que prevalece la ficha.
+- [x] 1.1 Comprobar el estado Git, que los artefactos aprobados estén en `master` y el estado del cambio activo `ajustar-venta-vinculada-vacia-y-textos-de-servicios`. Registrar cualquier contradicción nueva sin cambiar reglas de negocio.
+- [x] 1.2 Ampliar `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con los requisitos y escenarios de las cinco specs delta, enlazando cada uno con su tarea y su prueba o evidencia en estado pendiente.
+- [x] 1.3 Descargar desde el sitio del SRI la ficha técnica vigente de facturación electrónica y registrar la versión exacta, la URL, la fecha de descarga y el SHA-256 del archivo. Extraer de ella las tarifas de IVA (códigos, descripciones, tarifas, tratamientos y vigencias) y las formas de pago de la Tabla 24. Anotar toda diferencia con la tabla de la spec, sabiendo que prevalece la ficha.
   - **Si la ficha no está disponible:** marcar la tarea como bloqueada y continuar con los grupos que no dependen del contenido. No se usan valores de la spec ni de proveedores.
   - **Evidencia:** procedencia registrada en el manifiesto y en `cobertura-modulo-fiscal.md`.
-- [ ] 1.4 Crear `backend/src/workshop_configuration/catalogs/sri-<version>.json` con las entradas vigentes de 1.3. Incluir también la versión legado `SRI-2.34-IVA-subset-v1` con su procedencia original (ficha 2.34), para mantener resolubles las correspondencias existentes. Cada entrada lleva `display_name` comprensible.
+- [x] 1.4 Crear `backend/src/workshop_configuration/catalogs/sri-<version>.json` con las entradas vigentes de 1.3. Incluir también la versión legado `SRI-2.34-IVA-subset-v1` con su procedencia original (ficha 2.34), para mantener resolubles las correspondencias existentes. Cada entrada lleva `display_name` comprensible.
 
 ## 2. Catálogo oficial versionado (backend)
 
 Dependencias: 1.3 y 1.4 para la carga de datos; el modelo y las validaciones pueden empezar antes. Diseño D2/D10; spec `configuracion-operativa-y-fiscal` (correspondencias y formas de pago).
 
-- [ ] 2.1 Escribir `backend/tests/workshop_configuration/test_official_catalog.py`:
+- [x] 2.1 Escribir `backend/tests/workshop_configuration/test_official_catalog.py`:
   - procedencia obligatoria (versión de ficha, URL, fecha de descarga, SHA);
   - unicidad `(kind, catalog_version, code)`;
   - vigencia válida y `rate` solo en `TAX_RATE`;
   - inmutabilidad mediante servicios;
   - rechazo de una entrada sin fuente.
-- [ ] 2.2 Crear `OfficialCatalogEntry` en `workshop_configuration/models.py` con sus restricciones y la migración de esquema. Criterio: las pruebas de 2.1 del modelo pasan y `uv run python manage.py makemigrations --check` no detecta cambios pendientes.
-- [ ] 2.3 Crear el servicio de lectura `application/official_catalog.py` (listar por tipo, versión y estado activo; obtener una entrada) y la migración de datos que carga el manifiesto.
+- [x] 2.2 Crear `OfficialCatalogEntry` en `workshop_configuration/models.py` con sus restricciones y la migración de esquema. Criterio: las pruebas de 2.1 del modelo pasan y `uv run python manage.py makemigrations --check` no detecta cambios pendientes.
+- [x] 2.3 Crear el servicio de lectura `application/official_catalog.py` (listar por tipo, versión y estado activo; obtener una entrada) y la migración de datos que carga el manifiesto.
   - La migración verifica el SHA declarado y falla sin carga parcial si falta procedencia.
   - Probar la carga, el fallo por manifiesto alterado y la reversión.
-- [ ] 2.4 Probar y añadir `FiscalTaxMapping.catalog_entry` (nullable), con relleno por `(catalog_version, percentage_code)`.
+- [x] 2.4 Probar y añadir `FiscalTaxMapping.catalog_entry` (nullable), con relleno por `(catalog_version, percentage_code)`.
   - Si una fila queda sin entrada, la migración falla y la informa.
   - Ampliar `test_fiscal_migrations.py` con datos previos y la reversión.
-- [ ] 2.5 Adaptar `application/fiscal_tax_mapping.py` para exigir `catalog_entry_id` en las correspondencias nuevas y derivar código y versión de la entrada. `resolve_mapping` debe resolver desde la entrada y comparar la tarifa histórica, y deben eliminarse `IVA_CODES`, `CATALOG_VERSION` y `CATALOG_SOURCE`.
+- [x] 2.5 Adaptar `application/fiscal_tax_mapping.py` para exigir `catalog_entry_id` en las correspondencias nuevas y derivar código y versión de la entrada. `resolve_mapping` debe resolver desde la entrada y comparar la tarifa histórica, y deben eliminarse `IVA_CODES`, `CATALOG_VERSION` y `CATALOG_SOURCE`.
   - Actualizar `test_fiscal_tax_mapping.py`: tarifa incompatible, solapamiento, entrada inactiva y tratamientos cero, no objeto y exento distintos.
   - Probar la resolución de una correspondencia legado.
 
