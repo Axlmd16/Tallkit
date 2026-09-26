@@ -17,6 +17,7 @@ vi.mock('@/features/auth/hooks', () => ({
   }),
 }))
 vi.mock('@/features/sales/hooks', () => ({ useSale: () => mocks.query }))
+vi.mock('@/features/fiscal', () => ({ FiscalPreparationLink: () => null }))
 
 vi.mock('@/features/sales/PaymentDialog', async () => ({
   PaymentDialog: (await import('./dialog-stub')).dialogStub('Cobro'),

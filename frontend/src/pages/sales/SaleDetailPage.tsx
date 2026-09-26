@@ -10,6 +10,7 @@ import { useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
+import { FiscalPreparationLink } from '@/features/fiscal'
 import { CorrectionDialog } from '@/features/sales/CorrectionDialog'
 import {
   documentDate,
@@ -148,6 +149,10 @@ export function SaleDetailPage() {
             Ver orden de origen
           </Link>
         </InlineNotice>
+      )}
+
+      {sale.state === 'CONFIRMED' && (
+        <FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={sale.id} />
       )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
