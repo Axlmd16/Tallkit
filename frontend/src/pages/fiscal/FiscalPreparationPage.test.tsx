@@ -386,3 +386,36 @@ it('keeps the cancelled state as a local cancellation', () => {
   ).toBeVisible()
   expectNoForbiddenFiscalTerms(container)
 })
+
+it('shows a format-1 local preparation as frozen without inventing configuration references', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      schema_version: 'factura-2.1.0',
+      reference_date: '2026-09-20',
+      receiver: {
+        legal_name: 'Cliente antiguo',
+        identification: '0999999999001',
+      },
+      totals: { tax: '13.04', grand: '100.00' },
+      lines: [
+        {
+          position: 1,
+          description: 'Filtro',
+          quantity: '1',
+          total_amount: '100.00',
+          tax_rate: '15',
+        },
+      ],
+      payments: [{ payment_code: '01', amount: '100.00' }],
+    },
+  })
+  const { container } = renderPage()
+  expect(screen.getByText('Cliente antiguo')).toBeVisible()
+  expect(screen.getByText('15 %')).toBeVisible()
+  expect(screen.getByText(/01 · USD 100\.00/)).toBeVisible()
+  expect(screen.queryByText('Información avanzada')).toBeNull()
+  expectNoForbiddenFiscalTerms(container)
+})

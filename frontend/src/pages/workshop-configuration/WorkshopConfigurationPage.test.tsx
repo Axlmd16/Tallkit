@@ -62,11 +62,18 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   useUpdateSeriesCode: () => mocks.seriesUpdate,
   useInitializeWorkshop: () => mocks.initialize,
 }))
-vi.mock('@/features/fiscal/FiscalConfigurationSection', () => ({
-  FiscalConfigurationSection: () => (
-    <section aria-label="Configuración fiscal electrónica" />
-  ),
-}))
+const fiscalSection = vi.hoisted(() => ({ mounts: 0 }))
+vi.mock('@/features/fiscal/FiscalConfigurationSection', async () => {
+  const { useEffect } = await import('react')
+  return {
+    FiscalConfigurationSection: () => {
+      useEffect(() => {
+        fiscalSection.mounts += 1
+      }, [])
+      return <section aria-label="Configuración fiscal electrónica" />
+    },
+  }
+})
 
 import { WorkshopConfigurationPage } from './WorkshopConfigurationPage'
 
@@ -170,6 +177,7 @@ function resetMutation(mutation: (typeof mocks)['initialize']) {
 }
 
 beforeEach(() => {
+  fiscalSection.mounts = 0
   mocks.status.data = { is_initialized: true }
   mocks.status.isLoading = false
   mocks.status.isError = false
@@ -543,4 +551,22 @@ it('uses neutral zero-value fallbacks while configuration queries have no data',
   ).toBeInTheDocument()
   expect(screen.getByText('Aún no hay series configuradas')).toBeInTheDocument()
   expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(4)
+})
+
+it('mounts electronic billing only after its first visit and keeps it afterwards', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  expect(fiscalSection.mounts).toBe(0)
+  expect(
+    screen.queryByRole('region', {
+      name: 'Configuración fiscal electrónica',
+      hidden: true,
+    }),
+  ).toBeNull()
+
+  await openTab(user, 'Facturación electrónica')
+  expect(fiscalSection.mounts).toBe(1)
+  await openTab(user, 'Bodega')
+  await openTab(user, 'Facturación electrónica')
+  expect(fiscalSection.mounts).toBe(1)
 })

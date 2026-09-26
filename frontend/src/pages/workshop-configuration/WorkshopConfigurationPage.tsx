@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import {
   Buildings,
@@ -93,6 +93,11 @@ function ConfiguredWorkshopContent() {
   const tab: ConfigurationTab = isConfigurationTab(requested)
     ? requested
     : 'entidades'
+  // Facturación electrónica se monta al visitarla por primera vez y después se conserva.
+  const [billingVisited, setBillingVisited] = useState(tab === 'facturacion')
+  useEffect(() => {
+    if (tab === 'facturacion') setBillingVisited(true)
+  }, [tab])
 
   const selectTab = (next: string) => {
     const nextParams = new URLSearchParams(params)
@@ -145,12 +150,13 @@ function ConfiguredWorkshopContent() {
           {
             id: 'facturacion',
             label: 'Facturación electrónica',
-            content: (
-              <FiscalConfigurationSection
-                entities={entities ?? []}
-                taxDefinitions={taxes ?? []}
-              />
-            ),
+            content:
+              billingVisited || tab === 'facturacion' ? (
+                <FiscalConfigurationSection
+                  entities={entities ?? []}
+                  taxDefinitions={taxes ?? []}
+                />
+              ) : null,
           },
         ]}
       />

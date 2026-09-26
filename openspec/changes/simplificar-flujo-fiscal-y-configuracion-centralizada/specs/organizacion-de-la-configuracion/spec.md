@@ -55,7 +55,7 @@ Salvo el cambio de etiquetas y la ubicación en pestañas, las pestañas *Entida
 
 *Series y numeración* SHALL contener únicamente las series internas (COM-ING, COM-PRO, COM-VEN, ART-SER y sus sustitutas) y SHALL NOT mostrar establecimientos, puntos ni secuenciales fiscales. *Facturación electrónica* SHALL NOT mostrar series internas.
 
-Los errores y confirmaciones de una acción SHALL mostrarse dentro del panel de la pestaña que la originó, y un error persistente SHALL seguir visible al volver a ella mientras no se resuelva.
+Los errores y confirmaciones de una acción SHALL mostrarse dentro del panel de la pestaña que la originó, y SHALL NOT aparecer en otra pestaña. Cada pestaña SHALL conservar su estado (formularios y errores pendientes) al cambiar a otra y volver. Un diálogo modal abierto con un error SHALL impedir cambiar de pestaña hasta cerrarlo.
 
 Trazabilidad: propuesta C14; DP-006; RF-ACC-010…012; spec `configuracion-operativa-y-fiscal`.
 
@@ -64,10 +64,15 @@ Trazabilidad: propuesta C14; DP-006; RF-ACC-010…012; spec `configuracion-opera
 - **CUANDO** el Administrador edita la razón social de la entidad comercial
 - **ENTONCES** SHALL aplicarse la misma validación y resultado que antes de la reorganización.
 
-#### Scenario: Error en impuestos al cambiar de pestaña
+#### Scenario: Error de impuestos dentro de su pestaña
 - **DADO** un intento fallido de registrar una vigencia tributaria solapada en *Impuestos*
-- **CUANDO** el Administrador cambia a *Bodega* y regresa a *Impuestos*
-- **ENTONCES** el error SHALL seguir visible en *Impuestos* y SHALL NOT aparecer en otra pestaña.
+- **CUANDO** se muestra el error en su diálogo
+- **ENTONCES** el error SHALL pertenecer al panel de *Impuestos*, SHALL NOT aparecer en otra pestaña y las demás pestañas SHALL quedar inaccesibles hasta cerrar el diálogo.
+
+#### Scenario: Estado conservado al volver a una pestaña
+- **DADO** una pestaña con datos o estado pendientes
+- **CUANDO** el Administrador cambia a otra pestaña y regresa
+- **ENTONCES** SHALL encontrar el mismo estado, sin haberse reiniciado.
 
 #### Scenario: Numeración interna separada
 - **DADO** una entidad con serie COM-VEN y punto fiscal `001-001`
