@@ -39,6 +39,10 @@ class FiscalEntityTypeImmutableError(EntityWarehouseError):
     pass
 
 
+class FiscalEntityRucImmutableError(EntityWarehouseError):
+    pass
+
+
 # ---------------------------------------------------------------------------
 # Consultas de entidades fiscales
 # ---------------------------------------------------------------------------
@@ -155,6 +159,15 @@ def update_fiscal_entity(
 
             # Validar que el RUC no coincida con la otra entidad
             if ruc_v is not None and ruc_v != entity.ruc:
+                has_fiscal_history = (
+                    entity.electronic_profiles.exists()
+                    or entity.establishments.exists()
+                    or entity.tax_definitions.filter(fiscal_mappings__isnull=False).exists()
+                )
+                if has_fiscal_history:
+                    raise FiscalEntityRucImmutableError(
+                        "El RUC no puede cambiar después de registrar configuración fiscal."
+                    )
                 other_exists = FiscalEntity.objects.exclude(pk=entity_id).filter(ruc=ruc_v).exists()
                 if other_exists:
                     raise ConfigurationValidationError(

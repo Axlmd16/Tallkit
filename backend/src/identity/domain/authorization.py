@@ -24,6 +24,12 @@ _SHARED_CATALOG_PERMISSIONS = frozenset(
 ROLE_PERMISSIONS: Mapping[Role, frozenset[str]] = {
     Role.ADMINISTRADOR: frozenset(
         {
+            "fiscal.comercial.preparar",
+            "fiscal.comercial.ver",
+            "fiscal.artesanal.preparar",
+            "fiscal.artesanal.ver",
+            "fiscal.archivo.gestionar",
+            "fiscal.correcciones.gestionar",
             "auditoria.ver",
             "cierres.gestionar",
             "clientes.desactivar",
@@ -98,6 +104,8 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[str]] = {
     | _SHARED_CATALOG_PERMISSIONS,
     Role.VENDEDOR: frozenset(
         {
+            "fiscal.comercial.preparar",
+            "fiscal.comercial.ver",
             "inventario.consumo_interno",
             "pagos_comerciales.registrar",
             "pagos_comerciales.ver",
@@ -114,6 +122,8 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[str]] = {
     | _SHARED_CATALOG_PERMISSIONS,
     Role.ENCARGADO_TALLER: frozenset(
         {
+            "fiscal.artesanal.preparar",
+            "fiscal.artesanal.ver",
             "mantenimientos.cambiar_precio_servicio",
             "mantenimientos.cancelar",
             "mantenimientos.finalizar",

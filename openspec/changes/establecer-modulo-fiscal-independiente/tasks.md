@@ -4,10 +4,10 @@ Dependencias: propuesta, siete specs y diseño D1–D14 aprobados; diseño dispo
 
 Por instrucción del usuario, ejecutar únicamente pruebas necesarias y regresiones directamente afectadas. No ejecutar por defecto `make check`, `make test` ni suites completas. Cada tarea de comportamiento seguirá prueba roja por la razón esperada → implementación mínima → refactorización → prueba verde. Ampliar pruebas solo con motivo concreto. Mantener la cobertura de escenarios, no confundir menor ejecución con omitir requisitos.
 
-- [ ] 1.1 Verificar que propuesta, specs, diseño y tareas aprobadas estén disponibles en `master` antes de aplicar; comprobar estado Git y preservar cambios ajenos. Registrar cualquier nueva contradicción o bloqueo sin modificar reglas de negocio.
-- [ ] 1.2 Crear `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con las 34 reglas y 89 escenarios, enlazando spec, tarea, prueba/evidencia y estado pendiente; distinguir pruebas automatizadas de verificaciones administrativas.
-- [ ] 1.3 Definir selección de pruebas por grupo y registro de comandos/resultados. Durante TDD usar, desde `backend/`, `uv run --frozen pytest --no-cov <archivo_o_nodeid>`; ejecutar solo casos modificados hasta que pasen y después las regresiones justificadas del grupo.
-- [ ] 1.4 Registrar cobertura focalizada al cerrar cada grupo relevante con `uv run --frozen pytest -o addopts='' <seleccion> --cov=<paquete_afectado> --cov-branch --cov-report=term-missing --cov-fail-under=85`; justificar y cubrir las ramas nuevas que falten. No aplicar cobertura global a una selección parcial ni modificar el umbral global del proyecto.
+- [x] 1.1 Verificar que propuesta, specs, diseño y tareas aprobadas estén disponibles en `master` antes de aplicar; comprobar estado Git y preservar cambios ajenos. Registrar cualquier nueva contradicción o bloqueo sin modificar reglas de negocio.
+- [x] 1.2 Crear `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con las 34 reglas y 89 escenarios, enlazando spec, tarea, prueba/evidencia y estado pendiente; distinguir pruebas automatizadas de verificaciones administrativas.
+- [x] 1.3 Definir selección de pruebas por grupo y registro de comandos/resultados. Durante TDD usar, desde `backend/`, `uv run --frozen pytest --no-cov <archivo_o_nodeid>`; ejecutar solo casos modificados hasta que pasen y después las regresiones justificadas del grupo.
+- [x] 1.4 Registrar cobertura focalizada al cerrar cada grupo relevante con `uv run --frozen pytest -o addopts='' <seleccion> --cov=<paquete_afectado> --cov-branch --cov-report=term-missing --cov-fail-under=85`; justificar y cubrir las ramas nuevas que falten. No aplicar cobertura global a una selección parcial ni modificar el umbral global del proyecto.
 
 Evidencia: matriz inicial completa y plan de selección coherente con diseño D14. Documentar lo no ejecutado; ninguna casilla implica implementación antes de aprobación de este artefacto.
 
@@ -15,12 +15,12 @@ Evidencia: matriz inicial completa y plan de selección coherente con diseño D1
 
 Dependencias: grupo 1. Diseño D1/D2/D11; spec `configuracion-operativa-y-fiscal`.
 
-- [ ] 2.1 Escribir pruebas focalizadas en `backend/tests/workshop_configuration/` para perfil desconocido frente a no aplicable, fuente/vigencia, revisión utilizada y certificado solo declarado; incluir rechazo de P12, claves privadas y contraseñas sin filtración en errores.
-- [ ] 2.2 Extender modelos y migraciones de `backend/src/workshop_configuration/` para perfiles/revisiones, establecimientos/puntos y metadatos de certificado. Probar sobre datos previos que no se inventan regímenes, puntos, tarifas ni certificados y no se altera configuración interna.
+- [x] 2.1 Escribir pruebas focalizadas en `backend/tests/workshop_configuration/` para perfil desconocido frente a no aplicable, fuente/vigencia, revisión utilizada y certificado solo declarado; incluir rechazo de P12, claves privadas y contraseñas sin filtración en errores.
+- [x] 2.2 Extender modelos y migraciones de `backend/src/workshop_configuration/` para perfiles/revisiones, establecimientos/puntos y metadatos de certificado. Probar sobre datos previos que no se inventan regímenes, puntos, tarifas ni certificados y no se altera configuración interna.
 - [ ] 2.3 Implementar servicios de configuración y validación de códigos, unicidad y desactivación prospectiva; impedir cambiar RUC o códigos utilizados, también desde los comandos existentes. Probar carreras entre preparación y modificación del perfil según orden de D6.
-- [ ] 2.4 Añadir versiones del catálogo oficial y correspondencias con `TaxDefinition`, diferenciando cero, no objeto y exento. Probar vigencias, solapamientos, porcentajes incompatibles y conservación de versiones usadas; no deducir tratamiento legal por porcentaje.
-- [ ] 2.5 Añadir resolución fiscal pública separada de `application/configuration_resolver.py` actual, devolviendo valores inmutables. Mantener las confirmaciones comerciales/artesanales sin nuevos requisitos fiscales.
-- [ ] 2.6 Definir permisos fiscales derivados de roles en `backend/src/identity/domain/authorization.py` y aplicarlos mediante la autorización existente. Probar todos los roles, su unión y la consulta comercial limitada del Encargado; no crear roles ni permisos personales.
+- [x] 2.4 Añadir versiones del catálogo oficial y correspondencias con `TaxDefinition`, diferenciando cero, no objeto y exento. Probar vigencias, solapamientos, porcentajes incompatibles y conservación de versiones usadas; no deducir tratamiento legal por porcentaje.
+- [x] 2.5 Añadir resolución fiscal pública separada de `application/configuration_resolver.py` actual, devolviendo valores inmutables. Mantener las confirmaciones comerciales/artesanales sin nuevos requisitos fiscales.
+- [x] 2.6 Definir permisos fiscales derivados de roles en `backend/src/identity/domain/authorization.py` y aplicarlos mediante la autorización existente. Probar todos los roles, su unión y la consulta comercial limitada del Encargado; no crear roles ni permisos personales.
 
 Evidencia: pruebas nuevas de configuración/permisos y casos pertinentes de `backend/tests/workshop_configuration/test_api.py`, `backend/tests/sales/test_confirm.py` y `backend/tests/workshop/test_service_operations.py`, seleccionados por caso para demostrar continuidad sin perfil electrónico. Verificar migración y restricciones, sin ejecutar esos directorios completos por defecto.
 
@@ -28,12 +28,12 @@ Evidencia: pruebas nuevas de configuración/permisos y casos pertinentes de `bac
 
 Dependencias: grupo 2. Diseño D1/D3/D6/D7; specs de preparación y acceso comercial/artesanal.
 
-- [ ] 3.1 Crear pruebas de frontera y valores puros en `backend/tests/fiscal/`, luego `backend/src/fiscal/domain/` y registro mínimo de aplicación. Probar que dominio no importa Django, HTTP o proveedores y no permite estado oficial ficticio.
-- [ ] 3.2 Crear pruebas y servicios públicos `sales/application/fiscal_source.py` y `workshop/application/fiscal_source.py`: snapshot histórico, versión, estado, correcciones y lectura bajo bloqueo; no mutar persistencia ajena ni incluir repuestos en el origen artesanal.
-- [ ] 3.3 Añadir persistencia/migraciones de preparación, snapshot, recibos e historia en fiscal: UUID estable, origen protegido exactamente uno, versión optimista y unicidad condicional de preparación activa por origen. Probar restricciones y cancelación sin pérdida de historia.
-- [ ] 3.4 Implementar comandos propios con **idempotencia**, autorización anterior al replay, huella canónica y auditoría mínima. Reutilizar utilidades puras existentes sin importar los modelos de comandos de ventas.
-- [ ] 3.5 Probar respuesta perdida, intento incompatible, permiso revocado, dos ventas legítimas iguales y creación simultánea de preparación. Implementar recuperación y traducción de conflictos usando `shared/transactions.py` con rollback completo.
-- [ ] 3.6 Añadir consultas de discrepancia entre origen actual e instantánea; probar anulación/devolución/reapertura posteriores y cobro independiente, sin bloquear operaciones internas ni producir efectos fiscales automáticos.
+- [x] 3.1 Crear pruebas de frontera y valores puros en `backend/tests/fiscal/`, luego `backend/src/fiscal/domain/` y registro mínimo de aplicación. Probar que dominio no importa Django, HTTP o proveedores y no permite estado oficial ficticio.
+- [x] 3.2 Crear pruebas y servicios públicos `sales/application/fiscal_source.py` y `workshop/application/fiscal_source.py`: snapshot histórico, versión, estado, correcciones y lectura bajo bloqueo; no mutar persistencia ajena ni incluir repuestos en el origen artesanal.
+- [x] 3.3 Añadir persistencia/migraciones de preparación, snapshot, recibos e historia en fiscal: UUID estable, origen protegido exactamente uno, versión optimista y unicidad condicional de preparación activa por origen. Probar restricciones y cancelación sin pérdida de historia.
+- [x] 3.4 Implementar comandos propios con **idempotencia**, autorización anterior al replay, huella canónica y auditoría mínima. Reutilizar utilidades puras existentes sin importar los modelos de comandos de ventas.
+- [x] 3.5 Probar respuesta perdida, intento incompatible, permiso revocado, dos ventas legítimas iguales y creación simultánea de preparación. Implementar recuperación y traducción de conflictos usando `shared/transactions.py` con rollback completo.
+- [x] 3.6 Añadir consultas de discrepancia entre origen actual e instantánea; probar anulación/devolución/reapertura posteriores y cobro independiente, sin bloquear operaciones internas ni producir efectos fiscales automáticos.
 
 Evidencia: archivos focalizados nuevos de origen, comandos y concurrencia; PostgreSQL real con conexiones independientes y barreras. Comprobar que ningún error fiscal modifica deuda, inventario o numeración interna.
 
@@ -41,7 +41,7 @@ Evidencia: archivos focalizados nuevos de origen, comandos y concurrencia; Postg
 
 Dependencias: grupo 3. Diseño D3/D4/D7; spec `preparacion-y-seguimiento-fiscal`.
 
-- [ ] 4.1 Escribir pruebas e implementar validadores puros del receptor: formatos por tipo, sin algoritmo universal de RUC, consumidor final explícito y restringido, sin cambiar la ficha ni snapshot comercial del cliente.
+- [x] 4.1 Escribir pruebas e implementar validadores puros del receptor: formatos por tipo, sin algoritmo universal de RUC, consumidor final explícito y restringido, sin cambiar la ficha ni snapshot comercial del cliente.
 - [ ] 4.2 Crear `docs/tecnico/matriz-instantanea-fiscal.md` contra el esquema oficial de factura soportado, cubriendo cada campo obligatorio/condicional con valor conservado, derivación o no aplicabilidad. Distinguir firma/autorización e identidad posterior; registrar procedencia y versión de fuentes.
 - [ ] 4.3 Añadir casos de suficiencia para emisor, receptor, domicilios, condiciones, leyendas, líneas, códigos, totales e información adicional. Implementar snapshot versionado con cadenas decimales, sin datos operativos o personales innecesarios.
 - [ ] 4.4 Probar representación de precio unitario sin impuestos y coherencia de bases/impuestos/totales, conservando cálculos históricos de `shared/money.py`. Cubrir varias líneas por tarifa, tratamientos distintos, diferencia de centavo y precisión insuficiente; no introducir ajustes automáticos.

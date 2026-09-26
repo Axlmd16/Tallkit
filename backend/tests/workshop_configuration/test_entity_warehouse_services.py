@@ -11,8 +11,10 @@ import pytest
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.domain.authorization import Role
 from identity.models import User, UserRole
+from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.entity_warehouse import (
     FiscalEntityNotFoundError,
+    FiscalEntityRucImmutableError,
     FiscalEntityTypeImmutableError,
     StaleRecordError,
     WarehouseNotFoundError,
@@ -198,6 +200,30 @@ def test_update_fiscal_entity_rejects_duplicate_ruc(
         )
     entity = FiscalEntity.objects.get(pk=initialized["comercial_id"])
     assert entity.ruc == "0991234567001"
+
+
+@pytest.mark.django_db
+def test_update_fiscal_entity_rejects_ruc_change_after_fiscal_configuration_is_recorded(
+    admin: User, initialized: InitializedData
+) -> None:
+    entity_id = initialized["comercial_id"]
+    save_profile(
+        actor=admin,
+        entity_id=entity_id,
+        expected_revision=0,
+        idempotency_key="profile:ruc-lock",
+        payload={},
+    )
+
+    with pytest.raises(FiscalEntityRucImmutableError):
+        update_fiscal_entity(
+            actor=admin,
+            entity_id=entity_id,
+            expected_version=1,
+            ruc="0999999999001",
+        )
+
+    assert FiscalEntity.objects.get(pk=entity_id).ruc == "0991234567001"
 
 
 @pytest.mark.django_db

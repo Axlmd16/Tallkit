@@ -393,3 +393,112 @@ class ConfigurationCommand(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action}:{self.idempotency_key}"
+
+
+class ElectronicProfileRevision(models.Model):
+    """Revisión declarada e inmutable por servicios; no acredita habilitación SRI."""
+
+    fiscal_entity = models.ForeignKey(
+        FiscalEntity, on_delete=models.PROTECT, related_name="electronic_profiles"
+    )
+    revision = models.PositiveBigIntegerField()
+    conditions = models.JSONField()
+    certificate = models.JSONField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["fiscal_entity", "revision"], name="electronic_profile_revision_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(revision__gte=1), name="electronic_profile_revision_positive"
+            ),
+        ]
+        ordering: ClassVar[list[str]] = ["fiscal_entity_id", "revision"]
+
+    def __str__(self) -> str:
+        return f"Perfil electrónico {self.fiscal_entity_id}, revisión {self.revision}"
+
+
+class FiscalEstablishment(models.Model):
+    fiscal_entity = models.ForeignKey(
+        FiscalEntity, on_delete=models.PROTECT, related_name="establishments"
+    )
+    code = models.CharField(max_length=3)
+    address = models.CharField(max_length=300)
+    is_active = models.BooleanField(default=True)
+    version = models.PositiveBigIntegerField(default=1)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["fiscal_entity", "code"], name="fiscal_establishment_code_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(code__regex=r"^[0-9]{3}$") & ~models.Q(code="000"),
+                name="fiscal_establishment_code_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(address__regex=r"\S"), name="fiscal_establishment_address"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.fiscal_entity_id}:{self.code}"
+
+
+class FiscalEmissionPoint(models.Model):
+    establishment = models.ForeignKey(
+        FiscalEstablishment, on_delete=models.PROTECT, related_name="emission_points"
+    )
+    code = models.CharField(max_length=3)
+    is_active = models.BooleanField(default=True)
+    version = models.PositiveBigIntegerField(default=1)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["establishment", "code"], name="fiscal_point_code_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(code__regex=r"^[0-9]{3}$") & ~models.Q(code="000"),
+                name="fiscal_point_code_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.establishment_id}:{self.code}"
+
+
+class FiscalTaxMapping(models.Model):
+    tax_definition = models.ForeignKey(
+        TaxDefinition, on_delete=models.PROTECT, related_name="fiscal_mappings"
+    )
+    catalog_version = models.CharField(max_length=64)
+    percentage_code = models.CharField(max_length=4)
+    starts_on = models.DateField()
+    ends_on = models.DateField(null=True, blank=True)
+    source = models.CharField(max_length=500)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(ends_on__isnull=True)
+                | models.Q(ends_on__gte=models.F("starts_on")),
+                name="fiscal_tax_mapping_interval",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(source__regex=r"\S"), name="fiscal_tax_mapping_source"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.tax_definition_id}:{self.catalog_version}:{self.percentage_code}"
