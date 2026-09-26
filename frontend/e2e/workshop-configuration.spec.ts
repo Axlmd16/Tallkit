@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import {
+  expectAdaptableAndAccessible,
+  REPRESENTATIVE_WIDTHS,
+} from './accessibility'
 import { login } from './helpers'
 
 const ENTITIES = [
@@ -78,6 +82,7 @@ function establishments(entityId: number) {
 
 async function mockConfiguration(page: Page) {
   const defaultsWrites: unknown[] = []
+  const profileWrites: unknown[] = []
   const api = '**/api/v1'
   await page.route(`${api}/workshop-configuration/status/`, (route) =>
     route.fulfill({ json: { is_initialized: true } }),
@@ -154,6 +159,9 @@ async function mockConfiguration(page: Page) {
     `${api}/fiscal/configuration/entities/*/electronic-profile/`,
     (route) => {
       const id = Number(route.request().url().split('/').at(-3))
+      if (route.request().method() === 'PUT') {
+        profileWrites.push(route.request().postDataJSON())
+      }
       return route.fulfill({
         json: {
           entity_id: id,
@@ -202,36 +210,53 @@ async function mockConfiguration(page: Page) {
   await page.route(`${api}/fiscal/configuration/catalogs/**`, (route) =>
     route.fulfill({ json: [] }),
   )
-  return defaultsWrites
+  return { defaultsWrites, profileWrites }
 }
 
-test('la configuración se organiza en pestañas navegables por teclado', async ({
+test('la configuración se recorre como una hoja con navegación de secciones', async ({
   page,
 }) => {
   await login(page, 'admin_e2e')
   await mockConfiguration(page)
   await page.goto('/configuration')
 
-  const tabs = page.getByRole('tablist', { name: 'Secciones de configuración' })
-  await expect(tabs.getByRole('tab')).toHaveText([
+  const sections = page.getByRole('navigation', {
+    name: 'Secciones de configuración',
+  })
+  await expect(sections.getByRole('link')).toHaveText([
     /Entidades fiscales/,
     /Bodega/,
     /Impuestos/,
     /Series y numeración/,
     /Facturación electrónica/,
   ])
+  await expect(page.getByRole('tablist')).toHaveCount(0)
   await expect(
-    page.getByRole('heading', { name: 'Entidades fiscales' }),
+    sections.getByRole('link', { name: /Entidades fiscales/ }),
+  ).toHaveAttribute('aria-current', 'page')
+  await expect(
+    page
+      .getByRole('article', { name: 'Entidad comercial' })
+      .getByText('RUC 1790000000001'),
   ).toBeVisible()
 
-  await tabs.getByRole('tab', { name: /Bodega/ }).click()
-  await page.keyboard.press('ArrowRight')
-  await expect(tabs.getByRole('tab', { name: /Impuestos/ })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
-  await page.keyboard.press('End')
-  await expect(page).toHaveURL(/tab=facturacion/)
+  await sections.getByRole('link', { name: /Bodega/ }).focus()
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Enter')
+  await expect(page).toHaveURL(/tab=impuestos/)
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Impuestos' }),
+  ).toBeVisible()
+
+  await page
+    .getByRole('link', { name: '2 pendientes en Facturación electrónica' })
+    .click()
+  await expect(page).toHaveURL(/tab=facturacion&entidad=1&seccion=puntos/)
+  await expect(
+    sections.getByRole('link', {
+      name: /Establecimientos y puntos de emisión/,
+    }),
+  ).toHaveAttribute('aria-current', 'page')
   await expect(
     page.getByText(
       'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
@@ -239,39 +264,84 @@ test('la configuración se organiza en pestañas navegables por teclado', async 
   ).toBeVisible()
 })
 
-test('facturación electrónica designa el punto y separa las entidades', async ({
+test('facturación electrónica designa el punto en un modal y separa las entidades', async ({
   page,
 }) => {
   await login(page, 'admin_e2e')
-  const writes = await mockConfiguration(page)
+  const { defaultsWrites } = await mockConfiguration(page)
   await page.goto('/configuration?tab=facturacion&seccion=puntos')
 
-  await expect(page.getByText('Local comercial', { exact: true })).toBeVisible()
-  await page
-    .getByLabel('Punto predeterminado para preparar')
+  const points = page.getByRole('region', {
+    name: 'Establecimientos y puntos de emisión',
+  })
+  await expect(points.getByText('Local comercial')).toBeVisible()
+  await points.getByRole('button', { name: 'Designar punto' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Punto predeterminado' })
+  await dialog
+    .getByLabel('Punto de emisión')
     .selectOption({ label: '001-002 · Local comercial' })
-  await page.getByRole('button', { name: 'Designar punto' }).click()
-  await expect.poll(() => writes.length).toBe(1)
-  expect(writes[0]).toEqual({ expected_version: 0, default_point_id: 101 })
+  await dialog.getByRole('button', { name: 'Guardar punto' }).click()
+  await expect.poll(() => defaultsWrites.length).toBe(1)
+  expect(defaultsWrites[0]).toEqual({
+    expected_version: 0,
+    default_point_id: 101,
+  })
 
-  await page.getByLabel('Entidad fiscal').selectOption('2')
+  await page
+    .getByRole('group', { name: 'Entidad fiscal' })
+    .getByText('Taller E2E', { exact: true })
+    .click()
+  await expect(page).toHaveURL(/entidad=2/)
+  await expect(points.getByText('Local del taller')).toBeVisible()
+  await expect(page.getByText('Local comercial')).toHaveCount(0)
   await expect(
-    page.getByText('Local del taller', { exact: true }),
-  ).toBeVisible()
-  await expect(page.getByText('Local comercial', { exact: true })).toHaveCount(
-    0,
-  )
-  await expect(
-    page.getByText('Todavía no existe una configuración guardada.'),
-  ).toBeVisible()
+    page.getByRole('status', { name: 'Estado de la configuración' }),
+  ).toContainText('Todavía no existe una configuración guardada.')
 
-  await page.getByRole('tab', { name: 'Formas de pago SRI' }).click()
-  const table = page.getByRole('table')
+  await page
+    .getByRole('navigation', { name: 'Secciones de configuración' })
+    .getByRole('link', { name: /Formas de pago SRI/ })
+    .click()
+  const table = page
+    .getByRole('region', { name: 'Formas de pago SRI' })
+    .getByRole('table')
   await expect(table.getByRole('row')).toHaveCount(9)
   await expect(table.getByText('No habilitable en V1')).toHaveCount(6)
 })
 
-test('en un teléfono las pestañas se desplazan sin mover la página', async ({
+test('el perfil tributario se consulta en tabla y cada condición se declara en su modal', async ({
+  page,
+}) => {
+  await login(page, 'admin_e2e')
+  const { profileWrites } = await mockConfiguration(page)
+  await page.goto('/configuration?tab=facturacion&entidad=1')
+
+  const profile = page.getByRole('region', { name: 'Perfil tributario' })
+  await expect(profile.getByRole('row')).toHaveCount(7)
+  await profile.getByRole('button', { name: 'Declarar RIMPE' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Declarar: RIMPE' })
+  await dialog.getByText('Aplica', { exact: true }).click()
+  await dialog.getByLabel('Categoría RIMPE').fill('Emprendedor')
+  await dialog.getByLabel('Fuente o documento').fill('Certificado de RUC')
+  await dialog.getByLabel('Vigente desde').fill('2026-01-01')
+  await dialog.getByRole('button', { name: 'Guardar condición' }).click()
+
+  await expect.poll(() => profileWrites.length).toBe(1)
+  expect(profileWrites[0]).toMatchObject({
+    expected_revision: 1,
+    conditions: {
+      rimpe: {
+        status: 'APPLICABLE',
+        value: 'Emprendedor',
+        source: 'Certificado de RUC',
+        starts_on: '2026-01-01',
+      },
+      tax_regime: { status: 'UNKNOWN' },
+    },
+  })
+})
+
+test('en un teléfono las secciones se desplazan sin mover la página', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 360, height: 780 })
@@ -279,13 +349,40 @@ test('en un teléfono las pestañas se desplazan sin mover la página', async ({
   await mockConfiguration(page)
   await page.goto('/configuration?tab=facturacion')
   await expect(
-    page.getByRole('tab', { name: 'Facturación electrónica' }),
+    page
+      .getByRole('navigation', { name: 'Secciones de configuración' })
+      .getByRole('link', { name: /Facturación electrónica/ }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('navigation', {
+      name: 'Subsecciones de facturación electrónica',
+    }),
   ).toBeVisible()
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
   )
   expect(overflow).toBeLessThanOrEqual(0)
 })
+
+for (const width of REPRESENTATIVE_WIDTHS) {
+  test(`la configuración es adaptable y accesible a ${width} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await login(page, 'admin_e2e')
+    await mockConfiguration(page)
+    for (const search of [
+      '',
+      '?tab=series',
+      '?tab=facturacion&seccion=puntos',
+    ]) {
+      await page.goto(`/configuration${search}`)
+      await expect(page.locator('h1').first()).toBeVisible()
+      await expect(page.getByText(/^Cargando|^Evaluando/)).toHaveCount(0)
+      await expectAdaptableAndAccessible(page)
+    }
+  })
+}
 
 test('el Vendedor no accede a la configuración aunque prepare datos fiscales', async ({
   page,
