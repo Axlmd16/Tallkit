@@ -10,19 +10,63 @@ const EMPTY_ARCHIVE_PAGE = {
   results: [],
 }
 
-const preparation = (kind: 'COMMERCIAL' | 'ARTISAN', sourceId: number) => ({
+const NOTICE =
+  'Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.'
+
+const PAYMENT_OPTIONS = [
+  {
+    code: '01',
+    display_name: 'Efectivo o sin sistema financiero',
+    description: 'SIN UTILIZACION DEL SISTEMA FINANCIERO',
+    internal_method: 'EFECTIVO',
+  },
+  {
+    code: '20',
+    display_name: 'Transferencia u otros con sistema financiero',
+    description: 'OTROS CON UTILIZACIÓN DEL SISTEMA FINANCIERO',
+    internal_method: 'TRANSFERENCIA',
+  },
+]
+
+const preparation = (
+  kind: 'COMMERCIAL' | 'ARTISAN',
+  sourceId: number,
+  state: 'DRAFT' | 'PREPARED' = 'DRAFT',
+) => ({
   preparation_id: `${kind === 'COMMERCIAL' ? '11111111' : '22222222'}-1111-4111-8111-111111111111`,
   fiscal_entity_id: kind === 'COMMERCIAL' ? 1 : 2,
   source: { kind, id: sourceId, version: 2 },
-  state: 'DRAFT',
+  state,
   version: 1,
-  draft: {
-    environment: '1',
-    reference_date: '2026-09-26',
-    receiver: {},
-    payments: {},
-  },
-  snapshot: null,
+  draft: {},
+  snapshot:
+    state === 'PREPARED'
+      ? {
+          reference_date: '2026-09-26',
+          receiver: {
+            legal_name: 'Cliente E2E S.A.',
+            identification: '0999999999001',
+          },
+          totals: { tax: '13.04', grand: '100.00' },
+          lines: [
+            {
+              position: 1,
+              description: 'Filtro de aceite',
+              quantity: '2',
+              total_amount: '100.00',
+              display_name: 'IVA 15 %',
+            },
+          ],
+          payments: [
+            {
+              payment_code: '01',
+              amount: '100.00',
+              display_name: 'Efectivo o sin sistema financiero',
+            },
+          ],
+          configuration: { point: { code: '001' } },
+        }
+      : null,
   discrepancy: {
     source_changed: false,
     state_changed: false,
@@ -35,48 +79,167 @@ const preparation = (kind: 'COMMERCIAL' | 'ARTISAN', sourceId: number) => ({
   },
   cancellation_reason: '',
   created_at: '2026-09-26T10:00:00-05:00',
-  prepared_at: null,
+  prepared_at: state === 'PREPARED' ? '2026-09-26T10:05:00-05:00' : null,
   official_status: null,
   official_submission: 'NOT_PERFORMED',
+  summary: {
+    kind,
+    internal_number:
+      kind === 'COMMERCIAL' ? 'COM-VEN-000007' : 'ART-SER-000009',
+    operational_date: '2026-09-26',
+    condition: 'CONTADO',
+    state: 'CONFIRMED',
+    base_total: '86.96',
+    tax_total: '13.04',
+    grand_total: '100.00',
+    lines: [
+      {
+        position: 1,
+        description: kind === 'COMMERCIAL' ? 'Filtro de aceite' : 'Alineación',
+        quantity: kind === 'COMMERCIAL' ? '2' : '1',
+        total: '100.00',
+      },
+    ],
+  },
+  issuer: {
+    ruc: kind === 'COMMERCIAL' ? '1790000000001' : '1790000000002',
+    legal_name: kind === 'COMMERCIAL' ? 'Comercial E2E' : 'Taller E2E',
+  },
+  working:
+    state === 'DRAFT'
+      ? {
+          draft_format: 2,
+          receiver: {
+            identification_type: kind === 'COMMERCIAL' ? '04' : '05',
+            identification:
+              kind === 'COMMERCIAL' ? '0999999999001' : '0102030405',
+            legal_name: 'Cliente E2E S.A.',
+          },
+          payments: {
+            forms: [{ payment_code: '01', amount: '100.00' }],
+            suggested: true,
+            suggestion_origin: 'DEFAULT',
+          },
+          additional_info: [],
+        }
+      : null,
+  payment_options: state === 'DRAFT' ? PAYMENT_OPTIONS : [],
+  missing_fields: state === 'DRAFT' ? ['address'] : [],
+  technical: null,
 })
 
-async function mockPreparation(
+async function mockPreparationFlow(
   page: Page,
   kind: 'COMMERCIAL' | 'ARTISAN',
   sourceId: number,
 ) {
+  let state: 'DRAFT' | 'PREPARED' = 'DRAFT'
+  const patches: unknown[] = []
   await page.route('**/api/v1/fiscal/preparations/*/', async (route) => {
-    if (route.request().method() !== 'GET') return route.continue()
-    await route.fulfill({ json: preparation(kind, sourceId) })
+    const method = route.request().method()
+    if (method === 'PATCH') {
+      patches.push(route.request().postDataJSON())
+      return route.fulfill({
+        json: { preparation_id: 'x', state: 'DRAFT', version: 2, draft: {} },
+      })
+    }
+    return route.fulfill({ json: preparation(kind, sourceId, state) })
   })
-  await page.route(
-    '**/api/v1/fiscal/configuration/entities/*/establishments/',
-    (route) => route.fulfill({ json: [] }),
+  await page.route('**/api/v1/fiscal/preparations/*/review/', (route) =>
+    route.fulfill({ json: { impediments: [], review_token: 'token-e2e' } }),
   )
+  await page.route('**/api/v1/fiscal/preparations/*/prepare/', (route) => {
+    state = 'PREPARED'
+    return route.fulfill({
+      json: { preparation_id: 'x', replayed: false },
+    })
+  })
+  return patches
 }
 
-test('preparación comercial permanece local y separa cobro y SRI', async ({
+test('el Vendedor revisa datos precargados y guarda una preparación local', async ({
   page,
 }) => {
-  await login(page, 'admin_e2e')
-  await mockPreparation(page, 'COMMERCIAL', 7)
+  await login(page, 'vendedor_e2e')
+  const patches = await mockPreparationFlow(page, 'COMMERCIAL', 7)
   await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
-  await expect(page.getByText('Ambiente de ensayo')).toBeVisible()
-  await expect(page.getByText('Sin envío realizado')).toBeVisible()
+
   await expect(
-    page.getByText('Independiente; consulte la operación'),
+    page.getByRole('heading', { name: 'Borrador fiscal' }),
   ).toBeVisible()
-  await expect(page.getByText('Venta #7')).toBeVisible()
+  await expect(page.getByText(NOTICE)).toBeVisible()
+  await expect(page.getByText('Venta comercial COM-VEN-000007')).toBeVisible()
+  await expect(page.getByText('Cliente E2E S.A.')).toBeVisible()
+  await expect(page.getByLabel(/ambiente/i)).toHaveCount(0)
+  await expect(page.getByLabel(/punto de emisión/i)).toHaveCount(0)
+  await expect(page.getByLabel(/plazo/i)).toHaveCount(0)
+  await expect(
+    page.getByText(/Sugerido con la forma de pago predeterminada/),
+  ).toBeVisible()
+
+  await page.getByLabel('Dirección (opcional)').fill('Av. Principal 1')
+  await page
+    .getByRole('button', { name: 'Revisar datos para facturación' })
+    .click()
+  await expect.poll(() => patches.length).toBe(1)
+  expect(patches[0]).toEqual({
+    expected_version: 1,
+    receiver: {
+      identification_type: '04',
+      identification: '0999999999001',
+      legal_name: 'Cliente E2E S.A.',
+      address: 'Av. Principal 1',
+    },
+    payments: { forms: [{ payment_code: '01', amount: '100.00' }] },
+  })
+
+  await page.getByRole('button', { name: 'Guardar preparación local' }).click()
+  await expect(
+    page.getByRole('status', {
+      name: 'Estado: Preparación local · Pendiente de emisión',
+    }),
+  ).toBeVisible()
+  await expect(page.getByText(NOTICE)).toBeVisible()
+  await expect(page.getByText(/factura emitida|autorizada/i)).toHaveCount(0)
 })
 
-test('preparación artesanal conserva su ámbito propio', async ({ page }) => {
-  await login(page, 'admin_e2e')
-  await mockPreparation(page, 'ARTISAN', 9)
+test('el Encargado prepara la operación artesanal con cédula precargada', async ({
+  page,
+}) => {
+  await login(page, 'taller_e2e')
+  await mockPreparationFlow(page, 'ARTISAN', 9)
   await page.goto('/fiscal/preparations/22222222-1111-4111-8111-111111111111')
-  await expect(page.getByText('Operación artesanal #9')).toBeVisible()
+  await expect(
+    page.getByText('Operación artesanal ART-SER-000009'),
+  ).toBeVisible()
+  await expect(page.getByText('Cédula')).toBeVisible()
+  await expect(page.getByText('Taller E2E · RUC 1790000000002')).toBeVisible()
   await expect(
     page.getByRole('link', { name: 'Volver a la operación' }),
   ).toHaveAttribute('href', '/maintenance/service-operations/9')
+})
+
+test('una preparación completada conserva su punto después de cambiar la configuración', async ({
+  page,
+}) => {
+  await login(page, 'admin_e2e')
+  await page.route('**/api/v1/fiscal/preparations/*/', (route) =>
+    route.fulfill({
+      json: {
+        ...preparation('COMMERCIAL', 7, 'PREPARED'),
+        technical: { configuration: { point: { code: '001', version: 1 } } },
+      },
+    }),
+  )
+  await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
+  await expect(
+    page.getByRole('heading', { name: 'Preparación local' }),
+  ).toBeVisible()
+  await expect(
+    page.getByText(/Cambios posteriores de la configuración no los modifican/),
+  ).toBeVisible()
+  await page.getByText('Información avanzada').click()
+  await expect(page.getByText(/"code": "001"/)).toBeVisible()
 })
 
 test('archivo administrativo muestra evidencia externa y readiness', async ({
