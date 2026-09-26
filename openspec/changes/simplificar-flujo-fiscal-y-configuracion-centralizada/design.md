@@ -112,7 +112,7 @@ Las entradas son inmutables mediante servicios: una corrección se registra como
 
 ### D3. Formas de pago habilitadas y valores predeterminados de preparación
 
-- **`FiscalPaymentFormSetting(fiscal_entity, catalog_entry, enabled, version, updated_by, updated_at)`**:
+- **`FiscalPaymentFormSetting(fiscal_entity, code, enabled, version, updated_by, updated_at)`**, por código oficial y no por entrada del catálogo, para que la habilitación se conserve al incorporar otra versión del catálogo:
   - registra solo las decisiones explícitas del Administrador;
   - es única por entidad y código dentro de la versión del catálogo.
 - **`FiscalPreparationDefaults(fiscal_entity 1:1, default_point nullable, default_payment_code nullable, version, updated_by, updated_at)`**: guarda el punto y la forma de pago predeterminados.
@@ -182,7 +182,7 @@ No expone campos técnicos editables. Con el snapshot completado, añade `techni
 
 ### D6. Instantánea con referencias de configuración
 
-El snapshot añade `snapshot_format: 2` y un bloque `configuration`, conservando intactas las claves actuales de `issuer`, que consume `identity.py`:
+El snapshot añade `snapshot_format: 2` y un bloque `configuration`, conservando intactas las claves actuales de `issuer`, que consume `identity.py`. `payments` sigue siendo una lista, como en el formato 1, con cada forma enriquecida:
 
 ```json
 {
@@ -194,12 +194,12 @@ El snapshot añade `snapshot_format: 2` y un bloque `configuration`, conservando
     "environment": "1",
     "catalogs": {"TAX_RATE": "…", "PAYMENT_FORM": "…"}
   },
-  "payments": {"forms": [{"payment_code": "01", "description": "…", "display_name": "Efectivo",
-                           "catalog_version": "…", "amount": "30.00"}]}
+  "payments": [{"payment_code": "01", "description": "…", "display_name": "Efectivo",
+                "catalog_version": "…", "amount": "30.00"}]
 }
 ```
 
-Cada línea añade `catalog_entry_id` y `display_name` a lo que ya conservaba. Los snapshots sin `snapshot_format` se leen como formato 1: la consulta muestra «referencias de configuración no conservadas» y no las completa. `docs/tecnico/matriz-instantanea-fiscal.md` se actualiza con los campos nuevos.
+Cada línea añade `catalog_entry_id` y `display_name` a lo que ya conservaba. Los snapshots sin `snapshot_format` se leen como formato 1: se muestran tal como se congelaron, sin completar las referencias que no conservaban. `docs/tecnico/matriz-instantanea-fiscal.md` se actualiza con los campos nuevos.
 
 ### D7. Estado del perfil con causas
 
@@ -339,7 +339,7 @@ No se crea un ADR nuevo. La decisión de catálogos como datos, valores predeter
 - **Sugerencia de pagos con correcciones o reembolsos complejos** → ante cualquier exceso sobre el total se usa la forma predeterminada. El usuario siempre confirma, y el snapshot conserva solo lo declarado.
 - **El cambio de día invalida revisiones** → `review_stale` explícito; conviene revisar y completar en la misma sesión.
 - **API BREAKING para la propia interfaz** → backend y frontend se despliegan juntos, con OpenAPI actualizado. No hay consumidores externos.
-- **`keepMounted` mantiene montadas cinco pestañas con consultas** → las consultas son pequeñas y ya se cargaban en la página única actual. Las de *Facturación electrónica* se habilitan solo al abrirla por primera vez.
+- **`keepMounted` mantiene montadas cinco pestañas con consultas** → las consultas son pequeñas y ya se cargaban en la página única actual. *Facturación electrónica* se monta al visitarla por primera vez y después se conserva montada.
 - **Choque de textos con el cambio activo `ajustar-venta-vinculada-vacia-y-textos-de-servicios`** en `ServiceOperationDetailPage.tsx` → se aplica sobre la versión integrada de ese cambio y se modifican solo los textos fiscales.
 
 Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

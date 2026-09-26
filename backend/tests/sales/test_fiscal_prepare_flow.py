@@ -771,3 +771,109 @@ def test_find_active_preparation_respects_scope(
     assert found.preparation_id == prepared_context["preparation_id"]
     assert found.state == "DRAFT"
     assert find_active_preparation(actor=seller, source_kind="COMMERCIAL", source_id=0) is None
+
+
+def _prepare(seller: Any, prep_id: Any, key: str) -> Any:
+    from fiscal.application.preparations import prepare, review
+    from fiscal.models import FiscalPreparation
+
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.impediments == (), result.impediments
+    prepare(actor=seller, preparation_id=prep_id, review_token=result.token, idempotency_key=key)
+    return FiscalPreparation.objects.get(pk=prep_id)
+
+
+def test_customer_change_after_prepare_keeps_frozen_receiver(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    from customer_registry.models import Customer
+    from fiscal.models import FiscalPreparation
+    from sales.models import Sale
+
+    prep_id = prepared_context["preparation_id"]
+    _fill_draft(seller, prep_id, prepared_context["point_id"])
+    prepared = _prepare(seller, prep_id, "fiscal:prepare:customer")
+    frozen = dict(prepared.snapshot["receiver"])
+
+    customer_id = Sale.objects.get(pk=prepared_context["sale"]["id"]).customer_id
+    Customer.objects.filter(pk=customer_id).update(
+        address="Nueva dirección 999", name="Nombre cambiado"
+    )
+
+    assert FiscalPreparation.objects.get(pk=prep_id).snapshot["receiver"] == frozen
+    assert frozen["address"] == "Calle 10"
+
+
+def test_catalog_update_after_prepare_keeps_codes_and_version(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    from fiscal.models import FiscalPreparation
+    from workshop_configuration.application import official_catalog
+    from workshop_configuration.models import OfficialCatalogEntry
+
+    prep_id = prepared_context["preparation_id"]
+    prepared = _prepare(seller, prep_id, "fiscal:prepare:catalog")
+    before = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    assert before["payments"][0]["catalog_version"] == official_catalog.SELECTABLE_PAYMENT_VERSION
+    assert before["catalog_versions"]["iva"] == official_catalog.SELECTABLE_TAX_VERSION
+
+    OfficialCatalogEntry.objects.filter(kind="PAYMENT_FORM", code="01").update(
+        is_active=False, description="DESCRIPCIÓN SUSTITUIDA", display_name="Otro nombre"
+    )
+    OfficialCatalogEntry.objects.create(
+        **{
+            **{
+                field.name: getattr(
+                    OfficialCatalogEntry.objects.get(
+                        kind="TAX_RATE",
+                        catalog_version=official_catalog.SELECTABLE_TAX_VERSION,
+                        code="4",
+                    ),
+                    field.name,
+                )
+                for field in OfficialCatalogEntry._meta.concrete_fields
+                if field.name not in ("id", "incorporated_at")
+            },
+            "catalog_version": "SRI-2.35-TABLA17",
+            "display_name": "IVA 15 % (nueva versión)",
+        }
+    )
+
+    after = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    assert after == before
+    assert after["payments"][0]["description"] == "SIN UTILIZACION DEL SISTEMA FINANCIERO"
+    assert prepared.snapshot["lines"][0]["display_name"] == "IVA 15 %"
+
+
+def test_format_1_snapshot_is_returned_without_added_references(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from django.utils import timezone
+
+    from fiscal.application.preparations import get_preparation
+    from fiscal.models import FiscalPreparation
+
+    prep_id = prepared_context["preparation_id"]
+    legacy_snapshot = {
+        "schema_version": "factura-2.1.0",
+        "issuer": {"ruc": "0991234567001", "emission_point_code": "001", "environment": "1"},
+        "receiver": {"legal_name": "Cliente antiguo", "identification": "0999999999001"},
+        "totals": {"grand": "100.00"},
+        "lines": [],
+        "payments": [{"payment_code": "01", "amount": "100.00", "term_days": None}],
+    }
+    FiscalPreparation.objects.filter(pk=prep_id).update(
+        state="PREPARED",
+        snapshot=legacy_snapshot,
+        prepared_at=timezone.now(),
+        prepared_by=seller,
+        version=2,
+    )
+
+    for actor in (seller, admin):
+        detail = get_preparation(actor=actor, preparation_id=prep_id)
+        assert detail.snapshot == legacy_snapshot
+        assert detail.working is None
+    technical = get_preparation(actor=admin, preparation_id=prep_id).technical
+    assert technical is not None
+    assert technical["configuration"] is None
