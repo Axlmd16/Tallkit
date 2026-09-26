@@ -141,7 +141,7 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
                   <td className={sheetTableCell}>
                     <Button
                       aria-label={`${action} ${item.label}`}
-                      className="min-h-9 px-3"
+                      className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
                       onClick={() => setSelectedKey(item.key)}
                       variant="secondary"
                     >

@@ -19,6 +19,7 @@ export interface HintPopoverProps {
   align?: 'start' | 'end'
   /** Texto que siempre describe el disparador para tecnologías de asistencia. */
   description?: string
+  size?: 'sm' | 'md'
 }
 
 /**
@@ -32,6 +33,7 @@ export function HintPopover({
   triggerClassName = '',
   align = 'start',
   description,
+  size = 'md',
 }: HintPopoverProps) {
   const [open, setOpen] = useState(false)
   const [pinned, setPinned] = useState(false)
@@ -69,7 +71,7 @@ export function HintPopover({
         aria-describedby={description ? descriptionId : undefined}
         aria-expanded={visible}
         aria-label={label}
-        className={`ui-button inline-flex min-h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold whitespace-nowrap pointer-coarse:min-h-11 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${triggerClassName}`}
+        className={`ui-button inline-flex items-center rounded-full font-semibold whitespace-nowrap pointer-coarse:min-h-11 outline-none ${size === 'sm' ? 'min-h-6 gap-1 px-2 text-[11px]' : 'min-h-8 gap-1.5 px-2.5 text-xs'} focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${triggerClassName}`}
         onBlur={() => setOpen(false)}
         onClick={() => setPinned((value) => !value)}
         onFocus={() => setOpen(true)}

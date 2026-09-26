@@ -79,7 +79,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                     <span className="inline-flex flex-wrap justify-end gap-1">
                       {form.enabled && !form.is_default && (
                         <Button
-                          className="min-h-9 px-3"
+                          className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
                           onClick={() =>
                             mutations.savePreparationDefaults.mutate(
                               {
@@ -105,7 +105,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                       )}
                       <Button
                         aria-label={`${form.enabled ? 'Deshabilitar' : 'Habilitar'} ${form.display_name}`}
-                        className="min-h-9 px-3"
+                        className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
                         onClick={() =>
                           mutations.setPaymentForm.mutate(
                             {

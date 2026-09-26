@@ -98,7 +98,7 @@ export function LocationsSection({ entityId }: { entityId: number }) {
             )}
             {activePoints.length > 1 && (
               <Button
-                className="min-h-9 px-3"
+                className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
                 onClick={() => setDialog({ kind: 'default' })}
                 variant="secondary"
               >
@@ -203,7 +203,7 @@ function EstablishmentRows({
           {establishment.is_active && (
             <Button
               aria-label={`Añadir punto al establecimiento ${establishment.code}`}
-              className="min-h-9 px-3"
+              className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
               onClick={onAddPoint}
               variant="secondary"
             >

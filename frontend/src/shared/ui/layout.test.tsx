@@ -25,7 +25,7 @@ it('keeps page context and its primary action together', () => {
 
   expect(screen.getByRole('heading', { name: 'Usuarios' })).toHaveClass(
     'text-[22px]',
-    'font-semibold',
+    'font-bold',
   )
   expect(screen.getByRole('button', { name: 'Crear usuario' })).toBeEnabled()
 })

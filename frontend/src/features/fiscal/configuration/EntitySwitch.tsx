@@ -14,7 +14,9 @@ export function EntitySwitch({
   selectedId,
   onSelect,
   readinessFor,
+  children,
 }: {
+  children?: React.ReactNode
   entities: FiscalEntity[]
   selectedId: number
   onSelect: (entityId: number) => void
@@ -37,13 +39,10 @@ export function EntitySwitch({
           ))}
         </div>
       </fieldset>
-      {selected && (
-        <RucPlate
-          className="self-start sm:self-end"
-          ruc={selected.ruc}
-          size="sm"
-        />
-      )}
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+        {children}
+        {selected && <RucPlate ruc={selected.ruc} size="sm" />}
+      </div>
     </div>
   )
 }
@@ -67,7 +66,7 @@ function EntityOption({
 
   return (
     <label
-      className={`flex min-h-12 min-w-0 cursor-pointer items-center gap-2.5 rounded-[5px] px-3 py-1.5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent motion-reduce:transition-none sm:w-52 ${checked ? selected : 'text-ink-muted hover:bg-surface hover:text-ink'}`}
+      className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2.5 rounded-[5px] px-3 py-1 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent motion-reduce:transition-none sm:w-44 ${checked ? selected : 'text-ink-muted hover:bg-surface hover:text-ink'}`}
     >
       <input
         checked={checked}
@@ -78,7 +77,7 @@ function EntityOption({
         value={entity.id}
       />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase">
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase">
           <span
             aria-hidden="true"
             className={`size-2 shrink-0 rounded-[2px] ${square}`}
@@ -86,7 +85,7 @@ function EntityOption({
           {commercial ? 'Comercial' : 'Artesanal'}
         </span>
         <span
-          className={`truncate text-[13px] font-semibold ${checked ? 'text-ink' : ''}`}
+          className={`truncate text-[13px] ${checked ? 'font-semibold text-ink' : 'font-medium'}`}
           title={entity.legal_name}
         >
           {entity.legal_name}

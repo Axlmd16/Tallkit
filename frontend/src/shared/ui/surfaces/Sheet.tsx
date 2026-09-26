@@ -116,7 +116,7 @@ export function StateMark({
 export const sheetTableHead =
   'bg-surface-subtle px-4 py-2.5 text-left text-xs font-semibold text-ink-muted first:rounded-l-control first:pl-3 last:rounded-r-control last:pr-3 last:text-right'
 export const sheetTableCell =
-  'border-b border-line px-4 py-3.5 align-middle first:pl-3 last:pr-3 last:text-right'
+  'border-b border-line px-4 py-3 align-middle first:pl-3 last:pr-3 last:text-right'
 
 export type StateChipTone =
   | 'success'

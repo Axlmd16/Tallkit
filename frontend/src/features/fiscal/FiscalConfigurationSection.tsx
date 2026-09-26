@@ -118,44 +118,23 @@ export function FiscalConfigurationSection({
   return (
     <section aria-label="Facturación electrónica" className="space-y-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3.5">
+        <div className="flex min-w-0 items-start gap-3">
           <span
             aria-hidden="true"
-            className={`grid size-11 shrink-0 place-items-center rounded-control ${commercial ? 'bg-scope-commercial-soft text-scope-commercial' : 'bg-scope-artisan-soft text-scope-artisan'}`}
+            className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-control ${commercial ? 'bg-scope-commercial-soft text-scope-commercial' : 'bg-scope-artisan-soft text-scope-artisan'}`}
           >
-            <SectionIcon size={22} weight="duotone" />
+            <SectionIcon size={17} weight="bold" />
           </span>
           <div className="min-w-0">
             <h2
-              className="text-xl leading-7 font-bold text-ink"
+              className="text-xl leading-8 font-bold text-ink"
               id="facturacion-titulo"
             >
               {READINESS_SECTION_LABELS[section]}
             </h2>
-            <p className="mt-0.5 text-sm text-ink-muted">
+            <p className="mt-0.5 text-[13px] text-ink-muted">
               {current.description}
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <PendingHint causes={pending} />
-              <HintPopover
-                description={PREPARATION_NOTICE}
-                label="Preparación local"
-                trigger={
-                  <>
-                    <Info aria-hidden="true" size={15} weight="bold" />
-                    Preparación local
-                  </>
-                }
-                triggerClassName="bg-info-soft text-info hover:bg-accent-soft"
-              >
-                <p className="font-semibold text-ink">Preparación local</p>
-                <p className="mt-1 text-ink-muted">{PREPARATION_NOTICE}</p>
-                <p className="mt-1 text-ink-muted">
-                  Ambiente disponible: Pruebas. La configuración la declara el
-                  Administrador y no está validada por el SRI.
-                </p>
-              </HintPopover>
-            </div>
           </div>
         </div>
         <div className="shrink-0">
@@ -164,7 +143,29 @@ export function FiscalConfigurationSection({
             onSelect={(entityId) => update({ entidad: String(entityId) })}
             readinessFor={(entityId) => readiness.byEntity[entityId]}
             selectedId={selected.id}
-          />
+          >
+            <PendingHint causes={pending} />
+            <HintPopover
+              align="end"
+              description={PREPARATION_NOTICE}
+              label="Preparación local"
+              size="sm"
+              trigger={
+                <>
+                  <Info aria-hidden="true" size={13} weight="bold" />
+                  Preparación local
+                </>
+              }
+              triggerClassName="bg-info-soft text-info hover:bg-accent-soft"
+            >
+              <p className="font-semibold text-ink">Preparación local</p>
+              <p className="mt-1 text-ink-muted">{PREPARATION_NOTICE}</p>
+              <p className="mt-1 text-ink-muted">
+                Ambiente disponible: Pruebas. La configuración la declara el
+                Administrador y no está validada por el SRI.
+              </p>
+            </HintPopover>
+          </EntitySwitch>
         </div>
       </header>
 
@@ -228,10 +229,12 @@ function PendingHint({ causes }: { causes: StatusCause[] }) {
     causes.length === 1 ? '1 pendiente' : `${causes.length} pendientes`
   return (
     <HintPopover
+      align="end"
       label={label}
+      size="sm"
       trigger={
         <>
-          <WarningCircle aria-hidden="true" size={16} weight="fill" />
+          <WarningCircle aria-hidden="true" size={13} weight="fill" />
           {causes.length}
         </>
       }
