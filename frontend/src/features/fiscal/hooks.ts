@@ -116,6 +116,21 @@ export function useFiscalMutations() {
           queryKey: fiscalKeys.archive(variables.entityId),
         }),
     }),
+    linkArchive: useMutation({
+      mutationFn: ({
+        dossierId,
+        data,
+      }: {
+        dossierId: string
+        data: Parameters<typeof fiscalApi.linkArchive>[1]
+      }) => fiscalApi.linkArchive(dossierId, data),
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.archive() }),
+    }),
+    exportArchive: useMutation({
+      mutationFn: ({ dossierIds }: { dossierIds: string[] }) =>
+        fiscalApi.exportArchive(dossierIds),
+    }),
     saveProfile: useMutation({
       mutationFn: ({
         entityId,

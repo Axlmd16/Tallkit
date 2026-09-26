@@ -13,6 +13,7 @@ import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
 import { CustomerEditorPage } from '@/pages/customers/CustomerEditorPage'
 import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
+import { FiscalArchivePage } from '@/pages/fiscal/FiscalArchivePage'
 import { FiscalPreparationPage } from '@/pages/fiscal/FiscalPreparationPage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { MeasurementUnitsPage } from '@/pages/measurement-units/MeasurementUnitsPage'
@@ -73,6 +74,14 @@ export const appRoutes: RouteObject[] = [
                 anyOf={['fiscal.comercial.ver', 'fiscal.artesanal.ver']}
               >
                 <FiscalPreparationPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/fiscal/archive',
+            element: (
+              <PermissionGuard permission="fiscal.archivo.gestionar">
+                <FiscalArchivePage />
               </PermissionGuard>
             ),
           },
