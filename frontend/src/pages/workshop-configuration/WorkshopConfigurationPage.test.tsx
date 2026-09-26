@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -62,6 +69,28 @@ vi.mock('@/features/fiscal/FiscalConfigurationSection', () => ({
 }))
 
 import { WorkshopConfigurationPage } from './WorkshopConfigurationPage'
+
+function LocationProbe() {
+  const location = useLocation()
+  return <output data-testid="location">{location.search}</output>
+}
+
+function page(search = '') {
+  return (
+    <MemoryRouter initialEntries={[`/configuration${search}`]}>
+      <WorkshopConfigurationPage />
+      <LocationProbe />
+    </MemoryRouter>
+  )
+}
+
+function renderPage(search = '') {
+  return render(page(search))
+}
+
+async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole('tab', { name: new RegExp(`^${name}`) }))
+}
 
 const entities = [
   {
@@ -160,38 +189,119 @@ beforeEach(() => {
   resetMutation(mocks.seriesUpdate)
 })
 
-it('presents a control center with differentiated configuration sections', () => {
-  render(<WorkshopConfigurationPage />)
+it('organizes configuration in five tabs starting with fiscal entities', () => {
+  renderPage()
 
+  const tabs = screen.getAllByRole('tab')
+  expect(tabs.map((tab) => tab.textContent?.replace(/\d+$/, ''))).toEqual([
+    'Entidades fiscales',
+    'Bodega',
+    'Impuestos',
+    'Series y numeración',
+    'Facturación electrónica',
+  ])
+  expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
   expect(
-    screen.getByRole('navigation', { name: 'Mapa de configuración' }),
-  ).toBeInTheDocument()
-  expect(
-    screen.getByRole('heading', { name: 'Identidades fiscales' }),
-  ).toBeInTheDocument()
+    screen.getByRole('heading', { name: 'Entidades fiscales' }),
+  ).toBeVisible()
+  expect(screen.queryByText('Identidades fiscales')).toBeNull()
+  const panel = screen.getByRole('tabpanel')
+  expect(panel).toHaveAttribute('aria-labelledby', tabs[0]!.id)
+  expect(tabs[0]).toHaveAttribute('aria-controls', panel.id)
+})
+
+it('shows each existing area inside its own tab', async () => {
+  const user = userEvent.setup()
+  renderPage()
+
+  await openTab(user, 'Bodega')
   expect(
     screen.getByRole('heading', { name: 'Operación del inventario' }),
-  ).toBeInTheDocument()
+  ).toBeVisible()
+  await openTab(user, 'Impuestos')
   expect(
     screen.getByRole('heading', { name: 'Impuestos y vigencias' }),
-  ).toBeInTheDocument()
+  ).toBeVisible()
+  expect(screen.getByText('15%')).toBeVisible()
+  expect(screen.getByText('Sin tarifa')).toBeVisible()
+  await openTab(user, 'Series y numeración')
+  const seriesPanel = screen.getByRole('tabpanel')
   expect(
-    screen.getByRole('heading', { name: 'Series y secuenciales' }),
-  ).toBeInTheDocument()
-  expect(screen.getByText('15%')).toBeInTheDocument()
-  expect(screen.getByText('Sin tarifa')).toBeInTheDocument()
-  expect(screen.getByText('000004')).toBeInTheDocument()
-  expect(screen.getAllByText('Inactiva')).toHaveLength(1)
+    within(seriesPanel).getByRole('heading', { name: 'Series y secuenciales' }),
+  ).toBeVisible()
+  expect(within(seriesPanel).getByText('000004')).toBeVisible()
+  expect(within(seriesPanel).queryByText(/punto de emisión/i)).toBeNull()
+  expect(screen.getByTestId('location')).toHaveTextContent('?tab=series')
+  await openTab(user, 'Facturación electrónica')
+  expect(
+    screen.getByRole('region', { name: 'Configuración fiscal electrónica' }),
+  ).toBeVisible()
+})
+
+it('opens a tab from a direct link and falls back to entities for unknown tabs', () => {
+  const { unmount } = renderPage('?tab=facturacion')
+  expect(
+    screen.getByRole('tab', { name: 'Facturación electrónica' }),
+  ).toHaveAttribute('aria-selected', 'true')
+  unmount()
+
+  renderPage('?tab=inexistente')
+  expect(
+    screen.getByRole('tab', { name: /^Entidades fiscales/ }),
+  ).toHaveAttribute('aria-selected', 'true')
+})
+
+it('moves between tabs with the keyboard', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=bodega')
+  screen.getByRole('tab', { name: /^Bodega/ }).focus()
+  await user.keyboard('{ArrowRight}')
+  expect(screen.getByRole('tab', { name: /^Impuestos/ })).toHaveFocus()
+  expect(screen.getByRole('tab', { name: /^Impuestos/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  await user.keyboard('{End}')
+  expect(
+    screen.getByRole('tab', { name: 'Facturación electrónica' }),
+  ).toHaveFocus()
+  await user.keyboard('{Home}')
+  expect(screen.getByRole('tab', { name: /^Entidades fiscales/ })).toHaveFocus()
+})
+
+it('shows a tax error inside the Impuestos panel only', async () => {
+  const user = userEvent.setup()
+  mocks.taxCreate.isError = true
+  mocks.taxCreate.error = new Error('Vigencia solapada')
+  mocks.taxCreate.mutateAsync.mockRejectedValue(new Error('Vigencia solapada'))
+  renderPage('?tab=impuestos')
+
+  await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
+  await user.type(screen.getByLabelText('Código del impuesto'), 'IVA')
+  await user.type(screen.getByLabelText('Tarifa (%)'), '15')
+  await user.type(screen.getByLabelText('Nombre oficial'), 'IVA')
+  await user.click(screen.getByRole('button', { name: 'Crear impuesto' }))
+  const error = await screen.findByText(/Vigencia solapada/)
+  expect(error).toBeVisible()
+  const panels = screen.getAllByRole('tabpanel', { hidden: true })
+  const owner = panels.filter((panel) => panel.contains(error))
+  expect(owner).toHaveLength(1)
+  expect(owner[0]).toHaveAttribute(
+    'aria-labelledby',
+    screen.getByRole('tab', { name: /^Impuestos/, hidden: true }).id,
+  )
+  // El diálogo es modal: mientras el error está abierto no se puede cambiar de pestaña.
+  expect(screen.queryByRole('tab', { name: /^Bodega/ })).toBeNull()
 })
 
 it('shows page and section loading states and the page-level failure', () => {
   mocks.status.isLoading = true
-  const { rerender } = render(<WorkshopConfigurationPage />)
+  const { rerender } = renderPage()
   expect(screen.getByText('Cargando configuración...')).toBeInTheDocument()
 
   mocks.status.isLoading = false
   mocks.status.isError = true
-  rerender(<WorkshopConfigurationPage />)
+  rerender(page())
   expect(
     screen.getByText('No se pudo cargar la configuración.'),
   ).toBeInTheDocument()
@@ -201,14 +311,14 @@ it('shows page and section loading states and the page-level failure', () => {
   mocks.warehouse.isLoading = true
   mocks.taxes.isLoading = true
   mocks.series.isLoading = true
-  rerender(<WorkshopConfigurationPage />)
+  rerender(page())
   expect(screen.getAllByText('Cargando…')).toHaveLength(4)
 })
 
 it('initializes the workshop only after complete, distinct identifiers are provided', async () => {
   const user = userEvent.setup()
   mocks.status.data = { is_initialized: false }
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   const submit = screen.getByRole('button', {
     name: 'Guardar configuración inicial',
@@ -239,7 +349,7 @@ it('initializes the workshop only after complete, distinct identifiers are provi
 it('blocks initialization when both fiscal entities use the same RUC', async () => {
   const user = userEvent.setup()
   mocks.status.data = { is_initialized: false }
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   await user.type(screen.getByLabelText('RUC Comercial'), '1150696977001')
   await user.type(screen.getByLabelText('RUC Artesanal'), '1150696977001')
@@ -264,7 +374,7 @@ it('keeps the initialization error visible and prevents a duplicate submission',
   mocks.initialize.isError = true
   mocks.initialize.isPending = true
   mocks.initialize.error = new Error('RUC inválido')
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   expect(screen.getByText(/RUC inválido/)).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Procesando…' })).toBeDisabled()
@@ -272,7 +382,7 @@ it('keeps the initialization error visible and prevents a duplicate submission',
 
 it('updates a fiscal identity with its expected version and closes on success', async () => {
   const user = userEvent.setup()
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!)
   const dialog = screen.getByRole('dialog', {
@@ -303,9 +413,10 @@ it('updates the warehouse name and reports mutation failures in its dialog', asy
   const user = userEvent.setup()
   mocks.warehouseUpdate.isError = true
   mocks.warehouseUpdate.error = new Error('Conflicto de versión')
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
-  await user.click(screen.getAllByRole('button', { name: 'Editar' })[2]!)
+  await openTab(user, 'Bodega')
+  await user.click(screen.getByRole('button', { name: 'Editar' }))
   expect(screen.getByText(/Conflicto de versión/)).toBeInTheDocument()
   await user.clear(screen.getByLabelText('Nombre de la bodega'))
   await user.type(screen.getByLabelText('Nombre de la bodega'), '  Norte  ')
@@ -327,7 +438,8 @@ it('creates an uppercase tax definition and its initial period, then closes', as
   const user = userEvent.setup()
   mocks.taxCreate.mutateAsync.mockResolvedValue({ id: 9 })
   mocks.periodCreate.mutateAsync.mockResolvedValue({ id: 10 })
-  render(<WorkshopConfigurationPage />)
+  renderPage()
+  await openTab(user, 'Impuestos')
 
   await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
   expect(mocks.taxCreate.reset).toHaveBeenCalled()
@@ -361,7 +473,8 @@ it('keeps the tax dialog open when either mutation fails and shows its error', a
   mocks.taxCreate.isError = true
   mocks.taxCreate.error = new Error('Código duplicado')
   mocks.taxCreate.mutateAsync.mockRejectedValue(new Error('Código duplicado'))
-  render(<WorkshopConfigurationPage />)
+  renderPage()
+  await openTab(user, 'Impuestos')
 
   await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
   await user.type(screen.getByLabelText('Código del impuesto'), 'IVA')
@@ -379,9 +492,10 @@ it('keeps the tax dialog open when either mutation fails and shows its error', a
 
 it('updates a document series in uppercase with optimistic version control', async () => {
   const user = userEvent.setup()
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
-  await user.click(screen.getAllByRole('button', { name: 'Editar' })[3]!)
+  await openTab(user, 'Series y numeración')
+  await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!)
   const code = screen.getByLabelText('Código de serie / Prefijo')
   await user.clear(code)
   await user.type(code, ' com-nueva ')
@@ -406,7 +520,7 @@ it('renders empty tax and series guidance and inactive warehouse state', () => {
   mocks.taxes.data = []
   mocks.series.data = []
   mocks.warehouse.data = { ...warehouse, is_active: false }
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   expect(
     screen.getByText('Aún no hay impuestos configurados'),
@@ -420,7 +534,7 @@ it('uses neutral zero-value fallbacks while configuration queries have no data',
   mocks.warehouse.data = undefined
   mocks.taxes.data = undefined
   mocks.series.data = undefined
-  render(<WorkshopConfigurationPage />)
+  renderPage()
 
   expect(screen.getByText('0 registradas')).toBeInTheDocument()
   expect(screen.getByText('Bodega Central')).toBeInTheDocument()

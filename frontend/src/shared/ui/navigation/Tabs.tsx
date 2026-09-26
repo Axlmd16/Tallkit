@@ -1,4 +1,10 @@
-import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 
 export type TabsVariant = 'line' | 'pill'
 
@@ -19,6 +25,8 @@ export interface TabsProps {
   className?: string
   tabListClassName?: string
   panelClassName?: string
+  /** Mantiene montados todos los paneles; los inactivos quedan ocultos y conservan su estado. */
+  keepMounted?: boolean
 }
 
 export function Tabs({
@@ -30,12 +38,20 @@ export function Tabs({
   className = '',
   tabListClassName = '',
   panelClassName = '',
+  keepMounted = false,
 }: TabsProps) {
   const autoId = useId()
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map())
 
   const enabledItems = items.filter((item) => !item.disabled)
   const activeItem = items.find((item) => item.id === activeId)
+
+  useEffect(() => {
+    const active = tabRefs.current.get(activeId)
+    if (typeof active?.scrollIntoView === 'function') {
+      active.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    }
+  }, [activeId])
 
   function focusAndSelect(targetId: string) {
     onChange(targetId)
@@ -88,7 +104,7 @@ export function Tabs({
       <div
         aria-label={ariaLabel}
         aria-orientation="horizontal"
-        className={`flex items-center gap-2 border-b border-line ${
+        className={`flex items-center gap-2 overflow-x-auto border-b border-line ${
           variant === 'pill'
             ? 'border-b-0 gap-0.5 bg-surface-muted p-[3px] rounded-control'
             : ''
@@ -112,12 +128,12 @@ export function Tabs({
           return (
             <button
               aria-controls={
-                isSelected && activeItem?.content !== undefined
+                (keepMounted || isSelected) && item.content !== undefined
                   ? panelId
                   : undefined
               }
               aria-selected={isSelected ? 'true' : 'false'}
-              className={`min-h-10 px-3.5 py-2 text-[13.5px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
+              className={`min-h-10 shrink-0 whitespace-nowrap px-3.5 py-2 text-[13.5px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
                 variant === 'pill' ? 'rounded-[4px] min-h-8' : ''
               } ${styleClasses}`}
               disabled={item.disabled}
@@ -157,17 +173,33 @@ export function Tabs({
         })}
       </div>
 
-      {activeItem?.content !== undefined && (
-        <div
-          aria-labelledby={`tab-${autoId}-${activeItem.id}`}
-          className={`mt-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-control ${panelClassName}`}
-          id={`panel-${autoId}-${activeItem.id}`}
-          role="tabpanel"
-          tabIndex={0}
-        >
-          {activeItem.content}
-        </div>
-      )}
+      {keepMounted
+        ? items.map((item) =>
+            item.content === undefined ? null : (
+              <div
+                aria-labelledby={`tab-${autoId}-${item.id}`}
+                className={`mt-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-control ${panelClassName}`}
+                hidden={item.id !== activeId}
+                id={`panel-${autoId}-${item.id}`}
+                key={item.id}
+                role="tabpanel"
+                tabIndex={0}
+              >
+                {item.content}
+              </div>
+            ),
+          )
+        : activeItem?.content !== undefined && (
+            <div
+              aria-labelledby={`tab-${autoId}-${activeItem.id}`}
+              className={`mt-3 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-control ${panelClassName}`}
+              id={`panel-${autoId}-${activeItem.id}`}
+              role="tabpanel"
+              tabIndex={0}
+            >
+              {activeItem.content}
+            </div>
+          )}
     </div>
   )
 }

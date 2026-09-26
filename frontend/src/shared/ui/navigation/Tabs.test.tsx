@@ -191,4 +191,62 @@ describe('Tabs (C15)', () => {
     expect(active.className).toMatch(/\btext-accent-strong\b/)
     expect(active.className).not.toMatch(/\b(text|bg|border)-primary\b/)
   })
+
+  it('keeps every panel mounted and hides inactive ones when keepMounted is set', async () => {
+    function Counter() {
+      const [count, setCount] = useState(0)
+      return (
+        <button onClick={() => setCount(count + 1)} type="button">
+          Contador {count}
+        </button>
+      )
+    }
+    function Host() {
+      const [active, setActive] = useState('a')
+      return (
+        <Tabs
+          activeId={active}
+          aria-label="Persistentes"
+          items={[
+            { id: 'a', label: 'Primera', content: <Counter /> },
+            { id: 'b', label: 'Segunda', content: <p>Segundo panel</p> },
+          ]}
+          keepMounted
+          onChange={setActive}
+        />
+      )
+    }
+    const user = userEvent.setup()
+    render(<Host />)
+    await user.click(screen.getByRole('button', { name: 'Contador 0' }))
+    await user.click(screen.getByRole('tab', { name: 'Segunda' }))
+
+    const panels = screen.getAllByRole('tabpanel', { hidden: true })
+    expect(panels).toHaveLength(2)
+    expect(panels[0]).not.toBeVisible()
+    expect(panels[1]).toBeVisible()
+    for (const tab of screen.getAllByRole('tab')) {
+      expect(tab).toHaveAttribute('aria-controls')
+    }
+
+    await user.click(screen.getByRole('tab', { name: 'Primera' }))
+    expect(screen.getByRole('button', { name: 'Contador 1' })).toBeVisible()
+  })
+
+  it('lets the tab list scroll horizontally without shrinking labels', () => {
+    render(
+      <Tabs
+        activeId="list"
+        aria-label="Desplazables"
+        items={tabs}
+        onChange={() => {}}
+      />,
+    )
+    const tablist = screen.getByRole('tablist', { name: 'Desplazables' })
+    expect(tablist.className).toContain('overflow-x-auto')
+    for (const tab of screen.getAllByRole('tab')) {
+      expect(tab.className).toContain('shrink-0')
+      expect(tab.className).toContain('whitespace-nowrap')
+    }
+  })
 })
