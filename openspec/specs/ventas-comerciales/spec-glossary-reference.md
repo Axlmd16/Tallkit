@@ -8,3 +8,5 @@
 | Kardex | [Glosario del producto](../../../docs/negocio/producto/glosario.md#kardex) | Salidas históricas originadas por confirmación. |
 | Estado de pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#estado-de-pago) | Dimensión independiente del estado de venta. |
 | Documento interno | [Glosario del producto](../../../docs/negocio/producto/glosario.md#documento-interno) | Comprobante sin autorización SRI. |
+| Preparación local | Nuevo término de `docs/negocio/producto/glosario.md` | Estado visible desde la venta; no es factura. |
+| Pendiente de emisión | Nuevo término de `docs/negocio/producto/glosario.md` | Situación mostrada junto a la preparación local. |
