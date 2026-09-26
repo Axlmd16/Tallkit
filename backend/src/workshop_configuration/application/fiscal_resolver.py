@@ -64,6 +64,14 @@ def read_issuer_ruc(entity_id: int) -> str:
     return ruc
 
 
+def read_issuer(entity_id: int) -> tuple[str, str]:
+    """RUC y razón social vigentes del emisor para mostrar el resumen de preparación."""
+    row = FiscalEntity.objects.filter(pk=entity_id).values_list("ruc", "legal_name").first()
+    if row is None:
+        raise FiscalEntityNotFoundError("Entidad fiscal no encontrada.")
+    return row[0], row[1]
+
+
 def resolve_fiscal_configuration(*, actor: User, entity_id: int, on: date) -> FiscalConfiguration:
     """Autoriza por emisor y resuelve bajo su bloqueo la configuración centralizada.
 

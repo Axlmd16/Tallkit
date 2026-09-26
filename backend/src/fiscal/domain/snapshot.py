@@ -17,6 +17,7 @@ from fiscal.domain.receiver import FiscalReceiver
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError, build_amounts
 
 SCHEMA_VERSION = "factura-2.1.0"
+SNAPSHOT_FORMAT = 2
 CURRENCY = "USD"
 REQUIRED_ISSUER_FIELDS = (
     "ruc",
@@ -52,6 +53,9 @@ def build_snapshot(
     catalog_versions: dict[str, str],
     legends: list[str],
     additional_info: list[dict[str, str]],
+    configuration: dict[str, Any] | None = None,
+    payment_details: dict[str, dict[str, str]] | None = None,
+    line_details: dict[int, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     impediments: list[dict[str, str]] = []
 
@@ -80,14 +84,6 @@ def build_snapshot(
             {"field": "lines", "message": "La preparación requiere al menos una línea."}
         )
 
-    for pending in payments.pending:
-        impediments.append(
-            {
-                "field": f"payments.{pending}",
-                "message": "Falta un dato fiscal de la forma de pago; no se inventan vencimientos.",
-            }
-        )
-
     amounts = None
     if lines:
         try:
@@ -111,21 +107,29 @@ def build_snapshot(
         if isinstance(value, str) and value.strip():
             issuer_snapshot[field] = value.strip()
 
-    return {
+    details = payment_details or {}
+    extra_lines = line_details or {}
+    snapshot: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
+        "snapshot_format": SNAPSHOT_FORMAT,
         "currency": CURRENCY,
         "reference_date": reference_date,
         "catalog_versions": dict(catalog_versions),
         "issuer": issuer_snapshot,
         "receiver": asdict(receiver),
-        "lines": [asdict(line) for line in amounts.lines],
+        "lines": [{**asdict(line), **extra_lines.get(line.position, {})} for line in amounts.lines],
         "tax_groups": [asdict(group) for group in amounts.tax_groups],
         "totals": {
             "base": amounts.base_total,
             "tax": amounts.tax_total,
             "grand": amounts.grand_total,
         },
-        "payments": [asdict(form) for form in payments.forms],
+        "payments": [
+            {**asdict(form), **details.get(form.payment_code, {})} for form in payments.forms
+        ],
         "legends": list(legends),
         "additional_info": [dict(item) for item in additional_info],
     }
+    if configuration is not None:
+        snapshot["configuration"] = dict(configuration)
+    return snapshot

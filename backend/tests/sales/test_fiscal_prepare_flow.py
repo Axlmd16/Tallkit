@@ -71,7 +71,6 @@ def _fill_draft(seller: Any, preparation_id: Any, point_id: int, **overrides: An
     from fiscal.application.preparations import update_draft
 
     payload = {
-        "point_id": point_id,
         "receiver": {
             "identification_type": "04",
             "identification": "0999999999001",
@@ -116,12 +115,11 @@ def test_review_without_config_returns_impediments(
         source_id=sale["id"],
         idempotency_key="fiscal:create:noconf",
     )
-    # Punto inexistente y sin perfil: la revisión reporta impedimentos, sin token.
+    # Sin perfil ni punto: la revisión reporta impedimentos administrativos, sin token.
     update_draft(
         actor=seller,
         preparation_id=draft.preparation_id,
         expected_version=1,
-        point_id=999999,
         receiver={
             "identification_type": "04",
             "identification": "0999999999001",
@@ -132,6 +130,8 @@ def test_review_without_config_returns_impediments(
     result = review(actor=seller, preparation_id=draft.preparation_id)
     assert result.token is None
     assert result.impediments
+    assert {imp["audience"] for imp in result.impediments} == {"ADMINISTRATOR"}
+    assert all("Administrador" in imp["message"] for imp in result.impediments)
 
 
 def test_review_and_prepare_stores_immutable_snapshot(
@@ -213,7 +213,6 @@ def test_concurrent_draft_edit_invalidates_review(
         actor=seller,
         preparation_id=prep_id,
         expected_version=2,
-        point_id=point_id,
         receiver={
             "identification_type": "04",
             "identification": "0999999999001",
@@ -406,13 +405,11 @@ def test_update_draft_errors(prepared_context: dict[str, Any], seller: Any) -> N
     )
 
     prep_id = prepared_context["preparation_id"]
-    point_id = prepared_context["point_id"]
     with pytest.raises(FiscalPreparationNotFoundError):
         update_draft(
             actor=seller,
             preparation_id=uuid.uuid4(),
             expected_version=1,
-            point_id=point_id,
             receiver={
                 "identification_type": "05",
                 "identification": "0102030405",
@@ -425,7 +422,6 @@ def test_update_draft_errors(prepared_context: dict[str, Any], seller: Any) -> N
             actor=seller,
             preparation_id=prep_id,
             expected_version=99,
-            point_id=point_id,
             receiver={
                 "identification_type": "05",
                 "identification": "0102030405",
@@ -444,28 +440,209 @@ def test_review_not_found(seller: Any, admin: Any, db: None) -> None:
         review(actor=seller, preparation_id=uuid.uuid4())
 
 
-def test_review_without_draft_reports_impediment(
+def test_created_draft_is_prefilled_from_sale_and_configuration(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
-    from fiscal.application.preparations import review
+    from fiscal.models import FiscalPreparation
 
-    result = review(actor=seller, preparation_id=prepared_context["preparation_id"])
-    assert result.token is None
-    assert any(imp["field"] == "draft" for imp in result.impediments)
+    draft = FiscalPreparation.objects.get(pk=prepared_context["preparation_id"]).draft
+    assert draft["draft_format"] == 2
+    assert draft["receiver"]["identification_type"] in {"04", "05"}
+    assert draft["receiver"]["legal_name"]
+    assert draft["payments"]["forms"] == [{"payment_code": "01", "amount": "100.00"}]
+    assert draft["payments"]["suggested"] is True
+    assert "point_id" not in draft
+    assert "environment" not in draft
+    assert "reference_date" not in draft
 
 
-def test_prepare_without_draft_raises_impediment(
+def test_prefilled_draft_is_reviewable_without_user_input(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
-    from fiscal.application.preparations import PreparationImpedimentError, prepare
+    from fiscal.application.preparations import prepare, review
+    from fiscal.models import FiscalPreparation
 
-    with pytest.raises(PreparationImpedimentError):
+    prep_id = prepared_context["preparation_id"]
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.impediments == (), result.impediments
+    prepare(
+        actor=seller,
+        preparation_id=prep_id,
+        review_token=result.token,
+        idempotency_key="fiscal:prepare:prefilled",
+    )
+    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    assert snapshot["issuer"]["environment"] == "1"
+    assert snapshot["configuration"]["point"]["id"] == prepared_context["point_id"]
+    assert snapshot["configuration"]["profile_revision"] == 1
+    assert snapshot["payments"][0]["display_name"] == "Efectivo o sin sistema financiero"
+
+
+def test_update_draft_rejects_technical_fields(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    from fiscal.application.preparations import DraftFieldNotAllowedError, update_draft
+    from fiscal.models import FiscalPreparation
+
+    prep_id = prepared_context["preparation_id"]
+    with pytest.raises(DraftFieldNotAllowedError):
+        update_draft(
+            actor=seller,
+            preparation_id=prep_id,
+            expected_version=1,
+            receiver={
+                "identification_type": "04",
+                "identification": "0999999999001",
+                "legal_name": "Cliente",
+            },
+            payments={
+                "forms": [
+                    {"payment_code": "20", "amount": "100.00", "term_days": 30, "time_unit": "dias"}
+                ]
+            },
+        )
+    assert FiscalPreparation.objects.get(pk=prep_id).version == 1
+
+
+def test_default_point_change_after_prepare_keeps_snapshot(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from uuid import uuid4
+
+    from fiscal.application.preparations import prepare, review
+    from fiscal.models import FiscalPreparation
+    from workshop_configuration.application.preparation_settings import set_preparation_defaults
+
+    prep_id = prepared_context["preparation_id"]
+    token = review(actor=seller, preparation_id=prep_id).token
+    prepare(
+        actor=seller,
+        preparation_id=prep_id,
+        review_token=token,
+        idempotency_key="fiscal:prepare:point",
+    )
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    establishment = FiscalEstablishment.objects.get(fiscal_entity=entity, code="001")
+    second = FiscalEmissionPoint.objects.create(establishment=establishment, code="002")
+    set_preparation_defaults(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_version=0,
+        idempotency_key=str(uuid4()),
+        default_point_id=second.pk,
+    )
+    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    assert snapshot["issuer"]["emission_point_code"] == "001"
+    assert snapshot["configuration"]["point"]["code"] == "001"
+
+
+def test_configuration_change_between_review_and_prepare_is_stale(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from uuid import uuid4
+
+    from fiscal.application.preparations import StaleReviewError, prepare, review
+    from workshop_configuration.application.preparation_settings import set_preparation_defaults
+
+    prep_id = prepared_context["preparation_id"]
+    token = review(actor=seller, preparation_id=prep_id).token
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    set_preparation_defaults(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_version=0,
+        idempotency_key=str(uuid4()),
+        default_payment_code="20",
+    )
+    with pytest.raises(StaleReviewError):
         prepare(
             actor=seller,
-            preparation_id=prepared_context["preparation_id"],
-            review_token="cualquier-cosa",
-            idempotency_key="fiscal:prepare:nodraft",
+            preparation_id=prep_id,
+            review_token=token,
+            idempotency_key="fiscal:prepare:configstale",
         )
+
+
+def test_day_change_between_review_and_prepare_is_stale(
+    prepared_context: dict[str, Any], seller: Any, monkeypatch: Any
+) -> None:
+    from fiscal.application import preparations
+    from fiscal.application.preparations import StaleReviewError, prepare, review
+
+    prep_id = prepared_context["preparation_id"]
+    monkeypatch.setattr(preparations, "_today_guayaquil", lambda: "2026-09-26")
+    token = review(actor=seller, preparation_id=prep_id).token
+    monkeypatch.setattr(preparations, "_today_guayaquil", lambda: "2026-09-27")
+    with pytest.raises(StaleReviewError):
+        prepare(
+            actor=seller,
+            preparation_id=prep_id,
+            review_token=token,
+            idempotency_key="fiscal:prepare:daychange",
+        )
+
+
+def test_reference_date_uses_guayaquil_calendar(monkeypatch: Any) -> None:
+    from datetime import UTC, datetime
+
+    from fiscal.application import preparations
+
+    monkeypatch.setattr(
+        preparations.timezone, "now", lambda: datetime(2026, 9, 27, 3, 30, tzinfo=UTC)
+    )
+    assert preparations._today_guayaquil() == "2026-09-26"
+
+
+def test_legacy_draft_ignores_technical_fields(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    from fiscal.application.preparations import get_preparation, review
+    from fiscal.models import FiscalPreparation
+
+    prep_id = prepared_context["preparation_id"]
+    FiscalPreparation.objects.filter(pk=prep_id).update(
+        draft={
+            "point_id": 999999,
+            "environment": "2",
+            "reference_date": "2020-01-01",
+            "receiver": {
+                "identification_type": "04",
+                "identification": "0999999999001",
+                "legal_name": "Cliente legado",
+            },
+            "payments": {
+                "forms": [
+                    {"payment_code": "20", "amount": "100.00", "term_days": 30, "time_unit": "dias"}
+                ]
+            },
+        }
+    )
+    detail = get_preparation(actor=seller, preparation_id=prep_id)
+    assert detail.working is not None
+    assert detail.working["payments"]["forms"] == [{"payment_code": "20", "amount": "100.00"}]
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.impediments == (), result.impediments
+
+
+def test_detail_hides_technical_block_from_seller(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import get_preparation, prepare, review
+
+    prep_id = prepared_context["preparation_id"]
+    detail = get_preparation(actor=seller, preparation_id=prep_id)
+    assert detail.summary is not None
+    assert detail.summary["grand_total"] == "100.00"
+    assert [option["code"] for option in detail.payment_options] == ["01", "20"]
+    token = review(actor=seller, preparation_id=prep_id).token
+    prepare(
+        actor=seller,
+        preparation_id=prep_id,
+        review_token=token,
+        idempotency_key="fiscal:prepare:technical",
+    )
+    assert get_preparation(actor=seller, preparation_id=prep_id).technical is None
+    assert get_preparation(actor=admin, preparation_id=prep_id).technical is not None
 
 
 def test_prepare_with_invalid_token_is_stale(prepared_context: dict[str, Any], seller: Any) -> None:

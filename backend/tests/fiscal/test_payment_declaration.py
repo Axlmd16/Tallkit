@@ -1,132 +1,64 @@
-"""Formas de pago declaradas para el comprobante, separadas de los cobros reales."""
+"""Formas de pago declaradas: habilitadas, suma exacta, sin plazo ni crédito como código."""
 
 import pytest
 
+from fiscal.domain.payment_declaration import (
+    PaymentDeclarationError,
+    validate_payment_declaration,
+)
+
+ENABLED = ("01", "20")
+
+
+def _validate(condition: str, forms: list[dict[str, object]], total: str = "11.50") -> object:
+    return validate_payment_declaration(
+        condition=condition,
+        forms=forms,
+        total=total,
+        enabled_codes=ENABLED,  # type: ignore[arg-type]
+    )
+
 
 def test_cash_and_transfer_codes_are_supported() -> None:
-    from fiscal.domain.payment_declaration import validate_payment_declaration
-
-    declaration = validate_payment_declaration(
-        condition="CONTADO",
-        forms=[{"payment_code": "01", "amount": "11.50"}],
-        total="11.50",
-    )
-    assert declaration.forms[0].payment_code == "01"
-    assert declaration.pending == ()
+    declaration = _validate("CONTADO", [{"payment_code": "01", "amount": "11.50"}])
+    assert declaration.forms[0].payment_code == "01"  # type: ignore[attr-defined]
 
 
-def test_forms_must_cover_the_total() -> None:
-    from fiscal.domain.payment_declaration import (
-        PaymentDeclarationError,
-        validate_payment_declaration,
-    )
-
+def test_forms_must_cover_the_total_and_report_difference() -> None:
     with pytest.raises(PaymentDeclarationError) as exc:
-        validate_payment_declaration(
-            condition="CONTADO",
-            forms=[{"payment_code": "01", "amount": "10.00"}],
-            total="11.50",
-        )
-    assert "amount" in exc.value.errors
+        _validate("CONTADO", [{"payment_code": "01", "amount": "49.99"}], total="50.00")
+    assert "0.01" in exc.value.errors["amount"][0]
 
 
 def test_combined_forms_sum_to_total() -> None:
-    from fiscal.domain.payment_declaration import validate_payment_declaration
-
-    declaration = validate_payment_declaration(
-        condition="CONTADO",
-        forms=[
-            {"payment_code": "01", "amount": "5.00"},
-            {"payment_code": "20", "amount": "6.50"},
-        ],
-        total="11.50",
+    declaration = _validate(
+        "CONTADO",
+        [{"payment_code": "01", "amount": "5.00"}, {"payment_code": "20", "amount": "6.50"}],
     )
-    assert len(declaration.forms) == 2
+    assert len(declaration.forms) == 2  # type: ignore[attr-defined]
 
 
-def test_credit_is_not_a_payment_code() -> None:
-    from fiscal.domain.payment_declaration import (
-        PaymentDeclarationError,
-        validate_payment_declaration,
-    )
-
+@pytest.mark.parametrize("code", ["CREDITO", "16", "19"])
+def test_disabled_or_invented_codes_are_rejected(code: str) -> None:
     with pytest.raises(PaymentDeclarationError):
-        validate_payment_declaration(
-            condition="CREDITO",
-            forms=[{"payment_code": "CREDITO", "amount": "11.50"}],
-            total="11.50",
+        _validate("CREDITO", [{"payment_code": code, "amount": "11.50"}])
+
+
+def test_credit_without_term_is_accepted() -> None:
+    declaration = _validate("CREDITO", [{"payment_code": "20", "amount": "11.50"}])
+    assert declaration.forms[0].amount == "11.50"  # type: ignore[attr-defined]
+
+
+@pytest.mark.parametrize("condition", ["CONTADO", "CREDITO"])
+def test_term_fields_are_rejected(condition: str) -> None:
+    with pytest.raises(PaymentDeclarationError) as exc:
+        _validate(
+            condition,
+            [{"payment_code": "20", "amount": "11.50", "term_days": 30, "time_unit": "dias"}],
         )
-
-
-def test_unsupported_payment_code_is_rejected() -> None:
-    from fiscal.domain.payment_declaration import (
-        PaymentDeclarationError,
-        validate_payment_declaration,
-    )
-
-    with pytest.raises(PaymentDeclarationError):
-        validate_payment_declaration(
-            condition="CONTADO",
-            forms=[{"payment_code": "16", "amount": "11.50"}],
-            total="11.50",
-        )
-
-
-def test_credit_without_term_marks_pending_without_inventing_dates() -> None:
-    from fiscal.domain.payment_declaration import validate_payment_declaration
-
-    declaration = validate_payment_declaration(
-        condition="CREDITO",
-        forms=[{"payment_code": "20", "amount": "11.50"}],
-        total="11.50",
-    )
-    assert any("plazo" in item or "unidad" in item for item in declaration.pending)
-    # No se inventa vencimiento.
-    assert declaration.forms[0].term_days is None
-
-
-def test_credit_with_term_is_accepted() -> None:
-    from fiscal.domain.payment_declaration import validate_payment_declaration
-
-    declaration = validate_payment_declaration(
-        condition="CREDITO",
-        forms=[
-            {
-                "payment_code": "20",
-                "amount": "11.50",
-                "term_days": 30,
-                "time_unit": "dias",
-            }
-        ],
-        total="11.50",
-    )
-    assert declaration.pending == ()
-    assert declaration.forms[0].term_days == 30
-
-
-def test_cash_condition_rejects_term_fields() -> None:
-    from fiscal.domain.payment_declaration import (
-        PaymentDeclarationError,
-        validate_payment_declaration,
-    )
-
-    with pytest.raises(PaymentDeclarationError):
-        validate_payment_declaration(
-            condition="CONTADO",
-            forms=[{"payment_code": "01", "amount": "11.50", "term_days": 30}],
-            total="11.50",
-        )
+    assert "plazo" in next(iter(exc.value.errors.values()))[0]
 
 
 def test_unknown_condition_is_rejected() -> None:
-    from fiscal.domain.payment_declaration import (
-        PaymentDeclarationError,
-        validate_payment_declaration,
-    )
-
     with pytest.raises(PaymentDeclarationError):
-        validate_payment_declaration(
-            condition="MIXTO",
-            forms=[{"payment_code": "01", "amount": "11.50"}],
-            total="11.50",
-        )
+        _validate("MIXTO", [{"payment_code": "01", "amount": "11.50"}])

@@ -90,47 +90,47 @@ Evidencia: pruebas focalizadas de `backend/tests/workshop_configuration/` y los 
 
 Dependencias: grupo 3. Diseño D1/D5/D6; spec `preparacion-y-seguimiento-fiscal`.
 
-- [ ] 4.1 Probar y añadir `collected_by_method` en `sales/application/fiscal_source.py` y `workshop/application/fiscal_source.py`, como lectura pura:
+- [x] 4.1 Probar y añadir `collected_by_method` en `sales/application/fiscal_source.py` y `workshop/application/fiscal_source.py`, como lectura pura:
   - suma de partes de pagos vigentes por medio;
   - un pago original corregido se excluye y su reemplazo se incluye;
   - la lectura no escribe ni importa `fiscal`.
 
   Ampliar `backend/tests/sales/test_fiscal_source.py`, `backend/tests/workshop/test_fiscal_source.py` y `tests/fiscal/test_boundaries.py`.
-- [ ] 4.2 Escribir `tests/fiscal/test_payment_suggestion.py` y crear `fiscal/domain/payment_suggestion.py`, pura:
+- [x] 4.2 Escribir `tests/fiscal/test_payment_suggestion.py` y crear `fiscal/domain/payment_suggestion.py`, pura:
   - cobro total por medio;
   - cobro parcial más el resto con la forma predeterminada;
   - sin cobros;
   - exceso sobre el total;
   - medio con forma deshabilitada;
   - importes exactos a centavos.
-- [ ] 4.3 Adaptar `fiscal/domain/payment_declaration.py` y `test_payment_declaration.py`:
+- [x] 4.3 Adaptar `fiscal/domain/payment_declaration.py` y `test_payment_declaration.py`:
   - una o varias formas habilitadas y vigentes con suma exacta;
   - `term_days` y `time_unit` rechazados;
   - crédito sin impedimento;
   - forma deshabilitada rechazada.
 
   Retirar `SUPPORTED_PAYMENT_CODES`: las formas admitidas llegan desde la configuración resuelta.
-- [ ] 4.4 Probar y adaptar `create_draft`:
+- [x] 4.4 Probar y adaptar `create_draft`:
   - precarga del receptor desde `customer_snapshot` (CI→`05`, RUC→`04`, nombre, dirección, correo);
   - sugerencia de formas;
   - `draft_format: 2`;
   - entidad tomada del origen.
 
   Mantener idempotencia, bloqueos y el rechazo por evidencia externa. Cubrir la venta comercial y la operación artesanal.
-- [ ] 4.5 Probar y adaptar `update_draft` y `PATCH` del detalle:
+- [x] 4.5 Probar y adaptar `update_draft` y `PATCH` del detalle:
   - aceptar solo `expected_version`, `receiver`, `payments.forms[{payment_code, amount}]` y `additional_info`;
   - rechazar con 400 `field_not_allowed` los campos `environment`, `point_id`, `reference_date`, `fiscal_entity_id`, `term_days` y `time_unit`, sin cambiar la versión.
-- [ ] 4.6 Probar y adaptar la revisión:
+- [x] 4.6 Probar y adaptar la revisión:
   - fecha fiscal calculada con `America/Guayaquil` (caso `2026-09-27T03:30:00Z` → `2026-09-26`);
   - impedimentos con `audience` y mensajes comprensibles de `fiscal/application/impediment_messages.py`;
   - token con fecha y huella de configuración.
-- [ ] 4.7 Probar y adaptar la preparación: 409 `review_stale` cuando cambia la configuración (perfil, punto, forma, correspondencia) o el día entre la revisión y la preparación, sin preparar con versiones mezcladas.
-- [ ] 4.8 Probar y adaptar `snapshot_builder.py` y `fiscal/domain/snapshot.py`:
+- [x] 4.7 Probar y adaptar la preparación: 409 `review_stale` cuando cambia la configuración (perfil, punto, forma, correspondencia) o el día entre la revisión y la preparación, sin preparar con versiones mezcladas.
+- [x] 4.8 Probar y adaptar `snapshot_builder.py` y `fiscal/domain/snapshot.py`:
   - `snapshot_format: 2` con el bloque `configuration`, formas con descripción, nombre y versión del catálogo, y líneas con `catalog_entry_id` y `display_name`;
   - `issuer` intacto para `identity.py`;
   - lectura compatible del formato 1;
   - inmutabilidad frente a cambios posteriores de punto, catálogo, habilitación, cobros y cliente.
-- [ ] 4.9 Probar y adaptar la consulta del detalle y los borradores anteriores:
+- [x] 4.9 Probar y adaptar la consulta del detalle y los borradores anteriores:
   - `summary`, `issuer`, `receiver`, `payments`, `payment_options` y `missing_fields`;
   - `technical` solo para el Administrador en preparaciones completadas;
   - un borrador de formato 1 ignora `environment`, `point_id`, fecha y plazo, y recibe la precarga en la consulta sin escribirla;

@@ -26,6 +26,12 @@ ALLOWED_CROSS_MODULES = {
     "workshop_configuration.application.emission_locations",
     "workshop_configuration.application.entity_warehouse",
     "identity.api.permissions",
+    # Configuración centralizada (simplificar-flujo-fiscal D8): estado, catálogo oficial,
+    # formas habilitadas y valores predeterminados, con sus errores publicados.
+    "workshop_configuration.application.electronic_status",
+    "workshop_configuration.application.official_catalog",
+    "workshop_configuration.application.preparation_settings",
+    "workshop_configuration.application.initialization",
 }
 
 
