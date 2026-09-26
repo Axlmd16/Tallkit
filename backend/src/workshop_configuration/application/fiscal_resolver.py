@@ -7,17 +7,17 @@ from django.db import transaction
 
 from identity.application.authorization import require_permission
 from identity.models import User
-from workshop_configuration.application.electronic_profiles import CONDITIONS
+from workshop_configuration.application.electronic_status import (
+    ENVIRONMENT_TEST,
+    evaluate_electronic_status,
+)
 from workshop_configuration.application.entity_warehouse import FiscalEntityNotFoundError
 from workshop_configuration.domain.electronic_profile import (
     DeclaredCertificate,
     DeclaredCondition,
-    parse_certificate_metadata,
-    parse_condition,
 )
 from workshop_configuration.domain.validation import ConfigurationValidationError
 from workshop_configuration.models import (
-    ElectronicProfileRevision,
     FiscalEmissionPoint,
     FiscalEntity,
     FiscalEstablishment,
@@ -46,6 +46,10 @@ class FiscalConfiguration:
     evaluated_on: date
     preparation_issues: tuple[str, ...]
     future_emission_issues: tuple[str, ...]
+    defaults_version: int = 0
+    enabled_payment_codes: tuple[str, ...] = ()
+    default_payment_code: str | None = None
+    tax_mapping_ids: tuple[int, ...] = ()
 
     @property
     def ready_for_preparation(self) -> bool:
@@ -60,75 +64,35 @@ def read_issuer_ruc(entity_id: int) -> str:
     return ruc
 
 
-def resolve_fiscal_configuration(
-    *, actor: User, entity_id: int, point_id: int | None, environment: str, on: date
-) -> FiscalConfiguration:
-    """Autoriza por emisor y lee bajo su bloqueo.
+def resolve_fiscal_configuration(*, actor: User, entity_id: int, on: date) -> FiscalConfiguration:
+    """Autoriza por emisor y resuelve bajo su bloqueo la configuración centralizada.
 
     El comando que prepara debe envolver esta llamada en su transacción exterior,
     después de bloquear recibo, origen y preparación, para conservar D6 hasta guardar.
-    El resultado únicamente evalúa configuración: receptor/importes se validan aparte.
+    El ambiente es siempre de pruebas y el punto es el predeterminado efectivo; ninguno
+    se recibe del cliente.
     """
     entity = FiscalEntity.objects.filter(pk=entity_id).first()
     if entity is None:
         raise FiscalEntityNotFoundError("Entidad fiscal no encontrada.")
     scope = "comercial" if entity.entity_type == "COMERCIAL" else "artesanal"
     require_permission(actor=actor, permission=f"fiscal.{scope}.preparar")
-    if environment not in ("1", "2") or type(on) is not date:
-        raise ConfigurationValidationError("Ambiente o fecha fiscal inválidos.")
+    if type(on) is not date:
+        raise ConfigurationValidationError("Fecha fiscal inválida.")
     with transaction.atomic():
         entity = FiscalEntity.objects.select_for_update().get(pk=entity_id)
-        profile = (
-            ElectronicProfileRevision.objects.filter(fiscal_entity=entity)
-            .order_by("-revision")
-            .first()
-        )
-        issues: list[str] = []
-        emission_issues: list[str] = []
-        if environment == "2":
-            issues.append("production_disabled")
-        if not (entity.address or "").strip():
-            issues.append("matrix_address")
-        conditions: tuple[tuple[str, DeclaredCondition], ...] = ()
-        certificate = None
-        if profile is None:
-            issues.append("profile")
-        else:
-            conditions = tuple(
-                (key, parse_condition(profile.conditions.get(key, {"status": "UNKNOWN"})))
-                for key in sorted(CONDITIONS)
-            )
-            for key, condition in conditions:
-                if not condition.is_resolved:
-                    issues.append(f"conditions.{key}.unknown")
-                elif condition.starts_on is not None and on < condition.starts_on:
-                    issues.append(f"conditions.{key}.future")
-                elif condition.ends_on is not None and on > condition.ends_on:
-                    issues.append(f"conditions.{key}.expired")
-            if profile.certificate is not None:
-                certificate = parse_certificate_metadata(profile.certificate)
-        if certificate is None:
-            emission_issues.append("certificate_missing")
-        elif certificate.status_on(on) != "DECLARED_CURRENT":
-            emission_issues.append(f"certificate_{certificate.status_on(on).lower()}")
+        status = evaluate_electronic_status(entity_id=entity.pk, on=on)
+        issues = [f"{cause.code}" for cause in status.causes]
+        emission_issues = [warning.code for warning in status.warnings]
         emission_issues.append("emission_not_implemented")
         point = (
-            FiscalEmissionPoint.objects.filter(
-                pk=point_id, establishment__fiscal_entity=entity
-            ).first()
-            if point_id is not None
+            FiscalEmissionPoint.objects.select_related("establishment")
+            .filter(pk=status.defaults.point_id)
+            .first()
+            if status.defaults.point_id is not None
             else None
         )
-        establishment = None
-        if point is None:
-            issues.append("point")
-        else:
-            # Todas las escrituras de configuración serializan primero sobre entidad.
-            establishment = FiscalEstablishment.objects.get(pk=point.establishment_id)
-            if not point.is_active or not establishment.is_active:
-                issues.append("point_inactive")
-            if not establishment.address.strip():
-                issues.append("establishment_address")
+        establishment: FiscalEstablishment | None = point.establishment if point else None
         return FiscalConfiguration(
             entity_id=entity.pk,
             entity_type=entity.entity_type,
@@ -136,10 +100,10 @@ def resolve_fiscal_configuration(
             ruc=entity.ruc,
             legal_name=entity.legal_name,
             matrix_address=entity.address or "",
-            profile_revision=profile.revision if profile else None,
-            conditions=conditions,
-            certificate=certificate,
-            environment=environment,
+            profile_revision=status.profile_revision,
+            conditions=status.conditions,
+            certificate=status.certificate,
+            environment=ENVIRONMENT_TEST,
             establishment_id=establishment.pk if establishment else None,
             establishment_code=establishment.code if establishment else None,
             establishment_address=establishment.address if establishment else None,
@@ -150,4 +114,8 @@ def resolve_fiscal_configuration(
             evaluated_on=on,
             preparation_issues=tuple(issues),
             future_emission_issues=tuple(emission_issues),
+            defaults_version=status.defaults.version,
+            enabled_payment_codes=status.defaults.enabled_payment_codes,
+            default_payment_code=status.defaults.payment_code,
+            tax_mapping_ids=status.tax_mapping_ids,
         )

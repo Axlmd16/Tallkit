@@ -30,10 +30,10 @@ def test_missing_configuration_reports_pending_without_creating_defaults(
     entity: FiscalEntity, role_seller: User
 ) -> None:
     result = api().resolve_fiscal_configuration(
-        actor=role_seller, entity_id=entity.pk, point_id=None, environment="1", on=date(2026, 9, 25)
+        actor=role_seller, entity_id=entity.pk, on=date(2026, 9, 25)
     )
     assert not result.ready_for_preparation
-    assert {"profile", "point"} <= set(result.preparation_issues)
+    assert {"profile", "point_missing"} <= set(result.preparation_issues)
     assert result.profile_revision is None
     assert result.future_emission_issues == ("certificate_missing", "emission_not_implemented")
     assert entity.electronic_profiles.count() == 0
@@ -46,8 +46,6 @@ def test_manager_cannot_read_commercial_fiscal_profile(
         api().resolve_fiscal_configuration(
             actor=role_manager,
             entity_id=entity.pk,
-            point_id=None,
-            environment="1",
             on=date(2026, 9, 25),
         )
 
@@ -55,6 +53,9 @@ def test_manager_cannot_read_commercial_fiscal_profile(
 def test_ready_profile_is_immutable_and_does_not_require_certificate(
     entity: FiscalEntity, role_admin: User, role_seller: User
 ) -> None:
+    from workshop_configuration.application.official_catalog import ensure_installed
+
+    ensure_installed()
     conditions = {
         key: {"status": "NOT_APPLICABLE", "source": "Revisión", "starts_on": "2026-01-01"}
         for key in CONDITIONS
@@ -79,14 +80,15 @@ def test_ready_profile_is_immutable_and_does_not_require_certificate(
     result = api().resolve_fiscal_configuration(
         actor=role_seller,
         entity_id=entity.pk,
-        point_id=point.pk,
-        environment="1",
         on=date(2026, 9, 25),
     )
     assert result.ready_for_preparation
     assert result.establishment_code == "001"
     assert result.point_code == "002"
     assert result.profile_revision == 1
+    assert result.point_id == point.pk
+    assert result.enabled_payment_codes == ("01", "20")
+    assert result.default_payment_code == "01"
     assert result.future_emission_issues == ("certificate_missing", "emission_not_implemented")
     with pytest.raises(FrozenInstanceError):
         result.ruc = "1791234567001"
@@ -113,36 +115,23 @@ def test_expired_conditions_remain_pending(entity: FiscalEntity, role_admin: Use
         },
     )
     result = api().resolve_fiscal_configuration(
-        actor=role_admin, entity_id=entity.pk, point_id=None, environment="1", on=date(2026, 9, 25)
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
     )
     assert "conditions.artisan_qualification.expired" in result.preparation_issues
     assert "conditions.tax_regime.unknown" in result.preparation_issues
 
 
-@pytest.mark.parametrize("environment", ["2", "production", "", 1])
-def test_production_or_invalid_environment_cannot_be_ready(
-    entity: FiscalEntity, role_admin: User, environment: str
+def test_environment_is_always_test_and_not_a_parameter(
+    entity: FiscalEntity, role_admin: User
 ) -> None:
-    from workshop_configuration.domain.validation import ConfigurationValidationError
-
-    if environment != "2":
-        with pytest.raises(ConfigurationValidationError):
-            api().resolve_fiscal_configuration(
-                actor=role_admin,
-                entity_id=entity.pk,
-                point_id=None,
-                environment=environment,
-                on=date(2026, 9, 25),
-            )
-    else:
-        result = api().resolve_fiscal_configuration(
-            actor=role_admin,
-            entity_id=entity.pk,
-            point_id=None,
-            environment=environment,
-            on=date(2026, 9, 25),
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
+    )
+    assert result.environment == "1"
+    with pytest.raises(TypeError):
+        api().resolve_fiscal_configuration(  # type: ignore[call-arg]
+            actor=role_admin, entity_id=entity.pk, environment="2", on=date(2026, 9, 25)
         )
-        assert "production_disabled" in result.preparation_issues
 
 
 def test_missing_legacy_matrix_address_is_pending_not_server_error(
@@ -151,7 +140,7 @@ def test_missing_legacy_matrix_address_is_pending_not_server_error(
     entity.address = None
     entity.save(update_fields=["address"])
     result = api().resolve_fiscal_configuration(
-        actor=role_admin, entity_id=entity.pk, point_id=None, environment="1", on=date(2026, 9, 25)
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
     )
     assert "matrix_address" in result.preparation_issues
     assert result.matrix_address == ""
@@ -192,9 +181,7 @@ def test_certificate_dates_are_local_emission_not_preparation_issues(
             },
         },
     )
-    result = api().resolve_fiscal_configuration(
-        actor=role_admin, entity_id=entity.pk, point_id=None, environment="1", on=on
-    )
+    result = api().resolve_fiscal_configuration(actor=role_admin, entity_id=entity.pk, on=on)
     assert result.future_emission_issues == (
         (status, "emission_not_implemented") if status else ("emission_not_implemented",)
     )
@@ -203,7 +190,7 @@ def test_certificate_dates_are_local_emission_not_preparation_issues(
     assert not any(issue.startswith("certificate") for issue in result.preparation_issues)
 
 
-def test_foreign_point_is_not_disclosed_and_inactive_point_is_pending(
+def test_default_point_belongs_to_the_entity_and_must_be_active(
     entity: FiscalEntity, role_admin: User, role_seller: User
 ) -> None:
     from workshop_configuration.application.emission_locations import set_point_active
@@ -216,20 +203,17 @@ def test_foreign_point_is_not_disclosed_and_inactive_point_is_pending(
     )
     point = create_point(actor=role_admin, establishment_id=establishment.pk, code="001")
     result = api().resolve_fiscal_configuration(
-        actor=role_seller,
-        entity_id=entity.pk,
-        point_id=point.pk,
-        environment="1",
-        on=date(2026, 9, 25),
+        actor=role_seller, entity_id=entity.pk, on=date(2026, 9, 25)
     )
     assert result.point_id is None
-    assert result.establishment_address is None
+    assert "point_missing" in result.preparation_issues
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=other.pk, on=date(2026, 9, 25)
+    )
+    assert result.point_id == point.pk
     set_point_active(actor=role_admin, point_id=point.pk, expected_version=1, active=False)
     result = api().resolve_fiscal_configuration(
-        actor=role_admin,
-        entity_id=other.pk,
-        point_id=point.pk,
-        environment="1",
-        on=date(2026, 9, 25),
+        actor=role_admin, entity_id=other.pk, on=date(2026, 9, 25)
     )
-    assert "point_inactive" in result.preparation_issues
+    assert result.point_id is None
+    assert "point_missing" in result.preparation_issues

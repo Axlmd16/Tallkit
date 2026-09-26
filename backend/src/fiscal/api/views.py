@@ -10,6 +10,7 @@ from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse, HttpResponse
+from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
@@ -45,6 +46,7 @@ from identity.api.permissions import HasBusinessPermission
 from identity.application.authorization import BusinessPermissionDeniedError, require_permission
 from identity.models import User
 from workshop_configuration.application.electronic_profiles import get_profile, save_profile
+from workshop_configuration.application.electronic_status import get_electronic_status
 from workshop_configuration.application.emission_locations import (
     create_establishment,
     create_point,
@@ -56,7 +58,21 @@ from workshop_configuration.application.entity_warehouse import (
     FiscalEntityNotFoundError,
     StaleRecordError,
 )
-from workshop_configuration.application.fiscal_tax_mapping import create_mapping
+from workshop_configuration.application.fiscal_tax_mapping import create_mapping, list_mappings
+from workshop_configuration.application.initialization import (
+    IdempotencyConflictError as ConfigurationIdempotencyConflictError,
+)
+from workshop_configuration.application.official_catalog import (
+    CatalogManifestError,
+    get_catalog,
+    is_current,
+)
+from workshop_configuration.application.preparation_settings import (
+    get_payment_forms,
+    get_preparation_defaults,
+    set_payment_form_enabled,
+    set_preparation_defaults,
+)
 from workshop_configuration.domain.validation import ConfigurationValidationError
 
 _PROBLEMS = {
@@ -147,6 +163,7 @@ def _problem(request: Request, exc: Exception) -> Response:
         (
             ActivePreparationConflictError,
             IdempotencyConflictError,
+            ConfigurationIdempotencyConflictError,
             PreparationStateError,
             PreparationVersionConflictError,
             StaleReviewError,
@@ -193,6 +210,8 @@ def _respond(request: Request, operation: Callable[[], Response]) -> Response:
         CorrectionApplicationError,
         readiness.FiscalReadinessError,
         ConfigurationValidationError,
+        ConfigurationIdempotencyConflictError,
+        CatalogManifestError,
         StaleRecordError,
         FiscalEntityNotFoundError,
         ObjectDoesNotExist,
@@ -937,6 +956,218 @@ class NumberingAntecedentCreateView(_FiscalConfigurationView):
                     "source": result.source,
                 },
                 status=201,
+            )
+
+        return _respond(request, operation)
+
+
+def _cause(cause: Any) -> dict[str, str]:
+    return {"code": cause.code, "kind": cause.kind, "message": cause.message}
+
+
+class ElectronicStatusView(_FiscalConfigurationView):
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalElectronicStatus, **_PROBLEMS})
+    def get(self, request: Request, entity_id: int) -> Response:
+        def operation() -> Response:
+            result = get_electronic_status(actor=_actor(request), entity_id=entity_id)
+            return Response(
+                {
+                    "entity_id": result.entity_id,
+                    "state": result.state,
+                    "causes": [_cause(cause) for cause in result.causes],
+                    "warnings": [_cause(cause) for cause in result.warnings],
+                    "environment": "TEST",
+                    "profile_revision": result.profile_revision,
+                    "default_point_id": result.defaults.point_id,
+                    "default_payment_code": result.defaults.payment_code,
+                }
+            )
+
+        return _respond(request, operation)
+
+
+def _defaults_payload(defaults: Any) -> dict[str, Any]:
+    return {
+        "entity_id": defaults.entity_id,
+        "version": defaults.version,
+        "designated_point_id": defaults.designated_point_id,
+        "effective_point_id": defaults.point_id,
+        "point_issue": defaults.point_issue,
+        "default_payment_code": defaults.payment_code,
+        "payment_issue": defaults.payment_issue,
+    }
+
+
+class PreparationDefaultsView(_FiscalConfigurationView):
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalPreparationDefaults, **_PROBLEMS})
+    def get(self, request: Request, entity_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: Response(
+                _defaults_payload(
+                    get_preparation_defaults(actor=_actor(request), entity_id=entity_id)
+                )
+            ),
+        )
+
+    @extend_schema(
+        tags=[_TAG],
+        request=sz.FiscalPreparationDefaultsWrite,
+        responses={200: sz.FiscalPreparationDefaults, **_PROBLEMS},
+    )
+    def put(self, request: Request, entity_id: int) -> Response:
+        def operation() -> Response:
+            data = _validated(sz.FiscalPreparationDefaultsWrite, request)
+            actor = _actor(request)
+            set_preparation_defaults(
+                actor=actor,
+                entity_id=entity_id,
+                idempotency_key=_idempotency_key(request),
+                **data,
+            )
+            return Response(
+                _defaults_payload(get_preparation_defaults(actor=actor, entity_id=entity_id))
+            )
+
+        return _respond(request, operation)
+
+
+def _entry_payload(entry: Any) -> dict[str, Any]:
+    return {
+        "id": entry.id,
+        "kind": entry.kind,
+        "catalog_version": entry.catalog_version,
+        "code": entry.code,
+        "description": entry.description,
+        "display_name": entry.display_name,
+        "tax_code": entry.tax_code,
+        "rate": str(entry.rate.normalize()) if entry.rate is not None else None,
+        "treatment": entry.treatment,
+        "source_document": entry.source_document,
+        "source_version": entry.source_version,
+        "source_reference": entry.source_reference,
+        "source_url": entry.source_url,
+        "downloaded_on": entry.downloaded_on,
+        "valid_from": entry.valid_from,
+        "valid_to": entry.valid_to,
+        "validity_note": entry.validity_note,
+        "is_active": entry.is_active,
+        "is_selectable": entry.is_selectable,
+        "incorporated_at": entry.incorporated_at,
+    }
+
+
+class CatalogView(_FiscalConfigurationView):
+    @extend_schema(
+        tags=[_TAG],
+        parameters=[
+            OpenApiParameter(
+                "selectable", OpenApiTypes.BOOL, description="Solo entradas seleccionables."
+            )
+        ],
+        responses={200: sz.FiscalCatalogEntry(many=True), **_PROBLEMS},
+    )
+    def get(self, request: Request, kind: str) -> Response:
+        def operation() -> Response:
+            entries = get_catalog(
+                actor=_actor(request),
+                kind=kind.upper().replace("-", "_"),
+                selectable_only=request.query_params.get("selectable") in ("1", "true"),
+            )
+            return Response([_entry_payload(entry) for entry in entries])
+
+        return _respond(request, operation)
+
+
+class EntityTaxMappingListView(_FiscalConfigurationView):
+    @extend_schema(
+        tags=[_TAG], responses={200: sz.FiscalTaxMappingListItem(many=True), **_PROBLEMS}
+    )
+    def get(self, request: Request, entity_id: int) -> Response:
+        def operation() -> Response:
+            today = timezone.localdate()
+            rows = []
+            for mapping in list_mappings(actor=_actor(request), entity_id=entity_id):
+                entry = mapping.catalog_entry
+                covers = mapping.starts_on <= today and (
+                    mapping.ends_on is None or mapping.ends_on >= today
+                )
+                rows.append(
+                    {
+                        "id": mapping.id,
+                        "definition_id": mapping.tax_definition_id,
+                        "definition_name": mapping.tax_definition.name,
+                        "catalog_version": mapping.catalog_version,
+                        "percentage_code": mapping.percentage_code,
+                        "catalog_entry_id": mapping.catalog_entry_id,
+                        "display_name": entry.display_name if entry else None,
+                        "rate": str(entry.rate.normalize()) if entry and entry.rate else None,
+                        "treatment": entry.treatment if entry else None,
+                        "starts_on": mapping.starts_on,
+                        "ends_on": mapping.ends_on,
+                        "source": mapping.source,
+                        "is_current": bool(covers and entry and is_current(entry, today)),
+                    }
+                )
+            return Response(rows)
+
+        return _respond(request, operation)
+
+
+def _payment_option(option: Any) -> dict[str, Any]:
+    return {
+        "code": option.code,
+        "description": option.description,
+        "display_name": option.display_name,
+        "catalog_version": option.catalog_version,
+        "source_document": option.source_document,
+        "source_version": option.source_version,
+        "source_url": option.source_url,
+        "downloaded_on": option.downloaded_on,
+        "valid_from": option.valid_from,
+        "valid_to": option.valid_to,
+        "is_current": option.is_current,
+        "enableable": option.enableable,
+        "enabled": option.enabled,
+        "is_default": option.is_default,
+        "internal_method": option.internal_method,
+        "version": option.version,
+    }
+
+
+class PaymentFormListView(_FiscalConfigurationView):
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalPaymentFormOption(many=True), **_PROBLEMS})
+    def get(self, request: Request, entity_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: Response(
+                [
+                    _payment_option(option)
+                    for option in get_payment_forms(actor=_actor(request), entity_id=entity_id)
+                ]
+            ),
+        )
+
+
+class PaymentFormDetailView(_FiscalConfigurationView):
+    @extend_schema(
+        tags=[_TAG],
+        request=sz.FiscalPaymentFormWrite,
+        responses={200: sz.FiscalPaymentFormOption(many=True), **_PROBLEMS},
+    )
+    def put(self, request: Request, entity_id: int, code: str) -> Response:
+        def operation() -> Response:
+            data = _validated(sz.FiscalPaymentFormWrite, request)
+            actor = _actor(request)
+            set_payment_form_enabled(
+                actor=actor,
+                entity_id=entity_id,
+                code=code,
+                idempotency_key=_idempotency_key(request),
+                **data,
+            )
+            return Response(
+                [_payment_option(o) for o in get_payment_forms(actor=actor, entity_id=entity_id)]
             )
 
         return _respond(request, operation)

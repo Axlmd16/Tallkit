@@ -385,3 +385,92 @@ class FiscalNumberingAntecedent(serializers.Serializer[dict[str, Any]]):
     last_declared_number = serializers.IntegerField()
     declared_on = serializers.DateField()
     source: Any = serializers.CharField()
+
+
+class FiscalStatusCause(serializers.Serializer[dict[str, Any]]):
+    code = serializers.CharField()
+    kind = serializers.ChoiceField(choices=("MISSING", "REVIEW"))
+    message = serializers.CharField()
+
+
+class FiscalElectronicStatus(serializers.Serializer[dict[str, Any]]):
+    entity_id = serializers.IntegerField()
+    state = serializers.ChoiceField(
+        choices=("NOT_CONFIGURED", "INCOMPLETE", "NEEDS_REVIEW", "READY")
+    )
+    causes = FiscalStatusCause(many=True)
+    warnings = FiscalStatusCause(many=True)
+    environment = serializers.ChoiceField(choices=("TEST",))
+    profile_revision = serializers.IntegerField(allow_null=True)
+    default_point_id = serializers.IntegerField(allow_null=True)
+    default_payment_code = serializers.CharField(allow_null=True)
+
+
+class FiscalPreparationDefaults(serializers.Serializer[dict[str, Any]]):
+    entity_id = serializers.IntegerField()
+    version = serializers.IntegerField()
+    designated_point_id = serializers.IntegerField(allow_null=True)
+    effective_point_id = serializers.IntegerField(allow_null=True)
+    point_issue = serializers.CharField(allow_null=True)
+    default_payment_code = serializers.CharField(allow_null=True)
+    payment_issue = serializers.CharField(allow_null=True)
+
+
+class FiscalPreparationDefaultsWrite(StrictSerializer):
+    expected_version = serializers.IntegerField(min_value=0)
+    default_point_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    default_payment_code = serializers.CharField(max_length=8, required=False)
+
+
+class FiscalCatalogEntry(serializers.Serializer[dict[str, Any]]):
+    id = serializers.IntegerField()
+    kind = serializers.CharField()
+    catalog_version = serializers.CharField()
+    code = serializers.CharField()
+    description = serializers.CharField()
+    display_name = serializers.CharField()
+    tax_code = serializers.CharField(allow_null=True)
+    rate = serializers.CharField(allow_null=True)
+    treatment = serializers.CharField(allow_null=True)
+    source_document = serializers.CharField()
+    source_version = serializers.CharField()
+    source_reference = serializers.CharField()
+    source_url = serializers.CharField()
+    downloaded_on = serializers.DateField()
+    valid_from = serializers.DateField(allow_null=True)
+    valid_to = serializers.DateField(allow_null=True)
+    validity_note = serializers.CharField(allow_blank=True)
+    is_active = serializers.BooleanField()
+    is_selectable = serializers.BooleanField()
+    incorporated_at = serializers.DateTimeField()
+
+
+class FiscalTaxMappingListItem(FiscalTaxMapping):
+    definition_name = serializers.CharField()
+    rate = serializers.CharField(allow_null=True)
+    treatment = serializers.CharField(allow_null=True)
+    is_current = serializers.BooleanField()
+
+
+class FiscalPaymentFormOption(serializers.Serializer[dict[str, Any]]):
+    code = serializers.CharField()
+    description = serializers.CharField()
+    display_name = serializers.CharField()
+    catalog_version = serializers.CharField()
+    source_document = serializers.CharField()
+    source_version = serializers.CharField()
+    source_url = serializers.CharField()
+    downloaded_on = serializers.DateField()
+    valid_from = serializers.DateField(allow_null=True)
+    valid_to = serializers.DateField(allow_null=True)
+    is_current = serializers.BooleanField()
+    enableable = serializers.BooleanField()
+    enabled = serializers.BooleanField()
+    is_default = serializers.BooleanField()
+    internal_method = serializers.CharField(allow_null=True)
+    version = serializers.IntegerField()
+
+
+class FiscalPaymentFormWrite(StrictSerializer):
+    enabled = serializers.BooleanField()
+    expected_version = serializers.IntegerField(min_value=0)

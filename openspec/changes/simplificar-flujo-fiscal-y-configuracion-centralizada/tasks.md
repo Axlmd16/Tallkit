@@ -43,14 +43,14 @@ Dependencias: 1.3 y 1.4 para la carga de datos; el modelo y las validaciones pue
 
 Dependencias: grupo 2. Diseño D3/D4/D7/D8/D11; specs `configuracion-operativa-y-fiscal` y `preparacion-y-seguimiento-fiscal`.
 
-- [ ] 3.1 Escribir `test_payment_form_settings.py`:
+- [x] 3.1 Escribir `test_payment_form_settings.py`:
   - política V1 sin registros (`01` y `20` habilitadas, `01` predeterminada);
   - habilitar o deshabilitar `01` y `20`;
   - rechazo `payment_form_not_enableable_v1` para `16` y `19`;
   - rechazo al deshabilitar la forma predeterminada sin sustituto;
   - versión esperada, idempotencia, permiso de Administrador y denegación a Vendedor y Encargado.
-- [ ] 3.2 Crear `FiscalPaymentFormSetting`, la política `V1_ENABLEABLE_PAYMENT_FORMS` en el dominio de configuración y el servicio de habilitación. Bloqueo: `FiscalEntity` y luego el registro propio. Migración aditiva sin filas iniciales.
-- [ ] 3.3 Escribir `test_preparation_defaults.py`:
+- [x] 3.2 Crear `FiscalPaymentFormSetting`, la política `V1_ENABLEABLE_PAYMENT_FORMS` en el dominio de configuración y el servicio de habilitación. Bloqueo: `FiscalEntity` y luego el registro propio. Migración aditiva sin filas iniciales.
+- [x] 3.3 Escribir `test_preparation_defaults.py`:
   - un único punto activo se usa sin designación;
   - varios puntos sin designación producen `default_point_required`;
   - la designación válida se usa;
@@ -58,14 +58,14 @@ Dependencias: grupo 2. Diseño D3/D4/D7/D8/D11; specs `configuracion-operativa-y
   - el punto designado deshabilitado es inutilizable;
   - designación concurrente;
   - forma predeterminada no habilitada rechazada.
-- [ ] 3.4 Crear `FiscalPreparationDefaults`, su migración, el servicio de escritura con versión e idempotencia y el resolvedor de punto efectivo y forma predeterminada efectiva.
-- [ ] 3.5 Probar y adaptar `application/fiscal_resolver.py`:
+- [x] 3.4 Crear `FiscalPreparationDefaults`, su migración, el servicio de escritura con versión e idempotencia y el resolvedor de punto efectivo y forma predeterminada efectiva.
+- [x] 3.5 Probar y adaptar `application/fiscal_resolver.py`:
   - quitar los parámetros `environment` y `point_id`;
   - usar siempre el ambiente de pruebas y el punto efectivo;
   - devolver las formas habilitadas y la huella de configuración.
 
   Probar el rechazo `production_disabled` en toda escritura de configuración que reciba un ambiente. Actualizar `test_fiscal_resolver.py` y verificar el orden de bloqueos de D8 en `test_lock_order.py`.
-- [ ] 3.6 Escribir `test_electronic_status.py` y crear `application/electronic_status.py`:
+- [x] 3.6 Escribir `test_electronic_status.py` y crear `application/electronic_status.py`:
   - estados `NOT_CONFIGURED`, `INCOMPLETE`, `NEEDS_REVIEW` y `READY`, con causas;
   - prioridad de `INCOMPLETE` cuando también hay causas de revisión;
   - condición o correspondencia fuera de vigencia;
@@ -74,7 +74,7 @@ Dependencias: grupo 2. Diseño D3/D4/D7/D8/D11; specs `configuracion-operativa-y
   - certificado ausente o vencido solo como advertencia, con el estado `READY` intacto.
 
   El resolvedor debe derivar `preparation_issues` de esta misma evaluación.
-- [ ] 3.7 Probar y exponer la API de D8 en `fiscal/api`:
+- [x] 3.7 Probar y exponer la API de D8 en `fiscal/api`:
   - `electronic-status`;
   - `preparation-defaults` (GET y PUT);
   - `catalogs/{kind}`;

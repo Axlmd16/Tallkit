@@ -44,16 +44,26 @@ def _setup_commercial_config(admin: Any) -> int:
         ends_on=None,
         source="Resolución vigente",
     )
+    zero = TaxDefinition.objects.filter(fiscal_entity=entity, code="CERO").first()
+    if zero is not None:
+        create_mapping(
+            actor=admin,
+            definition_id=zero.pk,
+            catalog_entry_id=_iva_15_entry("0"),
+            starts_on=date(2025, 1, 1),
+            ends_on=None,
+            source="Resolución vigente",
+        )
     return point.pk
 
 
-def _iva_15_entry() -> int:
+def _iva_15_entry(code: str = "4") -> int:
     from workshop_configuration.application import official_catalog
     from workshop_configuration.models import OfficialCatalogEntry
 
     official_catalog.ensure_installed()
     return OfficialCatalogEntry.objects.get(
-        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="4"
+        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code=code
     ).pk
 
 
