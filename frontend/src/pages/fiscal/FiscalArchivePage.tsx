@@ -5,7 +5,7 @@ import { useSession } from '@/features/auth/hooks'
 import { fiscalApi } from '@/features/fiscal/api'
 import { FiscalReadinessSection } from '@/features/fiscal/FiscalReadinessSection'
 import { useArchive, useFiscalMutations } from '@/features/fiscal/hooks'
-import type { ArchiveSummary } from '@/features/fiscal/types'
+import type { ArchiveFilters, ArchiveSummary } from '@/features/fiscal/types'
 import { useFiscalEntities } from '@/features/workshop-configuration/queries'
 import {
   Button,
@@ -122,7 +122,12 @@ export function FiscalArchivePage() {
   const permissions = useSession().data?.permissions ?? []
   const entities = useFiscalEntities()
   const [entityId, setEntityId] = useState<number | undefined>(undefined)
-  const archive = useArchive(entityId)
+  const [filters, setFilters] = useState<ArchiveFilters>({ page: 1 })
+  const archive = useArchive(entityId, filters)
+  const page = archive.data
+  const results = page?.results ?? []
+  const updateFilters = (changes: Partial<ArchiveFilters>) =>
+    setFilters((current) => ({ ...current, ...changes, page: 1 }))
   const { exportArchive } = useFiscalMutations()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [downloadError, setDownloadError] = useState<string | null>(null)
@@ -186,11 +191,12 @@ export function FiscalArchivePage() {
           <select
             aria-label="Filtrar por entidad"
             className={`${getControlClasses()} mt-1.5`}
-            onChange={(event) =>
+            onChange={(event) => {
               setEntityId(
                 event.target.value ? Number(event.target.value) : undefined,
               )
-            }
+              setFilters((current) => ({ ...current, page: 1 }))
+            }}
             value={entityId ?? ''}
           >
             <option value="">Todas</option>
@@ -232,6 +238,66 @@ export function FiscalArchivePage() {
             seleccionados
           </Button>
         </div>
+        <div className="grid grid-cols-1 gap-4 border-b border-line px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-sm font-semibold text-ink">
+            Ambiente
+            <select
+              className={`${getControlClasses()} mt-1.5`}
+              onChange={(event) =>
+                updateFilters({
+                  environment:
+                    (event.target.value as ArchiveFilters['environment']) ||
+                    undefined,
+                })
+              }
+              value={filters.environment ?? ''}
+            >
+              <option value="">Todos</option>
+              <option value="1">Pruebas</option>
+              <option value="2">Producción</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-ink">
+            Tipo
+            <select
+              className={`${getControlClasses()} mt-1.5`}
+              onChange={(event) =>
+                updateFilters({
+                  documentType:
+                    (event.target.value as ArchiveFilters['documentType']) ||
+                    undefined,
+                })
+              }
+              value={filters.documentType ?? ''}
+            >
+              <option value="">Todos</option>
+              <option value="01">01 · Factura</option>
+              <option value="04">04 · Nota de crédito</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-ink">
+            Emitido desde
+            <input
+              className={`${getControlClasses()} mt-1.5`}
+              onChange={(event) =>
+                updateFilters({ issuedFrom: event.target.value || undefined })
+              }
+              type="date"
+              value={filters.issuedFrom ?? ''}
+            />
+          </label>
+          <label className="text-sm font-semibold text-ink">
+            Emitido hasta
+            <input
+              className={`${getControlClasses()} mt-1.5`}
+              onChange={(event) =>
+                updateFilters({ issuedTo: event.target.value || undefined })
+              }
+              type="date"
+              value={filters.issuedTo ?? ''}
+            />
+          </label>
+        </div>
         {archive.isPending ? (
           <LoadingState label="Cargando archivo…" />
         ) : archive.isError ? (
@@ -251,7 +317,7 @@ export function FiscalArchivePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {(archive.data ?? []).map((dossier) => (
+                {results.map((dossier) => (
                   <tr key={dossier.dossier_id}>
                     <td className="px-4 py-3">
                       <input
@@ -289,7 +355,7 @@ export function FiscalArchivePage() {
                     </td>
                   </tr>
                 ))}
-                {!archive.data?.length && (
+                {!results.length && (
                   <tr>
                     <td
                       className="px-4 py-6 text-center text-ink-muted"
@@ -301,6 +367,43 @@ export function FiscalArchivePage() {
                 )}
               </tbody>
             </table>
+            {page && page.total_pages > 1 && (
+              <nav
+                aria-label="Paginación del archivo"
+                className="flex items-center justify-between border-t border-line px-4 py-3 text-sm"
+              >
+                <span className="text-ink-muted">
+                  Página {page.page} de {page.total_pages} · {page.count}{' '}
+                  comprobantes
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    disabled={page.page <= 1}
+                    onClick={() =>
+                      setFilters((current) => ({
+                        ...current,
+                        page: page.page - 1,
+                      }))
+                    }
+                    variant="secondary"
+                  >
+                    Anterior
+                  </Button>
+                  <Button
+                    disabled={page.page >= page.total_pages}
+                    onClick={() =>
+                      setFilters((current) => ({
+                        ...current,
+                        page: page.page + 1,
+                      }))
+                    }
+                    variant="secondary"
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </nav>
+            )}
           </div>
         )}
       </Surface>

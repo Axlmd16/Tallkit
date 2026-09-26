@@ -41,7 +41,14 @@ beforeEach(() => {
 
 describe('fiscal query ownership', () => {
   it('scopes archive and profile keys by issuer', async () => {
-    api.listArchive.mockResolvedValue([])
+    const emptyPage = {
+      count: 0,
+      page: 1,
+      page_size: 20,
+      total_pages: 0,
+      results: [],
+    }
+    api.listArchive.mockResolvedValue(emptyPage)
     api.getElectronicProfile.mockResolvedValue({ entity_id: 2, revision: 0 })
     const wrap = { wrapper: wrapper(client) }
     const archive = renderHook(() => useArchive(2), wrap)
@@ -50,7 +57,8 @@ describe('fiscal query ownership', () => {
       expect(archive.result.current.isSuccess).toBe(true)
       expect(profile.result.current.isSuccess).toBe(true)
     })
-    expect(client.getQueryData(fiscalKeys.archive(2))).toEqual([])
+    expect(client.getQueryData(fiscalKeys.archive(2, {}))).toEqual(emptyPage)
+    expect(api.listArchive).toHaveBeenCalledWith(2, {})
     expect(client.getQueryData(fiscalKeys.profile(2))).toEqual(
       expect.objectContaining({ entity_id: 2 }),
     )

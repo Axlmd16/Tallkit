@@ -6,27 +6,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workshop_configuration', '0005_alter_configurationcommand_options_and_more'),
+        ("workshop_configuration", "0005_alter_configurationcommand_options_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ElectronicProfileRevision',
+            name="ElectronicProfileRevision",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('revision', models.PositiveBigIntegerField()),
-                ('conditions', models.JSONField()),
-                ('certificate', models.JSONField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('fiscal_entity', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='electronic_profiles', to='workshop_configuration.fiscalentity')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("revision", models.PositiveBigIntegerField()),
+                ("conditions", models.JSONField()),
+                ("certificate", models.JSONField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "fiscal_entity",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="electronic_profiles",
+                        to="workshop_configuration.fiscalentity",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['fiscal_entity_id', 'revision'],
-                'constraints': [models.UniqueConstraint(fields=('fiscal_entity', 'revision'), name='electronic_profile_revision_unique'), models.CheckConstraint(condition=models.Q(('revision__gte', 1)), name='electronic_profile_revision_positive')],
+                "ordering": ["fiscal_entity_id", "revision"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("fiscal_entity", "revision"),
+                        name="electronic_profile_revision_unique",
+                    ),
+                    models.CheckConstraint(
+                        condition=models.Q(("revision__gte", 1)),
+                        name="electronic_profile_revision_positive",
+                    ),
+                ],
             },
         ),
     ]

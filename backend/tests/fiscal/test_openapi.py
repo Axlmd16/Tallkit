@@ -52,6 +52,17 @@ def test_fiscal_routes_and_local_semantics_are_published(schema: dict[str, Any])
 
     archive = schema["paths"][P + "archive/"]["get"]
     assert "no verificada" in archive["description"].lower()
+    assert {parameter["name"] for parameter in archive["parameters"]} >= {
+        "fiscal_entity_id",
+        "environment",
+        "document_type",
+        "issued_from",
+        "issued_to",
+        "page",
+        "page_size",
+    }
+    page_schema = archive["responses"]["200"]["content"]["application/json"]["schema"]
+    assert page_schema["$ref"].endswith("/FiscalArchivePage")
     prepare = schema["paths"][P + "preparations/{preparation_id}/prepare/"]["post"]
     assert {"400", "403", "404", "409"} <= set(prepare["responses"])
 

@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-import io
+import tempfile
 import zipfile
 from collections.abc import Callable
 from dataclasses import asdict
+from datetime import date
 from typing import Any, ClassVar
 from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import FileResponse, HttpResponse
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -64,6 +66,39 @@ _PROBLEMS = {
     409: ProblemSerializer,
 }
 _TAG = "Fiscal"
+_ARCHIVE_LIST_PARAMETERS = [
+    OpenApiParameter("fiscal_entity_id", OpenApiTypes.INT, description="Emisor."),
+    OpenApiParameter("environment", OpenApiTypes.STR, enum=["1", "2"]),
+    OpenApiParameter("document_type", OpenApiTypes.STR, enum=["01", "04"]),
+    OpenApiParameter("issued_from", OpenApiTypes.DATE, description="Emisión desde (AAAA-MM-DD)."),
+    OpenApiParameter("issued_to", OpenApiTypes.DATE, description="Emisión hasta (AAAA-MM-DD)."),
+    OpenApiParameter("page", OpenApiTypes.INT, description="Desde 1; omisión 1."),
+    OpenApiParameter(
+        "page_size",
+        OpenApiTypes.INT,
+        description=f"1 a {xml_archive.ARCHIVE_PAGE_SIZE_MAX}; omisión "
+        f"{xml_archive.ARCHIVE_PAGE_SIZE_DEFAULT}.",
+    ),
+]
+
+
+def _query_int(params: Any, name: str) -> int | None:
+    raw = params.get(name)
+    if raw in (None, ""):
+        return None
+    if not str(raw).isdigit():
+        raise FiscalArchiveError(f"Parámetro inválido: {name}.")
+    return int(raw)
+
+
+def _query_date(params: Any, name: str) -> date | None:
+    raw = params.get(name)
+    if raw in (None, ""):
+        return None
+    try:
+        return date.fromisoformat(str(raw))
+    except ValueError:
+        raise FiscalArchiveError(f"Parámetro inválido: {name} (AAAA-MM-DD).") from None
 
 
 def _actor(request: Request) -> User:
@@ -350,24 +385,37 @@ class PreparationIdentityView(APIView):
 class ArchiveListUploadView(APIView):
     @extend_schema(
         tags=[_TAG],
-        responses={200: sz.FiscalArchiveSummary(many=True), **_PROBLEMS},
+        parameters=_ARCHIVE_LIST_PARAMETERS,
+        responses={200: sz.FiscalArchivePage, **_PROBLEMS},
         description=(
-            "Lista evidencia externa no verificada ante el SRI según el ámbito del usuario."
+            "Lista paginada de evidencia externa no verificada ante el SRI según el ámbito "
+            "del usuario; admite filtros por emisor, ambiente, tipo y fecha de emisión."
         ),
     )
     def get(self, request: Request) -> Response:
-        entity = request.query_params.get("fiscal_entity_id")
-        return _respond(
-            request,
-            lambda: Response(
-                [
-                    item._asdict()
-                    for item in xml_archive.list_archived_documents(
-                        actor=_actor(request), fiscal_entity_id=int(entity) if entity else None
-                    )
-                ]
-            ),
-        )
+        def operation() -> Response:
+            params = request.query_params
+            result = xml_archive.list_archived_documents(
+                actor=_actor(request),
+                fiscal_entity_id=_query_int(params, "fiscal_entity_id"),
+                environment=params.get("environment") or None,
+                document_type=params.get("document_type") or None,
+                issued_from=_query_date(params, "issued_from"),
+                issued_to=_query_date(params, "issued_to"),
+                page=_query_int(params, "page") or 1,
+                page_size=_query_int(params, "page_size") or xml_archive.ARCHIVE_PAGE_SIZE_DEFAULT,
+            )
+            return Response(
+                {
+                    "count": result.count,
+                    "page": result.page,
+                    "page_size": result.page_size,
+                    "total_pages": result.total_pages,
+                    "results": [item._asdict() for item in result.results],
+                }
+            )
+
+        return _respond(request, operation)
 
     @extend_schema(
         tags=[_TAG],
@@ -421,14 +469,24 @@ class ArchiveExportView(APIView):
     def post(self, request: Request) -> Response | FileResponse:
         try:
             data = _validated(sz.FiscalArchiveExport, request)
-            output = io.BytesIO()
-            with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-                for entry in xml_archive.iter_export_entries(
-                    actor=_actor(request), dossier_ids=data["dossier_ids"]
-                ):
-                    archive.writestr(entry.filename, entry.content)
-            output.seek(0)
-            return FileResponse(output, as_attachment=True, filename="archivo-fiscal.zip")
+            # El ZIP se arma en un temporal de disco: los documentos se leen por lotes y
+            # el paquete completo no se retiene en memoria. FileResponse cierra (y el
+            # sistema elimina) el temporal al terminar de enviarlo.
+            # FileResponse asume el cierre del temporal; un `with` lo cerraría antes.
+            output = tempfile.TemporaryFile()  # noqa: SIM115
+            try:
+                with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    for entry in xml_archive.iter_export_entries(
+                        actor=_actor(request), dossier_ids=data["dossier_ids"]
+                    ):
+                        archive.writestr(entry.filename, entry.content)
+                output.seek(0)
+            except BaseException:
+                output.close()
+                raise
+            response = FileResponse(output, as_attachment=True, filename="archivo-fiscal.zip")
+            response["Cache-Control"] = "private, no-store"
+            return response
         except (
             BusinessPermissionDeniedError,
             FiscalArchiveError,

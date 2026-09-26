@@ -89,6 +89,22 @@ export interface ArchiveSummary {
   linked_source: string | null
 }
 
+export interface ArchiveFilters {
+  environment?: FiscalEnvironment | undefined
+  documentType?: '01' | '04' | undefined
+  issuedFrom?: string | undefined
+  issuedTo?: string | undefined
+  page?: number | undefined
+}
+
+export interface ArchivePage {
+  count: number
+  page: number
+  page_size: number
+  total_pages: number
+  results: ArchiveSummary[]
+}
+
 export interface ArchiveResult {
   dossier_id: string
   replayed: boolean

@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fiscalApi } from './api'
-import type { DraftUpdate, FiscalSourceKind } from './types'
+import type { ArchiveFilters, DraftUpdate, FiscalSourceKind } from './types'
 
 export const fiscalKeys = {
   all: ['fiscal'] as const,
   origin: (kind: FiscalSourceKind, id: number) =>
     [...fiscalKeys.all, 'origin', kind, id] as const,
   preparation: (id: string) => [...fiscalKeys.all, 'preparation', id] as const,
-  archive: (entityId?: number) =>
-    [...fiscalKeys.all, 'archive', entityId ?? 'all'] as const,
+  archive: (entityId?: number, filters?: ArchiveFilters) =>
+    filters
+      ? ([...fiscalKeys.all, 'archive', entityId ?? 'all', filters] as const)
+      : ([...fiscalKeys.all, 'archive', entityId ?? 'all'] as const),
   profile: (entityId: number) =>
     [...fiscalKeys.all, 'configuration', 'profile', entityId] as const,
   establishments: (entityId: number) =>
@@ -20,10 +22,10 @@ export const fiscalKeys = {
     [...fiscalKeys.all, 'readiness', entityId] as const,
 }
 
-export function useArchive(entityId?: number) {
+export function useArchive(entityId?: number, filters: ArchiveFilters = {}) {
   return useQuery({
-    queryKey: fiscalKeys.archive(entityId),
-    queryFn: () => fiscalApi.listArchive(entityId),
+    queryKey: fiscalKeys.archive(entityId, filters),
+    queryFn: () => fiscalApi.listArchive(entityId, filters),
   })
 }
 
@@ -185,10 +187,14 @@ export function useFiscalMutations() {
         sourceLabel: string
         xml: File
       }) => fiscalApi.uploadArchive(entityId, sourceLabel, xml),
-      onSuccess: (_, variables) =>
-        queryClient.invalidateQueries({
-          queryKey: fiscalKeys.archive(variables.entityId),
-        }),
+      onSuccess: async (_, variables) => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: fiscalKeys.archive(variables.entityId),
+          }),
+          queryClient.invalidateQueries({ queryKey: fiscalKeys.archive() }),
+        ])
+      },
     }),
     linkArchive: useMutation({
       mutationFn: ({

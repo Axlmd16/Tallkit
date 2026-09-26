@@ -171,7 +171,7 @@ def test_listing_omits_bytes_and_download_checks_integrity(
         source_label="ensayo",
     )
 
-    summaries = list_archived_documents(actor=role_admin, fiscal_entity_id=fiscal_entity.id)
+    summaries = list_archived_documents(actor=role_admin, fiscal_entity_id=fiscal_entity.id).results
     assert len(summaries) == 1
     assert not hasattr(summaries[0], "content")
     downloaded = download_document(actor=role_admin, dossier_id=archived.dossier_id)
@@ -255,3 +255,23 @@ def test_export_streams_exact_evidence_and_a_manifest(
         entries[0].sha256,
         entries[1].sha256,
     ]
+
+
+def test_archiving_keeps_external_number_without_consuming_fiscal_sequences(
+    role_admin: Any, fiscal_entity: FiscalEntity
+) -> None:
+    """Escenario «XML con número externo»: se conserva el número, sin tocar contadores."""
+    from fiscal.models import FiscalDocumentIdentity, FiscalNumberingScope
+
+    result = archive_xml(
+        actor=role_admin,
+        fiscal_entity_id=fiscal_entity.id,
+        original_bytes=synthetic_invoice(),
+        source_label="facturador externo",
+    )
+
+    dossier = FiscalXmlDossier.objects.get(pk=result.dossier_id)
+    assert dossier.sequential.isdigit()
+    assert len(dossier.sequential) == 9
+    assert not FiscalNumberingScope.objects.exists()
+    assert not FiscalDocumentIdentity.objects.exists()

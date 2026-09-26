@@ -121,6 +121,13 @@ describe('fiscalApi', () => {
     await api.cancelPreparation('p1', 2, 'Reemplazo')
     await api.assignTestIdentity('p1')
     await api.listArchive(4)
+    await api.listArchive(undefined, {
+      environment: '2',
+      documentType: '04',
+      issuedFrom: '2026-09-01',
+      issuedTo: '2026-09-30',
+      page: 2,
+    })
     await api.exportArchive(['d1', 'd2'])
     await api.linkArchive('d1', {
       source_kind: 'ARTISAN',
@@ -136,6 +143,7 @@ describe('fiscalApi', () => {
       '/fiscal/preparations/p1/cancel/',
       '/fiscal/preparations/p1/test-identity/',
       '/fiscal/archive/?fiscal_entity_id=4',
+      '/fiscal/archive/?environment=2&document_type=04&issued_from=2026-09-01&issued_to=2026-09-30&page=2',
       '/fiscal/archive/d1/link/',
       '/fiscal/corrections/c1/prepare/',
       '/fiscal/corrections/c1/cancel/',

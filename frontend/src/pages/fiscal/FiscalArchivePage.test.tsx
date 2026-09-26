@@ -1,13 +1,26 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 
-import type { ArchiveSummary } from '@/features/fiscal/types'
+import type {
+  ArchiveFilters,
+  ArchivePage,
+  ArchiveSummary,
+} from '@/features/fiscal/types'
 
 import { FiscalArchivePage } from './FiscalArchivePage'
 
 const mocks = vi.hoisted(() => ({
   permissions: ['fiscal.archivo.gestionar'] as string[],
-  archive: { isPending: false, isError: false, data: [] as ArchiveSummary[] },
+  archive: {
+    isPending: false,
+    isError: false,
+    data: null as ArchivePage | null,
+  },
+  archiveCalls: [] as {
+    entityId?: number | undefined
+    filters: ArchiveFilters
+  }[],
   upload: {
     mutate: vi.fn(),
     isPending: false,
@@ -33,7 +46,10 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   }),
 }))
 vi.mock('@/features/fiscal/hooks', () => ({
-  useArchive: () => mocks.archive,
+  useArchive: (entityId?: number, filters: ArchiveFilters = {}) => {
+    mocks.archiveCalls.push({ entityId, filters })
+    return mocks.archive
+  },
   useFiscalMutations: () => ({
     uploadArchive: mocks.upload,
     exportArchive: mocks.exportArchive,
@@ -60,9 +76,24 @@ function dossier(): ArchiveSummary {
   }
 }
 
+function page(
+  results: ArchiveSummary[],
+  overrides: Partial<ArchivePage> = {},
+): ArchivePage {
+  return {
+    count: results.length,
+    page: 1,
+    page_size: 20,
+    total_pages: results.length ? 1 : 0,
+    results,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   mocks.permissions = ['fiscal.archivo.gestionar']
-  mocks.archive = { isPending: false, isError: false, data: [] }
+  mocks.archive = { isPending: false, isError: false, data: page([]) }
+  mocks.archiveCalls = []
   mocks.upload.isError = false
   mocks.upload.isSuccess = false
 })
@@ -74,7 +105,7 @@ it('restringe el archivo al Administrador', () => {
 })
 
 it('muestra la condición externa no verificada y los comprobantes', () => {
-  mocks.archive = { isPending: false, isError: false, data: [dossier()] }
+  mocks.archive = { isPending: false, isError: false, data: page([dossier()]) }
   render(<FiscalArchivePage />)
   expect(
     screen.getByText('Evidencia externa no verificada'),
@@ -89,4 +120,24 @@ it('muestra el error de carga sin exito ficticio', () => {
   render(<FiscalArchivePage />)
   expect(screen.getByText('No se incorporó el comprobante')).toBeInTheDocument()
   expect(screen.queryByText(/Evidencia conservada/)).not.toBeInTheDocument()
+})
+
+it('filtra por ambiente y pagina sin cargar todo el archivo', async () => {
+  const user = userEvent.setup()
+  mocks.archive = {
+    isPending: false,
+    isError: false,
+    data: page([dossier()], { count: 45, total_pages: 3 }),
+  }
+  render(<FiscalArchivePage />)
+
+  expect(screen.getByText(/Página 1 de 3/)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Siguiente' }))
+  expect(mocks.archiveCalls.at(-1)?.filters.page).toBe(2)
+
+  await user.selectOptions(screen.getByLabelText('Ambiente'), '2')
+  expect(mocks.archiveCalls.at(-1)?.filters).toEqual(
+    expect.objectContaining({ environment: '2', page: 1 }),
+  )
 })
