@@ -23,6 +23,7 @@ from fiscal.application.preparations import (
 )
 from fiscal.application.readiness import ArchiveReadiness
 from fiscal.application.xml_archive import (
+    ArchivedDocumentPage,
     ArchivedDocumentSummary,
     ArchiveResult,
     DownloadedXml,
@@ -392,7 +393,8 @@ def test_archive_endpoints_preserve_original_bytes_and_unverified_origin(
         dossier_id, 1, "01", "1", "1" * 49, "2026-09-26", "10.00", "EXTERNAL_UNVERIFIED", None
     )
     monkeypatch.setattr(
-        "fiscal.api.views.xml_archive.list_archived_documents", lambda **_: (summary,)
+        "fiscal.api.views.xml_archive.list_archived_documents",
+        lambda **_: ArchivedDocumentPage(1, 1, 20, 1, (summary,)),
     )
     monkeypatch.setattr(
         "fiscal.api.views.xml_archive.archive_xml",

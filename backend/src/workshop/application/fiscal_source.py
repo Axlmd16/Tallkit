@@ -110,9 +110,7 @@ def read_fiscal_source(operation_id: int) -> ArtisanFiscalSource:
 def lock_fiscal_source(operation_id: int) -> ArtisanFiscalSource:
     """Bloquea la raíz artesanal; el llamador conserva la transacción exterior."""
     operation = (
-        ServiceOperation.objects.select_for_update(of=("self",))
-        .filter(pk=operation_id)
-        .first()
+        ServiceOperation.objects.select_for_update(of=("self",)).filter(pk=operation_id).first()
     )
     if operation is None:
         raise FiscalSourceNotFoundError("Operación artesanal no encontrada.")

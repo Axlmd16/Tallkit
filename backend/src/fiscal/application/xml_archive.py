@@ -5,7 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterator, Sequence
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import date, datetime
 from decimal import Decimal
 from typing import NamedTuple
 from uuid import UUID
@@ -71,6 +72,15 @@ class ArchivedDocumentSummary(NamedTuple):
     linked_source: str | None
 
 
+@dataclass(frozen=True)
+class ArchivedDocumentPage:
+    count: int
+    page: int
+    page_size: int
+    total_pages: int
+    results: tuple[ArchivedDocumentSummary, ...]
+
+
 class DownloadedXml(NamedTuple):
     content: bytes
     sha256: str
@@ -94,6 +104,8 @@ class ExportEntry(NamedTuple):
 
 
 MAX_EXPORT_DOCUMENTS = 100
+ARCHIVE_PAGE_SIZE_DEFAULT = 20
+ARCHIVE_PAGE_SIZE_MAX = 100
 
 
 def _sha256(content: bytes) -> str:
@@ -257,9 +269,52 @@ def archive_xml(
         )
 
 
+def _validate_listing(
+    *,
+    environment: str | None,
+    document_type: str | None,
+    issued_from: date | None,
+    issued_to: date | None,
+    page: int,
+    page_size: int,
+) -> None:
+    if isinstance(page, bool) or not isinstance(page, int) or page < 1:
+        raise FiscalArchiveError("La página debe ser un entero positivo.")
+    if (
+        isinstance(page_size, bool)
+        or not isinstance(page_size, int)
+        or not 1 <= page_size <= ARCHIVE_PAGE_SIZE_MAX
+    ):
+        raise FiscalArchiveError(
+            f"El tamaño de página debe estar entre 1 y {ARCHIVE_PAGE_SIZE_MAX}."
+        )
+    if environment is not None and environment not in ("1", "2"):
+        raise FiscalArchiveError("El ambiente debe ser 1 (pruebas) o 2 (producción).")
+    if document_type is not None and document_type not in ("01", "04"):
+        raise FiscalArchiveError("El tipo documental debe ser 01 o 04.")
+    if issued_from is not None and issued_to is not None and issued_from > issued_to:
+        raise FiscalArchiveError("La fecha inicial no puede ser posterior a la final.")
+
+
 def list_archived_documents(
-    *, actor: User, fiscal_entity_id: int | None = None
-) -> tuple[ArchivedDocumentSummary, ...]:
+    *,
+    actor: User,
+    fiscal_entity_id: int | None = None,
+    environment: str | None = None,
+    document_type: str | None = None,
+    issued_from: date | None = None,
+    issued_to: date | None = None,
+    page: int = 1,
+    page_size: int = ARCHIVE_PAGE_SIZE_DEFAULT,
+) -> ArchivedDocumentPage:
+    _validate_listing(
+        environment=environment,
+        document_type=document_type,
+        issued_from=issued_from,
+        issued_to=issued_to,
+        page=page,
+        page_size=page_size,
+    )
     query = FiscalXmlDossier.objects.all()
     if not has_permission(actor, "fiscal.archivo.gestionar"):
         scope = Q(pk__in=[])
@@ -272,7 +327,17 @@ def list_archived_documents(
         query = query.filter(scope)
     if fiscal_entity_id is not None:
         query = query.filter(fiscal_entity_id=fiscal_entity_id)
-    return tuple(
+    if environment is not None:
+        query = query.filter(environment=environment)
+    if document_type is not None:
+        query = query.filter(document_type=document_type)
+    if issued_from is not None:
+        query = query.filter(issue_date__gte=issued_from)
+    if issued_to is not None:
+        query = query.filter(issue_date__lte=issued_to)
+    count = query.count()
+    offset = (page - 1) * page_size
+    results = tuple(
         ArchivedDocumentSummary(
             dossier_id=row.id,
             fiscal_entity_id=row.fiscal_entity_id,
@@ -292,7 +357,14 @@ def list_archived_documents(
                 )
             ),
         )
-        for row in query.iterator(chunk_size=200)
+        for row in query[offset : offset + page_size]
+    )
+    return ArchivedDocumentPage(
+        count=count,
+        page=page,
+        page_size=page_size,
+        total_pages=-(-count // page_size) if count else 0,
+        results=results,
     )
 
 

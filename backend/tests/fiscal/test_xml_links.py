@@ -288,6 +288,6 @@ def test_commercial_user_can_read_only_evidence_linked_to_a_commercial_sale(
     )
 
     assert download_document(actor=role_seller, dossier_id=archived.dossier_id).content
-    assert len(list_archived_documents(actor=role_seller)) == 1
+    assert len(list_archived_documents(actor=role_seller).results) == 1
     with pytest.raises(BusinessPermissionDeniedError):
         download_document(actor=role_manager, dossier_id=archived.dossier_id)

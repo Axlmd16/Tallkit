@@ -83,3 +83,34 @@ def test_reopening_order_is_visible_without_cancelling_artisan_preparation(
     assert not discrepancy.state_changed
     assert not discrepancy.corrections_changed
     assert FiscalPreparation.objects.get(pk=result.preparation_id).state == "DRAFT"
+
+
+def test_later_artisan_void_is_reported_without_cancelling_preparation(
+    manager: Any, admin: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    """Escenario «Anulación artesanal posterior»: se muestra la discrepancia, sin cancelar."""
+    from fiscal.application.preparations import create_draft, query_discrepancy
+    from fiscal.models import FiscalPreparation
+    from workshop.application import service_operations
+
+    operation = _operation(manager, order, make_service)
+    result = create_draft(
+        actor=manager,
+        source_kind="ARTISAN",
+        source_id=operation.pk,
+        idempotency_key="fiscal:artisan:void",
+    )
+    service_operations.void_operation(
+        actor=admin,
+        operation_id=operation.pk,
+        payload={
+            "reason": "Error de registro",
+            "expected_version": operation.version,
+            "idempotency_key": key(),
+        },
+    )
+
+    discrepancy = query_discrepancy(actor=manager, preparation_id=result.preparation_id)
+    assert discrepancy.state_changed
+    assert (discrepancy.original_state, discrepancy.current_state) == ("CONFIRMED", "VOIDED")
+    assert FiscalPreparation.objects.get(pk=result.preparation_id).state == "DRAFT"

@@ -146,6 +146,14 @@ class FiscalArchiveSummary(serializers.Serializer[dict[str, Any]]):
     linked_source = serializers.CharField(allow_null=True)
 
 
+class FiscalArchivePage(serializers.Serializer[dict[str, Any]]):
+    count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    results = FiscalArchiveSummary(many=True)
+
+
 class FiscalArchiveExport(StrictSerializer):
     dossier_ids = serializers.ListField(child=serializers.UUIDField(), min_length=1, max_length=100)
 

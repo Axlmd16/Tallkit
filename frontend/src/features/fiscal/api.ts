@@ -6,7 +6,8 @@ import type {
   ArchivePolicyWrite,
   ArchiveReadiness,
   ArchiveResult,
-  ArchiveSummary,
+  ArchiveFilters,
+  ArchivePage,
   CorrectionCreateInput,
   CorrectionDetail,
   CorrectionResult,
@@ -81,10 +82,20 @@ export function createFiscalApi(client: ApiClient) {
         `${BASE}/preparations/${preparationId}/test-identity/`,
         { method: 'POST', body: {} },
       ),
-    listArchive: (entityId?: number) =>
-      client.request<ArchiveSummary[]>(
-        `${BASE}/archive/${entityId ? `?fiscal_entity_id=${entityId}` : ''}`,
-      ),
+    listArchive: (entityId?: number, filters: ArchiveFilters = {}) => {
+      const query = new URLSearchParams()
+      if (entityId) query.set('fiscal_entity_id', String(entityId))
+      if (filters.environment) query.set('environment', filters.environment)
+      if (filters.documentType) query.set('document_type', filters.documentType)
+      if (filters.issuedFrom) query.set('issued_from', filters.issuedFrom)
+      if (filters.issuedTo) query.set('issued_to', filters.issuedTo)
+      if (filters.page && filters.page > 1)
+        query.set('page', String(filters.page))
+      const search = query.toString()
+      return client.request<ArchivePage>(
+        `${BASE}/archive/${search ? `?${search}` : ''}`,
+      )
+    },
     uploadArchive: (entityId: number, sourceLabel: string, xml: File) => {
       const body = new FormData()
       body.append('fiscal_entity_id', String(entityId))

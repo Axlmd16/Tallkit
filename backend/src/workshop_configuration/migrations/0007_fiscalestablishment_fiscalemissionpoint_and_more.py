@@ -5,51 +5,90 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workshop_configuration', '0006_electronicprofilerevision'),
+        ("workshop_configuration", "0006_electronicprofilerevision"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FiscalEstablishment',
+            name="FiscalEstablishment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=3)),
-                ('address', models.CharField(max_length=300)),
-                ('is_active', models.BooleanField(default=True)),
-                ('version', models.PositiveBigIntegerField(default=1)),
-                ('fiscal_entity', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='establishments', to='workshop_configuration.fiscalentity')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("code", models.CharField(max_length=3)),
+                ("address", models.CharField(max_length=300)),
+                ("is_active", models.BooleanField(default=True)),
+                ("version", models.PositiveBigIntegerField(default=1)),
+                (
+                    "fiscal_entity",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="establishments",
+                        to="workshop_configuration.fiscalentity",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='FiscalEmissionPoint',
+            name="FiscalEmissionPoint",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=3)),
-                ('is_active', models.BooleanField(default=True)),
-                ('version', models.PositiveBigIntegerField(default=1)),
-                ('establishment', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='emission_points', to='workshop_configuration.fiscalestablishment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("code", models.CharField(max_length=3)),
+                ("is_active", models.BooleanField(default=True)),
+                ("version", models.PositiveBigIntegerField(default=1)),
+                (
+                    "establishment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="emission_points",
+                        to="workshop_configuration.fiscalestablishment",
+                    ),
+                ),
             ],
         ),
         migrations.AddConstraint(
-            model_name='fiscalestablishment',
-            constraint=models.UniqueConstraint(fields=('fiscal_entity', 'code'), name='fiscal_establishment_code_unique'),
+            model_name="fiscalestablishment",
+            constraint=models.UniqueConstraint(
+                fields=("fiscal_entity", "code"), name="fiscal_establishment_code_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalestablishment',
-            constraint=models.CheckConstraint(condition=models.Q(('code__regex', '^[0-9]{3}$'), models.Q(('code', '000'), _negated=True)), name='fiscal_establishment_code_valid'),
+            model_name="fiscalestablishment",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("code__regex", "^[0-9]{3}$"), models.Q(("code", "000"), _negated=True)
+                ),
+                name="fiscal_establishment_code_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalestablishment',
-            constraint=models.CheckConstraint(condition=models.Q(('address__regex', '\\S')), name='fiscal_establishment_address'),
+            model_name="fiscalestablishment",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("address__regex", "\\S")), name="fiscal_establishment_address"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalemissionpoint',
-            constraint=models.UniqueConstraint(fields=('establishment', 'code'), name='fiscal_point_code_unique'),
+            model_name="fiscalemissionpoint",
+            constraint=models.UniqueConstraint(
+                fields=("establishment", "code"), name="fiscal_point_code_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalemissionpoint',
-            constraint=models.CheckConstraint(condition=models.Q(('code__regex', '^[0-9]{3}$'), models.Q(('code', '000'), _negated=True)), name='fiscal_point_code_valid'),
+            model_name="fiscalemissionpoint",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("code__regex", "^[0-9]{3}$"), models.Q(("code", "000"), _negated=True)
+                ),
+                name="fiscal_point_code_valid",
+            ),
         ),
     ]

@@ -6,28 +6,59 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('workshop_configuration', '0007_fiscalestablishment_fiscalemissionpoint_and_more'),
+        ("workshop_configuration", "0007_fiscalestablishment_fiscalemissionpoint_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FiscalTaxMapping',
+            name="FiscalTaxMapping",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('catalog_version', models.CharField(max_length=64)),
-                ('percentage_code', models.CharField(max_length=4)),
-                ('starts_on', models.DateField()),
-                ('ends_on', models.DateField(blank=True, null=True)),
-                ('source', models.CharField(max_length=500)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('tax_definition', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='fiscal_mappings', to='workshop_configuration.taxdefinition')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("catalog_version", models.CharField(max_length=64)),
+                ("percentage_code", models.CharField(max_length=4)),
+                ("starts_on", models.DateField()),
+                ("ends_on", models.DateField(blank=True, null=True)),
+                ("source", models.CharField(max_length=500)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "tax_definition",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="fiscal_mappings",
+                        to="workshop_configuration.taxdefinition",
+                    ),
+                ),
             ],
             options={
-                'constraints': [models.CheckConstraint(condition=models.Q(('ends_on__isnull', True), ('ends_on__gte', models.F('starts_on')), _connector='OR'), name='fiscal_tax_mapping_interval'), models.CheckConstraint(condition=models.Q(('source__regex', '\\S')), name='fiscal_tax_mapping_source')],
+                "constraints": [
+                    models.CheckConstraint(
+                        condition=models.Q(
+                            ("ends_on__isnull", True),
+                            ("ends_on__gte", models.F("starts_on")),
+                            _connector="OR",
+                        ),
+                        name="fiscal_tax_mapping_interval",
+                    ),
+                    models.CheckConstraint(
+                        condition=models.Q(("source__regex", "\\S")),
+                        name="fiscal_tax_mapping_source",
+                    ),
+                ],
             },
         ),
     ]

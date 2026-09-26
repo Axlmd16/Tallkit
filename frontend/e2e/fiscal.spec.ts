@@ -2,6 +2,14 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { login } from './helpers'
 
+const EMPTY_ARCHIVE_PAGE = {
+  count: 0,
+  page: 1,
+  page_size: 20,
+  total_pages: 0,
+  results: [],
+}
+
 const preparation = (kind: 'COMMERCIAL' | 'ARTISAN', sourceId: number) => ({
   preparation_id: `${kind === 'COMMERCIAL' ? '11111111' : '22222222'}-1111-4111-8111-111111111111`,
   fiscal_entity_id: kind === 'COMMERCIAL' ? 1 : 2,
@@ -88,7 +96,7 @@ test('archivo administrativo muestra evidencia externa y readiness', async ({
     }),
   )
   await page.route('**/api/v1/fiscal/archive/**', (route) =>
-    route.fulfill({ json: [] }),
+    route.fulfill({ json: EMPTY_ARCHIVE_PAGE }),
   )
   await page.route('**/api/v1/fiscal/readiness/**', (route) =>
     route.fulfill({
@@ -133,7 +141,7 @@ test('un bloqueo crítico de readiness permanece visible y no muestra éxito', a
         },
       })
     }
-    return route.fulfill({ json: [] })
+    return route.fulfill({ json: EMPTY_ARCHIVE_PAGE })
   })
   await page.goto('/fiscal/archive')
   await page.getByLabel('Procedencia').fill('Ensayo E2E')
