@@ -10,3 +10,5 @@
 | RUC artesanal | `docs/negocio/producto/glosario.md` | Entidad fiscal de operaciones económicas de servicios. |
 | RUC comercial | `docs/negocio/producto/glosario.md` | Entidad fiscal de ingresos, proformas y ventas. |
 | Secuencial | `docs/negocio/producto/glosario.md` | Número monotónico, único y no reutilizable dentro de una serie. |
+| Forma de pago | `docs/negocio/producto/glosario.md` | Distinción entre datos fiscales y cobros efectivos. |
+| Crédito | `docs/negocio/producto/glosario.md` | Condición de venta, no medio de pago. |
