@@ -10,6 +10,8 @@ import pytest
 def _line(**overrides: object) -> dict[str, object]:
     line = {
         "position": 1,
+        "item_code": "SERV-001",
+        "description": "Servicio sintético",
         "quantity": "1",
         "base_amount": "10.00",
         "tax_amount": "1.50",

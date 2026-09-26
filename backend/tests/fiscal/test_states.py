@@ -12,7 +12,7 @@ def test_only_local_preparation_states_are_accepted() -> None:
         PreparationState.CANCELLED,
     )
     for external_state in ("SENT", "RECEIVED", "AUTHORIZED", "REJECTED", "VOIDED_BY_SRI"):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="not a valid PreparationState"):
             PreparationState(external_state)
 
 

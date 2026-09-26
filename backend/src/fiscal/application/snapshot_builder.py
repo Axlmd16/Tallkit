@@ -114,9 +114,18 @@ def assemble_snapshot(
             )
             continue
         catalog_versions["iva"] = resolved.catalog_version
+        product_snapshot = getattr(line, "product_snapshot", {})
+        if product_snapshot:
+            item_code = str(product_snapshot.get("code", ""))
+            description = str(product_snapshot.get("name", ""))
+        else:
+            item_code = str(getattr(line, "service_id", ""))
+            description = str(getattr(line, "description", ""))
         lines.append(
             {
                 "position": line.position,
+                "item_code": item_code,
+                "description": description,
                 "quantity": str(line.quantity),
                 "base_amount": str(line.base_amount),
                 "tax_amount": str(line.tax_amount),

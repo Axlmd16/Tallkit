@@ -16,6 +16,17 @@ from workshop_configuration.domain.validation import ConfigurationValidationErro
 from workshop_configuration.models import FiscalEmissionPoint, FiscalEntity, FiscalEstablishment
 
 
+def list_establishments(*, actor: User, entity_id: int) -> tuple[FiscalEstablishment, ...]:
+    require_permission(actor=actor, permission="parametros.gestionar")
+    if not FiscalEntity.objects.filter(pk=entity_id).exists():
+        raise FiscalEntityNotFoundError("Entidad fiscal no encontrada.")
+    return tuple(
+        FiscalEstablishment.objects.filter(fiscal_entity_id=entity_id)
+        .prefetch_related("emission_points")
+        .order_by("code", "id")
+    )
+
+
 def _code(value: Any) -> str:
     if not isinstance(value, str) or re.fullmatch(r"[0-9]{3}", value) is None or value == "000":
         raise ConfigurationValidationError(

@@ -10,120 +10,335 @@ import fiscal.domain.states
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('sales', '0005_sale_origin_order_sale_origin_reference_and_more'),
-        ('workshop', '0004_mark_orders_predating_billing'),
-        ('workshop_configuration', '0008_fiscaltaxmapping'),
+        ("sales", "0005_sale_origin_order_sale_origin_reference_and_more"),
+        ("workshop", "0004_mark_orders_predating_billing"),
+        ("workshop_configuration", "0008_fiscaltaxmapping"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FiscalPreparation',
+            name="FiscalPreparation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('state', models.CharField(choices=[('DRAFT', 'DRAFT'), ('PREPARED', 'PREPARED'), ('CANCELLED', 'CANCELLED')], default=fiscal.domain.states.PreparationState['DRAFT'], max_length=16)),
-                ('version', models.PositiveBigIntegerField(default=1)),
-                ('source_version', models.PositiveBigIntegerField()),
-                ('snapshot', models.JSONField(blank=True, null=True)),
-                ('prepared_at', models.DateTimeField(blank=True, null=True)),
-                ('cancelled_at', models.DateTimeField(blank=True, null=True)),
-                ('cancellation_reason', models.CharField(blank=True, default='', max_length=500)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('artisan_operation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='fiscal_preparations', to='workshop.serviceoperation')),
-                ('cancelled_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('commercial_sale', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='fiscal_preparations', to='sales.sale')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('fiscal_entity', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to='workshop_configuration.fiscalentity')),
-                ('prepared_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('replaces', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='replacements', to='fiscal.fiscalpreparation')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    "state",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "DRAFT"),
+                            ("PREPARED", "PREPARED"),
+                            ("CANCELLED", "CANCELLED"),
+                        ],
+                        default=fiscal.domain.states.PreparationState["DRAFT"],
+                        max_length=16,
+                    ),
+                ),
+                ("version", models.PositiveBigIntegerField(default=1)),
+                ("source_version", models.PositiveBigIntegerField()),
+                ("snapshot", models.JSONField(blank=True, null=True)),
+                ("prepared_at", models.DateTimeField(blank=True, null=True)),
+                ("cancelled_at", models.DateTimeField(blank=True, null=True)),
+                ("cancellation_reason", models.CharField(blank=True, default="", max_length=500)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "artisan_operation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="fiscal_preparations",
+                        to="workshop.serviceoperation",
+                    ),
+                ),
+                (
+                    "cancelled_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "commercial_sale",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="fiscal_preparations",
+                        to="sales.sale",
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "fiscal_entity",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="workshop_configuration.fiscalentity",
+                    ),
+                ),
+                (
+                    "prepared_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "replaces",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="replacements",
+                        to="fiscal.fiscalpreparation",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at', '-id'],
+                "ordering": ["-created_at", "-id"],
             },
         ),
         migrations.CreateModel(
-            name='FiscalCommandReceipt',
+            name="FiscalCommandReceipt",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('action', models.CharField(max_length=64)),
-                ('idempotency_key', models.CharField(max_length=128)),
-                ('input_fingerprint', models.CharField(max_length=64)),
-                ('response_status', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('actor', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('result_preparation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to='fiscal.fiscalpreparation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("action", models.CharField(max_length=64)),
+                ("idempotency_key", models.CharField(max_length=128)),
+                ("input_fingerprint", models.CharField(max_length=64)),
+                ("response_status", models.PositiveSmallIntegerField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "result_preparation",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to="fiscal.fiscalpreparation",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='FiscalPreparationHistory',
+            name="FiscalPreparationHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sequence', models.PositiveBigIntegerField()),
-                ('event', models.CharField(max_length=32)),
-                ('metadata', models.JSONField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('actor', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('preparation', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='history', to='fiscal.fiscalpreparation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("sequence", models.PositiveBigIntegerField()),
+                ("event", models.CharField(max_length=32)),
+                ("metadata", models.JSONField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "preparation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="history",
+                        to="fiscal.fiscalpreparation",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['preparation_id', 'sequence'],
+                "ordering": ["preparation_id", "sequence"],
             },
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('artisan_operation__isnull', True), ('commercial_sale__isnull', False)), models.Q(('artisan_operation__isnull', False), ('commercial_sale__isnull', True)), _connector='OR'), name='fiscal_preparation_exactly_one_origin'),
+            model_name="fiscalpreparation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(
+                        ("artisan_operation__isnull", True), ("commercial_sale__isnull", False)
+                    ),
+                    models.Q(
+                        ("artisan_operation__isnull", False), ("commercial_sale__isnull", True)
+                    ),
+                    _connector="OR",
+                ),
+                name="fiscal_preparation_exactly_one_origin",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.CheckConstraint(condition=models.Q(('state__in', ['DRAFT', 'PREPARED', 'CANCELLED'])), name='fiscal_preparation_state_valid'),
+            model_name="fiscalpreparation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("state__in", ["DRAFT", "PREPARED", "CANCELLED"])),
+                name="fiscal_preparation_state_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.CheckConstraint(condition=models.Q(('source_version__gte', 1), ('version__gte', 1)), name='fiscal_preparation_versions_positive'),
+            model_name="fiscalpreparation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("source_version__gte", 1), ("version__gte", 1)),
+                name="fiscal_preparation_versions_positive",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('cancellation_reason', ''), ('cancelled_at__isnull', True), ('cancelled_by__isnull', True), ('prepared_at__isnull', True), ('prepared_by__isnull', True), ('snapshot__isnull', True), ('state', fiscal.domain.states.PreparationState['DRAFT'])), models.Q(('cancellation_reason', ''), ('cancelled_at__isnull', True), ('cancelled_by__isnull', True), ('prepared_at__isnull', False), ('prepared_by__isnull', False), ('snapshot__has_key', 'schema_version'), ('state', fiscal.domain.states.PreparationState['PREPARED'])), models.Q(('cancellation_reason__regex', '\\S'), ('cancelled_at__isnull', False), ('cancelled_by__isnull', False), ('state', fiscal.domain.states.PreparationState['CANCELLED']), models.Q(models.Q(('prepared_at__isnull', True), ('prepared_by__isnull', True)), models.Q(('prepared_at__isnull', False), ('prepared_by__isnull', False)), _connector='OR')), _connector='OR'), name='fiscal_preparation_state_fields_coherent'),
+            model_name="fiscalpreparation",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(
+                        ("cancellation_reason", ""),
+                        ("cancelled_at__isnull", True),
+                        ("cancelled_by__isnull", True),
+                        ("prepared_at__isnull", True),
+                        ("prepared_by__isnull", True),
+                        ("snapshot__isnull", True),
+                        ("state", fiscal.domain.states.PreparationState["DRAFT"]),
+                    ),
+                    models.Q(
+                        ("cancellation_reason", ""),
+                        ("cancelled_at__isnull", True),
+                        ("cancelled_by__isnull", True),
+                        ("prepared_at__isnull", False),
+                        ("prepared_by__isnull", False),
+                        ("snapshot__has_key", "schema_version"),
+                        ("state", fiscal.domain.states.PreparationState["PREPARED"]),
+                    ),
+                    models.Q(
+                        ("cancellation_reason__regex", "\\S"),
+                        ("cancelled_at__isnull", False),
+                        ("cancelled_by__isnull", False),
+                        ("state", fiscal.domain.states.PreparationState["CANCELLED"]),
+                        models.Q(
+                            models.Q(("prepared_at__isnull", True), ("prepared_by__isnull", True)),
+                            models.Q(
+                                ("prepared_at__isnull", False), ("prepared_by__isnull", False)
+                            ),
+                            _connector="OR",
+                        ),
+                    ),
+                    _connector="OR",
+                ),
+                name="fiscal_preparation_state_fields_coherent",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.UniqueConstraint(condition=models.Q(('commercial_sale__isnull', False), ('state__in', [fiscal.domain.states.PreparationState['DRAFT'], fiscal.domain.states.PreparationState['PREPARED']])), fields=('commercial_sale',), name='fiscal_preparation_active_sale_unique'),
+            model_name="fiscalpreparation",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(
+                    ("commercial_sale__isnull", False),
+                    (
+                        "state__in",
+                        [
+                            fiscal.domain.states.PreparationState["DRAFT"],
+                            fiscal.domain.states.PreparationState["PREPARED"],
+                        ],
+                    ),
+                ),
+                fields=("commercial_sale",),
+                name="fiscal_preparation_active_sale_unique",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparation',
-            constraint=models.UniqueConstraint(condition=models.Q(('artisan_operation__isnull', False), ('state__in', [fiscal.domain.states.PreparationState['DRAFT'], fiscal.domain.states.PreparationState['PREPARED']])), fields=('artisan_operation',), name='fiscal_preparation_active_artisan_unique'),
+            model_name="fiscalpreparation",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(
+                    ("artisan_operation__isnull", False),
+                    (
+                        "state__in",
+                        [
+                            fiscal.domain.states.PreparationState["DRAFT"],
+                            fiscal.domain.states.PreparationState["PREPARED"],
+                        ],
+                    ),
+                ),
+                fields=("artisan_operation",),
+                name="fiscal_preparation_active_artisan_unique",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalcommandreceipt',
-            constraint=models.UniqueConstraint(fields=('actor', 'action', 'idempotency_key'), name='fiscal_command_identity_unique'),
+            model_name="fiscalcommandreceipt",
+            constraint=models.UniqueConstraint(
+                fields=("actor", "action", "idempotency_key"), name="fiscal_command_identity_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalcommandreceipt',
-            constraint=models.CheckConstraint(condition=models.Q(('idempotency_key__regex', '^[A-Za-z0-9._:-]{8,128}$')), name='fiscal_command_key_valid'),
+            model_name="fiscalcommandreceipt",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("idempotency_key__regex", "^[A-Za-z0-9._:-]{8,128}$")),
+                name="fiscal_command_key_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalcommandreceipt',
-            constraint=models.CheckConstraint(condition=models.Q(('input_fingerprint__regex', '^[0-9a-f]{64}$')), name='fiscal_command_fingerprint_valid'),
+            model_name="fiscalcommandreceipt",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("input_fingerprint__regex", "^[0-9a-f]{64}$")),
+                name="fiscal_command_fingerprint_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalcommandreceipt',
-            constraint=models.CheckConstraint(condition=models.Q(('response_status__isnull', True), models.Q(('response_status__gte', 100), ('response_status__lte', 599)), _connector='OR'), name='fiscal_command_status_valid'),
+            model_name="fiscalcommandreceipt",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("response_status__isnull", True),
+                    models.Q(("response_status__gte", 100), ("response_status__lte", 599)),
+                    _connector="OR",
+                ),
+                name="fiscal_command_status_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparationhistory',
-            constraint=models.UniqueConstraint(fields=('preparation', 'sequence'), name='fiscal_history_sequence_unique'),
+            model_name="fiscalpreparationhistory",
+            constraint=models.UniqueConstraint(
+                fields=("preparation", "sequence"), name="fiscal_history_sequence_unique"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparationhistory',
-            constraint=models.CheckConstraint(condition=models.Q(('sequence__gte', 1)), name='fiscal_history_sequence_positive'),
+            model_name="fiscalpreparationhistory",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("sequence__gte", 1)), name="fiscal_history_sequence_positive"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='fiscalpreparationhistory',
-            constraint=models.CheckConstraint(condition=models.Q(('event__regex', '^[A-Z][A-Z0-9_]{0,31}$')), name='fiscal_history_event_valid'),
+            model_name="fiscalpreparationhistory",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("event__regex", "^[A-Z][A-Z0-9_]{0,31}$")),
+                name="fiscal_history_event_valid",
+            ),
         ),
     ]

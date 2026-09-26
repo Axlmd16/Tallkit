@@ -192,4 +192,48 @@ describe('ApiClient', () => {
       order_number: 'ART-OT-000001',
     })
   })
+
+  it('sends explicit idempotency headers and accepts PUT', async () => {
+    document.cookie = 'csrftoken=token-put; path=/'
+    const fetchSpy = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ revision: 1 }), { status: 200 }),
+      )
+    vi.stubGlobal('fetch', fetchSpy)
+
+    await new ApiClient('/api/v1').request('/fiscal/profile/', {
+      method: 'PUT',
+      headers: { 'Idempotency-Key': 'profile-attempt-1' },
+      body: { expected_revision: 0 },
+    })
+
+    expect(fetchSpy.mock.calls[1]?.[1]).toEqual(
+      expect.objectContaining({
+        method: 'PUT',
+        headers: expect.objectContaining({
+          'Idempotency-Key': 'profile-attempt-1',
+          'X-CSRFToken': 'token-put',
+        }),
+      }),
+    )
+  })
+
+  it('downloads private binary responses without parsing them as JSON', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response('<factura/>', {
+          status: 200,
+          headers: { 'Content-Type': 'application/xml' },
+        }),
+      ),
+    )
+
+    const result = await new ApiClient('/api/v1').requestBlob(
+      '/fiscal/archive/id/download/',
+    )
+    expect(await result.text()).toBe('<factura/>')
+  })
 })

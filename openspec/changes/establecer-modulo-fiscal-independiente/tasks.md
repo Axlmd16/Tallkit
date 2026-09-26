@@ -42,7 +42,7 @@ Evidencia: archivos focalizados nuevos de origen, comandos y concurrencia; Postg
 Dependencias: grupo 3. Diseño D3/D4/D7; spec `preparacion-y-seguimiento-fiscal`.
 
 - [x] 4.1 Escribir pruebas e implementar validadores puros del receptor: formatos por tipo, sin algoritmo universal de RUC, consumidor final explícito y restringido, sin cambiar la ficha ni snapshot comercial del cliente.
-- [ ] 4.2 Crear `docs/tecnico/matriz-instantanea-fiscal.md` contra el esquema oficial de factura soportado, cubriendo cada campo obligatorio/condicional con valor conservado, derivación o no aplicabilidad. Distinguir firma/autorización e identidad posterior; registrar procedencia y versión de fuentes.
+- [x] 4.2 Crear `docs/tecnico/matriz-instantanea-fiscal.md` contra el esquema oficial de factura soportado, cubriendo cada campo obligatorio/condicional con valor conservado, derivación o no aplicabilidad. Distinguir firma/autorización e identidad posterior; registrar procedencia y versión de fuentes.
 - [x] 4.3 Añadir casos de suficiencia para emisor, receptor, domicilios, condiciones, leyendas, líneas, códigos, totales e información adicional. Implementar snapshot versionado con cadenas decimales, sin datos operativos o personales innecesarios.
 - [x] 4.4 Probar representación de precio unitario sin impuestos y coherencia de bases/impuestos/totales, conservando cálculos históricos de `shared/money.py`. Cubrir varias líneas por tarifa, tratamientos distintos, diferencia de centavo y precisión insuficiente; no introducir ajustes automáticos.
 - [x] 4.5 Probar y representar medios fiscales declarados, importes que cubren el total y datos adicionales exigibles al crédito; mantener cobros reales separados y condiciones incompletas como impedimentos, sin inventar vencimientos.
@@ -66,14 +66,14 @@ Evidencia: pruebas focalizadas de clave, ámbito y asignación sobre PostgreSQL.
 
 Dependencias: grupos 3–5. Diseño D8/D9; spec `archivo-de-comprobantes-fiscales`.
 
-- [ ] 6.1 Añadir esquemas oficiales locales y manifiesto URL/versión/hash en `backend/src/fiscal/infrastructure/`, con fixtures sintéticos por versión admitida. Incorporar `lxml` mediante uv y actualizar `backend/uv.lock` únicamente cuando se use para XSD; auditar entonces la nueva dependencia.
-- [ ] 6.2 Escribir pruebas adversas y luego parser/validador: DTD, XXE, entidades, recursos de red/archivos locales, esquemas externos, XML inválido y versión desconocida. Comprobar que no se realiza acceso externo ni se filtra contenido en errores.
-- [ ] 6.3 Aplicar límites durante lectura: 2 MiB por archivo y comprobante extraído, profundidad 64, 50000 elementos y 100 atributos por elemento. Probar fronteras y rechazo controlado; sin ZIP, importación por URL, XInclude ni XSLT.
-- [ ] 6.4 Implementar extracción de factura/nota de crédito y envoltorio con esquema local explícito; validar coherencia de emisor, ambiente, clave, identidad y totales. No validar criptográficamente ni elevar declaración de autorización a verificación oficial.
-- [ ] 6.5 Crear persistencia/migraciones de expediente y contenido binario en PostgreSQL, tamaño, SHA-256, procedencia y evidencia inmutable. Probar bytes originales exactos y rollback conjunto de contenido/referencias/auditoría.
-- [ ] 6.6 Implementar carga idempotente, unicidad por identidad y conservación separada de evidencia compatible. Probar cargas concurrentes, misma identidad con contenido distinto y envoltorio adicional sin sobrescritura ni doble expediente.
-- [ ] 6.7 Implementar vinculación administrativa y corrección motivada del vínculo, comparando operación y factura del mismo emisor; permitir archivo sin origen interno. Probar carrera de vinculación frente a nueva preparación y bloqueo de preparación ordinaria cuando existe evidencia vinculada.
-- [ ] 6.8 Implementar consultas sin bytes, descarga del original y exportación de seleccionados con manifiesto. Probar ámbito, enlaces directos, integridad y cabeceras privadas; exportación acotada/por lotes sin cargar el archivo completo en memoria.
+- [x] 6.1 Añadir esquemas oficiales locales y manifiesto URL/versión/hash en `backend/src/fiscal/infrastructure/`, con fixtures sintéticos por versión admitida. Incorporar `lxml` mediante uv y actualizar `backend/uv.lock` únicamente cuando se use para XSD; auditar entonces la nueva dependencia.
+- [x] 6.2 Escribir pruebas adversas y luego parser/validador: DTD, XXE, entidades, recursos de red/archivos locales, esquemas externos, XML inválido y versión desconocida. Comprobar que no se realiza acceso externo ni se filtra contenido en errores.
+- [x] 6.3 Aplicar límites durante lectura: 2 MiB por archivo y comprobante extraído, profundidad 64, 50000 elementos y 100 atributos por elemento. Probar fronteras y rechazo controlado; sin ZIP, importación por URL, XInclude ni XSLT.
+- [x] 6.4 Implementar extracción de factura/nota de crédito y envoltorio con esquema local explícito; validar coherencia de emisor, ambiente, clave, identidad y totales. No validar criptográficamente ni elevar declaración de autorización a verificación oficial.
+- [x] 6.5 Crear persistencia/migraciones de expediente y contenido binario en PostgreSQL, tamaño, SHA-256, procedencia y evidencia inmutable. Probar bytes originales exactos y rollback conjunto de contenido/referencias/auditoría.
+- [x] 6.6 Implementar carga idempotente, unicidad por identidad y conservación separada de evidencia compatible. Probar cargas concurrentes, misma identidad con contenido distinto y envoltorio adicional sin sobrescritura ni doble expediente.
+- [x] 6.7 Implementar vinculación administrativa y corrección motivada del vínculo, comparando operación y factura del mismo emisor; permitir archivo sin origen interno. Probar carrera de vinculación frente a nueva preparación y bloqueo de preparación ordinaria cuando existe evidencia vinculada.
+- [x] 6.8 Implementar consultas sin bytes, descarga del original y exportación de seleccionados con manifiesto. Probar ámbito, enlaces directos, integridad y cabeceras privadas; exportación acotada/por lotes sin cargar el archivo completo en memoria.
 
 Evidencia: pruebas focalizadas de XML, almacenamiento, duplicados, vínculos y acceso. Auditar dependencias con `uv run --frozen pip-audit` después del cambio de lockfile. El documento sintético válido no se presenta como autorizado real.
 
@@ -81,11 +81,11 @@ Evidencia: pruebas focalizadas de XML, almacenamiento, duplicados, vínculos y a
 
 Dependencias: grupos 4–6. Diseño D10; spec `solicitudes-de-correccion-fiscal`.
 
-- [ ] 7.1 Escribir pruebas e implementar persistencia/servicios de solicitud administrativa con original externo o de ensayo, acción, motivo, fuente normativa, hechos conocidos y estado local; sin efectos comerciales ni oficiales.
-- [ ] 7.2 Implementar evaluación versionada de restricciones: plazo de anulación y desplazamiento, calendario insuficiente, consumidor final transmitido, devolución de impuestos y factura negociada; hechos desconocidos quedan pendientes. No reintroducir límite general de doce meses.
-- [ ] 7.3 Implementar líneas/importes históricos de nota de crédito, límites y remanente afectable bajo bloqueo del original. Probar dos solicitudes simultáneas, residuos de afectación parcial y datos externos insuficientes.
-- [ ] 7.4 Implementar relación de evidencia con solicitud mediante identidad común de afectación; probar que se cuenta una sola vez y que cancelar una solicitud no elimina la afectación atribuida a evidencia externa conservada.
-- [ ] 7.5 Probar e implementar cancelación/reemplazo trazable, reintento compatible y conflicto; mantener XML incoherente sin vínculo y bloquear remanente pendiente de conciliación, sin afirmar ejecución oficial.
+- [x] 7.1 Escribir pruebas e implementar persistencia/servicios de solicitud administrativa con original externo o de ensayo, acción, motivo, fuente normativa, hechos conocidos y estado local; sin efectos comerciales ni oficiales.
+- [x] 7.2 Implementar evaluación versionada de restricciones: plazo de anulación y desplazamiento, calendario insuficiente, consumidor final transmitido, devolución de impuestos y factura negociada; hechos desconocidos quedan pendientes. No reintroducir límite general de doce meses.
+- [x] 7.3 Implementar líneas/importes históricos de nota de crédito, límites y remanente afectable bajo bloqueo del original. Probar dos solicitudes simultáneas, residuos de afectación parcial y datos externos insuficientes.
+- [x] 7.4 Implementar relación de evidencia con solicitud mediante identidad común de afectación; probar que se cuenta una sola vez y que cancelar una solicitud no elimina la afectación atribuida a evidencia externa conservada.
+- [x] 7.5 Probar e implementar cancelación/reemplazo trazable, reintento compatible y conflicto; mantener XML incoherente sin vínculo y bloquear remanente pendiente de conciliación, sin afirmar ejecución oficial.
 
 Evidencia: pruebas nuevas de elegibilidad, remanente, relación y concurrencia, sin consultar SRI. La cobertura de calendario y hechos externos debe ser explícita y verificable.
 
@@ -93,10 +93,10 @@ Evidencia: pruebas nuevas de elegibilidad, remanente, relación y concurrencia, 
 
 Dependencias: grupos 2–7. Diseño D11; todas las specs.
 
-- [ ] 8.1 Crear pruebas API antes de exponer comandos/consultas en `backend/src/fiscal/api/` y `backend/src/config/api/urls.py`; mantener serializers/views delgados, sesión y CSRF, cadenas decimales y errores estables por campo.
-- [ ] 8.2 Exponer configuración adicional por servicios propietarios y endpoints de preparación/revisión/cancelación/identidad de prueba; probar versión obsoleta, intento incompatible y rechazo de campos de estado oficial o secretos.
-- [ ] 8.3 Exponer archivo, descarga/exportación, vínculos y correcciones; probar todos los roles y combinaciones, acceso directo y recuperación tras revocar permisos, incluyendo la consulta limitada del Encargado sobre ventas.
-- [ ] 8.4 Publicar contrato OpenAPI de entradas, límites, estados locales, procedencia no verificada y errores 400/403/404/409/413; añadir `backend/tests/fiscal/test_openapi.py` y comprobar que contratos de ventas/taller afectados conservan compatibilidad.
+- [x] 8.1 Crear pruebas API antes de exponer comandos/consultas en `backend/src/fiscal/api/` y `backend/src/config/api/urls.py`; mantener serializers/views delgados, sesión y CSRF, cadenas decimales y errores estables por campo.
+- [x] 8.2 Exponer configuración adicional por servicios propietarios y endpoints de preparación/revisión/cancelación/identidad de prueba; probar versión obsoleta, intento incompatible y rechazo de campos de estado oficial o secretos.
+- [x] 8.3 Exponer archivo, descarga/exportación, vínculos y correcciones; probar todos los roles y combinaciones, acceso directo y recuperación tras revocar permisos, incluyendo la consulta limitada del Encargado sobre ventas.
+- [x] 8.4 Publicar contrato OpenAPI de entradas, límites, estados locales, procedencia no verificada y errores 400/403/404/409/413; añadir `backend/tests/fiscal/test_openapi.py` y comprobar que contratos de ventas/taller afectados conservan compatibilidad.
 
 Evidencia: `uv run --frozen pytest --no-cov tests/fiscal/test_api.py tests/fiscal/test_openapi.py` una vez creados, y solo nodeids pertinentes de OpenAPI comercial/artesanal si cambian sus proyecciones. No duplicar aquí todas las pruebas de dominio de grupos anteriores.
 
@@ -104,8 +104,8 @@ Evidencia: `uv run --frozen pytest --no-cov tests/fiscal/test_api.py tests/fisca
 
 Dependencias: grupo 8. Diseño D11; specs de acceso desde ventas y operación artesanal.
 
-- [ ] 9.1 Crear pruebas y contratos de `frontend/src/features/fiscal/`: API, tipos, consultas, claves por emisor/origen, invalidación y recuperación de comandos; nunca calcular permisos, impuestos o numeración en frontend.
-- [ ] 9.2 Extender `frontend/src/pages/workshop-configuration/WorkshopConfigurationPage.tsx` con perfil, puntos, metadatos y correspondencias. Probar desconocidos, faltantes, vigencia y prohibición de carga de firma privada.
+- [x] 9.1 Crear pruebas y contratos de `frontend/src/features/fiscal/`: API, tipos, consultas, claves por emisor/origen, invalidación y recuperación de comandos; nunca calcular permisos, impuestos o numeración en frontend.
+- [x] 9.2 Extender `frontend/src/pages/workshop-configuration/WorkshopConfigurationPage.tsx` con perfil, puntos, metadatos y correspondencias. Probar desconocidos, faltantes, vigencia y prohibición de carga de firma privada.
 - [ ] 9.3 Crear `frontend/src/pages/fiscal/` para preparación/revisión con valores históricos, datos faltantes y diferencias; separar pago y estado fiscal, conservar entrada ante error y mostrar explícitamente ambiente de ensayo.
 - [ ] 9.4 Añadir enlaces desde `frontend/src/pages/sales/SaleDetailPage.tsx` y `frontend/src/pages/maintenance/ServiceOperationDetailPage.tsx`, rutas y navegación autorizadas; probar unión de roles y que el resumen de repuestos no habilita expediente fiscal comercial al Encargado.
 - [ ] 9.5 Crear pantallas de archivo, carga limitada, consulta/exportación y vínculos, con condición externa no verificada y originales descargables; probar falta de permisos y fallos de integridad sin mostrar éxito ficticio.

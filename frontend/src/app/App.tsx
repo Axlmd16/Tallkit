@@ -13,6 +13,7 @@ import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
 import { CustomerEditorPage } from '@/pages/customers/CustomerEditorPage'
 import { CustomersPage } from '@/pages/customers/CustomersPage'
 import { HomePage } from '@/pages/home/HomePage'
+import { FiscalPreparationPage } from '@/pages/fiscal/FiscalPreparationPage'
 import { LoginPage } from '@/pages/login/LoginPage'
 import { MeasurementUnitsPage } from '@/pages/measurement-units/MeasurementUnitsPage'
 import { ProductBrandsPage } from '@/pages/product-brands/ProductBrandsPage'
@@ -65,6 +66,16 @@ export const appRoutes: RouteObject[] = [
         element: <RemoteAuthenticatedShell />,
         children: [
           { index: true, element: <HomePage /> },
+          {
+            path: '/fiscal/preparations/:id',
+            element: (
+              <PermissionGuard
+                anyOf={['fiscal.comercial.ver', 'fiscal.artesanal.ver']}
+              >
+                <FiscalPreparationPage />
+              </PermissionGuard>
+            ),
+          },
           {
             path: '/users',
             element: (

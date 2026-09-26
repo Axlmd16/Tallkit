@@ -1,0 +1,123 @@
+from django.urls import path
+
+from fiscal.api.views import (
+    ArchiveDownloadView,
+    ArchiveExportView,
+    ArchiveLinkView,
+    ArchiveListUploadView,
+    CorrectionCancelView,
+    CorrectionCreateView,
+    CorrectionEvidenceView,
+    CorrectionPrepareView,
+    CorrectionReplaceView,
+    ElectronicProfileView,
+    EstablishmentDetailView,
+    EstablishmentListCreateView,
+    NumberingAntecedentCreateView,
+    PointCreateView,
+    PointDetailView,
+    PreparationCancelView,
+    PreparationCreateView,
+    PreparationDetailView,
+    PreparationIdentityView,
+    PreparationPrepareView,
+    PreparationReviewView,
+    TaxMappingCreateView,
+)
+
+urlpatterns = [
+    path("preparations/", PreparationCreateView.as_view(), name="fiscal-preparation-create"),
+    path(
+        "preparations/<uuid:preparation_id>/",
+        PreparationDetailView.as_view(),
+        name="fiscal-preparation-detail",
+    ),
+    path(
+        "preparations/<uuid:preparation_id>/review/",
+        PreparationReviewView.as_view(),
+        name="fiscal-preparation-review",
+    ),
+    path(
+        "preparations/<uuid:preparation_id>/prepare/",
+        PreparationPrepareView.as_view(),
+        name="fiscal-preparation-prepare",
+    ),
+    path(
+        "preparations/<uuid:preparation_id>/cancel/",
+        PreparationCancelView.as_view(),
+        name="fiscal-preparation-cancel",
+    ),
+    path(
+        "preparations/<uuid:preparation_id>/test-identity/",
+        PreparationIdentityView.as_view(),
+        name="fiscal-preparation-test-identity",
+    ),
+    path("archive/", ArchiveListUploadView.as_view(), name="fiscal-archive"),
+    path("archive/export/", ArchiveExportView.as_view(), name="fiscal-archive-export"),
+    path(
+        "archive/<uuid:dossier_id>/download/",
+        ArchiveDownloadView.as_view(),
+        name="fiscal-archive-download",
+    ),
+    path(
+        "archive/<uuid:dossier_id>/link/",
+        ArchiveLinkView.as_view(),
+        name="fiscal-archive-link",
+    ),
+    path("corrections/", CorrectionCreateView.as_view(), name="fiscal-correction-create"),
+    path(
+        "corrections/<uuid:request_id>/prepare/",
+        CorrectionPrepareView.as_view(),
+        name="fiscal-correction-prepare",
+    ),
+    path(
+        "corrections/<uuid:request_id>/cancel/",
+        CorrectionCancelView.as_view(),
+        name="fiscal-correction-cancel",
+    ),
+    path(
+        "corrections/<uuid:request_id>/replace/",
+        CorrectionReplaceView.as_view(),
+        name="fiscal-correction-replace",
+    ),
+    path(
+        "corrections/<uuid:request_id>/evidence/",
+        CorrectionEvidenceView.as_view(),
+        name="fiscal-correction-evidence",
+    ),
+    path(
+        "configuration/entities/<int:entity_id>/electronic-profile/",
+        ElectronicProfileView.as_view(),
+        name="fiscal-electronic-profile",
+    ),
+    path(
+        "configuration/entities/<int:entity_id>/establishments/",
+        EstablishmentListCreateView.as_view(),
+        name="fiscal-establishment-list",
+    ),
+    path(
+        "configuration/establishments/<int:establishment_id>/",
+        EstablishmentDetailView.as_view(),
+        name="fiscal-establishment-detail",
+    ),
+    path(
+        "configuration/establishments/<int:establishment_id>/points/",
+        PointCreateView.as_view(),
+        name="fiscal-point-create",
+    ),
+    path(
+        "configuration/points/<int:point_id>/",
+        PointDetailView.as_view(),
+        name="fiscal-point-detail",
+    ),
+    path(
+        "configuration/tax-mappings/",
+        TaxMappingCreateView.as_view(),
+        name="fiscal-tax-mapping-create",
+    ),
+    path(
+        "configuration/numbering-antecedents/",
+        NumberingAntecedentCreateView.as_view(),
+        name="fiscal-numbering-antecedent-create",
+    ),
+]
