@@ -16,6 +16,10 @@ ALLOWED_CROSS_MODULES = {
     "shared.command_values",
     "shared.transactions",
     "workshop.application.fiscal_source",
+    # Interfaces públicas de configuración que el comando de preparación lee bajo D6.
+    "workshop_configuration.application.fiscal_resolver",
+    "workshop_configuration.application.fiscal_tax_mapping",
+    "workshop_configuration.domain.validation",
 }
 
 

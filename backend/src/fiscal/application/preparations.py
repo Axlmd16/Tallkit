@@ -1,26 +1,46 @@
 """Comandos locales de preparación; no transmiten ni asignan estado oficial."""
 
 from dataclasses import dataclass
+from datetime import date
+from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
+from django.core import signing
 from django.db import IntegrityError, transaction
+from django.db.models import Max
+from django.utils import timezone
 
+from fiscal.application.snapshot_builder import assemble_snapshot
+from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
+from fiscal.domain.states import PreparationState
 from fiscal.models import FiscalCommandReceipt, FiscalPreparation, FiscalPreparationHistory
 from identity.application.audit import record_audit_event
 from identity.application.authorization import require_permission
 from identity.models import AuditResult, User
 from sales.application.fiscal_source import (
     lock_fiscal_source as lock_commercial_source,
+)
+from sales.application.fiscal_source import (
     read_fiscal_source as read_commercial_source,
 )
 from shared.command_values import canonical_fingerprint, validate_idempotency_key
 from shared.transactions import retryable_transaction
 from workshop.application.fiscal_source import (
     lock_fiscal_source as lock_artisan_source,
+)
+from workshop.application.fiscal_source import (
     read_fiscal_source as read_artisan_source,
 )
+from workshop_configuration.application.fiscal_resolver import resolve_fiscal_configuration
 
 ACTION = "fiscal.preparation_created"
+PREPARE_ACTION = "fiscal.preparation_prepared"
+REPLACE_ACTION = "fiscal.preparation_replaced"
+REVIEW_TTL_SECONDS = 900
+REVIEW_SALT = "fiscal.preparation.review"
+_GUAYAQUIL = ZoneInfo("America/Guayaquil")
+_ACTIVE_STATES = (PreparationState.DRAFT, PreparationState.PREPARED)
 
 
 class FiscalPreparationError(Exception):
@@ -45,6 +65,32 @@ class IdempotencyConflictError(FiscalPreparationError):
 
 class FiscalPreparationNotFoundError(FiscalPreparationError):
     pass
+
+
+class PreparationStateError(FiscalPreparationError):
+    pass
+
+
+class PreparationVersionConflictError(FiscalPreparationError):
+    pass
+
+
+class StaleReviewError(FiscalPreparationError):
+    pass
+
+
+class PreparationImpedimentError(FiscalPreparationError):
+    """Impedimentos de suficiencia; la preparación permanece en borrador."""
+
+    def __init__(self, impediments: list[dict[str, str]]) -> None:
+        super().__init__("La preparación tiene impedimentos pendientes.")
+        self.impediments = impediments
+
+
+@dataclass(frozen=True)
+class ReviewResult:
+    impediments: tuple[dict[str, str], ...]
+    token: str | None
 
 
 @dataclass(frozen=True)
@@ -91,8 +137,8 @@ def _correction_ids(source: object) -> tuple[int, ...]:
 def _source_fingerprint(source: object) -> str:
     return canonical_fingerprint(
         {
-            "state": getattr(source, "state"),
-            "version": getattr(source, "version"),
+            "state": source.state,
+            "version": source.version,
             "correction_ids": _correction_ids(source),
             "order_state": getattr(source, "order_state", None),
             "order_version": getattr(source, "order_version", None),
@@ -209,3 +255,362 @@ def query_discrepancy(*, actor: User, preparation_id: UUID) -> FiscalDiscrepancy
         current_source_version=source.version,
         current_correction_ids=current_corrections,
     )
+
+
+# ---------------------------------------------------------------------------
+# Edición del borrador, revisión y transiciones
+# ---------------------------------------------------------------------------
+
+
+def _kind_of(preparation: FiscalPreparation) -> str:
+    return "COMMERCIAL" if preparation.commercial_sale_id is not None else "ARTISAN"
+
+
+def _lock_source(preparation: FiscalPreparation) -> Any:
+    if preparation.commercial_sale_id is not None:
+        return lock_commercial_source(preparation.commercial_sale_id)
+    return lock_artisan_source(preparation.artisan_operation_id)
+
+
+def _lock_preparation(preparation_id: UUID) -> FiscalPreparation | None:
+    return FiscalPreparation.objects.select_for_update().filter(pk=preparation_id).first()
+
+
+def _next_sequence(preparation: FiscalPreparation) -> int:
+    current = preparation.history.aggregate(value=Max("sequence"))["value"] or 0
+    return current + 1
+
+
+def _today_guayaquil() -> str:
+    return timezone.now().astimezone(_GUAYAQUIL).date().isoformat()
+
+
+def update_draft(
+    *,
+    actor: User,
+    preparation_id: UUID,
+    expected_version: int,
+    point_id: int,
+    receiver: dict[str, Any],
+    payments: dict[str, Any],
+    environment: str = "1",
+    reference_date: str | None = None,
+    additional_info: list[dict[str, str]] | None = None,
+) -> FiscalPreparation:
+    """Guarda los datos editables del borrador; la validación semántica es en revisión."""
+    with transaction.atomic():
+        preparation = _lock_preparation(preparation_id)
+        if preparation is None:
+            raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+        require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
+        if preparation.state != PreparationState.DRAFT:
+            raise PreparationStateError("Solo un borrador admite edición.")
+        if preparation.version != expected_version:
+            raise PreparationVersionConflictError("El borrador cambió; vuelva a consultarlo.")
+        preparation.draft = {
+            "point_id": point_id,
+            "environment": environment,
+            "receiver": receiver,
+            "payments": payments,
+            "reference_date": reference_date or _today_guayaquil(),
+            "additional_info": additional_info or [],
+        }
+        preparation.version += 1
+        preparation.save(update_fields=["draft", "version", "updated_at"])
+        return preparation
+
+
+def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
+    """Devuelve impedimentos por campo y, si no hay, un token firmado de 15 minutos."""
+    with transaction.atomic():
+        preparation = _lock_preparation(preparation_id)
+        if preparation is None:
+            raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+        require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
+        if preparation.state != PreparationState.DRAFT:
+            raise PreparationStateError("Solo un borrador admite revisión.")
+        if not preparation.draft:
+            return ReviewResult(
+                ({"field": "draft", "message": "Complete los datos del borrador."},), None
+            )
+        source = _lock_source(preparation)
+        if source.state != "CONFIRMED":
+            return ReviewResult(
+                ({"field": "source", "message": "La operación no está confirmada y vigente."},),
+                None,
+            )
+        reference_date = date.fromisoformat(preparation.draft["reference_date"])
+        config = resolve_fiscal_configuration(
+            actor=actor,
+            entity_id=preparation.fiscal_entity_id,
+            point_id=preparation.draft.get("point_id"),
+            environment=preparation.draft.get("environment", "1"),
+            on=reference_date,
+        )
+        try:
+            assembled = assemble_snapshot(
+                draft=preparation.draft,
+                source=source,
+                config=config,
+                reference_date=reference_date,
+            )
+        except SnapshotImpedimentError as error:
+            return ReviewResult(tuple(error.impediments), None)
+        token = signing.dumps(
+            {
+                "prep": str(preparation.pk),
+                "version": preparation.version,
+                "fingerprint": assembled.fingerprint,
+                "actor": actor.pk,
+            },
+            salt=REVIEW_SALT,
+        )
+    return ReviewResult((), token)
+
+
+def prepare(
+    *, actor: User, preparation_id: UUID, review_token: str, idempotency_key: str
+) -> PreparationCommandResult:
+    """Revalida bajo bloqueo, guarda el snapshot inmutable y pasa a preparada."""
+    key = validate_idempotency_key(idempotency_key)
+    fingerprint = canonical_fingerprint({"preparation_id": str(preparation_id)})
+    with retryable_transaction():
+        try:
+            with transaction.atomic():
+                receipt = FiscalCommandReceipt.objects.create(
+                    actor=actor,
+                    action=PREPARE_ACTION,
+                    idempotency_key=key,
+                    input_fingerprint=fingerprint,
+                )
+        except IntegrityError:
+            receipt = FiscalCommandReceipt.objects.get(
+                actor=actor, action=PREPARE_ACTION, idempotency_key=key
+            )
+            if receipt.input_fingerprint != fingerprint:
+                raise IdempotencyConflictError("La clave corresponde a otra entrada.") from None
+            if receipt.result_preparation_id is None:
+                raise PreparationStateError("El intento anterior no dejó resultado.") from None
+            return PreparationCommandResult(receipt.result_preparation_id, replayed=True)
+
+        preparation = _lock_preparation(preparation_id)
+        if preparation is None:
+            raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+        require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
+        if preparation.state != PreparationState.DRAFT:
+            raise PreparationStateError("Solo un borrador puede prepararse.")
+        if not preparation.draft:
+            raise PreparationImpedimentError(
+                [{"field": "draft", "message": "Complete los datos del borrador."}]
+            )
+        source = _lock_source(preparation)
+        if source.state != "CONFIRMED":
+            raise IneligibleFiscalSourceError("La operación no está confirmada y vigente.")
+        reference_date = date.fromisoformat(preparation.draft["reference_date"])
+        config = resolve_fiscal_configuration(
+            actor=actor,
+            entity_id=preparation.fiscal_entity_id,
+            point_id=preparation.draft.get("point_id"),
+            environment=preparation.draft.get("environment", "1"),
+            on=reference_date,
+        )
+        try:
+            assembled = assemble_snapshot(
+                draft=preparation.draft,
+                source=source,
+                config=config,
+                reference_date=reference_date,
+            )
+        except SnapshotImpedimentError as error:
+            raise PreparationImpedimentError(error.impediments) from None
+
+        try:
+            payload = signing.loads(review_token, salt=REVIEW_SALT, max_age=REVIEW_TTL_SECONDS)
+        except signing.SignatureExpired:
+            raise StaleReviewError("La revisión caducó; revise nuevamente.") from None
+        except signing.BadSignature:
+            raise StaleReviewError("La revisión no es válida.") from None
+        if (
+            payload.get("prep") != str(preparation.pk)
+            or payload.get("version") != preparation.version
+            or payload.get("fingerprint") != assembled.fingerprint
+            or payload.get("actor") != actor.pk
+        ):
+            raise StaleReviewError("La revisión ya no corresponde a los datos actuales.")
+
+        preparation.snapshot = assembled.snapshot
+        preparation.state = PreparationState.PREPARED
+        preparation.prepared_at = timezone.now()
+        preparation.prepared_by = actor
+        preparation.version += 1
+        preparation.save(
+            update_fields=[
+                "snapshot",
+                "state",
+                "prepared_at",
+                "prepared_by",
+                "version",
+                "updated_at",
+            ]
+        )
+        FiscalPreparationHistory.objects.create(
+            preparation=preparation,
+            sequence=_next_sequence(preparation),
+            event="PREPARED",
+            actor=actor,
+            metadata={
+                "source_version": source.version,
+                "snapshot_fingerprint": assembled.fingerprint,
+            },
+        )
+        receipt.result_preparation = preparation
+        receipt.response_status = 200
+        receipt.save(update_fields=["result_preparation", "response_status"])
+        record_audit_event(
+            actor=actor,
+            action=PREPARE_ACTION,
+            target_type="fiscal_preparation",
+            target_id=str(preparation.pk),
+            result=AuditResult.SUCCESS,
+            operation_id=preparation.pk,
+        )
+        return PreparationCommandResult(preparation.pk, replayed=False)
+
+
+def cancel(
+    *, actor: User, preparation_id: UUID, expected_version: int, reason: str
+) -> FiscalPreparation:
+    """Cancela un borrador o una preparada, conservando su historia e instantánea."""
+    if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500:
+        raise PreparationImpedimentError(
+            [{"field": "reason", "message": "Indique el motivo de la cancelación."}]
+        )
+    with transaction.atomic():
+        preparation = _lock_preparation(preparation_id)
+        if preparation is None:
+            raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+        require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
+        if preparation.state not in _ACTIVE_STATES:
+            raise PreparationStateError("Solo un borrador o una preparada pueden cancelarse.")
+        if preparation.version != expected_version:
+            raise PreparationVersionConflictError("La preparación cambió; vuelva a consultarla.")
+        preparation.state = PreparationState.CANCELLED
+        preparation.cancelled_at = timezone.now()
+        preparation.cancelled_by = actor
+        preparation.cancellation_reason = reason.strip()
+        preparation.version += 1
+        preparation.save(
+            update_fields=[
+                "state",
+                "cancelled_at",
+                "cancelled_by",
+                "cancellation_reason",
+                "version",
+                "updated_at",
+            ]
+        )
+        FiscalPreparationHistory.objects.create(
+            preparation=preparation,
+            sequence=_next_sequence(preparation),
+            event="CANCELLED",
+            actor=actor,
+            metadata={"reason": reason.strip()},
+        )
+        record_audit_event(
+            actor=actor,
+            action="fiscal.preparation_cancelled",
+            target_type="fiscal_preparation",
+            target_id=str(preparation.pk),
+            result=AuditResult.SUCCESS,
+            operation_id=preparation.pk,
+        )
+        return preparation
+
+
+def replace(
+    *, actor: User, preparation_id: UUID, reason: str, idempotency_key: str
+) -> PreparationCommandResult:
+    """Cancela la preparación indicada (si sigue activa) y crea un borrador enlazado."""
+    key = validate_idempotency_key(idempotency_key)
+    if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 500:
+        raise PreparationImpedimentError(
+            [{"field": "reason", "message": "Indique el motivo del reemplazo."}]
+        )
+    fingerprint = canonical_fingerprint({"preparation_id": str(preparation_id)})
+    with retryable_transaction():
+        try:
+            with transaction.atomic():
+                receipt = FiscalCommandReceipt.objects.create(
+                    actor=actor,
+                    action=REPLACE_ACTION,
+                    idempotency_key=key,
+                    input_fingerprint=fingerprint,
+                )
+        except IntegrityError:
+            receipt = FiscalCommandReceipt.objects.get(
+                actor=actor, action=REPLACE_ACTION, idempotency_key=key
+            )
+            if receipt.input_fingerprint != fingerprint:
+                raise IdempotencyConflictError("La clave corresponde a otra entrada.") from None
+            if receipt.result_preparation_id is None:
+                raise PreparationStateError("El intento anterior no dejó resultado.") from None
+            return PreparationCommandResult(receipt.result_preparation_id, replayed=True)
+
+        old = _lock_preparation(preparation_id)
+        if old is None:
+            raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+        require_permission(actor=actor, permission=_permission(_kind_of(old)))
+        if old.state == PreparationState.DRAFT:
+            raise PreparationStateError("Un borrador se edita; no se reemplaza.")
+        if old.state == PreparationState.PREPARED:
+            old.state = PreparationState.CANCELLED
+            old.cancelled_at = timezone.now()
+            old.cancelled_by = actor
+            old.cancellation_reason = reason.strip()
+            old.version += 1
+            old.save(
+                update_fields=[
+                    "state",
+                    "cancelled_at",
+                    "cancelled_by",
+                    "cancellation_reason",
+                    "version",
+                    "updated_at",
+                ]
+            )
+            FiscalPreparationHistory.objects.create(
+                preparation=old,
+                sequence=_next_sequence(old),
+                event="CANCELLED",
+                actor=actor,
+                metadata={"reason": reason.strip(), "superseded": True},
+            )
+        source = _lock_source(old)
+        replacement = FiscalPreparation.objects.create(
+            fiscal_entity_id=old.fiscal_entity_id,
+            commercial_sale_id=old.commercial_sale_id,
+            artisan_operation_id=old.artisan_operation_id,
+            source_version=source.version,
+            draft=old.draft,
+            replaces=old,
+            created_by=actor,
+        )
+        FiscalPreparationHistory.objects.create(
+            preparation=replacement,
+            sequence=1,
+            event="CREATED",
+            actor=actor,
+            metadata={"replaces": str(old.pk), "reason": reason.strip()},
+        )
+        receipt.result_preparation = replacement
+        receipt.response_status = 201
+        receipt.save(update_fields=["result_preparation", "response_status"])
+        record_audit_event(
+            actor=actor,
+            action=REPLACE_ACTION,
+            target_type="fiscal_preparation",
+            target_id=str(replacement.pk),
+            result=AuditResult.SUCCESS,
+            operation_id=replacement.pk,
+        )
+        return PreparationCommandResult(replacement.pk, replayed=False)

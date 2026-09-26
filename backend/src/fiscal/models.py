@@ -35,6 +35,8 @@ class FiscalPreparation(models.Model):
     )
     version = models.PositiveBigIntegerField(default=1)
     source_version = models.PositiveBigIntegerField()
+    # Datos editables del borrador (receptor, punto, pagos, fecha); no es el snapshot.
+    draft = models.JSONField(null=True, blank=True)
     snapshot = models.JSONField(null=True, blank=True)
     replaces = models.ForeignKey(
         "self", on_delete=models.PROTECT, related_name="replacements", null=True, blank=True
@@ -161,6 +163,9 @@ class FiscalPreparationHistory(models.Model):
             ),
         ]
         ordering: ClassVar[list[str]] = ["preparation_id", "sequence"]
+
+    def __str__(self) -> str:
+        return f"{self.preparation_id}#{self.sequence}:{self.event}"
 
 
 class FiscalCommandReceipt(models.Model):
