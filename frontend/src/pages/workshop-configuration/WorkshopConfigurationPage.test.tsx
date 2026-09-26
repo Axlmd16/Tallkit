@@ -1,13 +1,11 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
-import { MemoryRouter, useLocation } from 'react-router'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
+
+import type * as Readiness from '@/features/fiscal/configuration/readiness'
+import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => {
   const mutation = () => ({
@@ -20,25 +18,29 @@ const mocks = vi.hoisted(() => {
   })
   return {
     status: {
-      data: { is_initialized: true },
+      data: { is_initialized: true } as { is_initialized: boolean } | undefined,
       isLoading: false,
       isError: false,
     },
     entities: {
       data: undefined as Array<Record<string, unknown>> | undefined,
       isLoading: false,
+      isError: false,
     },
     warehouse: {
       data: undefined as Record<string, unknown> | undefined,
       isLoading: false,
+      isError: false,
     },
     taxes: {
       data: undefined as Array<Record<string, unknown>> | undefined,
       isLoading: false,
+      isError: false,
     },
     series: {
       data: undefined as Array<Record<string, unknown>> | undefined,
       isLoading: false,
+      isError: false,
     },
     initialize: mutation(),
     entityUpdate: mutation(),
@@ -46,6 +48,17 @@ const mocks = vi.hoisted(() => {
     taxCreate: mutation(),
     periodCreate: mutation(),
     seriesUpdate: mutation(),
+    seriesReplace: mutation(),
+    readiness: {
+      isLoading: false,
+      isError: false,
+      pending: 0,
+      firstDestination: null as {
+        entityId: number
+        section: string | null
+      } | null,
+      byEntity: {} as Record<number, unknown>,
+    },
   }
 })
 
@@ -60,6 +73,7 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   useCreateTaxDefinition: () => mocks.taxCreate,
   useCreateTaxPeriod: () => mocks.periodCreate,
   useUpdateSeriesCode: () => mocks.seriesUpdate,
+  useReplaceSeries: () => mocks.seriesReplace,
   useInitializeWorkshop: () => mocks.initialize,
 }))
 const fiscalSection = vi.hoisted(() => ({ mounts: 0 }))
@@ -70,47 +84,44 @@ vi.mock('@/features/fiscal/FiscalConfigurationSection', async () => {
       useEffect(() => {
         fiscalSection.mounts += 1
       }, [])
-      return <section aria-label="Configuración fiscal electrónica" />
+      return <p>Contenido de facturación electrónica</p>
     },
   }
 })
+vi.mock(
+  '@/features/fiscal/configuration/readiness',
+  async (importOriginal) => ({
+    ...(await importOriginal<typeof Readiness>()),
+    useConfigurationReadiness: () => mocks.readiness,
+  }),
+)
 
 import { WorkshopConfigurationPage } from './WorkshopConfigurationPage'
 
 function LocationProbe() {
-  const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
-}
-
-function page(search = '') {
-  return (
-    <MemoryRouter initialEntries={[`/configuration${search}`]}>
-      <WorkshopConfigurationPage />
-      <LocationProbe />
-    </MemoryRouter>
-  )
+  return <output data-testid="location">{useLocation().search}</output>
 }
 
 function renderPage(search = '') {
-  return render(page(search))
+  return render(
+    <MemoryRouter initialEntries={[`/configuration${search}`]}>
+      <ToastProvider>
+        <WorkshopConfigurationPage />
+        <LocationProbe />
+      </ToastProvider>
+    </MemoryRouter>,
+  )
 }
 
-async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
-  await user.click(screen.getByRole('tab', { name: new RegExp(`^${name}`) }))
+function sections() {
+  return screen.getByRole('navigation', { name: 'Secciones de configuración' })
+}
+
+function sectionLink(name: string) {
+  return within(sections()).getByRole('link', { name: new RegExp(`^${name}`) })
 }
 
 const entities = [
-  {
-    id: 1,
-    entity_type: 'ARTESANAL',
-    ruc: '1104018559001',
-    legal_name: 'Trasmisiones y Embragues Jimenez',
-    trade_name: null,
-    address: 'Via Catamayo - Loja Ecuador',
-    phone: null,
-    email: null,
-    version: 2,
-  },
   {
     id: 2,
     entity_type: 'COMERCIAL',
@@ -122,10 +133,21 @@ const entities = [
     email: null,
     version: 2,
   },
+  {
+    id: 1,
+    entity_type: 'ARTESANAL',
+    ruc: '1104018559001',
+    legal_name: 'Trasmisiones y Embragues Jimenez',
+    trade_name: 'TEJ',
+    address: 'Vía Catamayo',
+    phone: null,
+    email: null,
+    version: 3,
+  },
 ]
 const warehouse = {
   id: 1,
-  name: 'Bodega Principal',
+  name: 'Bodega principal',
   is_active: true,
   version: 1,
 }
@@ -134,17 +156,21 @@ const taxes = [
     id: 1,
     code: 'IVA',
     name: 'IVA',
+    fiscal_entity_id: 2,
     entity_type: 'COMERCIAL',
     current_rate: '15',
     starts_on: '2026-09-15',
+    ends_on: null,
   },
   {
     id: 2,
     code: 'CERO',
     name: 'Tarifa cero',
+    fiscal_entity_id: 1,
     entity_type: 'ARTESANAL',
     current_rate: null,
     starts_on: null,
+    ends_on: null,
   },
 ]
 const series = [
@@ -159,21 +185,41 @@ const series = [
   },
   {
     id: 2,
-    code: 'OTR',
-    is_active: false,
+    code: 'COM-PRO',
+    is_active: true,
     last_number: 0,
-    version: 3,
-    document_type: 'OTRO',
+    version: 1,
+    document_type: 'PROFORMA',
+    entity_type: 'COMERCIAL',
+  },
+  {
+    id: 3,
+    code: 'ART-SER',
+    is_active: true,
+    last_number: 0,
+    version: 1,
+    document_type: 'SERVICIO',
+    entity_type: 'ARTESANAL',
   },
 ]
 
-function resetMutation(mutation: (typeof mocks)['initialize']) {
-  mutation.isError = false
-  mutation.isPending = false
-  mutation.error = null
-  mutation.mutate.mockReset()
-  mutation.mutateAsync.mockReset()
-  mutation.reset.mockReset()
+function readySummary(entityId: number) {
+  return {
+    entityId,
+    state: 'READY',
+    pending: 0,
+    causes: [],
+    bySection: {
+      perfil: [],
+      puntos: [],
+      impuestos: [],
+      'formas-pago': [],
+      certificado: [],
+    },
+    general: [],
+    warnings: [],
+    firstDestination: null,
+  }
 }
 
 beforeEach(() => {
@@ -181,392 +227,440 @@ beforeEach(() => {
   mocks.status.data = { is_initialized: true }
   mocks.status.isLoading = false
   mocks.status.isError = false
-  mocks.entities.data = entities
-  mocks.entities.isLoading = false
-  mocks.warehouse.data = warehouse
-  mocks.warehouse.isLoading = false
-  mocks.taxes.data = taxes
-  mocks.taxes.isLoading = false
-  mocks.series.data = series
-  mocks.series.isLoading = false
-  resetMutation(mocks.initialize)
-  resetMutation(mocks.entityUpdate)
-  resetMutation(mocks.warehouseUpdate)
-  resetMutation(mocks.taxCreate)
-  resetMutation(mocks.periodCreate)
-  resetMutation(mocks.seriesUpdate)
+  Object.assign(mocks.entities, {
+    data: entities,
+    isLoading: false,
+    isError: false,
+  })
+  Object.assign(mocks.warehouse, {
+    data: warehouse,
+    isLoading: false,
+    isError: false,
+  })
+  Object.assign(mocks.taxes, { data: taxes, isLoading: false, isError: false })
+  Object.assign(mocks.series, {
+    data: series,
+    isLoading: false,
+    isError: false,
+  })
+  for (const mutation of [
+    mocks.initialize,
+    mocks.entityUpdate,
+    mocks.warehouseUpdate,
+    mocks.taxCreate,
+    mocks.periodCreate,
+    mocks.seriesUpdate,
+    mocks.seriesReplace,
+  ]) {
+    mutation.mutate.mockReset()
+    mutation.mutateAsync.mockReset()
+    mutation.mutateAsync.mockResolvedValue({ id: 99 })
+  }
+  mocks.readiness = {
+    isLoading: false,
+    isError: false,
+    pending: 0,
+    firstDestination: null,
+    byEntity: { 1: readySummary(1), 2: readySummary(2) },
+  }
 })
 
-it('organizes configuration in five tabs starting with fiscal entities', () => {
+it('organiza la configuración en una navegación de cinco secciones que empieza en entidades', () => {
   renderPage()
 
-  const tabs = screen.getAllByRole('tab')
-  expect(tabs.map((tab) => tab.textContent?.replace(/\d+$/, ''))).toEqual([
+  const links = within(sections()).getAllByRole('link')
+  expect(links.map((link) => link.querySelector('span')?.textContent)).toEqual([
     'Entidades fiscales',
     'Bodega',
     'Impuestos',
     'Series y numeración',
     'Facturación electrónica',
   ])
-  expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
+  expect(screen.queryByRole('tablist')).toBeNull()
+  expect(sectionLink('Entidades fiscales')).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  expect(sectionLink('Series y numeración')).toHaveTextContent('3')
   expect(
-    screen.getByRole('heading', { name: 'Entidades fiscales' }),
+    screen.getByRole('heading', { level: 2, name: 'Entidades fiscales' }),
   ).toBeVisible()
-  expect(screen.queryByText('Identidades fiscales')).toBeNull()
-  const panel = screen.getByRole('tabpanel')
-  expect(panel).toHaveAttribute('aria-labelledby', tabs[0]!.id)
-  expect(tabs[0]).toHaveAttribute('aria-controls', panel.id)
+  expect(screen.queryByText('Sistema operativo')).toBeNull()
+  expect(screen.getByText('Sin pendientes de configuración')).toBeVisible()
 })
 
-it('shows each existing area inside its own tab', async () => {
+it('cambia de sección por enlace y conserva la dirección', async () => {
   const user = userEvent.setup()
   renderPage()
 
-  await openTab(user, 'Bodega')
-  expect(
-    screen.getByRole('heading', { name: 'Operación del inventario' }),
-  ).toBeVisible()
-  await openTab(user, 'Impuestos')
-  expect(
-    screen.getByRole('heading', { name: 'Impuestos y vigencias' }),
-  ).toBeVisible()
-  expect(screen.getByText('15%')).toBeVisible()
-  expect(screen.getByText('Sin tarifa')).toBeVisible()
-  await openTab(user, 'Series y numeración')
-  const seriesPanel = screen.getByRole('tabpanel')
-  expect(
-    within(seriesPanel).getByRole('heading', { name: 'Series y secuenciales' }),
-  ).toBeVisible()
-  expect(within(seriesPanel).getByText('000004')).toBeVisible()
-  expect(within(seriesPanel).queryByText(/punto de emisión/i)).toBeNull()
+  await user.click(sectionLink('Series y numeración'))
+
   expect(screen.getByTestId('location')).toHaveTextContent('?tab=series')
-  await openTab(user, 'Facturación electrónica')
+  expect(sectionLink('Series y numeración')).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
   expect(
-    screen.getByRole('region', { name: 'Configuración fiscal electrónica' }),
+    screen.getByRole('heading', { level: 2, name: 'Series y numeración' }),
   ).toBeVisible()
+  expect(
+    screen.getByRole('heading', {
+      level: 2,
+      name: 'Entidades fiscales',
+      hidden: true,
+    }),
+  ).not.toBeVisible()
 })
 
-it('opens a tab from a direct link and falls back to entities for unknown tabs', () => {
-  const { unmount } = renderPage('?tab=facturacion')
+it('recorre las secciones con Tab y las activa con Intro', async () => {
+  const user = userEvent.setup()
+  renderPage()
+
+  sectionLink('Bodega').focus()
+  await user.tab()
+  expect(sectionLink('Impuestos')).toHaveFocus()
+  await user.keyboard('{Enter}')
+  expect(sectionLink('Impuestos')).toHaveAttribute('aria-current', 'page')
+})
+
+it('abre subsecciones por enlace directo y usa entidades ante una sección desconocida', () => {
+  const { unmount } = renderPage('?tab=facturacion&seccion=puntos')
+  expect(sectionLink('Facturación electrónica')).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
   expect(
-    screen.getByRole('tab', { name: 'Facturación electrónica' }),
-  ).toHaveAttribute('aria-selected', 'true')
+    within(sections()).getByRole('link', {
+      name: /Establecimientos y puntos de emisión/,
+    }),
+  ).toHaveAttribute('aria-current', 'page')
   unmount()
 
-  renderPage('?tab=inexistente')
-  expect(
-    screen.getByRole('tab', { name: /^Entidades fiscales/ }),
-  ).toHaveAttribute('aria-selected', 'true')
-})
-
-it('moves between tabs with the keyboard', async () => {
-  const user = userEvent.setup()
-  renderPage('?tab=bodega')
-  screen.getByRole('tab', { name: /^Bodega/ }).focus()
-  await user.keyboard('{ArrowRight}')
-  expect(screen.getByRole('tab', { name: /^Impuestos/ })).toHaveFocus()
-  expect(screen.getByRole('tab', { name: /^Impuestos/ })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
-  await user.keyboard('{End}')
-  expect(
-    screen.getByRole('tab', { name: 'Facturación electrónica' }),
-  ).toHaveFocus()
-  await user.keyboard('{Home}')
-  expect(screen.getByRole('tab', { name: /^Entidades fiscales/ })).toHaveFocus()
-})
-
-it('shows a tax error inside the Impuestos panel only', async () => {
-  const user = userEvent.setup()
-  mocks.taxCreate.isError = true
-  mocks.taxCreate.error = new Error('Vigencia solapada')
-  mocks.taxCreate.mutateAsync.mockRejectedValue(new Error('Vigencia solapada'))
-  renderPage('?tab=impuestos')
-
-  await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
-  await user.type(screen.getByLabelText('Código del impuesto'), 'IVA')
-  await user.type(screen.getByLabelText('Tarifa (%)'), '15')
-  await user.type(screen.getByLabelText('Nombre oficial'), 'IVA')
-  await user.click(screen.getByRole('button', { name: 'Crear impuesto' }))
-  const error = await screen.findByText(/Vigencia solapada/)
-  expect(error).toBeVisible()
-  const panels = screen.getAllByRole('tabpanel', { hidden: true })
-  const owner = panels.filter((panel) => panel.contains(error))
-  expect(owner).toHaveLength(1)
-  expect(owner[0]).toHaveAttribute(
-    'aria-labelledby',
-    screen.getByRole('tab', { name: /^Impuestos/, hidden: true }).id,
-  )
-  // El diálogo es modal: mientras el error está abierto no se puede cambiar de pestaña.
-  expect(screen.queryByRole('tab', { name: /^Bodega/ })).toBeNull()
-})
-
-it('shows page and section loading states and the page-level failure', () => {
-  mocks.status.isLoading = true
-  const { rerender } = renderPage()
-  expect(screen.getByText('Cargando configuración...')).toBeInTheDocument()
-
-  mocks.status.isLoading = false
-  mocks.status.isError = true
-  rerender(page())
-  expect(
-    screen.getByText('No se pudo cargar la configuración.'),
-  ).toBeInTheDocument()
-
-  mocks.status.isError = false
-  mocks.entities.isLoading = true
-  mocks.warehouse.isLoading = true
-  mocks.taxes.isLoading = true
-  mocks.series.isLoading = true
-  rerender(page())
-  expect(screen.getAllByText('Cargando…')).toHaveLength(4)
-})
-
-it('initializes the workshop only after complete, distinct identifiers are provided', async () => {
-  const user = userEvent.setup()
-  mocks.status.data = { is_initialized: false }
-  renderPage()
-
-  const submit = screen.getByRole('button', {
-    name: 'Guardar configuración inicial',
-  })
-  expect(submit).toBeDisabled()
-  await user.type(screen.getByLabelText('RUC Comercial'), 'abc1150696977001')
-  await user.type(screen.getByLabelText('RUC Artesanal'), '1104018559001')
-  const legalNames = screen.getAllByLabelText('Razón Social')
-  await user.type(legalNames[0]!, '  Repuestos VVH  ')
-  await user.type(legalNames[1]!, '  Taller Jiménez  ')
-  await user.type(screen.getByLabelText('Nombre de la bodega'), '  Matriz  ')
-
-  expect(submit).toBeEnabled()
-  await user.click(submit)
-
-  expect(mocks.initialize.mutate).toHaveBeenCalledWith({
-    data: {
-      commercial_ruc: '1150696977001',
-      commercial_legal_name: 'Repuestos VVH',
-      artisanal_ruc: '1104018559001',
-      artisanal_legal_name: 'Taller Jiménez',
-      warehouse_name: 'Matriz',
-    },
-    idempotencyKey: expect.any(String),
-  })
-})
-
-it('blocks initialization when both fiscal entities use the same RUC', async () => {
-  const user = userEvent.setup()
-  mocks.status.data = { is_initialized: false }
-  renderPage()
-
-  await user.type(screen.getByLabelText('RUC Comercial'), '1150696977001')
-  await user.type(screen.getByLabelText('RUC Artesanal'), '1150696977001')
-  const legalNames = screen.getAllByLabelText('Razón Social')
-  await user.type(legalNames[0]!, 'Comercial')
-  await user.type(legalNames[1]!, 'Artesanal')
-  await user.type(screen.getByLabelText('Nombre de la bodega'), 'Matriz')
-
-  expect(
-    screen.getByText(
-      'El RUC comercial y el RUC artesanal deben ser diferentes.',
-    ),
-  ).toBeInTheDocument()
-  expect(
-    screen.getByRole('button', { name: 'Guardar configuración inicial' }),
-  ).toBeDisabled()
-  expect(mocks.initialize.mutate).not.toHaveBeenCalled()
-})
-
-it('keeps the initialization error visible and prevents a duplicate submission', () => {
-  mocks.status.data = { is_initialized: false }
-  mocks.initialize.isError = true
-  mocks.initialize.isPending = true
-  mocks.initialize.error = new Error('RUC inválido')
-  renderPage()
-
-  expect(screen.getByText(/RUC inválido/)).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Procesando…' })).toBeDisabled()
-})
-
-it('updates a fiscal identity with its expected version and closes on success', async () => {
-  const user = userEvent.setup()
-  renderPage()
-
-  await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!)
-  const dialog = screen.getByRole('dialog', {
-    name: 'Editar Entidad Artesanal',
-  })
-  expect(dialog).toHaveClass('dialog-panel')
-  await user.clear(screen.getByLabelText('Razón Social'))
-  await user.type(screen.getByLabelText('Razón Social'), 'Taller actualizado')
-  await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
-
-  expect(mocks.entityUpdate.mutate).toHaveBeenCalledWith(
-    {
-      id: 1,
-      data: {
-        ruc: '1104018559001',
-        legal_name: 'Taller actualizado',
-        address: 'Via Catamayo - Loja Ecuador',
-        expected_version: 2,
-      },
-    },
-    expect.objectContaining({ onSuccess: expect.any(Function) }),
-  )
-  mocks.entityUpdate.mutate.mock.calls[0]![1].onSuccess()
-  await waitFor(() => expect(dialog).not.toBeInTheDocument())
-})
-
-it('updates the warehouse name and reports mutation failures in its dialog', async () => {
-  const user = userEvent.setup()
-  mocks.warehouseUpdate.isError = true
-  mocks.warehouseUpdate.error = new Error('Conflicto de versión')
-  renderPage()
-
-  await openTab(user, 'Bodega')
-  await user.click(screen.getByRole('button', { name: 'Editar' }))
-  expect(screen.getByText(/Conflicto de versión/)).toBeInTheDocument()
-  await user.clear(screen.getByLabelText('Nombre de la bodega'))
-  await user.type(screen.getByLabelText('Nombre de la bodega'), '  Norte  ')
-  await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
-
-  expect(mocks.warehouseUpdate.mutate).toHaveBeenCalledWith(
-    { name: 'Norte', expected_version: 1 },
-    expect.objectContaining({ onSuccess: expect.any(Function) }),
-  )
-  mocks.warehouseUpdate.mutate.mock.calls[0]![1].onSuccess()
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('dialog', { name: 'Editar Bodega Principal' }),
-    ).not.toBeInTheDocument(),
+  renderPage('?tab=otra')
+  expect(sectionLink('Entidades fiscales')).toHaveAttribute(
+    'aria-current',
+    'page',
   )
 })
 
-it('creates an uppercase tax definition and its initial period, then closes', async () => {
-  const user = userEvent.setup()
-  mocks.taxCreate.mutateAsync.mockResolvedValue({ id: 9 })
-  mocks.periodCreate.mutateAsync.mockResolvedValue({ id: 10 })
-  renderPage()
-  await openTab(user, 'Impuestos')
-
-  await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
-  expect(mocks.taxCreate.reset).toHaveBeenCalled()
-  await user.selectOptions(screen.getByLabelText('Entidad Fiscal'), '2')
-  await user.type(screen.getByLabelText('Código del impuesto'), ' iva ')
-  await user.type(screen.getByLabelText('Tarifa (%)'), '12')
-  await user.type(screen.getByLabelText('Nombre oficial'), ' IVA general ')
-  fireEvent.change(screen.getByLabelText('Fecha de vigencia (desde)'), {
-    target: { value: '2026-10-01' },
-  })
-  await user.click(screen.getByRole('button', { name: 'Crear impuesto' }))
-
-  await waitFor(() =>
-    expect(mocks.taxCreate.mutateAsync).toHaveBeenCalledWith({
-      entity_id: 2,
-      code: 'IVA',
-      name: 'IVA general',
-    }),
-  )
-  expect(mocks.periodCreate.mutateAsync).toHaveBeenCalledWith({
-    taxDefId: 9,
-    data: { rate: '12', starts_on: '2026-10-01' },
-  })
-  expect(
-    screen.queryByRole('dialog', { name: 'Nuevo Impuesto y Vigencia' }),
-  ).not.toBeInTheDocument()
-})
-
-it('keeps the tax dialog open when either mutation fails and shows its error', async () => {
-  const user = userEvent.setup()
-  mocks.taxCreate.isError = true
-  mocks.taxCreate.error = new Error('Código duplicado')
-  mocks.taxCreate.mutateAsync.mockRejectedValue(new Error('Código duplicado'))
-  renderPage()
-  await openTab(user, 'Impuestos')
-
-  await user.click(screen.getByRole('button', { name: 'Nuevo Impuesto' }))
-  await user.type(screen.getByLabelText('Código del impuesto'), 'IVA')
-  await user.type(screen.getByLabelText('Tarifa (%)'), '15')
-  await user.type(screen.getByLabelText('Nombre oficial'), 'IVA')
-  await user.click(screen.getByRole('button', { name: 'Crear impuesto' }))
-
-  expect(await screen.findByText(/Código duplicado/)).toBeInTheDocument()
-  expect(
-    screen.getByRole('dialog', { name: 'Nuevo Impuesto y Vigencia' }),
-  ).toBeInTheDocument()
-  await user.click(screen.getByRole('button', { name: 'Cancelar' }))
-  expect(mocks.taxCreate.reset).toHaveBeenCalledTimes(2)
-})
-
-it('updates a document series in uppercase with optimistic version control', async () => {
-  const user = userEvent.setup()
-  renderPage()
-
-  await openTab(user, 'Series y numeración')
-  await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!)
-  const code = screen.getByLabelText('Código de serie / Prefijo')
-  await user.clear(code)
-  await user.type(code, ' com-nueva ')
-  await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
-
-  expect(mocks.seriesUpdate.mutate).toHaveBeenCalledWith(
-    {
-      seriesId: 1,
-      data: { code: 'COM-NUEVA', expected_version: 1 },
-    },
-    expect.objectContaining({ onSuccess: expect.any(Function) }),
-  )
-  mocks.seriesUpdate.mutate.mock.calls[0]![1].onSuccess()
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('dialog', { name: 'Editar Serie: COM-VEN' }),
-    ).not.toBeInTheDocument(),
-  )
-})
-
-it('renders empty tax and series guidance and inactive warehouse state', () => {
-  mocks.taxes.data = []
-  mocks.series.data = []
-  mocks.warehouse.data = { ...warehouse, is_active: false }
-  renderPage()
-
-  expect(
-    screen.getByText('Aún no hay impuestos configurados'),
-  ).toBeInTheDocument()
-  expect(screen.getByText('Aún no hay series configuradas')).toBeInTheDocument()
-  expect(screen.getByText('Inactiva')).toBeInTheDocument()
-})
-
-it('uses neutral zero-value fallbacks while configuration queries have no data', () => {
-  mocks.entities.data = undefined
-  mocks.warehouse.data = undefined
-  mocks.taxes.data = undefined
-  mocks.series.data = undefined
-  renderPage()
-
-  expect(screen.getByText('0 registradas')).toBeInTheDocument()
-  expect(screen.getByText('Bodega Central')).toBeInTheDocument()
-  expect(
-    screen.getByText('Aún no hay impuestos configurados'),
-  ).toBeInTheDocument()
-  expect(screen.getByText('Aún no hay series configuradas')).toBeInTheDocument()
-  expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(4)
-})
-
-it('mounts electronic billing only after its first visit and keeps it afterwards', async () => {
+it('monta facturación en la primera visita y la conserva al volver', async () => {
   const user = userEvent.setup()
   renderPage()
   expect(fiscalSection.mounts).toBe(0)
-  expect(
-    screen.queryByRole('region', {
-      name: 'Configuración fiscal electrónica',
-      hidden: true,
-    }),
-  ).toBeNull()
 
-  await openTab(user, 'Facturación electrónica')
+  await user.click(sectionLink('Facturación electrónica'))
+  expect(screen.getByText('Contenido de facturación electrónica')).toBeVisible()
+  await user.click(sectionLink('Bodega'))
+  await user.click(sectionLink('Facturación electrónica'))
+
   expect(fiscalSection.mounts).toBe(1)
-  await openTab(user, 'Bodega')
-  await openTab(user, 'Facturación electrónica')
-  expect(fiscalSection.mounts).toBe(1)
+})
+
+it('resume los pendientes y enlaza a la entidad y subsección de la primera causa', () => {
+  mocks.readiness = {
+    ...mocks.readiness,
+    pending: 2,
+    firstDestination: { entityId: 1, section: 'puntos' },
+  }
+  renderPage()
+
+  expect(screen.getByText('Configuración con pendientes')).toBeVisible()
+  expect(
+    screen.getByRole('link', {
+      name: '2 pendientes en Facturación electrónica',
+    }),
+  ).toHaveAttribute(
+    'href',
+    '/configuration?tab=facturacion&entidad=1&seccion=puntos',
+  )
+  expect(sectionLink('Facturación electrónica')).toHaveTextContent(
+    '2 pendientes',
+  )
+})
+
+it('no presenta la configuración al día si el estado no pudo evaluarse', () => {
+  mocks.readiness = { ...mocks.readiness, isError: true, byEntity: {} }
+  renderPage()
+
+  expect(
+    screen.getByText('No se pudo evaluar el estado de la configuración'),
+  ).toBeVisible()
+  expect(screen.queryByText('Sin pendientes de configuración')).toBeNull()
+})
+
+it('muestra las entidades en consulta con ámbito, placa de RUC, uso y series', () => {
+  renderPage()
+
+  const commercial = screen.getByRole('article', { name: 'Entidad comercial' })
+  expect(within(commercial).getByText('Comercial')).toBeVisible()
+  expect(within(commercial).getByText('RUC').parentElement).toHaveTextContent(
+    'RUC 1150696977001',
+  )
+  expect(commercial).toHaveTextContent('Sin nombre comercial')
+  expect(commercial).toHaveTextContent(
+    'Proveedores, ingresos, inventario y ventas de repuestos',
+  )
+  expect(commercial).toHaveTextContent('Lista para preparación local')
+  expect(commercial).toHaveTextContent('2 activas')
+  expect(within(commercial).queryByRole('textbox')).toBeNull()
+
+  const artisan = screen.getByRole('article', { name: 'Entidad artesanal' })
+  expect(artisan).toHaveTextContent(
+    'Mantenimientos, reparaciones, servicios y mano de obra',
+  )
+  expect(artisan).toHaveTextContent('1 activa')
+})
+
+it('muestra la causa pendiente de una entidad con su enlace de resolución', () => {
+  mocks.readiness.byEntity[1] = {
+    ...readySummary(1),
+    state: 'INCOMPLETE',
+    pending: 1,
+    causes: [
+      {
+        code: 'default_point_required',
+        kind: 'MISSING',
+        message: 'Designe el punto predeterminado.',
+      },
+    ],
+    firstDestination: { entityId: 1, section: 'puntos' },
+  }
+  renderPage()
+
+  const artisan = screen.getByRole('article', { name: 'Entidad artesanal' })
+  expect(artisan).toHaveTextContent('Falta completar')
+  expect(artisan).toHaveTextContent('Designe el punto predeterminado.')
+  expect(
+    within(artisan).getByRole('link', { name: 'Resolver' }),
+  ).toHaveAttribute(
+    'href',
+    '/configuration?tab=facturacion&entidad=1&seccion=puntos',
+  )
+})
+
+it('edita una entidad en un modal con su versión y notifica el guardado', async () => {
+  const user = userEvent.setup()
+  renderPage()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Editar entidad comercial' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Editar entidad comercial',
+  })
+  const name = within(dialog).getByLabelText(/Razón social/)
+  await user.clear(name)
+  await user.type(name, 'Repuestos VVH S.A.')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar cambios' }),
+  )
+
+  expect(mocks.entityUpdate.mutateAsync).toHaveBeenCalledWith({
+    id: 2,
+    data: {
+      ruc: '1150696977001',
+      legal_name: 'Repuestos VVH S.A.',
+      address: '',
+      expected_version: 2,
+    },
+  })
+  expect(
+    await screen.findByText('Entidad comercial actualizada.'),
+  ).toBeVisible()
+  await waitFor(() =>
+    expect(
+      screen.queryByRole('dialog', { name: 'Editar entidad comercial' }),
+    ).toBeNull(),
+  )
+})
+
+it('mantiene el modal con el error junto al RUC cuando el servidor lo rechaza', async () => {
+  const user = userEvent.setup()
+  mocks.entityUpdate.mutateAsync.mockRejectedValue(
+    new ProblemError('Datos inválidos', 400, 'validation', undefined, {
+      ruc: ['El RUC ya pertenece a la otra entidad fiscal.'],
+    }),
+  )
+  renderPage()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Editar entidad comercial' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Editar entidad comercial',
+  })
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar cambios' }),
+  )
+
+  expect(
+    await within(dialog).findByText(
+      'El RUC ya pertenece a la otra entidad fiscal.',
+    ),
+  ).toBeVisible()
+  expect(within(dialog).getByLabelText(/^RUC/)).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+  expect(screen.queryByText('Entidad comercial actualizada.')).toBeNull()
+})
+
+it('consulta la bodega y cambia su nombre en un modal', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=bodega')
+
+  const region = screen.getByRole('region', { name: 'Bodega' })
+  expect(within(region).getByText('Bodega principal')).toBeVisible()
+  expect(within(region).getByText('Activa')).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Editar nombre' }))
+  const dialog = screen.getByRole('dialog', { name: 'Editar bodega' })
+  const input = within(dialog).getByLabelText(/Nombre de la bodega/)
+  await user.clear(input)
+  await user.type(input, 'Bodega central')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar cambios' }),
+  )
+
+  expect(mocks.warehouseUpdate.mutateAsync).toHaveBeenCalledWith({
+    name: 'Bodega central',
+    expected_version: 1,
+  })
+  expect(await screen.findByText('Bodega actualizada.')).toBeVisible()
+})
+
+it('agrupa los impuestos por entidad y crea uno con su tarifa inicial', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=impuestos')
+
+  const table = screen.getByRole('table')
+  const groups = within(table).getAllByRole('rowheader')
+  expect(groups[0]).toHaveTextContent('ComercialRepuestos VVH')
+  expect(groups[1]).toHaveTextContent('ArtesanalTrasmisiones')
+  expect(table).toHaveTextContent('IVA15 %')
+  expect(table).toHaveTextContent('Sin tarifa vigente')
+
+  await user.click(screen.getByRole('button', { name: 'Nuevo impuesto' }))
+  const dialog = screen.getByRole('dialog', { name: 'Nuevo impuesto' })
+  await user.type(within(dialog).getByLabelText(/Código/), 'ice')
+  await user.type(within(dialog).getByLabelText(/Tarifa/), '10')
+  await user.type(
+    within(dialog).getByLabelText(/^Nombre/),
+    'Consumos especiales',
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Crear impuesto' }),
+  )
+
+  expect(mocks.taxCreate.mutateAsync).toHaveBeenCalledWith({
+    entity_id: 2,
+    code: 'ICE',
+    name: 'Consumos especiales',
+  })
+  expect(mocks.periodCreate.mutateAsync).toHaveBeenCalledWith({
+    taxDefId: 99,
+    data: expect.objectContaining({ rate: '10' }),
+  })
+  expect(await screen.findByText('Impuesto ICE creado.')).toBeVisible()
+})
+
+it('mantiene el error de vigencia solapada dentro del modal de impuestos', async () => {
+  const user = userEvent.setup()
+  mocks.periodCreate.mutateAsync.mockRejectedValue(
+    new Error('La vigencia se solapa con otra del mismo impuesto.'),
+  )
+  renderPage('?tab=impuestos')
+
+  await user.click(screen.getByRole('button', { name: 'Nuevo impuesto' }))
+  const dialog = screen.getByRole('dialog', { name: 'Nuevo impuesto' })
+  await user.type(within(dialog).getByLabelText(/Código/), 'IVA')
+  await user.type(within(dialog).getByLabelText(/Tarifa/), '15')
+  await user.type(within(dialog).getByLabelText(/^Nombre/), 'IVA')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Crear impuesto' }),
+  )
+
+  expect(
+    await within(dialog).findByText(
+      'La vigencia se solapa con otra del mismo impuesto.',
+    ),
+  ).toBeVisible()
+  // El modal abierto deja inaccesible la navegación hasta cerrarlo.
+  expect(
+    screen.queryByRole('navigation', { name: 'Secciones de configuración' }),
+  ).toBeNull()
+})
+
+it('agrupa las series por entidad y ofrece corregir o sustituir según su uso', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=series')
+
+  const table = screen.getByRole('table')
+  const rows = within(table).getAllByRole('row')
+  expect(rows.map((row) => row.textContent)).toEqual(
+    expect.arrayContaining([
+      expect.stringContaining('Venta de repuestosCOM-VENCOM-VEN-000004Activa'),
+      expect.stringContaining('ProformaCOM-PROSin usoActiva'),
+      expect.stringContaining('Operación de serviciosART-SERSin usoActiva'),
+    ]),
+  )
+  expect(
+    within(table).getByRole('button', { name: 'Sustituir serie COM-VEN' }),
+  ).toBeInTheDocument()
+
+  await user.click(
+    within(table).getByRole('button', { name: 'Editar código COM-PRO' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Editar código de COM-PRO',
+  })
+  const input = within(dialog).getByLabelText(/Código de la serie/)
+  await user.clear(input)
+  await user.type(input, 'com-prf')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar código' }),
+  )
+
+  expect(mocks.seriesUpdate.mutateAsync).toHaveBeenCalledWith({
+    seriesId: 2,
+    data: { code: 'COM-PRF', expected_version: 1 },
+  })
+})
+
+it('sustituye una serie usada por una sucesora', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=series')
+
+  await user.click(
+    screen.getByRole('button', { name: 'Sustituir serie COM-VEN' }),
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Sustituir COM-VEN' })
+  await user.type(
+    within(dialog).getByLabelText(/Código de la serie sucesora/),
+    'COM-VEN2',
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Sustituir serie' }),
+  )
+
+  expect(mocks.seriesReplace.mutateAsync).toHaveBeenCalledWith({
+    seriesId: 1,
+    data: { new_code: 'COM-VEN2', expected_version: 1 },
+  })
+})
+
+it('muestra estados de carga, vacío y error por sección', () => {
+  mocks.taxes.data = []
+  mocks.series.data = []
+  const { unmount } = renderPage('?tab=impuestos')
+  expect(screen.getByText('Aún no hay impuestos configurados')).toBeVisible()
+  unmount()
+
+  mocks.warehouse.isError = true
+  const second = renderPage('?tab=bodega')
+  expect(screen.getByText('No se pudo cargar la bodega.')).toBeVisible()
+  second.unmount()
+
+  mocks.status.isError = true
+  renderPage()
+  expect(screen.getByText('No se pudo cargar la configuración.')).toBeVisible()
 })

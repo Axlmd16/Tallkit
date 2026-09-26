@@ -72,6 +72,7 @@ Dos capas: los valores crudos `--tk-*` viven en `frontend/src/shared/styles/toke
 - **Editor con vista previa (PPF-05):** venta e ingreso; líneas editables fila por fila, importes solo del servidor (guion si faltan), total junto a las acciones y hoja A4 `DocumentSheet` con el aviso del SRI.
 - **Diálogos de confirmación (PPF-06):** objeto y número interno, entidad fiscal, efecto en el cuerpo y valores revisados por el servidor; botón breve que nombra la acción, peligro sólido en las destructivas y salida segura con nombre.
 - **Estados de contenido (PPF-07):** carga con marcadores, vacío con acción de creación, sin resultados con «Limpiar filtros», error con «Reintentar» y sin permiso; nunca datos inventados.
+- **Página de configuración:** una sola hoja blanca con borde y sin sombra; `SectionNav` (enlaces con `aria-current`, rótulo «Secciones», vertical desde 1024 px con marca petróleo y fondo suave, barra horizontal por debajo) y contenido en modo de consulta con `SheetHeading`, `FactList`/`FactRow`, tablas con `sheetTableHead`/`sheetTableCell` agrupadas por entidad, `StateMark` para estados y `AdvancedInfo` para datos técnicos. Toda edición se abre en `FormModal`.
 - **Notificaciones temporales (PPF-08):** `ToastProvider`/`useToast` abajo a la derecha, 6 s, pausa con puntero o foco, cierre con Escape, hasta tres y enlace «Ver». La región se monta fuera de la aplicación y queda exenta del aislamiento de los modales para anunciarse aunque haya uno abierto. Los errores y advertencias permanecen en línea.
 
 ## Piezas del taller
@@ -81,6 +82,8 @@ Dos capas: los valores crudos `--tk-*` viven en `frontend/src/shared/styles/toke
 - `StockIndicator`: cantidad disponible y «Agotado» en cero; nunca «Stock bajo», porque el umbral (`RF-INV-011`) sigue sin decidir.
 - `Money`: importe USD con dos decimales o guion, sin aritmética de coma flotante.
 - `FiscalScopeBadge`: «RUC comercial» o «RUC artesanal» con icono y tono propios.
+- `ScopeLabel`: rótulo en mayúsculas con icono y tono del ámbito que encabeza fichas y grupos de tabla.
+- `RucPlate`: placa de RUC con la etiqueta «RUC» sobre tinta y los 13 dígitos monoespaciados, sin separadores.
 - `DocumentSheet`: hoja A4 común a la vista previa, el comprobante y la impresión.
 
 ## Componentes compartidos

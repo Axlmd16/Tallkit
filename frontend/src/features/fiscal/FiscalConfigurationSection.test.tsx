@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import { useLocation } from 'react-router'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -7,6 +8,7 @@ import type {
   FiscalEntity,
   TaxDefinition,
 } from '@/features/workshop-configuration/types'
+import { ProblemError } from '@/shared/api/client'
 import { ToastProvider } from '@/shared/ui'
 
 import type {
@@ -20,6 +22,7 @@ import type {
 const mocks = vi.hoisted(() => {
   const mutation = () => ({
     mutate: vi.fn(),
+    mutateAsync: vi.fn(),
     isPending: false,
     isError: false,
     error: null as Error | null,
@@ -62,6 +65,10 @@ vi.mock('./hooks', () => ({
 }))
 
 import { FiscalConfigurationSection } from './FiscalConfigurationSection'
+import {
+  summarizeEntityStatus,
+  type ConfigurationReadiness,
+} from './configuration/readiness'
 
 const entities: FiscalEntity[] = [
   {
@@ -295,10 +302,32 @@ beforeEach(() => {
     mocks.setPaymentForm,
   ]) {
     mutation.mutate.mockReset()
+    mutation.mutateAsync.mockReset()
+    mutation.mutateAsync.mockResolvedValue({})
     mutation.isError = false
     mutation.error = null
   }
 })
+
+function readinessFor(ids = [1, 2]): ConfigurationReadiness {
+  const summaries = ids.map((id) =>
+    summarizeEntityStatus(mocks.statusByEntity[id] as ElectronicStatus),
+  )
+  return {
+    isLoading: false,
+    isError: false,
+    pending: summaries.reduce((total, item) => total + item.pending, 0),
+    firstDestination:
+      summaries.find((item) => item.firstDestination)?.firstDestination ?? null,
+    byEntity: Object.fromEntries(
+      summaries.map((item) => [item.entityId, item]),
+    ),
+  }
+}
+
+function LocationProbe() {
+  return <output data-testid="location">{useLocation().search}</output>
+}
 
 function renderSection(search = '?tab=facturacion', definitions = taxes) {
   return render(
@@ -306,21 +335,54 @@ function renderSection(search = '?tab=facturacion', definitions = taxes) {
       <ToastProvider>
         <FiscalConfigurationSection
           entities={entities}
+          readiness={readinessFor()}
           taxDefinitions={definitions}
         />
+        <LocationProbe />
       </ToastProvider>
     </MemoryRouter>,
   )
 }
 
-it('shows the permanent local-preparation notice, the status with causes and five subsections', () => {
+function panel(name: RegExp | string) {
+  return screen.getByRole('region', { name })
+}
+
+it('muestra el aviso permanente, la entidad elegida con su estado y las cinco subsecciones', () => {
   renderSection()
+
   expect(
     screen.getByText(
-      /Configuración para preparación local\. La emisión electrónica todavía no está habilitada\./,
+      'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
     ),
   ).toBeVisible()
-  expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+  const choices = within(
+    screen.getByRole('group', { name: 'Entidad fiscal' }),
+  ).getAllByRole('radio')
+  expect(choices).toHaveLength(2)
+  expect(choices[0]).toBeChecked()
+  expect(choices[0]!.closest('label')).toHaveTextContent('Repuestos VVH')
+  expect(choices[0]!.closest('label')).toHaveTextContent('RUC 1150696977001')
+  expect(choices[0]!.closest('label')).toHaveTextContent('Lista')
+  expect(choices[1]!.closest('label')).toHaveTextContent('Sin configurar')
+
+  const status = screen.getByRole('status', {
+    name: 'Estado de la configuración',
+  })
+  expect(status).toHaveTextContent('Lista para preparación local.')
+  expect(
+    screen.getByText(/Certificado sin declarar: no impide preparar/),
+  ).toBeInTheDocument()
+  expect(status).not.toHaveTextContent('Certificado')
+
+  const subsections = screen.getByRole('navigation', {
+    name: 'Subsecciones de facturación electrónica',
+  })
+  expect(
+    within(subsections)
+      .getAllByRole('link')
+      .map((link) => link.firstChild?.textContent),
+  ).toEqual([
     'Perfil tributario',
     'Establecimientos y puntos de emisión',
     'Impuestos y catálogo SRI',
@@ -328,225 +390,259 @@ it('shows the permanent local-preparation notice, the status with causes and fiv
     'Certificado electrónico',
   ])
   expect(
-    screen.getByRole('status', {
-      name: 'Estado: Lista para preparación local',
-    }),
-  ).toBeVisible()
-  expect(screen.getByText('Pruebas')).toBeVisible()
-  expect(screen.getByText(/no está validada por el SRI/)).toBeVisible()
-  expect(
-    screen.getByText(
-      'Certificado sin declarar: no impide preparar localmente.',
-    ),
-  ).toBeVisible()
+    within(subsections).getByRole('link', { name: /Perfil tributario/ }),
+  ).toHaveAttribute('aria-current', 'page')
 })
 
-it('replaces every subsection when switching from the commercial to the artisan entity', async () => {
-  const user = userEvent.setup()
-  renderSection()
-  await user.click(
-    screen.getByRole('tab', { name: 'Establecimientos y puntos de emisión' }),
-  )
-  expect(screen.getByText('Dirección 1')).toBeVisible()
-  expect(screen.getByText('Falta el punto predeterminado')).toBeVisible()
-
-  await user.selectOptions(screen.getByLabelText('Entidad fiscal'), '2')
-
-  expect(
-    screen.getByText(/Taller Jiménez/, { selector: 'strong' }),
-  ).toBeVisible()
-  expect(screen.queryByText('Dirección 1')).toBeNull()
-  expect(screen.getByText('Dirección 2')).toBeVisible()
-  expect(screen.queryByText('Falta el punto predeterminado')).toBeNull()
-  expect(
-    screen.getByRole('status', { name: 'Estado: Sin configurar' }),
-  ).toBeVisible()
-  expect(
-    screen.getByText('Todavía no existe una configuración guardada.'),
-  ).toBeVisible()
-})
-
-it('discards unsaved forms and errors of the previous entity', async () => {
-  const user = userEvent.setup()
-  mocks.createPoint.isError = true
-  mocks.createPoint.error = new Error('Punto duplicado en la entidad comercial')
-  renderSection('?tab=facturacion&seccion=impuestos')
-  await user.type(screen.getByLabelText('Fundamento'), 'Texto sin guardar')
-  expect(
-    screen.getByText('Punto duplicado en la entidad comercial'),
-  ).toBeInTheDocument()
-
-  mocks.createPoint.isError = false
-  mocks.createPoint.error = null
-  await user.selectOptions(screen.getByLabelText('Entidad fiscal'), '2')
-
-  expect(
-    screen.queryByText('Punto duplicado en la entidad comercial'),
-  ).toBeNull()
-  expect(
-    screen.getByText(
-      'Primero debe configurarse el catálogo tributario de esta entidad.',
-    ),
-  ).toBeVisible()
-  await user.selectOptions(screen.getByLabelText('Entidad fiscal'), '1')
-  expect(screen.getByLabelText('Fundamento')).toHaveValue('')
-})
-
-it('declares tax conditions with contextual help and explains «Sin configuración guardada»', async () => {
-  const user = userEvent.setup()
-  renderSection()
-  await user.selectOptions(screen.getByLabelText('Entidad fiscal'), '2')
-  expect(screen.getByText(/Sin configuración guardada/)).toBeVisible()
-  expect(screen.queryByText(/Revisión 0/)).toBeNull()
-
-  const rimpe = screen.getByRole('group', { name: 'RIMPE' })
-  expect(within(rimpe).getByText(/Emprendedor o Negocio popular/)).toBeVisible()
-  await user.selectOptions(
-    within(rimpe).getByLabelText('Situación'),
-    'APPLICABLE',
-  )
-  await user.type(
-    within(rimpe).getByLabelText('Categoría RIMPE'),
-    'Emprendedor',
-  )
-  await user.type(
-    within(rimpe).getByLabelText('Fuente o documento'),
-    'Certificado RUC',
-  )
-  await user.type(within(rimpe).getByLabelText('Vigente desde'), '2026-01-01')
-  await user.click(
-    screen.getByRole('button', { name: 'Guardar perfil tributario' }),
-  )
-
-  const call = mocks.saveProfile.mutate.mock.calls[0]![0]
-  expect(call.entityId).toBe(2)
-  expect(call.data.expected_revision).toBe(0)
-  expect(call.data.conditions.rimpe).toEqual({
-    status: 'APPLICABLE',
-    value: 'Emprendedor',
-    source: 'Certificado RUC',
-    starts_on: '2026-01-01',
-  })
-  expect(call.data.conditions.tax_regime).toEqual({ status: 'UNKNOWN' })
-})
-
-it('designates the default point among several active points', async () => {
+it('cambia de entidad por la dirección y reemplaza todos los datos de la anterior', async () => {
   const user = userEvent.setup()
   renderSection('?tab=facturacion&seccion=puntos')
+
+  expect(screen.getByText('001-002')).toBeInTheDocument()
+  await user.click(screen.getByRole('radio', { name: /Taller Jiménez/ }))
+
+  expect(screen.getByTestId('location')).toHaveTextContent('entidad=2')
+  expect(screen.getByRole('radio', { name: /Taller Jiménez/ })).toBeChecked()
+  expect(screen.queryByText('001-002')).not.toBeInTheDocument()
+  expect(screen.getAllByText('001-003').length).toBeGreaterThan(0)
+})
+
+it('muestra y cuenta una causa sin subsección conocida en la franja de estado', () => {
+  renderSection('?tab=facturacion&entidad=2')
+
+  const status = screen.getByRole('status', {
+    name: 'Estado de la configuración',
+  })
+  expect(status).toHaveTextContent(
+    'Sin configurar. Todavía no existe una configuración guardada.',
+  )
+  expect(screen.getByRole('radio', { name: /Taller Jiménez/ })).toBeChecked()
+})
+
+it('enlaza la primera causa atribuible a la subsección que la resuelve', () => {
+  mocks.statusByEntity[1] = status(1, {
+    state: 'INCOMPLETE',
+    causes: [
+      {
+        code: 'default_point_required',
+        kind: 'MISSING',
+        message: 'Designe el punto de emisión predeterminado.',
+      },
+    ],
+  })
+  renderSection()
+
+  const status1 = screen.getByRole('status', {
+    name: 'Estado de la configuración',
+  })
+  expect(status1).toHaveTextContent(
+    'Falta completar. Designe el punto de emisión predeterminado.',
+  )
+  expect(
+    within(status1).getByRole('link', {
+      name: 'Ir a Establecimientos y puntos de emisión',
+    }),
+  ).toHaveAttribute(
+    'href',
+    '/configuration?tab=facturacion&entidad=1&seccion=puntos',
+  )
+  expect(
+    within(
+      screen.getByRole('navigation', {
+        name: 'Subsecciones de facturación electrónica',
+      }),
+    ).getByRole('link', { name: /Establecimientos/ }),
+  ).toHaveTextContent('1 pendiente')
+})
+
+it('presenta el perfil como tabla de consulta y declara una condición en su modal', async () => {
+  const user = userEvent.setup()
+  renderSection()
+
+  const table = within(panel('Perfil tributario')).getByRole('table')
+  const rows = within(table).getAllByRole('row').slice(1)
+  expect(rows).toHaveLength(6)
+  expect(rows[0]).toHaveTextContent('Régimen tributarioAplicaGENERAL2026-01-01')
+  expect(rows[3]).toHaveTextContent('Agente de retenciónSin declarar')
+  expect(within(table).queryByRole('textbox')).not.toBeInTheDocument()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Declarar Agente de retención' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Declarar: Agente de retención',
+  })
+  expect(within(dialog).queryByLabelText(/Fuente o documento/)).toBeNull()
+  await user.click(within(dialog).getByRole('radio', { name: 'No aplica' }))
+  await user.type(
+    within(dialog).getByLabelText(/Fuente o documento/),
+    'Certificado RUC',
+  )
+  await user.type(within(dialog).getByLabelText(/Vigente desde/), '2026-02-01')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar condición' }),
+  )
+
+  expect(mocks.saveProfile.mutateAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      entityId: 1,
+      data: {
+        expected_revision: 1,
+        certificate: null,
+        conditions: expect.objectContaining({
+          tax_regime: expect.objectContaining({ value: 'GENERAL' }),
+          withholding_agent: {
+            status: 'NOT_APPLICABLE',
+            source: 'Certificado RUC',
+            starts_on: '2026-02-01',
+          },
+          rimpe: { status: 'UNKNOWN' },
+        }),
+      },
+    }),
+  )
+  expect(await screen.findByText('Condición guardada.')).toBeInTheDocument()
+})
+
+it('explica el conflicto de revisión dentro del modal y conserva lo escrito', async () => {
+  const user = userEvent.setup()
+  mocks.saveProfile.mutateAsync.mockRejectedValue(
+    new ProblemError('Conflicto', 409, 'revision_conflict'),
+  )
+  renderSection()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Editar Régimen tributario' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Editar: Régimen tributario',
+  })
+  const value = within(dialog).getByLabelText(/Régimen declarado/)
+  await user.clear(value)
+  await user.type(value, 'RIMPE')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar condición' }),
+  )
+
+  expect(
+    await within(dialog).findByText(/Otro guardado cambió el perfil/),
+  ).toBeInTheDocument()
+  expect(within(dialog).getByLabelText(/Régimen declarado/)).toHaveValue(
+    'RIMPE',
+  )
+})
+
+it('designa el punto predeterminado en un modal cuando hay varios activos', async () => {
+  const user = userEvent.setup()
+  renderSection('?tab=facturacion&seccion=puntos')
+
+  const section = panel('Establecimientos y puntos de emisión')
+  expect(section).toHaveTextContent(
+    'Falta seleccionar un punto predeterminado.',
+  )
+  await user.click(
+    within(section).getByRole('button', { name: 'Designar punto' }),
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Punto predeterminado' })
   await user.selectOptions(
-    screen.getByLabelText('Punto predeterminado para preparar'),
+    within(dialog).getByLabelText(/Punto de emisión/),
     '101',
   )
-  await user.click(screen.getByRole('button', { name: 'Designar punto' }))
-  expect(mocks.savePreparationDefaults.mutate).toHaveBeenCalledWith(
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar punto' }),
+  )
+
+  expect(mocks.savePreparationDefaults.mutateAsync).toHaveBeenCalledWith(
     expect.objectContaining({
       entityId: 1,
       data: { expected_version: 0, default_point_id: 101 },
     }),
-    expect.anything(),
   )
 })
 
-it('selects official rates by name, explains the basis and lists mappings with advanced code', async () => {
+it('muestra correspondencias por nombre y deja el código oficial en información avanzada', async () => {
   const user = userEvent.setup()
   renderSection('?tab=facturacion&seccion=impuestos')
-  const rate = screen.getByLabelText('Tarifa del catálogo SRI')
+
+  const section = panel('Impuestos y catálogo SRI')
+  expect(within(section).getByRole('table')).toHaveTextContent('IVA 15 %')
+  const advanced = within(section).getByText('Información avanzada')
+  expect(advanced.closest('details')).not.toHaveAttribute('open')
+  expect(advanced.closest('details')).toHaveTextContent('código SRI 4')
+
+  await user.click(
+    within(section).getByRole('button', { name: 'Nueva correspondencia' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Nueva correspondencia tributaria',
+  })
+  expect(within(dialog).getByLabelText(/Impuesto interno/)).toBeInTheDocument()
   expect(
-    within(rate)
-      .getAllByRole('option')
-      .map((option) => option.textContent),
-  ).toEqual(['IVA 0 %', 'IVA 15 %', 'No objeto de IVA', 'Exento de IVA'])
-  expect(screen.queryByLabelText('Código tarifa')).toBeNull()
-  expect(
-    screen.getByText(
+    within(dialog).getByText(
       'Fuente o referencia que justifica esta correspondencia tributaria.',
     ),
-  ).toBeVisible()
-  expect(screen.getByText('IVA venta → IVA 15 %')).toBeVisible()
-  expect(screen.getByText(/Código SRI 4/)).not.toBeVisible()
-
-  const panel = within(screen.getByRole('tabpanel'))
-  await user.selectOptions(panel.getByLabelText('Impuesto interno'), '10')
-  await user.selectOptions(rate, '2')
-  await user.type(panel.getByLabelText('Vigente desde'), '2026-01-01')
-  await user.type(panel.getByLabelText('Fundamento'), 'Certificado RUC')
-  await user.click(
-    screen.getByRole('button', { name: 'Guardar correspondencia' }),
-  )
-  expect(mocks.createTaxMapping.mutate).toHaveBeenCalledWith(
-    {
-      definition_id: 10,
-      catalog_entry_id: 2,
-      starts_on: '2026-01-01',
-      ends_on: null,
-      source: 'Certificado RUC',
-    },
-    expect.anything(),
-  )
+  ).toBeInTheDocument()
 })
 
-it('shows a single internal tax as fixed data instead of a selector', () => {
-  renderSection('?tab=facturacion&seccion=impuestos', [taxes[0]!])
-  expect(screen.queryByLabelText('Impuesto interno')).toBeNull()
-  expect(
-    screen.getByText('Es el único impuesto interno de esta entidad.'),
-  ).toBeVisible()
-})
-
-it('lists the eight official payment forms and only lets 01 and 20 be toggled', async () => {
+it('presenta un único impuesto interno como dato fijo y avisa sin definiciones', async () => {
   const user = userEvent.setup()
-  renderSection('?tab=facturacion&seccion=formas-pago')
-  const table = screen.getByRole('table')
-  expect(within(table).getAllByRole('row')).toHaveLength(9)
-  expect(within(table).getByText('Tarjeta de crédito')).toBeVisible()
-  expect(within(table).getAllByText('No habilitable en V1')).toHaveLength(6)
-  expect(
-    screen.getByText(/versión 2\.34, descargada el 2026-09-26/),
-  ).toBeVisible()
-  expect(
-    screen.queryByRole('button', { name: /Tarjeta de crédito/ }),
-  ).toBeNull()
-
+  const { unmount } = renderSection('?tab=facturacion&seccion=impuestos', [
+    taxes[0]!,
+  ])
   await user.click(
-    screen.getByRole('button', {
-      name: 'Deshabilitar Transferencia u otros con sistema financiero',
-    }),
+    screen.getByRole('button', { name: 'Nueva correspondencia' }),
   )
-  expect(mocks.setPaymentForm.mutate).toHaveBeenCalledWith(
-    expect.objectContaining({ entityId: 1, code: '20', enabled: false }),
-    expect.anything(),
-  )
-  await user.click(
-    screen.getByRole('button', { name: 'Usar como predeterminada' }),
-  )
-  expect(mocks.savePreparationDefaults.mutate).toHaveBeenCalledWith(
-    expect.objectContaining({
-      data: { expected_version: 0, default_payment_code: '20' },
-    }),
-    expect.anything(),
-  )
-})
+  const dialog = screen.getByRole('dialog', {
+    name: 'Nueva correspondencia tributaria',
+  })
+  expect(within(dialog).getByText('IVA venta · 15 %')).toBeInTheDocument()
+  expect(within(dialog).queryByLabelText(/Impuesto interno/)).toBeNull()
+  unmount()
 
-it('keeps the certificate optional, explains it and rejects partial data locally', async () => {
-  const user = userEvent.setup()
-  renderSection('?tab=facturacion&seccion=certificado')
-  expect(
-    screen.getByText(/no equivalen a una firma ni a una autorización/),
-  ).toBeVisible()
-  expect(screen.getByLabelText('Referencia o identificador')).toBeVisible()
-  expect(screen.getByLabelText('Entidad emisora del certificado')).toBeVisible()
-  expect(screen.queryByLabelText(/contraseña/i)).toBeNull()
-  expect(document.querySelector('input[type="file"]')).toBeNull()
-
-  await user.click(screen.getByRole('button', { name: 'Guardar certificado' }))
-  expect(mocks.saveProfile.mutate.mock.calls[0]![0].data.certificate).toBeNull()
-
-  await user.type(screen.getByLabelText('Titular'), 'Solo titular')
-  await user.click(screen.getByRole('button', { name: 'Guardar certificado' }))
+  renderSection('?tab=facturacion&seccion=impuestos', [])
   expect(
     screen.getByText(
+      'Primero debe configurarse el catálogo tributario de esta entidad.',
+    ),
+  ).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Nueva correspondencia' }),
+  ).toBeNull()
+})
+
+it('lista las ocho formas de pago y solo permite actuar sobre 01 y 20', () => {
+  renderSection('?tab=facturacion&seccion=formas-pago')
+
+  const table = within(panel('Formas de pago SRI')).getByRole('table')
+  expect(within(table).getAllByRole('row').slice(1)).toHaveLength(8)
+  expect(
+    within(table).getByRole('button', {
+      name: 'Deshabilitar Efectivo o sin sistema financiero',
+    }),
+  ).toBeInTheDocument()
+  expect(within(table).queryByRole('button', { name: /Tarjeta/ })).toBeNull()
+  expect(within(table).getAllByText('No habilitable en V1')).toHaveLength(6)
+})
+
+it('mantiene el certificado opcional y rechaza datos parciales en su modal', async () => {
+  const user = userEvent.setup()
+  renderSection('?tab=facturacion&seccion=certificado')
+
+  const section = panel('Certificado electrónico')
+  expect(section).toHaveTextContent('Sin certificado declarado. Es opcional')
+  await user.click(
+    within(section).getByRole('button', { name: 'Declarar certificado' }),
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Certificado electrónico' })
+  await user.type(within(dialog).getByLabelText('Titular'), 'Taller')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar certificado' }),
+  )
+
+  expect(
+    within(dialog).getByText(
       'Complete todos los datos del certificado o déjelos todos vacíos.',
     ),
-  ).toBeVisible()
-  expect(mocks.saveProfile.mutate).toHaveBeenCalledTimes(1)
+  ).toBeInTheDocument()
+  expect(mocks.saveProfile.mutateAsync).not.toHaveBeenCalled()
 })

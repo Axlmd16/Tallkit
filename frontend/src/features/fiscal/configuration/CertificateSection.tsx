@@ -1,18 +1,23 @@
+import { PencilSimple } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import {
   Button,
   ErrorState,
+  FactList,
+  FactRow,
+  Field,
+  FormModal,
   getControlClasses,
-  InlineNotice,
   LoadingState,
-  Surface,
+  SheetHeading,
+  StateMark,
+  useFieldProps,
   useToast,
 } from '@/shared/ui'
 
 import { useElectronicProfile, useFiscalMutations } from '../hooks'
-import type { CertificateMetadata } from '../types'
-import { errorMessage, FieldHelp, SubsectionHeader } from './shared'
+import type { CertificateMetadata, ElectronicProfile } from '../types'
 
 const FIELDS: Array<{
   name: keyof CertificateMetadata
@@ -54,85 +59,170 @@ const FIELDS: Array<{
   },
 ]
 
+/** Evaluación local por fechas; no consulta al certificador ni la revocación. */
+function localValidity(certificate: CertificateMetadata) {
+  const today = new Date().toISOString().slice(0, 10)
+  if (certificate.ends_on < today)
+    return { label: 'Vencido por fechas', tone: 'unknown' as const }
+  if (certificate.starts_on > today)
+    return { label: 'Vigencia futura', tone: 'inactive' as const }
+  return { label: 'Vigente por fechas', tone: 'success' as const }
+}
+
 export function CertificateSection({ entityId }: { entityId: number }) {
   const profile = useElectronicProfile(entityId)
-  const mutations = useFiscalMutations()
-  const toast = useToast()
-  const [localError, setLocalError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
 
   if (profile.isLoading) return <LoadingState />
-  if (profile.isError)
+  if (profile.isError || !profile.data)
     return <ErrorState message="No se pudo cargar el certificado." />
-  const certificate = profile.data?.certificate ?? null
+  const certificate = profile.data.certificate
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const values = Object.fromEntries(
-      FIELDS.map(({ name }) => [name, String(form.get(name) ?? '').trim()]),
+  return (
+    <section aria-labelledby={`certificado-${entityId}`} className="space-y-5">
+      <SheetHeading
+        id={`certificado-${entityId}`}
+        actions={
+          <Button onClick={() => setEditing(true)} variant="secondary">
+            <PencilSimple aria-hidden="true" size={16} weight="bold" />
+            {certificate ? 'Editar' : 'Declarar certificado'}
+          </Button>
+        }
+        description="Metadatos opcionales del certificado de firma que podría usarse en una emisión futura. No equivalen a una firma ni a una autorización, y no se cargan archivos P12, claves privadas ni contraseñas."
+        level={3}
+        title="Certificado electrónico"
+      />
+      {certificate ? (
+        <FactList className="max-w-3xl">
+          <FactRow label="Referencia">
+            <span className="font-mono">{certificate.reference}</span>
+          </FactRow>
+          <FactRow label="Titular">{certificate.holder}</FactRow>
+          <FactRow label="Emisor">{certificate.issuer}</FactRow>
+          <FactRow label="Vigencia">
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="font-mono text-[13px]">
+                {certificate.starts_on} — {certificate.ends_on}
+              </span>
+              <StateMark {...localValidity(certificate)} />
+            </span>
+          </FactRow>
+          <FactRow label="Fuente">{certificate.source}</FactRow>
+        </FactList>
+      ) : (
+        <p className="text-sm text-ink-muted">
+          Sin certificado declarado. Es opcional y no impide la preparación
+          local.
+        </p>
+      )}
+      {editing && (
+        <CertificateModal
+          entityId={entityId}
+          onClose={() => setEditing(false)}
+          profile={profile.data}
+        />
+      )}
+    </section>
+  )
+}
+
+function CertificateModal({
+  entityId,
+  profile,
+  onClose,
+}: {
+  entityId: number
+  profile: ElectronicProfile
+  onClose: () => void
+}) {
+  const mutations = useFiscalMutations()
+  const toast = useToast()
+  const initial = Object.fromEntries(
+    FIELDS.map(({ name }) => [name, profile.certificate?.[name] ?? '']),
+  ) as Record<keyof CertificateMetadata, string>
+  const [values, setValues] = useState(initial)
+  const [error, setError] = useState<string>()
+  const [attemptKey] = useState(() => crypto.randomUUID())
+  const dirty = FIELDS.some(({ name }) => values[name] !== initial[name])
+
+  async function save() {
+    const trimmed = Object.fromEntries(
+      FIELDS.map(({ name }) => [name, values[name].trim()]),
     ) as unknown as CertificateMetadata
-    const filled = Object.values(values).filter(Boolean).length
+    const filled = Object.values(trimmed).filter(Boolean).length
     if (filled > 0 && filled < FIELDS.length) {
-      setLocalError(
+      setError(
         'Complete todos los datos del certificado o déjelos todos vacíos.',
       )
-      return
+      return false
     }
-    setLocalError(null)
-    mutations.saveProfile.mutate(
-      {
-        entityId,
-        data: {
-          expected_revision: profile.data?.revision ?? 0,
-          conditions: profile.data?.conditions ?? {},
-          certificate: filled === 0 ? null : values,
-        },
-        attemptKey: crypto.randomUUID(),
+    if (filled && trimmed.ends_on <= trimmed.starts_on) {
+      setError('El vencimiento debe ser posterior a la fecha de inicio.')
+      return false
+    }
+    setError(undefined)
+    await mutations.saveProfile.mutateAsync({
+      entityId,
+      data: {
+        expected_revision: profile.revision,
+        conditions: profile.conditions,
+        certificate: filled === 0 ? null : trimmed,
       },
-      { onSuccess: () => toast.success('Datos del certificado guardados.') },
-    )
+      attemptKey,
+    })
+    toast.success('Datos del certificado guardados.')
+    return true
   }
 
   return (
-    <Surface className="space-y-5">
-      <SubsectionHeader
-        title="Certificado electrónico"
-        description="Metadatos opcionales del certificado de firma electrónica que podría utilizarse en una futura emisión."
-      />
-      <InlineNotice title="Solo datos descriptivos" tone="info">
-        Estos datos no equivalen a una firma ni a una autorización y no permiten
-        emitir. No se cargan archivos P12, claves privadas ni contraseñas.
-        Pueden quedar vacíos sin impedir la preparación local.
-      </InlineNotice>
-      {localError && <ErrorState message={localError} />}
-      {mutations.saveProfile.isError && (
-        <ErrorState message={errorMessage(mutations.saveProfile.error)} />
-      )}
-      <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={submit}>
-        {FIELDS.map((field) => {
-          const helpId = `cert-${entityId}-${field.name}`
-          return (
-            <div key={field.name}>
-              <label className="ui-field block text-sm font-semibold text-ink">
-                {field.label}
-                <input
-                  aria-describedby={helpId}
-                  className={`mt-1.5 ${getControlClasses()}`}
-                  defaultValue={certificate?.[field.name] ?? ''}
-                  name={field.name}
-                  type={field.type ?? 'text'}
-                />
-              </label>
-              <FieldHelp id={helpId}>{field.help}</FieldHelp>
-            </div>
-          )
-        })}
-        <div className="flex justify-end md:col-span-2">
-          <Button pending={mutations.saveProfile.isPending} type="submit">
-            Guardar certificado
-          </Button>
-        </div>
-      </form>
-    </Surface>
+    <FormModal
+      description="Declare todos los metadatos o déjelos vacíos."
+      dirty={dirty}
+      onClose={onClose}
+      onSave={save}
+      open
+      saveLabel="Guardar certificado"
+      title="Certificado electrónico"
+    >
+      <div className="space-y-4">
+        {error && (
+          <p className="text-xs font-semibold text-danger" role="alert">
+            {error}
+          </p>
+        )}
+        {FIELDS.map((field) => (
+          <Field hint={field.help} key={field.name} label={field.label}>
+            <Input
+              onChange={(value) =>
+                setValues((current) => ({ ...current, [field.name]: value }))
+              }
+              type={field.type ?? 'text'}
+              value={values[field.name]}
+            />
+          </Field>
+        ))}
+      </div>
+    </FormModal>
+  )
+}
+
+function Input({
+  value,
+  onChange,
+  type,
+}: {
+  value: string
+  onChange: (value: string) => void
+  type: string
+}) {
+  const field = useFieldProps()
+  return (
+    <input
+      {...field}
+      className={getControlClasses()}
+      onChange={(event) => onChange(event.target.value)}
+      type={type}
+      value={value}
+    />
   )
 }

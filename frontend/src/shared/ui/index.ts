@@ -36,6 +36,16 @@ export {
 export { Divider, type DividerProps } from './surfaces/Divider'
 export { DetailItem } from './surfaces/DetailItem'
 export { SectionPanel } from './surfaces/SectionPanel'
+export { AdvancedInfo } from './surfaces/AdvancedInfo'
+export { FactList, FactRow } from './surfaces/FactList'
+export {
+  PendingCount,
+  SheetHeading,
+  sheetTableCell,
+  sheetTableHead,
+  StateMark,
+  SubsectionIndicator,
+} from './surfaces/Sheet'
 
 // Overlays — paneles y diálogos enriquecidos
 export {

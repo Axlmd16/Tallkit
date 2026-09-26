@@ -167,6 +167,10 @@ Forma de pago SRI habilitada que el Administrador designa por entidad y que la p
 
 Conjunto versionado de códigos del SRI, como tarifas de IVA y formas de pago, incorporado desde la ficha técnica con su versión, fecha de descarga, huella del archivo, vigencia y estado. Actualizarlo no modifica preparaciones completadas.
 
+### Placa de RUC
+
+Pieza visual que muestra el RUC de una entidad fiscal con la etiqueta «RUC» diferenciada y sus 13 dígitos en tipografía monoespaciada, sin separadores. Solo presenta el dato; no acredita su validez tributaria.
+
 ### Archivo fiscal
 
 Conjunto protegido de XML externos, bytes originales, hashes, identidades, procedencias y vínculos administrativos conservados en PostgreSQL. Una incorporación externa permanece no verificada por el sistema.

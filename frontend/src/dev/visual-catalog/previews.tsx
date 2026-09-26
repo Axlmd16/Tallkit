@@ -1,5 +1,6 @@
 import {
   DotsThreeVertical,
+  Gear,
   MagnifyingGlass,
   Trash,
 } from '@phosphor-icons/react'
@@ -17,6 +18,8 @@ import {
   EmptyState,
   ErrorState,
   Field,
+  FactList,
+  FactRow,
   FiscalScopeBadge,
   ForbiddenState,
   FormModal,
@@ -28,11 +31,15 @@ import {
   Pagination,
   PartCode,
   PlateTag,
+  RucPlate,
+  ScopeLabel,
+  SectionNav,
   SegmentedControl,
   Select,
   SkeletonRows,
   StatusBadge,
   StockIndicator,
+  AdvancedInfo,
   Tabs,
   Textarea,
   ToastProvider,
@@ -367,7 +374,12 @@ function WorkshopPiecesPreview() {
     <div className="space-y-4">
       <Row label="Placa y código">
         <PlateTag plate="PBA-1234" />
+        <RucPlate ruc="1140258475001" />
         <PartCode code="FLT-0915" />
+      </Row>
+      <Row label="Ámbito fiscal">
+        <ScopeLabel scope="commercial" />
+        <ScopeLabel scope="artesanal" />
       </Row>
       <Row label="Existencias">
         <StockIndicator quantity="24" />
@@ -378,6 +390,13 @@ function WorkshopPiecesPreview() {
         <Money amount="133.40" />
         <Money amount={null} />
       </Row>
+      <FactList>
+        <FactRow label="Razón social">DICISOL</FactRow>
+        <FactRow label="RUC">
+          <RucPlate ruc="1140258475001" size="sm" />
+        </FactRow>
+      </FactList>
+      <AdvancedInfo>Fuente: ficha técnica SRI 2.34</AdvancedInfo>
     </div>
   )
 }
@@ -542,35 +561,58 @@ function ToastPreview() {
 
 function NavigationPreview() {
   return (
-    <div className="flex overflow-hidden rounded-panel border border-line">
-      <nav
-        aria-label="Navegación de ejemplo"
-        className="w-60 space-y-0.5 border-r border-line bg-surface p-3 text-[13.5px]"
-      >
-        <p className="px-2.5 pb-1 text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
-          Ventas y cobros
-        </p>
-        <a
-          aria-current="page"
-          className="flex min-h-11 items-center rounded-control bg-accent-soft px-2.5 font-semibold text-accent-strong"
-          href="#"
+    <div className="space-y-4">
+      <div className="flex overflow-hidden rounded-panel border border-line">
+        <nav
+          aria-label="Navegación de ejemplo"
+          className="w-60 space-y-0.5 border-r border-line bg-surface p-3 text-[13.5px]"
         >
-          Ventas
-        </a>
-        <a
-          className="flex min-h-11 items-center rounded-control px-2.5 text-ink-muted"
-          href="#"
-        >
-          Cuentas por cobrar
-        </a>
-      </nav>
-      <div className="flex h-15 flex-1 items-center justify-between border-b border-line bg-surface px-5 text-[13px]">
-        <span>
-          <span className="text-ink-muted">Ventas y cobros / </span>
-          <strong>Ventas</strong>
-        </span>
-        <FiscalScopeBadge scope="commercial" />
+          <p className="px-2.5 pb-1 text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
+            Ventas y cobros
+          </p>
+          <a
+            aria-current="page"
+            className="flex min-h-11 items-center rounded-control bg-accent-soft px-2.5 font-semibold text-accent-strong"
+            href="#"
+          >
+            Ventas
+          </a>
+          <a
+            className="flex min-h-11 items-center rounded-control px-2.5 text-ink-muted"
+            href="#"
+          >
+            Cuentas por cobrar
+          </a>
+        </nav>
+        <div className="flex h-15 flex-1 items-center justify-between border-b border-line bg-surface px-5 text-[13px]">
+          <span>
+            <span className="text-ink-muted">Ventas y cobros / </span>
+            <strong>Ventas</strong>
+          </span>
+          <FiscalScopeBadge scope="commercial" />
+        </div>
       </div>
+      <SectionNav
+        activeId="entidades"
+        aria-label="Secciones de ejemplo"
+        items={[
+          {
+            id: 'entidades',
+            label: 'Entidades fiscales',
+            href: '#entidades',
+            icon: Gear,
+            indicator: '2',
+          },
+          {
+            id: 'bodega',
+            label: 'Bodega',
+            href: '#bodega',
+            icon: Gear,
+            indicator: '1',
+          },
+        ]}
+        onSelect={() => {}}
+      />
     </div>
   )
 }

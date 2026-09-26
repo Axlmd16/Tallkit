@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { Money, PartCode, PlateTag, StockIndicator } from './index'
+import { Money, PartCode, PlateTag, RucPlate, StockIndicator } from './index'
 
 describe('piezas visuales del taller', () => {
   beforeEach(() => {
@@ -14,6 +14,19 @@ describe('piezas visuales del taller', () => {
   it('presenta la placa como dato monoespaciado reconocible', () => {
     render(<PlateTag plate="pba-1234" />)
     expect(screen.getByText('PBA-1234')).toHaveClass('font-mono')
+  })
+
+  it('presenta el RUC como una placa accesible sin separadores', () => {
+    const { rerender } = render(<RucPlate ruc="1140258475001" size="sm" />)
+
+    const compactPlate = screen.getByText('RUC').parentElement
+    expect(compactPlate).toHaveClass('font-mono')
+    expect(compactPlate).toHaveTextContent('RUC 1140258475001')
+    expect(screen.getByText('1140258475001')).toBeInTheDocument()
+    expect(screen.queryByText(/114\.025/)).not.toBeInTheDocument()
+
+    rerender(<RucPlate ruc="1140258475001" size="md" />)
+    expect(screen.getByText('RUC').parentElement).toHaveClass('font-mono')
   })
 
   it('copia el código con una acción de nombre accesible', async () => {

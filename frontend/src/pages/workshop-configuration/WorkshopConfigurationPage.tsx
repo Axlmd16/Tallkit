@@ -4,49 +4,47 @@ import {
   Buildings,
   CheckCircle,
   Clock,
-  FileText,
-  PencilSimple,
+  Hash,
   Percent,
-  Plus,
+  Receipt,
   Storefront,
   Warehouse as WarehouseIcon,
   WarningCircle,
-  Wrench,
 } from '@phosphor-icons/react'
 
 import {
-  Avatar,
   Button,
-  DetailCard,
-  Dialog,
   ErrorState,
   getControlClasses,
   LoadingState,
   PageHeader,
+  PendingCount,
+  SectionNav,
   StatusBadge,
+  SubsectionIndicator,
   Surface,
-  Tabs,
 } from '@/shared/ui'
 
 import {
   useAllDocumentSeries,
   useAllTaxDefinitions,
-  useCreateTaxDefinition,
-  useCreateTaxPeriod,
   useFiscalEntities,
   useInitializeWorkshop,
-  useUpdateFiscalEntity,
-  useUpdateSeriesCode,
-  useUpdateWarehouse,
   useWarehouse,
   useWorkshopStatus,
 } from '@/features/workshop-configuration/queries'
 import { FiscalConfigurationSection } from '@/features/fiscal/FiscalConfigurationSection'
-import type {
-  DocumentSeries,
-  FiscalEntity,
-  TaxDefinition,
-} from '@/features/workshop-configuration/types'
+import {
+  READINESS_SECTION_LABELS,
+  READINESS_SECTIONS,
+  sectionIndicator,
+  useConfigurationReadiness,
+} from '@/features/fiscal/configuration/readiness'
+import { ConfigurationSummary } from './ConfigurationSummary'
+import { EntitiesSection } from './sections/EntitiesSection'
+import { SeriesSection } from './sections/SeriesSection'
+import { TaxesSection } from './sections/TaxesSection'
+import { WarehouseSection } from './sections/WarehouseSection'
 
 export function WorkshopConfigurationPage() {
   const statusQuery = useWorkshopStatus()
@@ -83,83 +81,171 @@ function isConfigurationTab(value: string | null): value is ConfigurationTab {
   return CONFIGURATION_TABS.includes(value as ConfigurationTab)
 }
 
+const TAB_LABELS: Record<ConfigurationTab, string> = {
+  entidades: 'Entidades fiscales',
+  bodega: 'Bodega',
+  impuestos: 'Impuestos',
+  series: 'Series y numeración',
+  facturacion: 'Facturación electrónica',
+}
+
+const FISCAL_CHILD_PREFIX = 'fiscal-'
+
 function ConfiguredWorkshopContent() {
   const { data: entities } = useFiscalEntities()
   const { data: warehouse } = useWarehouse()
   const { data: taxes } = useAllTaxDefinitions()
   const { data: series } = useAllDocumentSeries()
+  const readiness = useConfigurationReadiness(
+    (entities ?? []).map((entity) => entity.id),
+  )
   const [params, setParams] = useSearchParams()
   const requested = params.get('tab')
   const tab: ConfigurationTab = isConfigurationTab(requested)
     ? requested
     : 'entidades'
+  const requestedSection = params.get('seccion')
+  const fiscalSection =
+    READINESS_SECTIONS.find((section) => section === requestedSection) ??
+    'perfil'
+  const requestedEntity = Number(params.get('entidad'))
+  const selectedEntity =
+    entities?.find((entity) => entity.id === requestedEntity) ?? entities?.[0]
+  const selectedReadiness = selectedEntity
+    ? readiness.byEntity[selectedEntity.id]
+    : undefined
+
   // Facturación electrónica se monta al visitarla por primera vez y después se conserva.
   const [billingVisited, setBillingVisited] = useState(tab === 'facturacion')
   useEffect(() => {
     if (tab === 'facturacion') setBillingVisited(true)
   }, [tab])
 
-  const selectTab = (next: string) => {
+  function hrefFor(next: ConfigurationTab, section?: string) {
     const nextParams = new URLSearchParams(params)
     if (next === 'entidades') nextParams.delete('tab')
     else nextParams.set('tab', next)
     if (next !== 'facturacion') nextParams.delete('seccion')
-    setParams(nextParams, { replace: true })
+    else if (section && section !== 'perfil') nextParams.set('seccion', section)
+    else if (section === 'perfil') nextParams.delete('seccion')
+    const query = nextParams.toString()
+    return query ? `?${query}` : '?'
   }
 
-  return (
-    <section className="animate-fade-in space-y-6 lg:space-y-8">
-      <PageHeader
-        description="Un solo lugar para mantener en orden las entidades fiscales, la bodega, los impuestos, la numeración interna y la facturación electrónica."
-        title="Configuración del taller"
-        actions={
-          <StatusBadge label="Sistema operativo" tone="success" shape="pill" />
-        }
-      />
+  function select(id: string) {
+    const target = id.startsWith(FISCAL_CHILD_PREFIX)
+      ? hrefFor('facturacion', id.slice(FISCAL_CHILD_PREFIX.length))
+      : hrefFor(id as ConfigurationTab)
+    setParams(new URLSearchParams(target.slice(1)), { replace: true })
+  }
 
-      <Tabs
-        activeId={tab}
-        aria-label="Secciones de configuración"
-        keepMounted
-        onChange={selectTab}
-        items={[
-          {
-            id: 'entidades',
-            label: 'Entidades fiscales',
-            count: entities?.length ?? 0,
-            content: <EntitiesSection />,
-          },
-          {
-            id: 'bodega',
-            label: 'Bodega',
-            count: warehouse?.is_active ? 1 : 0,
-            content: <WarehouseSection />,
-          },
-          {
-            id: 'impuestos',
-            label: 'Impuestos',
-            count: taxes?.length ?? 0,
-            content: <TaxesSection />,
-          },
-          {
-            id: 'series',
-            label: 'Series y numeración',
-            count: series?.length ?? 0,
-            content: <SeriesSection />,
-          },
-          {
-            id: 'facturacion',
-            label: 'Facturación electrónica',
-            content:
-              billingVisited || tab === 'facturacion' ? (
-                <FiscalConfigurationSection
-                  entities={entities ?? []}
-                  taxDefinitions={taxes ?? []}
-                />
-              ) : null,
-          },
-        ]}
-      />
+  const activeSeries = series?.filter((item) => item.is_active).length ?? 0
+
+  return (
+    <section className="animate-fade-in space-y-6">
+      <div className="space-y-2">
+        <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
+          <span aria-hidden="true" className="size-2 rounded-[2px] bg-brand" />
+          Administración
+        </p>
+        <PageHeader
+          actions={<ConfigurationSummary readiness={readiness} />}
+          description="Datos base del taller: entidades fiscales, bodega, impuestos, numeración y facturación electrónica."
+          title="Configuración del taller"
+        />
+      </div>
+
+      <div className="relative grid min-h-[36rem] grid-cols-[minmax(0,1fr)] overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[272px_minmax(0,1fr)]">
+        <SectionNav
+          activeChildId={
+            tab === 'facturacion'
+              ? `${FISCAL_CHILD_PREFIX}${fiscalSection}`
+              : undefined
+          }
+          activeId={tab}
+          aria-label="Secciones de configuración"
+          className="min-w-0 border-b border-line lg:border-r lg:border-b-0 lg:py-5"
+          items={[
+            {
+              id: 'entidades',
+              label: TAB_LABELS.entidades,
+              href: hrefFor('entidades'),
+              icon: Buildings,
+              indicator: entities?.length ?? 0,
+            },
+            {
+              id: 'bodega',
+              label: TAB_LABELS.bodega,
+              href: hrefFor('bodega'),
+              icon: WarehouseIcon,
+              indicator: warehouse?.is_active ? 1 : 0,
+            },
+            {
+              id: 'impuestos',
+              label: TAB_LABELS.impuestos,
+              href: hrefFor('impuestos'),
+              icon: Percent,
+              indicator: taxes?.length ?? 0,
+            },
+            {
+              id: 'series',
+              label: TAB_LABELS.series,
+              href: hrefFor('series'),
+              icon: Hash,
+              indicator: activeSeries,
+            },
+            {
+              id: 'facturacion',
+              label: TAB_LABELS.facturacion,
+              href: hrefFor('facturacion'),
+              icon: Receipt,
+              ...(readiness.pending > 0
+                ? { indicator: <PendingCount count={readiness.pending} /> }
+                : {}),
+              children: READINESS_SECTIONS.map((section) => ({
+                id: `${FISCAL_CHILD_PREFIX}${section}`,
+                label: READINESS_SECTION_LABELS[section],
+                href: hrefFor('facturacion', section),
+                ...(selectedReadiness
+                  ? {
+                      indicator: (
+                        <SubsectionIndicator
+                          {...sectionIndicator(selectedReadiness, section)}
+                        />
+                      ),
+                    }
+                  : {}),
+              })),
+            },
+          ]}
+          onSelect={select}
+          title="Secciones"
+        />
+
+        <div className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+          <div hidden={tab !== 'entidades'}>
+            <EntitiesSection readiness={readiness} />
+          </div>
+          <div hidden={tab !== 'bodega'}>
+            <WarehouseSection />
+          </div>
+          <div hidden={tab !== 'impuestos'}>
+            <TaxesSection />
+          </div>
+          <div hidden={tab !== 'series'}>
+            <SeriesSection />
+          </div>
+          {(billingVisited || tab === 'facturacion') && (
+            <div hidden={tab !== 'facturacion'}>
+              <FiscalConfigurationSection
+                entities={entities ?? []}
+                readiness={readiness}
+                taxDefinitions={taxes ?? []}
+              />
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   )
 }
@@ -605,848 +691,6 @@ function InitializeWorkshopForm() {
           </Surface>
         </div>
       </form>
-    </div>
-  )
-}
-
-function EntitiesSection() {
-  const { data: entities, isLoading } = useFiscalEntities()
-
-  if (isLoading) return <LoadingState />
-
-  return (
-    <div className="space-y-5">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-ink">Entidades fiscales</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Los dos contribuyentes operan separados, con su propia información
-            oficial.
-          </p>
-        </div>
-        <span className="text-sm font-bold text-ink-muted">
-          {entities?.length ?? 0} registradas
-        </span>
-      </div>
-      <Surface className="mt-5 divide-y divide-line p-0 sm:p-0">
-        {entities?.map((entity: FiscalEntity) => (
-          <EntityCard key={entity.id} entity={entity} />
-        ))}
-      </Surface>
-    </div>
-  )
-}
-
-function EntityCard({ entity }: { entity: FiscalEntity }) {
-  const [editing, setEditing] = useState(false)
-  const updateMutation = useUpdateFiscalEntity()
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data = {
-      ruc: formData.get('ruc') as string,
-      legal_name: formData.get('legal_name') as string,
-      address: formData.get('address') as string,
-    }
-
-    updateMutation.mutate(
-      {
-        id: entity.id,
-        data: { ...data, expected_version: entity.version },
-      },
-      {
-        onSuccess: () => setEditing(false),
-      },
-    )
-  }
-
-  const isComercial = entity.entity_type === 'COMERCIAL'
-
-  return (
-    <>
-      <article className="flex flex-col gap-4 p-5 sm:p-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex items-center gap-3">
-            <span
-              className={`grid size-11 shrink-0 place-items-center rounded-control ${
-                isComercial
-                  ? 'bg-scope-commercial-soft text-scope-commercial'
-                  : 'bg-scope-artisan-soft text-scope-artisan'
-              }`}
-            >
-              {isComercial ? (
-                <Storefront size={22} weight="duotone" />
-              ) : (
-                <Wrench size={22} weight="duotone" />
-              )}
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h3 className="text-lg font-bold leading-snug text-ink">
-                  Entidad {isComercial ? 'Comercial' : 'Artesanal'}
-                </h3>
-                <StatusBadge
-                  label={`v${entity.version}`}
-                  tone="neutral"
-                  shape="rectangle"
-                  kind="category"
-                  showIcon={false}
-                  className="text-xs"
-                />
-              </div>
-              <p className="mt-0.5 text-sm text-ink-muted">
-                {isComercial
-                  ? 'Repuestos, proveedores e ingresos comerciales'
-                  : 'Servicios, mantenimientos y mano de obra'}
-              </p>
-            </div>
-          </div>
-          <Button onClick={() => setEditing(true)} variant="secondary">
-            <PencilSimple size={18} />
-            Editar
-          </Button>
-        </header>
-
-        <div className="grid grid-cols-1 gap-3 border-t border-line pt-4 sm:grid-cols-2">
-          <div>
-            <span className="block text-xs font-semibold text-ink-muted">
-              Estado
-            </span>
-            <span className="mt-1 block">
-              <StatusBadge label="Activa" tone="success" shape="pill" />
-            </span>
-          </div>
-          <div>
-            <span className="block text-xs font-semibold text-ink-muted">
-              Régimen tributario
-            </span>
-            <span className="mt-1 block">
-              <StatusBadge
-                label={
-                  isComercial
-                    ? 'Régimen General / Comercio'
-                    : 'Artesano Calificado (RIMPE)'
-                }
-                tone="info"
-                shape="pill"
-                kind="category"
-                showIcon={false}
-              />
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-x-6 gap-y-4 pt-1 sm:grid-cols-2">
-          <div className="min-w-0">
-            <span className="block text-xs font-semibold text-ink-muted">
-              RUC Registrado
-            </span>
-            <span className="mt-1 block font-mono text-sm font-bold tracking-wide text-ink">
-              {entity.ruc}
-            </span>
-          </div>
-
-          <div className="min-w-0">
-            <span className="block text-xs font-semibold text-ink-muted">
-              Razón Social
-            </span>
-            <span className="mt-1 block truncate text-sm font-semibold text-ink">
-              {entity.legal_name}
-            </span>
-          </div>
-
-          {entity.address && (
-            <div className="min-w-0 sm:col-span-2">
-              <span className="block text-xs font-semibold text-ink-muted">
-                Dirección Fiscal
-              </span>
-              <span className="mt-1 block break-words text-sm font-medium text-ink">
-                {entity.address}
-              </span>
-            </div>
-          )}
-        </div>
-      </article>
-
-      <Dialog
-        open={editing}
-        onClose={() => setEditing(false)}
-        title={`Editar Entidad ${isComercial ? 'Comercial' : 'Artesanal'}`}
-        description="Actualice el RUC, la razón social o la dirección."
-      >
-        <form onSubmit={onSubmit} className="w-full space-y-6">
-          {updateMutation.isError && (
-            <ErrorState
-              message={`Error al actualizar: ${(updateMutation.error as Error).message || 'Verifique la versión y los datos.'}`}
-            />
-          )}
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="ruc"
-            >
-              RUC
-            </label>
-            <input
-              id="ruc"
-              name="ruc"
-              defaultValue={entity.ruc}
-              required
-              pattern="^[0-9]{13}$"
-              maxLength={13}
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="legal_name"
-            >
-              Razón Social
-            </label>
-            <input
-              id="legal_name"
-              name="legal_name"
-              defaultValue={entity.legal_name}
-              required
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="address"
-            >
-              Dirección
-            </label>
-            <input
-              id="address"
-              name="address"
-              defaultValue={entity.address ?? ''}
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="quiet"
-              onClick={() => setEditing(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" pending={updateMutation.isPending}>
-              Guardar cambios
-            </Button>
-          </div>
-        </form>
-      </Dialog>
-    </>
-  )
-}
-
-function WarehouseSection() {
-  const { data: warehouse, isLoading } = useWarehouse()
-  const [editing, setEditing] = useState(false)
-  const updateMutation = useUpdateWarehouse()
-
-  if (isLoading) return <LoadingState />
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!warehouse) return
-    const formData = new FormData(e.currentTarget)
-    const name = (formData.get('name') as string).trim()
-    if (!name) return
-
-    updateMutation.mutate(
-      {
-        name,
-        expected_version: warehouse.version,
-      },
-      {
-        onSuccess: () => setEditing(false),
-      },
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-ink">Operación del inventario</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          La bodega activa concentra recepción, existencias y despacho.
-        </p>
-      </div>
-      <DetailCard
-        title="Bodega Principal"
-        icon={
-          <span className="grid size-11 place-items-center rounded-control bg-surface-muted text-ink-muted shrink-0">
-            <WarehouseIcon size={22} weight="duotone" />
-          </span>
-        }
-        badge={
-          <StatusBadge
-            label={`v${warehouse?.version ?? 1}`}
-            tone="neutral"
-            shape="rectangle"
-            kind="category"
-            showIcon={false}
-            className="text-xs"
-          />
-        }
-        actions={
-          <Button onClick={() => setEditing(true)} variant="secondary">
-            <PencilSimple size={18} />
-            Editar
-          </Button>
-        }
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-line text-xs font-semibold text-ink-muted uppercase tracking-wider">
-                <th className="pb-3 pr-4">Nombre</th>
-                <th className="pb-3 px-4">Ubicación</th>
-                <th className="pb-3 px-4">Responsable</th>
-                <th className="pb-3 pl-4 text-right">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              <tr>
-                <td className="py-3 pr-4 font-semibold text-ink">
-                  {warehouse?.name || 'Bodega Central'}
-                </td>
-                <td className="py-3 px-4 text-ink-muted">
-                  Área principal de taller (Matriz)
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar
-                      name="Encargado de Taller"
-                      size="36"
-                      shape="circle"
-                    />
-                    <span className="text-sm font-medium text-ink">
-                      Encargado de Taller
-                    </span>
-                  </div>
-                </td>
-                <td className="py-3 pl-4 text-right">
-                  <StatusBadge
-                    label={warehouse?.is_active ? 'Activa' : 'Inactiva'}
-                    tone={warehouse?.is_active ? 'success' : 'neutral'}
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </DetailCard>
-
-      <Dialog
-        open={editing}
-        onClose={() => setEditing(false)}
-        title="Editar Bodega Principal"
-        description="Actualice el nombre de la bodega operativa."
-      >
-        <form onSubmit={onSubmit} className="w-full space-y-6">
-          {updateMutation.isError && (
-            <ErrorState
-              message={`Error al actualizar: ${(updateMutation.error as Error).message}`}
-            />
-          )}
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="wh_name"
-            >
-              Nombre de la bodega
-            </label>
-            <input
-              id="wh_name"
-              name="name"
-              defaultValue={warehouse?.name}
-              required
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="quiet"
-              onClick={() => setEditing(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" pending={updateMutation.isPending}>
-              Guardar cambios
-            </Button>
-          </div>
-        </form>
-      </Dialog>
-    </div>
-  )
-}
-
-function TaxesSection() {
-  const { data: taxes, isLoading } = useAllTaxDefinitions()
-  const { data: entities } = useFiscalEntities()
-  const [creating, setCreating] = useState(false)
-  const createTaxMutation = useCreateTaxDefinition()
-  const createPeriodMutation = useCreateTaxPeriod()
-
-  if (isLoading) return <LoadingState />
-
-  const closeDrawer = () => {
-    createTaxMutation.reset()
-    createPeriodMutation.reset()
-    setCreating(false)
-  }
-
-  const openDrawer = () => {
-    createTaxMutation.reset()
-    createPeriodMutation.reset()
-    setCreating(true)
-  }
-
-  const onCreateTax = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const entityId = Number(formData.get('entity_id'))
-    const code = (formData.get('code') as string).trim().toUpperCase()
-    const name = (formData.get('name') as string).trim()
-    const rate = (formData.get('rate') as string).trim()
-    const startsOn = formData.get('starts_on') as string
-
-    try {
-      const taxDef = await createTaxMutation.mutateAsync({
-        entity_id: entityId,
-        code,
-        name,
-      })
-
-      if (rate && startsOn) {
-        await createPeriodMutation.mutateAsync({
-          taxDefId: taxDef.id,
-          data: {
-            rate,
-            starts_on: startsOn,
-          },
-        })
-      }
-      closeDrawer()
-    } catch {
-      // Error manejado por el estado de las mutaciones
-    }
-  }
-
-  const hasTaxes = taxes && taxes.length > 0
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-ink">Impuestos y vigencias</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Tarifas aplicables por entidad fiscal.
-          </p>
-        </div>
-        <Button onClick={openDrawer} variant="secondary">
-          <Plus size={18} />
-          Nuevo Impuesto
-        </Button>
-      </div>
-
-      <DetailCard
-        title="Impuestos Tributarios"
-        icon={
-          <span className="grid size-11 place-items-center rounded-full bg-warning-soft text-warning shrink-0">
-            <Percent size={22} weight="bold" />
-          </span>
-        }
-        badge={
-          <StatusBadge
-            label={`${taxes?.length ?? 0} configurados`}
-            tone="neutral"
-            shape="pill"
-            showIcon={false}
-            className="text-xs"
-          />
-        }
-      >
-        {hasTaxes ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-line text-xs font-semibold text-ink-muted uppercase tracking-wider">
-                  <th className="pb-3 pr-4">Impuesto</th>
-                  <th className="pb-3 px-4">Entidad</th>
-                  <th className="pb-3 px-4">Tarifa</th>
-                  <th className="pb-3 px-4">Vigencia</th>
-                  <th className="pb-3 pl-4 text-right">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {taxes.map((t: TaxDefinition) => (
-                  <tr key={t.id}>
-                    <td className="py-3 pr-4">
-                      <span className="font-semibold text-ink">{t.code}</span>
-                      <span className="block text-xs text-ink-muted">
-                        {t.name}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge
-                        label={
-                          t.entity_type === 'COMERCIAL'
-                            ? 'Comercial'
-                            : 'Artesanal'
-                        }
-                        tone="info"
-                        kind="category"
-                        shape="rectangle"
-                        showIcon={false}
-                        className="text-xs"
-                      />
-                    </td>
-                    <td className="py-3 px-4 font-mono font-medium text-ink">
-                      {t.current_rate ? `${parseFloat(t.current_rate)}%` : '0%'}
-                    </td>
-                    <td className="py-3 px-4 text-xs text-ink-muted">
-                      {t.starts_on ? `Desde ${t.starts_on}` : 'Vigente'}
-                    </td>
-                    <td className="py-3 pl-4 text-right">
-                      <StatusBadge
-                        label={t.current_rate ? 'Vigente' : 'Sin tarifa'}
-                        tone={t.current_rate ? 'success' : 'warning'}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-8 text-center rounded-group border border-dashed border-line bg-surface-muted/30">
-            <Percent className="mx-auto text-ink-muted" size={32} />
-            <p className="mt-2 text-sm font-bold text-ink">
-              Aún no hay impuestos configurados
-            </p>
-            <p className="mt-1 text-xs text-ink-muted max-w-sm mx-auto">
-              Registre las definiciones de impuestos (ej. IVA) y sus tarifas por
-              entidad fiscal.
-            </p>
-            <div className="mt-4 flex justify-center">
-              <Button variant="secondary" onClick={openDrawer}>
-                <Plus size={18} />
-                Nuevo Impuesto
-              </Button>
-            </div>
-          </div>
-        )}
-      </DetailCard>
-
-      <Dialog
-        open={creating}
-        onClose={closeDrawer}
-        title="Nuevo Impuesto y Vigencia"
-        description="Configure un impuesto oficial (ej. IVA) y su porcentaje vigente."
-      >
-        <form onSubmit={onCreateTax} className="w-full space-y-5">
-          {(createTaxMutation.isError || createPeriodMutation.isError) && (
-            <ErrorState
-              message={`Error: ${(createTaxMutation.error as Error)?.message || (createPeriodMutation.error as Error)?.message}`}
-            />
-          )}
-
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="tax_entity"
-            >
-              Entidad Fiscal
-            </label>
-            <select
-              id="tax_entity"
-              name="entity_id"
-              required
-              className={`mt-2 ${getControlClasses()}`}
-            >
-              {entities?.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.entity_type}: {e.legal_name} ({e.ruc})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="ui-field">
-              <label
-                className="block text-sm font-semibold text-ink"
-                htmlFor="tax_code"
-              >
-                Código del impuesto
-              </label>
-              <input
-                id="tax_code"
-                name="code"
-                required
-                placeholder="Ej. IVA"
-                maxLength={20}
-                className={`mt-2 ${getControlClasses()}`}
-              />
-            </div>
-            <div className="ui-field">
-              <label
-                className="block text-sm font-semibold text-ink"
-                htmlFor="tax_rate"
-              >
-                Tarifa (%)
-              </label>
-              <input
-                id="tax_rate"
-                name="rate"
-                required
-                placeholder="Ej. 15.0000"
-                className={`mt-2 ${getControlClasses()}`}
-              />
-            </div>
-          </div>
-
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="tax_name"
-            >
-              Nombre oficial
-            </label>
-            <input
-              id="tax_name"
-              name="name"
-              required
-              placeholder="Ej. Impuesto al Valor Agregado"
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-
-          <div className="ui-field">
-            <label
-              className="block text-sm font-semibold text-ink"
-              htmlFor="starts_on"
-            >
-              Fecha de vigencia (desde)
-            </label>
-            <input
-              id="starts_on"
-              name="starts_on"
-              type="date"
-              required
-              defaultValue={new Date().toISOString().split('T')[0]}
-              className={`mt-2 ${getControlClasses()}`}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="quiet" onClick={closeDrawer}>
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              pending={
-                createTaxMutation.isPending || createPeriodMutation.isPending
-              }
-            >
-              Crear impuesto
-            </Button>
-          </div>
-        </form>
-      </Dialog>
-    </div>
-  )
-}
-
-const docTypeLabels: Record<string, string> = {
-  INGRESO: 'Comprobante de Ingreso',
-  PROFORMA: 'Proforma de Taller',
-  VENTA: 'Factura de Venta',
-  SERVICIO: 'Orden de Servicio',
-}
-
-function SeriesSection() {
-  const { data: seriesList, isLoading } = useAllDocumentSeries()
-  const [editingSeries, setEditingSeries] = useState<DocumentSeries | null>(
-    null,
-  )
-  const updateSeriesMutation = useUpdateSeriesCode()
-
-  if (isLoading) return <LoadingState />
-
-  const onUpdateSeries = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!editingSeries) return
-    const formData = new FormData(e.currentTarget)
-    const code = (formData.get('code') as string).trim().toUpperCase()
-
-    updateSeriesMutation.mutate(
-      {
-        seriesId: editingSeries.id,
-        data: {
-          code,
-          expected_version: editingSeries.version,
-        },
-      },
-      {
-        onSuccess: () => setEditingSeries(null),
-      },
-    )
-  }
-
-  const hasSeries = seriesList && seriesList.length > 0
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-ink">Series y secuenciales</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Prefijos y consecutivos de los documentos internos.
-        </p>
-      </div>
-      <DetailCard
-        title="Control de Secuenciales"
-        icon={
-          <span className="grid size-11 place-items-center rounded-full bg-success-soft text-success shrink-0">
-            <FileText size={22} weight="duotone" />
-          </span>
-        }
-        badge={
-          <StatusBadge
-            label={`${seriesList?.length ?? 0} configuradas`}
-            tone="neutral"
-            shape="pill"
-            showIcon={false}
-            className="text-xs"
-          />
-        }
-      >
-        {hasSeries ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-line text-xs font-semibold text-ink-muted uppercase tracking-wider">
-                  <th className="pb-3 pr-4">Tipo de documento</th>
-                  <th className="pb-3 px-4">Serie / Prefijo</th>
-                  <th className="pb-3 px-4">Secuencial actual</th>
-                  <th className="pb-3 px-4">Estado</th>
-                  <th className="pb-3 pl-4 text-right">Acción</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {seriesList.map((s: DocumentSeries) => (
-                  <tr key={s.id}>
-                    <td className="py-3 pr-4">
-                      <span className="font-semibold text-ink">
-                        {docTypeLabels[s.document_type || ''] ||
-                          s.document_type ||
-                          s.code}
-                      </span>
-                      {s.entity_type && (
-                        <span className="block text-xs text-ink-muted">
-                          Entidad {s.entity_type.toLowerCase()}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-mono font-bold text-ink">
-                        {s.code}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-mono font-semibold bg-surface-muted px-2.5 py-1 rounded text-xs">
-                        {String(s.last_number).padStart(6, '0')}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <StatusBadge
-                        label={s.is_active ? 'Activa' : 'Inactiva'}
-                        tone={s.is_active ? 'success' : 'neutral'}
-                      />
-                    </td>
-                    <td className="py-3 pl-4 text-right">
-                      <Button
-                        variant="secondary"
-                        onClick={() => setEditingSeries(s)}
-                      >
-                        Editar
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-8 text-center rounded-group border border-dashed border-line bg-surface-muted/30">
-            <FileText className="mx-auto text-ink-muted" size={32} />
-            <p className="mt-2 text-sm font-bold text-ink">
-              Aún no hay series configuradas
-            </p>
-            <p className="mt-1 text-xs text-ink-muted max-w-sm mx-auto">
-              Las series de comprobantes se generan automáticamente al
-              inicializar el taller.
-            </p>
-          </div>
-        )}
-      </DetailCard>
-
-      <Dialog
-        open={editingSeries !== null}
-        onClose={() => setEditingSeries(null)}
-        title={`Editar Serie: ${editingSeries?.code ?? ''}`}
-        description="Actualice el prefijo de la serie antes de su primer uso."
-      >
-        {editingSeries && (
-          <form onSubmit={onUpdateSeries} className="w-full space-y-6">
-            {updateSeriesMutation.isError && (
-              <ErrorState
-                message={`Error al actualizar: ${(updateSeriesMutation.error as Error).message}`}
-              />
-            )}
-            <div className="ui-field">
-              <label
-                className="block text-sm font-semibold text-ink"
-                htmlFor="series_code"
-              >
-                Código de serie / Prefijo
-              </label>
-              <input
-                id="series_code"
-                name="code"
-                defaultValue={editingSeries.code}
-                required
-                maxLength={20}
-                className={`mt-2 ${getControlClasses()}`}
-              />
-              <p className="mt-1 text-xs text-ink-muted">
-                Solo se puede modificar si aún no ha emitido comprobantes.
-              </p>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="quiet"
-                onClick={() => setEditingSeries(null)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" pending={updateSeriesMutation.isPending}>
-                Guardar cambios
-              </Button>
-            </div>
-          </form>
-        )}
-      </Dialog>
     </div>
   )
 }
