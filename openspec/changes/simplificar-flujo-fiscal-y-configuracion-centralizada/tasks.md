@@ -250,15 +250,26 @@ Dependencias: grupos 4, 6 y 7.
 
 Dependencias: grupos 2 a 8.
 
-- [ ] 9.1 Actualizar `docs/negocio/producto/glosario.md` con «Preparación local», «Borrador fiscal», «Pendiente de emisión», «Punto predeterminado», «Forma de pago predeterminada» y «Catálogo oficial».
-- [ ] 9.2 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` (pestañas de configuración, preparación simplificada), `casos-de-uso.md` (CU-003 y CU-012), `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md` con las pruebas reales.
-- [ ] 9.3 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md` (snapshot formato 2) y `docs/arquitectura/modelo-dominio.md` §11.6 (punto predeterminado, catálogos oficiales, formas habilitadas).
-- [ ] 9.4 Corregir en la sección Impact de la propuesta la frase sobre `sales` y `workshop` (solo lecturas `fiscal_source`), según la discrepancia registrada en el diseño.
-- [ ] 9.5 Verificación final focalizada:
+- [x] 9.1 Actualizar `docs/negocio/producto/glosario.md` con «Preparación local», «Borrador fiscal», «Pendiente de emisión», «Punto predeterminado», «Forma de pago predeterminada» y «Catálogo oficial».
+- [x] 9.2 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` (pestañas de configuración, preparación simplificada), `casos-de-uso.md` (CU-003 y CU-012), `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md` con las pruebas reales.
+- [x] 9.3 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md` (snapshot formato 2) y `docs/arquitectura/modelo-dominio.md` §11.6 (punto predeterminado, catálogos oficiales, formas habilitadas).
+- [x] 9.4 Corregir en la sección Impact de la propuesta la frase sobre `sales` y `workshop` (solo lecturas `fiscal_source`), según la discrepancia registrada en el diseño.
+- [x] 9.5 Verificación final focalizada:
   - backend: `uv run ruff format --check` y `uv run ruff check` sobre los archivos tocados, `mypy` sobre los paquetes afectados, `manage.py check`, `makemigrations --check`, OpenAPI y cobertura de `workshop_configuration` y `fiscal` en la selección ejecutada;
   - frontend: `npm run build`;
   - `openspec validate simplificar-flujo-fiscal-y-configuracion-centralizada --strict`.
 
   Registrar comandos, resultados y lo no ejecutado (suite completa y Playwright completo).
+
+## Evidencia de cierre (2026-09-26)
+
+Ejecutado:
+- Backend: `ruff format --check` y `ruff check` sobre los 40 archivos Python tocados; `mypy` de `fiscal`, `workshop_configuration`, `sales` y `workshop` (126 archivos, sin errores); `manage.py check` sin incidencias; `makemigrations --check` sin cambios.
+- Backend, pruebas: `tests/fiscal`, `tests/workshop_configuration` y las pruebas fiscales de `tests/sales` y `tests/workshop` → 550 pasan. Cobertura de `fiscal` y `workshop_configuration` en esa selección: 91 %; módulos nuevos entre 85 % y 96 %.
+- Frontend: `npm run build` correcto (se mantiene el aviso previo de tamaño de chunks); vitest de 13 archivos afectados → 100 pasan; ESLint y prettier sobre los archivos tocados sin incidencias.
+- E2E: `e2e/fiscal.spec.ts` y `e2e/workshop-configuration.spec.ts` → 9 pasan.
+- `openspec validate simplificar-flujo-fiscal-y-configuracion-centralizada --strict` correcto.
+
+No ejecutado, por instrucción del usuario: `make check`, `make test`, la suite completa de backend y frontend y el resto de Playwright. `backend/schema.yml` no se regeneró: no lo valida ninguna prueba y ya estaba desactualizado antes del módulo fiscal; el contrato se verifica en vivo con `tests/fiscal/test_openapi.py`.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).
