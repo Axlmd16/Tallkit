@@ -348,7 +348,7 @@ function panel(name: RegExp | string) {
   return screen.getByRole('region', { name })
 }
 
-it('muestra el aviso permanente, la entidad elegida con su estado y las cinco subsecciones', () => {
+it('muestra el aviso en una línea, las entidades seleccionables y las subsecciones sin franja de estado', () => {
   renderSection()
 
   expect(
@@ -361,19 +361,21 @@ it('muestra el aviso permanente, la entidad elegida con su estado y las cinco su
   ).getAllByRole('radio')
   expect(choices).toHaveLength(2)
   expect(choices[0]).toBeChecked()
-  expect(choices[0]!.closest('label')).toHaveTextContent('Repuestos VVH')
-  expect(choices[0]!.closest('label')).toHaveTextContent('RUC 1150696977001')
-  expect(choices[0]!.closest('label')).toHaveTextContent('Lista')
+  const commercial = choices[0]!.closest('label')!
+  expect(commercial).toHaveTextContent('Comercial')
+  expect(commercial).toHaveTextContent('Repuestos VVH')
+  expect(commercial).not.toHaveTextContent('RUC')
+  expect(
+    screen.getByText('RUC', { selector: 'span' }).parentElement,
+  ).toHaveTextContent('RUC 1150696977001')
+  expect(commercial).toHaveTextContent('Lista')
   expect(choices[1]!.closest('label')).toHaveTextContent('Sin configurar')
 
-  const status = screen.getByRole('status', {
-    name: 'Estado de la configuración',
-  })
-  expect(status).toHaveTextContent('Lista para preparación local.')
   expect(
-    screen.getByText(/Certificado sin declarar: no impide preparar/),
-  ).toBeInTheDocument()
-  expect(status).not.toHaveTextContent('Certificado')
+    screen.queryByRole('status', { name: 'Estado de la configuración' }),
+  ).toBeNull()
+  expect(screen.queryByText(/Certificado sin declarar/)).toBeNull()
+  expect(screen.queryByText('Preparación local')).toBeNull()
 
   const subsections = screen.getByRole('navigation', {
     name: 'Subsecciones de facturación electrónica',
@@ -384,10 +386,10 @@ it('muestra el aviso permanente, la entidad elegida con su estado y las cinco su
       .map((link) => link.firstChild?.textContent),
   ).toEqual([
     'Perfil tributario',
-    'Establecimientos y puntos de emisión',
-    'Impuestos y catálogo SRI',
-    'Formas de pago SRI',
-    'Certificado electrónico',
+    'Puntos de emisión',
+    'Impuestos SRI',
+    'Formas de pago',
+    'Certificado',
   ])
   expect(
     within(subsections).getByRole('link', { name: /Perfil tributario/ }),
@@ -407,19 +409,35 @@ it('cambia de entidad por la dirección y reemplaza todos los datos de la anteri
   expect(screen.getAllByText('001-003').length).toBeGreaterThan(0)
 })
 
-it('muestra y cuenta una causa sin subsección conocida en la franja de estado', () => {
+it('muestra una causa sin subsección conocida en una línea bajo el selector', () => {
+  mocks.statusByEntity[2] = status(2, {
+    state: 'INCOMPLETE',
+    causes: [{ code: 'causa_nueva', kind: 'MISSING', message: 'Causa nueva.' }],
+  })
   renderSection('?tab=facturacion&entidad=2')
 
-  const status = screen.getByRole('status', {
-    name: 'Estado de la configuración',
-  })
-  expect(status).toHaveTextContent(
-    'Sin configurar. Todavía no existe una configuración guardada.',
-  )
+  expect(
+    within(
+      screen.getByRole('list', { name: 'Pendientes generales' }),
+    ).getByText('Causa nueva.'),
+  ).toBeVisible()
   expect(screen.getByRole('radio', { name: /Taller Jiménez/ })).toBeChecked()
 })
 
-it('enlaza la primera causa atribuible a la subsección que la resuelve', () => {
+it('muestra el perfil sin guardar como pendiente de Perfil tributario', () => {
+  renderSection('?tab=facturacion&entidad=2')
+
+  expect(
+    within(panel('Perfil tributario')).getByRole('list', {
+      name: 'Pendientes',
+    }),
+  ).toHaveTextContent('Todavía no existe una configuración guardada.')
+  expect(
+    screen.queryByRole('list', { name: 'Pendientes generales' }),
+  ).toBeNull()
+})
+
+it('muestra cada causa al inicio de la subsección que la resuelve', () => {
   mocks.statusByEntity[1] = status(1, {
     state: 'INCOMPLETE',
     causes: [
@@ -430,28 +448,22 @@ it('enlaza la primera causa atribuible a la subsección que la resuelve', () => 
       },
     ],
   })
-  renderSection()
+  renderSection('?tab=facturacion&seccion=puntos')
 
-  const status1 = screen.getByRole('status', {
-    name: 'Estado de la configuración',
-  })
-  expect(status1).toHaveTextContent(
-    'Falta completar. Designe el punto de emisión predeterminado.',
-  )
   expect(
-    within(status1).getByRole('link', {
-      name: 'Ir a Establecimientos y puntos de emisión',
+    within(panel('Establecimientos y puntos de emisión')).getByRole('list', {
+      name: 'Pendientes',
     }),
-  ).toHaveAttribute(
-    'href',
-    '/configuration?tab=facturacion&entidad=1&seccion=puntos',
-  )
+  ).toHaveTextContent('Designe el punto de emisión predeterminado.')
+  expect(
+    screen.queryByRole('list', { name: 'Pendientes generales' }),
+  ).toBeNull()
   expect(
     within(
       screen.getByRole('navigation', {
         name: 'Subsecciones de facturación electrónica',
       }),
-    ).getByRole('link', { name: /Establecimientos/ }),
+    ).getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveTextContent('1 pendiente')
 })
 
@@ -537,9 +549,7 @@ it('designa el punto predeterminado en un modal cuando hay varios activos', asyn
   renderSection('?tab=facturacion&seccion=puntos')
 
   const section = panel('Establecimientos y puntos de emisión')
-  expect(section).toHaveTextContent(
-    'Falta seleccionar un punto predeterminado.',
-  )
+  expect(section).toHaveTextContent('Sin designar')
   await user.click(
     within(section).getByRole('button', { name: 'Designar punto' }),
   )
@@ -629,7 +639,7 @@ it('mantiene el certificado opcional y rechaza datos parciales en su modal', asy
   renderSection('?tab=facturacion&seccion=certificado')
 
   const section = panel('Certificado electrónico')
-  expect(section).toHaveTextContent('Sin certificado declarado. Es opcional')
+  expect(section).toHaveTextContent('Sin certificado declarado.')
   await user.click(
     within(section).getByRole('button', { name: 'Declarar certificado' }),
   )

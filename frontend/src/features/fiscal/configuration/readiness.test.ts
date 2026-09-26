@@ -9,6 +9,7 @@ import {
 
 describe('readiness fiscal', () => {
   it.each([
+    ['profile', 'perfil'],
     ['conditions.rimpe.unknown', 'perfil'],
     ['tax_mapping.4.missing', 'impuestos'],
     ['default_point_required', 'puntos'],
@@ -54,7 +55,7 @@ describe('readiness fiscal', () => {
     const summary = summarizeEntityStatus({
       entity_id: 5,
       state: 'NOT_CONFIGURED',
-      causes: [{ code: 'profile', kind: 'MISSING', message: 'Sin perfil.' }],
+      causes: [{ code: 'otra_causa', kind: 'MISSING', message: 'Otra causa.' }],
       warnings: [
         {
           code: 'certificate_missing',

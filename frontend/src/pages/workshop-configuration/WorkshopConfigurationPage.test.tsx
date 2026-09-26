@@ -330,9 +330,7 @@ it('abre subsecciones por enlace directo y usa entidades ante una sección desco
     'page',
   )
   expect(
-    within(sections()).getByRole('link', {
-      name: /Establecimientos y puntos de emisión/,
-    }),
+    within(sections()).getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveAttribute('aria-current', 'page')
   unmount()
 

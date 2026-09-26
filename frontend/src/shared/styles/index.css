@@ -345,6 +345,10 @@ samp {
   font-size: 14px;
   line-height: 20px;
 }
+/* El reinicio de Tailwind v4 deja los botones con cursor por defecto. */
+.ui-button:not(:disabled) {
+  cursor: pointer;
+}
 .ui-control {
   font-size: 14px;
   line-height: 20px;

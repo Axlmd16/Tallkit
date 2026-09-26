@@ -1,3 +1,4 @@
+import { PencilSimple, Plus } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import { ProblemError } from '@/shared/api/client'
@@ -18,10 +19,12 @@ import {
 } from '@/shared/ui'
 
 import { useElectronicProfile, useFiscalMutations } from '../hooks'
+import { PendingNotes } from './PendingNotes'
 import type {
   ConditionStatus,
   DeclaredCondition,
   ElectronicProfile,
+  StatusCause,
 } from '../types'
 
 export const CONDITIONS = [
@@ -77,7 +80,13 @@ const STATUS_TONES = {
   NOT_APPLICABLE: 'inactive',
 } as const
 
-export function ProfileConditionsSection({ entityId }: { entityId: number }) {
+export function ProfileConditionsSection({
+  entityId,
+  pending = [],
+}: {
+  entityId: number
+  pending?: StatusCause[]
+}) {
   const profile = useElectronicProfile(entityId)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
@@ -96,14 +105,11 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
     <section aria-labelledby={`perfil-${entityId}`} className="space-y-4">
       <SheetHeading
         id={`perfil-${entityId}`}
-        description={
-          data.revision
-            ? 'Condiciones declaradas según el certificado de RUC. No son una validación del SRI.'
-            : 'Sin configuración guardada. Declare cada condición según el certificado de RUC; el sistema no las deduce ni las valida con el SRI.'
-        }
+        description="Declare cada condición según el certificado de RUC."
         level={3}
         title="Perfil tributario"
       />
+      <PendingNotes causes={pending} />
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <thead>
@@ -151,10 +157,19 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
                   <td className={sheetTableCell}>
                     <Button
                       aria-label={`${action} ${item.label}`}
-                      className="px-2"
+                      className="min-h-9 px-3"
                       onClick={() => setSelectedKey(item.key)}
-                      variant="quiet"
+                      variant="secondary"
                     >
+                      {status === 'UNKNOWN' ? (
+                        <Plus aria-hidden="true" size={14} weight="bold" />
+                      ) : (
+                        <PencilSimple
+                          aria-hidden="true"
+                          size={14}
+                          weight="bold"
+                        />
+                      )}
                       {action}
                     </Button>
                   </td>

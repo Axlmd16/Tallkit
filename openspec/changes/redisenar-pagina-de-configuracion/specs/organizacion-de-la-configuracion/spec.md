@@ -15,6 +15,8 @@ Desde 1024 px de ancho, la navegación de secciones SHALL mostrarse como una lis
 - *Entidades fiscales*, *Bodega*, *Impuestos* y *Series y numeración*: el número de registros vigentes de la sección.
 - *Facturación electrónica*: el número de pendientes cuando existan, con texto accesible que los identifique como pendientes.
 
+Desde 768 px de ancho, la hoja SHALL ocupar todo el alto disponible de la ventana bajo el encabezado de la página, y su altura SHALL NOT variar al cambiar de sección; el contenido que exceda ese alto SHALL desplazarse con la página. La descripción del encabezado de la página SHALL ser una frase breve que en escritorio quepa en una sola línea.
+
 La sección activa SHALL distinguirse mediante una marca lateral o inferior, un fondo suave y un peso de texto mayor, sin depender solo del color. La sección inicial SHALL ser *Entidades fiscales*, salvo navegación directa a otra.
 
 El título de la sección de los dos RUC SHALL ser «Entidades fiscales» y SHALL NOT usarse «Identidades fiscales». Los nombres de las secciones y su organización son cambios de presentación; SHALL NOT alterar el comportamiento, los datos ni los permisos de las áreas.
@@ -35,6 +37,11 @@ Trazabilidad: propuesta §1–2 y R2–R3; DP-001; RNF-USA-004/005/006; UI-013; 
 - **DADO** que la entidad artesanal no tiene punto de emisión predeterminado determinable
 - **CUANDO** el Administrador observa la navegación de secciones
 - **ENTONCES** *Facturación electrónica* SHALL mostrar su número de pendientes con un marcador y un texto accesible, y las demás secciones SHALL mostrar su número de registros.
+
+#### Scenario: Altura estable de la hoja
+- **DADO** un Administrador en una pantalla de 1440 × 900 px con *Entidades fiscales* activa
+- **CUANDO** cambia a *Bodega*, que tiene menos contenido
+- **ENTONCES** la hoja SHALL conservar la misma altura, extendida hasta el borde inferior de la ventana.
 
 #### Scenario: Pantalla de tableta
 - **DADO** un ancho de 900 px
@@ -232,17 +239,23 @@ La sección *Facturación electrónica* SHALL mostrar de forma permanente el avi
 4. *Formas de pago SRI*
 5. *Certificado electrónico*
 
-Las subsecciones SHALL presentarse como elementos anidados bajo *Facturación electrónica* en la misma navegación de secciones, visibles cuando esa sección está activa. SHALL NOT usarse una segunda barra de subpestañas dentro del contenido desde 1024 px. Por debajo de 1024 px, las subsecciones SHALL presentarse en una barra horizontal propia al inicio del contenido de la sección.
+Las subsecciones SHALL presentarse como elementos anidados bajo *Facturación electrónica* en la misma navegación de secciones, visibles cuando esa sección está activa, con nombres breves e inequívocos: *Perfil tributario*, *Puntos de emisión*, *Impuestos SRI*, *Formas de pago* y *Certificado*. El título de cada subsección SHALL conservar su nombre completo. SHALL NOT usarse una segunda barra de subpestañas dentro del contenido desde 1024 px. Por debajo de 1024 px, las subsecciones SHALL presentarse en una barra horizontal propia al inicio del contenido de la sección.
 
-Cada subsección SHALL mostrar el estado de la entidad seleccionada:
+Cada subsección SHALL mostrar en la navegación un indicador mínimo del estado de la entidad seleccionada, con texto accesible:
 
-- *Completo*, si no le corresponde ninguna causa pendiente;
-- el número de pendientes, si le corresponden causas;
-- *Opcional* para *Certificado electrónico* cuando no tiene advertencias, o *Revisar* cuando las tiene.
+- un marcador de completo, si no le corresponde ninguna causa pendiente;
+- un marcador y el número de pendientes, si le corresponden causas;
+- *Opcional* para *Certificado* cuando no tiene advertencias, o *Revisar* cuando las tiene.
 
-Cada causa del estado fiscal SHALL atribuirse a la subsección donde se resuelve. Una causa que no pueda atribuirse SHALL mostrarse igualmente en la franja de estado de la entidad.
+La entidad fiscal SHALL elegirse mediante un selector compacto de dos opciones, ubicado junto al título de la sección para no desplazar el contenido de las subsecciones. Cada opción SHALL mostrar el nombre y el tono de su ámbito, su razón social y un marcador de estado con texto accesible (*Sin configurar*, pendientes, *Requiere revisión* o *Lista*). La opción seleccionada SHALL distinguirse sin depender solo del color, y la placa de RUC de la entidad seleccionada SHALL mostrarse junto al selector.
 
-La entidad fiscal SHALL elegirse mediante dos opciones visibles, cada una con su razón social, su RUC, el tono y el nombre de su ámbito, y su estado en texto. La opción seleccionada SHALL distinguirse sin depender solo del color. Bajo el selector, una franja SHALL mostrar el estado de la entidad (*Sin configurar*, *Falta completar*, *Requiere revisión* o *Lista para preparación local*) con sus causas en texto y un enlace a la subsección que resuelve la primera causa. Las advertencias independientes SHALL mostrarse aparte, sin cambiar el estado.
+El estado SHALL comunicarse sin franjas ni bloques de aviso a todo el ancho, para no saturar la pantalla:
+
+- cada causa del estado fiscal SHALL atribuirse a la subsección donde se resuelve y mostrarse, en una línea breve, al inicio de esa subsección;
+- una causa que no pueda atribuirse SHALL mostrarse en una línea breve bajo el selector de entidad;
+- las advertencias independientes, como las del certificado, SHALL mostrarse solo en su subsección y SHALL NOT cambiar el estado.
+
+Cada subsección SHALL describirse con una frase breve. Las explicaciones técnicas, códigos, versiones, fuentes y el ambiente SHALL quedar en los modales o en «Información avanzada», plegada.
 
 El comportamiento de cada subsección SHALL ser el definido en `configuracion-operativa-y-fiscal`. Cada formulario técnico SHALL incluir ayuda contextual; ningún campo SHALL pedir un código técnico sin explicación.
 
@@ -253,17 +266,22 @@ Trazabilidad: propuesta §9 y R2; propuesta B7–B12 y C13 del cambio `simplific
 #### Scenario: Subsecciones visibles
 - **DADO** la sección *Facturación electrónica* con la entidad artesanal seleccionada en una pantalla de 1440 px
 - **CUANDO** el Administrador la consulta
-- **ENTONCES** SHALL ver el aviso permanente, el selector de las dos entidades y, en la navegación de secciones, las cinco subsecciones anidadas con los estados de la entidad artesanal únicamente.
+- **ENTONCES** SHALL ver el aviso permanente en una sola línea, el selector de las dos entidades y, en la navegación de secciones, las cinco subsecciones anidadas con nombres breves y los estados de la entidad artesanal únicamente, sin franjas de estado a todo el ancho.
 
 #### Scenario: Estado atribuido a su subsección
 - **DADO** la entidad artesanal con varios puntos activos y ninguno designado
 - **CUANDO** el Administrador consulta *Facturación electrónica*
-- **ENTONCES** *Establecimientos y puntos de emisión* SHALL indicar un pendiente, las demás subsecciones sin causas SHALL indicar *Completo* o *Opcional*, y la franja SHALL explicar la causa con un enlace a esa subsección.
+- **ENTONCES** *Puntos de emisión* SHALL indicar un pendiente en la navegación, las demás subsecciones sin causas SHALL indicar completo u *Opcional*, y la causa SHALL mostrarse en una línea breve al inicio de *Establecimientos y puntos de emisión*.
 
 #### Scenario: Causa no atribuible
 - **DADO** una causa del estado fiscal que no corresponde a ninguna subsección conocida
-- **CUANDO** se muestra el estado de la entidad
-- **ENTONCES** la causa SHALL aparecer en la franja de estado de la entidad y SHALL contarse como pendiente.
+- **CUANDO** se muestra *Facturación electrónica*
+- **ENTONCES** la causa SHALL aparecer en una línea breve bajo el selector de entidad y SHALL contarse como pendiente.
+
+#### Scenario: Entidad sin configurar
+- **DADO** una entidad fiscal sin perfil guardado ni certificado
+- **CUANDO** el Administrador abre *Facturación electrónica*
+- **ENTONCES** su opción del selector SHALL indicar *Sin configurar*, SHALL NOT mostrarse una franja de estado ni el aviso del certificado fuera de *Certificado*, y *Perfil tributario* SHALL mostrar sus condiciones con acciones visibles para declararlas.
 
 #### Scenario: Cambio de entidad comercial a artesanal
 - **DADO** la sección *Facturación electrónica* con la entidad comercial seleccionada, cuyos establecimientos, correspondencias y formas habilitadas se están mostrando

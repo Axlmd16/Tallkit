@@ -253,9 +253,7 @@ test('la configuración se recorre como una hoja con navegación de secciones', 
     .click()
   await expect(page).toHaveURL(/tab=facturacion&entidad=1&seccion=puntos/)
   await expect(
-    sections.getByRole('link', {
-      name: /Establecimientos y puntos de emisión/,
-    }),
+    sections.getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveAttribute('aria-current', 'page')
   await expect(
     page.getByText(
@@ -295,12 +293,21 @@ test('facturación electrónica designa el punto en un modal y separa las entida
   await expect(points.getByText('Local del taller')).toBeVisible()
   await expect(page.getByText('Local comercial')).toHaveCount(0)
   await expect(
-    page.getByRole('status', { name: 'Estado de la configuración' }),
+    page.getByRole('radio', { name: /Taller E2E/ }).locator('..'),
+  ).toContainText('Sin configurar')
+  await page
+    .getByRole('navigation', { name: 'Secciones de configuración' })
+    .getByRole('link', { name: /Perfil tributario/ })
+    .click()
+  await expect(
+    page
+      .getByRole('region', { name: 'Perfil tributario' })
+      .getByRole('list', { name: 'Pendientes' }),
   ).toContainText('Todavía no existe una configuración guardada.')
 
   await page
     .getByRole('navigation', { name: 'Secciones de configuración' })
-    .getByRole('link', { name: /Formas de pago SRI/ })
+    .getByRole('link', { name: /Formas de pago/ })
     .click()
   const table = page
     .getByRole('region', { name: 'Formas de pago SRI' })

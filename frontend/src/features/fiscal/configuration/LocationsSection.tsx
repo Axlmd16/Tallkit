@@ -23,7 +23,8 @@ import {
   useFiscalMutations,
   usePreparationDefaults,
 } from '../hooks'
-import type { Establishment } from '../types'
+import type { Establishment, StatusCause } from '../types'
+import { PendingNotes } from './PendingNotes'
 
 type Dialog =
   | { kind: 'establishment' }
@@ -31,7 +32,13 @@ type Dialog =
   | { kind: 'default' }
   | null
 
-export function LocationsSection({ entityId }: { entityId: number }) {
+export function LocationsSection({
+  entityId,
+  pending = [],
+}: {
+  entityId: number
+  pending?: StatusCause[]
+}) {
   const establishments = useEstablishments(entityId)
   const defaults = usePreparationDefaults(entityId)
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -71,10 +78,11 @@ export function LocationsSection({ entityId }: { entityId: number }) {
             Añadir establecimiento
           </Button>
         }
-        description="Códigos fiscales de tres dígitos. Los códigos no prueban registro ante el SRI."
+        description="Códigos de tres dígitos que usa el SRI."
         level={3}
         title="Establecimientos y puntos de emisión"
       />
+      <PendingNotes causes={pending} />
 
       <FactList className="max-w-3xl">
         <FactRow label="Punto predeterminado">
@@ -93,15 +101,15 @@ export function LocationsSection({ entityId }: { entityId: number }) {
             ) : (
               <span className="font-semibold text-warning">
                 {activePoints.length > 1
-                  ? 'Falta seleccionar un punto predeterminado.'
-                  : 'Registre un punto de emisión activo.'}
+                  ? 'Sin designar'
+                  : 'Sin puntos activos'}
               </span>
             )}
             {activePoints.length > 1 && (
               <Button
-                className="px-2"
+                className="min-h-9 px-3"
                 onClick={() => setDialog({ kind: 'default' })}
-                variant="quiet"
+                variant="secondary"
               >
                 {effective ? 'Cambiar' : 'Designar punto'}
               </Button>
@@ -204,9 +212,9 @@ function EstablishmentRows({
           {establishment.is_active && (
             <Button
               aria-label={`Añadir punto al establecimiento ${establishment.code}`}
-              className="px-2"
+              className="min-h-9 px-3"
               onClick={onAddPoint}
-              variant="quiet"
+              variant="secondary"
             >
               <Plus aria-hidden="true" size={14} weight="bold" />
               Añadir punto
