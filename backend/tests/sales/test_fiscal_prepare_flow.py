@@ -758,3 +758,16 @@ def test_replace_rejects_a_draft(prepared_context: dict[str, Any], seller: Any) 
             reason="no aplica",
             idempotency_key="fiscal:replace:draft",
         )
+
+
+def test_find_active_preparation_respects_scope(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    from fiscal.application.preparations import find_active_preparation
+
+    sale_id = prepared_context["sale"]["id"]
+    found = find_active_preparation(actor=seller, source_kind="COMMERCIAL", source_id=sale_id)
+    assert found is not None
+    assert found.preparation_id == prepared_context["preparation_id"]
+    assert found.state == "DRAFT"
+    assert find_active_preparation(actor=seller, source_kind="COMMERCIAL", source_id=0) is None

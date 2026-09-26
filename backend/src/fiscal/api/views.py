@@ -224,6 +224,34 @@ def _respond(request: Request, operation: Callable[[], Response]) -> Response:
 class PreparationCreateView(APIView):
     @extend_schema(
         tags=[_TAG],
+        operation_id="fiscal_preparation_active",
+        parameters=[
+            OpenApiParameter("source_kind", OpenApiTypes.STR, enum=["COMMERCIAL", "ARTISAN"]),
+            OpenApiParameter("source_id", OpenApiTypes.INT),
+        ],
+        responses={200: sz.FiscalActivePreparation, **_PROBLEMS},
+        description="Preparación local activa de una operación; no indica emisión.",
+    )
+    def get(self, request: Request) -> Response:
+        def operation() -> Response:
+            kind = request.query_params.get("source_kind", "")
+            source_id = _query_int(request.query_params, "source_id")
+            if kind not in ("COMMERCIAL", "ARTISAN") or source_id is None:
+                raise preparations.InvalidSourceKindError("Indique el tipo y la operación.")
+            found = preparations.find_active_preparation(
+                actor=_actor(request), source_kind=kind, source_id=source_id
+            )
+            return Response(
+                {
+                    "preparation_id": str(found.preparation_id) if found else None,
+                    "state": found.state if found else None,
+                }
+            )
+
+        return _respond(request, operation)
+
+    @extend_schema(
+        tags=[_TAG],
         operation_id="fiscal_preparation_create",
         request=sz.FiscalPreparationCreate,
         responses={201: sz.FiscalPreparationResult, **_PROBLEMS},

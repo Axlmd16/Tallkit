@@ -20,7 +20,7 @@ def schema(role_admin: Any) -> dict[str, Any]:
 
 def test_fiscal_routes_and_local_semantics_are_published(schema: dict[str, Any]) -> None:
     expected = {
-        P + "preparations/": {"post"},
+        P + "preparations/": {"get", "post"},
         P + "preparations/{preparation_id}/": {"get", "patch"},
         P + "preparations/{preparation_id}/review/": {"post"},
         P + "preparations/{preparation_id}/prepare/": {"post"},

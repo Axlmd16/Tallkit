@@ -479,3 +479,8 @@ class FiscalPaymentFormOption(serializers.Serializer[dict[str, Any]]):
 class FiscalPaymentFormWrite(StrictSerializer):
     enabled = serializers.BooleanField()
     expected_version = serializers.IntegerField(min_value=0)
+
+
+class FiscalActivePreparation(serializers.Serializer[dict[str, Any]]):
+    preparation_id = serializers.UUIDField(allow_null=True)
+    state = serializers.CharField(allow_null=True)

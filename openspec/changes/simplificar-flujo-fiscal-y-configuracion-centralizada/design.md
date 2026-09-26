@@ -161,6 +161,8 @@ No expone campos técnicos editables. Con el snapshot completado, añade `techni
 
 **Edición (`PATCH …/{id}/`, contrato existente).** Solo admite `expected_version`, `receiver`, `payments.forms[{payment_code, amount}]` y `additional_info`. Rechaza con 400 (`field_not_allowed`) `environment`, `point_id`, `reference_date`, `fiscal_entity_id`, `term_days` y `time_unit`, sin modificar el borrador. Es **BREAKING** solo para la interfaz propia, y OpenAPI se actualiza.
 
+**Consulta por operación (`GET /fiscal/preparations/?source_kind=&source_id=`).** Añadida durante la implementación: devuelve la preparación activa (borrador o preparada) de una operación, o ninguna, para que la ficha de la venta o de la operación artesanal muestre «Borrador fiscal» o «Preparación local · Pendiente de emisión» en lugar de ofrecer siempre crear otra. Exige el permiso de consulta del ámbito.
+
 **Revisión (`POST …/review/`):**
 - calcula `reference_date` con el calendario de America/Guayaquil y resuelve la configuración vigente;
 - valida el receptor y las formas: habilitadas, vigentes y con suma exacta;

@@ -279,6 +279,27 @@ def create_draft(
         return PreparationCommandResult(preparation.pk, replayed=False)
 
 
+@dataclass(frozen=True)
+class ActivePreparationSummary:
+    preparation_id: UUID
+    state: str
+
+
+def find_active_preparation(
+    *, actor: User, source_kind: str, source_id: int
+) -> ActivePreparationSummary | None:
+    """Preparación activa (borrador o preparada) de una operación, para su ficha."""
+    require_permission(actor=actor, permission=_permission(source_kind).replace("preparar", "ver"))
+    field = "commercial_sale_id" if source_kind == "COMMERCIAL" else "artisan_operation_id"
+    row = (
+        FiscalPreparation.objects.filter(**{field: source_id}, state__in=_ACTIVE_STATES)
+        .order_by("-created_at")
+        .values("pk", "state")
+        .first()
+    )
+    return ActivePreparationSummary(row["pk"], row["state"]) if row else None
+
+
 def query_discrepancy(*, actor: User, preparation_id: UUID) -> FiscalDiscrepancy:
     preparation = FiscalPreparation.objects.filter(pk=preparation_id).first()
     if preparation is None:

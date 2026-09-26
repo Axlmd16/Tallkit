@@ -43,30 +43,92 @@ export interface FiscalPreparationDetail {
   prepared_at: string | null
   official_status: null
   official_submission: 'NOT_PERFORMED'
+  summary: PreparationSummary | null
+  issuer: { ruc: string; legal_name: string } | null
+  working: WorkingDraft | null
+  payment_options: PaymentChoice[]
+  missing_fields: string[]
+  technical: Record<string, unknown> | null
+}
+
+export interface PreparationSummary {
+  kind: FiscalSourceKind
+  internal_number: string | null
+  operational_date: string | null
+  condition: 'CONTADO' | 'CREDITO'
+  state: string
+  base_total: string
+  tax_total: string
+  grand_total: string
+  lines: Array<{
+    position: number
+    description: string
+    quantity: string
+    total: string
+  }>
+}
+
+export interface FiscalReceiverValues {
+  identification_type: string
+  identification: string
+  legal_name: string
+  address?: string | null
+  email?: string | null
+}
+
+export interface DeclaredPaymentForm {
+  payment_code: string
+  amount: string
+}
+
+export interface WorkingDraft {
+  draft_format: number
+  receiver: FiscalReceiverValues
+  payments: {
+    forms: DeclaredPaymentForm[]
+    suggested: boolean
+    suggestion_origin?: 'COLLECTED' | 'MIXED' | 'DEFAULT' | 'NONE' | null
+  }
+  additional_info: Array<Record<string, string>>
+}
+
+export interface PaymentChoice {
+  code: string
+  display_name: string
+  description: string
+  internal_method: string
 }
 
 export interface DraftValues {
-  point_id?: number
-  environment?: FiscalEnvironment
   receiver?: Record<string, unknown>
   payments?: Record<string, unknown>
-  reference_date?: string
   additional_info?: Array<Record<string, string>>
 }
 
 export interface DraftUpdate {
   expected_version: number
-  point_id: number
-  receiver: Record<string, unknown>
-  payments: Record<string, unknown>
-  environment: FiscalEnvironment
-  reference_date?: string
+  receiver: FiscalReceiverValues
+  payments: { forms: DeclaredPaymentForm[] }
   additional_info?: Array<Record<string, string>>
 }
 
+export type ImpedimentAudience = 'OPERATOR' | 'ADMINISTRATOR'
+
+export interface ReviewImpediment {
+  field: string
+  code: string
+  audience: ImpedimentAudience
+  message: string
+}
+
 export interface ReviewResult {
-  impediments: Array<{ field: string; message: string }>
+  impediments: ReviewImpediment[]
   review_token: string | null
+}
+
+export interface ActivePreparation {
+  preparation_id: string | null
+  state: 'DRAFT' | 'PREPARED' | null
 }
 
 export interface TestIdentity {

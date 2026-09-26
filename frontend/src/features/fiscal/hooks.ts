@@ -93,6 +93,18 @@ export function useArchiveReadiness(entityId: number) {
   })
 }
 
+export function useActivePreparation(
+  sourceKind: FiscalSourceKind,
+  sourceId: number,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: fiscalKeys.origin(sourceKind, sourceId),
+    queryFn: () => fiscalApi.getActivePreparation(sourceKind, sourceId),
+    enabled: enabled && sourceId > 0,
+  })
+}
+
 export function useElectronicStatus(entityId: number) {
   return useQuery({
     queryKey: fiscalKeys.status(entityId),
@@ -228,10 +240,14 @@ export function useFiscalMutations() {
         reviewToken: string
         attemptKey: string
       }) => fiscalApi.prepare(preparationId, reviewToken, attemptKey),
-      onSuccess: (_, variables) =>
+      onSuccess: (_, variables) => {
         queryClient.invalidateQueries({
           queryKey: fiscalKeys.preparation(variables.preparationId),
-        }),
+        })
+        queryClient.invalidateQueries({
+          queryKey: [...fiscalKeys.all, 'origin'],
+        })
+      },
     }),
     uploadArchive: useMutation({
       mutationFn: ({
