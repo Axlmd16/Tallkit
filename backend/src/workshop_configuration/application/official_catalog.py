@@ -13,6 +13,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from identity.application.authorization import require_permission
+from identity.models import User
 from workshop_configuration.models import OfficialCatalogEntry
 
 MANIFEST_PATH = Path(__file__).resolve().parent.parent / "catalogs" / "sri-2.34.json"
@@ -134,3 +136,12 @@ def link_mappings(mapping_model: Any, entry_model: Any) -> int:
         mapping.save(update_fields=["catalog_entry"])
         linked += 1
     return linked
+
+
+def get_catalog(
+    *, actor: User, kind: str, selectable_only: bool = False
+) -> tuple[OfficialCatalogEntry, ...]:
+    require_permission(actor=actor, permission="parametros.gestionar")
+    if kind not in ("TAX_RATE", "PAYMENT_FORM"):
+        raise CatalogManifestError("Tipo de catálogo no admitido.")
+    return list_entries(kind=kind, selectable_only=selectable_only)

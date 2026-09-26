@@ -42,7 +42,7 @@ def create_mapping(
     definition_id: int,
     catalog_entry_id: int,
     starts_on: date,
-    ends_on: date | None,
+    ends_on: date | None = None,
     source: str,
 ) -> FiscalTaxMapping:
     require_permission(actor=actor, permission="parametros.gestionar")
@@ -102,6 +102,18 @@ def create_mapping(
             },
         )
         return result
+
+
+def list_mappings(*, actor: User, entity_id: int) -> tuple[FiscalTaxMapping, ...]:
+    """Correspondencias vigentes e históricas de la entidad, con su entrada oficial."""
+    require_permission(actor=actor, permission="parametros.gestionar")
+    if not FiscalEntity.objects.filter(pk=entity_id).exists():
+        raise ConfigurationValidationError("Entidad fiscal no encontrada.")
+    return tuple(
+        FiscalTaxMapping.objects.filter(tax_definition__fiscal_entity_id=entity_id)
+        .select_related("catalog_entry", "tax_definition")
+        .order_by("tax_definition_id", "-starts_on", "-id")
+    )
 
 
 def resolve_mapping(*, definition_id: int, on: date, historical_rate: Decimal) -> ResolvedFiscalTax:

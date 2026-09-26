@@ -405,8 +405,6 @@ def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
         config = resolve_fiscal_configuration(
             actor=actor,
             entity_id=preparation.fiscal_entity_id,
-            point_id=preparation.draft.get("point_id"),
-            environment=preparation.draft.get("environment", "1"),
             on=reference_date,
         )
         try:
@@ -472,8 +470,6 @@ def prepare(
         config = resolve_fiscal_configuration(
             actor=actor,
             entity_id=preparation.fiscal_entity_id,
-            point_id=preparation.draft.get("point_id"),
-            environment=preparation.draft.get("environment", "1"),
             on=reference_date,
         )
         try:

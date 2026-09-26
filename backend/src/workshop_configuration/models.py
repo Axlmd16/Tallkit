@@ -583,3 +583,54 @@ class OfficialCatalogEntry(models.Model):
 
     def __str__(self) -> str:
         return f"{self.kind}:{self.catalog_version}:{self.code}"
+
+
+class FiscalPaymentFormSetting(models.Model):
+    """Decisión explícita del Administrador; sin registro aplica la política V1."""
+
+    fiscal_entity = models.ForeignKey(
+        FiscalEntity, on_delete=models.PROTECT, related_name="payment_form_settings"
+    )
+    code = models.CharField(max_length=8)
+    enabled = models.BooleanField()
+    version = models.PositiveBigIntegerField(default=1)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["fiscal_entity", "code"], name="fiscal_payment_form_setting_unique"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.fiscal_entity_id}:{self.code}:{self.enabled}"
+
+
+class FiscalPreparationDefaults(models.Model):
+    """Punto y forma de pago predeterminados de una entidad para preparar."""
+
+    fiscal_entity = models.OneToOneField(
+        FiscalEntity, on_delete=models.PROTECT, related_name="preparation_defaults"
+    )
+    default_point = models.ForeignKey(
+        FiscalEmissionPoint,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    default_payment_code = models.CharField(  # noqa: DJ001
+        max_length=8, null=True, blank=True, default=None
+    )
+    version = models.PositiveBigIntegerField(default=1)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"Predeterminados {self.fiscal_entity_id}"
