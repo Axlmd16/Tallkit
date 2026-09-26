@@ -41,6 +41,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("maintenance-orders/", include("workshop.api.urls")),
     path("service-operations/", include("workshop.api.billing_urls")),
     path("inventory/", include("inventory.api.urls")),
+    path("fiscal/", include("fiscal.api.urls")),
     path("workshop-configuration/", include("workshop_configuration.api.urls")),
     path("roles/", RoleListView.as_view(), name="role-list"),
     path("audit/", AuditEventListView.as_view(), name="audit-list"),

@@ -52,6 +52,14 @@ class FiscalConfiguration:
         return not self.preparation_issues
 
 
+def read_issuer_ruc(entity_id: int) -> str:
+    """Lectura pública ligera del RUC del emisor para colaboración interna del archivo."""
+    ruc = FiscalEntity.objects.filter(pk=entity_id).values_list("ruc", flat=True).first()
+    if ruc is None:
+        raise FiscalEntityNotFoundError("Entidad fiscal no encontrada.")
+    return ruc
+
+
 def resolve_fiscal_configuration(
     *, actor: User, entity_id: int, point_id: int | None, environment: str, on: date
 ) -> FiscalConfiguration:

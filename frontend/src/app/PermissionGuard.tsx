@@ -5,13 +5,16 @@ import { InlineNotice, PageHeader } from '@/shared/ui'
 
 export function PermissionGuard({
   permission,
+  anyOf,
   children,
 }: {
-  permission: string
+  permission?: string
+  anyOf?: string[]
   children: ReactNode
 }) {
   const session = useSession()
-  if (!session.data?.permissions.includes(permission)) {
+  const accepted = anyOf ?? (permission ? [permission] : [])
+  if (!accepted.some((item) => session.data?.permissions.includes(item))) {
     return (
       <section>
         <PageHeader title="Acceso no permitido" />

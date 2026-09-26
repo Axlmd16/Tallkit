@@ -20,6 +20,12 @@ ALLOWED_CROSS_MODULES = {
     "workshop_configuration.application.fiscal_resolver",
     "workshop_configuration.application.fiscal_tax_mapping",
     "workshop_configuration.domain.validation",
+    # La API fiscal compone los servicios propietarios de configuración (D11) y la
+    # clase de permisos de negocio; la lógica sigue en sus módulos dueños.
+    "workshop_configuration.application.electronic_profiles",
+    "workshop_configuration.application.emission_locations",
+    "workshop_configuration.application.entity_warehouse",
+    "identity.api.permissions",
 }
 
 

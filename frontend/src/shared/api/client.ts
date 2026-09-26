@@ -19,8 +19,9 @@ export class ProblemError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
+  headers?: Record<string, string>
 }
 
 function cookieValue(name: string): string | undefined {
@@ -73,7 +74,10 @@ export class ApiClient {
     if (isMutation(method) && !this.csrfToken) await this.refreshCsrf()
 
     const isForm = options.body instanceof FormData
-    const headers: Record<string, string> = { Accept: 'application/json' }
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      ...options.headers,
+    }
     if (options.body !== undefined && !isForm)
       headers['Content-Type'] = 'application/json'
     if (isMutation(method) && this.csrfToken)
@@ -104,6 +108,45 @@ export class ApiClient {
     if (!response.ok) await this.throwProblem(response)
     if (response.status === 204) return undefined as T
     return (await response.json()) as T
+  }
+
+  async requestBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+    const method = options.method ?? 'GET'
+    if (isMutation(method) && !this.csrfToken) await this.refreshCsrf()
+
+    const isForm = options.body instanceof FormData
+    const headers: Record<string, string> = {
+      Accept: 'application/octet-stream, application/xml, application/zip',
+      ...options.headers,
+    }
+    if (options.body !== undefined && !isForm)
+      headers['Content-Type'] = 'application/json'
+    if (isMutation(method) && this.csrfToken)
+      headers['X-CSRFToken'] = this.csrfToken
+
+    let response: Response
+    try {
+      response = await fetch(`${this.baseUrl}${path}`, {
+        method,
+        credentials: 'same-origin',
+        headers,
+        ...(options.body === undefined
+          ? {}
+          : {
+              body: isForm
+                ? (options.body as FormData)
+                : JSON.stringify(options.body),
+            }),
+      })
+    } catch {
+      throw new ProblemError(
+        'No fue posible conectar con el backend.',
+        0,
+        'network_error',
+      )
+    }
+    if (!response.ok) await this.throwProblem(response)
+    return response.blob()
   }
 
   private async throwProblem(response: Response): Promise<never> {

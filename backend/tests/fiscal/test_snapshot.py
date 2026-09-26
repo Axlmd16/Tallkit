@@ -35,6 +35,8 @@ def _lines() -> list[dict[str, object]]:
     return [
         {
             "position": 1,
+            "item_code": "SERV-001",
+            "description": "Servicio sintético",
             "quantity": "1",
             "base_amount": "10.00",
             "tax_amount": "1.50",
@@ -78,6 +80,8 @@ def test_snapshot_is_assembled_with_schema_version_and_decimal_strings() -> None
     assert snapshot["receiver"]["identification"] == "0999999999001"
     assert snapshot["totals"]["grand"] == "11.50"
     assert snapshot["lines"][0]["unit_price_without_tax"] == "10.000000"
+    assert snapshot["lines"][0]["item_code"] == "SERV-001"
+    assert snapshot["lines"][0]["description"] == "Servicio sintético"
     assert snapshot["catalog_versions"] == {"iva": "2024-04"}
 
 

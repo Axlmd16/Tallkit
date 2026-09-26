@@ -28,6 +28,8 @@ class SnapshotImpedimentError(Exception):
 @dataclass(frozen=True)
 class FiscalLineRepresentation:
     position: int
+    item_code: str
+    description: str
     quantity: str
     unit_price_without_tax: str
     base_amount: str
@@ -79,7 +81,28 @@ def build_amounts(
     with localcontext() as context:
         context.prec = PRECISION
         for line in lines:
-            position = int(line["position"])
+            raw_position = line["position"]
+            if not isinstance(raw_position, (str, bytes, bytearray, int)):
+                raise SnapshotImpedimentError(
+                    [{"field": "line.position", "message": "La posición no es válida."}]
+                )
+            position = int(raw_position)
+            item_code = str(line.get("item_code", "")).strip()
+            description = str(line.get("description", "")).strip()
+            if not item_code:
+                impediments.append(
+                    {
+                        "field": f"line[{position}].item_code",
+                        "message": "La línea requiere un código conservado para la factura.",
+                    }
+                )
+            if not description:
+                impediments.append(
+                    {
+                        "field": f"line[{position}].description",
+                        "message": "La línea requiere una descripción conservada para la factura.",
+                    }
+                )
             quantity = Decimal(str(line["quantity"]))
             base = Decimal(str(line["base_amount"]))
             tax = Decimal(str(line["tax_amount"]))
@@ -127,6 +150,8 @@ def build_amounts(
             representations.append(
                 FiscalLineRepresentation(
                     position=position,
+                    item_code=item_code,
+                    description=description,
                     quantity=str(line["quantity"]),
                     unit_price_without_tax=str(unit_price),
                     base_amount=_fmt_cents(base),
@@ -143,8 +168,8 @@ def build_amounts(
                 key,
                 {"tax_rate": tax_rate, "base": Decimal("0.00"), "tax": Decimal("0.00")},
             )
-            bucket["base"] = Decimal(bucket["base"]) + base  # type: ignore[arg-type]
-            bucket["tax"] = Decimal(bucket["tax"]) + tax  # type: ignore[arg-type]
+            bucket["base"] = Decimal(bucket["base"]) + base
+            bucket["tax"] = Decimal(bucket["tax"]) + tax
 
             sum_base += base
             sum_tax += tax
@@ -178,8 +203,8 @@ def build_amounts(
             tax_code=code,
             percentage_code=percentage,
             tax_rate=str(bucket["tax_rate"]),
-            base_amount=_fmt_cents(Decimal(bucket["base"])),  # type: ignore[arg-type]
-            tax_amount=_fmt_cents(Decimal(bucket["tax"])),  # type: ignore[arg-type]
+            base_amount=_fmt_cents(Decimal(bucket["base"])),
+            tax_amount=_fmt_cents(Decimal(bucket["tax"])),
         )
         for (code, percentage), bucket in sorted(groups.items())
     )

@@ -1,0 +1,60 @@
+{
+  "retrieved_on": "2026-09-26",
+  "dependencies": [
+    {
+      "filename": "xmldsig-core-schema.xsd",
+      "sha256": "d102ad3df7664c307e0c2c776ba4a90513b1969974d8a940bae1a77f9f21e15d",
+      "source_url": "https://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd"
+    }
+  ],
+  "schemas": [
+    {
+      "document_type": "01",
+      "version": "1.0.0",
+      "filename": "factura-1.0.0.xsd",
+      "sha256": "0c2d62f15c9ed03f5e5d3559dc556dd254396396247f3ea919e63473b4299442",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/05546998-6f29-4870-be3b-62650f312a6c/XML%20y%20XSD%20Factura.zip",
+      "source_archive_sha256": "ba1ff0c4e329fe759c3f88dc75f2975780b315b6eb3d0069071b77c1f26fec03"
+    },
+    {
+      "document_type": "01",
+      "version": "1.1.0",
+      "filename": "factura-1.1.0.xsd",
+      "sha256": "62db9bf0ecceb00ef2b7ed136e59224815e5e5e33c77efc6a0552001e052eb8b",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/05546998-6f29-4870-be3b-62650f312a6c/XML%20y%20XSD%20Factura.zip",
+      "source_archive_sha256": "ba1ff0c4e329fe759c3f88dc75f2975780b315b6eb3d0069071b77c1f26fec03"
+    },
+    {
+      "document_type": "01",
+      "version": "2.0.0",
+      "filename": "factura-2.0.0.xsd",
+      "sha256": "cf1bbd68f43d594f51f9983e8ca2d756e7dfc745ae63ec8ea6301c22d05a1479",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/05546998-6f29-4870-be3b-62650f312a6c/XML%20y%20XSD%20Factura.zip",
+      "source_archive_sha256": "ba1ff0c4e329fe759c3f88dc75f2975780b315b6eb3d0069071b77c1f26fec03"
+    },
+    {
+      "document_type": "01",
+      "version": "2.1.0",
+      "filename": "factura-2.1.0.xsd",
+      "sha256": "5f2c37bc1a58bb40e8bbbc366cabe05d5dc199598aeea1561137370f8bd4eace",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/05546998-6f29-4870-be3b-62650f312a6c/XML%20y%20XSD%20Factura.zip",
+      "source_archive_sha256": "ba1ff0c4e329fe759c3f88dc75f2975780b315b6eb3d0069071b77c1f26fec03"
+    },
+    {
+      "document_type": "04",
+      "version": "1.0.0",
+      "filename": "nota-credito-1.0.0.xsd",
+      "sha256": "8a4c3ec4e0b0dace9316d9cb5825b14f4e60b1d8c8189a0ac994dce2863d9e07",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/dfc944cd-5f18-4433-a626-3cc64cfc4549/XML%20y%20XSD%20Nota%20de%20Cr%C3%A9dito.zip",
+      "source_archive_sha256": "9b7e9c1a240ae39a858aa8fbaf91c41c761417e7bd763ccb20ffc0b81ad1bd43"
+    },
+    {
+      "document_type": "04",
+      "version": "1.1.0",
+      "filename": "nota-credito-1.1.0.xsd",
+      "sha256": "379e9f270d71ab4578f130a736c9abe5eb1d7969375ecdef55d2973583ec5ab0",
+      "source_url": "https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar/dfc944cd-5f18-4433-a626-3cc64cfc4549/XML%20y%20XSD%20Nota%20de%20Cr%C3%A9dito.zip",
+      "source_archive_sha256": "9b7e9c1a240ae39a858aa8fbaf91c41c761417e7bd763ccb20ffc0b81ad1bd43"
+    }
+  ]
+}

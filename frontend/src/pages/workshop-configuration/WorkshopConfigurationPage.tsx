@@ -40,6 +40,7 @@ import {
   useWarehouse,
   useWorkshopStatus,
 } from '@/features/workshop-configuration/queries'
+import { FiscalConfigurationSection } from '@/features/fiscal/FiscalConfigurationSection'
 import type {
   DocumentSeries,
   FiscalEntity,
@@ -118,6 +119,14 @@ function ConfiguredWorkshopContent() {
             icon: <FileText size={19} weight="duotone" />,
             tone: 'success',
           },
+          {
+            href: '#electronic-fiscal',
+            label: 'Fiscal electrónico',
+            description: 'Perfil, puntos y catálogos',
+            count: entities?.length ?? 0,
+            icon: <Buildings size={19} weight="duotone" />,
+            tone: 'info',
+          },
         ]}
       />
 
@@ -138,6 +147,11 @@ function ConfiguredWorkshopContent() {
           <SeriesSection />
         </div>
       </div>
+
+      <FiscalConfigurationSection
+        entities={entities ?? []}
+        taxDefinitions={taxes ?? []}
+      />
     </section>
   )
 }

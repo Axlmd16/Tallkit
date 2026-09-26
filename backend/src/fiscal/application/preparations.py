@@ -14,7 +14,12 @@ from django.utils import timezone
 from fiscal.application.snapshot_builder import assemble_snapshot
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 from fiscal.domain.states import PreparationState
-from fiscal.models import FiscalCommandReceipt, FiscalPreparation, FiscalPreparationHistory
+from fiscal.models import (
+    FiscalCommandReceipt,
+    FiscalPreparation,
+    FiscalPreparationHistory,
+    FiscalXmlDossier,
+)
 from identity.application.audit import record_audit_event
 from identity.application.authorization import require_permission
 from identity.models import AuditResult, User
@@ -87,6 +92,10 @@ class PreparationImpedimentError(FiscalPreparationError):
         self.impediments = impediments
 
 
+class LinkedExternalEvidenceError(FiscalPreparationError):
+    pass
+
+
 @dataclass(frozen=True)
 class ReviewResult:
     impediments: tuple[dict[str, str], ...]
@@ -109,6 +118,23 @@ class FiscalDiscrepancy:
     original_source_version: int
     current_source_version: int
     current_correction_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class PreparationDetail:
+    preparation_id: UUID
+    fiscal_entity_id: int
+    source_kind: str
+    source_id: int
+    state: str
+    version: int
+    source_version: int
+    draft: dict[str, Any] | None
+    snapshot: dict[str, Any] | None
+    discrepancy: FiscalDiscrepancy
+    cancellation_reason: str
+    created_at: str
+    prepared_at: str | None
 
 
 def _permission(source_kind: str) -> str:
@@ -134,7 +160,7 @@ def _correction_ids(source: object) -> tuple[int, ...]:
     return tuple(int(value) for value in values)
 
 
-def _source_fingerprint(source: object) -> str:
+def _source_fingerprint(source: Any) -> str:
     return canonical_fingerprint(
         {
             "state": source.state,
@@ -184,6 +210,15 @@ def create_draft(
         )
         if source.state != "CONFIRMED":
             raise IneligibleFiscalSourceError("La operación no está confirmada y vigente.")
+        linked_filter = (
+            {"commercial_sale_id": source_id}
+            if source_kind == "COMMERCIAL"
+            else {"artisan_operation_id": source_id}
+        )
+        if FiscalXmlDossier.objects.filter(**linked_filter).exists():
+            raise LinkedExternalEvidenceError(
+                "La operación ya tiene evidencia fiscal externa vinculada."
+            )
         if _active_exists(source_kind, source_id):
             raise ActivePreparationConflictError("La operación ya tiene una preparación activa.")
 
@@ -257,6 +292,32 @@ def query_discrepancy(*, actor: User, preparation_id: UUID) -> FiscalDiscrepancy
     )
 
 
+def get_preparation(*, actor: User, preparation_id: UUID) -> PreparationDetail:
+    """Consulta una preparación local y su diferencia actual sin inferir estado oficial."""
+    preparation = FiscalPreparation.objects.filter(pk=preparation_id).first()
+    if preparation is None:
+        raise FiscalPreparationNotFoundError("Preparación fiscal no encontrada.")
+    source_kind = _kind_of(preparation)
+    require_permission(actor=actor, permission=_permission(source_kind).replace("preparar", "ver"))
+    source_id = preparation.commercial_sale_id or preparation.artisan_operation_id
+    assert source_id is not None
+    return PreparationDetail(
+        preparation_id=preparation.pk,
+        fiscal_entity_id=preparation.fiscal_entity_id,
+        source_kind=source_kind,
+        source_id=source_id,
+        state=preparation.state,
+        version=preparation.version,
+        source_version=preparation.source_version,
+        draft=preparation.draft,
+        snapshot=preparation.snapshot,
+        discrepancy=query_discrepancy(actor=actor, preparation_id=preparation_id),
+        cancellation_reason=preparation.cancellation_reason,
+        created_at=preparation.created_at.isoformat(),
+        prepared_at=preparation.prepared_at.isoformat() if preparation.prepared_at else None,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Edición del borrador, revisión y transiciones
 # ---------------------------------------------------------------------------
@@ -269,6 +330,7 @@ def _kind_of(preparation: FiscalPreparation) -> str:
 def _lock_source(preparation: FiscalPreparation) -> Any:
     if preparation.commercial_sale_id is not None:
         return lock_commercial_source(preparation.commercial_sale_id)
+    assert preparation.artisan_operation_id is not None
     return lock_artisan_source(preparation.artisan_operation_id)
 
 

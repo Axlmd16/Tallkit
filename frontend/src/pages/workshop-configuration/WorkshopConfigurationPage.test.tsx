@@ -55,6 +55,11 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   useUpdateSeriesCode: () => mocks.seriesUpdate,
   useInitializeWorkshop: () => mocks.initialize,
 }))
+vi.mock('@/features/fiscal/FiscalConfigurationSection', () => ({
+  FiscalConfigurationSection: () => (
+    <section aria-label="Configuración fiscal electrónica" />
+  ),
+}))
 
 import { WorkshopConfigurationPage } from './WorkshopConfigurationPage'
 
