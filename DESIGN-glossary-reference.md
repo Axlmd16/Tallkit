@@ -7,3 +7,4 @@
 | RUC comercial | `docs/negocio/producto/glosario.md` | Ámbito fiscal mostrado con texto, icono y color redundantes. |
 | Lockfile | `docs/tecnico/glosario-tecnico.md` | Conserva versiones reproducibles de fuentes, iconos y herramientas de accesibilidad. |
 | Drawer | `docs/tecnico/glosario-tecnico.md` | Panel contextual lateral que ocupa el ancho completo en teléfono. |
+| Placa de RUC | `docs/negocio/producto/glosario.md` | Pieza `RucPlate` del catálogo de piezas del taller. |

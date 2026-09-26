@@ -12,3 +12,4 @@
 | Drawer | `docs/tecnico/glosario-tecnico.md` | Panel de vista previa, fijo o superpuesto según configuración; retirado como formato para crear o editar. Hoy muestra la vista previa de un servicio desde su lista. |
 | Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
+| Placa de RUC | `docs/negocio/producto/glosario.md` | RUC de cada entidad en la configuración, con etiqueta diferenciada y dígitos monoespaciados. |
