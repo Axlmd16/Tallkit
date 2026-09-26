@@ -15,7 +15,8 @@ import {
   usePaymentForms,
   usePreparationDefaults,
 } from '../hooks'
-import type { PaymentFormOption } from '../types'
+import type { PaymentFormOption, StatusCause } from '../types'
+import { PendingNotes } from './PendingNotes'
 import { errorMessage } from './shared'
 
 function formState(form: PaymentFormOption) {
@@ -29,7 +30,13 @@ function formState(form: PaymentFormOption) {
     : { label: 'No habilitable en V1', tone: 'unknown' as const }
 }
 
-export function PaymentFormsSection({ entityId }: { entityId: number }) {
+export function PaymentFormsSection({
+  entityId,
+  pending = [],
+}: {
+  entityId: number
+  pending?: StatusCause[]
+}) {
   const forms = usePaymentForms(entityId)
   const defaults = usePreparationDefaults(entityId)
   const mutations = useFiscalMutations()
@@ -49,10 +56,11 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
     <section aria-labelledby={`formas-pago-${entityId}`} className="space-y-5">
       <SheetHeading
         id={`formas-pago-${entityId}`}
-        description="Catálogo oficial de la Tabla 24. En V1 solo pueden habilitarse efectivo (01) y transferencia (20); crédito es una condición interna y no una forma de pago."
+        description="En V1 solo se habilitan efectivo (01) y transferencia (20)."
         level={3}
         title="Formas de pago SRI"
       />
+      <PendingNotes causes={pending} />
       {failure && <ErrorState message={errorMessage(failure)} />}
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
@@ -86,7 +94,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                     <span className="inline-flex flex-wrap justify-end gap-1">
                       {form.enabled && !form.is_default && (
                         <Button
-                          className="px-2"
+                          className="min-h-9 px-3"
                           onClick={() =>
                             mutations.savePreparationDefaults.mutate(
                               {
@@ -105,14 +113,14 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                               },
                             )
                           }
-                          variant="quiet"
+                          variant="secondary"
                         >
                           Usar como predeterminada
                         </Button>
                       )}
                       <Button
                         aria-label={`${form.enabled ? 'Deshabilitar' : 'Habilitar'} ${form.display_name}`}
-                        className="px-2"
+                        className="min-h-9 px-3"
                         onClick={() =>
                           mutations.setPaymentForm.mutate(
                             {
@@ -128,7 +136,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                             },
                           )
                         }
-                        variant="quiet"
+                        variant="secondary"
                       >
                         {form.enabled ? 'Deshabilitar' : 'Habilitar'}
                       </Button>
@@ -141,7 +149,11 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
         </table>
       </div>
       {source && (
-        <AdvancedInfo hint="fuente, versión y vigencias">
+        <AdvancedInfo hint="catálogo, fuente y vigencias">
+          <p>
+            Catálogo oficial de la Tabla 24. Crédito es una condición interna de
+            la venta y no una forma de pago.
+          </p>
           <p>
             Fuente: {source.source_document}, versión{' '}
             <span className="font-mono">{source.source_version}</span>,

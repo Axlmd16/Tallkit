@@ -18,6 +18,16 @@ export const READINESS_SECTION_LABELS: Record<ReadinessSection, string> = {
   certificado: 'Certificado electrónico',
 }
 
+/** Nombres breves para la navegación; el título de cada subsección conserva el completo. */
+export const READINESS_SECTION_SHORT_LABELS: Record<ReadinessSection, string> =
+  {
+    perfil: 'Perfil tributario',
+    puntos: 'Puntos de emisión',
+    impuestos: 'Impuestos SRI',
+    'formas-pago': 'Formas de pago',
+    certificado: 'Certificado',
+  }
+
 export const ELECTRONIC_STATE_LABELS: Record<ElectronicState, string> = {
   NOT_CONFIGURED: 'Sin configurar',
   INCOMPLETE: 'Falta completar',
@@ -37,7 +47,10 @@ export interface ReadinessDestination {
  * un código nuevo sin correspondencia se trata como causa general.
  */
 export function sectionForCause(code: string): ReadinessSection | null {
-  if (/^conditions\.[^.]+\.(unknown|future|expired)$/.test(code))
+  if (
+    code === 'profile' ||
+    /^conditions\.[^.]+\.(unknown|future|expired)$/.test(code)
+  )
     return 'perfil'
   if (/^tax_mapping\.\d+\.(missing|expired|review)$/.test(code))
     return 'impuestos'
@@ -103,12 +116,17 @@ export function summarizeEntityStatus(
 export function sectionIndicator(
   summary: EntityReadinessSummary,
   section: ReadinessSection,
-): { label: string; tone: 'success' | 'warning' | 'neutral' } {
+): {
+  label: string
+  tone: 'success' | 'warning' | 'neutral'
+  count?: number
+} {
   const pending = summary.bySection[section].length
   if (pending > 0)
     return {
       label: pending === 1 ? '1 pendiente' : `${pending} pendientes`,
       tone: 'warning',
+      count: pending,
     }
   if (section === 'certificado')
     return summary.warnings.length

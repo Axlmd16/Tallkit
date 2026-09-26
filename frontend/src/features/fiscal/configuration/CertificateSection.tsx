@@ -17,7 +17,12 @@ import {
 } from '@/shared/ui'
 
 import { useElectronicProfile, useFiscalMutations } from '../hooks'
-import type { CertificateMetadata, ElectronicProfile } from '../types'
+import type {
+  CertificateMetadata,
+  ElectronicProfile,
+  StatusCause,
+} from '../types'
+import { PendingNotes } from './PendingNotes'
 
 const FIELDS: Array<{
   name: keyof CertificateMetadata
@@ -69,7 +74,13 @@ function localValidity(certificate: CertificateMetadata) {
   return { label: 'Vigente por fechas', tone: 'success' as const }
 }
 
-export function CertificateSection({ entityId }: { entityId: number }) {
+export function CertificateSection({
+  entityId,
+  warnings = [],
+}: {
+  entityId: number
+  warnings?: StatusCause[]
+}) {
   const profile = useElectronicProfile(entityId)
   const [editing, setEditing] = useState(false)
 
@@ -88,10 +99,13 @@ export function CertificateSection({ entityId }: { entityId: number }) {
             {certificate ? 'Editar' : 'Declarar certificado'}
           </Button>
         }
-        description="Metadatos opcionales del certificado de firma que podría usarse en una emisión futura. No equivalen a una firma ni a una autorización, y no se cargan archivos P12, claves privadas ni contraseñas."
+        description="Opcional. Solo datos de referencia: no equivale a una firma ni habilita la emisión."
         level={3}
         title="Certificado electrónico"
       />
+      {certificate && (
+        <PendingNotes causes={warnings} label="Advertencias del certificado" />
+      )}
       {certificate ? (
         <FactList className="max-w-3xl">
           <FactRow label="Referencia">
@@ -110,10 +124,7 @@ export function CertificateSection({ entityId }: { entityId: number }) {
           <FactRow label="Fuente">{certificate.source}</FactRow>
         </FactList>
       ) : (
-        <p className="text-sm text-ink-muted">
-          Sin certificado declarado. Es opcional y no impide la preparación
-          local.
-        </p>
+        <p className="text-sm text-ink-muted">Sin certificado declarado.</p>
       )}
       {editing && (
         <CertificateModal
@@ -176,7 +187,7 @@ function CertificateModal({
 
   return (
     <FormModal
-      description="Declare todos los metadatos o déjelos vacíos."
+      description="Declare todos los datos o déjelos vacíos. No se cargan archivos P12, claves privadas ni contraseñas."
       dirty={dirty}
       onClose={onClose}
       onSave={save}

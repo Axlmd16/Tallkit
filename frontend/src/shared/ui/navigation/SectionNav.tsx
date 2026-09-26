@@ -130,7 +130,7 @@ export function SectionNav({
                       <li key={child.id}>
                         <a
                           aria-current={childCurrent ? 'page' : undefined}
-                          className={`flex min-h-11 items-center gap-2.5 pr-4 pl-[50px] text-[13px] ${focusRing} ${childCurrent ? 'bg-accent-soft font-semibold text-accent-strong shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
+                          className={`flex min-h-10 items-center gap-2.5 pr-5 pl-[50px] text-[13px] ${focusRing} ${childCurrent ? 'bg-accent-soft font-semibold text-accent-strong shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
                           href={child.href}
                           onClick={(event) => select(event, child.id)}
                           ref={register(child.id)}

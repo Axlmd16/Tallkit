@@ -19,13 +19,17 @@ import {
 } from '@/shared/ui'
 
 import { useCatalog, useFiscalMutations, useTaxMappings } from '../hooks'
+import type { StatusCause } from '../types'
+import { PendingNotes } from './PendingNotes'
 
 export function TaxMappingsSection({
   entityId,
   definitions,
+  pending = [],
 }: {
   entityId: number
   definitions: TaxDefinition[]
+  pending?: StatusCause[]
 }) {
   const mappings = useTaxMappings(entityId)
   const [creating, setCreating] = useState(false)
@@ -46,10 +50,11 @@ export function TaxMappingsSection({
             </Button>
           )
         }
-        description="Relacione cada impuesto interno con la tarifa oficial del catálogo del SRI. Una correspondencia no acredita por sí sola que un beneficio tributario sea aplicable."
+        description="Relacione cada impuesto interno con su tarifa oficial del SRI."
         level={3}
         title="Impuestos y catálogo SRI"
       />
+      <PendingNotes causes={pending} />
 
       {definitions.length === 0 && (
         <p className="rounded-control bg-surface-subtle px-4 py-3 text-sm text-ink-muted">
@@ -184,7 +189,7 @@ function MappingModal({
 
   return (
     <FormModal
-      description="La tarifa elegida debe coincidir con la del impuesto interno."
+      description="La tarifa elegida debe coincidir con la del impuesto interno. Una correspondencia no acredita por sí sola que un beneficio tributario sea aplicable."
       dirty={dirty}
       onClose={onClose}
       onSave={save}

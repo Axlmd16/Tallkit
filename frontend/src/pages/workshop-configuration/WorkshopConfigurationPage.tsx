@@ -35,7 +35,7 @@ import {
 } from '@/features/workshop-configuration/queries'
 import { FiscalConfigurationSection } from '@/features/fiscal/FiscalConfigurationSection'
 import {
-  READINESS_SECTION_LABELS,
+  READINESS_SECTION_SHORT_LABELS,
   READINESS_SECTIONS,
   sectionIndicator,
   useConfigurationReadiness,
@@ -142,20 +142,30 @@ function ConfiguredWorkshopContent() {
   const activeSeries = series?.filter((item) => item.is_active).length ?? 0
 
   return (
-    <section className="animate-fade-in space-y-6">
-      <div className="space-y-2">
-        <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
-          <span aria-hidden="true" className="size-2 rounded-[2px] bg-brand" />
-          Administración
-        </p>
-        <PageHeader
-          actions={<ConfigurationSummary readiness={readiness} />}
-          description="Datos base del taller: entidades fiscales, bodega, impuestos, numeración y facturación electrónica."
-          title="Configuración del taller"
-        />
-      </div>
+    <section className="animate-fade-in flex flex-col gap-6 md:min-h-[calc(100dvh-100px)]">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-[2px] bg-brand"
+            />
+            Administración
+          </p>
+          <h1 className="mt-2 text-[22px] leading-7 font-semibold text-ink">
+            Configuración del taller
+          </h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            Datos base del taller: entidades fiscales, bodega, impuestos,
+            numeración y facturación electrónica.
+          </p>
+        </div>
+        <div className="shrink-0">
+          <ConfigurationSummary readiness={readiness} />
+        </div>
+      </header>
 
-      <div className="relative grid min-h-[36rem] grid-cols-[minmax(0,1fr)] overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[272px_minmax(0,1fr)]">
+      <div className="relative grid min-h-[36rem] flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] lg:grid-rows-[1fr] overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[272px_minmax(0,1fr)]">
         <SectionNav
           activeChildId={
             tab === 'facturacion'
@@ -204,7 +214,7 @@ function ConfiguredWorkshopContent() {
                 : {}),
               children: READINESS_SECTIONS.map((section) => ({
                 id: `${FISCAL_CHILD_PREFIX}${section}`,
-                label: READINESS_SECTION_LABELS[section],
+                label: READINESS_SECTION_SHORT_LABELS[section],
                 href: hrefFor('facturacion', section),
                 ...(selectedReadiness
                   ? {

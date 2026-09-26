@@ -33,7 +33,7 @@ export function SheetHeading({
           </p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
+      {actions && <div className="flex min-w-0 shrink-0 gap-2">{actions}</div>}
     </div>
   )
 }
@@ -57,9 +57,12 @@ export function PendingCount({ count }: { count: number }) {
 export function SubsectionIndicator({
   label,
   tone,
+  count,
 }: {
   label: string
   tone: 'success' | 'warning' | 'neutral'
+  /** Con pendientes, se muestra el número y el texto completo queda para lectores de pantalla. */
+  count?: number | undefined
 }) {
   if (tone === 'success')
     return (
@@ -69,7 +72,9 @@ export function SubsectionIndicator({
       </span>
     )
   if (tone === 'warning')
-    return (
+    return count !== undefined ? (
+      <PendingCount count={count} />
+    ) : (
       <span className="inline-flex items-center gap-1.5 font-semibold text-warning">
         <span
           aria-hidden="true"

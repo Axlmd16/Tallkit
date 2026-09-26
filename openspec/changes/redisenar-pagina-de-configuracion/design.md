@@ -144,6 +144,23 @@ Por debajo de `lg`, `FiscalConfigurationSection` muestra su propio `SectionNav` 
 
 La franja de estado reemplaza a `ElectronicStatusCard` como bloque: una sola banda con el tono del estado, el nombre, las causas en texto y el enlace. «Ambiente disponible: Pruebas» y la aclaración de que no hay validación del SRI pasan a «Información avanzada».
 
+### D8b. Revisión con el usuario: menos texto en facturación
+
+Tras la validación directa del usuario (2026-09-26), la sección *Facturación electrónica* se aligera:
+
+- se retira la franja de estado a todo el ancho; el estado de cada entidad vive en su opción del selector y cada causa se muestra en una línea breve al inicio de la subsección que la resuelve (`sectionForCause`); las causas no atribuibles, en una línea bajo el selector;
+- el aviso permanente queda como única línea bajo el título y se retira la etiqueta «Preparación local», que lo repetía;
+- «Ambiente disponible: Pruebas» y la aclaración sobre el SRI dejan de mostrarse arriba: el ambiente sigue en *Establecimientos y puntos de emisión* y la aclaración, en la descripción del perfil;
+- el selector de entidad usa opciones grandes con indicador de selección visible, `ScopeLabel`, razón social, `RucPlate` y estado;
+- las subsecciones tienen nombres breves en la navegación (`READINESS_SECTION_SHORT_LABELS`) e indicadores mínimos; las acciones de tabla son botones secundarios con icono;
+- `.ui-button` recupera `cursor: pointer`, que el reinicio de Tailwind v4 quita a todos los botones.
+
+Segunda revisión del usuario (2026-09-26):
+
+- el selector de entidad pasa a un control segmentado compacto en las acciones del título de *Facturación electrónica*; cada opción muestra ámbito, razón social y marcador de estado, y la placa de RUC de la entidad seleccionada va debajo del control;
+- la página usa un encabezado propio con la descripción breve en una línea (sin el `max-w-[72ch]` de `PageHeader`);
+- desde `md`, la página es una columna flexible con alto mínimo `calc(100dvh - 100px)` (barra superior de 60 px más el relleno vertical del contenido) y la hoja ocupa el resto con `flex-1`, de modo que su altura no cambia entre secciones.
+
 ### D9. Perfil tributario por condición
 
 `ProfileConditionsSection` pasa a una tabla de seis filas: condición, declaración con marcador y texto, detalle y vigencia desde, con guion si falta. Cada fila tiene la acción «Declarar» o «Editar».

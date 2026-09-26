@@ -157,6 +157,17 @@ Dependencias: grupos 2 a 7. Diseño D12.
   Registrar comandos, resultados y lo no ejecutado (suite completa de frontend, backend y resto de Playwright).
 - [ ] 8.6 Pedir al usuario que valide la página directamente en la aplicación (`sistema-visual-frontend`, validación directa) y registrar sus correcciones antes de archivar.
 
+## 9. Revisión del usuario: facturación electrónica con menos texto
+
+Dependencias: grupos 1 a 8. Diseño D8b; spec «Subsecciones de facturación electrónica» actualizada.
+
+- [x] 9.1 Actualizar las pruebas de `FiscalConfigurationSection.test.tsx`: sin franja de estado; causa atribuida al inicio de su subsección; causa no atribuible bajo el selector; advertencia del certificado solo en *Certificado*; selector con indicador de selección; botones con icono en el perfil.
+- [x] 9.2 Rediseñar el encabezado, `EntityChoice` y la presentación del estado en `FiscalConfigurationSection` y sus subsecciones; acortar descripciones.
+- [x] 9.3 Usar nombres breves e indicadores mínimos para las subsecciones en `SectionNav` y ajustar la página y sus pruebas.
+- [x] 9.4 Restaurar `cursor: pointer` en `.ui-button` habilitado.
+- [x] 9.5 Selector de entidad compacto junto al título, placa del RUC seleccionado bajo el control, encabezado de página con descripción en una línea y hoja con alto completo estable desde `md`.
+- [x] 9.6 Verificar: vitest de los archivos afectados, `tsc`, ESLint, Prettier, E2E de configuración y facturación, y capturas comparadas.
+
 ## Revisión y evidencia (2026-09-26)
 
 **Revisión de la implementación previa.** Una primera aplicación, hecha con otra herramienta, marcó varias tareas sin cumplirlas. Estos son los defectos encontrados:
@@ -190,5 +201,13 @@ Ejecutado:
 - Capturas de la aplicación a 1440 y 390 px (entidades, series, facturación, puntos y modal de condición), comparadas con la maqueta.
 
 No ejecutado, por instrucción del usuario: `make check`, `make test`, la suite completa de frontend, el backend (solo cambió un comentario en `electronic_status.py`) y el resto de Playwright.
+
+### Revisiones del usuario (grupo 9)
+
+Primera revisión: se retiraron la franja de estado, el aviso del certificado fuera de su subsección, la «Información avanzada» superior y la etiqueta «Preparación local». Las descripciones quedaron en una frase, las subsecciones usan nombres breves e indicadores mínimos, y las acciones de tabla son botones con icono. La causa `profile` del backend se asigna a *Perfil tributario*. `.ui-button` recupera `cursor: pointer`, que el reinicio de Tailwind v4 había quitado a todos los botones de la aplicación.
+
+Segunda revisión: el selector de entidad pasó a un control segmentado compacto junto al título, con la placa del RUC seleccionado debajo. El encabezado tiene la descripción en una línea y, desde `md`, la hoja ocupa todo el alto disponible.
+
+Verificación: vitest de los archivos afectados → 287 pruebas pasan; `tsc`, ESLint y Prettier sin incidencias; `npx playwright test e2e/workshop-configuration.spec.ts e2e/fiscal.spec.ts` → 15 pasan; capturas a 1440 × 900 y 390 px revisadas. No se ejecutaron la suite completa, el backend ni el resto de Playwright.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).
