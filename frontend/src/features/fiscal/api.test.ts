@@ -112,11 +112,14 @@ describe('fiscalApi', () => {
     const api = createFiscalApi(client)
     await api.updateDraft('p1', {
       expected_version: 1,
-      point_id: 2,
-      receiver: {},
-      payments: {},
-      environment: '1',
+      receiver: {
+        identification_type: '04',
+        identification: '0999999999001',
+        legal_name: 'Cliente',
+      },
+      payments: { forms: [{ payment_code: '01', amount: '10.00' }] },
     })
+    await api.getActivePreparation('COMMERCIAL', 7)
     await api.review('p1')
     await api.cancelPreparation('p1', 2, 'Reemplazo')
     await api.assignTestIdentity('p1')
@@ -139,6 +142,7 @@ describe('fiscalApi', () => {
 
     expect(request.mock.calls.map((call) => call[0])).toEqual([
       '/fiscal/preparations/p1/',
+      '/fiscal/preparations/?source_kind=COMMERCIAL&source_id=7',
       '/fiscal/preparations/p1/review/',
       '/fiscal/preparations/p1/cancel/',
       '/fiscal/preparations/p1/test-identity/',

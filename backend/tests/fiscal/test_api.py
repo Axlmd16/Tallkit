@@ -562,3 +562,22 @@ def test_stale_review_has_its_own_problem_code(
     )
     assert response.status_code == 409
     assert response.json()["code"] == "review_stale"
+
+
+def test_active_preparation_lookup_reports_state_without_emission(
+    role_seller: Any, role_manager: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from fiscal.application.preparations import ActivePreparationSummary
+
+    preparation_id = uuid4()
+    monkeypatch.setattr(
+        "fiscal.api.views.preparations.find_active_preparation",
+        lambda **_: ActivePreparationSummary(preparation_id, "PREPARED"),
+    )
+    response = _client(role_seller).get(f"{BASE}/preparations/?source_kind=COMMERCIAL&source_id=7")
+    assert response.status_code == 200
+    assert response.json() == {"preparation_id": str(preparation_id), "state": "PREPARED"}
+    assert (
+        _client(role_seller).get(f"{BASE}/preparations/?source_kind=OTRO&source_id=7").status_code
+        == 400
+    )

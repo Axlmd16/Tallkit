@@ -2,6 +2,7 @@ import { ApiClient } from '@/shared/api/client'
 import { environment } from '@/shared/config/env'
 
 import type {
+  ActivePreparation,
   ArchiveLinkInput,
   ArchivePolicyWrite,
   ArchiveReadiness,
@@ -42,6 +43,10 @@ export function createFiscalApi(client: ApiClient) {
     getPreparation: (preparationId: string) =>
       client.request<FiscalPreparationDetail>(
         `${BASE}/preparations/${preparationId}/`,
+      ),
+    getActivePreparation: (sourceKind: FiscalSourceKind, sourceId: number) =>
+      client.request<ActivePreparation>(
+        `${BASE}/preparations/?source_kind=${sourceKind}&source_id=${sourceId}`,
       ),
     createPreparation: (
       sourceKind: FiscalSourceKind,

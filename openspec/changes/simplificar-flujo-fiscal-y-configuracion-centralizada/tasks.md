@@ -212,8 +212,8 @@ Evidencia: vitest por archivo de `features/fiscal/configuration/` y de la págin
 
 Dependencias: grupo 4. Diseño D5/D9; specs `preparacion-y-seguimiento-fiscal`, `ventas-comerciales` y `operacion-artesanal-de-servicios`.
 
-- [ ] 7.1 Actualizar los tipos y hooks de la preparación: `DraftUpdate` sin campos técnicos; detalle con `summary`, `payment_options`, `missing_fields` y `technical` opcional; impedimentos con `audience`.
-- [ ] 7.2 Probar en `FiscalPreparationPage.test.tsx`:
+- [x] 7.1 Actualizar los tipos y hooks de la preparación: `DraftUpdate` sin campos técnicos; detalle con `summary`, `payment_options`, `missing_fields` y `technical` opcional; impedimentos con `audience`.
+- [x] 7.2 Probar en `FiscalPreparationPage.test.tsx`:
   - resumen no editable;
   - solo se piden los datos faltantes del receptor;
   - ausencia de ambiente, punto, códigos, fecha y plazo;
@@ -223,9 +223,9 @@ Dependencias: grupo 4. Diseño D5/D9; specs `preparacion-y-seguimiento-fiscal`, 
   - `review_stale`;
   - información avanzada solo para el Administrador;
   - aviso obligatorio y ausencia de términos prohibidos en los tres estados.
-- [ ] 7.3 Reescribir `pages/fiscal/FiscalPreparationPage.tsx` según D9, con confirmaciones en toast y errores persistentes junto a su dato.
-- [ ] 7.4 Probar y ajustar textos en `FiscalPreparationLink.tsx`, `SaleDetailPage.tsx` y `ServiceOperationDetailPage.tsx`: «Preparar datos fiscales» y «Preparación local · Pendiente de emisión». Modificar solo textos fiscales, respetando los del cambio activo de servicios.
-- [ ] 7.5 Añadir una utilidad de prueba compartida que falle ante «factura emitida», «autorizada», «enviada al SRI» o «aprobada» en las vistas fiscales, y aplicarla en las pruebas de 7.2 y 7.4.
+- [x] 7.3 Reescribir `pages/fiscal/FiscalPreparationPage.tsx` según D9, con confirmaciones en toast y errores persistentes junto a su dato.
+- [x] 7.4 Probar y ajustar textos en `FiscalPreparationLink.tsx`, `SaleDetailPage.tsx` y `ServiceOperationDetailPage.tsx`: «Preparar datos fiscales» y «Preparación local · Pendiente de emisión». Modificar solo textos fiscales, respetando los del cambio activo de servicios.
+- [x] 7.5 Añadir una utilidad de prueba compartida que falle ante «factura emitida», «autorizada», «enviada al SRI» o «aprobada» en las vistas fiscales, y aplicarla en las pruebas de 7.2 y 7.4.
 
 Evidencia: vitest de los archivos tocados, más `tsc`, ESLint y prettier.
 

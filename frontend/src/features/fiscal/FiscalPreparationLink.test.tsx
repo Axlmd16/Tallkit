@@ -1,10 +1,14 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import { FiscalPreparationLink } from './FiscalPreparationLink'
+import { expectNoForbiddenFiscalTerms } from './terminology.test-utils'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
+  navigate: vi.fn(),
+  active: { data: null as unknown },
   createPreparation: {
     mutate: vi.fn(),
     isPending: false,
@@ -13,22 +17,73 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('react-router', () => ({ useNavigate: () => vi.fn() }))
+vi.mock('react-router', () => ({ useNavigate: () => mocks.navigate }))
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
 }))
 vi.mock('./hooks', () => ({
   useFiscalMutations: () => ({ createPreparation: mocks.createPreparation }),
+  useActivePreparation: () => mocks.active,
 }))
 
 beforeEach(() => {
   mocks.permissions = []
+  mocks.active.data = { preparation_id: null, state: null }
+  mocks.navigate.mockReset()
+  mocks.createPreparation.mutate.mockReset()
 })
 
-it('muestra el enlace comercial con permiso comercial', () => {
+it('ofrece «Preparar datos fiscales» a quien prepara ventas comerciales', async () => {
+  const user = userEvent.setup()
   mocks.permissions = ['fiscal.comercial.preparar']
-  render(<FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />)
-  expect(screen.getByText('Preparar factura fiscal')).toBeInTheDocument()
+  const { container } = render(
+    <FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />,
+  )
+  expect(
+    screen.getByText(/No ha sido firmada ni enviada al SRI/),
+  ).toBeInTheDocument()
+  await user.click(
+    screen.getByRole('button', { name: 'Preparar datos fiscales' }),
+  )
+  expect(mocks.createPreparation.mutate).toHaveBeenCalledWith(
+    expect.objectContaining({ sourceKind: 'COMMERCIAL', sourceId: 7 }),
+    expect.anything(),
+  )
+  expectNoForbiddenFiscalTerms(container)
+})
+
+it('muestra una preparación completada como pendiente de emisión', async () => {
+  const user = userEvent.setup()
+  mocks.permissions = ['fiscal.comercial.preparar']
+  mocks.active.data = { preparation_id: 'p-1', state: 'PREPARED' }
+  const { container } = render(
+    <FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />,
+  )
+  expect(
+    screen.getByRole('status', {
+      name: 'Estado: Preparación local · Pendiente de emisión',
+    }),
+  ).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Preparar datos fiscales' }),
+  ).toBeNull()
+  await user.click(
+    screen.getByRole('button', { name: 'Ver preparación local' }),
+  )
+  expect(mocks.navigate).toHaveBeenCalledWith('/fiscal/preparations/p-1')
+  expectNoForbiddenFiscalTerms(container)
+})
+
+it('lleva un borrador existente a «Revisar datos para facturación»', () => {
+  mocks.permissions = ['fiscal.artesanal.preparar']
+  mocks.active.data = { preparation_id: 'p-2', state: 'DRAFT' }
+  render(<FiscalPreparationLink sourceKind="ARTISAN" sourceId={9} />)
+  expect(
+    screen.getByRole('status', { name: 'Estado: Borrador fiscal' }),
+  ).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Revisar datos para facturación' }),
+  ).toBeInTheDocument()
 })
 
 it('no habilita el expediente fiscal comercial al Encargado (solo artesanal)', () => {
@@ -39,14 +94,18 @@ it('no habilita el expediente fiscal comercial al Encargado (solo artesanal)', (
   expect(container).toBeEmptyDOMElement()
 })
 
-it('muestra el enlace artesanal con permiso artesanal', () => {
-  mocks.permissions = ['fiscal.artesanal.preparar']
-  render(<FiscalPreparationLink sourceKind="ARTISAN" sourceId={9} />)
-  expect(screen.getByText('Preparar factura fiscal')).toBeInTheDocument()
+it('no muestra los datos fiscales artesanales al Vendedor', () => {
+  mocks.permissions = ['fiscal.comercial.preparar']
+  const { container } = render(
+    <FiscalPreparationLink sourceKind="ARTISAN" sourceId={9} />,
+  )
+  expect(container).toBeEmptyDOMElement()
 })
 
-it('la union de roles habilita el ambito comercial', () => {
+it('la unión de roles habilita el ámbito comercial', () => {
   mocks.permissions = ['fiscal.comercial.preparar', 'fiscal.artesanal.preparar']
   render(<FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />)
-  expect(screen.getByText('Preparar factura fiscal')).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Preparar datos fiscales' }),
+  ).toBeInTheDocument()
 })
