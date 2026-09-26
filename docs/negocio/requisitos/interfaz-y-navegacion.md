@@ -128,10 +128,12 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 |---|---|---|
 | UI-010 | Lista de usuarios | Búsqueda, estado, rol, último acceso cuando esté disponible, crear, editar, activar/desactivar y restablecer credencial. |
 | UI-011 | Formulario de usuario | Identificación de acceso, datos básicos, estado y selección de uno o más roles entre Administrador, Vendedor y Encargado del taller. |
+| UI-013 | Configuración del taller | Página exclusiva del Administrador con pestañas *Entidades fiscales*, *Bodega*, *Impuestos*, *Series y numeración* y *Facturación electrónica*; inicia en *Entidades fiscales* salvo enlace directo (`?tab=`), recorre las pestañas con teclado, desplaza la barra en pantallas pequeñas y muestra los errores dentro de su pestaña. |
 | UI-014 | Entidades fiscales | Pestañas o fichas independientes para RUC comercial y artesanal; nunca un formulario económico combinado. |
 | UI-015 | Impuestos y vigencias | Lista cronológica por entidad fiscal, tarifa, fecha inicial y final; crear nueva vigencia. |
 | UI-016 | Series y secuenciales | Entidad, tipo, serie, valor actual y estado; muestra COM-ING, COM-PRO y COM-VEN bajo el RUC comercial y ART-SER bajo el artesanal, con vista `<SERIE>-<SECUENCIAL>` de al menos seis dígitos y sustitución explícita de una serie usada. |
 | UI-017 | Parámetros | Formas de pago, umbrales y valores configurables aprobados. |
+| UI-019 | Facturación electrónica | Aviso permanente de configuración para preparación local; selector de entidad fiscal que reemplaza todos los datos al cambiar; estado del perfil (Sin configurar, Falta completar, Requiere revisión, Lista para preparación local) con sus causas; subsecciones *Perfil tributario*, *Establecimientos y puntos de emisión* (punto predeterminado), *Impuestos y catálogo SRI* (selección por nombre, código solo como información avanzada), *Formas de pago SRI* (Tabla 24, solo 01 y 20 habilitables) y *Certificado electrónico* (metadatos opcionales). Ambiente único de pruebas. |
 | UI-018 | Auditoría | Filtros por usuario, fecha, acción, tipo, identificador y resultado; detalle de evento. |
 
 ### 6.2 Clientes y vehículos
@@ -184,7 +186,8 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-052 | Detalle de proforma | Valores históricos, estado, venta generada y acciones permitidas. |
 | UI-053 | Lista de ventas | Secuencial, cliente, origen, fecha, estado de venta, estado de pago, estado del documento interno y total. |
 | UI-054 | Editor de venta | Cliente, origen, condición, líneas, precios finales, impuestos y totales; guardar borrador y confirmar. Una venta vinculada a mantenimiento muestra y administra sus reservas. |
-| UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado, correcciones y acceso separado a preparación fiscal cuando el rol lo permite. |
+| UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado, correcciones y acceso separado a los datos fiscales cuando el rol lo permite («Preparar datos fiscales», «Borrador fiscal» o «Preparación local · Pendiente de emisión»). |
+| UI-059 | Datos fiscales de la operación | Resumen de la operación y del emisor; receptor precargado pidiendo solo lo faltante; formas de pago SRI sugeridas y combinables, sin plazo; «Revisar datos para facturación» con impedimentos separados entre lo que completa el usuario y lo que resuelve el Administrador; aviso obligatorio «Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.» Nunca muestra ambiente, punto, códigos, revisiones ni fecha fiscal como datos editables. |
 | UI-056 | Devolución | Venta original, cantidades vendidas y ya devueltas, aptitud para reventa por línea, motivo, efecto de inventario y exceso pagado por reembolsar. |
 | UI-057 | Corrección comercial | Venta o devolución original, motivo, operación compensatoria y reembolso trazable cuando corresponda. |
 | UI-058 | Comprobante interno comercial | Vista imprimible con RUC comercial, cliente, líneas, totales, estado y aviso fiscal correspondiente. |

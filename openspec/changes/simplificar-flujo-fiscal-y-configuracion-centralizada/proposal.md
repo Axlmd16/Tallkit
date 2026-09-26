@@ -149,7 +149,7 @@ El certificado opcional no hace que el perfil deje de estar listo; su ausencia o
   - `fiscal/domain/payment_declaration.py`: formas habilitadas, varias formas y rechazo de plazo y unidad.
   - `workshop_configuration`: catálogos oficiales versionados en lugar de las constantes `IVA_CODES` y `SUPPORTED_PAYMENT_CODES`, habilitación de formas de pago, punto predeterminado, estado del perfil y rechazo de producción.
   - Serializadores y OpenAPI de `/api/v1/fiscal/` y de la configuración electrónica.
-  - No se tocan `sales`, `workshop` ni `shared/money.py`.
+  - En `sales` y `workshop` solo se amplían las lecturas públicas `fiscal_source` con lo cobrado por medio, para sugerir formas de pago; no cambian sus modelos, escrituras, cobros ni reglas. `shared/money.py` no se toca.
 - **Frontend:**
   - Se reescriben `pages/fiscal/FiscalPreparationPage.tsx` y `features/fiscal/FiscalConfigurationSection.tsx`.
   - Se reorganiza `pages/workshop-configuration/WorkshopConfigurationPage.tsx` con `shared/ui/navigation/Tabs.tsx`.

@@ -237,6 +237,8 @@ Estas recomendaciones no autorizan implementación.
 
 ADR-0010 añade el módulo fiscal como referencia posterior a una venta comercial o una operación artesanal, sin sustituir sus documentos económicos. `PreparacionFiscal` conserva borrador, snapshot e historia; `IdentidadFiscalEnsayo` pertenece a un ámbito RUC/tipo/establecimiento/punto/ambiente independiente de las series internas; `ExpedienteXmlFiscal` conserva evidencia externa inmutable; y `SolicitudCorreccionFiscal` registra trabajo administrativo sin efecto oficial. Pago, estado comercial, preparación local, evidencia externa y respuesta futura del SRI son conceptos separados.
 
+La configuración fiscal es centralizada por entidad: un **punto predeterminado** (automático si solo hay un punto activo), un ambiente único de pruebas mientras no exista emisión aprobada, **catálogos oficiales** versionados del SRI (tarifas de IVA y formas de pago de la Tabla 24, con procedencia de la ficha técnica) y formas de pago SRI habilitadas por entidad, de las que en V1 solo 01 y 20 son habilitables. La preparación toma estos datos del sistema, no de la persona usuaria, y los congela en su instantánea. Crédito sigue siendo una condición interna sin código de la Tabla 24.
+
 La política del archivo se versiona por entidad fiscal. La evidencia de restauración solo habilita incorporación productiva cuando coincide con la versión del procedimiento y almacenamiento vigentes. Esta extensión no implementa firma, transmisión, consulta de autorización ni emisión productiva.
 
 Estos puntos afectan obligaciones reales y deben validarse con un contador y la normativa ecuatoriana vigente; el modelo no los presenta como asesoría tributaria.

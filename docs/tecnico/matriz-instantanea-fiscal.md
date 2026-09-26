@@ -31,7 +31,7 @@ Leyenda:
 |---|---|---|---|
 | `factura/@id` | Opcional en XSD; requerido por la representación objetivo | Constante técnica `comprobante` al generar | D |
 | `factura/@version` | Opcional en XSD | `schema_version`, traducido a `2.1.0` | D |
-| `infoTributaria/ambiente` | Obligatorio | `issuer.environment` revisado y conservado | C |
+| `infoTributaria/ambiente` | Obligatorio | `issuer.environment`, resuelto por el sistema (siempre pruebas, `1`) y conservado; también en `configuration.environment` | C |
 | `infoTributaria/tipoEmision` | Obligatorio | Solo emisión normal `1`; cualquier otro caso se rechaza | D |
 | `infoTributaria/razonSocial` | Obligatorio | `issuer.legal_name` | C |
 | `infoTributaria/nombreComercial` | Condicional | `issuer.trade_name`, solo cuando fue declarado | C |
@@ -39,7 +39,7 @@ Leyenda:
 | `infoTributaria/claveAcceso` | Obligatorio al construir el comprobante | Identidad fiscal inmutable asignada después de preparar | I |
 | `infoTributaria/codDoc` | Obligatorio | Constante oficial de factura `01` | D |
 | `infoTributaria/estab` | Obligatorio | `issuer.establishment_code` | C |
-| `infoTributaria/ptoEmi` | Obligatorio | `issuer.emission_point_code` | C |
+| `infoTributaria/ptoEmi` | Obligatorio | `issuer.emission_point_code`, del punto predeterminado efectivo; su id y versión en `configuration.point` | C |
 | `infoTributaria/secuencial` | Obligatorio | Identidad fiscal inmutable, nueve dígitos | I |
 | `infoTributaria/dirMatriz` | Obligatorio | `issuer.address` | C |
 | `infoTributaria/agenteRetencion` | Condicional | Condición tributaria versionada; se omite si no aplica | C/NA |
@@ -96,10 +96,10 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 | `moneda` | Condicional en XSD | `currency = USD`, representado como la denominación SRI aplicable | C/D |
 | `placa` | Condicional | `additional_info` solo si fue pertinente y revisada; no se toma del maestro vigente | C/NA |
 | `pagos/pago[*]` | Condicional en XSD; requerido por la regla local | Un registro por `payments[*]` | C |
-| `…/formaPago` | Obligatorio por pago | `payment_code` oficial | C |
+| `…/formaPago` | Obligatorio por pago | `payment_code` oficial habilitado para la entidad, con `description`, `display_name` y `catalog_version` del catálogo de la Tabla 24 | C |
 | `…/total` | Obligatorio por pago | `amount`; la suma debe cubrir `totals.grand` | C |
-| `…/plazo` | Condicional | `term_value`, obligatorio localmente cuando el medio declarado lo exige | C/NA |
-| `…/unidadTiempo` | Condicional | `term_unit`, obligatorio localmente junto con plazo | C/NA |
+| `…/plazo` | Condicional | No se captura en la preparación local (formato 2); su representación para la emisión queda pendiente de una spec futura | NA |
+| `…/unidadTiempo` | Condicional | No se captura junto con el plazo (formato 2) | NA |
 | `valorRetIva` | Condicional | Retenciones recibidas fuera del alcance de preparación | NA |
 | `valorRetRenta` | Condicional | Retenciones recibidas fuera del alcance de preparación | NA |
 
@@ -141,6 +141,24 @@ coinciden. Una diferencia no genera una línea de ajuste.
 | `infoAdicional/campoAdicional[*]` | `additional_info` y leyendas pertinentes, con nombre/valor conservados | C |
 | `ds:Signature` | Firma XAdES/XMLDSig | F; no se almacena certificado privado ni se firma en esta fase |
 | Envoltorio `autorizacion` | Respuesta externa posterior | F; el archivo solo conserva su declaración como evidencia no verificada |
+
+## Formato 2 de la instantánea
+
+Desde `simplificar-flujo-fiscal-y-configuracion-centralizada`, las preparaciones nuevas conservan `snapshot_format: 2`:
+
+| Clave | Contenido |
+|---|---|
+| `configuration.entity_id`, `entity_version` | Entidad emisora y versión usadas |
+| `configuration.profile_revision` | Revisión del perfil tributario declarado |
+| `configuration.defaults_version` | Versión de los valores predeterminados (punto y forma de pago) |
+| `configuration.establishment`, `configuration.point` | Id, código y versión del establecimiento y del punto efectivos |
+| `configuration.environment` | Siempre `1` (pruebas) |
+| `configuration.catalogs` | Versiones de catálogo usadas (`iva`, `payment_forms`) |
+| `configuration.tax_mapping_ids`, `enabled_payment_codes` | Correspondencias y formas habilitadas vigentes al preparar |
+| `lines[*].catalog_entry_id`, `lines[*].display_name` | Entrada oficial y nombre comprensible de cada tarifa |
+| `payments[*].description`, `display_name`, `catalog_version` | Forma de pago tal como figuraba en el catálogo |
+
+Las claves de `issuer` se mantienen sin cambios, porque las consume la identidad de ensayo. Una instantánea sin `snapshot_format` es de formato 1 y se muestra sin completar las referencias que no conservaba. La fecha de referencia se fija en la revisión final con el calendario de America/Guayaquil.
 
 ## Resultado de suficiencia
 

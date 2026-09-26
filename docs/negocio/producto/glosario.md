@@ -139,6 +139,34 @@ Proceso de generación, firma, autorización y entrega de comprobantes electrón
 
 Expediente local versionado que conserva emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales históricos antes de una futura emisión. Sus estados no son estados del SRI y no alteran cobros ni operaciones comerciales.
 
+### Borrador fiscal
+
+Preparación fiscal todavía editable. Se crea con los datos de la operación y de la configuración centralizada ya precargados; el usuario solo completa lo que falta y, al revisarlo, el sistema vuelve a resolver la configuración vigente.
+
+### Preparación local
+
+Preparación fiscal completada y congelada en el sistema. No es una factura electrónica: no ha sido firmada ni enviada al SRI. Conserva los datos revisados y las referencias de configuración usadas, que no cambian si después se modifica la configuración.
+
+### Pendiente de emisión
+
+Situación de una preparación local para la que todavía no existe emisión electrónica. No indica que se haya solicitado ni obtenido una autorización.
+
+### Punto predeterminado
+
+Punto de emisión de una entidad fiscal que se usa automáticamente al preparar datos fiscales. Si la entidad tiene un único punto activo se usa ese; si tiene varios, lo designa el Administrador.
+
+### Forma de pago SRI
+
+Código de la Tabla 24 de la ficha técnica del SRI con el que se declara cómo se paga un comprobante. Es distinta de la forma de pago real del cobro; en V1 solo pueden habilitarse 01 (efectivo o sin sistema financiero) y 20 (transferencia u otros con sistema financiero). Crédito es una condición y no tiene código de la Tabla 24.
+
+### Forma de pago predeterminada
+
+Forma de pago SRI habilitada que el Administrador designa por entidad y que la preparación sugiere para el importe no cubierto por cobros registrados.
+
+### Catálogo oficial
+
+Conjunto versionado de códigos del SRI, como tarifas de IVA y formas de pago, incorporado desde la ficha técnica con su versión, fecha de descarga, huella del archivo, vigencia y estado. Actualizarlo no modifica preparaciones completadas.
+
 ### Archivo fiscal
 
 Conjunto protegido de XML externos, bytes originales, hashes, identidades, procedencias y vínculos administrativos conservados en PostgreSQL. Una incorporación externa permanece no verificada por el sistema.

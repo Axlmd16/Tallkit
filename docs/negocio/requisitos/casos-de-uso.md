@@ -113,6 +113,7 @@
 2. Registra o actualiza sus datos permitidos.
 3. Configura impuestos o tarifas con fecha de vigencia.
 4. Configura series, secuenciales, umbrales y formas de pago habilitadas según decisiones aprobadas.
+4a. En la pestaña *Facturación electrónica* declara el perfil tributario, los establecimientos y el punto predeterminado, las correspondencias con el catálogo oficial del SRI, las formas de pago SRI habilitadas (en V1 solo 01 y 20) y, de forma opcional, los metadatos del certificado. El sistema muestra el estado del perfil con sus causas y mantiene producción bloqueada.
 5. El sistema valida solapamientos, unicidad y permisos.
 6. El administrador confirma y el sistema registra la auditoría.
 
@@ -121,6 +122,8 @@
 - 5a. Una vigencia se solapa de forma ambigua: se rechaza y se muestran los períodos en conflicto.
 - 5b. Una serie o secuencial produciría duplicados: se rechaza.
 - 5c. Se edita una configuración usada históricamente: se crea una nueva vigencia en lugar de alterar documentos.
+- 5d. Se intenta habilitar una forma de pago distinta de 01 o 20, configurar producción o designar un punto de otra entidad: se rechaza sin cambios.
+- 5e. Se cambia la configuración fiscal después de preparar datos fiscales: las preparaciones locales completadas conservan la configuración que usaron.
 
 **Garantía de éxito:** los parámetros futuros se aplican a la entidad y período correctos.  
 **Garantía mínima:** ningún documento confirmado cambia retroactivamente.
@@ -311,6 +314,7 @@
 6. En una transacción, asigna secuencial, congela valores históricos, genera salidas de Kardex y crea el importe exigible.
 7. El sistema muestra la venta confirmada.
 8. El actor registra el cobro mediante `CU-013` o deja saldo si es crédito.
+9. Opcionalmente, pulsa «Preparar datos fiscales»: el sistema precarga receptor, líneas, impuestos, totales y la configuración centralizada de la entidad; el actor completa solo lo faltante, revisa los datos para facturación y guarda una preparación local, que no es una factura electrónica ni se envía al SRI.
 
 **Alternativas y excepciones**
 
