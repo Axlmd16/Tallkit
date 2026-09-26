@@ -144,13 +144,13 @@ Evidencia: casos focalizados de `tests/fiscal/test_api.py`, `test_snapshot.py`, 
 
 Dependencias: ninguna del backend; puede avanzar en paralelo con el grupo 2. Diseño D9; spec `organizacion-de-la-configuracion`.
 
-- [ ] 5.1 Probar en `shared/ui/navigation/Tabs.test.tsx` y añadir a `Tabs.tsx`:
+- [x] 5.1 Probar en `shared/ui/navigation/Tabs.test.tsx` y añadir a `Tabs.tsx`:
   - prop opcional `keepMounted`, con paneles inactivos marcados `hidden` y conservando el estado;
   - barra con desplazamiento horizontal interno y la pestaña activa visible;
   - sin cambio de comportamiento por defecto.
 
   Ejecutar también la prueba de `MaintenanceOrderDetailPage` como regresión.
-- [ ] 5.2 Probar en `WorkshopConfigurationPage.test.tsx`:
+- [x] 5.2 Probar en `WorkshopConfigurationPage.test.tsx`:
   - las cinco pestañas en orden;
   - *Entidades fiscales* inicial y con un `?tab=` desconocido;
   - enlace directo y restauración con `?tab=facturacion`;
@@ -159,12 +159,12 @@ Dependencias: ninguna del backend; puede avanzar en paralelo con el grupo 2. Dis
   - error de impuestos que persiste al cambiar de pestaña;
   - «Entidades fiscales» presente e «Identidades fiscales» ausente;
   - series internas sin puntos fiscales.
-- [ ] 5.3 Reorganizar `pages/workshop-configuration/WorkshopConfigurationPage.tsx`:
+- [x] 5.3 Reorganizar `pages/workshop-configuration/WorkshopConfigurationPage.tsx`:
   - `Tabs` con `keepMounted` y `?tab=`, y contadores en las pestañas;
   - retirar `ConfigurationMap` de esta página;
   - reubicar `EntitiesSection`, `WarehouseSection`, `TaxesSection` y `SeriesSection` sin cambios internos;
   - cambiar solo títulos y descripciones («Entidades fiscales», «Bodega»).
-- [ ] 5.4 Ejecutar las pruebas existentes de entidades, bodega, impuestos y series sin modificar sus expectativas funcionales (solo etiquetas), y la prueba de acceso denegado a Vendedor y Encargado con enlace directo.
+- [x] 5.4 Ejecutar las pruebas existentes de entidades, bodega, impuestos y series sin modificar sus expectativas funcionales (solo etiquetas), y la prueba de acceso denegado a Vendedor y Encargado con enlace directo.
 
 Evidencia: vitest de los archivos tocados, `tsc` y ESLint sobre ellos.
 

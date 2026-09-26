@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 import {
   Buildings,
   CheckCircle,
@@ -16,7 +17,6 @@ import {
 import {
   Avatar,
   Button,
-  ConfigurationMap,
   DetailCard,
   Dialog,
   ErrorState,
@@ -25,6 +25,7 @@ import {
   PageHeader,
   StatusBadge,
   Surface,
+  Tabs,
 } from '@/shared/ui'
 
 import {
@@ -69,88 +70,89 @@ export function WorkshopConfigurationPage() {
   return <ConfiguredWorkshopContent />
 }
 
+const CONFIGURATION_TABS = [
+  'entidades',
+  'bodega',
+  'impuestos',
+  'series',
+  'facturacion',
+] as const
+type ConfigurationTab = (typeof CONFIGURATION_TABS)[number]
+
+function isConfigurationTab(value: string | null): value is ConfigurationTab {
+  return CONFIGURATION_TABS.includes(value as ConfigurationTab)
+}
+
 function ConfiguredWorkshopContent() {
   const { data: entities } = useFiscalEntities()
   const { data: warehouse } = useWarehouse()
   const { data: taxes } = useAllTaxDefinitions()
   const { data: series } = useAllDocumentSeries()
+  const [params, setParams] = useSearchParams()
+  const requested = params.get('tab')
+  const tab: ConfigurationTab = isConfigurationTab(requested)
+    ? requested
+    : 'entidades'
+
+  const selectTab = (next: string) => {
+    const nextParams = new URLSearchParams(params)
+    if (next === 'entidades') nextParams.delete('tab')
+    else nextParams.set('tab', next)
+    if (next !== 'facturacion') nextParams.delete('seccion')
+    setParams(nextParams, { replace: true })
+  }
 
   return (
     <section className="animate-fade-in space-y-6 lg:space-y-8">
       <PageHeader
-        description="Un solo lugar para mantener en orden la identidad fiscal, el inventario y la documentación del taller."
+        description="Un solo lugar para mantener en orden las entidades fiscales, la bodega, los impuestos, la numeración interna y la facturación electrónica."
         title="Configuración del taller"
         actions={
           <StatusBadge label="Sistema operativo" tone="success" shape="pill" />
         }
       />
 
-      <ConfigurationMap
+      <Tabs
+        activeId={tab}
+        aria-label="Secciones de configuración"
+        keepMounted
+        onChange={selectTab}
         items={[
           {
-            href: '#fiscal-identities',
-            label: 'Identidades fiscales',
-            description: 'RUC y razón social',
+            id: 'entidades',
+            label: 'Entidades fiscales',
             count: entities?.length ?? 0,
-            icon: <Storefront size={19} weight="duotone" />,
-            tone: 'primary',
+            content: <EntitiesSection />,
           },
           {
-            href: '#inventory-operation',
-            label: 'Operación',
-            description: 'Bodega principal',
+            id: 'bodega',
+            label: 'Bodega',
             count: warehouse?.is_active ? 1 : 0,
-            icon: <WarehouseIcon size={19} weight="duotone" />,
-            tone: 'info',
+            content: <WarehouseSection />,
           },
           {
-            href: '#taxes',
+            id: 'impuestos',
             label: 'Impuestos',
-            description: 'Tarifas y vigencias',
             count: taxes?.length ?? 0,
-            icon: <Percent size={19} weight="bold" />,
-            tone: 'warning',
+            content: <TaxesSection />,
           },
           {
-            href: '#series',
-            label: 'Documentos',
-            description: 'Series y secuenciales',
+            id: 'series',
+            label: 'Series y numeración',
             count: series?.length ?? 0,
-            icon: <FileText size={19} weight="duotone" />,
-            tone: 'success',
+            content: <SeriesSection />,
           },
           {
-            href: '#electronic-fiscal',
-            label: 'Fiscal electrónico',
-            description: 'Perfil, puntos y catálogos',
-            count: entities?.length ?? 0,
-            icon: <Buildings size={19} weight="duotone" />,
-            tone: 'info',
+            id: 'facturacion',
+            label: 'Facturación electrónica',
+            content: (
+              <FiscalConfigurationSection
+                entities={entities ?? []}
+                taxDefinitions={taxes ?? []}
+              />
+            ),
           },
         ]}
-      />
-
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)]">
-        <div id="fiscal-identities" className="scroll-mt-6">
-          <EntitiesSection />
-        </div>
-        <div id="inventory-operation" className="scroll-mt-6">
-          <WarehouseSection />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
-        <div id="taxes" className="scroll-mt-6">
-          <TaxesSection />
-        </div>
-        <div id="series" className="scroll-mt-6">
-          <SeriesSection />
-        </div>
-      </div>
-
-      <FiscalConfigurationSection
-        entities={entities ?? []}
-        taxDefinitions={taxes ?? []}
       />
     </section>
   )
@@ -610,7 +612,7 @@ function EntitiesSection() {
     <div className="space-y-5">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-ink">Identidades fiscales</h2>
+          <h2 className="text-xl font-bold text-ink">Entidades fiscales</h2>
           <p className="mt-1 text-sm text-ink-muted">
             Los dos contribuyentes operan separados, con su propia información
             oficial.
