@@ -67,7 +67,7 @@ function EntityOption({
 
   return (
     <label
-      className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2 rounded-[5px] px-3 text-[13px] transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent motion-reduce:transition-none ${checked ? selected : 'text-ink-muted hover:bg-surface hover:text-ink'}`}
+      className={`flex min-h-12 min-w-0 cursor-pointer items-center gap-2.5 rounded-[5px] px-3 py-1.5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent motion-reduce:transition-none sm:w-52 ${checked ? selected : 'text-ink-muted hover:bg-surface hover:text-ink'}`}
     >
       <input
         checked={checked}
@@ -77,19 +77,22 @@ function EntityOption({
         type="radio"
         value={entity.id}
       />
-      <span
-        aria-hidden="true"
-        className={`size-2 shrink-0 rounded-[2px] ${square}`}
-      />
-      <span className="shrink-0 font-semibold">
-        {commercial ? 'Comercial' : 'Artesanal'}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase">
+          <span
+            aria-hidden="true"
+            className={`size-2 shrink-0 rounded-[2px] ${square}`}
+          />
+          {commercial ? 'Comercial' : 'Artesanal'}
+        </span>
+        <span
+          className={`truncate text-[13px] font-semibold ${checked ? 'text-ink' : ''}`}
+          title={entity.legal_name}
+        >
+          {entity.legal_name}
+        </span>
       </span>
-      <span
-        className={`min-w-0 truncate sm:max-w-[11rem] ${checked ? 'text-ink' : ''}`}
-      >
-        {entity.legal_name}
-      </span>
-      <span className="ml-auto shrink-0 pl-1 text-xs">
+      <span className="shrink-0 text-xs">
         <StateMarker readiness={readiness} />
       </span>
     </label>

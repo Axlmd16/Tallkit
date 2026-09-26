@@ -114,6 +114,44 @@ export function StateMark({
 }
 
 export const sheetTableHead =
-  'border-b border-line-strong px-4 pb-2.5 text-left text-xs font-semibold text-ink-muted first:pl-0 last:pr-0 last:text-right'
+  'bg-surface-subtle px-4 py-2.5 text-left text-xs font-semibold text-ink-muted first:rounded-l-control first:pl-3 last:rounded-r-control last:pr-3 last:text-right'
 export const sheetTableCell =
-  'border-b border-line px-4 py-3.5 align-middle first:pl-0 last:pr-0 last:text-right'
+  'border-b border-line px-4 py-3.5 align-middle first:pl-3 last:pr-3 last:text-right'
+
+export type StateChipTone =
+  | 'success'
+  | 'warning'
+  | 'info'
+  | 'primary'
+  | 'neutral'
+  | 'danger'
+
+const chipTones: Record<StateChipTone, string> = {
+  success: 'bg-success-soft text-success',
+  warning: 'bg-warning-soft text-warning',
+  info: 'bg-info-soft text-info',
+  primary: 'bg-primary-soft text-primary',
+  neutral: 'bg-surface-muted text-ink-muted',
+  danger: 'bg-danger-soft text-danger',
+}
+
+/** Estado en chip suave de la paleta Tallkit: marcador de forma y texto, no solo color. */
+export function StateChip({
+  label,
+  tone,
+}: {
+  label: string
+  tone: StateChipTone
+}) {
+  return (
+    <span
+      className={`inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold whitespace-nowrap ${chipTones[tone]}`}
+    >
+      <span
+        aria-hidden="true"
+        className={`size-[7px] shrink-0 bg-current ${tone === 'warning' || tone === 'neutral' ? 'rounded-[2px]' : 'rounded-full'}`}
+      />
+      {label}
+    </span>
+  )
+}

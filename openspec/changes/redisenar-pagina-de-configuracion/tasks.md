@@ -167,6 +167,7 @@ Dependencias: grupos 1 a 8. Diseño D8b; spec «Subsecciones de facturación ele
 - [x] 9.4 Restaurar `cursor: pointer` en `.ui-button` habilitado.
 - [x] 9.5 Selector de entidad compacto junto al título, placa del RUC seleccionado bajo el control, encabezado de página con descripción en una línea y hoja con alto completo estable desde `md`.
 - [x] 9.6 Verificar: vitest de los archivos afectados, `tsc`, ESLint, Prettier, E2E de configuración y facturación, y capturas comparadas.
+- [x] 9.7 Tercera revisión: título por subsección, insignia «Preparación local» y advertencia de pendientes con `HintPopover`, chips de estado con los tonos del sistema, cabeceras de tabla en gris suave y modal amplio del certificado con pasos, atajos y vista previa.
 
 ## Revisión y evidencia (2026-09-26)
 
@@ -207,6 +208,8 @@ No ejecutado, por instrucción del usuario: `make check`, `make test`, la suite 
 Primera revisión: se retiraron la franja de estado, el aviso del certificado fuera de su subsección, la «Información avanzada» superior y la etiqueta «Preparación local». Las descripciones quedaron en una frase, las subsecciones usan nombres breves e indicadores mínimos, y las acciones de tabla son botones con icono. La causa `profile` del backend se asigna a *Perfil tributario*. `.ui-button` recupera `cursor: pointer`, que el reinicio de Tailwind v4 había quitado a todos los botones de la aplicación.
 
 Segunda revisión: el selector de entidad pasó a un control segmentado compacto junto al título, con la placa del RUC seleccionado debajo. El encabezado tiene la descripción en una línea y, desde `md`, la hoja ocupa todo el alto disponible.
+
+Tercera revisión: el título es la subsección actual, con icono en el tono del ámbito. «Preparación local» y los pendientes se consultan en `HintPopover` (puntero, foco o toque), los estados usan chips con los tonos del sistema y las cabeceras de tabla van en gris suave. El certificado es una tarjeta, y su modal amplio tiene pasos, atajos de duración y vista previa en vivo.
 
 Verificación: vitest de los archivos afectados → 287 pruebas pasan; `tsc`, ESLint y Prettier sin incidencias; `npx playwright test e2e/workshop-configuration.spec.ts e2e/fiscal.spec.ts` → 15 pasan; capturas a 1440 × 900 y 390 px revisadas. No se ejecutaron la suite completa, el backend ni el resto de Playwright.
 

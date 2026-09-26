@@ -10,9 +10,9 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
-  SheetHeading,
   sheetTableCell,
   sheetTableHead,
+  StateChip,
   StateMark,
   useFieldProps,
   useToast,
@@ -23,8 +23,7 @@ import {
   useFiscalMutations,
   usePreparationDefaults,
 } from '../hooks'
-import type { Establishment, StatusCause } from '../types'
-import { PendingNotes } from './PendingNotes'
+import type { Establishment } from '../types'
 
 type Dialog =
   | { kind: 'establishment' }
@@ -32,13 +31,7 @@ type Dialog =
   | { kind: 'default' }
   | null
 
-export function LocationsSection({
-  entityId,
-  pending = [],
-}: {
-  entityId: number
-  pending?: StatusCause[]
-}) {
+export function LocationsSection({ entityId }: { entityId: number }) {
   const establishments = useEstablishments(entityId)
   const defaults = usePreparationDefaults(entityId)
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -66,10 +59,12 @@ export function LocationsSection({
   const effective = activePoints.find((point) => point.id === effectiveId)
 
   return (
-    <section aria-labelledby={`puntos-${entityId}`} className="space-y-5">
-      <SheetHeading
-        id={`puntos-${entityId}`}
-        actions={
+    <section
+      aria-label="Establecimientos y puntos de emisión"
+      className="space-y-5"
+    >
+      <div className="flex justify-end">
+        {
           <Button
             onClick={() => setDialog({ kind: 'establishment' })}
             variant="secondary"
@@ -78,11 +73,7 @@ export function LocationsSection({
             Añadir establecimiento
           </Button>
         }
-        description="Códigos de tres dígitos que usa el SRI."
-        level={3}
-        title="Establecimientos y puntos de emisión"
-      />
-      <PendingNotes causes={pending} />
+      </div>
 
       <FactList className="max-w-3xl">
         <FactRow label="Punto predeterminado">
@@ -191,7 +182,7 @@ function EstablishmentRows({
     <>
       <tr>
         <th
-          className="border-b border-line-strong pt-6 pb-2.5 text-left font-normal"
+          className="border-b border-line-strong pt-6 pb-2.5 pl-3 text-left font-normal"
           colSpan={3}
           scope="rowgroup"
         >
@@ -208,7 +199,7 @@ function EstablishmentRows({
             )}
           </span>
         </th>
-        <td className="border-b border-line-strong pt-6 pb-1.5 text-right">
+        <td className="border-b border-line-strong pt-6 pr-3 pb-1.5 text-right">
           {establishment.is_active && (
             <Button
               aria-label={`Añadir punto al establecimiento ${establishment.code}`}
@@ -235,16 +226,14 @@ function EstablishmentRows({
               {establishment.code}-{point.code}
             </td>
             <td className={sheetTableCell}>
-              <StateMark
+              <StateChip
                 label={point.is_active ? 'Activo' : 'Inactivo'}
-                tone={point.is_active ? 'success' : 'inactive'}
+                tone={point.is_active ? 'success' : 'neutral'}
               />
             </td>
             <td className={`${sheetTableCell} text-[13px]`}>
               {point.id === effectiveId ? (
-                <span className="font-semibold text-accent-strong">
-                  Predeterminado
-                </span>
+                <StateChip label="Predeterminado" tone="primary" />
               ) : (
                 <span className="text-ink-muted">—</span>
               )}

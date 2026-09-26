@@ -43,6 +43,8 @@ export {
   SheetHeading,
   sheetTableCell,
   sheetTableHead,
+  StateChip,
+  type StateChipTone,
   StateMark,
   SubsectionIndicator,
 } from './surfaces/Sheet'
@@ -62,6 +64,7 @@ export {
   type DrawerWidth,
 } from './overlays/Drawer'
 export { FormModal, type FormModalProps } from './overlays/FormModal'
+export { HintPopover, type HintPopoverProps } from './overlays/HintPopover'
 export {
   DropdownMenu,
   type DropdownMenuProps,

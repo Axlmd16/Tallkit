@@ -3,10 +3,9 @@ import {
   Button,
   ErrorState,
   LoadingState,
-  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateMark,
+  StateChip,
   useToast,
 } from '@/shared/ui'
 
@@ -15,28 +14,21 @@ import {
   usePaymentForms,
   usePreparationDefaults,
 } from '../hooks'
-import type { PaymentFormOption, StatusCause } from '../types'
-import { PendingNotes } from './PendingNotes'
+import type { PaymentFormOption } from '../types'
 import { errorMessage } from './shared'
 
 function formState(form: PaymentFormOption) {
   if (form.enabled)
     return {
       label: form.is_default ? 'Habilitada · predeterminada' : 'Habilitada',
-      tone: 'success' as const,
+      tone: form.is_default ? ('primary' as const) : ('success' as const),
     }
   return form.enableable
-    ? { label: 'Deshabilitada', tone: 'inactive' as const }
-    : { label: 'No habilitable en V1', tone: 'unknown' as const }
+    ? { label: 'Deshabilitada', tone: 'neutral' as const }
+    : { label: 'No habilitable en V1', tone: 'neutral' as const }
 }
 
-export function PaymentFormsSection({
-  entityId,
-  pending = [],
-}: {
-  entityId: number
-  pending?: StatusCause[]
-}) {
+export function PaymentFormsSection({ entityId }: { entityId: number }) {
   const forms = usePaymentForms(entityId)
   const defaults = usePreparationDefaults(entityId)
   const mutations = useFiscalMutations()
@@ -53,14 +45,7 @@ export function PaymentFormsSection({
     mutations.setPaymentForm.error ?? mutations.savePreparationDefaults.error
 
   return (
-    <section aria-labelledby={`formas-pago-${entityId}`} className="space-y-5">
-      <SheetHeading
-        id={`formas-pago-${entityId}`}
-        description="En V1 solo se habilitan efectivo (01) y transferencia (20)."
-        level={3}
-        title="Formas de pago SRI"
-      />
-      <PendingNotes causes={pending} />
+    <section aria-label="Formas de pago SRI" className="space-y-5">
       {failure && <ErrorState message={errorMessage(failure)} />}
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
@@ -87,7 +72,7 @@ export function PaymentFormsSection({
                 </td>
                 <td className={`${sheetTableCell} font-mono`}>{form.code}</td>
                 <td className={sheetTableCell}>
-                  <StateMark {...formState(form)} />
+                  <StateChip {...formState(form)} />
                 </td>
                 <td className={sheetTableCell}>
                   {form.enableable && (

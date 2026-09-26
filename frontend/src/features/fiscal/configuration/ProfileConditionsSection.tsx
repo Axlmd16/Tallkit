@@ -10,21 +10,18 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
-  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateMark,
+  StateChip,
   useFieldProps,
   useToast,
 } from '@/shared/ui'
 
 import { useElectronicProfile, useFiscalMutations } from '../hooks'
-import { PendingNotes } from './PendingNotes'
 import type {
   ConditionStatus,
   DeclaredCondition,
   ElectronicProfile,
-  StatusCause,
 } from '../types'
 
 export const CONDITIONS = [
@@ -75,18 +72,12 @@ const STATUS_LABELS: Record<ConditionStatus, string> = {
 }
 
 const STATUS_TONES = {
-  UNKNOWN: 'unknown',
-  APPLICABLE: 'active',
-  NOT_APPLICABLE: 'inactive',
+  UNKNOWN: 'warning',
+  APPLICABLE: 'success',
+  NOT_APPLICABLE: 'info',
 } as const
 
-export function ProfileConditionsSection({
-  entityId,
-  pending = [],
-}: {
-  entityId: number
-  pending?: StatusCause[]
-}) {
+export function ProfileConditionsSection({ entityId }: { entityId: number }) {
   const profile = useElectronicProfile(entityId)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
@@ -102,14 +93,7 @@ export function ProfileConditionsSection({
   )
 
   return (
-    <section aria-labelledby={`perfil-${entityId}`} className="space-y-4">
-      <SheetHeading
-        id={`perfil-${entityId}`}
-        description="Declare cada condición según el certificado de RUC."
-        level={3}
-        title="Perfil tributario"
-      />
-      <PendingNotes causes={pending} />
+    <section aria-label="Perfil tributario" className="space-y-4">
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <thead>
@@ -137,7 +121,7 @@ export function ProfileConditionsSection({
                     {item.label}
                   </th>
                   <td className={sheetTableCell}>
-                    <StateMark
+                    <StateChip
                       label={STATUS_LABELS[status]}
                       tone={STATUS_TONES[status]}
                     />

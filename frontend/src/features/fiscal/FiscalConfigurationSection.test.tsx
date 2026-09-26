@@ -348,14 +348,25 @@ function panel(name: RegExp | string) {
   return screen.getByRole('region', { name })
 }
 
-it('muestra el aviso en una línea, las entidades seleccionables y las subsecciones sin franja de estado', () => {
+it('titula con la subsección, ofrece el aviso de preparación local y el selector compacto', async () => {
+  const user = userEvent.setup()
   renderSection()
 
   expect(
-    screen.getByText(
-      'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
-    ),
+    screen.getByRole('heading', { level: 2, name: 'Perfil tributario' }),
   ).toBeVisible()
+  expect(
+    screen.queryByRole('heading', { name: 'Facturación electrónica' }),
+  ).toBeNull()
+  const notice = screen.getByRole('button', { name: 'Preparación local' })
+  expect(notice).toHaveAccessibleDescription(
+    'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
+  )
+  await user.hover(notice)
+  expect(screen.getByRole('note')).toHaveTextContent(
+    'Ambiente disponible: Pruebas',
+  )
+
   const choices = within(
     screen.getByRole('group', { name: 'Entidad fiscal' }),
   ).getAllByRole('radio')
@@ -364,18 +375,11 @@ it('muestra el aviso en una línea, las entidades seleccionables y las subseccio
   const commercial = choices[0]!.closest('label')!
   expect(commercial).toHaveTextContent('Comercial')
   expect(commercial).toHaveTextContent('Repuestos VVH')
-  expect(commercial).not.toHaveTextContent('RUC')
+  expect(commercial).toHaveTextContent('Lista')
+  expect(choices[1]!.closest('label')).toHaveTextContent('Sin configurar')
   expect(
     screen.getByText('RUC', { selector: 'span' }).parentElement,
   ).toHaveTextContent('RUC 1150696977001')
-  expect(commercial).toHaveTextContent('Lista')
-  expect(choices[1]!.closest('label')).toHaveTextContent('Sin configurar')
-
-  expect(
-    screen.queryByRole('status', { name: 'Estado de la configuración' }),
-  ).toBeNull()
-  expect(screen.queryByText(/Certificado sin declarar/)).toBeNull()
-  expect(screen.queryByText('Preparación local')).toBeNull()
 
   const subsections = screen.getByRole('navigation', {
     name: 'Subsecciones de facturación electrónica',
@@ -391,11 +395,7 @@ it('muestra el aviso en una línea, las entidades seleccionables y las subseccio
     'Formas de pago',
     'Certificado',
   ])
-  expect(
-    within(subsections).getByRole('link', { name: /Perfil tributario/ }),
-  ).toHaveAttribute('aria-current', 'page')
 })
-
 it('cambia de entidad por la dirección y reemplaza todos los datos de la anterior', async () => {
   const user = userEvent.setup()
   renderSection('?tab=facturacion&seccion=puntos')
@@ -409,35 +409,34 @@ it('cambia de entidad por la dirección y reemplaza todos los datos de la anteri
   expect(screen.getAllByText('001-003').length).toBeGreaterThan(0)
 })
 
-it('muestra una causa sin subsección conocida en una línea bajo el selector', () => {
+it('incluye una causa sin subsección conocida en la advertencia del título', async () => {
+  const user = userEvent.setup()
   mocks.statusByEntity[2] = status(2, {
     state: 'INCOMPLETE',
     causes: [{ code: 'causa_nueva', kind: 'MISSING', message: 'Causa nueva.' }],
   })
   renderSection('?tab=facturacion&entidad=2')
 
+  await user.click(screen.getByRole('button', { name: '1 pendiente' }))
   expect(
-    within(
-      screen.getByRole('list', { name: 'Pendientes generales' }),
-    ).getByText('Causa nueva.'),
+    within(screen.getByRole('list', { name: 'Pendientes' })).getByText(
+      'Causa nueva.',
+    ),
   ).toBeVisible()
-  expect(screen.getByRole('radio', { name: /Taller Jiménez/ })).toBeChecked()
 })
-
-it('muestra el perfil sin guardar como pendiente de Perfil tributario', () => {
+it('muestra el perfil sin guardar como pendiente de Perfil tributario', async () => {
+  const user = userEvent.setup()
   renderSection('?tab=facturacion&entidad=2')
 
-  expect(
-    within(panel('Perfil tributario')).getByRole('list', {
-      name: 'Pendientes',
-    }),
-  ).toHaveTextContent('Todavía no existe una configuración guardada.')
-  expect(
-    screen.queryByRole('list', { name: 'Pendientes generales' }),
-  ).toBeNull()
+  const warning = screen.getByRole('button', { name: '1 pendiente' })
+  await user.hover(warning)
+  expect(screen.getByRole('list', { name: 'Pendientes' })).toHaveTextContent(
+    'Todavía no existe una configuración guardada.',
+  )
+  await user.keyboard('{Escape}')
 })
-
-it('muestra cada causa al inicio de la subsección que la resuelve', () => {
+it('muestra la advertencia con las causas de la subsección actual', async () => {
+  const user = userEvent.setup()
   mocks.statusByEntity[1] = status(1, {
     state: 'INCOMPLETE',
     causes: [
@@ -448,16 +447,21 @@ it('muestra cada causa al inicio de la subsección que la resuelve', () => {
       },
     ],
   })
-  renderSection('?tab=facturacion&seccion=puntos')
+  const { unmount } = renderSection()
+  expect(screen.queryByRole('button', { name: /pendiente/ })).toBeNull()
+  unmount()
 
+  renderSection('?tab=facturacion&seccion=puntos')
   expect(
-    within(panel('Establecimientos y puntos de emisión')).getByRole('list', {
-      name: 'Pendientes',
+    screen.getByRole('heading', {
+      level: 2,
+      name: 'Establecimientos y puntos de emisión',
     }),
-  ).toHaveTextContent('Designe el punto de emisión predeterminado.')
-  expect(
-    screen.queryByRole('list', { name: 'Pendientes generales' }),
-  ).toBeNull()
+  ).toBeVisible()
+  await user.click(screen.getByRole('button', { name: '1 pendiente' }))
+  expect(screen.getByRole('list', { name: 'Pendientes' })).toHaveTextContent(
+    'Designe el punto de emisión predeterminado.',
+  )
   expect(
     within(
       screen.getByRole('navigation', {
@@ -466,7 +470,6 @@ it('muestra cada causa al inicio de la subsección que la resuelve', () => {
     ).getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveTextContent('1 pendiente')
 })
-
 it('presenta el perfil como tabla de consulta y declara una condición en su modal', async () => {
   const user = userEvent.setup()
   renderSection()
@@ -634,21 +637,33 @@ it('lista las ocho formas de pago y solo permite actuar sobre 01 y 20', () => {
   expect(within(table).getAllByText('No habilitable en V1')).toHaveLength(6)
 })
 
-it('mantiene el certificado opcional y rechaza datos parciales en su modal', async () => {
+it('mantiene el certificado opcional, lo previsualiza y rechaza datos parciales', async () => {
   const user = userEvent.setup()
   renderSection('?tab=facturacion&seccion=certificado')
 
   const section = panel('Certificado electrónico')
-  expect(section).toHaveTextContent('Sin certificado declarado.')
   await user.click(
-    within(section).getByRole('button', { name: 'Declarar certificado' }),
+    within(section).getByRole('button', { name: /Declarar certificado/ }),
   )
   const dialog = screen.getByRole('dialog', { name: 'Certificado electrónico' })
-  await user.type(within(dialog).getByLabelText('Titular'), 'Taller')
+  await user.type(within(dialog).getByLabelText('Titular'), 'Taller Jiménez')
+  const preview = within(dialog).getByRole('complementary', {
+    name: 'Vista previa del certificado',
+  })
+  expect(preview).toHaveTextContent('Taller Jiménez')
+
+  await user.type(
+    within(dialog).getByLabelText('Fecha de inicio'),
+    '2026-01-01',
+  )
+  await user.click(within(dialog).getByRole('button', { name: '2 años' }))
+  expect(within(dialog).getByLabelText(/Fecha de vencimiento/)).toHaveValue(
+    '2028-01-01',
+  )
+
   await user.click(
     within(dialog).getByRole('button', { name: 'Guardar certificado' }),
   )
-
   expect(
     within(dialog).getByText(
       'Complete todos los datos del certificado o déjelos todos vacíos.',
