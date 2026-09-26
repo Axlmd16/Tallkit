@@ -896,6 +896,10 @@ class TaxMappingCreateView(_FiscalConfigurationView):
                     "definition_id": result.tax_definition_id,
                     "catalog_version": result.catalog_version,
                     "percentage_code": result.percentage_code,
+                    "catalog_entry_id": result.catalog_entry_id,
+                    "display_name": result.catalog_entry.display_name
+                    if result.catalog_entry
+                    else None,
                     "starts_on": result.starts_on,
                     "ends_on": result.ends_on,
                     "source": result.source,

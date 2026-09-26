@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from types import MappingProxyType
 
 from django.db import transaction
 from django.db.models import Q
@@ -11,27 +10,21 @@ from django.db.models import Q
 from identity.application.audit import record_audit_event
 from identity.application.authorization import require_permission
 from identity.models import AuditResult, User
+from workshop_configuration.application.official_catalog import is_current
 from workshop_configuration.domain.validation import ConfigurationValidationError
-from workshop_configuration.models import FiscalEntity, FiscalTaxMapping, TaxDefinition
-
-CATALOG_VERSION = "SRI-2.34-IVA-subset-v1"
-CATALOG_SOURCE = "https://www.sri.gob.ec/facturacion-electronica"
-# Subconjunto soportado, no catálogo tributario completo ni vigencia del beneficio.
-IVA_CODES = MappingProxyType(
-    {
-        "0": (Decimal("0"), "ZERO"),
-        "2": (Decimal("12"), "RATE"),
-        "3": (Decimal("14"), "RATE"),
-        "4": (Decimal("15"), "RATE"),
-        "6": (Decimal("0"), "NOT_SUBJECT"),
-        "7": (Decimal("0"), "EXEMPT"),
-    }
+from workshop_configuration.models import (
+    FiscalEntity,
+    FiscalTaxMapping,
+    OfficialCatalogEntry,
+    TaxDefinition,
 )
 
 
 @dataclass(frozen=True)
 class ResolvedFiscalTax:
     mapping_id: int
+    catalog_entry_id: int
+    display_name: str
     catalog_version: str
     catalog_source: str
     tax_code: str
@@ -47,14 +40,19 @@ def create_mapping(
     *,
     actor: User,
     definition_id: int,
-    percentage_code: str,
+    catalog_entry_id: int,
     starts_on: date,
     ends_on: date | None,
     source: str,
 ) -> FiscalTaxMapping:
     require_permission(actor=actor, permission="parametros.gestionar")
-    if not isinstance(percentage_code, str) or percentage_code not in IVA_CODES:
-        raise ConfigurationValidationError("Código tributario no soportado.")
+    catalog_entry = OfficialCatalogEntry.objects.filter(
+        pk=catalog_entry_id, kind="TAX_RATE", is_active=True, is_selectable=True
+    ).first()
+    if catalog_entry is None or catalog_entry.rate is None:
+        raise ConfigurationValidationError(
+            "Seleccione una tarifa vigente del catálogo oficial del SRI."
+        )
     if type(starts_on) is not date or (ends_on is not None and type(ends_on) is not date):
         raise ConfigurationValidationError("Fechas de vigencia inválidas.")
     if ends_on is not None and ends_on < starts_on:
@@ -70,7 +68,7 @@ def create_mapping(
         periods = definition.periods.filter(Q(ends_on__isnull=True) | Q(ends_on__gte=starts_on))
         if ends_on is not None:
             periods = periods.filter(starts_on__lte=ends_on)
-        if periods.exclude(rate=IVA_CODES[percentage_code][0]).exists():
+        if periods.exclude(rate=catalog_entry.rate).exists():
             raise ConfigurationValidationError(
                 "El código contradice una tarifa interna vigente en el intervalo."
             )
@@ -83,8 +81,9 @@ def create_mapping(
             raise ConfigurationValidationError("La correspondencia solapa una vigencia existente.")
         result = FiscalTaxMapping.objects.create(
             tax_definition=definition,
-            catalog_version=CATALOG_VERSION,
-            percentage_code=percentage_code,
+            catalog_version=catalog_entry.catalog_version,
+            percentage_code=catalog_entry.code,
+            catalog_entry=catalog_entry,
             starts_on=starts_on,
             ends_on=ends_on,
             source=source.strip(),
@@ -96,7 +95,11 @@ def create_mapping(
             target_type="fiscal_tax_mapping",
             target_id=str(result.pk),
             result=AuditResult.SUCCESS,
-            metadata={"definition_id": definition.pk, "catalog_version": CATALOG_VERSION},
+            metadata={
+                "definition_id": definition.pk,
+                "catalog_version": catalog_entry.catalog_version,
+                "catalog_entry_id": catalog_entry.pk,
+            },
         )
         return result
 
@@ -111,9 +114,18 @@ def resolve_mapping(*, definition_id: int, on: date, historical_rate: Decimal) -
     if len(matches) != 1:
         raise ConfigurationValidationError("Falta una correspondencia única para la fecha.")
     mapping = matches[0]
-    if mapping.catalog_version != CATALOG_VERSION or mapping.percentage_code not in IVA_CODES:
-        raise ConfigurationValidationError("Versión o código de catálogo no soportados.")
-    rate, treatment = IVA_CODES[mapping.percentage_code]
+    catalog_entry = (
+        OfficialCatalogEntry.objects.filter(pk=mapping.catalog_entry_id, kind="TAX_RATE").first()
+        if mapping.catalog_entry_id is not None
+        else None
+    )
+    if catalog_entry is None or catalog_entry.rate is None or catalog_entry.treatment is None:
+        raise ConfigurationValidationError("La correspondencia no tiene una entrada del catálogo.")
+    if not is_current(catalog_entry, on):
+        raise ConfigurationValidationError(
+            "La entrada del catálogo oficial está inactiva o fuera de vigencia."
+        )
+    rate = catalog_entry.rate
     if (
         not isinstance(historical_rate, Decimal)
         or not historical_rate.is_finite()
@@ -123,14 +135,16 @@ def resolve_mapping(*, definition_id: int, on: date, historical_rate: Decimal) -
             "La correspondencia no coincide con la tarifa histórica."
         )
     return ResolvedFiscalTax(
-        mapping.pk,
-        mapping.catalog_version,
-        CATALOG_SOURCE,
-        "2",
-        mapping.percentage_code,
-        rate,
-        treatment,
-        mapping.source,
-        mapping.starts_on,
-        mapping.ends_on,
+        mapping_id=mapping.pk,
+        catalog_entry_id=catalog_entry.pk,
+        display_name=catalog_entry.display_name,
+        catalog_version=catalog_entry.catalog_version,
+        catalog_source=catalog_entry.source_url,
+        tax_code=catalog_entry.tax_code or "",
+        percentage_code=catalog_entry.code,
+        rate=rate,
+        treatment=catalog_entry.treatment,
+        source=mapping.source,
+        starts_on=mapping.starts_on,
+        ends_on=mapping.ends_on,
     )

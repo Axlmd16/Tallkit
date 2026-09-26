@@ -39,12 +39,22 @@ def _setup_commercial_config(admin: Any) -> int:
     create_mapping(
         actor=admin,
         definition_id=iva.pk,
-        percentage_code="4",
+        catalog_entry_id=_iva_15_entry(),
         starts_on=date(2025, 1, 1),
         ends_on=None,
         source="Resolución vigente",
     )
     return point.pk
+
+
+def _iva_15_entry() -> int:
+    from workshop_configuration.application import official_catalog
+    from workshop_configuration.models import OfficialCatalogEntry
+
+    official_catalog.ensure_installed()
+    return OfficialCatalogEntry.objects.get(
+        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="4"
+    ).pk
 
 
 def _fill_draft(seller: Any, preparation_id: Any, point_id: int, **overrides: Any) -> Any:

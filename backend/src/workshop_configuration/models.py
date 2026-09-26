@@ -480,6 +480,13 @@ class FiscalTaxMapping(models.Model):
     )
     catalog_version = models.CharField(max_length=64)
     percentage_code = models.CharField(max_length=4)
+    catalog_entry = models.ForeignKey(
+        "OfficialCatalogEntry",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="tax_mappings",
+    )
     starts_on = models.DateField()
     ends_on = models.DateField(null=True, blank=True)
     source = models.CharField(max_length=500)
@@ -502,3 +509,77 @@ class FiscalTaxMapping(models.Model):
 
     def __str__(self) -> str:
         return f"{self.tax_definition_id}:{self.catalog_version}:{self.percentage_code}"
+
+
+class CatalogKind(models.TextChoices):
+    TAX_RATE = "TAX_RATE", "Tarifa de impuesto"
+    PAYMENT_FORM = "PAYMENT_FORM", "Forma de pago"
+
+
+class OfficialCatalogEntry(models.Model):
+    """Código oficial del SRI con su procedencia; nunca se reinterpreta en el código."""
+
+    kind = models.CharField(max_length=16, choices=CatalogKind.choices)
+    catalog_version = models.CharField(max_length=64)
+    code = models.CharField(max_length=8)
+    description = models.CharField(max_length=300)
+    display_name = models.CharField(max_length=120)
+    tax_code = models.CharField(max_length=4, null=True, blank=True)  # noqa: DJ001
+    rate = models.DecimalField(max_digits=7, decimal_places=4, null=True, blank=True)
+    treatment = models.CharField(max_length=16, null=True, blank=True)  # noqa: DJ001
+    source_document = models.CharField(max_length=200)
+    source_version = models.CharField(max_length=32)
+    source_reference = models.CharField(max_length=120)
+    source_url = models.URLField(max_length=500)
+    downloaded_on = models.DateField()
+    source_file_sha256 = models.CharField(max_length=64)
+    valid_from = models.DateField(null=True, blank=True)
+    valid_to = models.DateField(null=True, blank=True)
+    validity_note = models.CharField(max_length=500, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    is_selectable = models.BooleanField(default=True)
+    incorporated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["kind", "catalog_version", "code"], name="official_catalog_code_unique"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind__in=[choice.value for choice in CatalogKind]),
+                name="official_catalog_kind_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(valid_to__isnull=True)
+                | models.Q(valid_from__isnull=True)
+                | models.Q(valid_to__gte=models.F("valid_from")),
+                name="official_catalog_interval",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(kind="TAX_RATE")
+                    & models.Q(rate__isnull=False)
+                    & models.Q(treatment__isnull=False)
+                    & models.Q(tax_code__isnull=False)
+                )
+                | (
+                    models.Q(kind="PAYMENT_FORM")
+                    & models.Q(rate__isnull=True)
+                    & models.Q(treatment__isnull=True)
+                    & models.Q(tax_code__isnull=True)
+                ),
+                name="official_catalog_tax_fields",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(source_version__regex=r"\S")
+                & models.Q(source_url__regex=r"\S")
+                & models.Q(source_file_sha256__regex=r"^[0-9a-f]{64}$")
+                & models.Q(description__regex=r"\S")
+                & models.Q(display_name__regex=r"\S"),
+                name="official_catalog_provenance",
+            ),
+        ]
+        ordering: ClassVar[list[str]] = ["kind", "catalog_version", "code"]
+
+    def __str__(self) -> str:
+        return f"{self.kind}:{self.catalog_version}:{self.code}"
