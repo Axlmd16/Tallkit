@@ -204,3 +204,132 @@ class FiscalCommandReceipt(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action}:{self.idempotency_key}"
+
+
+SEQUENTIAL_MAX = 999_999_999
+
+
+class FiscalNumberingScope(models.Model):
+    """Ámbito de numeración fiscal propio; su contador no reinicia ni se reutiliza."""
+
+    fiscal_entity = models.ForeignKey(
+        "workshop_configuration.FiscalEntity", on_delete=models.PROTECT, related_name="+"
+    )
+    document_type = models.CharField(max_length=2)
+    establishment_code = models.CharField(max_length=3)
+    emission_point_code = models.CharField(max_length=3)
+    environment = models.CharField(max_length=1)
+    last_sequential = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=[
+                    "fiscal_entity",
+                    "document_type",
+                    "establishment_code",
+                    "emission_point_code",
+                    "environment",
+                ],
+                name="fiscal_numbering_scope_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(document_type__in=["01", "04"]),
+                name="fiscal_numbering_scope_doc_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(environment__in=["1", "2"]),
+                name="fiscal_numbering_scope_environment_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(last_sequential__lte=SEQUENTIAL_MAX),
+                name="fiscal_numbering_scope_counter_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        serie = f"{self.establishment_code}-{self.emission_point_code}"
+        return f"{self.fiscal_entity_id}:{self.document_type}:{serie}:{self.environment}"
+
+
+class FiscalDocumentIdentity(models.Model):
+    """Identidad fiscal de ensayo asignada; inmutable y no reutilizable."""
+
+    preparation = models.OneToOneField(
+        FiscalPreparation, on_delete=models.PROTECT, related_name="identity"
+    )
+    numbering_scope = models.ForeignKey(
+        FiscalNumberingScope, on_delete=models.PROTECT, related_name="identities"
+    )
+    document_type = models.CharField(max_length=2)
+    environment = models.CharField(max_length=1)
+    ruc = models.CharField(max_length=13)
+    sequential = models.PositiveBigIntegerField()
+    numeric_code = models.CharField(max_length=8)
+    emission_date = models.DateField()
+    access_key = models.CharField(max_length=49, unique=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.UniqueConstraint(
+                fields=["numbering_scope", "sequential"],
+                name="fiscal_identity_scope_sequential_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(sequential__gte=1, sequential__lte=SEQUENTIAL_MAX),
+                name="fiscal_identity_sequential_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(access_key__regex=r"^[0-9]{49}$"),
+                name="fiscal_identity_access_key_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(numeric_code__regex=r"^[0-9]{8}$"),
+                name="fiscal_identity_numeric_code_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.access_key
+
+
+class FiscalNumberingAntecedent(models.Model):
+    """Antecedente de numeración externa declarado; no es un contador verificado."""
+
+    fiscal_entity = models.ForeignKey(
+        "workshop_configuration.FiscalEntity", on_delete=models.PROTECT, related_name="+"
+    )
+    document_type = models.CharField(max_length=2)
+    establishment_code = models.CharField(max_length=3)
+    emission_point_code = models.CharField(max_length=3)
+    environment = models.CharField(max_length=1)
+    last_declared_number = models.PositiveBigIntegerField()
+    declared_on = models.DateField()
+    source = models.CharField(max_length=500)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(
+                    last_declared_number__gte=1, last_declared_number__lte=SEQUENTIAL_MAX
+                ),
+                name="fiscal_antecedent_number_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(source__regex=r"\S"),
+                name="fiscal_antecedent_source_not_blank",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.fiscal_entity_id}:{self.document_type}:{self.last_declared_number}"

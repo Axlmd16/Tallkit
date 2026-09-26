@@ -55,10 +55,10 @@ Evidencia: pruebas focalizadas de validación, importes, revisión y transicione
 
 Dependencias: grupo 4. Diseño D5/D6; spec `identidad-y-numeracion-fiscal`.
 
-- [ ] 5.1 Añadir pruebas puras de componentes, 49 dígitos, módulo 11, códigos numéricos y fecha `America/Guayaquil`, incluido instante UTC que pertenece al día anterior local y reintento al día siguiente.
-- [ ] 5.2 Crear migraciones de ámbitos, contadores e identidades propias por RUC/tipo/establecimiento/punto/ambiente; restricciones de unicidad y límites 1…999999999. No reutilizar `DocumentSeries` ni `NumberAllocation` internos.
-- [ ] 5.3 Implementar asignación de ensayo en **transacción atómica** exterior: bloqueo, identidad completa, contador y auditoría. Probar rollback en cada punto de fallo, concurrencia, agotamiento y recuperación del mismo resultado.
-- [ ] 5.4 Implementar antecedentes administrativos sin avanzar contadores y prohibición productiva en dominio/aplicación. Probar que importar, cancelar o repetir no libera/reutiliza números y que solicitud de anulación no consume identidad documental.
+- [x] 5.1 Añadir pruebas puras de componentes, 49 dígitos, módulo 11, códigos numéricos y fecha `America/Guayaquil`, incluido instante UTC que pertenece al día anterior local y reintento al día siguiente.
+- [x] 5.2 Crear migraciones de ámbitos, contadores e identidades propias por RUC/tipo/establecimiento/punto/ambiente; restricciones de unicidad y límites 1…999999999. No reutilizar `DocumentSeries` ni `NumberAllocation` internos.
+- [x] 5.3 Implementar asignación de ensayo en **transacción atómica** exterior: bloqueo, identidad completa, contador y auditoría. Probar rollback en cada punto de fallo, concurrencia, agotamiento y recuperación del mismo resultado.
+- [x] 5.4 Implementar antecedentes administrativos sin avanzar contadores y prohibición productiva en dominio/aplicación. Probar que importar, cancelar o repetir no libera/reutiliza números y que solicitud de anulación no consume identidad documental.
 
 Evidencia: pruebas focalizadas de clave, ámbito y asignación sobre PostgreSQL. Confirmar que ningún comando puede habilitar emisión productiva, incluso con rol Administrador y perfil completo.
 
