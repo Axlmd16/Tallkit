@@ -167,6 +167,8 @@ Tercera revisión del usuario (2026-09-26):
 - el aviso permanente pasa a la insignia «Preparación local» (`HintPopover`, con el aviso como descripción accesible) y los pendientes, a un indicador de advertencia con su detalle en `HintPopover`; `PendingNotes` se retira;
 - `HintPopover` (en `shared/ui/overlays`) se abre con puntero, foco o toque, se cierra con Escape o al tocar fuera y mide 44 px en dispositivos táctiles; el `Tooltip` existente es de una sola línea y no sirve para listas;
 - los estados usan `StateChip` con los tonos semánticos de Tallkit y las cabeceras de tabla, el gris suave de la especificación visual;
+- a pedido del usuario, la aplicación entera usa suavizado de letra (`-webkit-font-smoothing: antialiased` en `body`) y los títulos de página pasan a negrita (700) en `PageHeader`; el tamaño se mantiene en 22 px;
+- en facturación, la advertencia de pendientes y «Preparación local» se alinean en una fila fija junto a la placa del RUC, bajo el selector; el título queda solo con su descripción, y las acciones de tabla usan botones compactos (32 px, 44 px en táctil);
 - el certificado se muestra como tarjeta (`CertificateCard`) y su modal usa el nuevo tamaño `large` de `Modal` (860 px), con pasos numerados, atajos de duración y vista previa en vivo.
 
 ### D9. Perfil tributario por condición

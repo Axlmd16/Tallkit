@@ -152,7 +152,7 @@ function ConfiguredWorkshopContent() {
             />
             Administración
           </p>
-          <h1 className="mt-2 text-[22px] leading-7 font-semibold text-ink">
+          <h1 className="mt-2 text-[22px] leading-7 font-bold text-ink">
             Configuración del taller
           </h1>
           <p className="mt-1 text-sm text-ink-muted">

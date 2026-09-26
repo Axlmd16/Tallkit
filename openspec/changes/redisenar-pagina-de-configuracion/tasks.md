@@ -168,6 +168,7 @@ Dependencias: grupos 1 a 8. Diseño D8b; spec «Subsecciones de facturación ele
 - [x] 9.5 Selector de entidad compacto junto al título, placa del RUC seleccionado bajo el control, encabezado de página con descripción en una línea y hoja con alto completo estable desde `md`.
 - [x] 9.6 Verificar: vitest de los archivos afectados, `tsc`, ESLint, Prettier, E2E de configuración y facturación, y capturas comparadas.
 - [x] 9.7 Tercera revisión: título por subsección, insignia «Preparación local» y advertencia de pendientes con `HintPopover`, chips de estado con los tonos del sistema, cabeceras de tabla en gris suave y modal amplio del certificado con pasos, atajos y vista previa.
+- [x] 9.8 Suavizado de letra global, títulos de página en negrita, indicadores alineados junto a la placa del RUC y botones de tabla compactos.
 
 ## Revisión y evidencia (2026-09-26)
 
