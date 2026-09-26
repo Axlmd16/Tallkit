@@ -16,6 +16,8 @@ export {
   SheetHeading,
   sheetTableCell,
   sheetTableHead,
+  StateChip,
+  type StateChipTone,
   StateMark,
   SubsectionIndicator,
 } from './Sheet'

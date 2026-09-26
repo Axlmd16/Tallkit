@@ -26,11 +26,12 @@ export interface ModalProps {
   size?: ModalSize | undefined
 }
 
-export type ModalSize = 'default' | 'wide' | 'media'
+export type ModalSize = 'default' | 'wide' | 'large' | 'media'
 
 const sizeClasses: Record<ModalSize, string> = {
   default: 'max-w-[466px]',
   wide: 'max-w-[600px]',
+  large: 'max-w-[860px]',
   media: 'max-w-[min(90vw,1100px)]',
 }
 

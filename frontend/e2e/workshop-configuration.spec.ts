@@ -256,10 +256,10 @@ test('la configuración se recorre como una hoja con navegación de secciones', 
     sections.getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveAttribute('aria-current', 'page')
   await expect(
-    page.getByText(
-      'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
-    ),
-  ).toBeVisible()
+    page.getByRole('button', { name: 'Preparación local' }),
+  ).toHaveAccessibleDescription(
+    'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
+  )
 })
 
 test('facturación electrónica designa el punto en un modal y separa las entidades', async ({
@@ -299,11 +299,10 @@ test('facturación electrónica designa el punto en un modal y separa las entida
     .getByRole('navigation', { name: 'Secciones de configuración' })
     .getByRole('link', { name: /Perfil tributario/ })
     .click()
-  await expect(
-    page
-      .getByRole('region', { name: 'Perfil tributario' })
-      .getByRole('list', { name: 'Pendientes' }),
-  ).toContainText('Todavía no existe una configuración guardada.')
+  await page.getByRole('button', { name: '1 pendiente' }).click()
+  await expect(page.getByRole('list', { name: 'Pendientes' })).toContainText(
+    'Todavía no existe una configuración guardada.',
+  )
 
   await page
     .getByRole('navigation', { name: 'Secciones de configuración' })

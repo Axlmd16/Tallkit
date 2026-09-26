@@ -12,7 +12,7 @@ export function EntityGroupRow({
   return (
     <tr>
       <th
-        className="border-b border-line-strong pt-7 pb-2.5 text-left font-normal"
+        className="border-b border-line-strong pt-7 pb-2.5 pl-3 text-left font-normal"
         colSpan={colSpan}
         scope="rowgroup"
       >

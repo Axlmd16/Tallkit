@@ -10,51 +10,36 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
-  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateMark,
+  StateChip,
   useFieldProps,
   useToast,
 } from '@/shared/ui'
 
 import { useCatalog, useFiscalMutations, useTaxMappings } from '../hooks'
-import type { StatusCause } from '../types'
-import { PendingNotes } from './PendingNotes'
 
 export function TaxMappingsSection({
   entityId,
   definitions,
-  pending = [],
 }: {
   entityId: number
   definitions: TaxDefinition[]
-  pending?: StatusCause[]
 }) {
   const mappings = useTaxMappings(entityId)
   const [creating, setCreating] = useState(false)
   const list = mappings.data ?? []
 
   return (
-    <section
-      aria-labelledby={`impuestos-sri-${entityId}`}
-      className="space-y-5"
-    >
-      <SheetHeading
-        id={`impuestos-sri-${entityId}`}
-        actions={
-          definitions.length > 0 && (
-            <Button onClick={() => setCreating(true)} variant="secondary">
-              <Plus aria-hidden="true" size={16} weight="bold" />
-              Nueva correspondencia
-            </Button>
-          )
-        }
-        description="Relacione cada impuesto interno con su tarifa oficial del SRI."
-        level={3}
-        title="Impuestos y catálogo SRI"
-      />
-      <PendingNotes causes={pending} />
+    <section aria-label="Impuestos y catálogo SRI" className="space-y-5">
+      <div className="flex justify-end">
+        {definitions.length > 0 && (
+          <Button onClick={() => setCreating(true)} variant="secondary">
+            <Plus aria-hidden="true" size={16} weight="bold" />
+            Nueva correspondencia
+          </Button>
+        )}
+      </div>
 
       {definitions.length === 0 && (
         <p className="rounded-control bg-surface-subtle px-4 py-3 text-sm text-ink-muted">
@@ -108,11 +93,11 @@ export function TaxMappingsSection({
                       )}
                     </td>
                     <td className={sheetTableCell}>
-                      <StateMark
+                      <StateChip
                         label={
                           mapping.is_current ? 'Vigente' : 'Fuera de vigencia'
                         }
-                        tone={mapping.is_current ? 'success' : 'inactive'}
+                        tone={mapping.is_current ? 'success' : 'neutral'}
                       />
                     </td>
                   </tr>

@@ -161,6 +161,14 @@ Segunda revisión del usuario (2026-09-26):
 - la página usa un encabezado propio con la descripción breve en una línea (sin el `max-w-[72ch]` de `PageHeader`);
 - desde `md`, la página es una columna flexible con alto mínimo `calc(100dvh - 100px)` (barra superior de 60 px más el relleno vertical del contenido) y la hoja ocupa el resto con `flex-1`, de modo que su altura no cambia entre secciones.
 
+Tercera revisión del usuario (2026-09-26):
+
+- se retira el título «Facturación electrónica»; el título es la subsección actual, con icono en el tono del ámbito seleccionado;
+- el aviso permanente pasa a la insignia «Preparación local» (`HintPopover`, con el aviso como descripción accesible) y los pendientes, a un indicador de advertencia con su detalle en `HintPopover`; `PendingNotes` se retira;
+- `HintPopover` (en `shared/ui/overlays`) se abre con puntero, foco o toque, se cierra con Escape o al tocar fuera y mide 44 px en dispositivos táctiles; el `Tooltip` existente es de una sola línea y no sirve para listas;
+- los estados usan `StateChip` con los tonos semánticos de Tallkit y las cabeceras de tabla, el gris suave de la especificación visual;
+- el certificado se muestra como tarjeta (`CertificateCard`) y su modal usa el nuevo tamaño `large` de `Modal` (860 px), con pasos numerados, atajos de duración y vista previa en vivo.
+
 ### D9. Perfil tributario por condición
 
 `ProfileConditionsSection` pasa a una tabla de seis filas: condición, declaración con marcador y texto, detalle y vigencia desde, con guion si falta. Cada fila tiene la acción «Declarar» o «Editar».
