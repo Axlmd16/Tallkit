@@ -9,6 +9,7 @@ import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
+import { FiscalPreparationLink } from '@/features/fiscal'
 import {
   ArtisanCorrectionDialog,
   ArtisanPaymentDialog,
@@ -160,6 +161,10 @@ export function ServiceOperationDetailPage() {
           .
         </InlineNotice>
       ))}
+
+      {operation.state !== 'VOIDED' && (
+        <FiscalPreparationLink sourceKind="ARTISAN" sourceId={operation.id} />
+      )}
 
       <section
         aria-label="Saldo de la operación"
