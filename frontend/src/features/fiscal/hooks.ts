@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fiscalApi } from './api'
-import type { ArchiveFilters, DraftUpdate, FiscalSourceKind } from './types'
+import type {
+  ArchiveFilters,
+  CatalogKind,
+  DraftUpdate,
+  FiscalSourceKind,
+  PreparationDefaultsWrite,
+} from './types'
 
 export const fiscalKeys = {
   all: ['fiscal'] as const,
@@ -16,6 +22,17 @@ export const fiscalKeys = {
     [...fiscalKeys.all, 'configuration', 'profile', entityId] as const,
   establishments: (entityId: number) =>
     [...fiscalKeys.all, 'configuration', 'establishments', entityId] as const,
+  configuration: () => [...fiscalKeys.all, 'configuration'] as const,
+  status: (entityId: number) =>
+    [...fiscalKeys.all, 'configuration', 'status', entityId] as const,
+  defaults: (entityId: number) =>
+    [...fiscalKeys.all, 'configuration', 'defaults', entityId] as const,
+  catalog: (kind: CatalogKind, selectable: boolean) =>
+    [...fiscalKeys.all, 'configuration', 'catalog', kind, selectable] as const,
+  taxMappings: (entityId: number) =>
+    [...fiscalKeys.all, 'configuration', 'tax-mappings', entityId] as const,
+  paymentForms: (entityId: number) =>
+    [...fiscalKeys.all, 'configuration', 'payment-forms', entityId] as const,
   corrections: () => [...fiscalKeys.all, 'corrections'] as const,
   correction: (id: string) => [...fiscalKeys.corrections(), id] as const,
   readiness: (entityId: number) =>
@@ -72,6 +89,45 @@ export function useArchiveReadiness(entityId: number) {
   return useQuery({
     queryKey: fiscalKeys.readiness(entityId),
     queryFn: () => fiscalApi.getReadiness(entityId),
+    enabled: entityId > 0,
+  })
+}
+
+export function useElectronicStatus(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.status(entityId),
+    queryFn: () => fiscalApi.getElectronicStatus(entityId),
+    enabled: entityId > 0,
+  })
+}
+
+export function usePreparationDefaults(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.defaults(entityId),
+    queryFn: () => fiscalApi.getPreparationDefaults(entityId),
+    enabled: entityId > 0,
+  })
+}
+
+export function useCatalog(kind: CatalogKind, selectable = false) {
+  return useQuery({
+    queryKey: fiscalKeys.catalog(kind, selectable),
+    queryFn: () => fiscalApi.getCatalog(kind, selectable),
+  })
+}
+
+export function useTaxMappings(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.taxMappings(entityId),
+    queryFn: () => fiscalApi.getTaxMappings(entityId),
+    enabled: entityId > 0,
+  })
+}
+
+export function usePaymentForms(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.paymentForms(entityId),
+    queryFn: () => fiscalApi.getPaymentForms(entityId),
     enabled: entityId > 0,
   })
 }
@@ -223,6 +279,9 @@ export function useFiscalMutations() {
       }) => fiscalApi.saveElectronicProfile(entityId, data, attemptKey),
       onSuccess: (profile) => {
         queryClient.setQueryData(fiscalKeys.profile(profile.entity_id), profile)
+        queryClient.invalidateQueries({
+          queryKey: fiscalKeys.status(profile.entity_id),
+        })
       },
     }),
     createEstablishment: useMutation({
@@ -261,7 +320,44 @@ export function useFiscalMutations() {
         queryClient.invalidateQueries({
           queryKey: ['workshop-configuration', 'taxes'],
         })
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() })
       },
+    }),
+    savePreparationDefaults: useMutation({
+      mutationFn: ({
+        entityId,
+        data,
+        attemptKey,
+      }: {
+        entityId: number
+        data: PreparationDefaultsWrite
+        attemptKey: string
+      }) => fiscalApi.savePreparationDefaults(entityId, data, attemptKey),
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() }),
+    }),
+    setPaymentForm: useMutation({
+      mutationFn: ({
+        entityId,
+        code,
+        enabled,
+        expectedVersion,
+        attemptKey,
+      }: {
+        entityId: number
+        code: string
+        enabled: boolean
+        expectedVersion: number
+        attemptKey: string
+      }) =>
+        fiscalApi.setPaymentForm(
+          entityId,
+          code,
+          { enabled, expected_version: expectedVersion },
+          attemptKey,
+        ),
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() }),
     }),
     saveArchivePolicy: useMutation({
       mutationFn: fiscalApi.saveArchivePolicy,

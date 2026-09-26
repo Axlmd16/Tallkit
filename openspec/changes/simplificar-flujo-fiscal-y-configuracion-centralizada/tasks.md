@@ -172,41 +172,41 @@ Evidencia: vitest de los archivos tocados, `tsc` y ESLint sobre ellos.
 
 Dependencias: grupos 3 y 5. Diseño D7/D8/D9; specs `configuracion-operativa-y-fiscal` y `organizacion-de-la-configuracion`.
 
-- [ ] 6.1 Actualizar `features/fiscal/types.ts`, `api.ts` y `hooks.ts` para los endpoints de D8, con claves de consulta por entidad, y sus pruebas (`api.test.ts`, `hooks.test.tsx`).
-- [ ] 6.2 Probar y crear `features/fiscal/configuration/ElectronicStatusCard.tsx`:
+- [x] 6.1 Actualizar `features/fiscal/types.ts`, `api.ts` y `hooks.ts` para los endpoints de D8, con claves de consulta por entidad, y sus pruebas (`api.test.ts`, `hooks.test.tsx`).
+- [x] 6.2 Probar y crear `features/fiscal/configuration/ElectronicStatusCard.tsx`:
   - los cuatro estados con sus causas en texto;
   - «Sin configurar» en lugar de «Revisión 0»;
   - advertencia de certificado separada;
   - ambiente *Pruebas* con la explicación de que la emisión real no está disponible.
-- [ ] 6.3 Probar y crear `ProfileConditionsSection.tsx`:
+- [x] 6.3 Probar y crear `ProfileConditionsSection.tsx`:
   - declaración de las seis condiciones con estado (desconocida, aplicable, no aplicable), valor, fuente y vigencia;
   - ayuda contextual por condición;
   - sin deducir condiciones del tipo de entidad.
-- [ ] 6.4 Probar y crear `LocationsSection.tsx`: alta de establecimientos y puntos conservada, designación del punto predeterminado, e impedimento visible cuando hay varios puntos sin designación.
-- [ ] 6.5 Probar y crear `TaxMappingsSection.tsx`:
+- [x] 6.4 Probar y crear `LocationsSection.tsx`: alta de establecimientos y puntos conservada, designación del punto predeterminado, e impedimento visible cuando hay varios puntos sin designación.
+- [x] 6.5 Probar y crear `TaxMappingsSection.tsx`:
   - selector del catálogo por `display_name`, sin campo de código libre, con el código en «Información avanzada»;
   - dato fijo si hay una sola definición;
   - mensaje «Primero debe configurarse el catálogo tributario de esta entidad»;
   - «Fundamento» con su explicación;
   - listado de correspondencias vigentes e históricas.
-- [ ] 6.6 Probar y crear `PaymentFormsSection.tsx`:
+- [x] 6.6 Probar y crear `PaymentFormsSection.tsx`:
   - catálogo completo con código, descripción, fuente, versión de la ficha, fecha de descarga y vigencia;
   - interruptor solo en `01` y `20`, y el resto deshabilitado con explicación;
   - selección de la forma predeterminada;
   - error al deshabilitar la predeterminada.
-- [ ] 6.7 Probar y crear `CertificateSection.tsx`:
+- [x] 6.7 Probar y crear `CertificateSection.tsx`:
   - campos opcionales con nombres y ayuda de la spec;
   - explicación de que no equivale a firma ni autorización;
   - sin carga de archivos ni contraseñas;
   - guardado vacío admitido.
-- [ ] 6.8 Componer la pestaña *Facturación electrónica*:
+- [x] 6.8 Componer la pestaña *Facturación electrónica*:
   - aviso permanente y selector de entidad con razón social y RUC;
   - subpestañas `pill` con `?seccion=`;
   - subárbol montado con `key={entityId}`.
 
   Sustituir `FiscalConfigurationSection` y retirar su prueba obsoleta. Probar el cambio de comercial a artesanal: datos, formulario sin guardar y error de la otra entidad.
 
-Evidencia: vitest por archivo de `features/fiscal/configuration/` y de la página, más `tsc` y ESLint.
+Evidencia: vitest por archivo de `features/fiscal/configuration/` y de la página, más `tsc` y ESLint. Ejecutado: las secciones se prueban juntas en `features/fiscal/FiscalConfigurationSection.test.tsx`, que monta la composición real con hooks simulados por entidad (9 pruebas), más `api.test.ts` y `hooks.test.tsx`.
 
 ## 7. Preparación simplificada y terminología (frontend)
 

@@ -155,7 +155,7 @@ describe('fiscal query ownership', () => {
       })
       await result.current.createTaxMapping.mutateAsync({
         definition_id: 3,
-        percentage_code: '4',
+        catalog_entry_id: 11,
         starts_on: '2026-01-01',
         source: 'Ficha SRI',
       })
