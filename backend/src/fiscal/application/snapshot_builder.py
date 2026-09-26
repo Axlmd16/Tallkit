@@ -23,6 +23,8 @@ from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 from shared.command_values import canonical_fingerprint
 from workshop_configuration.application.fiscal_resolver import FiscalConfiguration
 from workshop_configuration.application.fiscal_tax_mapping import resolve_mapping
+from workshop_configuration.application.official_catalog import SELECTABLE_PAYMENT_VERSION
+from workshop_configuration.application.preparation_settings import payment_form_options
 from workshop_configuration.domain.validation import ConfigurationValidationError
 
 
@@ -49,6 +51,41 @@ def _legends(config: FiscalConfiguration) -> list[str]:
         if condition.is_resolved and condition.status == "APPLICABLE" and condition.value:
             legends.append(f"{key}: {condition.value}")
     return legends
+
+
+def _configuration(config: FiscalConfiguration, catalogs: dict[str, str]) -> dict[str, Any]:
+    return {
+        "entity_id": config.entity_id,
+        "entity_version": config.entity_version,
+        "profile_revision": config.profile_revision,
+        "defaults_version": config.defaults_version,
+        "establishment": {
+            "id": config.establishment_id,
+            "code": config.establishment_code,
+            "version": config.establishment_version,
+        },
+        "point": {
+            "id": config.point_id,
+            "code": config.point_code,
+            "version": config.point_version,
+        },
+        "environment": config.environment,
+        "catalogs": dict(catalogs),
+        "tax_mapping_ids": list(config.tax_mapping_ids),
+        "enabled_payment_codes": list(config.enabled_payment_codes),
+    }
+
+
+def _payment_details(config: FiscalConfiguration, on: date) -> dict[str, dict[str, str]]:
+    return {
+        option.code: {
+            "description": option.description,
+            "display_name": option.display_name,
+            "catalog_version": option.catalog_version,
+        }
+        for option in payment_form_options(entity_id=config.entity_id, on=on)
+        if option.code in config.enabled_payment_codes
+    }
 
 
 def assemble_snapshot(
@@ -85,14 +122,18 @@ def assemble_snapshot(
     forms = (draft.get("payments") or {}).get("forms") or []
     try:
         payments = validate_payment_declaration(
-            condition=source.condition, forms=forms, total=grand_total
+            condition=source.condition,
+            forms=forms,
+            total=grand_total,
+            enabled_codes=config.enabled_payment_codes,
         )
     except PaymentDeclarationError as error:
         for field, messages in error.errors.items():
             impediments.append({"field": f"payments.{field}", "message": messages[0]})
 
     lines: list[dict[str, Any]] = []
-    catalog_versions: dict[str, str] = {}
+    line_details: dict[int, dict[str, Any]] = {}
+    catalog_versions: dict[str, str] = {"payment_forms": SELECTABLE_PAYMENT_VERSION}
     for line in source.lines:
         if line.tax_definition_id is None:
             impediments.append(
@@ -114,6 +155,10 @@ def assemble_snapshot(
             )
             continue
         catalog_versions["iva"] = resolved.catalog_version
+        line_details[line.position] = {
+            "catalog_entry_id": resolved.catalog_entry_id,
+            "display_name": resolved.display_name,
+        }
         product_snapshot = getattr(line, "product_snapshot", {})
         if product_snapshot:
             item_code = str(product_snapshot.get("code", ""))
@@ -152,6 +197,9 @@ def assemble_snapshot(
             catalog_versions=catalog_versions,
             legends=_legends(config),
             additional_info=draft.get("additional_info") or [],
+            configuration=_configuration(config, catalog_versions),
+            payment_details=_payment_details(config, reference_date),
+            line_details=line_details,
         )
     except SnapshotImpedimentError as error:
         impediments.extend(error.impediments)

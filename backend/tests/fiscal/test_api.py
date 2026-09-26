@@ -89,13 +89,7 @@ def test_stale_preparation_version_has_stable_conflict(
     monkeypatch.setattr("fiscal.api.views.preparations.update_draft", stale)
     response = _client(role_seller).patch(
         f"{BASE}/preparations/{preparation_id}/",
-        {
-            "expected_version": 1,
-            "point_id": 2,
-            "receiver": {},
-            "payments": {},
-            "environment": "1",
-        },
+        {"expected_version": 1, "receiver": {}, "payments": {}},
         format="json",
     )
 
@@ -240,14 +234,7 @@ def test_preparation_endpoints_translate_local_results(
 
     updated = client.patch(
         f"{BASE}/preparations/{preparation_id}/",
-        {
-            "expected_version": 1,
-            "point_id": 1,
-            "receiver": {},
-            "payments": {},
-            "environment": "1",
-            "reference_date": "2026-09-26",
-        },
+        {"expected_version": 1, "receiver": {}, "payments": {}},
         format="json",
     )
     reviewed = client.post(f"{BASE}/preparations/{preparation_id}/review/", {}, format="json")
@@ -538,3 +525,40 @@ def test_correction_endpoints_never_report_official_execution(
         HTTP_IDEMPOTENCY_KEY="correction-create-api-01",
     )
     assert denied_recovery.status_code == 403
+
+
+@pytest.mark.parametrize("field", ["environment", "point_id", "reference_date", "fiscal_entity_id"])
+def test_draft_patch_rejects_technical_fields_without_calling_service(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch, field: str
+) -> None:
+    called: list[object] = []
+    monkeypatch.setattr(
+        "fiscal.api.views.preparations.update_draft", lambda **kwargs: called.append(kwargs)
+    )
+    response = _client(role_seller).patch(
+        f"{BASE}/preparations/{uuid4()}/",
+        {"expected_version": 1, "receiver": {}, "payments": {}, field: "2"},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert field in response.json()["errors"]
+    assert called == []
+
+
+def test_stale_review_has_its_own_problem_code(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from fiscal.application.preparations import StaleReviewError
+
+    def stale(**_: object) -> object:
+        raise StaleReviewError("La revisión ya no corresponde a los datos actuales.")
+
+    monkeypatch.setattr("fiscal.api.views.preparations.prepare", stale)
+    response = _client(role_seller).post(
+        f"{BASE}/preparations/{uuid4()}/prepare/",
+        {"review_token": "x"},
+        format="json",
+        HTTP_IDEMPOTENCY_KEY=str(uuid4()),
+    )
+    assert response.status_code == 409
+    assert response.json()["code"] == "review_stale"

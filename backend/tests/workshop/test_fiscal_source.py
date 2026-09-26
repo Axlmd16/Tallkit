@@ -59,3 +59,50 @@ def test_locking_read_does_not_change_artisan_operation(
         before.version,
         before.internal_number,
     )
+
+
+def test_artisan_collected_by_method_excludes_corrected_payments(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from datetime import date
+    from decimal import Decimal
+    from uuid import uuid4
+
+    from django.utils import timezone
+
+    from workshop.application.fiscal_source import read_fiscal_source
+    from workshop.models import ArtisanPayment, ArtisanPaymentCorrection, ArtisanPaymentPart
+
+    add_line(
+        manager, order["id"], service_id=make_service(name="Balanceo").pk, applied_price="40.00"
+    )
+    operation = ServiceOperation.objects.get(
+        pk=confirm_services(manager, order["id"], "CREDITO")["id"]
+    )
+
+    def pay(parts: dict[str, str]) -> ArtisanPayment:
+        payment = ArtisanPayment.objects.create(
+            operation_id=uuid4(),
+            service_operation=operation,
+            amount=sum((Decimal(v) for v in parts.values()), Decimal("0")),
+            effective_at=timezone.now(),
+            effective_date=date(2026, 9, 26),
+            created_by=manager,
+        )
+        for method, amount in parts.items():
+            ArtisanPaymentPart.objects.create(
+                payment=payment, method=method, amount=Decimal(amount)
+            )
+        return payment
+
+    corrected = pay({"TRANSFERENCIA": "15.00"})
+    pay({"EFECTIVO": "5.00"})
+    ArtisanPaymentCorrection.objects.create(
+        operation_id=uuid4(),
+        service_operation=operation,
+        original_payment=corrected,
+        reason="Registro duplicado",
+        created_by=manager,
+    )
+    collected = read_fiscal_source(operation.pk).collected_by_method
+    assert {method: str(amount) for method, amount in collected.items()} == {"EFECTIVO": "5.00"}

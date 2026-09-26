@@ -152,6 +152,8 @@ def _problem(request: Request, exc: Exception) -> Response:
         code = exc.code
         if exc.code == "xml_too_large":
             response_status, title = 413, "Contenido demasiado grande"
+    elif isinstance(exc, StaleReviewError):
+        code, response_status, title = "review_stale", 409, "Revisión desactualizada"
     elif isinstance(exc, PreparationImpedimentError):
         code, response_status, title = "preparation_impediments", 409, "Preparación impedida"
         details = {"impediments": exc.impediments}
@@ -281,6 +283,12 @@ class PreparationDetailView(APIView):
                     "prepared_at": result.prepared_at,
                     "official_status": None,
                     "official_submission": "NOT_PERFORMED",
+                    "summary": result.summary,
+                    "issuer": result.issuer,
+                    "working": result.working,
+                    "payment_options": list(result.payment_options),
+                    "missing_fields": list(result.missing_fields),
+                    "technical": result.technical,
                 }
             )
 
@@ -295,12 +303,8 @@ class PreparationDetailView(APIView):
     def patch(self, request: Request, preparation_id: UUID) -> Response:
         def operation() -> Response:
             data = _validated(sz.FiscalDraftUpdate, request)
-            reference_date = data.pop("reference_date", None)
             result = preparations.update_draft(
-                actor=_actor(request),
-                preparation_id=preparation_id,
-                reference_date=reference_date.isoformat() if reference_date else None,
-                **data,
+                actor=_actor(request), preparation_id=preparation_id, **data
             )
             return Response(
                 {

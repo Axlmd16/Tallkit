@@ -53,6 +53,7 @@ def _payments() -> object:
         condition="CONTADO",
         forms=[{"payment_code": "01", "amount": "11.50"}],
         total="11.50",
+        enabled_codes=("01", "20"),
     )
 
 
@@ -125,29 +126,43 @@ def test_empty_lines_block() -> None:
         )
 
 
-def test_pending_payment_data_blocks_snapshot() -> None:
-    from fiscal.domain.snapshot import SnapshotImpedimentError, build_snapshot
+def test_credit_snapshot_keeps_configuration_and_payment_details() -> None:
+    from fiscal.domain.snapshot import SNAPSHOT_FORMAT, build_snapshot
 
-    credit_without_term = validate_payment_declaration(
+    credit = validate_payment_declaration(
         condition="CREDITO",
         forms=[{"payment_code": "20", "amount": "11.50"}],
         total="11.50",
+        enabled_codes=("01", "20"),
     )
-    with pytest.raises(SnapshotImpedimentError) as exc:
-        build_snapshot(
-            issuer=_issuer(),
-            receiver=_receiver(),
-            lines=_lines(),
-            base_total="10.00",
-            tax_total="1.50",
-            grand_total="11.50",
-            payments=credit_without_term,
-            reference_date="2026-09-25",
-            catalog_versions={},
-            legends=[],
-            additional_info=[],
-        )
-    assert any("payment" in imp["field"] for imp in exc.value.impediments)
+    snapshot = build_snapshot(
+        issuer=_issuer(),
+        receiver=_receiver(),
+        lines=_lines(),
+        base_total="10.00",
+        tax_total="1.50",
+        grand_total="11.50",
+        payments=credit,
+        reference_date="2026-09-25",
+        catalog_versions={"iva": "SRI-2.34-TABLA17"},
+        legends=[],
+        additional_info=[],
+        configuration={"profile_revision": 3, "point": {"code": "001", "version": 2}},
+        payment_details={"20": {"display_name": "Transferencia", "catalog_version": "T24"}},
+        line_details={1: {"display_name": "IVA 15 %"}},
+    )
+    assert snapshot["snapshot_format"] == SNAPSHOT_FORMAT
+    assert snapshot["configuration"]["profile_revision"] == 3
+    assert snapshot["payments"] == [
+        {
+            "payment_code": "20",
+            "amount": "11.50",
+            "display_name": "Transferencia",
+            "catalog_version": "T24",
+        }
+    ]
+    assert "term_days" not in snapshot["payments"][0]
+    assert snapshot["lines"][0]["display_name"] == "IVA 15 %"
 
 
 def test_amount_impediments_propagate() -> None:

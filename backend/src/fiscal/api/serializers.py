@@ -37,12 +37,11 @@ class FiscalPreparationResult(serializers.Serializer[dict[str, Any]]):
 
 
 class FiscalDraftUpdate(StrictSerializer):
+    """Solo datos que completa el usuario; ambiente, punto, fecha y plazo se rechazan."""
+
     expected_version = serializers.IntegerField(min_value=1)
-    point_id = serializers.IntegerField(min_value=1)
     receiver = serializers.DictField()
     payments = serializers.DictField()
-    environment = serializers.ChoiceField(choices=("1", "2"), default="1")
-    reference_date = serializers.DateField(required=False)
     additional_info = serializers.ListField(
         child=serializers.DictField(child=serializers.CharField()),
         max_length=15,
@@ -88,6 +87,12 @@ class FiscalPreparationDetail(serializers.Serializer[dict[str, Any]]):
     prepared_at = serializers.DateTimeField(allow_null=True)
     official_status = serializers.CharField(allow_null=True)
     official_submission = serializers.CharField()
+    summary = serializers.DictField(allow_null=True)
+    issuer = serializers.DictField(allow_null=True)
+    working = serializers.DictField(allow_null=True)
+    payment_options = serializers.ListField(child=serializers.DictField())
+    missing_fields = serializers.ListField(child=serializers.CharField())
+    technical = serializers.DictField(allow_null=True)
 
 
 class FiscalReview(serializers.Serializer[dict[str, Any]]):

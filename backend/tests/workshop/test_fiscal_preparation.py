@@ -114,3 +114,27 @@ def test_later_artisan_void_is_reported_without_cancelling_preparation(
     assert discrepancy.state_changed
     assert (discrepancy.original_state, discrepancy.current_state) == ("CONFIRMED", "VOIDED")
     assert FiscalPreparation.objects.get(pk=result.preparation_id).state == "DRAFT"
+
+
+def test_manager_draft_is_prefilled_with_cedula_and_services_only(
+    manager: Any, order: dict[str, Any], make_service: Any, customer: Any
+) -> None:
+    from fiscal.application.preparations import create_draft, get_preparation
+
+    operation = _operation(manager, order, make_service)
+    result = create_draft(
+        actor=manager,
+        source_kind="ARTISAN",
+        source_id=operation.pk,
+        idempotency_key="fiscal:artisan:prefill",
+    )
+    detail = get_preparation(actor=manager, preparation_id=result.preparation_id)
+    assert detail.draft is not None
+    receiver = detail.draft["receiver"]
+    assert receiver["identification_type"] == "05"
+    assert receiver["identification"] == customer.identification
+    assert customer.identification_type == "CI"
+    assert detail.summary is not None
+    assert detail.summary["kind"] == "ARTISAN"
+    assert detail.summary["grand_total"] == "25.00"
+    assert detail.draft["payments"]["forms"] == [{"payment_code": "01", "amount": "25.00"}]

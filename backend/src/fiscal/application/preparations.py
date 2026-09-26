@@ -11,7 +11,10 @@ from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.utils import timezone
 
+from fiscal.application.draft_prefill import initial_draft, normalized_draft
+from fiscal.application.impediment_messages import classify_all
 from fiscal.application.snapshot_builder import assemble_snapshot
+from fiscal.domain.receiver import FiscalReceiverError, parse_receiver
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 from fiscal.domain.states import PreparationState
 from fiscal.models import (
@@ -21,7 +24,7 @@ from fiscal.models import (
     FiscalXmlDossier,
 )
 from identity.application.audit import record_audit_event
-from identity.application.authorization import require_permission
+from identity.application.authorization import has_permission, require_permission
 from identity.models import AuditResult, User
 from sales.application.fiscal_source import (
     lock_fiscal_source as lock_commercial_source,
@@ -37,7 +40,11 @@ from workshop.application.fiscal_source import (
 from workshop.application.fiscal_source import (
     read_fiscal_source as read_artisan_source,
 )
-from workshop_configuration.application.fiscal_resolver import resolve_fiscal_configuration
+from workshop_configuration.application.fiscal_resolver import (
+    read_issuer,
+    resolve_fiscal_configuration,
+)
+from workshop_configuration.application.preparation_settings import payment_form_options
 
 ACTION = "fiscal.preparation_created"
 PREPARE_ACTION = "fiscal.preparation_prepared"
@@ -96,6 +103,10 @@ class LinkedExternalEvidenceError(FiscalPreparationError):
     pass
 
 
+class DraftFieldNotAllowedError(FiscalPreparationError):
+    """Campo técnico o no admitido enviado desde la interfaz operativa."""
+
+
 @dataclass(frozen=True)
 class ReviewResult:
     impediments: tuple[dict[str, str], ...]
@@ -135,6 +146,12 @@ class PreparationDetail:
     cancellation_reason: str
     created_at: str
     prepared_at: str | None
+    summary: dict[str, Any] | None = None
+    issuer: dict[str, str] | None = None
+    working: dict[str, Any] | None = None
+    payment_options: tuple[dict[str, str], ...] = ()
+    missing_fields: tuple[str, ...] = ()
+    technical: dict[str, Any] | None = None
 
 
 def _permission(source_kind: str) -> str:
@@ -227,6 +244,11 @@ def create_draft(
             commercial_sale_id=source_id if source_kind == "COMMERCIAL" else None,
             artisan_operation_id=source_id if source_kind == "ARTISAN" else None,
             source_version=source.version,
+            draft=initial_draft(
+                source=source,
+                entity_id=source.fiscal_entity_id,
+                on=date.fromisoformat(_today_guayaquil()),
+            ),
             created_by=actor,
         )
         FiscalPreparationHistory.objects.create(
@@ -301,6 +323,40 @@ def get_preparation(*, actor: User, preparation_id: UUID) -> PreparationDetail:
     require_permission(actor=actor, permission=_permission(source_kind).replace("preparar", "ver"))
     source_id = preparation.commercial_sale_id or preparation.artisan_operation_id
     assert source_id is not None
+    source = (
+        read_commercial_source(source_id)
+        if source_kind == "COMMERCIAL"
+        else read_artisan_source(source_id)
+    )
+    today = date.fromisoformat(_today_guayaquil())
+    ruc, legal_name = read_issuer(preparation.fiscal_entity_id)
+    working = None
+    missing: tuple[str, ...] = ()
+    options: tuple[dict[str, str], ...] = ()
+    if preparation.state == PreparationState.DRAFT:
+        working = normalized_draft(
+            preparation.draft, source=source, entity_id=preparation.fiscal_entity_id, on=today
+        )
+        missing = _missing_receiver_fields(working["receiver"])
+        options = tuple(
+            {
+                "code": option.code,
+                "display_name": option.display_name,
+                "description": option.description,
+                "internal_method": option.internal_method or "",
+            }
+            for option in payment_form_options(entity_id=preparation.fiscal_entity_id, on=today)
+            if option.enabled
+        )
+    technical = None
+    if preparation.snapshot and has_permission(actor, "parametros.gestionar"):
+        snapshot = preparation.snapshot
+        technical = {
+            "issuer": snapshot.get("issuer"),
+            "catalog_versions": snapshot.get("catalog_versions"),
+            "configuration": snapshot.get("configuration"),
+            "reference_date": snapshot.get("reference_date"),
+        }
     return PreparationDetail(
         preparation_id=preparation.pk,
         fiscal_entity_id=preparation.fiscal_entity_id,
@@ -315,7 +371,48 @@ def get_preparation(*, actor: User, preparation_id: UUID) -> PreparationDetail:
         cancellation_reason=preparation.cancellation_reason,
         created_at=preparation.created_at.isoformat(),
         prepared_at=preparation.prepared_at.isoformat() if preparation.prepared_at else None,
+        summary=_summary(source_kind, source),
+        issuer={"ruc": ruc, "legal_name": legal_name},
+        working=working,
+        payment_options=options,
+        missing_fields=missing,
+        technical=technical,
     )
+
+
+def _summary(source_kind: str, source: Any) -> dict[str, Any]:
+    lines = []
+    for line in source.lines:
+        snapshot = getattr(line, "product_snapshot", None) or {}
+        description = snapshot.get("name") if snapshot else getattr(line, "description", "")
+        lines.append(
+            {
+                "position": line.position,
+                "description": str(description or ""),
+                "quantity": str(line.quantity),
+                "total": str(line.total_amount),
+            }
+        )
+    return {
+        "kind": source_kind,
+        "internal_number": source.internal_number,
+        "operational_date": str(source.operational_date) if source.operational_date else None,
+        "condition": source.condition,
+        "state": source.state,
+        "base_total": str(source.base_total),
+        "tax_total": str(source.tax_total),
+        "grand_total": str(source.grand_total),
+        "lines": lines,
+    }
+
+
+def _missing_receiver_fields(receiver: dict[str, Any]) -> tuple[str, ...]:
+    try:
+        parse_receiver(receiver)
+    except FiscalReceiverError as error:
+        return tuple(sorted(error.errors))
+    missing = [] if receiver.get("address") else ["address"]
+    return tuple(missing)
 
 
 # ---------------------------------------------------------------------------
@@ -352,14 +449,11 @@ def update_draft(
     actor: User,
     preparation_id: UUID,
     expected_version: int,
-    point_id: int,
     receiver: dict[str, Any],
     payments: dict[str, Any],
-    environment: str = "1",
-    reference_date: str | None = None,
     additional_info: list[dict[str, str]] | None = None,
 ) -> FiscalPreparation:
-    """Guarda los datos editables del borrador; la validación semántica es en revisión."""
+    """Guarda solo lo que el usuario completa; los datos técnicos los resuelve el sistema."""
     with transaction.atomic():
         preparation = _lock_preparation(preparation_id)
         if preparation is None:
@@ -369,17 +463,45 @@ def update_draft(
             raise PreparationStateError("Solo un borrador admite edición.")
         if preparation.version != expected_version:
             raise PreparationVersionConflictError("El borrador cambió; vuelva a consultarlo.")
+        forms = payments.get("forms") if isinstance(payments, dict) else None
+        _check_draft_fields(receiver, payments, forms)
         preparation.draft = {
-            "point_id": point_id,
-            "environment": environment,
+            "draft_format": 2,
             "receiver": receiver,
-            "payments": payments,
-            "reference_date": reference_date or _today_guayaquil(),
+            "payments": {"forms": forms if isinstance(forms, list) else [], "suggested": False},
             "additional_info": additional_info or [],
         }
         preparation.version += 1
         preparation.save(update_fields=["draft", "version", "updated_at"])
         return preparation
+
+
+_RECEIVER_FIELDS = frozenset(
+    {"identification_type", "identification", "legal_name", "address", "email"}
+)
+_FORM_FIELDS = frozenset({"payment_code", "amount"})
+
+
+def _check_draft_fields(receiver: Any, payments: Any, forms: Any) -> None:
+    if not isinstance(receiver, dict) or receiver.keys() - _RECEIVER_FIELDS:
+        raise DraftFieldNotAllowedError("field_not_allowed: el receptor tiene campos no admitidos.")
+    if not isinstance(payments, dict) or payments.keys() - {"forms"}:
+        raise DraftFieldNotAllowedError(
+            "field_not_allowed: las formas de pago no admiten ese dato."
+        )
+    if not isinstance(forms, list) or any(
+        not isinstance(form, dict) or form.keys() - _FORM_FIELDS for form in forms
+    ):
+        raise DraftFieldNotAllowedError(
+            "field_not_allowed: cada forma de pago admite solo código e importe; "
+            "el plazo no se registra en la preparación local."
+        )
+
+
+def _working_draft(preparation: FiscalPreparation, source: Any, on: date) -> dict[str, Any]:
+    return normalized_draft(
+        preparation.draft, source=source, entity_id=preparation.fiscal_entity_id, on=on
+    )
 
 
 def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
@@ -391,17 +513,15 @@ def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
         require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
         if preparation.state != PreparationState.DRAFT:
             raise PreparationStateError("Solo un borrador admite revisión.")
-        if not preparation.draft:
-            return ReviewResult(
-                ({"field": "draft", "message": "Complete los datos del borrador."},), None
-            )
         source = _lock_source(preparation)
         if source.state != "CONFIRMED":
             return ReviewResult(
-                ({"field": "source", "message": "La operación no está confirmada y vigente."},),
+                classify_all(
+                    [{"field": "source", "message": "La operación no está confirmada y vigente."}]
+                ),
                 None,
             )
-        reference_date = date.fromisoformat(preparation.draft["reference_date"])
+        reference_date = date.fromisoformat(_today_guayaquil())
         config = resolve_fiscal_configuration(
             actor=actor,
             entity_id=preparation.fiscal_entity_id,
@@ -409,13 +529,13 @@ def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
         )
         try:
             assembled = assemble_snapshot(
-                draft=preparation.draft,
+                draft=_working_draft(preparation, source, reference_date),
                 source=source,
                 config=config,
                 reference_date=reference_date,
             )
         except SnapshotImpedimentError as error:
-            return ReviewResult(tuple(error.impediments), None)
+            return ReviewResult(classify_all(error.impediments), None)
         token = signing.dumps(
             {
                 "prep": str(preparation.pk),
@@ -459,14 +579,10 @@ def prepare(
         require_permission(actor=actor, permission=_permission(_kind_of(preparation)))
         if preparation.state != PreparationState.DRAFT:
             raise PreparationStateError("Solo un borrador puede prepararse.")
-        if not preparation.draft:
-            raise PreparationImpedimentError(
-                [{"field": "draft", "message": "Complete los datos del borrador."}]
-            )
         source = _lock_source(preparation)
         if source.state != "CONFIRMED":
             raise IneligibleFiscalSourceError("La operación no está confirmada y vigente.")
-        reference_date = date.fromisoformat(preparation.draft["reference_date"])
+        reference_date = date.fromisoformat(_today_guayaquil())
         config = resolve_fiscal_configuration(
             actor=actor,
             entity_id=preparation.fiscal_entity_id,
@@ -474,13 +590,13 @@ def prepare(
         )
         try:
             assembled = assemble_snapshot(
-                draft=preparation.draft,
+                draft=_working_draft(preparation, source, reference_date),
                 source=source,
                 config=config,
                 reference_date=reference_date,
             )
         except SnapshotImpedimentError as error:
-            raise PreparationImpedimentError(error.impediments) from None
+            raise PreparationImpedimentError(list(classify_all(error.impediments))) from None
 
         try:
             payload = signing.loads(review_token, salt=REVIEW_SALT, max_age=REVIEW_TTL_SECONDS)

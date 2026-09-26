@@ -2,10 +2,11 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from decimal import Decimal
 from types import MappingProxyType
 from typing import Any
 
-from workshop.models import ServiceOperation
+from workshop.models import ArtisanPaymentPart, ServiceOperation
 
 
 class FiscalSourceNotFoundError(Exception):
@@ -18,6 +19,17 @@ def _freeze(value: Any) -> Any:
     if isinstance(value, list):
         return tuple(_freeze(item) for item in value)
     return value
+
+
+def _collected_by_method(source_id: int) -> Mapping[str, Decimal]:
+    """Suma por medio de los pagos vigentes: un original corregido no cuenta; su reemplazo sí."""
+    totals: dict[str, Decimal] = {}
+    parts = ArtisanPaymentPart.objects.filter(
+        payment__service_operation_id=source_id, payment__correction__isnull=True
+    ).values_list("method", "amount")
+    for method, amount in parts:
+        totals[method] = totals.get(method, Decimal("0")) + amount
+    return MappingProxyType(dict(sorted(totals.items())))
 
 
 @dataclass(frozen=True)
@@ -57,6 +69,7 @@ class ArtisanFiscalSource:
     lines: tuple[ArtisanFiscalLine, ...]
     replaces_id: int | None
     void_reason: str
+    collected_by_method: Mapping[str, Decimal]
 
 
 def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
@@ -97,6 +110,7 @@ def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
         lines=lines,
         replaces_id=operation.replaces_id,
         void_reason=operation.void_reason,
+        collected_by_method=_collected_by_method(operation.pk),
     )
 
 
