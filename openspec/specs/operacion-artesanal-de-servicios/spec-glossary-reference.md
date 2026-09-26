@@ -9,3 +9,5 @@
 | Pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#pago) | Importe aplicado a un solo documento de un solo RUC. |
 | Saldo pendiente | [Glosario del producto](../../../docs/negocio/producto/glosario.md#saldo-pendiente) | Derivado del exigible y los pagos efectivos. |
 | Estado de pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#estado-de-pago) | Pendiente, parcial o pagado, independiente del estado operativo. |
+| Preparación local | Nuevo término de `docs/negocio/producto/glosario.md` | Estado visible desde la operación artesanal; no es factura. |
+| Pendiente de emisión | Nuevo término de `docs/negocio/producto/glosario.md` | Situación mostrada junto a la preparación local. |
