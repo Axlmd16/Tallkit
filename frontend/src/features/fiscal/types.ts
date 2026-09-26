@@ -279,10 +279,109 @@ export interface Establishment {
 
 export interface TaxMappingWrite {
   definition_id: number
-  percentage_code: string
+  catalog_entry_id: number
   starts_on: string
   ends_on?: string | null
   source: string
+}
+
+export type ElectronicState =
+  | 'NOT_CONFIGURED'
+  | 'INCOMPLETE'
+  | 'NEEDS_REVIEW'
+  | 'READY'
+
+export interface StatusCause {
+  code: string
+  kind: 'MISSING' | 'REVIEW'
+  message: string
+}
+
+export interface ElectronicStatus {
+  entity_id: number
+  state: ElectronicState
+  causes: StatusCause[]
+  warnings: StatusCause[]
+  environment: 'TEST'
+  profile_revision: number | null
+  default_point_id: number | null
+  default_payment_code: string | null
+}
+
+export interface PreparationDefaults {
+  entity_id: number
+  version: number
+  designated_point_id: number | null
+  effective_point_id: number | null
+  point_issue: string | null
+  default_payment_code: string | null
+  payment_issue: string | null
+}
+
+export interface PreparationDefaultsWrite {
+  expected_version: number
+  default_point_id?: number | null
+  default_payment_code?: string
+}
+
+export type CatalogKind = 'TAX_RATE' | 'PAYMENT_FORM'
+
+export interface CatalogEntry {
+  id: number
+  kind: CatalogKind
+  catalog_version: string
+  code: string
+  description: string
+  display_name: string
+  tax_code: string | null
+  rate: string | null
+  treatment: string | null
+  source_document: string
+  source_version: string
+  source_reference: string
+  source_url: string
+  downloaded_on: string
+  valid_from: string | null
+  valid_to: string | null
+  validity_note: string
+  is_active: boolean
+  is_selectable: boolean
+  incorporated_at: string
+}
+
+export interface TaxMappingItem {
+  id: number
+  definition_id: number
+  definition_name: string
+  catalog_version: string
+  percentage_code: string
+  catalog_entry_id: number | null
+  display_name: string | null
+  rate: string | null
+  treatment: string | null
+  starts_on: string
+  ends_on: string | null
+  source: string
+  is_current: boolean
+}
+
+export interface PaymentFormOption {
+  code: string
+  description: string
+  display_name: string
+  catalog_version: string
+  source_document: string
+  source_version: string
+  source_url: string
+  downloaded_on: string
+  valid_from: string | null
+  valid_to: string | null
+  is_current: boolean
+  enableable: boolean
+  enabled: boolean
+  is_default: boolean
+  internal_method: string | null
+  version: number
 }
 
 export interface NumberingAntecedentWrite {

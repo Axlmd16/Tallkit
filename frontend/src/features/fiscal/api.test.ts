@@ -165,7 +165,7 @@ describe('fiscalApi', () => {
     await api.setPointActive(8, 1, true)
     await api.createTaxMapping({
       definition_id: 3,
-      percentage_code: '4',
+      catalog_entry_id: 11,
       starts_on: '2026-01-01',
       source: 'Ficha SRI',
     })
@@ -190,5 +190,48 @@ describe('fiscalApi', () => {
       '/fiscal/configuration/tax-mappings/',
       '/fiscal/configuration/numbering-antecedents/',
     ])
+  })
+
+  it('reads centralized configuration and writes defaults and payment forms with attempts', async () => {
+    const { client, request } = fakeClient()
+    const api = createFiscalApi(client)
+    await api.getElectronicStatus(2)
+    await api.getPreparationDefaults(2)
+    await api.getCatalog('PAYMENT_FORM')
+    await api.getCatalog('TAX_RATE', true)
+    await api.getTaxMappings(2)
+    await api.getPaymentForms(2)
+    await api.savePreparationDefaults(
+      2,
+      { expected_version: 0, default_point_id: 5 },
+      'defaults-1',
+    )
+    await api.setPaymentForm(
+      2,
+      '20',
+      { enabled: false, expected_version: 0 },
+      'form-1',
+    )
+
+    expect(request.mock.calls.map((call) => call[0])).toEqual([
+      '/fiscal/configuration/entities/2/electronic-status/',
+      '/fiscal/configuration/entities/2/preparation-defaults/',
+      '/fiscal/configuration/catalogs/payment_form/',
+      '/fiscal/configuration/catalogs/tax_rate/?selectable=true',
+      '/fiscal/configuration/entities/2/tax-mappings/',
+      '/fiscal/configuration/entities/2/payment-forms/',
+      '/fiscal/configuration/entities/2/preparation-defaults/',
+      '/fiscal/configuration/entities/2/payment-forms/20/',
+    ])
+    expect(request.mock.calls[6]![1]).toEqual({
+      method: 'PUT',
+      headers: { 'Idempotency-Key': 'defaults-1' },
+      body: { expected_version: 0, default_point_id: 5 },
+    })
+    expect(request.mock.calls[7]![1]).toEqual({
+      method: 'PUT',
+      headers: { 'Idempotency-Key': 'form-1' },
+      body: { enabled: false, expected_version: 0 },
+    })
   })
 })

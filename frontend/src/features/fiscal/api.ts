@@ -8,6 +8,8 @@ import type {
   ArchiveResult,
   ArchiveFilters,
   ArchivePage,
+  CatalogEntry,
+  CatalogKind,
   CorrectionCreateInput,
   CorrectionDetail,
   CorrectionResult,
@@ -15,14 +17,19 @@ import type {
   DraftUpdate,
   ElectronicProfile,
   ElectronicProfileWrite,
+  ElectronicStatus,
   Establishment,
   FiscalDraft,
   FiscalPreparationDetail,
   FiscalSourceKind,
   NumberingAntecedentWrite,
+  PaymentFormOption,
+  PreparationDefaults,
+  PreparationDefaultsWrite,
   PreparationResult,
   ReviewResult,
   RestorationEvidenceWrite,
+  TaxMappingItem,
   TaxMappingWrite,
   TestIdentity,
 } from './types'
@@ -193,6 +200,45 @@ export function createFiscalApi(client: ApiClient) {
         method: 'POST',
         body: data,
       }),
+    getElectronicStatus: (entityId: number) =>
+      client.request<ElectronicStatus>(
+        `${BASE}/configuration/entities/${entityId}/electronic-status/`,
+      ),
+    getPreparationDefaults: (entityId: number) =>
+      client.request<PreparationDefaults>(
+        `${BASE}/configuration/entities/${entityId}/preparation-defaults/`,
+      ),
+    savePreparationDefaults: (
+      entityId: number,
+      data: PreparationDefaultsWrite,
+      attemptKey: string,
+    ) =>
+      client.request<PreparationDefaults>(
+        `${BASE}/configuration/entities/${entityId}/preparation-defaults/`,
+        { method: 'PUT', headers: attempt(attemptKey), body: data },
+      ),
+    getCatalog: (kind: CatalogKind, selectable = false) =>
+      client.request<CatalogEntry[]>(
+        `${BASE}/configuration/catalogs/${kind.toLowerCase()}/${selectable ? '?selectable=true' : ''}`,
+      ),
+    getTaxMappings: (entityId: number) =>
+      client.request<TaxMappingItem[]>(
+        `${BASE}/configuration/entities/${entityId}/tax-mappings/`,
+      ),
+    getPaymentForms: (entityId: number) =>
+      client.request<PaymentFormOption[]>(
+        `${BASE}/configuration/entities/${entityId}/payment-forms/`,
+      ),
+    setPaymentForm: (
+      entityId: number,
+      code: string,
+      data: { enabled: boolean; expected_version: number },
+      attemptKey: string,
+    ) =>
+      client.request<PaymentFormOption[]>(
+        `${BASE}/configuration/entities/${entityId}/payment-forms/${code}/`,
+        { method: 'PUT', headers: attempt(attemptKey), body: data },
+      ),
     recordNumberingAntecedent: (data: NumberingAntecedentWrite) =>
       client.request(`${BASE}/configuration/numbering-antecedents/`, {
         method: 'POST',
