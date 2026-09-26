@@ -3,6 +3,9 @@
 Única fuente de las causas que usan la consulta administrativa y la preparación: la
 interfaz y los impedimentos nunca discrepan. El certificado opcional solo produce
 advertencias; ningún estado afirma validación del SRI.
+
+Al añadir o renombrar códigos de causa, actualizar también la tabla de correspondencia
+de `frontend/src/features/fiscal/configuration/readiness.ts`.
 """
 
 from dataclasses import dataclass

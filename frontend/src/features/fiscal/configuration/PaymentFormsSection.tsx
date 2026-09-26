@@ -1,10 +1,12 @@
 import {
+  AdvancedInfo,
   Button,
   ErrorState,
-  InlineNotice,
   LoadingState,
-  StatusBadge,
-  Surface,
+  SheetHeading,
+  sheetTableCell,
+  sheetTableHead,
+  StateMark,
   useToast,
 } from '@/shared/ui'
 
@@ -13,7 +15,19 @@ import {
   usePaymentForms,
   usePreparationDefaults,
 } from '../hooks'
-import { errorMessage, SubsectionHeader } from './shared'
+import type { PaymentFormOption } from '../types'
+import { errorMessage } from './shared'
+
+function formState(form: PaymentFormOption) {
+  if (form.enabled)
+    return {
+      label: form.is_default ? 'Habilitada · predeterminada' : 'Habilitada',
+      tone: 'success' as const,
+    }
+  return form.enableable
+    ? { label: 'Deshabilitada', tone: 'inactive' as const }
+    : { label: 'No habilitable en V1', tone: 'unknown' as const }
+}
 
 export function PaymentFormsSection({ entityId }: { entityId: number }) {
   const forms = usePaymentForms(entityId)
@@ -22,84 +36,57 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
   const toast = useToast()
 
   if (forms.isLoading) return <LoadingState />
-  if (forms.isError || !forms.data) {
+  if (forms.isError || !forms.data)
     return (
       <ErrorState message="No se pudo cargar el catálogo de formas de pago." />
     )
-  }
+
   const source = forms.data[0]
-  const error =
+  const failure =
     mutations.setPaymentForm.error ?? mutations.savePreparationDefaults.error
 
   return (
-    <Surface className="space-y-5">
-      <SubsectionHeader
+    <section aria-labelledby={`formas-pago-${entityId}`} className="space-y-5">
+      <SheetHeading
+        id={`formas-pago-${entityId}`}
+        description="Catálogo oficial de la Tabla 24. En V1 solo pueden habilitarse efectivo (01) y transferencia (20); crédito es una condición interna y no una forma de pago."
+        level={3}
         title="Formas de pago SRI"
-        description="Catálogo oficial de la Tabla 24. Al preparar, el usuario elige entre las formas habilitadas; crédito es una condición interna y no una forma de pago."
       />
-      {source && (
-        <p className="text-xs text-ink-muted">
-          Fuente: {source.source_document}, versión {source.source_version},
-          descargada el {source.downloaded_on}.
-        </p>
-      )}
-      <InlineNotice title="Habilitación en V1" tone="info">
-        Solo efectivo (01) y transferencia (20) pueden habilitarse. Las demás
-        formas, incluidas las tarjetas, requieren una decisión que las incorpore
-        a cobros, caja y cierres.
-      </InlineNotice>
-      {(mutations.setPaymentForm.isError ||
-        mutations.savePreparationDefaults.isError) && (
-        <ErrorState message={errorMessage(error)} />
-      )}
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="bg-surface-subtle text-xs text-ink-muted">
+      {failure && <ErrorState message={errorMessage(failure)} />}
+      <div className="relative overflow-x-auto">
+        <table className="w-full min-w-[42rem] border-collapse text-sm">
+          <thead>
             <tr>
-              <th className="px-3 py-2">Forma de pago</th>
-              <th className="px-3 py-2">Código</th>
-              <th className="px-3 py-2">Vigencia</th>
-              <th className="px-3 py-2">Estado</th>
-              <th className="px-3 py-2 text-right">Acciones</th>
+              <th className={`${sheetTableHead} w-[40%]`}>Forma de pago</th>
+              <th className={sheetTableHead}>Código</th>
+              <th className={sheetTableHead}>Estado</th>
+              <th className={sheetTableHead}>
+                <span className="sr-only">Acciones</span>
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody>
             {forms.data.map((form) => (
               <tr key={form.code}>
-                <td className="px-3 py-3">
+                <td className={sheetTableCell}>
                   <span className="block font-semibold text-ink">
                     {form.display_name}
                   </span>
-                  <span className="block text-xs text-ink-muted">
+                  <span className="block text-[13px] text-ink-muted">
                     {form.description}
                   </span>
                 </td>
-                <td className="px-3 py-3 font-mono text-xs">{form.code}</td>
-                <td className="px-3 py-3 text-xs text-ink-muted">
-                  {form.valid_from
-                    ? `Desde ${form.valid_from}`
-                    : 'Sin fecha publicada'}
+                <td className={`${sheetTableCell} font-mono`}>{form.code}</td>
+                <td className={sheetTableCell}>
+                  <StateMark {...formState(form)} />
                 </td>
-                <td className="px-3 py-3">
-                  <StatusBadge
-                    label={
-                      form.enabled
-                        ? form.is_default
-                          ? 'Habilitada · predeterminada'
-                          : 'Habilitada'
-                        : form.enableable
-                          ? 'Deshabilitada'
-                          : 'No habilitable en V1'
-                    }
-                    shape="pill"
-                    tone={form.enabled ? 'success' : 'neutral'}
-                  />
-                </td>
-                <td className="px-3 py-3 text-right">
-                  {form.enableable ? (
-                    <div className="flex flex-wrap justify-end gap-2">
+                <td className={sheetTableCell}>
+                  {form.enableable && (
+                    <span className="inline-flex flex-wrap justify-end gap-1">
                       {form.enabled && !form.is_default && (
                         <Button
+                          className="px-2"
                           onClick={() =>
                             mutations.savePreparationDefaults.mutate(
                               {
@@ -125,6 +112,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                       )}
                       <Button
                         aria-label={`${form.enabled ? 'Deshabilitar' : 'Habilitar'} ${form.display_name}`}
+                        className="px-2"
                         onClick={() =>
                           mutations.setPaymentForm.mutate(
                             {
@@ -140,13 +128,11 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                             },
                           )
                         }
-                        variant="secondary"
+                        variant="quiet"
                       >
                         {form.enabled ? 'Deshabilitar' : 'Habilitar'}
                       </Button>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-ink-muted">Sin acciones</span>
+                    </span>
                   )}
                 </td>
               </tr>
@@ -154,6 +140,26 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
           </tbody>
         </table>
       </div>
-    </Surface>
+      {source && (
+        <AdvancedInfo hint="fuente, versión y vigencias">
+          <p>
+            Fuente: {source.source_document}, versión{' '}
+            <span className="font-mono">{source.source_version}</span>,
+            descargada el{' '}
+            <span className="font-mono">{source.downloaded_on}</span>.
+          </p>
+          <ul className="list-none space-y-0.5 p-0">
+            {forms.data.map((form) => (
+              <li key={form.code}>
+                <span className="font-mono">{form.code}</span>:{' '}
+                {form.valid_from
+                  ? `vigente desde ${form.valid_from}`
+                  : 'sin fecha publicada'}
+              </li>
+            ))}
+          </ul>
+        </AdvancedInfo>
+      )}
+    </section>
   )
 }

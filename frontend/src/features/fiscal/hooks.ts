@@ -311,9 +311,14 @@ export function useFiscalMutations() {
         address: string
       }) => fiscalApi.createEstablishment(entityId, code, address),
       onSuccess: (_, variables) =>
-        queryClient.invalidateQueries({
-          queryKey: fiscalKeys.establishments(variables.entityId),
-        }),
+        Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: fiscalKeys.status(variables.entityId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: fiscalKeys.establishments(variables.entityId),
+          }),
+        ]),
     }),
     createPoint: useMutation({
       mutationFn: ({
@@ -326,9 +331,14 @@ export function useFiscalMutations() {
         code: string
       }) => fiscalApi.createPoint(establishmentId, code),
       onSuccess: (_, variables) =>
-        queryClient.invalidateQueries({
-          queryKey: fiscalKeys.establishments(variables.entityId),
-        }),
+        Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: fiscalKeys.status(variables.entityId),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: fiscalKeys.establishments(variables.entityId),
+          }),
+        ]),
     }),
     createTaxMapping: useMutation({
       mutationFn: fiscalApi.createTaxMapping,
