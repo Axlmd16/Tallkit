@@ -5608,6 +5608,61 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/products/label-data/:
+    get:
+      operationId: catalog_product_label_data
+      description: Proyección completa y no paginada para imprimir etiquetas de productos.
+      parameters:
+      - in: query
+        name: category_id
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: string
+          enum:
+          - all
+          - 'false'
+          - 'true'
+        description: 'Omisión: true.'
+      - in: query
+        name: product_brand_id
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Búsqueda parcial por código interno, código del fabricante o
+          nombre.
+      - in: query
+        name: vehicle_brand_id
+        schema:
+          type: integer
+      tags:
+      - Products
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductLabelBatch'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/products/tax-options/:
     get:
       operationId: catalog_product_tax_options
@@ -11070,11 +11125,14 @@ components:
           type: integer
         legal_name:
           type: string
+        display_name:
+          type: string
         logo:
           allOf:
           - $ref: '#/components/schemas/EntityLogo'
           nullable: true
       required:
+      - display_name
       - entity_id
       - legal_name
       - logo
@@ -14400,6 +14458,49 @@ components:
       - page_size
       - results
       - total_pages
+    ProductLabel:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        manufacturer_code:
+          type: string
+        name:
+          type: string
+        product_brand:
+          allOf:
+          - $ref: '#/components/schemas/ProductLabelBrand'
+          nullable: true
+      required:
+      - code
+      - id
+      - manufacturer_code
+      - name
+      - product_brand
+    ProductLabelBatch:
+      type: object
+      properties:
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductLabel'
+      required:
+      - count
+      - results
+    ProductLabelBrand:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
     ProductPage:
       type: object
       properties:

@@ -173,6 +173,7 @@ def test_every_role_reads_the_logo_summary_and_file(
     assert body["ARTESANAL"] == {
         "entity_id": entities["ARTESANAL"].pk,
         "legal_name": "Taller Andino",
+        "display_name": "Taller Andino",
         "logo": None,
     }
 
@@ -183,6 +184,25 @@ def test_every_role_reads_the_logo_summary_and_file(
     assert file["X-Content-Type-Options"] == "nosniff"
     assert file["Content-Security-Policy"] == "default-src 'none'"
     assert b"".join(file.streaming_content).startswith(b"\x89PNG")
+
+
+@pytest.mark.django_db
+def test_logo_summary_resolves_the_current_display_name(
+    admin: APIClient, entities: dict[str, FiscalEntity]
+) -> None:
+    commercial = entities["COMERCIAL"]
+    commercial.trade_name = "  Repuestos La Esquina  "
+    commercial.save(update_fields=["trade_name"])
+    artisan = entities["ARTESANAL"]
+    artisan.trade_name = "   "
+    artisan.save(update_fields=["trade_name"])
+
+    body = admin.get(f"{BASE}/entity-logos/").json()
+
+    assert body["COMERCIAL"]["display_name"] == "Repuestos La Esquina"
+    assert body["COMERCIAL"]["legal_name"] == "Repuestos Andinos"
+    assert body["ARTESANAL"]["display_name"] == "Taller Andino"
+    assert body["ARTESANAL"]["legal_name"] == "Taller Andino"
 
 
 @pytest.mark.django_db

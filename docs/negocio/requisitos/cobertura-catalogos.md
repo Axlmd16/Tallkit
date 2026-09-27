@@ -18,6 +18,25 @@
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el comportamiento descrito por el escenario; «Parcial» indica una garantía local verificada cuyo resto depende de consumidores que aún no existen, con la limitación indicada. Los nombres de prueba son archivos; la columna de tareas remite a `tasks.md`.
 
+### Cambio activo: impresión de etiquetas de productos (pendiente)
+
+El cambio `imprimir-etiquetas-de-productos` amplía la cobertura sin alterar los 128 escenarios archivados. Esta matriz se completará con los resultados reales durante la aplicación; «Pendiente» no afirma implementación.
+
+| Requirement delta | Escenarios | Tareas | Prueba o evidencia prevista | Estado |
+|---|---|---|---|---|
+| Selección de productos para imprimir etiquetas | Selección manual en varias páginas; Todos los resultados filtrados; Cambio de filtro con selección; Imprimir desde la ficha; Acceso sin sesión o sin permiso | 7.1–7.8, 8.1–8.3 | `ProductsPage.test.tsx`, `ProductDetailPage.test.tsx`, `layout.test.tsx`, `e2e/product-labels.spec.ts` | Pendiente |
+| Proyección completa del filtro para etiquetas | Proyección mínima y ordenada; Filtro inválido; Sin coincidencias | 2.1–2.7 | `test_product_label_data_api.py`, `test_catalog_api.py`, `test_openapi.py` | Pendiente |
+| Contenido identificativo de la etiqueta | Producto con identidad comercial completa; Datos opcionales ausentes; Nombre largo | 3.1–3.4, 6.1–6.8 | `test_entity_logo_api.py`, `entity-logos.test.tsx`, `ProductLabel.test.tsx` | Pendiente |
+| Copias y orden del lote | Cantidades distintas por producto; Aplicar cantidad a todos; Cantidad inválida | 5.2–5.3, 6.3–6.5 | `label-layout.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
+| Tamaño y distribución A4 | Tamaño predeterminado; Tamaño alternativo válido; Tamaño que no cabe | 5.1, 5.3–5.5, 6.6 | `label-layout.test.ts`, `ProductLabelSheet.test.tsx`, PDF inspeccionado | Pendiente |
+| Posición inicial de la primera hoja | Inicio en una posición intermedia; Cambio a una cuadrícula menor | 5.2–5.3, 6.3 | `label-layout.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
+| Vista previa fiel y preparación de la marca | Logotipo listo antes de imprimir; Fallo del logotipo; Error al obtener datos del lote | 3.1–3.4, 6.3–6.8 | `entity-logos.test.tsx`, `ProductLabelPrintModal.test.tsx` | Pendiente |
+| Generación verificable del código de barras | Código alfanumérico; Código no representable | 4.1–4.4, 6.4 | `code128.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
+| Impresión mediante el navegador | Abrir el diálogo de impresión; Cancelar la impresión; Guardar como PDF | 6.4–6.8, 8.1, 8.4 | `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts`, PDF inspeccionado | Pendiente |
+| PPF-10 Preparación e impresión de hoja de etiquetas | Preparación desde una lista filtrada; Modal en teléfono; Regreso después de imprimir o cancelar | 6.1–6.8, 7.1–7.8, 8.1–8.3 | Vitest focalizado, Playwright focalizado y verificación en cinco anchos | Pendiente |
+
+**Línea base del 2026-09-27:** backend focalizado, 23 pruebas pasan (`test_catalog_api.py`, `test_entity_logo_api.py`, `test_openapi.py`); frontend focalizado, 27 pruebas pasan (`ProductsPage`, `ProductDetailPage`, `entity-logos` y `layout`). PostgreSQL local fue necesario para las pruebas Django. No se ejecutaron suites completas.
+
 ## 2. Comandos y resultados de la verificación local (2026-09-20)
 
 Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (sin cambios de este cambio) o corresponde a archivos que este cambio no modifica; no se bajó ningún umbral ni se ocultó ninguna comprobación.

@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { expect, it, vi } from 'vitest'
 
 import { Button } from './controls'
@@ -136,4 +137,53 @@ it('allows unbroken operational data to wrap inside narrow cards', () => {
   expect(within(narrowList).getByText(longIdentifier)).toHaveClass(
     'break-words',
   )
+})
+
+it('passes row selection to desktop and narrow presentations', async () => {
+  const onSelectRow = vi.fn()
+  const onSelectAll = vi.fn()
+  render(
+    <ElevatedDataList
+      columns={[{ header: 'Usuario', key: 'name', priority: 'primary' }]}
+      getRowKey={(row) => row.id}
+      label="Directorio"
+      onSelectAll={onSelectAll}
+      onSelectRow={onSelectRow}
+      rows={rows}
+      selectedKeys={new Set([1])}
+    />,
+  )
+
+  const desktop = screen.getByRole('table', { name: 'Directorio' })
+  const narrow = screen.getByRole('list', {
+    name: 'Directorio en pantalla estrecha',
+  })
+  expect(
+    within(desktop).getByRole('checkbox', { name: 'Seleccionar fila 1' }),
+  ).toBeChecked()
+  expect(within(narrow).getByRole('checkbox')).toBeChecked()
+
+  await userEvent.click(
+    within(desktop).getByRole('checkbox', { name: 'Seleccionar fila 1' }),
+  )
+  expect(onSelectRow).toHaveBeenCalledWith(1, false)
+  await userEvent.click(
+    within(desktop).getByRole('checkbox', {
+      name: 'Seleccionar todas las filas',
+    }),
+  )
+  expect(onSelectAll).toHaveBeenCalledWith(false)
+})
+
+it('does not render selection controls when handlers are absent', () => {
+  render(
+    <ElevatedDataList
+      columns={[{ header: 'Usuario', key: 'name', priority: 'primary' }]}
+      getRowKey={(row) => row.id}
+      label="Directorio"
+      rows={rows}
+    />,
+  )
+
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
 })

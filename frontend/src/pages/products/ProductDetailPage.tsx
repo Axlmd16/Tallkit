@@ -4,8 +4,9 @@ import {
   CurrencyDollar,
   Pencil,
   Power,
+  Printer,
 } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -15,6 +16,7 @@ import {
 } from '@/features/catalog-common/StateChangeDialog'
 import { TaxLine } from '@/features/catalog-common/TaxLine'
 import { useStockItem } from '@/features/inventory/hooks'
+import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { useProduct, useProductMutations } from '@/features/products/hooks'
 import { inventoryAmount } from '@/features/products/format'
 import { ProductDetails } from '@/features/products/ProductDetails'
@@ -41,6 +43,8 @@ export function ProductDetailPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [change, setChange] = useState<StateChange | null>(null)
+  const [labelModalOpen, setLabelModalOpen] = useState(false)
+  const labelTriggerRef = useRef<HTMLButtonElement>(null)
   const product = query.data
   const canSeeStock = permissions.has('inventario.ver')
   const canSeeOrders = permissions.has('mantenimientos.ver')
@@ -115,6 +119,17 @@ export function ProductDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          {permissions.has('productos.ver') && (
+            <Button
+              onClick={() => setLabelModalOpen(true)}
+              ref={labelTriggerRef}
+              type="button"
+              variant="soft"
+            >
+              <Printer aria-hidden="true" size={15} />
+              Imprimir etiquetas
+            </Button>
+          )}
           {permissions.has('productos.gestionar') && (
             <Button
               onClick={() => void navigate(`/products/${product.id}/edit`)}
@@ -306,6 +321,26 @@ export function ProductDetailPage() {
         noun="producto"
         onClose={() => setChange(null)}
         onConfirm={changeState}
+      />
+
+      <ProductLabelPrintModal
+        onClose={() => setLabelModalOpen(false)}
+        open={labelModalOpen}
+        products={[
+          {
+            id: product.id,
+            code: product.code,
+            name: product.name,
+            manufacturerCode: product.manufacturer_code || null,
+            productBrand: product.product_brand
+              ? {
+                  id: product.product_brand.id,
+                  name: product.product_brand.name,
+                }
+              : null,
+          },
+        ]}
+        returnFocusRef={labelTriggerRef}
       />
     </div>
   )

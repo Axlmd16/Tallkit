@@ -270,6 +270,42 @@ class ProductListCreateView(_CatalogView):
         )
 
 
+class ProductLabelDataView(_CatalogView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "productos.ver"}
+
+    @extend_schema(
+        tags=[_PRODUCT_TAG],
+        operation_id="catalog_product_label_data",
+        parameters=[
+            OpenApiParameter(
+                "search",
+                OpenApiTypes.STR,
+                description="Búsqueda parcial por código interno, código del fabricante o nombre.",
+            ),
+            OpenApiParameter(
+                "is_active",
+                OpenApiTypes.STR,
+                enum=["true", "false", "all"],
+                description="Omisión: true.",
+            ),
+            OpenApiParameter("category_id", OpenApiTypes.INT),
+            OpenApiParameter("product_brand_id", OpenApiTypes.INT),
+            OpenApiParameter("vehicle_brand_id", OpenApiTypes.INT),
+        ],
+        responses={
+            200: sz.ProductLabelBatchSerializer,
+            400: ProblemSerializer,
+            403: ProblemSerializer,
+        },
+        description="Proyección completa y no paginada para imprimir etiquetas de productos.",
+    )
+    def get(self, request: Request) -> Response:
+        return _respond(
+            request,
+            lambda: Response(queries.list_product_label_data(_query(request)).as_dict()),
+        )
+
+
 class ProductDetailView(_CatalogView):
     business_permissions: ClassVar[dict[str, str]] = {
         "GET": "productos.ver",

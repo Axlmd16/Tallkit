@@ -20,6 +20,7 @@ export interface EntityLogo {
 export interface EntityBrand {
   entity_id: number
   legal_name: string
+  display_name: string
   logo: EntityLogo | null
 }
 
@@ -44,6 +45,41 @@ export interface IssuerBrand {
   logoUrl: string | null | undefined
   /** Razón social vigente de la entidad, útil para borradores sin datos conservados. */
   legalName: string | undefined
+  /** Nombre comercial vigente, con reserva a la razón social. */
+  displayName: string | undefined
+}
+
+export interface IssuerBrandStatus extends IssuerBrand {
+  isPending: boolean
+  isError: boolean
+  retry: () => void
+}
+
+function useEntityLogosQuery() {
+  return useQuery({
+    queryKey: entityLogoKeys.summary,
+    queryFn: () => fetchEntityLogos(),
+    staleTime: 5 * 60_000,
+  })
+}
+
+function selectIssuerBrand(
+  query: ReturnType<typeof useEntityLogosQuery>,
+  scope: IssuerScope,
+): IssuerBrand {
+  if (query.isPending) {
+    return {
+      logoUrl: undefined,
+      legalName: undefined,
+      displayName: undefined,
+    }
+  }
+  const brand = query.data?.[scope] ?? null
+  return {
+    logoUrl: brand?.logo?.url ?? null,
+    legalName: brand?.legal_name,
+    displayName: brand?.display_name,
+  }
 }
 
 /**
@@ -52,12 +88,18 @@ export interface IssuerBrand {
  * la hoja se queda con el nombre del emisor.
  */
 export function useIssuerBrand(scope: IssuerScope): IssuerBrand {
-  const query = useQuery({
-    queryKey: entityLogoKeys.summary,
-    queryFn: () => fetchEntityLogos(),
-    staleTime: 5 * 60_000,
-  })
-  if (query.isPending) return { logoUrl: undefined, legalName: undefined }
-  const brand = query.data?.[scope] ?? null
-  return { logoUrl: brand?.logo?.url ?? null, legalName: brand?.legal_name }
+  const query = useEntityLogosQuery()
+  return selectIssuerBrand(query, scope)
+}
+
+export function useIssuerBrandStatus(scope: IssuerScope): IssuerBrandStatus {
+  const query = useEntityLogosQuery()
+  return {
+    ...selectIssuerBrand(query, scope),
+    isPending: query.isPending,
+    isError: query.isError,
+    retry: () => {
+      void query.refetch()
+    },
+  }
 }

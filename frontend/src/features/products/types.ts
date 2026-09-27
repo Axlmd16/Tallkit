@@ -46,6 +46,16 @@ export interface ProductFilters extends BaseFilters {
   vehicleBrandId?: number | undefined
 }
 
+export type ProductLabelFilters = Omit<ProductFilters, 'page' | 'pageSize'>
+
+export interface ProductLabelData {
+  id: number
+  code: string
+  name: string
+  manufacturerCode: string | null
+  productBrand: { id: number; name: string } | null
+}
+
 export interface ProductInput {
   code: string
   manufacturer_code: string

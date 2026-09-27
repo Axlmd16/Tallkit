@@ -1,5 +1,10 @@
-import { DotsThreeVertical, PencilSimple, Power } from '@phosphor-icons/react'
-import { useState } from 'react'
+import {
+  DotsThreeVertical,
+  PencilSimple,
+  Power,
+  Printer,
+} from '@phosphor-icons/react'
+import { useRef, useState, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -16,14 +21,18 @@ import {
 import { useMeasurementUnitList } from '@/features/measurement-units/hooks'
 import { useProductBrandList } from '@/features/product-brands/hooks'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
+import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
+import { productsApi } from '@/features/products/api'
 import { presentation } from '@/features/products/format'
 import { useProductMutations, useProducts } from '@/features/products/hooks'
-import type { Product } from '@/features/products/types'
+import type { Product, ProductLabelData } from '@/features/products/types'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   DropdownMenu,
   ElevatedDataList,
+  Button,
+  ConfirmationPanel,
   IconButton,
   Money,
   Field,
@@ -46,10 +55,37 @@ export function ProductsPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [change, setChange] = useState<StateChange | null>(null)
+  const [selectedProducts, setSelectedProducts] = useState(
+    () => new Map<number, ProductLabelData>(),
+  )
+  const [pendingFilterChange, setPendingFilterChange] = useState<Record<
+    string,
+    string | number | undefined
+  > | null>(null)
+  const [toolbarKey, setToolbarKey] = useState(0)
+  const [labelModalOpen, setLabelModalOpen] = useState(false)
+  const [labelProducts, setLabelProducts] = useState<ProductLabelData[]>([])
+  const [labelLoading, setLabelLoading] = useState(false)
+  const [labelError, setLabelError] = useState<string | null>(null)
+  const labelTriggerRef = useRef<HTMLElement | null>(null)
 
   const categoryId = filters.getNumber('category_id')
   const productBrandId = filters.getNumber('product_brand_id')
   const vehicleBrandId = filters.getNumber('vehicle_brand_id')
+
+  const guardedFilters = {
+    ...filters,
+    set(changes: Record<string, string | number | undefined>) {
+      const changesFilter = Object.keys(changes).some(
+        (name) => name !== 'page' && name !== 'ficha',
+      )
+      if (changesFilter && selectedProducts.size > 0) {
+        setPendingFilterChange(changes)
+        return
+      }
+      filters.set(changes)
+    },
+  }
 
   const query = useProducts({
     search: filters.search || undefined,
@@ -64,6 +100,58 @@ export function ProductsPage() {
   const vehicleBrands = useVehicleBrands({ isActive: null, pageSize: 100 })
   // Precarga de unidades: el formulario las necesita al abrirse.
   useMeasurementUnitList({ isActive: 'true', pageSize: 100 })
+
+  function toLabelData(product: Product): ProductLabelData {
+    return {
+      id: product.id,
+      code: product.code,
+      name: product.name,
+      manufacturerCode: product.manufacturer_code || null,
+      productBrand: product.product_brand
+        ? { id: product.product_brand.id, name: product.product_brand.name }
+        : null,
+    }
+  }
+
+  function rememberTrigger(event: MouseEvent<HTMLButtonElement>) {
+    labelTriggerRef.current = event.currentTarget
+  }
+
+  function openSelectedLabels(event: MouseEvent<HTMLButtonElement>) {
+    rememberTrigger(event)
+    setLabelProducts(Array.from(selectedProducts.values()))
+    setLabelError(null)
+    setLabelModalOpen(true)
+  }
+
+  async function loadFilteredLabels() {
+    setLabelLoading(true)
+    setLabelError(null)
+    try {
+      const result = await productsApi.labelData({
+        search: filters.search || undefined,
+        isActive: filters.isActive,
+        categoryId,
+        productBrandId,
+        vehicleBrandId,
+      })
+      setLabelProducts(result)
+      if (result.length === 0) {
+        setLabelError('No hay productos en el filtro actual.')
+      }
+    } catch {
+      setLabelError('No se pudieron cargar los productos del filtro actual.')
+    } finally {
+      setLabelLoading(false)
+    }
+  }
+
+  function openFilteredLabels(event: MouseEvent<HTMLButtonElement>) {
+    rememberTrigger(event)
+    setLabelProducts([])
+    setLabelModalOpen(true)
+    void loadFilteredLabels()
+  }
 
   async function changeState(target: StateChange) {
     await tracker.run({ op: 'state', ...target }, (key) =>
@@ -90,7 +178,9 @@ export function ProductsPage() {
       <Field id={id} label={label}>
         <Select
           id={id}
-          onChange={(event) => filters.set({ [param]: event.target.value })}
+          onChange={(event) =>
+            guardedFilters.set({ [param]: event.target.value })
+          }
           value={value ?? ''}
         >
           <option value="">Todas</option>
@@ -172,8 +262,9 @@ export function ProductsPage() {
                 )}
               </>
             }
-            filters={filters}
+            filters={guardedFilters}
             idPrefix="product"
+            key={toolbarKey}
             label="Barra de herramientas de productos"
             searchLabel="Buscar por código, código del fabricante o nombre"
             searchPlaceholder="Código, código del fabricante o nombre…"
@@ -189,129 +280,208 @@ export function ProductsPage() {
         query={query}
       >
         {(rows) => (
-          <ElevatedDataList<Product>
-            actions={(row) =>
-              canManage || canDeactivate ? (
-                <DropdownMenu
-                  items={[
-                    ...(canManage
-                      ? [
-                          {
-                            id: 'edit',
-                            label: 'Editar',
-                            icon: <PencilSimple aria-hidden="true" size={16} />,
-                            onClick: () =>
-                              void navigate(`/products/${row.id}/edit`),
-                          },
-                        ]
-                      : []),
-                    ...(canDeactivate
-                      ? [
-                          {
-                            id: 'state',
-                            label: row.is_active ? 'Desactivar' : 'Reactivar',
-                            destructive: row.is_active,
-                            icon: <Power aria-hidden="true" size={16} />,
-                            onClick: () =>
-                              setChange({
-                                id: row.id,
-                                name: row.name,
-                                version: row.version,
-                                active: !row.is_active,
-                              }),
-                          },
-                        ]
-                      : []),
-                  ]}
-                  trigger={
-                    <IconButton
-                      icon={<DotsThreeVertical size={20} weight="bold" />}
-                      label={`Acciones de ${row.code}`}
-                    />
-                  }
-                />
-              ) : null
-            }
-            columns={[
-              {
-                header: 'Código interno',
-                key: 'code',
-                priority: 'primary',
-                render: (row) => (
-                  <span className="font-mono font-medium">{row.code}</span>
-                ),
-              },
-              {
-                header: 'Código del fabricante',
-                key: 'manufacturer_code',
-                priority: 'secondary',
-                render: (row) =>
-                  row.manufacturer_code ? (
-                    <span className="font-mono text-sm">
-                      {row.manufacturer_code}
-                    </span>
-                  ) : (
-                    '—'
-                  ),
-              },
-              {
-                header: 'Producto',
-                key: 'name',
-                priority: 'primary',
-                render: (row) => (
-                  <span className="font-medium text-ink">{row.name}</span>
-                ),
-              },
-              {
-                header: 'Categoría',
-                key: 'category',
-                priority: 'secondary',
-                render: (row) => row.category?.name ?? '—',
-              },
-              {
-                header: 'Presentación',
-                key: 'content_quantity',
-                priority: 'secondary',
-                render: presentation,
-              },
-              {
-                header: 'Marca',
-                key: 'product_brand',
-                priority: 'secondary',
-                render: (row) => row.product_brand?.name ?? '—',
-              },
-              {
-                header: 'Precio final USD',
-                key: 'sale_price',
-                priority: 'secondary',
-                align: 'end',
-                render: (row) => (
-                  <Money amount={row.sale_price} className="font-semibold" />
-                ),
-              },
-              {
-                header: 'Estado',
-                key: 'is_active',
-                priority: 'secondary',
-                render: (row) => (
-                  <StatusBadge
-                    label={row.is_active ? 'Activo' : 'Inactivo'}
-                    tone={row.is_active ? 'success' : 'neutral'}
+          <>
+            <div
+              aria-label="Acciones de etiquetas"
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-subtle px-3 py-2"
+              role="toolbar"
+            >
+              <p
+                className="text-xs font-semibold text-ink-muted"
+                aria-live="polite"
+              >
+                {selectedProducts.size}{' '}
+                {selectedProducts.size === 1 ? 'seleccionado' : 'seleccionados'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={selectedProducts.size === 0}
+                  onClick={openSelectedLabels}
+                  variant="soft"
+                >
+                  <Printer aria-hidden="true" size={16} />
+                  Imprimir etiquetas
+                </Button>
+                <Button onClick={openFilteredLabels} variant="secondary">
+                  Todos los del filtro actual
+                </Button>
+              </div>
+            </div>
+            <ElevatedDataList<Product>
+              actions={(row) =>
+                canManage || canDeactivate ? (
+                  <DropdownMenu
+                    items={[
+                      ...(canManage
+                        ? [
+                            {
+                              id: 'edit',
+                              label: 'Editar',
+                              icon: (
+                                <PencilSimple aria-hidden="true" size={16} />
+                              ),
+                              onClick: () =>
+                                void navigate(`/products/${row.id}/edit`),
+                            },
+                          ]
+                        : []),
+                      ...(canDeactivate
+                        ? [
+                            {
+                              id: 'state',
+                              label: row.is_active ? 'Desactivar' : 'Reactivar',
+                              destructive: row.is_active,
+                              icon: <Power aria-hidden="true" size={16} />,
+                              onClick: () =>
+                                setChange({
+                                  id: row.id,
+                                  name: row.name,
+                                  version: row.version,
+                                  active: !row.is_active,
+                                }),
+                            },
+                          ]
+                        : []),
+                    ]}
+                    trigger={
+                      <IconButton
+                        icon={<DotsThreeVertical size={20} weight="bold" />}
+                        label={`Acciones de ${row.code}`}
+                      />
+                    }
                   />
-                ),
-              },
-            ]}
-            getRowKey={(row) => row.id}
-            label="Productos"
-            onRowClick={(row) =>
-              void navigate(`/products/${row.id}`, {
-                state: { from: window.location.search },
-              })
-            }
-            rows={rows}
-          />
+                ) : null
+              }
+              columns={[
+                {
+                  header: 'Código interno',
+                  key: 'code',
+                  priority: 'primary',
+                  render: (row) => (
+                    <span className="font-mono font-medium">{row.code}</span>
+                  ),
+                },
+                {
+                  header: 'Código del fabricante',
+                  key: 'manufacturer_code',
+                  priority: 'secondary',
+                  render: (row) =>
+                    row.manufacturer_code ? (
+                      <span className="font-mono text-sm">
+                        {row.manufacturer_code}
+                      </span>
+                    ) : (
+                      '—'
+                    ),
+                },
+                {
+                  header: 'Producto',
+                  key: 'name',
+                  priority: 'primary',
+                  render: (row) => (
+                    <span className="font-medium text-ink">{row.name}</span>
+                  ),
+                },
+                {
+                  header: 'Categoría',
+                  key: 'category',
+                  priority: 'secondary',
+                  render: (row) => row.category?.name ?? '—',
+                },
+                {
+                  header: 'Presentación',
+                  key: 'content_quantity',
+                  priority: 'secondary',
+                  render: presentation,
+                },
+                {
+                  header: 'Marca',
+                  key: 'product_brand',
+                  priority: 'secondary',
+                  render: (row) => row.product_brand?.name ?? '—',
+                },
+                {
+                  header: 'Precio final USD',
+                  key: 'sale_price',
+                  priority: 'secondary',
+                  align: 'end',
+                  render: (row) => (
+                    <Money amount={row.sale_price} className="font-semibold" />
+                  ),
+                },
+                {
+                  header: 'Estado',
+                  key: 'is_active',
+                  priority: 'secondary',
+                  render: (row) => (
+                    <StatusBadge
+                      label={row.is_active ? 'Activo' : 'Inactivo'}
+                      tone={row.is_active ? 'success' : 'neutral'}
+                    />
+                  ),
+                },
+              ]}
+              getRowKey={(row) => row.id}
+              label="Productos"
+              onSelectAll={(selected) => {
+                setSelectedProducts((current) => {
+                  const next = new Map(current)
+                  for (const row of rows) {
+                    if (selected) next.set(row.id, toLabelData(row))
+                    else next.delete(row.id)
+                  }
+                  return next
+                })
+              }}
+              onSelectRow={(key, selected) => {
+                const id = Number(key)
+                const row = rows.find((candidate) => candidate.id === id)
+                if (!row) return
+                setSelectedProducts((current) => {
+                  const next = new Map(current)
+                  if (selected) next.set(id, toLabelData(row))
+                  else next.delete(id)
+                  return next
+                })
+              }}
+              onRowClick={(row) =>
+                void navigate(`/products/${row.id}`, {
+                  state: { from: window.location.search },
+                })
+              }
+              rows={rows}
+              selectedKeys={new Set(selectedProducts.keys())}
+            />
+          </>
         )}
       </ListStates>
+
+      <ConfirmationPanel
+        confirmLabel="Cambiar filtros"
+        description="La selección manual se limpiará para que no mezcle productos de filtros distintos."
+        onCancel={() => {
+          setPendingFilterChange(null)
+          setToolbarKey((current) => current + 1)
+        }}
+        onConfirm={() => {
+          const changes = pendingFilterChange
+          setPendingFilterChange(null)
+          setSelectedProducts(new Map())
+          if (changes) filters.set(changes)
+        }}
+        open={pendingFilterChange !== null}
+        title="Cambiar filtros"
+      />
+
+      <ProductLabelPrintModal
+        loadError={labelError}
+        loading={labelLoading}
+        onClose={() => setLabelModalOpen(false)}
+        onRetry={() => void loadFilteredLabels()}
+        open={labelModalOpen}
+        products={labelProducts}
+        returnFocusRef={labelTriggerRef}
+      />
 
       <StateChangeDialog
         activateText={`¿Reactivar «${change?.name ?? ''}»? Exige que su categoría esté activa.`}

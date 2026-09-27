@@ -7,6 +7,7 @@ import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
+  product: {} as Record<string, unknown>,
   stock: {} as Record<string, unknown>,
   stockArgs: [] as unknown[],
 }))
@@ -16,30 +17,29 @@ vi.mock('@/features/auth/hooks', () => ({
 }))
 vi.mock('@/features/products/hooks', () => ({
   useProduct: () => ({
-    data: {
-      id: 7,
-      code: 'ACE-1',
-      manufacturer_code: '',
-      name: 'Aceite',
-      description: '',
-      category: { id: 1, name: 'Lubricantes', is_active: true },
-      unit: { id: 1, name: 'Galón', is_active: true },
-      product_brand: null,
-      vehicle_brands: [],
-      content_quantity: '4.000000',
-      sale_price: '99.99',
-      is_kit: false,
-      tax: null,
-      is_active: true,
-      version: 1,
-      created_at: '',
-      updated_at: '',
-    },
+    data: mocks.product,
     isPending: false,
     isError: false,
     refetch: vi.fn(),
   }),
   useProductMutations: () => ({ setActive: { mutateAsync: vi.fn() } }),
+}))
+vi.mock('@/features/product-labels/ProductLabelPrintModal', () => ({
+  ProductLabelPrintModal: ({
+    onClose,
+    open,
+    products,
+  }: {
+    onClose: () => void
+    open: boolean
+    products: Array<{ code: string }>
+  }) =>
+    open ? (
+      <div role="dialog">
+        Etiqueta: {products[0]?.code}
+        <button onClick={onClose}>Cerrar etiquetas</button>
+      </div>
+    ) : null,
 }))
 vi.mock('@/features/inventory/hooks', () => ({
   useStockItem: (id: number | null, enabled: boolean) => {
@@ -75,11 +75,52 @@ function renderPage() {
 beforeEach(() => {
   mocks.stockArgs.length = 0
   mocks.permissions = ['productos.ver', 'inventario.ver']
+  mocks.product = {
+    id: 7,
+    code: 'ACE-1',
+    manufacturer_code: '',
+    name: 'Aceite',
+    description: '',
+    category: { id: 1, name: 'Lubricantes', is_active: true },
+    unit: { id: 1, name: 'Galón', is_active: true },
+    product_brand: null,
+    vehicle_brands: [],
+    content_quantity: '4.000000',
+    sale_price: '99.99',
+    is_kit: false,
+    tax: null,
+    is_active: true,
+    version: 1,
+    created_at: '',
+    updated_at: '',
+  }
   mocks.stock = {
     isPending: false,
     isError: false,
     data: { quantity: '12', version: 3, last_ordinal: 5 },
   }
+})
+
+it.each([true, false])(
+  'permite imprimir la etiqueta con productos activos=%s solo con productos.ver',
+  async (isActive) => {
+    mocks.permissions = ['productos.ver']
+    mocks.product = { ...mocks.product, is_active: isActive }
+    renderPage()
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Imprimir etiquetas' }),
+    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('Etiqueta: ACE-1')
+  },
+)
+
+it('no muestra la acción sin productos.ver', () => {
+  mocks.permissions = []
+  renderPage()
+  expect(
+    screen.queryByRole('button', { name: 'Imprimir etiquetas' }),
+  ).not.toBeInTheDocument()
 })
 
 it('consulta el inventario por separado y enlaza al Kardex conservando el contexto de retorno', async () => {

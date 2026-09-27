@@ -353,6 +353,10 @@ def _logo_data(entity: FiscalEntity) -> dict[str, object] | None:
     return {"url": _logo_url(entity.entity_type, int(summary["revision"])), **summary}
 
 
+def _entity_display_name(entity: FiscalEntity) -> str:
+    return (entity.trade_name or "").strip() or entity.legal_name
+
+
 def _entity_data(entity: FiscalEntity) -> dict[str, object]:
     return {
         "id": entity.pk,
@@ -893,6 +897,7 @@ class EntityLogoRemoveSerializer(serializers.Serializer[dict[str, object]]):
 class EntityLogoSummaryItemSerializer(serializers.Serializer[dict[str, object]]):
     entity_id = serializers.IntegerField()
     legal_name = serializers.CharField()
+    display_name = serializers.CharField()
     logo = EntityLogoSerializer(allow_null=True)
 
 
@@ -1021,6 +1026,7 @@ class EntityLogoSummaryView(APIView):
             data[entity.entity_type] = {
                 "entity_id": entity.pk,
                 "legal_name": entity.legal_name,
+                "display_name": _entity_display_name(entity),
                 "logo": _logo_data(entity),
             }
         return Response(data, status=status.HTTP_200_OK)

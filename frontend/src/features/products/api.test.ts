@@ -45,3 +45,37 @@ it('conserva importes como cadenas al enviar el alta', async () => {
     },
   })
 })
+
+it('obtiene la proyección completa para etiquetas con los cinco filtros vigentes', async () => {
+  const request = vi.fn().mockResolvedValue([
+    {
+      id: 8,
+      code: 'FIL-8',
+      manufacturer_code: 'PH-8',
+      name: 'Filtro',
+      product_brand: { id: 2, name: 'Fleetguard' },
+    },
+  ])
+  const api = createProductsApi({ request } as unknown as ApiClient)
+
+  await expect(
+    api.labelData({
+      search: 'filtro',
+      isActive: 'all',
+      categoryId: 3,
+      productBrandId: 4,
+      vehicleBrandId: 5,
+    }),
+  ).resolves.toEqual([
+    {
+      id: 8,
+      code: 'FIL-8',
+      manufacturerCode: 'PH-8',
+      name: 'Filtro',
+      productBrand: { id: 2, name: 'Fleetguard' },
+    },
+  ])
+  expect(request).toHaveBeenCalledWith(
+    '/products/label-data/?search=filtro&is_active=all&category_id=3&product_brand_id=4&vehicle_brand_id=5',
+  )
+})

@@ -135,6 +135,24 @@ class ProductSerializer(_Record):
     tax = TaxProjectionSerializer(allow_null=True)
 
 
+class ProductLabelBrandSerializer(_Base):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class ProductLabelSerializer(_Base):
+    id = serializers.IntegerField()
+    code = serializers.CharField()
+    manufacturer_code = serializers.CharField(allow_blank=True)
+    name = serializers.CharField()
+    product_brand = ProductLabelBrandSerializer(allow_null=True)
+
+
+class ProductLabelBatchSerializer(_Base):
+    count = serializers.IntegerField()
+    results = ProductLabelSerializer(many=True)
+
+
 class ServiceWriteSerializer(CommandFields):
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(max_length=2000, required=False, allow_blank=True)

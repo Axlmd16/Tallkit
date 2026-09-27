@@ -13,6 +13,7 @@ const SUMMARY: EntityLogoSummary = {
   COMERCIAL: {
     entity_id: 1,
     legal_name: 'Repuestos Andinos',
+    display_name: 'Repuestos La Esquina',
     logo: {
       url: '/api/v1/workshop-configuration/entity-logos/COMERCIAL/3/',
       revision: 3,
@@ -23,7 +24,12 @@ const SUMMARY: EntityLogoSummary = {
       uploaded_at: '2026-09-27T10:00:00Z',
     },
   },
-  ARTESANAL: { entity_id: 2, legal_name: 'Taller Andino', logo: null },
+  ARTESANAL: {
+    entity_id: 2,
+    legal_name: 'Taller Andino',
+    display_name: 'Taller Andino',
+    logo: null,
+  },
 }
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -60,10 +66,12 @@ it('devuelve solo el logotipo de la entidad pedida', async () => {
     ),
   )
   expect(commercial.result.current.legalName).toBe('Repuestos Andinos')
+  expect(commercial.result.current.displayName).toBe('Repuestos La Esquina')
 
   const artisanal = renderHook(() => useIssuerBrand('ARTESANAL'), { wrapper })
   await waitFor(() => expect(artisanal.result.current.logoUrl).toBeNull())
   expect(artisanal.result.current.legalName).toBe('Taller Andino')
+  expect(artisanal.result.current.displayName).toBe('Taller Andino')
 })
 
 it('sin respuesta del servidor deja la hoja con el nombre del emisor', async () => {

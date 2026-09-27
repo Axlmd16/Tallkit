@@ -46,6 +46,15 @@ class Page:
         }
 
 
+@dataclass(frozen=True)
+class ProductLabelBatch:
+    results: list[dict[str, Any]]
+    count: int
+
+    def as_dict(self) -> dict[str, Any]:
+        return {"count": self.count, "results": self.results}
+
+
 def _decimal_text(value: Any, places: int) -> str:
     return f"{value:.{places}f}"
 
@@ -163,16 +172,21 @@ def service_dict(service: Service) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def parse_list_params(params: dict[str, Any]) -> tuple[str, str, int, int]:
-    """(search, is_active, page, page_size); valores inválidos responden 400."""
+def _parse_search_state(params: dict[str, Any]) -> tuple[str, str]:
     search = params.get("search", "")
     if not isinstance(search, str):
         raise field_error("validation_error", "search", "La búsqueda debe ser texto.")
     is_active = params.get("is_active", "true")
     if is_active not in ("true", "false", "all"):
         raise field_error("validation_error", "is_active", "Use true, false o all.")
+    return search.strip(), is_active
+
+
+def parse_list_params(params: dict[str, Any]) -> tuple[str, str, int, int]:
+    """(search, is_active, page, page_size); valores inválidos responden 400."""
+    search, is_active = _parse_search_state(params)
     return (
-        search.strip(),
+        search,
         is_active,
         _positive_int(params.get("page", 1), "page"),
         _positive_int(params.get("page_size", 20), "page_size", MAX_PAGE_SIZE),
@@ -235,8 +249,7 @@ def get_auxiliary(kind: str, pk: int) -> dict[str, Any]:
     return dict(to_dict(obj))
 
 
-def list_products(params: dict[str, Any]) -> Page:
-    search, is_active, page, page_size = parse_list_params(params)
+def _product_queryset(params: dict[str, Any], search: str, is_active: str) -> QuerySet[Product]:
     queryset = _state_filter(
         Product.objects.select_related("category", "unit", "product_brand"), is_active
     )
@@ -258,8 +271,42 @@ def list_products(params: dict[str, Any]) -> Page:
                 )
             )
         )
-    rows, count = _paginate(_ordered(queryset), page, page_size)
+    return _ordered(queryset)
+
+
+def list_products(params: dict[str, Any]) -> Page:
+    search, is_active, page, page_size = parse_list_params(params)
+    rows, count = _paginate(_product_queryset(params, search, is_active), page, page_size)
     return Page(product_dicts(rows), count, page, page_size)
+
+
+_PRODUCT_LABEL_PARAMS = frozenset(
+    {"search", "is_active", "category_id", "product_brand_id", "vehicle_brand_id"}
+)
+
+
+def list_product_label_data(params: dict[str, Any]) -> ProductLabelBatch:
+    unknown = sorted(set(params) - _PRODUCT_LABEL_PARAMS)
+    if unknown:
+        field = unknown[0]
+        raise field_error("unknown_field", field, "Parámetro no admitido.")
+    search, is_active = _parse_search_state(params)
+    products = list(_product_queryset(params, search, is_active))
+    results = [
+        {
+            "id": product.pk,
+            "code": product.code,
+            "manufacturer_code": product.manufacturer_code,
+            "name": product.name,
+            "product_brand": (
+                None
+                if product.product_brand is None
+                else {"id": product.product_brand.pk, "name": product.product_brand.name}
+            ),
+        }
+        for product in products
+    ]
+    return ProductLabelBatch(results=results, count=len(results))
 
 
 def get_product(pk: int) -> dict[str, Any]:

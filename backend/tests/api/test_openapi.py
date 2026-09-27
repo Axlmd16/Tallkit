@@ -8,3 +8,5 @@ def test_openapi_schema_exposes_versioned_technical_endpoints(client: Client) ->
     body = response.content.decode()
     assert "/api/v1/health/" in body
     assert "/api/v1/auth/login/" in body
+    assert "/api/v1/products/label-data/" in body
+    assert "catalog_product_label_data" in body

@@ -1,0 +1,101 @@
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+.product-label-print-modal {
+  display: flex;
+  height: min(88dvh, 46rem);
+  max-height: min(88dvh, 46rem) !important;
+  max-width: min(94vw, 75rem) !important;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+
+.product-label-print-modal > header,
+.product-label-print-modal > footer {
+  flex: none;
+}
+
+.product-label-print-modal > .modal-content {
+  min-height: 0;
+  flex: 1;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.product-label-preview-canvas {
+  position: relative;
+  width: calc(210mm * var(--product-label-preview-scale));
+  height: calc(297mm * var(--product-label-preview-scale));
+}
+
+.product-label-preview-stage {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  height: max-content;
+  min-height: 100%;
+  place-items: center;
+  padding: 1rem;
+}
+
+.product-label-preview-canvas > .product-label-sheet {
+  position: absolute;
+  inset: 0 auto auto 0;
+  box-shadow: 0 6px 22px rgb(12 32 36 / 14%);
+  transform: scale(var(--product-label-preview-scale));
+  transform-origin: top left;
+}
+
+.product-label-print-surface {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .product-label-print-modal {
+    height: 100dvh;
+    max-height: 100dvh !important;
+  }
+
+  .product-label-print-modal > .modal-content {
+    overflow-y: auto;
+  }
+
+  .product-label-modal-controls {
+    overflow: visible;
+  }
+
+  .product-label-preview {
+    min-height: 30rem;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .product-label-print-surface {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    visibility: visible !important;
+  }
+
+  .product-label-print-surface * {
+    visibility: visible !important;
+  }
+
+  .product-label-sheet {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .product-label-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}

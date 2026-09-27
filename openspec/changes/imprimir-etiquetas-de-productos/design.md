@@ -35,7 +35,7 @@ Restricciones: monolito modular (ADR-0001), REST con OpenAPI (ADR-0002), sesión
 
 ### D1 — Proyección específica no paginada para «Todos los del filtro actual»
 
-Se añade `GET /api/v1/products/label-data/`, declarada antes de la ruta `products/<int:pk>/`. Usa `HasBusinessPermission("productos.ver")`, acepta exactamente `search`, `status`, `category_id`, `product_brand_id` y `vehicle_brand_id`, y responde:
+Se añade `GET /api/v1/products/label-data/`, declarada antes de la ruta `products/<int:pk>/`. Usa `HasBusinessPermission("productos.ver")`, acepta exactamente `search`, `is_active`, `category_id`, `product_brand_id` y `vehicle_brand_id` —los nombres vigentes del listado—, y responde:
 
 ```json
 {
@@ -121,7 +121,7 @@ Para tamaños alternativos, las zonas reducen espacios y tipografía dentro de l
 
 ### D7 — Codificador propio Code 128 con juegos B y C
 
-`code128.ts` implementa la tabla oficial de 107 patrones, los juegos B y C, cambios de juego, suma de control módulo 103 y parada. El alfabeto aceptado es ASCII imprimible U+0020–U+007E. Un algoritmo de programación dinámica evalúa en cada posición continuar o cambiar entre B y C y elige la secuencia con menos símbolos, contando inicio y cambios de juego. Los empates se resuelven siempre con la misma prioridad —continuar en el juego actual y luego B—, para que el resultado sea determinista. Así aprovecha también la parte par de una corrida numérica impar cuando reduce el símbolo. Nunca modifica el texto de entrada.
+`code128.ts` implementa la tabla oficial de 107 patrones, los juegos B y C, cambios de juego, suma de control módulo 103 y parada. El alfabeto aceptado es ASCII imprimible U+0020–U+007E. Un algoritmo de programación dinámica evalúa en cada posición continuar o cambiar entre B y C y elige la secuencia con menos símbolos, contando inicio y cambios de juego. Los empates se resuelven de forma estable: una corrida numérica impar conserva su primer dígito en B y codifica en C el tramo par restante; para elegir el juego inicial se prefiere B. Así aprovecha también la parte par de una corrida numérica impar y produce siempre el mismo símbolo. Nunca modifica el texto de entrada.
 
 La secuencia es:
 

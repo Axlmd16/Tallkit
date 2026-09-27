@@ -211,6 +211,7 @@ export function DataTable<T extends object>({
                   {isSelectionActive && (
                     <td
                       className={`px-3 text-center ${isContained ? '' : 'bg-surface'} ${cellHeightClass}`.trim()}
+                      onClick={(event) => event.stopPropagation()}
                     >
                       <input
                         aria-label={`Seleccionar fila ${rowKey}`}
@@ -265,7 +266,10 @@ export function DataTable<T extends object>({
               onClick={() => onRowClick?.(row)}
             >
               {isSelectionActive && (
-                <div className="mb-2 flex items-center gap-2">
+                <div
+                  className="mb-2 flex items-center gap-2"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <label className="inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold text-ink cursor-pointer">
                     <input
                       checked={isSelected}

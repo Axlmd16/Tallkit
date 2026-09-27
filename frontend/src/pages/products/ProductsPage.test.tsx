@@ -8,8 +8,12 @@ import { ToastProvider } from '@/shared/ui'
 import { ProblemError } from '@/shared/api/client'
 
 const mocks = vi.hoisted(() => ({
+  labelData: vi.fn(),
   permissions: [] as string[],
   list: {} as Record<string, unknown>,
+  listByPage: null as
+    | null
+    | ((filters: { page?: number }) => Record<string, unknown>),
   listArgs: [] as unknown[],
   setActive: vi.fn(),
 }))
@@ -45,9 +49,9 @@ vi.mock('@/features/vehicle-brands/hooks', () => ({
   useVehicleBrands: () => page([{ id: 10, name: 'Toyota', is_active: true }]),
 }))
 vi.mock('@/features/products/hooks', () => ({
-  useProducts: (filters: unknown) => {
+  useProducts: (filters: { page?: number }) => {
     mocks.listArgs.push(filters)
-    return mocks.list
+    return mocks.listByPage?.(filters) ?? mocks.list
   },
   useProduct: () => ({ data: undefined, refetch: vi.fn() }),
   useProductMutations: () => ({
@@ -56,6 +60,33 @@ vi.mock('@/features/products/hooks', () => ({
     setActive: { mutateAsync: mocks.setActive },
   }),
   useProductTaxOptions: () => page([]),
+}))
+vi.mock('@/features/products/api', () => ({
+  productsApi: { labelData: (...args: unknown[]) => mocks.labelData(...args) },
+}))
+vi.mock('@/features/product-labels/ProductLabelPrintModal', () => ({
+  ProductLabelPrintModal: ({
+    loadError,
+    onRetry,
+    open,
+    products,
+  }: {
+    loadError?: string | null
+    onRetry?: () => void
+    open: boolean
+    products: Array<{ code: string }>
+  }) =>
+    open ? (
+      <div role="dialog">
+        Etiquetas: {products.map(({ code }) => code).join(', ')}
+        {loadError && (
+          <div role="alert">
+            {loadError}
+            <button onClick={onRetry}>Reintentar lote</button>
+          </div>
+        )}
+      </div>
+    ) : null,
 }))
 
 import { ProductsPage } from './ProductsPage'
@@ -99,10 +130,129 @@ function renderPage(path = '/products') {
 }
 
 beforeEach(() => {
+  mocks.labelData.mockReset()
   mocks.setActive.mockReset()
   mocks.listArgs.length = 0
+  mocks.listByPage = null
   mocks.permissions = ['productos.ver']
   mocks.list = page([product])
+})
+
+it('selecciona productos en varias páginas y conserva el orden manual', async () => {
+  const second = { ...product, id: 6, code: 'ACE-2', name: 'Aceite sintético' }
+  mocks.listByPage = ({ page: current = 1 }) => ({
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+    data: {
+      count: 2,
+      page: current,
+      page_size: 1,
+      total_pages: 2,
+      results: current === 1 ? [product] : [second],
+    },
+  })
+  const user = userEvent.setup()
+  renderPage()
+
+  expect(
+    screen.getByRole('button', { name: 'Imprimir etiquetas' }),
+  ).toBeDisabled()
+  await user.click(screen.getByRole('checkbox', { name: 'Seleccionar fila 5' }))
+  expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
+  await user.click(screen.getByRole('checkbox', { name: 'Seleccionar fila 6' }))
+  expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
+
+  await user.click(screen.getByRole('button', { name: 'Imprimir etiquetas' }))
+  expect(screen.getByRole('dialog')).toHaveTextContent('ACE-1, ACE-2')
+})
+
+it('selecciona o deselecciona toda la página visible', async () => {
+  mocks.list = page([
+    product,
+    { ...product, id: 6, code: 'ACE-2', name: 'Aceite sintético' },
+  ])
+  const user = userEvent.setup()
+  renderPage()
+
+  await user.click(
+    screen.getByRole('checkbox', { name: 'Seleccionar todas las filas' }),
+  )
+  expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
+  await user.click(
+    screen.getByRole('checkbox', { name: 'Seleccionar todas las filas' }),
+  )
+  expect(screen.getByText('0 seleccionados')).toBeInTheDocument()
+})
+
+it('pide confirmación antes de cambiar filtros con selección', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(screen.getByRole('checkbox', { name: 'Seleccionar fila 5' }))
+
+  await user.selectOptions(screen.getByLabelText('Categoría'), '1')
+  const confirmation = screen.getByRole('dialog', { name: 'Cambiar filtros' })
+  await user.click(
+    within(confirmation).getByRole('button', { name: 'Cancelar' }),
+  )
+  expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
+  expect(screen.getByLabelText('Categoría')).toHaveValue('')
+
+  await user.selectOptions(screen.getByLabelText('Categoría'), '1')
+  await user.click(
+    within(screen.getByRole('dialog', { name: 'Cambiar filtros' })).getByRole(
+      'button',
+      { name: 'Cambiar filtros' },
+    ),
+  )
+  expect(mocks.listArgs.at(-1)).toMatchObject({ categoryId: 1 })
+  expect(screen.getByText('0 seleccionados')).toBeInTheDocument()
+})
+
+it('obtiene todos los productos con exactamente los filtros actuales', async () => {
+  mocks.labelData.mockResolvedValue([
+    {
+      id: 9,
+      code: 'FIL-9',
+      name: 'Filtro nueve',
+      manufacturerCode: null,
+      productBrand: null,
+    },
+  ])
+  const user = userEvent.setup()
+  renderPage(
+    '/products?search=aceite&category_id=1&product_brand_id=3&vehicle_brand_id=10&is_active=all&page=2',
+  )
+
+  await user.click(
+    screen.getByRole('button', { name: 'Todos los del filtro actual' }),
+  )
+  expect(mocks.labelData).toHaveBeenCalledWith({
+    search: 'aceite',
+    isActive: 'all',
+    categoryId: 1,
+    productBrandId: 3,
+    vehicleBrandId: 10,
+  })
+  expect(await screen.findByRole('dialog')).toHaveTextContent('FIL-9')
+})
+
+it('mantiene un error reintentable al cargar todos los filtrados', async () => {
+  mocks.labelData
+    .mockRejectedValueOnce(new Error('red'))
+    .mockResolvedValueOnce([])
+  const user = userEvent.setup()
+  renderPage()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Todos los del filtro actual' }),
+  )
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'No se pudieron cargar',
+  )
+  await user.click(screen.getByRole('button', { name: 'Reintentar lote' }))
+  expect(mocks.labelData).toHaveBeenCalledTimes(2)
 })
 
 it('muestra las columnas del catálogo sin existencias ni costos, aunque se pueda ver el inventario', () => {
@@ -116,6 +266,7 @@ it('muestra las columnas del catálogo sin existencias ni costos, aunque se pued
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent),
   ).toEqual([
+    '',
     'Código interno',
     'Código del fabricante',
     'Producto',

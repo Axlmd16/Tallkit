@@ -7,15 +7,22 @@ import { useCallback, useEffect, useState } from 'react'
  */
 export function useSheetBrandReady(timeoutMs = 5000) {
   const [ready, setReady] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), timeoutMs)
+    const timer = window.setTimeout(() => {
+      setTimedOut(true)
+      setReady(true)
+    }, timeoutMs)
     return () => window.clearTimeout(timer)
   }, [timeoutMs])
 
   const onBrandReady = useCallback((value: boolean) => {
-    if (value) setReady(true)
+    if (value) {
+      setTimedOut(false)
+      setReady(true)
+    }
   }, [])
 
-  return { ready, onBrandReady }
+  return { ready, timedOut, onBrandReady }
 }

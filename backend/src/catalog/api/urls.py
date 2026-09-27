@@ -28,6 +28,7 @@ def _crud(
 
 urlpatterns += [
     path("products/tax-options/", v.ProductTaxOptionsView.as_view(), name="product-tax-options"),
+    path("products/label-data/", v.ProductLabelDataView.as_view(), name="product-label-data"),
     path("services/tax-options/", v.ServiceTaxOptionsView.as_view(), name="service-tax-options"),
 ]
 _crud(
