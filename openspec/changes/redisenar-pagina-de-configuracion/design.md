@@ -242,3 +242,12 @@ No hay migración de datos. Los enlaces existentes `?tab=` y `?seccion=` siguen 
 Ninguna que bloquee. Si más adelante se prefiere que el backend informe la subsección de cada causa, requerirá un cambio propio con actualización de OpenAPI.
 
 Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).
+
+### D8c. Cuarta revisión: mismo estilo que las demás secciones
+
+El usuario pidió que las subsecciones de facturación sigan el estilo de *Entidades fiscales*, *Bodega* y *Series*, y que la estructura sea simétrica:
+
+- `EntitySwitch` pasa a una barra de pestañas rectas con línea inferior (como `SectionNav` horizontal) y la placa del RUC a la derecha de la misma fila;
+- cada subsección vuelve a su `SheetHeading` (título, descripción y acciones); los avisos se inyectan como `hints` desde `FiscalConfigurationSection`;
+- `HintPopover` gana la variante `button`, con el alto, el borde y la esquina de `Button` secundario, y su panel se alinea al borde del disparador;
+- los estados vuelven a `StateMark` y las acciones de fila, a `Button` `quiet`; el certificado en consulta usa `FactList` y la tarjeta queda solo como vista previa del modal.

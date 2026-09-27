@@ -1,5 +1,4 @@
 import {
-  Certificate,
   LockSimple,
   PencilSimple,
   Plus,
@@ -11,12 +10,16 @@ import { useState } from 'react'
 import {
   Button,
   ErrorState,
+  FactList,
+  FactRow,
   Field,
   FormModal,
   getControlClasses,
   HintPopover,
   LoadingState,
+  SheetHeading,
   StateChip,
+  StateMark,
   useFieldProps,
   useToast,
   type StateChipTone,
@@ -91,9 +94,11 @@ const BAR_TONES: Record<StateChipTone, string> = {
 export function CertificateSection({
   entityId,
   warnings = [],
+  hints,
 }: {
   entityId: number
   warnings?: StatusCause[]
+  hints?: React.ReactNode
 }) {
   const profile = useElectronicProfile(entityId)
   const [editing, setEditing] = useState(false)
@@ -102,27 +107,32 @@ export function CertificateSection({
   if (profile.isError || !profile.data)
     return <ErrorState message="No se pudo cargar el certificado." />
   const certificate = profile.data.certificate
+  const validity = certificate
+    ? certificateValidity(certificate.starts_on, certificate.ends_on)
+    : null
 
   return (
-    <section aria-label="Certificado electrónico" className="space-y-5">
-      {certificate ? (
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-          <CertificateCard className="w-full max-w-md" values={certificate} />
-          <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => setEditing(true)} variant="secondary">
-              <PencilSimple aria-hidden="true" size={16} weight="bold" />
-              Editar certificado
-            </Button>
-            {warnings.length > 0 && (
+    <section aria-labelledby={`certificado-${entityId}`} className="space-y-6">
+      <SheetHeading
+        actions={
+          <>
+            {hints}
+            {certificate && warnings.length > 0 && (
               <HintPopover
+                align="end"
                 label="Advertencias del certificado"
                 trigger={
                   <>
-                    <WarningCircle aria-hidden="true" size={16} weight="fill" />
+                    <WarningCircle
+                      aria-hidden="true"
+                      className="text-[#c98a00]"
+                      size={16}
+                      weight="fill"
+                    />
                     Revisar
                   </>
                 }
-                triggerClassName="bg-warning-soft text-warning"
+                variant="button"
               >
                 <ul className="list-none space-y-1.5 p-0">
                   {warnings.map((warning) => (
@@ -131,33 +141,49 @@ export function CertificateSection({
                 </ul>
               </HintPopover>
             )}
-          </div>
-        </div>
-      ) : (
-        <button
-          className="ui-button group flex w-full max-w-md items-center gap-4 rounded-panel border-2 border-dashed border-line-strong bg-surface-subtle px-5 py-5 text-left transition-colors hover:border-primary hover:bg-primary-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none motion-reduce:transition-none"
-          onClick={() => setEditing(true)}
-          type="button"
-        >
-          <span className="grid size-11 shrink-0 place-items-center rounded-control bg-primary-soft text-primary group-hover:bg-surface">
-            <Certificate aria-hidden="true" size={22} weight="duotone" />
-          </span>
-          <span className="min-w-0">
-            <span className="block font-semibold text-ink">
-              Declarar certificado
-            </span>
-            <span className="block text-[13px] text-ink-muted">
-              Sin certificado declarado. No impide la preparación local.
-            </span>
-          </span>
-          <Plus
-            aria-hidden="true"
-            className="ml-auto text-primary"
-            size={18}
-            weight="bold"
-          />
-        </button>
-      )}
+            <Button onClick={() => setEditing(true)} variant="secondary">
+              {certificate ? (
+                <PencilSimple aria-hidden="true" size={16} weight="bold" />
+              ) : (
+                <Plus aria-hidden="true" size={16} weight="bold" />
+              )}
+              {certificate ? 'Editar certificado' : 'Declarar certificado'}
+            </Button>
+          </>
+        }
+        description="Opcional. Datos de referencia; no equivale a una firma."
+        id={`certificado-${entityId}`}
+        title="Certificado electrónico"
+      />
+      <FactList className="max-w-3xl">
+        {certificate && validity ? (
+          <>
+            <FactRow label="Titular">
+              <span className="font-semibold">{certificate.holder}</span>
+            </FactRow>
+            <FactRow label="Emisor">{certificate.issuer}</FactRow>
+            <FactRow label="Referencia">
+              <span className="font-mono">{certificate.reference}</span>
+            </FactRow>
+            <FactRow label="Vigencia">
+              <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="font-mono text-[13px]">
+                  {certificate.starts_on} — {certificate.ends_on}
+                </span>
+                <StateMark
+                  label={validity.label}
+                  tone={MARK_TONES[validity.tone]}
+                />
+              </span>
+            </FactRow>
+            <FactRow label="Fuente">{certificate.source}</FactRow>
+          </>
+        ) : (
+          <FactRow label="Estado">
+            <StateMark label="Sin declarar" tone="unknown" />
+          </FactRow>
+        )}
+      </FactList>
       {editing && (
         <CertificateModal
           entityId={entityId}
@@ -168,6 +194,15 @@ export function CertificateSection({
     </section>
   )
 }
+
+const MARK_TONES = {
+  success: 'success',
+  warning: 'unknown',
+  danger: 'unknown',
+  info: 'active',
+  primary: 'active',
+  neutral: 'inactive',
+} as const
 
 /** Tarjeta del certificado: consulta y vista previa en vivo del formulario. */
 function CertificateCard({

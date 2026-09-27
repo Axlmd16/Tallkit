@@ -6,17 +6,15 @@ import { PendingCount, RucPlate } from '@/shared/ui'
 import type { EntityReadinessSummary } from './readiness'
 
 /**
- * Selector compacto de entidad fiscal junto al título: ámbito, razón social y
- * marcador de estado por opción; la placa del RUC seleccionado va debajo.
+ * Barra de pestañas de entidad fiscal: pestañas rectas con línea inferior,
+ * como la navegación de secciones, y la placa del RUC seleccionado a la derecha.
  */
 export function EntitySwitch({
   entities,
   selectedId,
   onSelect,
   readinessFor,
-  children,
 }: {
-  children?: React.ReactNode
   entities: FiscalEntity[]
   selectedId: number
   onSelect: (entityId: number) => void
@@ -24,12 +22,12 @@ export function EntitySwitch({
 }) {
   const selected = entities.find((entity) => entity.id === selectedId)
   return (
-    <div className="flex w-full flex-col gap-1.5 sm:w-auto sm:items-end">
-      <fieldset className="min-w-0 border-0 p-0">
+    <div className="flex flex-col gap-2 border-b border-line sm:flex-row sm:items-end sm:justify-between">
+      <fieldset className="relative -mb-px min-w-0 border-0 p-0">
         <legend className="sr-only">Entidad fiscal</legend>
-        <div className="grid grid-cols-2 gap-1 rounded-control border border-line-strong bg-surface-subtle p-1">
+        <div className="flex overflow-x-auto">
           {entities.map((entity) => (
-            <EntityOption
+            <EntityTab
               checked={entity.id === selectedId}
               entity={entity}
               key={entity.id}
@@ -39,15 +37,18 @@ export function EntitySwitch({
           ))}
         </div>
       </fieldset>
-      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-        {children}
-        {selected && <RucPlate ruc={selected.ruc} size="sm" />}
-      </div>
+      {selected && (
+        <RucPlate
+          className="mb-2 self-start sm:self-auto"
+          ruc={selected.ruc}
+          size="sm"
+        />
+      )}
     </div>
   )
 }
 
-function EntityOption({
+function EntityTab({
   checked,
   entity,
   onChange,
@@ -59,14 +60,11 @@ function EntityOption({
   readiness: EntityReadinessSummary | undefined
 }) {
   const commercial = entity.entity_type === 'COMERCIAL'
-  const selected = commercial
-    ? 'bg-scope-commercial-soft text-scope-commercial shadow-[inset_0_0_0_1.5px_var(--color-scope-commercial)]'
-    : 'bg-scope-artisan-soft text-scope-artisan shadow-[inset_0_0_0_1.5px_var(--color-scope-artisan)]'
   const square = commercial ? 'bg-scope-commercial' : 'bg-scope-artisan'
 
   return (
     <label
-      className={`flex min-h-11 min-w-0 cursor-pointer items-center gap-2.5 rounded-[5px] px-3 py-1 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent motion-reduce:transition-none sm:w-44 ${checked ? selected : 'text-ink-muted hover:bg-surface hover:text-ink'}`}
+      className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 text-sm whitespace-nowrap first:pl-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent has-[:focus-visible]:ring-inset ${checked ? 'border-accent text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
     >
       <input
         checked={checked}
@@ -76,22 +74,15 @@ function EntityOption({
         type="radio"
         value={entity.id}
       />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase">
-          <span
-            aria-hidden="true"
-            className={`size-2 shrink-0 rounded-[2px] ${square}`}
-          />
-          {commercial ? 'Comercial' : 'Artesanal'}
-        </span>
-        <span
-          className={`truncate text-[13px] ${checked ? 'font-semibold text-ink' : 'font-medium'}`}
-          title={entity.legal_name}
-        >
-          {entity.legal_name}
-        </span>
+      <span
+        aria-hidden="true"
+        className={`size-2 shrink-0 rounded-[2px] ${square}`}
+      />
+      <span className="font-semibold">
+        {commercial ? 'Comercial' : 'Artesanal'}
       </span>
-      <span className="shrink-0 text-xs">
+      <span className={checked ? 'text-ink' : ''}>{entity.legal_name}</span>
+      <span className="pl-1 text-xs">
         <StateMarker readiness={readiness} />
       </span>
     </label>
