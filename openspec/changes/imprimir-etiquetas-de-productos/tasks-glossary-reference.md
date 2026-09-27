@@ -3,6 +3,7 @@
 | Term | Source Glossary | Context |
 | --- | --- | --- |
 | Producto | `docs/negocio/producto/glosario.md` | Registro consultado, seleccionado y representado por una etiqueta. |
+| Presentación | `docs/negocio/producto/glosario.md` | Cantidad y unidad transportadas por la proyección y mostradas en la etiqueta. |
 | Código interno | `docs/negocio/producto/glosario.md` (Producto) | Identificador textual y contenido exacto del código de barras. |
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Unidad que se compone, previsualiza e imprime. |
 | RUC comercial | `docs/negocio/producto/glosario.md` | Ámbito único de la identidad visible de la etiqueta. |

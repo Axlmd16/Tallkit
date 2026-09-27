@@ -4,30 +4,37 @@
 
 Cada **etiqueta de producto** SHALL identificar un único **Producto** y mostrar:
 
-- el nombre comercial vigente del **RUC comercial**, o su razón social vigente cuando no tenga nombre comercial;
-- el **logotipo de entidad fiscal** comercial vigente cuando exista, sin reservar espacio cuando no exista o no pueda cargarse;
+- el **logotipo de entidad fiscal** comercial vigente cuando exista, sin repetir por separado el nombre que ya forma parte del logotipo;
+- como reserva cuando el logotipo no exista o no pueda cargarse, el nombre comercial vigente del **RUC comercial** o su razón social vigente cuando no tenga nombre comercial;
 - el código interno en el elemento textual más destacado y con tipografía monoespaciada;
 - el nombre del producto, limitado visualmente a dos líneas;
+- la descripción del producto como texto secundario gris azulado y limitado visualmente a dos líneas;
 - el código del fabricante o número de parte cuando exista;
 - la marca de producto cuando exista;
+- la presentación formada por la cantidad de contenido y la unidad de medida registradas, sin inferir datos desde el nombre o la descripción;
 - un código de barras **Code 128** que represente exactamente el código interno.
 
-La etiqueta SHALL NOT mostrar precio, costo, impuesto, existencia, disponibilidad, estado, datos de la entidad artesanal ni el logotipo de Tallkit como emisor. La omisión de número de parte, marca o logotipo SHALL compactar el contenido sin marcadores vacíos. Trazabilidad: DP-009; RN-CAT-001/003/011; RF-CAT-001; UI-030/031; cambio `logotipos-por-ruc`; propuesta D1.
+La etiqueta SHALL usar una plantilla azul oscuro, gris azulado y naranja con un recurso gráfico fijo y original de un camión en la esquina superior derecha. SHALL reservar en blanco, sin marco ni marcador, la zona derecha destinada a una futura imagen dinámica del producto. La etiqueta SHALL NOT mostrar precio, costo, impuesto, existencia, disponibilidad, estado, datos de la entidad artesanal ni el logotipo de Tallkit como emisor. La omisión de número de parte, marca o logotipo SHALL compactar el contenido sin imágenes rotas ni rótulos de datos ausentes. Trazabilidad: DP-009; RN-CAT-001/003/011; RF-CAT-001; UI-030/031; cambio `logotipos-por-ruc`; propuesta D1/D4.
 
 #### Scenario: Producto con identidad comercial completa
-- **DADO** un producto con código interno, nombre, número de parte y marca, y la entidad comercial con nombre comercial y logotipo
+- **DADO** un producto con código interno, nombre, descripción, número de parte, marca, cantidad y unidad, y la entidad comercial con logotipo
 - **CUANDO** un usuario prepara su etiqueta
-- **ENTONCES** SHALL ver esos datos, el nombre comercial, el logotipo y el Code 128 del código interno, sin precio ni información artesanal.
+- **ENTONCES** SHALL ver esos datos, el logotipo sin nombre duplicado, la presentación y el Code 128 del código interno, sin precio ni información artesanal.
 
 #### Scenario: Datos opcionales ausentes
 - **DADO** un producto sin número de parte ni marca y la entidad comercial sin nombre comercial ni logotipo
 - **CUANDO** se compone su etiqueta
-- **ENTONCES** SHALL mostrarse la razón social, el código interno y el nombre del producto sin huecos, imágenes rotas ni marcadores para los datos ausentes.
+- **ENTONCES** SHALL mostrarse la razón social como reserva, el código interno, el nombre, la descripción y la presentación sin imágenes rotas ni marcadores para los datos ausentes.
 
 #### Scenario: Nombre largo
 - **DADO** un producto cuyo nombre ocupa más de dos líneas en el tamaño elegido
 - **CUANDO** se muestra o imprime la etiqueta
 - **ENTONCES** SHALL limitarse visualmente a dos líneas sin desplazar el código interno ni el código de barras fuera de la etiqueta.
+
+#### Scenario: Reserva para imagen futura
+- **DADO** cualquier producto sin capacidad de imagen en el catálogo vigente
+- **CUANDO** se compone su etiqueta
+- **ENTONCES** SHALL conservarse limpia y en blanco la zona derecha prevista para la fotografía, sin texto de ayuda, icono ni contorno de marcador.
 
 ### Requirement: Copias y orden del lote
 
@@ -52,13 +59,13 @@ Trazabilidad: propuesta; RNF-USA-004/007; PPF-04/07; spec `catalogo-de-productos
 
 ### Requirement: Tamaño y distribución A4
 
-La vista imprimible SHALL usar páginas A4 verticales. El tamaño predeterminado SHALL ser 63 × 38 mm, distribuido en 3 columnas por 7 filas, para 21 posiciones por hoja. El modal SHALL permitir elegir dimensiones alternativas en milímetros; la cuadrícula SHALL usar únicamente columnas y filas completas que quepan en A4 y centrar el conjunto de etiquetas en la página. Cada posición SHALL conservar exactamente el ancho y alto elegidos, incluir líneas de corte finas y no escalarse para llenar el papel.
+La vista imprimible SHALL usar páginas A4 verticales. El tamaño predeterminado SHALL ser 100 × 60 mm, distribuido en 2 columnas por 4 filas, para 8 posiciones por hoja. El modal SHALL permitir elegir dimensiones alternativas en milímetros; la cuadrícula SHALL usar únicamente columnas y filas completas que quepan en A4 y centrar el conjunto de etiquetas en la página. Cada posición SHALL conservar exactamente el ancho y alto elegidos, incluir líneas de corte finas y no escalarse para llenar el papel.
 
 Un tamaño inválido o uno con el que no quepa al menos una etiqueta SHALL bloquear la impresión y explicar la corrección. Trazabilidad: RNF-USA-012; RNF-COM-001/005; propuesta D3.
 
 #### Scenario: Tamaño predeterminado
 - **CUANDO** el usuario abre el modal sin cambiar el tamaño
-- **ENTONCES** SHALL ver una hoja A4 con 3 columnas, 7 filas y 21 posiciones de 63 × 38 mm.
+- **ENTONCES** SHALL ver una hoja A4 con 2 columnas, 4 filas y 8 posiciones de 100 × 60 mm.
 
 #### Scenario: Tamaño alternativo válido
 - **DADO** dimensiones alternativas positivas con las que caben varias etiquetas completas
@@ -76,9 +83,9 @@ El modal SHALL representar las posiciones de la cuadrícula en orden de lectura,
 Trazabilidad: propuesta D2; RNF-USA-004/007.
 
 #### Scenario: Inicio en una posición intermedia
-- **DADO** la cuadrícula predeterminada de 21 posiciones
-- **CUANDO** el usuario elige la posición 8 y prepara 20 etiquetas
-- **ENTONCES** la primera hoja SHALL dejar vacías las posiciones 1 a 7, colocar 14 etiquetas y la segunda SHALL comenzar en la posición 1 con las 6 restantes.
+- **DADO** la cuadrícula predeterminada de 8 posiciones
+- **CUANDO** el usuario elige la posición 4 y prepara 10 etiquetas
+- **ENTONCES** la primera hoja SHALL dejar vacías las posiciones 1 a 3, colocar 5 etiquetas y la segunda SHALL comenzar en la posición 1 con las 5 restantes.
 
 #### Scenario: Cambio a una cuadrícula menor
 - **DADO** una posición inicial que no existe en el nuevo tamaño
@@ -89,7 +96,7 @@ Trazabilidad: propuesta D2; RNF-USA-004/007.
 
 El modal SHALL mostrar una vista previa paginada de las hojas con el tamaño, las posiciones vacías, las líneas de corte y el contenido que se imprimirá. SHALL permitir recorrer todas las páginas y distinguir claramente la página actual y el total. La acción de imprimir SHALL esperar a que la consulta de identidad comercial termine y a que el logotipo cargue o falle; si el logotipo falla, SHALL degradar al nombre sin bloquear indefinidamente.
 
-La vista previa SHALL comunicar carga, error recuperable y producto incompatible sin inventar datos. Deberá ser operable con teclado, conservar el foco dentro del modal y adaptarse desde 360 px; en pantalla puede reducir visualmente la hoja, pero SHALL conservar la escala física en la salida impresa. Trazabilidad: PPF-07; RNF-USA-001/004/006/007/008; `experiencia-adaptable-frontend`; cambio `logotipos-por-ruc`.
+La vista previa SHALL comunicar carga, error recuperable y producto incompatible sin inventar datos. Deberá ser operable con teclado, conservar el foco dentro del modal y adaptarse desde 360 px. SHALL permitir reducir y aumentar el zoom en varios pasos, indicar el porcentaje y volver a ajustar la hoja; estos controles solo transforman la presentación en pantalla y SHALL conservar la escala física en la salida impresa. Trazabilidad: PPF-07/10; RNF-USA-001/004/006/007/008; `experiencia-adaptable-frontend`; cambio `logotipos-por-ruc`.
 
 #### Scenario: Logotipo listo antes de imprimir
 - **DADO** la entidad comercial con logotipo

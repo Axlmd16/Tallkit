@@ -8,8 +8,9 @@ El catálogo, la hoja imprimible Tallkit y el logotipo comercial ya están dispo
 
 - La lista de productos permitirá seleccionar varios registros o elegir «Todos los del filtro actual» y abrir «Imprimir etiquetas»; la ficha ofrecerá la misma acción para su producto.
 - Un modal de preparación permitirá definir copias por producto, aplicar una cantidad a todos, elegir el tamaño, seleccionar la posición inicial de la primera hoja y revisar una vista previa paginada.
-- La hoja A4 usará por defecto una cuadrícula de 3 × 7 etiquetas de aproximadamente 63 × 38 mm, con líneas de corte finas; otros tamaños ajustarán la cuadrícula a sus dimensiones.
-- Cada etiqueta mostrará el nombre comercial de la entidad comercial —o su razón social si no tiene—, su logotipo vigente cuando exista, el código interno destacado y monoespaciado, el nombre del producto en un máximo de dos líneas, el número de parte opcional, la marca y un código de barras **Code 128** del código interno.
+- La hoja A4 usará por defecto una cuadrícula de 2 × 4 etiquetas de 100 × 60 mm, con líneas de corte finas; otros tamaños ajustarán la cuadrícula a sus dimensiones.
+- Cada etiqueta usará el logotipo vigente del **RUC comercial** como cabecera sin duplicar el nombre que ya forma parte de esa imagen; si no existe o no carga, mostrará como reserva el nombre comercial o la razón social. También incluirá el código interno destacado y monoespaciado, el nombre del producto en un máximo de dos líneas, una descripción secundaria, el número de parte opcional, la marca, la presentación y un código de barras **Code 128** del código interno.
+- La composición visual seguirá una plantilla azul oscuro, gris azulado y naranja: cabecera con un recurso gráfico fijo y original de un camión, bloque de código, zona de texto, espacio derecho deliberadamente vacío para una futura imagen de producto y franja técnica inferior. Este cambio no obtiene ni persiste imágenes de productos.
 - La etiqueta no mostrará precio, existencia, costo, impuesto, estado ni información de la entidad artesanal.
 - La impresión se realizará con el diálogo del navegador sobre una vista específica y CSS de impresión A4, reutilizando el comportamiento de preparación de marca de la hoja `DocumentSheet`; también permitirá guardar como PDF desde el navegador.
 - Los tres roles que poseen `productos.ver` podrán preparar e imprimir etiquetas. No se introduce un permiso nuevo ni una escritura de negocio.
@@ -20,7 +21,8 @@ El catálogo, la hoja imprimible Tallkit y el logotipo comercial ya están dispo
 
 - **D1 — Ámbito comercial.** La etiqueta identifica un producto del catálogo comercial y siempre usa la identidad de la entidad comercial; nunca la artesanal.
 - **D2 — Primera hoja reutilizable.** La posición inicial deja vacías las posiciones anteriores solo en la primera hoja. Las hojas siguientes empiezan en la primera posición.
-- **D3 — Tamaños.** El tamaño predeterminado es 63 × 38 mm. El modal permite dimensiones alternativas en milímetros y calcula cuántas filas y columnas completas caben en A4, sin escalar el contenido al imprimir.
+- **D3 — Tamaños.** El tamaño predeterminado es 100 × 60 mm. El modal permite dimensiones alternativas en milímetros y calcula cuántas filas y columnas completas caben en A4, sin escalar el contenido al imprimir.
+- **D4 — Plantilla visual preparada para fotografía.** El camión de cabecera es un asset fijo de la aplicación y la zona de fotografía de producto se reserva vacía. Incorporar la imagen real y dinámica del producto pertenece a un cambio posterior sobre imágenes de catálogo.
 - **R1 — Lectura única del filtro.** Se recomienda un endpoint de proyección para etiquetas en lugar de recorrer páginas desde el navegador. Produce un conjunto coherente con una consulta, reutiliza los filtros aprobados y evita duplicados u omisiones si el catálogo cambia durante varias solicitudes.
 - **R2 — Generador propio.** Se recomienda implementar Code 128 en SVG dentro del frontend porque el uso está acotado, elimina una dependencia y permite probar patrones, suma de control y texto codificado. El diseño concretará los juegos de caracteres y el manejo de códigos no representables sin cambiar silenciosamente el catálogo.
 
@@ -41,7 +43,7 @@ No quedan decisiones de negocio abiertas que bloqueen las specs. La elección de
 
 - **Usuarios afectados:** Administrador, Vendedor y Encargado del taller, todos mediante `productos.ver`; los permisos de edición del catálogo no cambian.
 - **Datos:** no hay modelos, tablas, migraciones, estados ni auditoría nueva; imprimir es una consulta sin efectos de negocio.
-- **Backend y API:** el módulo `catalog` añade una consulta de solo lectura, con los mismos filtros de productos, que entrega identificador, código interno, nombre, número de parte y marca. El resumen autenticado de la entidad comercial expone el nombre visible (nombre comercial con reserva a razón social). El contrato OpenAPI se actualiza.
+- **Backend y API:** el módulo `catalog` añade una consulta de solo lectura, con los mismos filtros de productos, que entrega identificador, código interno, nombre, descripción, número de parte, marca, cantidad de contenido y unidad de medida. El resumen autenticado de la entidad comercial expone el nombre visible (nombre comercial con reserva a razón social). El contrato OpenAPI se actualiza.
 - **Frontend:** lista y ficha de productos; modal de preparación; hoja A4; SVG Code 128; integración con la identidad comercial y el diálogo de impresión del navegador.
 - **Dependencias:** depende funcionalmente de `logotipos-por-ruc`; sin logo se imprime solo el nombre. No se añade ninguna dependencia de runtime.
 - **Operación:** requiere impresora o destino PDF configurado en el navegador. El usuario debe imprimir al 100 %, sin encabezados ni pies del navegador; la vista advertirá si la configuración puede alterar medidas.
@@ -53,6 +55,7 @@ No quedan decisiones de negocio abiertas que bloqueen las specs. La elección de
 - Escanear códigos de barras, buscar productos mediante lector o registrar movimientos a partir del escaneo.
 - Impresoras térmicas, lenguajes ZPL/EPL, etiquetas continuas o aplicaciones nativas de impresión.
 - Guardar plantillas, tamaños, cantidades, posiciones o trabajos de impresión como preferencias persistentes.
+- Cargar, guardar o mostrar una imagen dinámica del producto; la plantilla solo reserva su área futura.
 - Incluir precios, existencias, costos, impuestos, ubicaciones, QR u otros datos en la etiqueta.
 - Modificar las reglas o el formato del código interno, importar códigos externos o generar códigos internos nuevos.
 - Registrar auditoría de impresiones o descontar existencias por imprimir.

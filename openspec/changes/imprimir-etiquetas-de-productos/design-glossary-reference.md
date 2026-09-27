@@ -3,7 +3,8 @@
 | Término | Glosario de origen | Contexto |
 |---|---|---|
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Unidad física compuesta por `ProductLabel`, sin precio ni efectos de inventario. |
-| Producto | `docs/negocio/producto/glosario.md` | Origen de código interno, nombre, código del fabricante y marca en `ProductLabelData`. |
+| Producto | `docs/negocio/producto/glosario.md` | Origen de código interno, nombre, descripción, código del fabricante y marca en `ProductLabelData`. |
+| Presentación | `docs/negocio/producto/glosario.md` | Cantidad de contenido y unidad mostradas sin conversión en la franja técnica. |
 | Código interno | `docs/negocio/producto/glosario.md`, dentro de Producto | Texto identificador que se muestra y se codifica sin alteraciones. |
 | Marca de producto | `docs/negocio/producto/glosario.md` | Dato opcional de la proyección mínima de etiquetas. |
 | Entidad fiscal | `docs/negocio/producto/glosario.md` | Origen de `display_name` y del logotipo vigente. |

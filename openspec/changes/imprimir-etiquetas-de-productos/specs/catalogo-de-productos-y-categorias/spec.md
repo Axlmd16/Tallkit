@@ -33,7 +33,7 @@ Cambiar la búsqueda o cualquier filtro SHALL limpiar la selección manual para 
 
 ### Requirement: Proyección completa del filtro para etiquetas
 
-El sistema SHALL ofrecer una lectura de solo consulta que acepte los mismos criterios válidos de búsqueda, categoría, estado, marca de producto y marca de vehículo de la lista y devuelva, con orden estable, todos los productos coincidentes necesarios para las etiquetas: identificador, código interno, nombre, código del fabricante y marca de producto. La lectura SHALL aplicar `productos.ver`, SHALL rechazar filtros inválidos de forma corregible y SHALL devolver un conjunto vacío cuando no haya coincidencias.
+El sistema SHALL ofrecer una lectura de solo consulta que acepte los mismos criterios válidos de búsqueda, categoría, estado, marca de producto y marca de vehículo de la lista y devuelva, con orden estable, todos los productos coincidentes necesarios para las etiquetas: identificador, código interno, nombre, descripción, código del fabricante, marca de producto, cantidad de contenido y unidad de medida. La lectura SHALL aplicar `productos.ver`, SHALL rechazar filtros inválidos de forma corregible y SHALL devolver un conjunto vacío cuando no haya coincidencias.
 
 La lectura SHALL obtener el conjunto en una sola operación lógica y SHALL NOT depender de que el cliente recorra la paginación ordinaria. SHALL NOT devolver precio, costo, impuesto, existencia, disponibilidad ni datos no usados por la etiqueta, y SHALL NOT escribir, bloquear para edición ni auditar una impresión. Trazabilidad: RF-CAT-004; RNF-REN-005/006; RNF-SEG-002/003; propuesta R1.
 

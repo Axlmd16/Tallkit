@@ -88,28 +88,42 @@ Dependencias: grupos 2 y 6. Diseño D3; requirements de selección y PPF-10.
 
 Evidencia del grupo: selección ordenada entre páginas, filtros seguros, lote completo y ficha probados para el permiso de consulta.
 
-## 8. Recorrido E2E y verificación visual focalizada
+## 8. Revisión aprobada de formato y composición
 
-Dependencias: grupos 2 a 7. Specs `impresion-de-etiquetas-de-productos`, `catalogo-de-productos-y-categorias`, PPF-10 y `experiencia-adaptable-frontend`.
+Dependencias: grupos 2 a 7 y confirmación visual del usuario. Revisión de propuesta, specs y diseño para 100 × 60 mm, descripción, presentación, reserva fotográfica y asset fijo de camión.
 
-- [ ] 8.1 Crear `frontend/e2e/product-labels.spec.ts` con recorridos para selección manual en dos páginas, «Todos los del filtro actual», ficha de producto inactivo, cantidades distintas, tamaño predeterminado, inicio en posición 8 y regreso desde impresión con el estado conservado.
-- [ ] 8.2 Añadir al mismo archivo los tres roles con `productos.ver`, denegación directa sin permiso, identidad comercial con y sin logotipo, código no representable y ausencia de precio en DOM y superficie impresa.
-- [ ] 8.3 Verificar en 360, 768, 1024, 1280 y 1440 px: sin desplazamiento horizontal de página, foco contenido, controles accesibles, vista previa navegable y `axe` sin infracciones nuevas. Ejecutar solo `cd frontend && npx playwright test e2e/product-labels.spec.ts`.
-- [ ] 8.4 Guardar una hoja predeterminada como PDF en Chrome/Chromium y Firefox, comprobar A4, 3 × 7, medidas de 63 × 38 mm, líneas de corte, páginas posteriores desde posición 1 y ausencia de interfaz. Si hay impresora disponible, registrar una prueba física al 100 %; su ausencia no bloquea la verificación por PDF.
+- [x] 8.1 Actualizar propuesta, specs, diseño, tareas y referencias de glosario antes de modificar código; registrar que la imagen dinámica del producto permanece fuera de alcance.
+- [ ] 8.2 Ampliar primero `backend/tests/catalog/test_product_label_data_api.py` y OpenAPI para exigir descripción, cantidad de contenido y unidad de medida en la proyección, conservando la exclusión de precio, costo y existencia; implementar serializer/consulta mínima y verificar sin N+1.
+- [ ] 8.3 Ampliar primero las pruebas del cliente y de lista/ficha para transportar descripción, cantidad y unidad en `ProductLabelData`; implementar adaptadores sin consultas nuevas ni cambios de modelo.
+- [ ] 8.4 Cambiar primero las pruebas puras de distribución para exigir que 100 × 60 mm produzca 2 × 4 y 8 posiciones centradas; actualizar constantes, escenarios de posición y validación de composición.
+- [ ] 8.5 Ampliar primero `ProductLabel.test.tsx` para logo sin nombre duplicado, reserva textual, nombre y descripción a dos líneas, presentación, franja técnica, Code 128, zona futura vacía y cabecera decorativa. Incorporar el asset original fijo y construir diagonales/curvas con CSS sin añadir dependencias.
+- [x] 8.6 Cubrir e implementar lista de cantidades con desplazamiento propio, pie fijo y visor centrado con zoom progresivo de 30 % a 130 %, porcentaje visible y ajuste de hoja exclusivamente visual.
+- [ ] 8.7 Verificar el grupo con pytest focalizado de catálogo/OpenAPI; Vitest de `product-labels`, API, lista y ficha; typecheck; Ruff/mypy y ESLint/Prettier solo sobre archivos tocados.
+
+Evidencia del grupo: contrato revisado antes del código, tamaño 100 × 60 exacto, asset original, composición aprobada y transporte mínimo de los datos ya existentes.
+
+## 9. Recorrido E2E y verificación visual focalizada
+
+Dependencias: grupos 2 a 8. Specs `impresion-de-etiquetas-de-productos`, `catalogo-de-productos-y-categorias`, PPF-10 y `experiencia-adaptable-frontend`.
+
+- [ ] 9.1 Crear `frontend/e2e/product-labels.spec.ts` con recorridos para selección manual en dos páginas, «Todos los del filtro actual», ficha de producto inactivo, cantidades distintas, tamaño predeterminado, inicio en posición 4 y regreso desde impresión con el estado conservado.
+- [ ] 9.2 Añadir al mismo archivo los tres roles con `productos.ver`, denegación directa sin permiso, identidad comercial con y sin logotipo, código no representable y ausencia de precio en DOM y superficie impresa.
+- [ ] 9.3 Verificar en 360, 768, 1024, 1280 y 1440 px: sin desplazamiento horizontal de página, foco contenido, controles accesibles, vista previa navegable, zoom progresivo y `axe` sin infracciones nuevas. Ejecutar solo `cd frontend && npx playwright test e2e/product-labels.spec.ts`.
+- [ ] 9.4 Guardar una hoja predeterminada como PDF en Chrome/Chromium y Firefox, comprobar A4, 2 × 4, medidas de 100 × 60 mm, líneas de corte, páginas posteriores desde posición 1, asset fijo y ausencia de interfaz. Si hay impresora disponible, registrar una prueba física al 100 %; su ausencia no bloquea la verificación por PDF.
 
 Evidencia del grupo: único archivo E2E ejecutado, cinco anchos y accesibilidad registrados, PDF inspeccionado y limitación física documentada.
 
-## 9. Documentación, trazabilidad y cierre
+## 10. Documentación, trazabilidad y cierre
 
-Dependencias: grupos 2 a 8.
+Dependencias: grupos 2 a 9.
 
-- [ ] 9.1 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` con selección, acción desde ficha y PPF-10; actualizar su archivo de referencia terminológica.
-- [ ] 9.2 Actualizar `docs/negocio/requisitos/casos-de-uso.md` para el flujo de impresión desde lista y ficha, y `matriz-trazabilidad.md` con cada requirement, tarea y prueba real.
-- [ ] 9.3 Completar `docs/negocio/requisitos/cobertura-catalogos.md` con comandos, conteos y resultados reales; conservar explícito que imprimir no altera inventario, catálogo ni auditoría.
-- [ ] 9.4 Revisar `docs/negocio/producto/glosario.md`, `docs/tecnico/glosario-tecnico.md` y todos los companion glossary references; no añadir sinónimos para **Producto**, **etiqueta de producto**, **RUC comercial**, **logotipo de entidad fiscal**, **Code 128**, **API REST** o **contrato OpenAPI**.
-- [ ] 9.5 Confirmar que no existen migraciones, cambios de modelos, nuevas dependencias ni modificaciones de lockfiles; confirmar también que no se creó ADR, conforme a D11.
-- [ ] 9.6 Ejecutar la verificación final focalizada: pruebas backend de los grupos 2–3, Vitest de los grupos 3–7 y solo `e2e/product-labels.spec.ts`; Ruff/mypy sobre paquetes tocados; Prettier y ESLint solo sobre archivos tocados; `npm run typecheck`, `npm run build`, `manage.py check`, `makemigrations --check --dry-run`, `spectacular --validate` y `openspec validate imprimir-etiquetas-de-productos --strict`.
-- [ ] 9.7 Registrar cada comando y resultado, junto con lo no ejecutado por alcance: suites completas, resto de Playwright, `make check` y `make test`. Solicitar validación directa del usuario de la vista previa y del PDF antes de verificar o archivar el cambio.
+- [ ] 10.1 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` con selección, acción desde ficha y PPF-10; actualizar su archivo de referencia terminológica.
+- [ ] 10.2 Actualizar `docs/negocio/requisitos/casos-de-uso.md` para el flujo de impresión desde lista y ficha, y `matriz-trazabilidad.md` con cada requirement, tarea y prueba real.
+- [ ] 10.3 Completar `docs/negocio/requisitos/cobertura-catalogos.md` con comandos, conteos y resultados reales; conservar explícito que imprimir no altera inventario, catálogo ni auditoría.
+- [ ] 10.4 Revisar `docs/negocio/producto/glosario.md`, `docs/tecnico/glosario-tecnico.md` y todos los companion glossary references; no añadir sinónimos para **Producto**, **etiqueta de producto**, **RUC comercial**, **logotipo de entidad fiscal**, **Code 128**, **API REST** o **contrato OpenAPI**.
+- [ ] 10.5 Confirmar que no existen migraciones, cambios de modelos, nuevas dependencias ni modificaciones de lockfiles; confirmar también que no se creó ADR, conforme a D11.
+- [ ] 10.6 Ejecutar la verificación final focalizada: pruebas backend de los grupos 2–3 y 8, Vitest de los grupos 3–8 y solo `e2e/product-labels.spec.ts`; Ruff/mypy sobre paquetes tocados; Prettier y ESLint solo sobre archivos tocados; `npm run typecheck`, `npm run build`, `manage.py check`, `makemigrations --check --dry-run`, `spectacular --validate` y `openspec validate imprimir-etiquetas-de-productos --strict`.
+- [ ] 10.7 Registrar cada comando y resultado, junto con lo no ejecutado por alcance: suites completas, resto de Playwright, `make check` y `make test`. Solicitar validación directa del usuario de la vista previa y del PDF antes de verificar o archivar el cambio.
 
 Evidencia del grupo: documentación y trazabilidad sincronizadas, verificación focalizada reciente y validación visual solicitada al usuario.
 

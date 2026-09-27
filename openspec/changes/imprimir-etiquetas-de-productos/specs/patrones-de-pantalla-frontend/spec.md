@@ -13,6 +13,8 @@ Las impresiones repetitivas de piezas pequeñas SHALL prepararse en un modal esp
 
 El modal SHALL conservar el contexto de la lista o ficha, contener el foco y adaptarse a teléfono permitiendo desplazar su cuerpo. La vista previa podrá reducirse para caber en pantalla, pero la salida SHALL conservar medidas físicas. Errores de datos o composición SHALL permanecer en línea y bloquear la impresión; el éxito de abrir el diálogo del navegador SHALL NOT mostrarse como una notificación temporal ni cerrar el modal.
 
+La lista de cantidades SHALL tener desplazamiento interno acotado para que un lote numeroso no empuje el tamaño, la posición ni las acciones fuera del área útil. «Cancelar» e «Imprimir» SHALL permanecer visibles en un pie fijo del modal. La vista previa SHALL ofrecer controles de visor para reducir y aumentar el zoom en varios pasos, comunicar el porcentaje vigente y volver a ajustar la hoja; el zoom SHALL afectar solo a la presentación en pantalla.
+
 La vista de impresión SHALL ser una superficie separada de `DocumentSheet`: reutiliza sus tokens, preparación de marca y disciplina de CSS, pero SHALL NOT presentar metadatos, aviso fiscal ni pie de documento económico. Trazabilidad: propuesta; PPF-04/07/08/09; RNF-USA-001/004/006/007/012; `experiencia-adaptable-frontend`.
 
 #### Scenario: Preparación desde una lista filtrada
@@ -24,6 +26,11 @@ La vista de impresión SHALL ser una superficie separada de `DocumentSheet`: reu
 - **DADO** un ancho de 360 px
 - **CUANDO** se abre la preparación de etiquetas
 - **ENTONCES** el modal SHALL usar el ancho disponible, mantener cierre y acción principal accesibles y permitir desplazar su contenido sin mover la página de fondo.
+
+#### Scenario: Lote numeroso y zoom de la hoja
+- **DADO** un lote de cincuenta productos
+- **CUANDO** el usuario revisa cantidades y amplía dos veces la hoja
+- **ENTONCES** SHALL desplazarse solo la lista de productos, el tamaño y las acciones SHALL seguir accesibles y la vista previa SHALL reflejar dos incrementos de zoom sin cambiar las medidas de impresión.
 
 #### Scenario: Regreso después de imprimir o cancelar
 - **CUANDO** el usuario cancela el modal o vuelve del diálogo de impresión
