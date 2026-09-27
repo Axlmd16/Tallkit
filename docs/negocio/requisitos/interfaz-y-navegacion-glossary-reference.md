@@ -13,3 +13,4 @@
 | Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
 | Placa de RUC | `docs/negocio/producto/glosario.md` | RUC de cada entidad en la configuración, con etiqueta diferenciada y dígitos monoespaciados. |
+| Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Fila «Logo» de la ficha y encabezado de los comprobantes internos. |

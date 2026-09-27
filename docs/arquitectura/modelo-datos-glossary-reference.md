@@ -14,3 +14,4 @@
 | Idempotencia | `docs/tecnico/glosario-tecnico.md` | Recibo por actor, acción y clave que reproduce el resultado original de un comando. |
 | Posición de inventario / Corte de consulta | `docs/negocio/producto/glosario.md` | Proyección conciliable y lectura estable de los módulos `inventory` y `purchasing`. |
 | Orden total de bloqueos | `docs/tecnico/glosario-tecnico.md` | Protocolo de concurrencia de las confirmaciones. |
+| Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Tabla `workshop_configuration_fiscalentitylogo` y archivos en `fiscal-logos/`. |

@@ -171,6 +171,10 @@ Conjunto versionado de códigos del SRI, como tarifas de IVA y formas de pago, i
 
 Pieza visual que muestra el RUC de una entidad fiscal con la etiqueta «RUC» diferenciada y sus 13 dígitos en tipografía monoespaciada, sin separadores. Solo presenta el dato; no acredita su validez tributaria.
 
+### Logotipo de entidad fiscal
+
+Imagen opcional que identifica visualmente a una entidad fiscal en el encabezado de sus comprobantes internos: el logotipo comercial en ventas e ingresos, y el artesanal en los comprobantes de servicios. Solo el Administrador lo sube, cambia o quita. No se versiona: los comprobantes antiguos muestran el logotipo vigente, mientras su razón social y su RUC conservan la copia histórica. Es distinto del logotipo de Tallkit, que identifica al sistema.
+
 ### Archivo fiscal
 
 Conjunto protegido de XML externos, bytes originales, hashes, identidades, procedencias y vínculos administrativos conservados en PostgreSQL. Una incorporación externa permanece no verificada por el sistema.

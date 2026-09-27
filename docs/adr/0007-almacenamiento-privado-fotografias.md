@@ -26,5 +26,11 @@ Se incorpora `pillow` para validar el contenido real, las dimensiones y la anima
 - Cualquier otro módulo que necesite archivos privados puede reutilizar el mismo patrón: raíz privada, nombres no predecibles, entrega autorizada y limpieza recuperable.
 - Migrar después a almacenamiento de objetos exigirá un nuevo backend de almacenamiento y la copia de los archivos, sin cambiar el contrato de la API.
 - Pillow queda sujeto a `make audit` y a la política de versiones de ADR-0002.
+- Desde el cambio `logotipos-por-ruc` (2026-09-27), los logotipos de las entidades fiscales reutilizan este patrón:
+  - viven en la misma raíz, bajo el prefijo `fiscal-logos/<entidad>/`;
+  - tienen su propia limpieza, `purge_entity_logos`, que no toca `maintenance/`;
+  - se sirven como imagen regenerada sin metadatos;
+  - los obtiene cualquier usuario autenticado, porque los tres roles imprimen comprobantes, con `Cache-Control: private, max-age=31536000, immutable` y una URL que cambia con cada revisión. Nunca se usan cachés compartidas.
+- Las fotografías (`workshop.application.photo_storage`) y los logotipos (`workshop_configuration.application.logo_storage`) duplican la inspección de imágenes. Consolidarla en `shared/` queda como mejora futura, fuera de ese cambio.
 
 Referencia terminológica: [0007-almacenamiento-privado-fotografias-glossary-reference.md](0007-almacenamiento-privado-fotografias-glossary-reference.md).

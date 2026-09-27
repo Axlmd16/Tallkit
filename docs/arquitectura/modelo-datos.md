@@ -149,6 +149,13 @@ Este módulo almacena la configuración de operaciones y reglas fiscales del tal
 - **workshop_configuration_documentseries**: Series de documentos asignadas a un ámbito (`code`, `last_number`, `is_active`).
 - **workshop_configuration_configurationuse**: Registro de consumo de entidades o tasas en transacciones foráneas (garantiza idempotencia/inmutabilidad si están en uso).
 - **workshop_configuration_configurationcommand**: Comandos de numeración para garantizar idempotencia por clave externa.
+- **workshop_configuration_fiscalentitylogo**: Logotipo vigente de una entidad fiscal (`logotipos-por-ruc`, migración `0013`).
+  - Campos: `fiscal_entity` (uno a uno, `PROTECT`), `storage_name` único (UUID), tipo (`image/png`, `image/jpeg` o `image/webp`), extensión, tamaño, dimensiones, SHA-256 del archivo recibido, `revision ≥ 1`, usuario y fecha de carga.
+  - La fila existe solo mientras hay logotipo: quitarlo la elimina y la auditoría conserva el hecho.
+  - `workshop_configuration_fiscalentity.logo_revision` (entero, 0 por omisión) numera las revisiones sin reutilizarlas y sin tocar `version`.
+
+### Archivos privados de configuración
+Los logotipos viven en `PRIVATE_MEDIA_ROOT/fiscal-logos/<entidad>/` (ADR-0007). El registro se crea solo con el archivo completo. El archivo reemplazado o quitado se borra al confirmar la transacción, y `manage.py purge_entity_logos` elimina de forma idempotente los que quedan sin registro. Cargas y retiros se serializan con un bloqueo de la fila de la entidad.
 
 ### Consideraciones de Integridad
 - Todo registro expuesto tiene versión (`version` con control de concurrencia optimista).

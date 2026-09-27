@@ -178,20 +178,23 @@ Dependencias: grupos 5 y 6.
 
 Dependencias: grupos 2 a 7.
 
-- [ ] 8.1 Actualizar las consecuencias de `docs/adr/0007-almacenamiento-privado-fotografias.md`:
+- [x] 8.1 Actualizar las consecuencias de `docs/adr/0007-almacenamiento-privado-fotografias.md`:
   - reutilización para logotipos con el prefijo `fiscal-logos/` y `purge_entity_logos`;
   - entrega a cualquier usuario autenticado con caché privada por revisión;
   - consolidación futura de la inspección en `shared/`.
 
   Actualizar también su archivo de glosario.
-- [ ] 8.2 Actualizar `docs/arquitectura/modelo-datos.md` con `FiscalEntityLogo`, `logo_revision` y la ubicación `PRIVATE_MEDIA_ROOT/fiscal-logos/`, y `README.md` con el comando `purge_entity_logos` junto a `purge_workshop_files`.
-- [ ] 8.3 Añadir «Logotipo de entidad fiscal» a `docs/negocio/producto/glosario.md`.
-- [ ] 8.4 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md`:
+- [x] 8.2 Actualizar `docs/arquitectura/modelo-datos.md` con `FiscalEntityLogo`, `logo_revision` y la ubicación `PRIVATE_MEDIA_ROOT/fiscal-logos/`, y `README.md` con el comando `purge_entity_logos` junto a `purge_workshop_files`.
+- [x] 8.3 Añadir «Logotipo de entidad fiscal» a `docs/negocio/producto/glosario.md`.
+- [x] 8.4 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md`:
   - UI-014: fila «Logo»;
   - UI-058 y UI-077: encabezado con el logotipo del emisor;
   - la vista previa del ingreso.
-- [ ] 8.5 Actualizar `docs/negocio/requisitos/matriz-trazabilidad.md` y `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con cada requisito y escenario y su prueba o recorrido que lo cubre.
-- [ ] 8.6 Verificar: `openspec validate logotipos-por-ruc --strict`, y comprobar que todos los enlaces y archivos de glosario de los documentos tocados existen.
+- [x] 8.5 Actualizar `docs/negocio/requisitos/matriz-trazabilidad.md` y `docs/negocio/requisitos/cobertura-modulo-fiscal.md` con cada requisito y escenario y su prueba o recorrido que lo cubre.
+- [x] 8.6 Verificar: `openspec validate logotipos-por-ruc --strict`, y comprobar que todos los enlaces y archivos de glosario de los documentos tocados existen.
+  - Evidencia (2026-09-27): `openspec validate logotipos-por-ruc --strict` → válido. Se añadió «Logotipo de entidad fiscal» a `glosario.md` y a los glosarios compañeros de ADR-0007, `modelo-datos.md`, `interfaz-y-navegacion.md`, `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md`.
+  - UI-041, la vista previa del ingreso, también se actualizó.
+  - Los enlaces de cobertura apuntan a `openspec/changes/logotipos-por-ruc/`, igual que las filas de cambios anteriores.
 
 ## 9. Cierre de la aplicación
 
