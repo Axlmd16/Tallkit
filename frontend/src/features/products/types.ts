@@ -48,12 +48,20 @@ export interface ProductFilters extends BaseFilters {
 
 export type ProductLabelFilters = Omit<ProductFilters, 'page' | 'pageSize'>
 
+export interface ProductLabelRef {
+  id: number
+  name: string
+}
+
 export interface ProductLabelData {
   id: number
   code: string
   name: string
+  description: string
+  contentQuantity: string
   manufacturerCode: string | null
-  productBrand: { id: number; name: string } | null
+  productBrand: ProductLabelRef | null
+  unit: ProductLabelRef | null
 }
 
 export interface ProductInput {

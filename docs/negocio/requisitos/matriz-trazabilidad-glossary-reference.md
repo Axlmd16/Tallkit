@@ -15,3 +15,5 @@
 | Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
 | Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Dato visual de SPEC-CONFIG que no se versiona. |
+| Etiqueta de producto | `docs/negocio/producto/glosario.md` | Objeto de la capacidad `impresion-de-etiquetas-de-productos`. |
+| Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras trazado en la capacidad de etiquetas. |

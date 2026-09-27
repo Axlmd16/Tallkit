@@ -1,0 +1,294 @@
+/*
+ * Composición de la etiqueta de producto de 100 × 55 mm. Las medidas son
+ * milímetros físicos; la vista previa escala la hoja completa y la impresión
+ * conserva la medida real. Paleta: azul oscuro, gris azulado, gris claro de
+ * apoyo y naranja solo como acento.
+ */
+.product-label {
+  --label-navy: #13233b;
+  --label-ink: #0b1628;
+  --label-slate: #3b5575;
+  --label-muted: #4a5b71;
+  --label-rule: #3d4f66;
+  --label-hairline: #c8d0da;
+  --label-orange: #f4a51c;
+  --label-panel: #edf0f4;
+
+  /* Geometría */
+  --brand-top: 0.8mm;
+  --brand-left: 2.4mm;
+  --brand-width: 45mm;
+  --brand-height: 12.4mm;
+  --brand-name-size: 4mm;
+  --rule-left: 50.2mm;
+  --rule-top: 3.2mm;
+  --rule-height: 7.2mm;
+  --truck-width: 48mm;
+  --code-top: 13.6mm;
+  --code-left: 3.2mm;
+  --code-width: 59mm;
+  --code-height: 11.2mm;
+  --code-caption-size: 2.4mm;
+  --text-top: 26mm;
+  --text-left: 3.6mm;
+  --text-width: 57mm;
+  --name-size: 3.9mm;
+  --description-size: 2.6mm;
+  --description-lines: 2;
+  --footer-top: 43.2mm;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #fff;
+  color: var(--label-ink);
+  font-family: var(--font-sans);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.product-label__brand {
+  position: absolute;
+  top: var(--brand-top);
+  left: var(--brand-left);
+  display: flex;
+  width: var(--brand-width);
+  height: var(--brand-height);
+  align-items: center;
+}
+
+.product-label__brand-logo {
+  width: 100%;
+  height: 100%;
+}
+
+.product-label__brand-loader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.product-label__brand-name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--brand-name-size);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-label__brand-rule {
+  position: absolute;
+  top: var(--rule-top);
+  left: var(--rule-left);
+  width: 0.25mm;
+  height: var(--rule-height);
+  background: var(--label-navy);
+}
+
+.product-label__truck {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--truck-width);
+  height: calc(var(--truck-width) * 15 / 48);
+}
+
+.product-label__code {
+  position: absolute;
+  top: var(--code-top);
+  left: var(--code-left);
+  display: flex;
+  width: var(--code-width);
+  height: var(--code-height);
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 calc(var(--code-height) * 0.65) 0 calc(var(--code-height) * 0.22);
+  border-radius: calc(var(--code-height) * 0.14) 0 0
+    calc(var(--code-height) * 0.14);
+  background: var(--label-panel);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--code-height) * 0.43) 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.product-label__code-caption {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--code-caption-size) * 0.64);
+  font-size: var(--code-caption-size);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.product-label__code-caption::after {
+  width: calc(var(--code-caption-size) * 3.4);
+  height: calc(var(--code-caption-size) * 0.28);
+  background: var(--label-orange);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.7mm) 100%, 0 100%);
+  content: '';
+}
+
+.product-label__code-value {
+  margin-top: calc(var(--code-size) * 0.1mm);
+  overflow: hidden;
+  font-size: calc(var(--code-size) * 1mm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  -webkit-text-stroke: calc(var(--code-size) * 0.019mm) currentColor;
+}
+
+.product-label__text {
+  position: absolute;
+  top: var(--text-top);
+  left: var(--text-left);
+  width: var(--text-width);
+}
+
+.product-label__name {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--name-size);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  -webkit-text-stroke: 0.05mm currentColor;
+}
+
+.product-label__description {
+  display: -webkit-box;
+  margin-top: 0.7mm;
+  overflow: hidden;
+  color: var(--label-slate);
+  font-size: var(--description-size);
+  font-weight: 600;
+  line-height: 1.12;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--description-lines);
+}
+
+.product-label__accent {
+  display: block;
+  width: 7.4mm;
+  height: 0.8mm;
+  margin-top: 1mm;
+  background: var(--label-orange);
+}
+
+/* Ficha técnica: columna derecha, una fila por dato presente. */
+.product-label__specs {
+  position: absolute;
+  top: 16.6mm;
+  right: 2.6mm;
+  left: 65.4mm;
+  display: flex;
+  height: 26mm;
+  overflow: hidden;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 3mm;
+  border-left: 0.25mm solid var(--label-rule);
+}
+
+.product-label__spec {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 1.8mm;
+  padding: 0.8mm 0;
+}
+
+.product-label__spec + .product-label__spec {
+  border-top: 0.2mm solid var(--label-hairline);
+}
+
+.product-label__spec svg {
+  width: 4.2mm;
+  height: 4.2mm;
+  flex: none;
+  color: var(--label-navy);
+}
+
+.product-label__spec-text {
+  min-width: 0;
+}
+
+.product-label__spec-label {
+  color: var(--label-muted);
+  font-size: 1.7mm;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.product-label__spec-value {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.3mm;
+  font-size: 2.7mm;
+  font-weight: 700;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* Solo la marca puede ocupar dos líneas; la ficha nunca invade el pie. */
+.product-label__spec--wrap .product-label__spec-value {
+  -webkit-line-clamp: 2;
+}
+
+/* Pie: Code 128 ancho y centrado. */
+.product-label__footer {
+  position: absolute;
+  top: var(--footer-top);
+  right: 2.2mm;
+  bottom: 0;
+  left: 2.2mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6mm 0 0.4mm;
+  border-top: 0.25mm solid var(--label-rule);
+}
+
+.product-label__barcode {
+  display: flex;
+  width: var(--barcode-width);
+  max-width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.product-label__barcode svg {
+  width: 100%;
+  height: 6.8mm;
+}
+
+.product-label__barcode p {
+  margin-top: 0.5mm;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 1.95mm;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.3em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

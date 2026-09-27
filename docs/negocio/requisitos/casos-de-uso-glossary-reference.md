@@ -9,3 +9,5 @@
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación separada de pagos. |
 | Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
+| Etiqueta de producto | `docs/negocio/producto/glosario.md` | Resultado de la alternativa 6a de CU-006, sin efectos sobre inventario. |
+| Code 128 | `docs/tecnico/glosario-tecnico.md` | Simbología que bloquea la impresión si el código interno no es representable. |

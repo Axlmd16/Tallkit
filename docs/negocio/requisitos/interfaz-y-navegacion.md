@@ -151,8 +151,8 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
-| UI-030 | Lista de productos | Código interno, código del fabricante, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. |
-| UI-031 | Ficha de producto | Datos, existencia de la bodega principal, reserva, disponibilidad, Kardex, precio y costos según permiso, compatibilidades y opción de desarme si es kit. |
+| UI-030 | Lista de productos | Código interno, código del fabricante, nombre, categoría, presentación, marca de producto, marcas de vehículo compatibles, precio final, existencia, reserva, disponibilidad y estado. Selección múltiple que se conserva entre páginas, acción «Imprimir etiquetas» para la selección y «Todos los del filtro actual» para el resultado completo del filtro (PPF-10). |
+| UI-031 | Ficha de producto | Datos, existencia de la bodega principal, reserva, disponibilidad, Kardex, precio y costos según permiso, compatibilidades, opción de desarme si es kit y acción «Imprimir etiquetas» para el producto, activo o inactivo, con `productos.ver`. |
 | UI-032 | Formulario de producto | Código interno, código del fabricante (opcional), descripción, categoría, cantidad y unidad de la presentación cerrada, precio final, umbral, marca de producto, tipo kit y compatibilidades informativas. |
 | UI-033 | Categorías, marcas y unidades | Gestión separada de categorías, marcas de producto, marcas de vehículo y unidades de medida. Las marcas de vehículo se consultan con `marcas_vehiculo.ver`, se crean y editan con `marcas_vehiculo.gestionar` y se activan o desactivan solo con `marcas_vehiculo.desactivar`, en la ruta `/vehicle-brands`. |
 | UI-034 | Lista de servicios | Nombre, precio referencial y estado. |
@@ -161,6 +161,8 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-037 | Formulario de proveedor | Nombre obligatorio, datos opcionales y advertencias de coincidencias pertinentes. |
 
 **Estado de implementación de UI-030…037 (cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores`).** Se entregan listas, fichas y formularios de productos, servicios y proveedores, y la gestión de categorías, unidades y marcas de producto, con permisos en servidor y presentación. Las pantallas de producto no muestran existencia, reserva, disponibilidad, Kardex, costos ni umbral porque dependen de inventario. La navegación principal añade Productos, Servicios y Proveedores; la entrada existente de marcas de vehículo se etiqueta «Marcas de vehículo». Los catálogos de apoyo se alcanzan desde Productos. Cobertura: [cobertura-catalogos.md](cobertura-catalogos.md).
+
+**Impresión de etiquetas de producto (cambio `imprimir-etiquetas-de-productos`).** La lista y la ficha abren el modal especializado PPF-10: pasos numerados para copias (con botones «−» y «+»), posición inicial sobre una hoja A4 en miniatura y comprobaciones previas; vista previa grande con «Ajustar ancho», «Ver hoja completa», zoom, miniaturas de página y resaltado del producto señalado. La **etiqueta de producto** mide 100 × 55 mm (2 × 5 por hoja A4, sin selector de tamaño), usa el logotipo del **RUC comercial**, no muestra precio ni existencia y lleva un **Code 128** del código interno. Imprimir no crea registros ni mueve inventario.
 
 ### 6.4 Ingresos e inventario
 
@@ -357,6 +359,7 @@ Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como m
 - Mientras no exista emisión electrónica productiva, debe aclarar que el documento interno y la preparación local no constituyen una factura electrónica autorizada.
 
 - Las exportaciones tabulares deben incluir los filtros y fecha de generación o mantenerlos en metadatos visibles.
+- Las hojas de **etiquetas de producto** se imprimen desde el navegador en A4 vertical, a escala 100 % y sin encabezados ni pies; la vista de impresión contiene solo las hojas, sin interfaz (PPF-10).
 
 ### 11.1 Pantallas fiscales locales
 

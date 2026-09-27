@@ -331,12 +331,17 @@ export function ProductDetailPage() {
             id: product.id,
             code: product.code,
             name: product.name,
+            description: product.description,
+            contentQuantity: product.content_quantity,
             manufacturerCode: product.manufacturer_code || null,
             productBrand: product.product_brand
               ? {
                   id: product.product_brand.id,
                   name: product.product_brand.name,
                 }
+              : null,
+            unit: product.unit
+              ? { id: product.unit.id, name: product.unit.name }
               : null,
           },
         ]}

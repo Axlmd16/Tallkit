@@ -18,24 +18,41 @@
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el comportamiento descrito por el escenario; «Parcial» indica una garantía local verificada cuyo resto depende de consumidores que aún no existen, con la limitación indicada. Los nombres de prueba son archivos; la columna de tareas remite a `tasks.md`.
 
-### Cambio activo: impresión de etiquetas de productos (pendiente)
+### Cambio: impresión de etiquetas de productos
 
-El cambio `imprimir-etiquetas-de-productos` amplía la cobertura sin alterar los 128 escenarios archivados. Esta matriz se completará con los resultados reales durante la aplicación; «Pendiente» no afirma implementación.
+El cambio `imprimir-etiquetas-de-productos` amplía la cobertura sin alterar los 128 escenarios archivados. Imprimir o guardar como PDF no crea registros, auditoría ni movimientos de inventario y no modifica el catálogo. Estado verificado el 2026-09-27 con pruebas focalizadas.
 
-| Requirement delta | Escenarios | Tareas | Prueba o evidencia prevista | Estado |
+| Requirement delta | Escenarios | Tareas | Prueba o evidencia | Estado |
 |---|---|---|---|---|
-| Selección de productos para imprimir etiquetas | Selección manual en varias páginas; Todos los resultados filtrados; Cambio de filtro con selección; Imprimir desde la ficha; Acceso sin sesión o sin permiso | 7.1–7.8, 8.1–8.3 | `ProductsPage.test.tsx`, `ProductDetailPage.test.tsx`, `layout.test.tsx`, `e2e/product-labels.spec.ts` | Pendiente |
-| Proyección completa del filtro para etiquetas | Proyección mínima y ordenada; Filtro inválido; Sin coincidencias | 2.1–2.7 | `test_product_label_data_api.py`, `test_catalog_api.py`, `test_openapi.py` | Pendiente |
-| Contenido identificativo de la etiqueta | Producto con identidad comercial completa; Datos opcionales ausentes; Nombre largo | 3.1–3.4, 6.1–6.8 | `test_entity_logo_api.py`, `entity-logos.test.tsx`, `ProductLabel.test.tsx` | Pendiente |
-| Copias y orden del lote | Cantidades distintas por producto; Aplicar cantidad a todos; Cantidad inválida | 5.2–5.3, 6.3–6.5 | `label-layout.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
-| Tamaño y distribución A4 | Tamaño predeterminado; Tamaño alternativo válido; Tamaño que no cabe | 5.1, 5.3–5.5, 6.6 | `label-layout.test.ts`, `ProductLabelSheet.test.tsx`, PDF inspeccionado | Pendiente |
-| Posición inicial de la primera hoja | Inicio en una posición intermedia; Cambio a una cuadrícula menor | 5.2–5.3, 6.3 | `label-layout.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
-| Vista previa fiel y preparación de la marca | Logotipo listo antes de imprimir; Fallo del logotipo; Error al obtener datos del lote | 3.1–3.4, 6.3–6.8 | `entity-logos.test.tsx`, `ProductLabelPrintModal.test.tsx` | Pendiente |
-| Generación verificable del código de barras | Código alfanumérico; Código no representable | 4.1–4.4, 6.4 | `code128.test.ts`, `ProductLabelPrintModal.test.tsx` | Pendiente |
-| Impresión mediante el navegador | Abrir el diálogo de impresión; Cancelar la impresión; Guardar como PDF | 6.4–6.8, 8.1, 8.4 | `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts`, PDF inspeccionado | Pendiente |
-| PPF-10 Preparación e impresión de hoja de etiquetas | Preparación desde una lista filtrada; Modal en teléfono; Regreso después de imprimir o cancelar | 6.1–6.8, 7.1–7.8, 8.1–8.3 | Vitest focalizado, Playwright focalizado y verificación en cinco anchos | Pendiente |
+| Selección de productos para imprimir etiquetas | Selección manual en varias páginas; Todos los resultados filtrados; Cambio de filtro con selección; Imprimir desde la ficha; Acceso sin sesión o sin permiso | 7.1–7.8, 8.3, 9.1–9.2 | `ProductsPage.test.tsx` (16), `ProductDetailPage.test.tsx` (9), `layout.test.tsx` (9), `e2e/product-labels.spec.ts` | Cumplido |
+| Proyección completa del filtro para etiquetas | Proyección mínima y ordenada; Filtro inválido; Sin coincidencias | 2.1–2.7, 8.2 | `test_product_label_data_api.py` (13), `test_catalog_api.py` (9), `test_openapi.py` (1), `api.test.ts` (3) | Cumplido |
+| Contenido identificativo de la etiqueta | Producto con identidad comercial completa; Datos opcionales ausentes; Nombre largo; Composición sin imagen del producto | 3.1–3.4, 6.1–6.2, 8.5, 8.10 | `test_entity_logo_api.py` (14), `entity-logos.test.tsx` (3), `ProductLabel.test.tsx` (7), PDF inspeccionado | Cumplido |
+| Copias y orden del lote | Cantidades distintas por producto; Aplicar cantidad a todos; Cantidad inválida | 5.2–5.3, 6.3–6.5, 8.13 | `label-layout.test.ts` (11), `ProductLabelPrintModal.test.tsx` (16) | Cumplido |
+| Tamaño y distribución A4 | Hoja de etiquetas; Tamaño no configurable | 8.9, 8.11–8.12 | `label-layout.test.ts`, `ProductLabelSheet.test.tsx` (1), `ProductLabelPrintModal.test.tsx`, PDFs A4 2 × 5 de Chromium y Firefox | Cumplido |
+| Posición inicial de la primera hoja | Inicio en una posición intermedia | 5.2–5.3, 6.3, 8.13 | `label-layout.test.ts`, `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts` | Cumplido |
+| Vista previa fiel y preparación de la marca | Logotipo listo antes de imprimir; Fallo del logotipo; Error al obtener datos del lote | 3.3, 6.3–6.8, 8.13 | `entity-logos.test.tsx`, `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts` | Cumplido |
+| Generación verificable del código de barras | Código alfanumérico; Código no representable | 4.1–4.4, 6.4 | `code128.test.ts` (7), `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts` | Cumplido |
+| Impresión mediante el navegador | Abrir el diálogo de impresión; Cancelar la impresión; Guardar como PDF | 6.6–6.8, 9.1, 9.4 | `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts`, PDFs de Chromium y Firefox | Cumplido |
+| PPF-10 Preparación e impresión de hoja de etiquetas | Preparación desde una lista filtrada; Modal en teléfono; Lote numeroso y zoom de la hoja; Señalar un registro del lote; Regreso después de imprimir o cancelar | 6.5, 7.1–7.8, 8.6, 8.13, 9.3 | `ProductLabelPrintModal.test.tsx`, `e2e/product-labels.spec.ts` con axe en 360, 768, 1024, 1280 y 1440 px | Cumplido |
 
-**Línea base del 2026-09-27:** backend focalizado, 23 pruebas pasan (`test_catalog_api.py`, `test_entity_logo_api.py`, `test_openapi.py`); frontend focalizado, 27 pruebas pasan (`ProductsPage`, `ProductDetailPage`, `entity-logos` y `layout`). PostgreSQL local fue necesario para las pruebas Django. No se ejecutaron suites completas.
+**Línea base del 2026-09-27:** backend focalizado, 23 pruebas pasan (`test_catalog_api.py`, `test_entity_logo_api.py`, `test_openapi.py`); frontend focalizado, 27 pruebas pasan (`ProductsPage`, `ProductDetailPage`, `entity-logos` y `layout`). PostgreSQL local fue necesario para las pruebas Django.
+
+**Verificación final focalizada del 2026-09-27:**
+
+| Comando | Resultado |
+|---|---|
+| `uv run --frozen pytest --no-cov tests/catalog/test_product_label_data_api.py tests/catalog/test_catalog_api.py tests/api/test_openapi.py tests/workshop_configuration/test_entity_logo_api.py` | 37 pasan |
+| `ruff check` y `ruff format --check` sobre `src/catalog`, `src/workshop_configuration` y sus pruebas | Sin errores |
+| `mypy src/catalog src/workshop_configuration` y las pruebas tocadas | 1 error previo en `tests/workshop_configuration/test_entity_logo_api.py:186` (`streaming_content`), introducido por `logotipos-por-ruc` (commit `5e3161f`); no pertenece a este cambio |
+| `manage.py check`, `makemigrations --check --dry-run` | Sin problemas; sin migraciones |
+| `manage.py spectacular --validate` | Sin errores; `schema.yml` al día |
+| `npx vitest run` de `product-labels`, `products/api`, `ProductsPage`, `ProductDetailPage`, `layout` y `entity-logos` | 10 archivos, 82 pasan |
+| `npm run typecheck`, `npm run build` | Correctos |
+| ESLint y Prettier sobre los archivos tocados | Sin errores |
+| `npx playwright test e2e/product-labels.spec.ts` | 4 pasan, con axe en cinco anchos |
+| `openspec validate imprimir-etiquetas-de-productos --strict` | Válido |
+
+No se ejecutaron `make check`, `make test`, pytest completo, Vitest completo ni el resto de Playwright. No había una impresora física disponible; la salida sí se verificó como PDF en Chromium y Firefox.
 
 ## 2. Comandos y resultados de la verificación local (2026-09-20)
 

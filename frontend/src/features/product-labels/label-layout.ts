@@ -1,10 +1,9 @@
 export const PAGE_WIDTH_MM = 210
 export const PAGE_HEIGHT_MM = 297
-export const DEFAULT_LABEL_WIDTH_MM = 63
-export const DEFAULT_LABEL_HEIGHT_MM = 38
 
-const MIN_COMPOSITION_WIDTH_MM = 40
-const MIN_COMPOSITION_HEIGHT_MM = 25
+// Tamaño único de la etiqueta de producto (decisión del cliente).
+export const LABEL_WIDTH_MM = 100
+export const LABEL_HEIGHT_MM = 55
 
 export class LabelLayoutError extends Error {
   constructor(message: string) {
@@ -43,10 +42,6 @@ export interface LabelPagesResult {
   startPosition: number
   didResetStartPosition: boolean
 }
-
-export type LabelCompositionValidation =
-  | { valid: true }
-  | { valid: false; message: string }
 
 function requirePositiveFinite(value: number, field: string): void {
   if (!Number.isFinite(value) || value <= 0) {
@@ -143,24 +138,6 @@ export function buildLabelPages(
   }
 }
 
-export function validateLabelComposition(
-  widthMm: number,
-  heightMm: number,
-): LabelCompositionValidation {
-  if (
-    !Number.isFinite(widthMm) ||
-    !Number.isFinite(heightMm) ||
-    widthMm < MIN_COMPOSITION_WIDTH_MM ||
-    heightMm < MIN_COMPOSITION_HEIGHT_MM
-  ) {
-    return {
-      valid: false,
-      message:
-        'Aumenta el tamaño para que el nombre, el código y las barras sean legibles.',
-    }
-  }
-  return { valid: true }
-}
 import type { ProductLabelData } from '@/features/products/types'
 
 export type { ProductLabelData } from '@/features/products/types'

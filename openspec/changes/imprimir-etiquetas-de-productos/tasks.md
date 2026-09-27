@@ -62,7 +62,7 @@ Evidencia del grupo: cálculos puros y casos límite en verde, medidas físicas 
 
 Dependencias: grupos 3 a 5. Diseño D4, D6 y D8; capability `impresion-de-etiquetas-de-productos` y PPF-10.
 
-- [x] 6.1 Crear primero `ProductLabel.test.tsx` y `ProductLabelSheet.test.tsx` con casos rojos para identidad comercial con y sin logotipo, código monoespaciado destacado, nombre limitado a dos líneas, número de parte y marca opcionales sin huecos, ausencia de precio y SVG accesible.
+- [x] 6.1 Crear primero `ProductLabel.test.tsx` y `ProductLabelSheet.test.tsx` con casos rojos para identidad comercial con y sin logotipo, código destacado, nombre limitado a dos líneas, número de parte y marca opcionales sin huecos, ausencia de precio y SVG accesible.
 - [x] 6.2 Implementar `ProductLabel.tsx` y `ProductLabelSheet.tsx` con la misma estructura de celdas en vista previa e impresión, líneas de corte compartidas y manejo del error de imagen que compacte el encabezado.
 - [x] 6.3 Crear primero `ProductLabelPrintModal.test.tsx` con casos rojos para una copia inicial, cantidades individuales, «Aplicar a todos», cantidades inválidas, total, dimensiones, selector visual de posición, navegación «Página n de m» y anuncio del reinicio de posición.
 - [x] 6.4 Ampliar las pruebas rojas del modal para carga y reintento del lote, espera de marca, timeout de imagen con reserva al nombre, resumen de productos incompatibles, bloqueo por composición y conservación completa del estado tras `window.print()` o cancelación.
@@ -90,26 +90,34 @@ Evidencia del grupo: selección ordenada entre páginas, filtros seguros, lote c
 
 ## 8. Revisión aprobada de formato y composición
 
-Dependencias: grupos 2 a 7 y confirmación visual del usuario. Revisión de propuesta, specs y diseño para 100 × 60 mm, descripción, presentación, reserva fotográfica y asset fijo de camión.
+Dependencias: grupos 2 a 7 y confirmación visual del usuario. Revisión de propuesta, specs y diseño para el tamaño fijo 100 × 55 mm, descripción, presentación, composición sin imagen de producto y asset fijo de camión.
 
 - [x] 8.1 Actualizar propuesta, specs, diseño, tareas y referencias de glosario antes de modificar código; registrar que la imagen dinámica del producto permanece fuera de alcance.
-- [ ] 8.2 Ampliar primero `backend/tests/catalog/test_product_label_data_api.py` y OpenAPI para exigir descripción, cantidad de contenido y unidad de medida en la proyección, conservando la exclusión de precio, costo y existencia; implementar serializer/consulta mínima y verificar sin N+1.
-- [ ] 8.3 Ampliar primero las pruebas del cliente y de lista/ficha para transportar descripción, cantidad y unidad en `ProductLabelData`; implementar adaptadores sin consultas nuevas ni cambios de modelo.
-- [ ] 8.4 Cambiar primero las pruebas puras de distribución para exigir que 100 × 60 mm produzca 2 × 4 y 8 posiciones centradas; actualizar constantes, escenarios de posición y validación de composición.
-- [ ] 8.5 Ampliar primero `ProductLabel.test.tsx` para logo sin nombre duplicado, reserva textual, nombre y descripción a dos líneas, presentación, franja técnica, Code 128, zona futura vacía y cabecera decorativa. Incorporar el asset original fijo y construir diagonales/curvas con CSS sin añadir dependencias.
+- [x] 8.2 Ampliar primero `backend/tests/catalog/test_product_label_data_api.py` y OpenAPI para exigir descripción, cantidad de contenido y unidad de medida en la proyección, conservando la exclusión de precio, costo y existencia; implementar serializer/consulta mínima y verificar sin N+1.
+- [x] 8.3 Ampliar primero las pruebas del cliente y de lista/ficha para transportar descripción, cantidad y unidad en `ProductLabelData`; implementar adaptadores sin consultas nuevas ni cambios de modelo.
+- [x] 8.4 Cambiar primero las pruebas puras de distribución para exigir que 100 × 55 mm produzca 2 × 5 y 10 posiciones centradas; actualizar constantes, escenarios de posición y validación de composición proporcional con umbral del 80 %.
+- [x] 8.5 Ampliar primero `ProductLabel.test.tsx` para logo sin nombre duplicado, reserva textual, nombre y descripción a dos líneas, presentación, franja técnica, Code 128, zona futura vacía y cabecera decorativa. Replicar la composición de la etiqueta de referencia con el logotipo comercial configurado, incorporar el asset original fijo con bandas diagonales SVG y escalar el contenido en proporción a la celda sin añadir dependencias.
 - [x] 8.6 Cubrir e implementar lista de cantidades con desplazamiento propio, pie fijo y visor centrado con zoom progresivo de 30 % a 130 %, porcentaje visible y ajuste de hoja exclusivamente visual.
-- [ ] 8.7 Verificar el grupo con pytest focalizado de catálogo/OpenAPI; Vitest de `product-labels`, API, lista y ficha; typecheck; Ruff/mypy y ESLint/Prettier solo sobre archivos tocados.
+- [x] 8.7 Verificar el grupo con pytest focalizado de catálogo/OpenAPI; Vitest de `product-labels`, API, lista y ficha; typecheck; Ruff/mypy y ESLint/Prettier solo sobre archivos tocados.
+- [x] 8.8 Actualizar propuesta, specs, diseño y tareas por la decisión del cliente: sin imagen del producto ni zona reservada, y un único tamaño fijo de 100 × 55 mm sin selector ni medidas editables.
+- [x] 8.9 Cambiar primero `label-layout.test.ts` para exigir `LABEL_WIDTH_MM = 100`, `LABEL_HEIGHT_MM = 55` y cuadrícula centrada 2 × 5; retirar la validación de composición proporcional y los tamaños alternativos.
+- [x] 8.10 Cambiar primero `ProductLabel.test.tsx` y `ProductLabelSheet.test.tsx` para exigir la ficha técnica vertical en la columna derecha, el Code 128 ancho en el pie, la ausencia de zona de imagen y la omisión de datos ausentes; rediseñar la composición sin añadir colores.
+- [x] 8.11 Cambiar primero `ProductLabelPrintModal.test.tsx` para exigir el tamaño fijo informativo, sin selector ni campos de ancho y alto; retirar el reinicio de posición por cambio de tamaño.
+- [x] 8.12 Ajustar `e2e/product-labels.spec.ts` al tamaño fijo y verificar el grupo con Vitest de `product-labels`, typecheck, ESLint/Prettier sobre archivos tocados y solo ese archivo E2E; inspeccionar un PDF A4.
+- [x] 8.13 Cubrir primero con pruebas e implementar el rediseño interactivo del modal: pasos numerados, botones «−»/«+» por producto, resaltado en la vista previa, hoja A4 en miniatura con estados de posición, «Ajustar ancho» y «Ver hoja completa», miniaturas de página, resumen en el pie y modal casi a pantalla completa; ajustar el E2E y verificar solo `e2e/product-labels.spec.ts`.
 
-Evidencia del grupo: contrato revisado antes del código, tamaño 100 × 60 exacto, asset original, composición aprobada y transporte mínimo de los datos ya existentes.
+Evidencia del grupo: contrato revisado antes del código, tamaño fijo 100 × 55 exacto, composición sin imagen de producto, asset original y transporte mínimo de los datos ya existentes.
 
 ## 9. Recorrido E2E y verificación visual focalizada
 
 Dependencias: grupos 2 a 8. Specs `impresion-de-etiquetas-de-productos`, `catalogo-de-productos-y-categorias`, PPF-10 y `experiencia-adaptable-frontend`.
 
-- [ ] 9.1 Crear `frontend/e2e/product-labels.spec.ts` con recorridos para selección manual en dos páginas, «Todos los del filtro actual», ficha de producto inactivo, cantidades distintas, tamaño predeterminado, inicio en posición 4 y regreso desde impresión con el estado conservado.
-- [ ] 9.2 Añadir al mismo archivo los tres roles con `productos.ver`, denegación directa sin permiso, identidad comercial con y sin logotipo, código no representable y ausencia de precio en DOM y superficie impresa.
-- [ ] 9.3 Verificar en 360, 768, 1024, 1280 y 1440 px: sin desplazamiento horizontal de página, foco contenido, controles accesibles, vista previa navegable, zoom progresivo y `axe` sin infracciones nuevas. Ejecutar solo `cd frontend && npx playwright test e2e/product-labels.spec.ts`.
-- [ ] 9.4 Guardar una hoja predeterminada como PDF en Chrome/Chromium y Firefox, comprobar A4, 2 × 4, medidas de 100 × 60 mm, líneas de corte, páginas posteriores desde posición 1, asset fijo y ausencia de interfaz. Si hay impresora disponible, registrar una prueba física al 100 %; su ausencia no bloquea la verificación por PDF.
+- [x] 9.1 Crear `frontend/e2e/product-labels.spec.ts` con recorridos para selección manual en dos páginas, «Todos los del filtro actual», ficha de producto inactivo, cantidades distintas, tamaño predeterminado, inicio en posición 4 y regreso desde impresión con el estado conservado.
+- [x] 9.2 Añadir al mismo archivo los tres roles con `productos.ver`, denegación directa sin permiso, identidad comercial con y sin logotipo, código no representable y ausencia de precio en DOM y superficie impresa.
+- [x] 9.3 Verificar en 360, 768, 1024, 1280 y 1440 px: sin desplazamiento horizontal de página, foco contenido, controles accesibles, vista previa navegable, zoom progresivo y `axe` sin infracciones nuevas. Ejecutar solo `cd frontend && npx playwright test e2e/product-labels.spec.ts`.
+- [x] 9.4 Guardar como PDF en Chrome/Chromium y Firefox una hoja de etiquetas, comprobar A4, cuadrícula 2 × 5, medidas de 100 × 55 mm, líneas de corte, páginas posteriores desde posición 1, asset fijo y ausencia de interfaz. Si hay impresora disponible, registrar una prueba física al 100 %; su ausencia no bloquea la verificación por PDF.
+
+Estado de 9.4 (2026-09-27): PDFs verificados en Chromium y Firefox 155 sobre la aplicación real (dos páginas A4, 2 × 5, 100 × 55 mm, inicio en posición 4 y segunda hoja desde la 1, líneas de corte, asset fijo y sin interfaz). La revisión en Firefox detectó y corrigió la repetición incompleta del logotipo; la regresión espera todas las instancias y usa referencias SVG únicas. No había impresora física disponible, condición no bloqueante prevista por la tarea.
 
 Evidencia del grupo: único archivo E2E ejecutado, cinco anchos y accesibilidad registrados, PDF inspeccionado y limitación física documentada.
 
@@ -117,13 +125,13 @@ Evidencia del grupo: único archivo E2E ejecutado, cinco anchos y accesibilidad 
 
 Dependencias: grupos 2 a 9.
 
-- [ ] 10.1 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` con selección, acción desde ficha y PPF-10; actualizar su archivo de referencia terminológica.
-- [ ] 10.2 Actualizar `docs/negocio/requisitos/casos-de-uso.md` para el flujo de impresión desde lista y ficha, y `matriz-trazabilidad.md` con cada requirement, tarea y prueba real.
-- [ ] 10.3 Completar `docs/negocio/requisitos/cobertura-catalogos.md` con comandos, conteos y resultados reales; conservar explícito que imprimir no altera inventario, catálogo ni auditoría.
-- [ ] 10.4 Revisar `docs/negocio/producto/glosario.md`, `docs/tecnico/glosario-tecnico.md` y todos los companion glossary references; no añadir sinónimos para **Producto**, **etiqueta de producto**, **RUC comercial**, **logotipo de entidad fiscal**, **Code 128**, **API REST** o **contrato OpenAPI**.
-- [ ] 10.5 Confirmar que no existen migraciones, cambios de modelos, nuevas dependencias ni modificaciones de lockfiles; confirmar también que no se creó ADR, conforme a D11.
-- [ ] 10.6 Ejecutar la verificación final focalizada: pruebas backend de los grupos 2–3 y 8, Vitest de los grupos 3–8 y solo `e2e/product-labels.spec.ts`; Ruff/mypy sobre paquetes tocados; Prettier y ESLint solo sobre archivos tocados; `npm run typecheck`, `npm run build`, `manage.py check`, `makemigrations --check --dry-run`, `spectacular --validate` y `openspec validate imprimir-etiquetas-de-productos --strict`.
-- [ ] 10.7 Registrar cada comando y resultado, junto con lo no ejecutado por alcance: suites completas, resto de Playwright, `make check` y `make test`. Solicitar validación directa del usuario de la vista previa y del PDF antes de verificar o archivar el cambio.
+- [x] 10.1 Actualizar `docs/negocio/requisitos/interfaz-y-navegacion.md` con selección, acción desde ficha y PPF-10; actualizar su archivo de referencia terminológica.
+- [x] 10.2 Actualizar `docs/negocio/requisitos/casos-de-uso.md` para el flujo de impresión desde lista y ficha, y `matriz-trazabilidad.md` con cada requirement, tarea y prueba real.
+- [x] 10.3 Completar `docs/negocio/requisitos/cobertura-catalogos.md` con comandos, conteos y resultados reales; conservar explícito que imprimir no altera inventario, catálogo ni auditoría.
+- [x] 10.4 Revisar `docs/negocio/producto/glosario.md`, `docs/tecnico/glosario-tecnico.md` y todos los companion glossary references; no añadir sinónimos para **Producto**, **etiqueta de producto**, **RUC comercial**, **logotipo de entidad fiscal**, **Code 128**, **API REST** o **contrato OpenAPI**.
+- [x] 10.5 Confirmar que no existen migraciones, cambios de modelos, nuevas dependencias ni modificaciones de lockfiles; confirmar también que no se creó ADR, conforme a D11.
+- [x] 10.6 Ejecutar la verificación final focalizada: pruebas backend de los grupos 2–3 y 8, Vitest de los grupos 3–8 y solo `e2e/product-labels.spec.ts`; Ruff/mypy sobre paquetes tocados; Prettier y ESLint solo sobre archivos tocados; `npm run typecheck`, `npm run build`, `manage.py check`, `makemigrations --check --dry-run`, `spectacular --validate` y `openspec validate imprimir-etiquetas-de-productos --strict`.
+- [x] 10.7 Registrar cada comando y resultado, junto con lo no ejecutado por alcance: suites completas, resto de Playwright, `make check` y `make test`. Solicitar validación directa del usuario de la vista previa y del PDF antes de verificar o archivar el cambio.
 
 Evidencia del grupo: documentación y trazabilidad sincronizadas, verificación focalizada reciente y validación visual solicitada al usuario.
 

@@ -71,7 +71,8 @@ def test_each_product_reader_gets_the_minimal_label_projection(
         code="FIL-00125",
         manufacturer_code="OC-90",
         name="Filtro de aceite",
-        description="No debe salir",
+        description="Para motores diésel de trabajo pesado",
+        content_quantity="1.000000",
         sale_price=99,
     )
 
@@ -86,13 +87,14 @@ def test_each_product_reader_gets_the_minimal_label_projection(
                 "code": "FIL-00125",
                 "manufacturer_code": "OC-90",
                 "name": "Filtro de aceite",
+                "description": "Para motores diésel de trabajo pesado",
                 "product_brand": {"id": product_refs["brand"].pk, "name": "Mahle"},
+                "content_quantity": "1.000000",
+                "unit": {"id": product_refs["unit"].pk, "name": "Unidad"},
             }
         ],
     }
-    assert not {"sale_price", "description", "is_active", "stock", "cost"} & set(
-        response.data["results"][0]
-    )
+    assert not {"sale_price", "is_active", "stock", "cost"} & set(response.data["results"][0])
 
 
 def test_anonymous_and_user_without_permission_receive_no_product_data(

@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -25,15 +32,21 @@ const products: ProductLabelData[] = [
     id: 1,
     code: 'FIL-00125',
     name: 'Filtro de aceite',
+    description: 'Para motor diésel',
+    contentQuantity: '1.000000',
     manufacturerCode: 'PH-2870A',
     productBrand: { id: 1, name: 'Fleetguard' },
+    unit: { id: 1, name: 'Unidad' },
   },
   {
     id: 2,
     code: 'PAST-002',
     name: 'Pastillas de freno',
+    description: '',
+    contentQuantity: '1.000000',
     manufacturerCode: null,
     productBrand: null,
+    unit: { id: 1, name: 'Unidad' },
   },
 ]
 
@@ -83,14 +96,104 @@ describe('ProductLabelPrintModal', () => {
     expect(screen.getByText('6 etiquetas')).toBeInTheDocument()
   })
 
+  it('ajusta copias con los botones de cada producto sin bajar de una', async () => {
+    const user = userEvent.setup()
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    const quantity = screen.getByRole('spinbutton', {
+      name: 'Copias de Filtro de aceite',
+    })
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Añadir una copia de Filtro de aceite',
+      }),
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Añadir una copia de Filtro de aceite',
+      }),
+    )
+    expect(quantity).toHaveValue(3)
+    expect(screen.getByText('4 etiquetas')).toBeInTheDocument()
+
+    const remove = screen.getByRole('button', {
+      name: 'Quitar una copia de Pastillas de freno',
+    })
+    expect(remove).toBeDisabled()
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Quitar una copia de Filtro de aceite',
+      }),
+    )
+    expect(quantity).toHaveValue(2)
+  })
+
+  it('resalta en la vista previa las etiquetas del producto señalado', () => {
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    const row = screen.getByTestId('product-label-quantity-row-2')
+    fireEvent.mouseEnter(row)
+    const highlighted = screen
+      .getAllByTestId('product-label-cell')
+      .filter((cell) => cell.dataset.highlighted === 'true')
+    expect(highlighted).toHaveLength(1)
+    expect(highlighted[0]).toHaveTextContent('PAST-002')
+
+    fireEvent.mouseLeave(row)
+    expect(
+      screen
+        .getAllByTestId('product-label-cell')
+        .filter((cell) => cell.dataset.highlighted === 'true'),
+    ).toHaveLength(0)
+  })
+
+  it('muestra la hoja en miniatura con posiciones usadas y ocupadas', async () => {
+    const user = userEvent.setup()
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    await user.click(
+      screen.getByRole('button', { name: 'Empezar en posición 4' }),
+    )
+    const sheet = screen.getByRole('group', { name: 'Posición inicial' })
+    const states = within(sheet)
+      .getAllByRole('button')
+      .map((button) => button.dataset.state)
+    expect(states.slice(0, 6)).toEqual([
+      'skipped',
+      'skipped',
+      'skipped',
+      'start',
+      'filled',
+      'empty',
+    ])
+  })
+
+  it('recorre las páginas desde sus miniaturas y resume el lote', async () => {
+    const user = userEvent.setup()
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    const apply = screen.getByRole('spinbutton', { name: 'Copias para todos' })
+    await user.clear(apply)
+    await user.type(apply, '6')
+    await user.click(screen.getByRole('button', { name: 'Aplicar a todos' }))
+
+    expect(screen.getByText('12 etiquetas · 2 hojas')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ver página 2' }))
+    expect(screen.getByText('Página 2 de 2')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Ver página 2' }),
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
   it('mantiene las acciones fijas y ofrece zoom progresivo como un visor', async () => {
     const user = userEvent.setup()
     render(<ProductLabelPrintModal {...baseProps} />)
 
     expect(screen.getByRole('dialog')).toHaveClass('product-label-print-modal')
-    expect(
-      screen.getByRole('button', { name: 'Ajustar hoja' }),
-    ).toHaveAttribute('aria-pressed', 'true')
+    const fitWidth = screen.getByRole('button', { name: 'Ajustar ancho' })
+    const fitPage = screen.getByRole('button', { name: 'Ver hoja completa' })
+    expect(fitWidth).toHaveAttribute('aria-pressed', 'true')
+    expect(fitPage).toHaveAttribute('aria-pressed', 'false')
     const canvas = screen.getByTestId('product-label-preview-canvas')
     expect(canvas.getAttribute('style')).toContain(
       '--product-label-preview-scale: 0.5',
@@ -104,18 +207,19 @@ describe('ProductLabelPrintModal', () => {
     expect(canvas.getAttribute('style')).toContain(
       '--product-label-preview-scale: 0.7',
     )
-    expect(
-      screen.getByRole('button', { name: 'Ajustar hoja' }),
-    ).toHaveAttribute('aria-pressed', 'false')
+    expect(fitWidth).toHaveAttribute('aria-pressed', 'false')
 
     await user.click(screen.getByRole('button', { name: 'Reducir zoom' }))
     expect(
       screen.getByRole('status', { name: 'Nivel de zoom' }),
     ).toHaveTextContent('60 %')
-    await user.click(screen.getByRole('button', { name: 'Ajustar hoja' }))
+    await user.click(fitPage)
+    expect(fitPage).toHaveAttribute('aria-pressed', 'true')
     expect(canvas.getAttribute('style')).toContain(
       '--product-label-preview-scale: 0.5',
     )
+    await user.click(fitWidth)
+    expect(fitWidth).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeVisible()
   })
@@ -151,42 +255,40 @@ describe('ProductLabelPrintModal', () => {
     expect(
       screen.getByText('Ingresa un entero mayor que cero.'),
     ).toBeInTheDocument()
-
-    const width = screen.getByRole('spinbutton', { name: 'Ancho (mm)' })
-    await user.clear(width)
-    await user.type(width, '30')
-    expect(screen.getByText(/Aumenta el tamaño/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeDisabled()
   })
 
-  it('selecciona una posición visual, pagina la vista y anuncia un reinicio', async () => {
+  it('informa el tamaño fijo sin selector ni medidas editables', () => {
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    expect(screen.getByText('100 × 55 mm · 10 por hoja')).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('spinbutton', { name: /Ancho|Alto/ }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getAllByRole('button', { name: /Empezar en posición/ }),
+    ).toHaveLength(10)
+  })
+
+  it('selecciona una posición visual y pagina la vista', async () => {
     const user = userEvent.setup()
     render(<ProductLabelPrintModal {...baseProps} />)
 
     await user.click(
-      screen.getByRole('button', { name: 'Empezar en posición 8' }),
+      screen.getByRole('button', { name: 'Empezar en posición 4' }),
     )
     expect(
-      screen.getByRole('button', { name: 'Empezar en posición 8' }),
+      screen.getByRole('button', { name: 'Empezar en posición 4' }),
     ).toHaveAttribute('aria-pressed', 'true')
 
     const apply = screen.getByRole('spinbutton', { name: 'Copias para todos' })
     await user.clear(apply)
-    await user.type(apply, '20')
+    await user.type(apply, '5')
     await user.click(screen.getByRole('button', { name: 'Aplicar a todos' }))
-    expect(screen.getByText('Página 1 de 3')).toBeInTheDocument()
+    expect(screen.getByText('Página 1 de 2')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
-    expect(screen.getByText('Página 2 de 3')).toBeInTheDocument()
-
-    const width = screen.getByRole('spinbutton', { name: 'Ancho (mm)' })
-    const height = screen.getByRole('spinbutton', { name: 'Alto (mm)' })
-    await user.clear(width)
-    await user.type(width, '105')
-    await user.clear(height)
-    await user.type(height, '99')
-    expect(
-      screen.getByText('La posición inicial volvió a 1 porque ya no existe.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Página 2 de 2')).toBeInTheDocument()
   })
 
   it('presenta la carga y un error reintentable del lote', async () => {
@@ -277,6 +379,35 @@ describe('ProductLabelPrintModal', () => {
     expect(quantity).toHaveValue(4)
     expect(screen.getByText('Escala 100 %')).toBeInTheDocument()
     expect(screen.getByText('Sin encabezados ni pies')).toBeInTheDocument()
+  })
+
+  it('espera todos los logotipos de la superficie impresa antes de imprimir', async () => {
+    brandState.current = { ...brandState.current, logoUrl: '/logo.png' }
+    const complete = vi
+      .spyOn(HTMLImageElement.prototype, 'complete', 'get')
+      .mockReturnValue(false)
+    const print = vi.fn()
+    vi.stubGlobal('print', print)
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+    render(<ProductLabelPrintModal {...baseProps} />)
+
+    fireEvent.load(document.querySelector('.product-label__brand-loader')!)
+    const printButton = screen.getByRole('button', { name: 'Imprimir' })
+    expect(printButton).toBeEnabled()
+    await userEvent.click(printButton)
+
+    const printImages = document.querySelectorAll(
+      '.product-label-print-surface img',
+    )
+    expect(printImages.length).toBeGreaterThan(1)
+    expect(print).not.toHaveBeenCalled()
+    printImages.forEach((image) => fireEvent.load(image))
+
+    await waitFor(() => expect(print).toHaveBeenCalledOnce())
+    complete.mockRestore()
   })
 
   it('degrada a solo nombre si el logotipo no responde en cinco segundos', () => {

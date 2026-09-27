@@ -94,13 +94,19 @@ Se crea `frontend/src/features/product-labels/` con:
 - `product-label-print.css`: reglas físicas y aislamiento de impresión;
 - tipos y pruebas colocados junto a cada pieza.
 
-El modal usa `Modal size="media" mobileFullWidth`, no `FormModal`: «Imprimir» no guarda datos y debe mantener el estado después de volver del diálogo. En escritorio dispone controles y vista previa en dos zonas; por debajo del ancho disponible se apilan. La lista de cantidades tiene altura acotada y desplazamiento propio para que un lote numeroso no empuje la configuración. El pie con «Cancelar» e «Imprimir» permanece fijo. La página previa se centra en un lienzo distinguible y ofrece reducir/aumentar en pasos de 10 %, desde 30 % hasta 130 %, un porcentaje accesible y «Ajustar hoja» para volver a 50 %. La transformación es exclusivamente visual y los controles conservan alturas, esquinas, colores semánticos y estados Tallkit.
+El modal usa `Modal size="media" mobileFullWidth`, no `FormModal`: «Imprimir» no guarda datos y debe mantener el estado después de volver del diálogo. Ocupa casi toda la pantalla (hasta 96 % del ancho y 94 % del alto) para que la vista previa sea grande. En escritorio dispone a la izquierda tres pasos numerados con cabeceras suaves y a la derecha el visor; por debajo de 1024 px se apilan y el cuerpo del modal se desplaza. El pie fijo muestra el resumen («n etiquetas · m hojas»), «Cancelar» e «Imprimir» con icono de impresora.
 
-Cada producto empieza con una copia. Las cantidades viven en un mapa por identificador; «Aplicar a todos» solo se ejecuta con un entero positivo. Los errores aparecen junto al control correspondiente y un resumen accesible anuncia impedimentos generales. La vista previa usa botones anterior/siguiente y anuncia «Página n de m».
+1. **Copias:** chip con el total, «Aplicar a todos» y una fila por producto con botones «−» y «+» alrededor de la cantidad (sin bajar de una). Al pasar el puntero o enfocar una fila, las etiquetas de ese producto se resaltan en la vista previa con un contorno petróleo que no se imprime. La lista tiene altura acotada y desplazamiento propio.
+2. **Tamaño y posición:** chip informativo «100 × 55 mm · 10 por hoja» y una hoja A4 en miniatura con sus diez casillas; cada casilla es un botón «Empezar en posición n». Las posiciones anteriores al inicio aparecen rayadas como «ya usadas», el inicio en azul oscuro y las que llenará el lote en petróleo suave, con una leyenda y el resumen «Hoja 1: n de m libres».
+3. **Antes de imprimir:** chips de advertencia «Escala 100 %» y «Sin encabezados ni pies», un chip de éxito cuando la identidad comercial está lista, y los errores de marca o de códigos en línea.
+
+El visor ofrece reducir y aumentar en pasos de 10 % (entre 30 % y 130 %), un porcentaje accesible, «Ajustar ancho» (predeterminado: la hoja llena el ancho disponible hasta su tamaño real, 100 %) y «Ver hoja completa» (la hoja entera cabe en el visor). Ambas escalas se recalculan con `ResizeObserver`. La navegación usa botones anterior/siguiente con «Página n de m» y, con más de una hoja, una tira de miniaturas «Ver página n» que marca la actual. La transformación es exclusivamente visual y los controles conservan alturas, esquinas, colores semánticos y estados Tallkit.
+
+Cada producto empieza con una copia. Las cantidades viven en un mapa por identificador; «Aplicar a todos» solo se ejecuta con un entero positivo. Los errores aparecen junto al control correspondiente y un resumen accesible anuncia impedimentos generales.
 
 ### D5 — Cálculo físico de cuadrícula y paginación
 
-Las constantes son `PAGE_WIDTH_MM = 210` y `PAGE_HEIGHT_MM = 297`. El tamaño inicial es 100 × 60 mm. Para cualquier tamaño válido:
+Las constantes son `PAGE_WIDTH_MM = 210`, `PAGE_HEIGHT_MM = 297`, `LABEL_WIDTH_MM = 100` y `LABEL_HEIGHT_MM = 55`. El cliente pidió un único tamaño, sin selector: el modal lo muestra como información («100 × 55 mm · 10 por hoja»), sin controles. La cuadrícula se calcula con una función pura:
 
 ```text
 columnas = floor(210 / ancho)
@@ -108,28 +114,26 @@ filas    = floor(297 / alto)
 capacidad = columnas × filas
 ```
 
-La cuadrícula se centra en la página completa; el margen sobrante se distribuye por igual a ambos lados. Con 100 × 60 mm resultan 2 columnas, 4 filas y 8 posiciones, con márgenes naturales de 5 mm a los lados y 28,5 mm arriba y abajo. No se resta un margen oculto al tamaño útil: una dimensión que cabe en A4 produce al menos una posición. No hay separación entre celdas: cada borde de 0,2 mm es una línea de corte y se evita duplicarlo entre celdas contiguas.
+Con 100 × 55 mm resultan 2 columnas, 5 filas y 10 posiciones, centradas con márgenes naturales de 5 mm a los lados y 11 mm arriba y abajo. Este tamaño conserva la proporción de la etiqueta de referencia y evita espacio vertical sobrante. No hay separación entre celdas: cada borde de 0,2 mm es una línea de corte y se evita duplicarlo entre celdas contiguas. `calculateLabelGrid` rechaza valores no finitos, no positivos o que producen cero filas o columnas, como protección de la función pura.
 
-Las dimensiones aceptan decimales positivos en milímetros. Son inválidas cuando no son finitas, no son positivas o producen cero filas o columnas. Al cambiar la capacidad, la posición inicial se limita a `1..capacidad`; si deja de existir, vuelve a 1 y se anuncia mediante estado accesible.
+- **Alternativas descartadas:** medidas libres con escalado proporcional, y tres tamaños fijos con composiciones propias. El cliente prefirió un solo tamaño; varios tamaños añaden decisiones en cada impresión y composiciones que mantener sin una necesidad actual.
 
 `buildLabelPages` consume descriptores `{product, copyIndex}` en orden, deja vacías `startPosition - 1` celdas de la primera página y usa capacidad completa desde la segunda. Las celdas vacías se representan para que la vista previa y la impresión compartan la misma estructura. El cálculo es puro y no materializa imágenes ni SVG hasta renderizar la página correspondiente en pantalla; la superficie de impresión sí renderiza todas las páginas requeridas.
 
 - **Alternativa descartada:** usar `grid-template-columns: repeat(auto-fit, ...)`. El navegador podría elegir una cuadrícula distinta entre vista e impresión y dificultaría validar la posición inicial.
 
-### D6 — Plantilla profesional dentro de medidas rígidas
+### D6 — Plantilla profesional de 100 × 55 mm
 
-La celda predeterminada de 100 × 60 mm reproduce la jerarquía de la referencia aprobada sin copiar marcas ni fotografías de terceros:
+La composición reproduce el estilo de la etiqueta de referencia aprobada sin copiar marcas ni fotografías de terceros. El logotipo del ejemplo se sustituye por el logotipo configurado del **RUC comercial**. El cliente descartó las imágenes de producto, así que el espacio de la fotografía se reorganiza con información útil, no con letras más grandes ni colores adicionales. La paleta se limita a azul oscuro, gris azulado, un gris claro de apoyo y el naranja como acento.
 
-1. cabecera izquierda con el logotipo comercial mediante `object-fit: contain`; cuando existe no se duplica `displayName`, y cuando falta o falla se muestra ese nombre como reserva;
-2. esquina superior derecha con `product-label-truck-background.png`, un asset original fijo, desaturado en azul y recortado mediante `clip-path`, más diagonales naranjas construidas en CSS;
-3. bloque de código interno monoespaciado como texto de mayor jerarquía;
-4. nombre limitado a dos líneas y descripción secundaria gris azulada limitada a dos líneas;
-5. zona derecha deliberadamente blanca, sin marco ni marcador, reservada para una imagen dinámica que no forma parte de este cambio;
-6. franja técnica inferior con código del fabricante, marca, presentación y Code 128. La presentación concatena la cantidad normalizada y el nombre de la unidad recibidos del catálogo; no interpreta texto libre.
+Zonas, de arriba abajo:
 
-Los separadores, iconos geométricos y acentos se dibujan con CSS/SVG para conservar nitidez. El fondo permanece mayoritariamente blanco; azul oscuro, gris azulado y naranja se usan como jerarquía, no como masas de tinta. Número de parte y marca solo se renderizan cuando existen. La dimensión exterior nunca crece.
+1. **Cabecera:** logotipo comercial a la izquierda mediante `object-fit: contain` y separador vertical fino; cuando existe no se duplica `displayName`, y cuando falta o falla se muestra ese nombre como reserva. En la esquina superior derecha, un SVG decorativo: `product-label-truck-background.png`, asset original fijo teñido en azul grisáceo con `feColorMatrix` y recortado por un polígono con borde izquierdo diagonal y esquina inferior derecha biselada, precedido por una banda naranja fina, una banda azul marino y un remate naranja paralelos a ese borde.
+2. **Cuerpo, columna izquierda:** bloque gris claro con borde derecho inclinado, rótulo «CÓDIGO» con acento naranja y el código interno en IBM Plex Sans de máximo peso con cifras tabulares (su tamaño se reduce por escalones según la longitud, sin truncarlo); debajo, nombre (dos líneas), descripción gris azulada (dos líneas) y un acento naranja corto.
+3. **Cuerpo, columna derecha:** ficha técnica vertical separada por una línea fina: una fila por dato (número de parte, marca, presentación), con icono SVG macizo, rótulo pequeño en mayúsculas y valor en negrita, y líneas finas entre filas. Los datos ausentes no dejan filas vacías y la ficha se centra verticalmente.
+4. **Pie:** línea fina y Code 128 ancho y centrado, con el código legible espaciado debajo, como en las etiquetas industriales de repuestos. El ancho del símbolo sigue la longitud del código con módulo objetivo de 0,33 mm, acotado entre 40 y 88 mm, lo que mejora la lectura frente a un símbolo estrecho.
 
-Para tamaños alternativos, la composición conserva las zonas y reduce espacios dentro de límites legibles, pero no escala la dimensión exterior. Si el contenido esencial no cabe en el tamaño elegido, la validación bloquea la impresión y pide aumentar la etiqueta, en vez de desbordar u ocultar código y barras. El precio y cualquier dato no incluido en `ProductLabelData` no llegan a la pieza.
+La presentación concatena la cantidad normalizada y el nombre de la unidad recibidos del catálogo; no interpreta texto libre. Los separadores, iconos y acentos se dibujan con CSS/SVG. Las medidas internas se expresan en milímetros físicos; la vista previa escala la hoja completa y la impresión conserva la medida real. La dimensión exterior nunca crece. El precio y cualquier dato no incluido en `ProductLabelData` no llegan a la pieza.
 
 ### D7 — Codificador propio Code 128 con juegos B y C
 
@@ -155,7 +159,7 @@ El modal consulta `useIssuerBrand("COMERCIAL")` al abrirse. Reutiliza la discipl
 
 La aplicación mantiene una superficie de impresión hermana del modal, oculta en pantalla. Al activar «Imprimir»:
 
-1. valida cantidades, tamaño, composición, códigos y marca;
+1. valida cantidades, códigos y marca;
 2. fija el documento de impresión con todas las páginas;
 3. espera un ciclo de renderizado y fuentes (`document.fonts.ready` cuando exista);
 4. llama `window.print()` sin cerrar el modal.
@@ -184,9 +188,9 @@ Para lotes grandes se muestra el total antes de renderizar la superficie complet
 **Frontend (Vitest):**
 
 - `code128.test.ts`: vectores conocidos (por ejemplo, `ABC` produce valores `104,33,34,35,1,106`), selección B/C, checksum, zonas silenciosas, determinismo y rechazo sin transliteración;
-- `label-layout.test.ts`: 100 × 60 da 2 × 4, tamaño alternativo, tamaño inválido, primera posición y varias páginas;
-- `ProductLabel.test.tsx`: composición profesional, logo sin nombre duplicado, reserva textual, descripción, presentación, zona futura vacía, asset fijo y Code 128;
-- `ProductLabelPrintModal.test.tsx`: copias, lote numeroso con lista acotada, zoom progresivo, aplicar a todos, error de marca, fallo de imagen, producto incompatible, navegación, impresión y cancelación;
+- `label-layout.test.ts`: 100 × 55 da 2 × 5 centrada, tamaño inválido, primera posición y varias páginas;
+- `ProductLabel.test.tsx`: zonas de la composición, logo sin nombre duplicado, reserva textual, descripción, ficha técnica sin filas vacías, ausencia de zona de imagen, asset fijo y Code 128 en el pie;
+- `ProductLabelPrintModal.test.tsx`: tamaño fijo informativo sin selector ni campos de medidas, botones «−»/«+», resaltado en la vista previa, hoja en miniatura con estados de posición, miniaturas de página, «Ajustar ancho» y «Ver hoja completa», copias, lote numeroso con lista acotada, zoom progresivo, aplicar a todos, error de marca, fallo de imagen, producto incompatible, navegación, impresión y cancelación;
 - pruebas focalizadas de `ProductsPage`, `ProductDetailPage`, `ElevatedDataList` y `entity-logos` para selección, filtros, permiso, acción y `displayName`.
 
 **E2E:** un archivo `frontend/e2e/product-labels.spec.ts` cubre selección manual, todos los filtrados, ficha y superficie de impresión. Durante la aplicación se ejecutan únicamente estos archivos y las comprobaciones estáticas directamente afectadas.
@@ -197,12 +201,12 @@ No se crea ni modifica un ADR. El endpoint es una proyección local y reversible
 
 ## Risks / Trade-offs
 
-- **Impresoras con área no imprimible o escala automática** → la cuadrícula se centra, pero 100 × 60 mm deja 5 mm laterales y puede acercarse al límite de ciertos equipos. Se usan medidas físicas, aviso de escala 100 % y prueba manual en los navegadores soportados. Un dispositivo con margen superior a 5 mm requerirá otro tamaño, algo que la aplicación permite pero no puede detectar.
+- **Impresoras con área no imprimible o escala automática** → la cuadrícula se centra, pero 100 × 55 mm deja 5 mm laterales y puede acercarse al límite de ciertos equipos. Se usan medidas físicas, aviso de escala 100 % y prueba manual en los navegadores soportados. Un dispositivo con margen superior a 5 mm requeriría otro tamaño, fuera del alcance actual.
 - **Lotes muy grandes** → una sola lectura evita inconsistencias, la vista previa renderiza una página y la superficie completa se difiere hasta imprimir. El costo inevitable es que el navegador necesita representar el lote para producir PDF o papel.
 - **Código Unicode ya válido en catálogo** → error explícito por producto y ninguna mutación; ampliar el alfabeto requeriría otra decisión porque Code 128 no define Unicode directo.
 - **Instantánea manual desactualizada** → es equivalente a mantener abierta la lista; reabrir refresca. No se justifica otra consulta ni bloqueo para una operación sin efectos.
 - **Logotipo lento o roto** → espera acotada y reserva al nombre. El fallo del resumen sí bloquea para no imprimir una identidad inventada.
-- **Tamaño demasiado pequeño para contenido esencial** → validación previa de composición; se conserva la dimensión elegida y se solicita una mayor.
+- **Códigos internos muy largos** → el símbolo crece hasta 88 mm y después los módulos se estrechan. Con códigos de hasta unos 30 caracteres el módulo se mantiene cerca de 0,25 mm o más; los más largos pueden requerir un lector de imagen. No se trunca ni altera el código.
 - **Bordes físicos acumulados** → el cálculo usa milímetros y un solo borde compartido por corte; las pruebas verifican dimensiones y el PDF se inspecciona durante la aplicación.
 
 ## Migration Plan
@@ -215,6 +219,6 @@ No se crea ni modifica un ADR. El endpoint es una proyección local y reversible
 
 ## Open Questions
 
-Ninguna que bloquee la aplicación. El usuario confirmó el tamaño 100 × 60 mm, la paleta, el asset fijo de camión, el logotipo sin nombre duplicado, la descripción secundaria, la presentación y la reserva fotográfica vacía. La tolerancia de corte y el área imprimible exactas se validarán con el equipo disponible.
+Ninguna que bloquee la aplicación. El cliente pidió un único tamaño fijo y descartó las imágenes de producto; el usuario delegó la medida, que se fijó en 100 × 55 mm; también confirmó la etiqueta de referencia, la paleta, el asset fijo de camión, el logotipo sin nombre duplicado, la descripción secundaria, y la presentación. La tolerancia de corte y el área imprimible exactas se validarán con el equipo disponible.
 
 Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

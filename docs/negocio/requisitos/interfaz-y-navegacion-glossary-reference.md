@@ -14,3 +14,6 @@
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
 | Placa de RUC | `docs/negocio/producto/glosario.md` | RUC de cada entidad en la configuración, con etiqueta diferenciada y dígitos monoespaciados. |
 | Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Fila «Logo» de la ficha y encabezado de los comprobantes internos. |
+| Etiqueta de producto | `docs/negocio/producto/glosario.md` | Pieza de 100 × 55 mm que se prepara desde la lista o ficha de productos (PPF-10). |
+| Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras del código interno impreso en la etiqueta. |
+| RUC comercial | `docs/negocio/producto/glosario.md` | Identidad cuyo logotipo encabeza la etiqueta de producto. |

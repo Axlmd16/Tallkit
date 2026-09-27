@@ -135,7 +135,7 @@ class ProductSerializer(_Record):
     tax = TaxProjectionSerializer(allow_null=True)
 
 
-class ProductLabelBrandSerializer(_Base):
+class ProductLabelRefSerializer(_Base):
     id = serializers.IntegerField()
     name = serializers.CharField()
 
@@ -145,7 +145,10 @@ class ProductLabelSerializer(_Base):
     code = serializers.CharField()
     manufacturer_code = serializers.CharField(allow_blank=True)
     name = serializers.CharField()
-    product_brand = ProductLabelBrandSerializer(allow_null=True)
+    description = serializers.CharField()
+    product_brand = ProductLabelRefSerializer(allow_null=True)
+    content_quantity = serializers.CharField()
+    unit = ProductLabelRefSerializer()
 
 
 class ProductLabelBatchSerializer(_Base):

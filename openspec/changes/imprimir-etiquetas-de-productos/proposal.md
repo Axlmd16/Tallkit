@@ -7,10 +7,10 @@ El catálogo, la hoja imprimible Tallkit y el logotipo comercial ya están dispo
 ## What Changes
 
 - La lista de productos permitirá seleccionar varios registros o elegir «Todos los del filtro actual» y abrir «Imprimir etiquetas»; la ficha ofrecerá la misma acción para su producto.
-- Un modal de preparación permitirá definir copias por producto, aplicar una cantidad a todos, elegir el tamaño, seleccionar la posición inicial de la primera hoja y revisar una vista previa paginada.
-- La hoja A4 usará por defecto una cuadrícula de 2 × 4 etiquetas de 100 × 60 mm, con líneas de corte finas; otros tamaños ajustarán la cuadrícula a sus dimensiones.
-- Cada etiqueta usará el logotipo vigente del **RUC comercial** como cabecera sin duplicar el nombre que ya forma parte de esa imagen; si no existe o no carga, mostrará como reserva el nombre comercial o la razón social. También incluirá el código interno destacado y monoespaciado, el nombre del producto en un máximo de dos líneas, una descripción secundaria, el número de parte opcional, la marca, la presentación y un código de barras **Code 128** del código interno.
-- La composición visual seguirá una plantilla azul oscuro, gris azulado y naranja: cabecera con un recurso gráfico fijo y original de un camión, bloque de código, zona de texto, espacio derecho deliberadamente vacío para una futura imagen de producto y franja técnica inferior. Este cambio no obtiene ni persiste imágenes de productos.
+- Un modal de preparación permitirá definir copias por producto, aplicar una cantidad a todos, seleccionar la posición inicial de la primera hoja y revisar una vista previa paginada.
+- La hoja A4 usará un único tamaño fijo de 100 × 55 mm en cuadrícula de 2 × 5, con líneas de corte finas. El tamaño no es configurable.
+- Cada etiqueta usará el logotipo vigente del **RUC comercial** como cabecera sin duplicar el nombre que ya forma parte de esa imagen; si no existe o no carga, mostrará como reserva el nombre comercial o la razón social. También incluirá el código interno destacado en tipografía de máximo peso con cifras tabulares, el nombre del producto en un máximo de dos líneas, una descripción secundaria, el número de parte opcional, la marca, la presentación y un código de barras **Code 128** del código interno.
+- La composición visual seguirá una plantilla azul oscuro, gris azulado y naranja: cabecera con el logotipo comercial y un recurso gráfico fijo y original de un camión, bloque de código, zona de texto, código de barras integrado y franja técnica inferior. La etiqueta no incluye fotografías del producto ni reserva espacio para ellas.
 - La etiqueta no mostrará precio, existencia, costo, impuesto, estado ni información de la entidad artesanal.
 - La impresión se realizará con el diálogo del navegador sobre una vista específica y CSS de impresión A4, reutilizando el comportamiento de preparación de marca de la hoja `DocumentSheet`; también permitirá guardar como PDF desde el navegador.
 - Los tres roles que poseen `productos.ver` podrán preparar e imprimir etiquetas. No se introduce un permiso nuevo ni una escritura de negocio.
@@ -21,8 +21,8 @@ El catálogo, la hoja imprimible Tallkit y el logotipo comercial ya están dispo
 
 - **D1 — Ámbito comercial.** La etiqueta identifica un producto del catálogo comercial y siempre usa la identidad de la entidad comercial; nunca la artesanal.
 - **D2 — Primera hoja reutilizable.** La posición inicial deja vacías las posiciones anteriores solo en la primera hoja. Las hojas siguientes empiezan en la primera posición.
-- **D3 — Tamaños.** El tamaño predeterminado es 100 × 60 mm. El modal permite dimensiones alternativas en milímetros y calcula cuántas filas y columnas completas caben en A4, sin escalar el contenido al imprimir.
-- **D4 — Plantilla visual preparada para fotografía.** El camión de cabecera es un asset fijo de la aplicación y la zona de fotografía de producto se reserva vacía. Incorporar la imagen real y dinámica del producto pertenece a un cambio posterior sobre imágenes de catálogo.
+- **D3 — Tamaño único.** Por decisión del cliente, la etiqueta se imprime solo en 100 × 55 mm (2 × 5 por hoja A4), sin selector ni medidas editables. Ese tamaño conserva la proporción de la etiqueta de referencia y aprovecha diez posiciones por hoja. Otros tamaños quedan para un cambio posterior si se necesitan.
+- **D4 — Plantilla visual sin fotografía.** El camión de cabecera es un asset fijo de la aplicación. El cliente descartó fotografiar o buscar imágenes de productos, así que la etiqueta no incluye imagen del producto ni reserva espacio para ella: ese espacio se destina al código de barras y a los datos.
 - **R1 — Lectura única del filtro.** Se recomienda un endpoint de proyección para etiquetas en lugar de recorrer páginas desde el navegador. Produce un conjunto coherente con una consulta, reutiliza los filtros aprobados y evita duplicados u omisiones si el catálogo cambia durante varias solicitudes.
 - **R2 — Generador propio.** Se recomienda implementar Code 128 en SVG dentro del frontend porque el uso está acotado, elimina una dependencia y permite probar patrones, suma de control y texto codificado. El diseño concretará los juegos de caracteres y el manejo de códigos no representables sin cambiar silenciosamente el catálogo.
 
@@ -32,7 +32,7 @@ No quedan decisiones de negocio abiertas que bloqueen las specs. La elección de
 
 ### New Capabilities
 
-- `impresion-de-etiquetas-de-productos`: preparación, composición, vista previa e impresión A4 de etiquetas, contenido de cada etiqueta, copias, tamaños, posición inicial, identidad comercial y código de barras.
+- `impresion-de-etiquetas-de-productos`: preparación, composición, vista previa e impresión A4 de etiquetas, contenido de cada etiqueta, copias, tamaño fijo, posición inicial, identidad comercial y código de barras.
 
 ### Modified Capabilities
 
@@ -55,7 +55,8 @@ No quedan decisiones de negocio abiertas que bloqueen las specs. La elección de
 - Escanear códigos de barras, buscar productos mediante lector o registrar movimientos a partir del escaneo.
 - Impresoras térmicas, lenguajes ZPL/EPL, etiquetas continuas o aplicaciones nativas de impresión.
 - Guardar plantillas, tamaños, cantidades, posiciones o trabajos de impresión como preferencias persistentes.
-- Cargar, guardar o mostrar una imagen dinámica del producto; la plantilla solo reserva su área futura.
+- Cargar, guardar o mostrar imágenes del producto en la etiqueta.
+- Ofrecer varios tamaños de etiqueta o medidas libres o personalizadas.
 - Incluir precios, existencias, costos, impuestos, ubicaciones, QR u otros datos en la etiqueta.
 - Modificar las reglas o el formato del código interno, importar códigos externos o generar códigos internos nuevos.
 - Registrar auditoría de impresiones o descontar existencias por imprimir.

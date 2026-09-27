@@ -18,14 +18,17 @@ const product: ProductLabelData = {
   id: 1,
   code: 'REP-001',
   name: 'Repuesto',
+  description: '',
+  contentQuantity: '1.000000',
   manufacturerCode: null,
   productBrand: null,
+  unit: { id: 1, name: 'Unidad' },
 }
 
 describe('ProductLabelSheet', () => {
   it('usa la cuadrícula física y conserva las celdas vacías', () => {
-    const grid = calculateLabelGrid(63, 38)
-    const page = buildLabelPages([{ product, quantity: 2 }], grid, 8).pages[0]!
+    const grid = calculateLabelGrid(100, 55)
+    const page = buildLabelPages([{ product, quantity: 2 }], grid, 4).pages[0]!
 
     render(
       <ProductLabelSheet
@@ -38,14 +41,14 @@ describe('ProductLabelSheet', () => {
     const sheet = screen.getByTestId('product-label-sheet')
     expect(sheet.getAttribute('style')).toContain('width: 210mm')
     expect(sheet.getAttribute('style')).toContain('height: 297mm')
-    expect(screen.getAllByTestId('product-label-cell')).toHaveLength(21)
-    expect(screen.getAllByTestId('empty-label-cell')).toHaveLength(19)
+    expect(screen.getAllByTestId('product-label-cell')).toHaveLength(10)
+    expect(screen.getAllByTestId('empty-label-cell')).toHaveLength(8)
     expect(screen.getAllByTestId('rendered-label')).toHaveLength(2)
     expect(sheet.getAttribute('style')).toContain(
-      'grid-template-columns: repeat(3, 63mm)',
+      'grid-template-columns: repeat(2, 100mm)',
     )
     expect(sheet.getAttribute('style')).toContain(
-      'grid-template-rows: repeat(7, 38mm)',
+      'grid-template-rows: repeat(5, 55mm)',
     )
   })
 })

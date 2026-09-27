@@ -6,15 +6,15 @@ Cada **etiqueta de producto** SHALL identificar un único **Producto** y mostrar
 
 - el **logotipo de entidad fiscal** comercial vigente cuando exista, sin repetir por separado el nombre que ya forma parte del logotipo;
 - como reserva cuando el logotipo no exista o no pueda cargarse, el nombre comercial vigente del **RUC comercial** o su razón social vigente cuando no tenga nombre comercial;
-- el código interno en el elemento textual más destacado y con tipografía monoespaciada;
+- el código interno en el elemento textual más destacado, con tipografía de máximo peso y cifras tabulares;
 - el nombre del producto, limitado visualmente a dos líneas;
-- la descripción del producto como texto secundario gris azulado y limitado visualmente a dos líneas;
+- la descripción del producto como texto secundario gris azulado, limitado visualmente a dos líneas;
 - el código del fabricante o número de parte cuando exista;
 - la marca de producto cuando exista;
 - la presentación formada por la cantidad de contenido y la unidad de medida registradas, sin inferir datos desde el nombre o la descripción;
 - un código de barras **Code 128** que represente exactamente el código interno.
 
-La etiqueta SHALL usar una plantilla azul oscuro, gris azulado y naranja con un recurso gráfico fijo y original de un camión en la esquina superior derecha. SHALL reservar en blanco, sin marco ni marcador, la zona derecha destinada a una futura imagen dinámica del producto. La etiqueta SHALL NOT mostrar precio, costo, impuesto, existencia, disponibilidad, estado, datos de la entidad artesanal ni el logotipo de Tallkit como emisor. La omisión de número de parte, marca o logotipo SHALL compactar el contenido sin imágenes rotas ni rótulos de datos ausentes. Trazabilidad: DP-009; RN-CAT-001/003/011; RF-CAT-001; UI-030/031; cambio `logotipos-por-ruc`; propuesta D1/D4.
+La etiqueta SHALL usar una plantilla azul oscuro, gris azulado y naranja con un recurso gráfico fijo y original de un camión en la esquina superior derecha. La etiqueta SHALL NOT incluir fotografías ni imágenes del producto ni reservar un área vacía para ellas: la composición SHALL repartir el espacio disponible entre los datos del producto y el código de barras. La etiqueta SHALL NOT mostrar precio, costo, impuesto, existencia, disponibilidad, estado, datos de la entidad artesanal ni el logotipo de Tallkit como emisor. La omisión de número de parte, marca o logotipo SHALL compactar el contenido sin imágenes rotas ni rótulos de datos ausentes. Trazabilidad: DP-009; RN-CAT-001/003/011; RF-CAT-001; UI-030/031; cambio `logotipos-por-ruc`; propuesta D1/D3/D4.
 
 #### Scenario: Producto con identidad comercial completa
 - **DADO** un producto con código interno, nombre, descripción, número de parte, marca, cantidad y unidad, y la entidad comercial con logotipo
@@ -27,14 +27,14 @@ La etiqueta SHALL usar una plantilla azul oscuro, gris azulado y naranja con un 
 - **ENTONCES** SHALL mostrarse la razón social como reserva, el código interno, el nombre, la descripción y la presentación sin imágenes rotas ni marcadores para los datos ausentes.
 
 #### Scenario: Nombre largo
-- **DADO** un producto cuyo nombre ocupa más de dos líneas en el tamaño elegido
+- **DADO** un producto cuyo nombre ocupa más de dos líneas
 - **CUANDO** se muestra o imprime la etiqueta
 - **ENTONCES** SHALL limitarse visualmente a dos líneas sin desplazar el código interno ni el código de barras fuera de la etiqueta.
 
-#### Scenario: Reserva para imagen futura
-- **DADO** cualquier producto sin capacidad de imagen en el catálogo vigente
+#### Scenario: Composición sin imagen del producto
+- **DADO** cualquier producto del catálogo
 - **CUANDO** se compone su etiqueta
-- **ENTONCES** SHALL conservarse limpia y en blanco la zona derecha prevista para la fotografía, sin texto de ayuda, icono ni contorno de marcador.
+- **ENTONCES** SHALL mostrarse sin fotografía del producto, sin zona vacía reservada para ella y con el código de barras integrado en la composición.
 
 ### Requirement: Copias y orden del lote
 
@@ -59,38 +59,26 @@ Trazabilidad: propuesta; RNF-USA-004/007; PPF-04/07; spec `catalogo-de-productos
 
 ### Requirement: Tamaño y distribución A4
 
-La vista imprimible SHALL usar páginas A4 verticales. El tamaño predeterminado SHALL ser 100 × 60 mm, distribuido en 2 columnas por 4 filas, para 8 posiciones por hoja. El modal SHALL permitir elegir dimensiones alternativas en milímetros; la cuadrícula SHALL usar únicamente columnas y filas completas que quepan en A4 y centrar el conjunto de etiquetas en la página. Cada posición SHALL conservar exactamente el ancho y alto elegidos, incluir líneas de corte finas y no escalarse para llenar el papel.
+La vista imprimible SHALL usar páginas A4 verticales y un único tamaño fijo de etiqueta de 100 × 55 mm, distribuido en 2 columnas por 5 filas, para 10 posiciones por hoja. El modal SHALL informar ese tamaño y SHALL NOT ofrecer otros tamaños ni permitir editar el ancho o el alto. La cuadrícula SHALL centrar el conjunto de etiquetas en la página. Cada posición SHALL conservar exactamente 100 × 55 mm, incluir líneas de corte finas y no escalarse para llenar el papel. Trazabilidad: RNF-USA-012; RNF-COM-001/005; propuesta D3.
 
-Un tamaño inválido o uno con el que no quepa al menos una etiqueta SHALL bloquear la impresión y explicar la corrección. Trazabilidad: RNF-USA-012; RNF-COM-001/005; propuesta D3.
+#### Scenario: Hoja de etiquetas
+- **CUANDO** el usuario abre el modal
+- **ENTONCES** SHALL ver una hoja A4 con 2 columnas, 5 filas y 10 posiciones de 100 × 55 mm.
 
-#### Scenario: Tamaño predeterminado
-- **CUANDO** el usuario abre el modal sin cambiar el tamaño
-- **ENTONCES** SHALL ver una hoja A4 con 2 columnas, 4 filas y 8 posiciones de 100 × 60 mm.
-
-#### Scenario: Tamaño alternativo válido
-- **DADO** dimensiones alternativas positivas con las que caben varias etiquetas completas
-- **CUANDO** el usuario las aplica
-- **ENTONCES** SHALL recalcularse la cuadrícula, el número de posiciones y las páginas sin deformar ni escalar las etiquetas.
-
-#### Scenario: Tamaño que no cabe
-- **CUANDO** el usuario define un ancho mayor que A4 o un alto con el que no cabe una posición
-- **ENTONCES** SHALL mostrarse un error de tamaño y la acción de imprimir SHALL permanecer deshabilitada.
+#### Scenario: Tamaño no configurable
+- **CUANDO** el usuario revisa la preparación
+- **ENTONCES** SHALL ver el tamaño 100 × 55 mm y las 10 etiquetas por hoja como información, sin selector de tamaño ni campos para escribir ancho o alto.
 
 ### Requirement: Posición inicial de la primera hoja
 
-El modal SHALL representar las posiciones de la cuadrícula en orden de lectura, de izquierda a derecha y de arriba abajo, y permitir seleccionar cualquiera como inicio. Las posiciones anteriores SHALL quedar vacías en la primera hoja para aprovechar una hoja parcialmente usada. Solo la primera hoja SHALL respetar ese desplazamiento; toda hoja posterior SHALL comenzar en su primera posición. Cambiar el tamaño SHALL restablecer la posición inicial a la primera cuando la anterior ya no exista.
+El modal SHALL representar las posiciones de la cuadrícula en orden de lectura, de izquierda a derecha y de arriba abajo, y permitir seleccionar cualquiera como inicio. Las posiciones anteriores SHALL quedar vacías en la primera hoja para aprovechar una hoja parcialmente usada. Solo la primera hoja SHALL respetar ese desplazamiento; toda hoja posterior SHALL comenzar en su primera posición.
 
 Trazabilidad: propuesta D2; RNF-USA-004/007.
 
 #### Scenario: Inicio en una posición intermedia
-- **DADO** la cuadrícula predeterminada de 8 posiciones
-- **CUANDO** el usuario elige la posición 4 y prepara 10 etiquetas
-- **ENTONCES** la primera hoja SHALL dejar vacías las posiciones 1 a 3, colocar 5 etiquetas y la segunda SHALL comenzar en la posición 1 con las 5 restantes.
-
-#### Scenario: Cambio a una cuadrícula menor
-- **DADO** una posición inicial que no existe en el nuevo tamaño
-- **CUANDO** el usuario cambia las dimensiones
-- **ENTONCES** la posición inicial SHALL volver a 1 y la vista previa SHALL anunciar el cambio sin perder las cantidades.
+- **DADO** la cuadrícula predeterminada de 10 posiciones
+- **CUANDO** el usuario elige la posición 4 y prepara 12 etiquetas
+- **ENTONCES** la primera hoja SHALL dejar vacías las posiciones 1 a 3, colocar 7 etiquetas y la segunda SHALL comenzar en la posición 1 con las 5 restantes.
 
 ### Requirement: Vista previa fiel y preparación de la marca
 
@@ -141,7 +129,7 @@ Si la impresión se cancela, el modal y sus opciones SHALL permanecer disponible
 
 #### Scenario: Cancelar la impresión
 - **CUANDO** el usuario cierra el diálogo de impresión sin imprimir
-- **ENTONCES** SHALL volver al modal con el lote, las cantidades, el tamaño y la posición inicial intactos.
+- **ENTONCES** SHALL volver al modal con el lote, las cantidades y la posición inicial intactos.
 
 #### Scenario: Guardar como PDF
 - **CUANDO** el usuario elige el destino PDF del navegador

@@ -7,12 +7,14 @@ export function ProductLabelSheet({
   brand,
   className = '',
   grid,
+  highlightedProductId,
   onLogoReady,
   page,
 }: {
   brand: ProductLabelBrand
   className?: string | undefined
   grid: LabelGrid
+  highlightedProductId?: number | null | undefined
   onLogoReady?: (() => void) | undefined
   page: ProductLabelCell[]
 }) {
@@ -34,6 +36,11 @@ export function ProductLabelSheet({
       {page.map((cell, index) => (
         <div
           className="product-label-cell box-border overflow-hidden border-r-[0.2mm] border-b-[0.2mm] border-black/50"
+          data-highlighted={
+            cell && cell.product.id === highlightedProductId
+              ? 'true'
+              : undefined
+          }
           data-testid="product-label-cell"
           key={index}
           style={{

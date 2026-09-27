@@ -298,11 +298,14 @@ def list_product_label_data(params: dict[str, Any]) -> ProductLabelBatch:
             "code": product.code,
             "manufacturer_code": product.manufacturer_code,
             "name": product.name,
+            "description": product.description,
             "product_brand": (
                 None
                 if product.product_brand is None
                 else {"id": product.product_brand.pk, "name": product.product_brand.name}
             ),
+            "content_quantity": _decimal_text(product.content_quantity, 6),
+            "unit": {"id": product.unit.pk, "name": product.unit.name},
         }
         for product in products
     ]

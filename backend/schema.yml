@@ -14469,16 +14469,25 @@ components:
           type: string
         name:
           type: string
+        description:
+          type: string
         product_brand:
           allOf:
-          - $ref: '#/components/schemas/ProductLabelBrand'
+          - $ref: '#/components/schemas/ProductLabelRef'
           nullable: true
+        content_quantity:
+          type: string
+        unit:
+          $ref: '#/components/schemas/ProductLabelRef'
       required:
       - code
+      - content_quantity
+      - description
       - id
       - manufacturer_code
       - name
       - product_brand
+      - unit
     ProductLabelBatch:
       type: object
       properties:
@@ -14491,7 +14500,7 @@ components:
       required:
       - count
       - results
-    ProductLabelBrand:
+    ProductLabelRef:
       type: object
       properties:
         id:

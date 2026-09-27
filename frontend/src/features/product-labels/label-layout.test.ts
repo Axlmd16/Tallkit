@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  DEFAULT_LABEL_HEIGHT_MM,
-  DEFAULT_LABEL_WIDTH_MM,
+  LABEL_HEIGHT_MM,
+  LABEL_WIDTH_MM,
   LabelLayoutError,
   PAGE_HEIGHT_MM,
   PAGE_WIDTH_MM,
   buildLabelPages,
   calculateLabelGrid,
-  validateLabelComposition,
   type ProductLabelData,
 } from './label-layout'
 
@@ -16,41 +15,30 @@ const product = (id: number, code: string): ProductLabelData => ({
   id,
   code,
   name: `Producto ${code}`,
+  description: '',
+  contentQuantity: '1.000000',
   manufacturerCode: null,
   productBrand: null,
+  unit: { id: 1, name: 'Unidad' },
 })
 
 describe('calculateLabelGrid', () => {
-  it('distribuye el tamaño predeterminado en 3 × 7 y centra la cuadrícula', () => {
+  it('usa el tamaño fijo 100 × 55 en una cuadrícula centrada de 2 × 5', () => {
     expect(PAGE_WIDTH_MM).toBe(210)
     expect(PAGE_HEIGHT_MM).toBe(297)
-    expect(DEFAULT_LABEL_WIDTH_MM).toBe(63)
-    expect(DEFAULT_LABEL_HEIGHT_MM).toBe(38)
+    expect(LABEL_WIDTH_MM).toBe(100)
+    expect(LABEL_HEIGHT_MM).toBe(55)
 
-    expect(calculateLabelGrid(63, 38)).toEqual({
+    expect(calculateLabelGrid(LABEL_WIDTH_MM, LABEL_HEIGHT_MM)).toEqual({
       pageWidthMm: 210,
       pageHeightMm: 297,
-      labelWidthMm: 63,
-      labelHeightMm: 38,
-      columns: 3,
-      rows: 7,
-      capacity: 21,
-      offsetXmm: 10.5,
-      offsetYmm: 15.5,
-    })
-  })
-
-  it('acepta dimensiones decimales y conserva las medidas exteriores', () => {
-    const grid = calculateLabelGrid(52.5, 29.7)
-
-    expect(grid).toMatchObject({
-      labelWidthMm: 52.5,
-      labelHeightMm: 29.7,
-      columns: 4,
-      rows: 10,
-      capacity: 40,
-      offsetXmm: 0,
-      offsetYmm: 0,
+      labelWidthMm: 100,
+      labelHeightMm: 55,
+      columns: 2,
+      rows: 5,
+      capacity: 10,
+      offsetXmm: 5,
+      offsetYmm: 11,
     })
   })
 
@@ -69,7 +57,7 @@ describe('calculateLabelGrid', () => {
 })
 
 describe('buildLabelPages', () => {
-  const grid = calculateLabelGrid(63, 38)
+  const grid = calculateLabelGrid(100, 55)
 
   it('mantiene el orden de productos y agrupa sus copias', () => {
     const result = buildLabelPages(
@@ -90,24 +78,24 @@ describe('buildLabelPages', () => {
       { product: product(2, 'B'), copyIndex: 1 },
       null,
     ])
-    expect(result.pages[0]).toHaveLength(21)
+    expect(result.pages[0]).toHaveLength(10)
   })
 
   it('deja vacías solo las posiciones anteriores al inicio de la primera hoja', () => {
     const result = buildLabelPages(
-      [{ product: product(1, 'A'), quantity: 20 }],
+      [{ product: product(1, 'A'), quantity: 12 }],
       grid,
-      8,
+      4,
     )
 
     expect(result.pages).toHaveLength(2)
-    expect(result.pages[0]?.slice(0, 7)).toEqual(Array(7).fill(null))
-    expect(result.pages[0]?.filter(Boolean)).toHaveLength(14)
+    expect(result.pages[0]?.slice(0, 3)).toEqual(Array(3).fill(null))
+    expect(result.pages[0]?.filter(Boolean)).toHaveLength(7)
     expect(result.pages[1]?.[0]).toEqual({
       product: product(1, 'A'),
-      copyIndex: 15,
+      copyIndex: 8,
     })
-    expect(result.pages[1]?.filter(Boolean)).toHaveLength(6)
+    expect(result.pages[1]?.filter(Boolean)).toHaveLength(5)
   })
 
   it('reinicia una posición que ya no existe y conserva las cantidades', () => {
@@ -133,20 +121,5 @@ describe('buildLabelPages', () => {
     expect(
       buildLabelPages([{ product: product(1, 'A'), quantity: 0 }], grid, 1),
     ).toMatchObject({ pages: [], totalLabels: 0 })
-  })
-})
-
-describe('validateLabelComposition', () => {
-  it('acepta el tamaño predeterminado y el mínimo legible', () => {
-    expect(validateLabelComposition(63, 38)).toEqual({ valid: true })
-    expect(validateLabelComposition(40, 25)).toEqual({ valid: true })
-  })
-
-  it('bloquea tamaños que no contienen identidad, código y barras legibles', () => {
-    expect(validateLabelComposition(39.9, 25)).toMatchObject({ valid: false })
-    expect(validateLabelComposition(40, 24.9)).toMatchObject({ valid: false })
-    expect(validateLabelComposition(Number.NaN, 25)).toMatchObject({
-      valid: false,
-    })
   })
 })

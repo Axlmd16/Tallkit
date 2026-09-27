@@ -52,11 +52,14 @@ function projection(product: (typeof products)[number]) {
   return {
     id: product.id,
     code: product.code,
+    content_quantity: product.content_quantity,
+    description: product.description,
     manufacturer_code: product.manufacturer_code || null,
     name: product.name,
     product_brand: product.product_brand
       ? { id: product.product_brand.id, name: product.product_brand.name }
       : null,
+    unit: { id: product.unit.id, name: product.unit.name },
   }
 }
 
@@ -104,9 +107,9 @@ async function mockCatalog(
           display_name: 'Repuestos La Esquina',
           logo: options.logo
             ? {
-                url: '/fake-label-logo.svg',
+                url: '/fake-label-logo.png',
                 revision: 1,
-                content_type: 'image/svg+xml',
+                content_type: 'image/png',
                 width: 120,
                 height: 40,
                 size_bytes: 100,
@@ -118,10 +121,13 @@ async function mockCatalog(
       },
     }),
   )
-  await page.route('**/fake-label-logo.svg', (route) =>
+  await page.route('**/fake-label-logo.png', (route) =>
     route.fulfill({
-      body: '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40"><rect width="120" height="40" fill="#0f6b6f"/></svg>',
-      contentType: 'image/svg+xml',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
+      contentType: 'image/png',
     }),
   )
 }
@@ -132,7 +138,7 @@ async function selectDesktopRow(page: Page, id: number) {
 
 test.describe.configure({ mode: 'serial', timeout: 120_000 })
 
-test('selección en dos páginas, copias, posición 8 e impresión conservan el estado', async ({
+test('selección en dos páginas, copias, posición 4 e impresión conservan el estado', async ({
   page,
 }, testInfo) => {
   await login(page, 'admin_e2e')
@@ -150,38 +156,47 @@ test('selección en dos páginas, copias, posición 8 e impresión conservan el 
   await page.getByRole('button', { name: 'Imprimir etiquetas' }).click()
 
   const modal = page.getByRole('dialog', { name: 'Imprimir etiquetas' })
-  await expect(modal.getByLabel('Ancho (mm)')).toHaveValue('63')
-  await expect(modal.getByLabel('Alto (mm)')).toHaveValue('38')
+  await expect(modal.getByText('100 × 55 mm · 10 por hoja')).toBeVisible()
+  await expect(modal.getByRole('radiogroup')).toHaveCount(0)
+  await expect(
+    modal.getByRole('spinbutton', { name: /Ancho|Alto/ }),
+  ).toHaveCount(0)
   await expect(
     modal.getByRole('button', { name: 'Imprimir', exact: true }),
   ).toBeInViewport()
   const preview = modal.locator('.product-label-preview')
   const previewCanvas = modal.getByTestId('product-label-preview-canvas')
-  const [previewBox, previewCanvasBox] = await Promise.all([
+  const zoom = modal.getByRole('status', { name: 'Nivel de zoom' })
+  await expect(
+    modal.getByRole('button', { name: 'Ajustar ancho' }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  const widthCanvas = await previewCanvas.boundingBox()
+  expect(widthCanvas!.width).toBeGreaterThan(500)
+
+  await modal.getByRole('button', { name: 'Ver hoja completa' }).click()
+  await expect(
+    modal.getByRole('button', { name: 'Ver hoja completa' }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  const [previewBox, fittedCanvas] = await Promise.all([
     preview.boundingBox(),
     previewCanvas.boundingBox(),
   ])
-  expect(previewBox).not.toBeNull()
-  expect(previewCanvasBox).not.toBeNull()
-  expect(previewCanvasBox!.width).toBeGreaterThan(380)
-  const leftGap = previewCanvasBox!.x - previewBox!.x
+  expect(fittedCanvas!.width).toBeLessThan(widthCanvas!.width)
+  expect(fittedCanvas!.height).toBeLessThanOrEqual(previewBox!.height)
+  const leftGap = fittedCanvas!.x - previewBox!.x
   const rightGap =
-    previewBox!.x +
-    previewBox!.width -
-    (previewCanvasBox!.x + previewCanvasBox!.width)
+    previewBox!.x + previewBox!.width - (fittedCanvas!.x + fittedCanvas!.width)
   expect(Math.abs(leftGap - rightGap)).toBeLessThan(3)
-  const fittedCanvas = await previewCanvas.boundingBox()
+  const fittedZoom = await zoom.textContent()
   await modal.getByRole('button', { name: 'Aumentar zoom' }).click()
   await modal.getByRole('button', { name: 'Aumentar zoom' }).click()
-  await expect(modal.getByRole('status', { name: 'Nivel de zoom' })).toHaveText(
-    '70 %',
-  )
+  await expect(zoom).not.toHaveText(fittedZoom ?? '')
   const enlargedCanvas = await previewCanvas.boundingBox()
   expect(enlargedCanvas!.width).toBeGreaterThan(fittedCanvas!.width)
-  await modal.getByRole('button', { name: 'Ajustar hoja' }).click()
+  await modal.getByRole('button', { name: 'Ajustar ancho' }).click()
   await modal.getByLabel('Copias de Filtro de aceite reforzado').fill('2')
-  await modal.getByLabel('Copias de Pastillas de freno').fill('20')
-  await modal.getByRole('button', { name: 'Empezar en posición 8' }).click()
+  await modal.getByLabel('Copias de Pastillas de freno').fill('10')
+  await modal.getByRole('button', { name: 'Empezar en posición 4' }).click()
   await expect(modal.getByText('Página 1 de 2')).toBeVisible()
   await modal.getByRole('button', { name: 'Página siguiente' }).click()
   await expect(modal.getByText('Página 2 de 2')).toBeVisible()
@@ -193,10 +208,10 @@ test('selección en dos páginas, copias, posición 8 e impresión conservan el 
     'true',
   )
   await expect(modal.getByLabel('Copias de Pastillas de freno')).toHaveValue(
-    '20',
+    '10',
   )
   await expect(
-    modal.getByRole('button', { name: 'Empezar en posición 8' }),
+    modal.getByRole('button', { name: 'Empezar en posición 4' }),
   ).toHaveAttribute('aria-pressed', 'true')
 
   const pdfPath = testInfo.outputPath('etiquetas-a4-chromium.pdf')

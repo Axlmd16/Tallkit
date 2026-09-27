@@ -178,7 +178,7 @@
 
 > **Estado de implementación:** `CU-004` y `CU-005` están implementados por `openspec/changes/archive/2026-09-24-gestionar-clientes-y-vehiculos` para fichas, propiedad y períodos de propiedad. La consulta cronológica de mantenimientos y documentos vinculados (`RF-CLI-011`) no forma parte de esa entrega y depende de las capacidades de taller y ventas. Evidencia: [cobertura-clientes-vehiculos.md](cobertura-clientes-vehiculos.md).
 
-> **Estado de implementación:** `CU-006` y `CU-016` están implementados en el cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores` para productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. No incluyen existencias, costos ni operaciones de compra, venta o mantenimiento. Evidencia: [cobertura-catalogos.md](cobertura-catalogos.md).
+> **Estado de implementación:** `CU-006` y `CU-016` están implementados en el cambio `openspec/changes/archive/2026-09-24-gestionar-catalogos-productos-servicios-proveedores` para productos, categorías, unidades, marcas de producto, compatibilidades, servicios y proveedores. No incluyen existencias, costos ni operaciones de compra, venta o mantenimiento. La alternativa 6a (impresión de etiquetas) se implementa en el cambio `imprimir-etiquetas-de-productos`. Evidencia: [cobertura-catalogos.md](cobertura-catalogos.md).
 
 ## 8. CU-006 — Gestionar catálogos
 
@@ -200,6 +200,7 @@
 - 5b. Se modifica precio: el nuevo valor no altera líneas históricas.
 - 5c. Se marca un kit comprado: se trata como producto completo; cualquier desarme se realiza con `CU-022`.
 - 5d. Se crea una presentación diferente: se registra como otro producto con código, existencia, costo y precio propios.
+- 6a. Imprimir etiquetas: desde la lista (selección manual o «Todos los del filtro actual») o desde la ficha, cualquier rol con `productos.ver` abre la preparación, ajusta copias y posición inicial, revisa la vista previa e imprime hojas A4 de 100 × 55 mm. Un código interno no representable en **Code 128** bloquea la impresión y se informa sin modificar el producto. Imprimir no altera catálogo, inventario ni auditoría.
 
 **Garantía de éxito:** el catálogo actualizado se usa en operaciones futuras.
 

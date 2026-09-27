@@ -51,9 +51,12 @@ it('obtiene la proyección completa para etiquetas con los cinco filtros vigente
     {
       id: 8,
       code: 'FIL-8',
+      content_quantity: '1.000000',
+      description: 'Para motores diésel',
       manufacturer_code: 'PH-8',
       name: 'Filtro',
       product_brand: { id: 2, name: 'Fleetguard' },
+      unit: { id: 7, name: 'Unidad' },
     },
   ])
   const api = createProductsApi({ request } as unknown as ApiClient)
@@ -70,9 +73,12 @@ it('obtiene la proyección completa para etiquetas con los cinco filtros vigente
     {
       id: 8,
       code: 'FIL-8',
+      contentQuantity: '1.000000',
+      description: 'Para motores diésel',
       manufacturerCode: 'PH-8',
       name: 'Filtro',
       productBrand: { id: 2, name: 'Fleetguard' },
+      unit: { id: 7, name: 'Unidad' },
     },
   ])
   expect(request).toHaveBeenCalledWith(

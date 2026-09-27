@@ -18,8 +18,11 @@ interface ProductLabelResponse {
   id: number
   code: string
   name: string
+  description: string
+  content_quantity: string
   manufacturer_code: string | null
   product_brand: { id: number; name: string } | null
+  unit: { id: number; name: string }
 }
 
 export interface TaxOptionFilters {
@@ -63,8 +66,11 @@ export function createProductsApi(client: ApiClient) {
         id: product.id,
         code: product.code,
         name: product.name,
+        description: product.description,
+        contentQuantity: product.content_quantity,
         manufacturerCode: product.manufacturer_code,
         productBrand: product.product_brand,
+        unit: product.unit,
       }))
     },
   }
