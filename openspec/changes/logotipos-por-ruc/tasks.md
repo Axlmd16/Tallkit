@@ -45,40 +45,41 @@ Dependencias: grupo 1. Diseño D1 y D2; spec `configuracion-operativa-y-fiscal` 
 
 Dependencias: grupo 2. Diseño D3; spec `configuracion-operativa-y-fiscal` («Reemplazo y retiro del logotipo», «Consistencia del logotipo ante fallos y concurrencia», «Logotipo opcional por entidad fiscal»).
 
-- [ ] 3.1 Escribir las pruebas de permisos:
+- [x] 3.1 Escribir las pruebas de permisos:
   - el Administrador puede;
   - Vendedor, Encargado del taller y la combinación Vendedor + Encargado no pueden: se deniega, se audita y no quedan archivos ni registros.
-- [ ] 3.2 Escribir las pruebas de `upload_entity_logo`:
+- [x] 3.2 Escribir las pruebas de `upload_entity_logo`:
   - carga inicial;
   - reemplazo: `logo_revision` se incrementa y el archivo anterior se borra en `on_commit`;
   - la otra entidad no cambia;
   - `FiscalEntity.version` no cambia;
   - auditoría `fiscal_entity_logo_uploaded` o `_replaced` sin contenido de imagen;
   - rechazo auditado con `fiscal_entity_logo_rejected`.
-- [ ] 3.3 Escribir las pruebas de idempotencia:
+- [x] 3.3 Escribir las pruebas de idempotencia:
   - misma clave y mismo archivo: un solo registro y un solo evento, sin escribir un archivo nuevo;
   - misma clave y otro archivo: `idempotency_conflict`;
   - clave inválida: error de validación.
-- [ ] 3.4 Escribir las pruebas de `remove_entity_logo`:
+- [x] 3.4 Escribir las pruebas de `remove_entity_logo`:
   - retiro auditado y archivo borrado en `on_commit`;
   - retiro sin logotipo: 200, sin evento;
   - retiro repetido con otra clave: inocuo.
-- [ ] 3.5 Escribir las pruebas de fallos:
+- [x] 3.5 Escribir las pruebas de fallos:
   - error de almacenamiento al escribir: se conserva el logotipo anterior y no hay registro nuevo;
   - error dentro de la transacción: se borra el archivo nuevo y se conserva el anterior.
-- [ ] 3.6 Escribir la prueba de concurrencia (`transaction=True`) en `test_entity_logos.py` o `test_concurrency.py`: dos cargas simultáneas sobre la misma entidad terminan con un único registro vigente con archivo, y el otro archivo borrado o limpiable.
-- [ ] 3.7 Implementar `backend/src/workshop_configuration/application/entity_logos.py` según D3:
+- [x] 3.6 Escribir la prueba de concurrencia (`transaction=True`) en `test_entity_logos.py` o `test_concurrency.py`: dos cargas simultáneas sobre la misma entidad terminan con un único registro vigente con archivo, y el otro archivo borrado o limpiable.
+- [x] 3.7 Implementar `backend/src/workshop_configuration/application/entity_logos.py` según D3:
   - `require_permission("entidades_fiscales.editar")`;
   - recibo `ConfigurationCommand` con huella `{entity_id, sha256}` o `{entity_id}`;
   - archivo escrito fuera de la transacción;
   - `select_for_update` sobre `FiscalEntity`;
   - `on_commit` para el archivo anterior;
   - limpieza del archivo nuevo ante cualquier excepción.
-- [ ] 3.8 Escribir las pruebas y crear el comando `purge_entity_logos` en `backend/src/workshop_configuration/management/commands/`, un paquete nuevo con sus `__init__.py`:
+- [x] 3.8 Escribir las pruebas y crear el comando `purge_entity_logos` en `backend/src/workshop_configuration/management/commands/`, un paquete nuevo con sus `__init__.py`:
   - solo borra archivos de `fiscal-logos/` sin registro y más antiguos que el margen;
   - una segunda ejecución no falla;
   - no toca `maintenance/` ni logotipos vigentes.
-- [ ] 3.9 Verificar: `uv run pytest tests/workshop_configuration/test_entity_logos.py tests/workshop_configuration/test_concurrency.py`, `ruff` y `mypy`.
+- [x] 3.9 Verificar: `uv run pytest tests/workshop_configuration/test_entity_logos.py tests/workshop_configuration/test_concurrency.py`, `ruff` y `mypy`.
+  - Evidencia (2026-09-27): `uv run pytest --no-cov tests/workshop_configuration/test_entity_logos.py tests/workshop_configuration/test_concurrency.py` → 26 aprobadas. La concurrencia de dos cargas está en `test_entity_logos.py` con `run_parallel` y `transaction=True`. `ruff check`, `ruff format --check` y `mypy src/workshop_configuration` sin hallazgos.
 
 ## 4. API y contrato (backend)
 
