@@ -9,3 +9,4 @@
 | Serie | `docs/negocio/producto/glosario.md` | Numeración interna (COM-VEN, ART-SER…) separada de la numeración fiscal. |
 | Secuencial | `docs/negocio/producto/glosario.md` | Número interno que no se mezcla con los secuenciales fiscales. |
 | SRI | `docs/negocio/producto/glosario.md` | Autoridad fiscal; la configuración es solo para preparación local. |
+| Placa de RUC | `docs/negocio/producto/glosario.md` | RUC de cada entidad en las fichas, los grupos de tabla y la barra de pestañas de facturación. |
