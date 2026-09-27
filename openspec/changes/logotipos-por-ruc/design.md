@@ -112,7 +112,7 @@ Las rutas cuelgan de `/api/v1/workshop-configuration/`:
 |---|---|---|
 | `POST entities/<id>/logo/` (multipart: `file`, `idempotency_key`) | `entidades_fiscales.editar` | Subir o reemplazar. Responde 200 con la entidad y su `logo`. |
 | `POST entities/<id>/logo/remove/` (`idempotency_key`) | `entidades_fiscales.editar` | Quitar. Responde 200 con `logo: null`. |
-| `GET entity-logos/` | Sesión vigente (`IsAuthenticated`) | Resumen para los comprobantes: `{COMERCIAL: {url, width, height} \| null, ARTESANAL: …}`. |
+| `GET entity-logos/` | Sesión vigente (`IsAuthenticated`) | Resumen para los comprobantes: `{COMERCIAL: {entity_id, legal_name, logo: {url, revision, width, height, …} \| null}, ARTESANAL: …}`. |
 | `GET entity-logos/<entity_type>/<revision>/` | Sesión vigente | Entrega la imagen. |
 
 - `_entity_data` añade `logo: {url, content_type, width, height, size_bytes, uploaded_at} | null` a la respuesta de entidades, para la ficha.

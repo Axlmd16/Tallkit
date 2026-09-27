@@ -85,18 +85,21 @@ Dependencias: grupo 2. Diseño D3; spec `configuracion-operativa-y-fiscal` («Re
 
 Dependencias: grupo 3. Diseño D5; spec `configuracion-operativa-y-fiscal` («Entrega privada del logotipo»).
 
-- [ ] 4.1 Escribir las pruebas de API en `test_entity_logos.py`:
+- [x] 4.1 Escribir las pruebas de API en `test_entity_logos.py`:
   - `POST entities/<id>/logo/` en multipart: 200 con `logo`; 400 con el detalle en `file`; 403 para roles sin permiso; 409 por conflicto de clave;
   - `POST entities/<id>/logo/remove/`: 200 con `logo: null`;
   - `GET entities/` y `GET entities/<id>/`: incluyen `logo` o `null`.
-- [ ] 4.2 Escribir las pruebas de entrega:
+- [x] 4.2 Escribir las pruebas de entrega:
   - `GET entity-logos/` para Administrador, Vendedor y Encargado devuelve `COMERCIAL` y `ARTESANAL` con `url`, `width`, `height` y `legal_name`, o `null` sin logotipo;
   - `GET entity-logos/<entity_type>/<revision>/` con sesión devuelve 200, el `Content-Type` real y las cabeceras `Cache-Control: private, max-age=31536000, immutable`, `nosniff` y `CSP default-src 'none'`;
   - sin sesión: denegada sin revelar existencia;
   - revisión antigua, tipo desconocido o entidad sin logotipo: 404.
-- [ ] 4.3 Implementar las vistas y serializadores en `backend/src/workshop_configuration/api/views.py`, registrar las rutas en `api/urls.py` y ampliar `_entity_data` con `logo`. Las vistas deben quedar delgadas y delegar en `entity_logos`.
-- [ ] 4.4 Regenerar `backend/schema.yml` con `drf-spectacular` y comprobar que no queden diferencias pendientes.
-- [ ] 4.5 Verificar: `uv run pytest` de los archivos del grupo más `tests/workshop_configuration/test_api.py` y `test_entity_warehouse_services.py` (regresión de la edición de entidad), `ruff` y `mypy`.
+- [x] 4.3 Implementar las vistas y serializadores en `backend/src/workshop_configuration/api/views.py`, registrar las rutas en `api/urls.py` y ampliar `_entity_data` con `logo`. Las vistas deben quedar delgadas y delegar en `entity_logos`.
+- [x] 4.4 Regenerar `backend/schema.yml` con `drf-spectacular` y comprobar que no queden diferencias pendientes.
+- [x] 4.5 Verificar: `uv run pytest` de los archivos del grupo más `tests/workshop_configuration/test_api.py` y `test_entity_warehouse_services.py` (regresión de la edición de entidad), `ruff` y `mypy`.
+  - Evidencia (2026-09-27): `uv run pytest --no-cov tests/workshop_configuration/test_entity_logo_api.py test_entity_logos.py test_api.py test_entity_warehouse_services.py` → 88 aprobadas. `ruff check`, `ruff format --check` y `mypy` sin hallazgos. Las pruebas HTTP quedaron en `test_entity_logo_api.py`.
+  - El resumen `entity-logos/` devuelve por entidad `entity_id`, `legal_name` y `logo`; el diseño D5 se ajustó a esa forma.
+  - Brecha previa: el `backend/schema.yml` versionado estaba desactualizado y no incluía 31 rutas existentes, entre ellas las del módulo fiscal. Se regeneró completo con `manage.py spectacular`: no se elimina ninguna ruta y se añaden las 4 de este cambio más esas 31.
 
 ## 5. Hoja del documento con la identidad del emisor (frontend)
 
