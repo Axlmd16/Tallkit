@@ -1,13 +1,4 @@
-import {
-  Certificate,
-  IdentificationCard,
-  Info,
-  MapPin,
-  Percent,
-  Wallet,
-  WarningCircle,
-  type Icon,
-} from '@phosphor-icons/react'
+import { Info, WarningCircle } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router'
 
 import type {
@@ -22,7 +13,6 @@ import { LocationsSection } from './configuration/LocationsSection'
 import { PaymentFormsSection } from './configuration/PaymentFormsSection'
 import { ProfileConditionsSection } from './configuration/ProfileConditionsSection'
 import {
-  READINESS_SECTION_LABELS,
   READINESS_SECTION_SHORT_LABELS,
   READINESS_SECTIONS,
   sectionIndicator,
@@ -34,32 +24,6 @@ import type { StatusCause } from './types'
 
 export const PREPARATION_NOTICE =
   'Configuración para preparación local. La emisión electrónica todavía no está habilitada.'
-
-const SUBSECTIONS: Record<
-  ReadinessSection,
-  { description: string; icon: Icon }
-> = {
-  perfil: {
-    description: 'Declare cada condición según el certificado de RUC.',
-    icon: IdentificationCard,
-  },
-  puntos: {
-    description: 'Códigos de tres dígitos que usa el SRI.',
-    icon: MapPin,
-  },
-  impuestos: {
-    description: 'Relacione cada impuesto interno con su tarifa oficial.',
-    icon: Percent,
-  },
-  'formas-pago': {
-    description: 'En V1 solo se habilitan efectivo (01) y transferencia (20).',
-    icon: Wallet,
-  },
-  certificado: {
-    description: 'Opcional. Datos de referencia; no equivale a una firma.',
-    icon: Certificate,
-  },
-}
 
 export function FiscalConfigurationSection({
   entities,
@@ -104,70 +68,23 @@ export function FiscalConfigurationSection({
   }
 
   const summary = readiness.byEntity[selected.id]
-  const current = SUBSECTIONS[section]
-  const SectionIcon = current.icon
-  const commercial = selected.entity_type === 'COMERCIAL'
   const pending = [
     ...(summary?.bySection[section] ?? []),
     ...(summary?.general ?? []),
   ]
+  const hints = <SectionHints pending={pending} />
   const definitions = taxDefinitions.filter(
     (definition) => definition.fiscal_entity_id === selected.id,
   )
 
   return (
     <section aria-label="Facturación electrónica" className="space-y-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <span
-            aria-hidden="true"
-            className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-control ${commercial ? 'bg-scope-commercial-soft text-scope-commercial' : 'bg-scope-artisan-soft text-scope-artisan'}`}
-          >
-            <SectionIcon size={17} weight="bold" />
-          </span>
-          <div className="min-w-0">
-            <h2
-              className="text-xl leading-8 font-bold text-ink"
-              id="facturacion-titulo"
-            >
-              {READINESS_SECTION_LABELS[section]}
-            </h2>
-            <p className="mt-0.5 text-[13px] text-ink-muted">
-              {current.description}
-            </p>
-          </div>
-        </div>
-        <div className="shrink-0">
-          <EntitySwitch
-            entities={entities}
-            onSelect={(entityId) => update({ entidad: String(entityId) })}
-            readinessFor={(entityId) => readiness.byEntity[entityId]}
-            selectedId={selected.id}
-          >
-            <PendingHint causes={pending} />
-            <HintPopover
-              align="end"
-              description={PREPARATION_NOTICE}
-              label="Preparación local"
-              size="sm"
-              trigger={
-                <>
-                  <Info aria-hidden="true" size={13} weight="bold" />
-                  Preparación local
-                </>
-              }
-              triggerClassName="bg-info-soft text-info hover:bg-accent-soft"
-            >
-              <p className="font-semibold text-ink">Preparación local</p>
-              <p className="mt-1 text-ink-muted">{PREPARATION_NOTICE}</p>
-              <p className="mt-1 text-ink-muted">
-                Ambiente disponible: Pruebas. La configuración la declara el
-                Administrador y no está validada por el SRI.
-              </p>
-            </HintPopover>
-          </EntitySwitch>
-        </div>
-      </header>
+      <EntitySwitch
+        entities={entities}
+        onSelect={(entityId) => update({ entidad: String(entityId) })}
+        readinessFor={(entityId) => readiness.byEntity[entityId]}
+        selectedId={selected.id}
+      />
 
       <div className="space-y-6" key={selected.id}>
         {readiness.isError && !summary && (
@@ -197,23 +114,25 @@ export function FiscalConfigurationSection({
         />
 
         <div hidden={section !== 'perfil'}>
-          <ProfileConditionsSection entityId={selected.id} />
+          <ProfileConditionsSection entityId={selected.id} hints={hints} />
         </div>
         <div hidden={section !== 'puntos'}>
-          <LocationsSection entityId={selected.id} />
+          <LocationsSection entityId={selected.id} hints={hints} />
         </div>
         <div hidden={section !== 'impuestos'}>
           <TaxMappingsSection
             definitions={definitions}
             entityId={selected.id}
+            hints={hints}
           />
         </div>
         <div hidden={section !== 'formas-pago'}>
-          <PaymentFormsSection entityId={selected.id} />
+          <PaymentFormsSection entityId={selected.id} hints={hints} />
         </div>
         <div hidden={section !== 'certificado'}>
           <CertificateSection
             entityId={selected.id}
+            hints={hints}
             warnings={summary?.warnings ?? []}
           />
         </div>
@@ -222,36 +141,68 @@ export function FiscalConfigurationSection({
   )
 }
 
-/** Advertencia interactiva con los pendientes de la subsección actual. */
-function PendingHint({ causes }: { causes: StatusCause[] }) {
-  if (causes.length === 0) return null
+/** Avisos de la subsección como botones rectos, alineados con sus acciones. */
+function SectionHints({ pending }: { pending: StatusCause[] }) {
   const label =
-    causes.length === 1 ? '1 pendiente' : `${causes.length} pendientes`
+    pending.length === 1 ? '1 pendiente' : `${pending.length} pendientes`
   return (
-    <HintPopover
-      align="end"
-      label={label}
-      size="sm"
-      trigger={
-        <>
-          <WarningCircle aria-hidden="true" size={13} weight="fill" />
-          {causes.length}
-        </>
-      }
-      triggerClassName="bg-warning-soft text-warning hover:bg-[#ffe9ad]"
-    >
-      <p className="font-semibold text-ink">Para completar</p>
-      <ul aria-label="Pendientes" className="mt-1.5 list-none space-y-1.5 p-0">
-        {causes.map((cause) => (
-          <li className="flex items-start gap-2" key={cause.code}>
-            <span
-              aria-hidden="true"
-              className="mt-[6px] size-[7px] shrink-0 rounded-full bg-[#c98a00]"
-            />
-            {cause.message}
-          </li>
-        ))}
-      </ul>
-    </HintPopover>
+    <>
+      {pending.length > 0 && (
+        <HintPopover
+          align="end"
+          label={label}
+          trigger={
+            <>
+              <WarningCircle
+                aria-hidden="true"
+                className="text-[#c98a00]"
+                size={16}
+                weight="fill"
+              />
+              {label}
+            </>
+          }
+          variant="button"
+        >
+          <p className="font-semibold text-ink">Para completar</p>
+          <ul
+            aria-label="Pendientes"
+            className="mt-1.5 list-none space-y-1.5 p-0"
+          >
+            {pending.map((cause) => (
+              <li className="flex items-start gap-2" key={cause.code}>
+                <span
+                  aria-hidden="true"
+                  className="mt-[6px] size-[7px] shrink-0 rounded-full bg-[#c98a00]"
+                />
+                {cause.message}
+              </li>
+            ))}
+          </ul>
+        </HintPopover>
+      )}
+      <HintPopover
+        align="end"
+        description={PREPARATION_NOTICE}
+        label="Preparación local"
+        trigger={
+          <Info
+            aria-hidden="true"
+            className="text-info"
+            size={18}
+            weight="bold"
+          />
+        }
+        triggerClassName="px-2.5"
+        variant="button"
+      >
+        <p className="font-semibold text-ink">Preparación local</p>
+        <p className="mt-1 text-ink-muted">{PREPARATION_NOTICE}</p>
+        <p className="mt-1 text-ink-muted">
+          Ambiente disponible: Pruebas. La configuración la declara el
+          Administrador y no está validada por el SRI.
+        </p>
+      </HintPopover>
+    </>
   )
 }

@@ -20,6 +20,8 @@ export interface HintPopoverProps {
   /** Texto que siempre describe el disparador para tecnologías de asistencia. */
   description?: string
   size?: 'sm' | 'md'
+  /** `button`: mismo alto, borde y esquina que un botón secundario. */
+  variant?: 'chip' | 'button'
 }
 
 /**
@@ -34,6 +36,7 @@ export function HintPopover({
   align = 'start',
   description,
   size = 'md',
+  variant = 'chip',
 }: HintPopoverProps) {
   const [open, setOpen] = useState(false)
   const [pinned, setPinned] = useState(false)
@@ -71,7 +74,7 @@ export function HintPopover({
         aria-describedby={description ? descriptionId : undefined}
         aria-expanded={visible}
         aria-label={label}
-        className={`ui-button inline-flex items-center rounded-full font-semibold whitespace-nowrap pointer-coarse:min-h-11 outline-none ${size === 'sm' ? 'min-h-6 gap-1 px-2 text-[11px]' : 'min-h-8 gap-1.5 px-2.5 text-xs'} focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${triggerClassName}`}
+        className={`ui-button inline-flex items-center font-semibold whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 ${variant === 'button' ? 'min-h-10 gap-2 rounded-control border border-line-strong bg-surface px-3 text-[13.5px] text-ink hover:bg-surface-subtle' : `rounded-full pointer-coarse:min-h-11 ${size === 'sm' ? 'min-h-6 gap-1 px-2 text-[11px]' : 'min-h-8 gap-1.5 px-2.5 text-xs'}`} ${triggerClassName}`}
         onBlur={() => setOpen(false)}
         onClick={() => setPinned((value) => !value)}
         onFocus={() => setOpen(true)}
@@ -86,7 +89,7 @@ export function HintPopover({
       )}
       {visible && (
         <span
-          className={`absolute top-full z-40 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-control border border-line bg-surface p-3 text-left text-[13px] font-normal text-ink shadow-menu ${align === 'end' ? 'right-0' : 'left-0'}`}
+          className={`absolute top-full z-40 mt-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-control border border-line bg-surface p-3 text-left text-[13px] font-normal text-ink shadow-menu ${align === 'end' ? 'right-0' : 'left-0'}`}
           id={panelId}
           role="note"
         >

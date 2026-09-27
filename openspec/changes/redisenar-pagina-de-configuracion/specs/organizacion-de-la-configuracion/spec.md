@@ -231,7 +231,7 @@ Trazabilidad: propuesta §6–8 y C14 del cambio `simplificar-flujo-fiscal-y-con
 
 ### Requirement: Subsecciones de facturación electrónica
 
-La sección *Facturación electrónica* SHALL mostrar de forma permanente una insignia «Preparación local» cuyo detalle, disponible con el puntero, el foco o un toque y siempre como descripción accesible, contiene el aviso «Configuración para preparación local. La emisión electrónica todavía no está habilitada.» El título visible de la sección SHALL ser el nombre completo de la subsección actual, con su descripción breve y un icono en el tono del ámbito de la entidad seleccionada. Contendrá, por entidad fiscal seleccionada, estas subsecciones:
+La sección *Facturación electrónica* SHALL mostrar de forma permanente un botón «Preparación local» cuyo detalle, disponible con el puntero, el foco o un toque y siempre como descripción accesible, contiene el aviso «Configuración para preparación local. La emisión electrónica todavía no está habilitada.» Cada subsección SHALL presentarse con el mismo encabezado y estilo que las demás secciones de la configuración: título con su nombre completo, descripción breve, acciones a la derecha como botones rectos, filas etiqueta–valor o tablas con estados de punto y texto, y acciones de fila como enlaces de acción. Contendrá, por entidad fiscal seleccionada, estas subsecciones:
 
 1. *Perfil tributario*
 2. *Establecimientos y puntos de emisión*
@@ -247,15 +247,15 @@ Cada subsección SHALL mostrar en la navegación un indicador mínimo del estado
 - un marcador y el número de pendientes, si le corresponden causas;
 - *Opcional* para *Certificado* cuando no tiene advertencias, o *Revisar* cuando las tiene.
 
-La entidad fiscal SHALL elegirse mediante un selector compacto de dos opciones, ubicado junto al título de la sección para no desplazar el contenido de las subsecciones. Cada opción SHALL mostrar el nombre y el tono de su ámbito, su razón social y un marcador de estado con texto accesible (*Sin configurar*, pendientes, *Requiere revisión* o *Lista*). La opción seleccionada SHALL distinguirse sin depender solo del color, y la placa de RUC de la entidad seleccionada SHALL mostrarse junto al selector.
+La entidad fiscal SHALL elegirse mediante una barra de pestañas rectas con línea inferior, con el mismo tratamiento que la navegación de secciones, ubicada al inicio de la sección. Cada pestaña SHALL mostrar el nombre y el tono de su ámbito, su razón social y un marcador de estado con texto accesible (*Sin configurar*, pendientes, *Requiere revisión* o *Lista*). La pestaña seleccionada SHALL distinguirse sin depender solo del color, y la placa de RUC de la entidad seleccionada SHALL mostrarse en la misma fila, alineada a la derecha.
 
 El estado SHALL comunicarse sin franjas ni bloques de aviso a todo el ancho, para no saturar la pantalla:
 
-- las causas de la subsección actual y las que no puedan atribuirse a ninguna subsección SHALL resumirse en un indicador de advertencia junto al título, con su número y nombre accesible; su detalle SHALL desplegarse con el puntero, el foco o un toque, y cerrarse con Escape;
+- las causas de la subsección actual y las que no puedan atribuirse a ninguna subsección SHALL resumirse en un botón de advertencia en las acciones del encabezado, con su número y nombre accesible, del mismo alto y esquina que los demás botones; su detalle SHALL desplegarse con el puntero, el foco o un toque, y cerrarse con Escape;
 - cada causa del estado fiscal SHALL atribuirse a la subsección donde se resuelve;
 - las advertencias independientes, como las del certificado, SHALL mostrarse solo en su subsección y SHALL NOT cambiar el estado.
 
-Los estados de declaraciones, puntos, correspondencias y formas de pago SHALL mostrarse como chips con los tonos semánticos del sistema visual (éxito, advertencia, información, principal o neutro), con marcador y texto. El certificado SHALL presentarse como una tarjeta de consulta con su vigencia evaluada localmente, y su formulario SHALL abrirse en un modal amplio con los campos agrupados por pasos, atajos de duración y una vista previa que se actualiza al escribir.
+Los estados de declaraciones, puntos, correspondencias y formas de pago SHALL mostrarse con marcador de forma y texto, como en las demás secciones. El certificado SHALL presentarse en filas etiqueta–valor con su vigencia evaluada localmente, y su formulario SHALL abrirse en un modal amplio con los campos agrupados por pasos, atajos de duración y una vista previa que se actualiza al escribir.
 
 Cada subsección SHALL describirse con una frase breve. Las explicaciones técnicas, códigos, versiones, fuentes y el ambiente SHALL quedar en los modales o en «Información avanzada», plegada.
 
@@ -268,17 +268,17 @@ Trazabilidad: propuesta §9 y R2; propuesta B7–B12 y C13 del cambio `simplific
 #### Scenario: Subsecciones visibles
 - **DADO** la sección *Facturación electrónica* con la entidad artesanal seleccionada en una pantalla de 1440 px
 - **CUANDO** el Administrador la consulta
-- **ENTONCES** SHALL ver como título *Perfil tributario* con su descripción, la insignia «Preparación local» con el aviso permanente, el selector compacto de las dos entidades y, en la navegación de secciones, las cinco subsecciones anidadas con nombres breves y los estados de la entidad artesanal únicamente, sin franjas de estado a todo el ancho.
+- **ENTONCES** SHALL ver la barra de pestañas de las dos entidades con la placa de RUC, el encabezado *Perfil tributario* con su descripción y el botón «Preparación local» con el aviso permanente y, en la navegación de secciones, las cinco subsecciones anidadas con nombres breves y los estados de la entidad artesanal únicamente, sin franjas de estado a todo el ancho.
 
 #### Scenario: Estado atribuido a su subsección
 - **DADO** la entidad artesanal con varios puntos activos y ninguno designado
 - **CUANDO** el Administrador consulta *Facturación electrónica*
-- **ENTONCES** *Puntos de emisión* SHALL indicar un pendiente en la navegación, las demás subsecciones sin causas SHALL indicar completo u *Opcional*, y al abrir *Establecimientos y puntos de emisión* su título SHALL mostrar la advertencia con esa causa en su detalle.
+- **ENTONCES** *Puntos de emisión* SHALL indicar un pendiente en la navegación, las demás subsecciones sin causas SHALL indicar completo u *Opcional*, y al abrir *Establecimientos y puntos de emisión* su encabezado SHALL mostrar el botón de advertencia con esa causa en su detalle.
 
 #### Scenario: Causa no atribuible
 - **DADO** una causa del estado fiscal que no corresponde a ninguna subsección conocida
 - **CUANDO** se muestra *Facturación electrónica*
-- **ENTONCES** la causa SHALL aparecer en el detalle de la advertencia junto al título y SHALL contarse como pendiente.
+- **ENTONCES** la causa SHALL aparecer en el detalle del botón de advertencia del encabezado y SHALL contarse como pendiente.
 
 #### Scenario: Entidad sin configurar
 - **DADO** una entidad fiscal sin perfil guardado ni certificado

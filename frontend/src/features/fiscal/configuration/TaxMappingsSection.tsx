@@ -10,9 +10,10 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
+  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateChip,
+  StateMark,
   useFieldProps,
   useToast,
 } from '@/shared/ui'
@@ -22,24 +23,37 @@ import { useCatalog, useFiscalMutations, useTaxMappings } from '../hooks'
 export function TaxMappingsSection({
   entityId,
   definitions,
+  hints,
 }: {
   entityId: number
   definitions: TaxDefinition[]
+  hints?: React.ReactNode
 }) {
   const mappings = useTaxMappings(entityId)
   const [creating, setCreating] = useState(false)
   const list = mappings.data ?? []
 
   return (
-    <section aria-label="Impuestos y catálogo SRI" className="space-y-5">
-      <div className="flex justify-end">
-        {definitions.length > 0 && (
-          <Button onClick={() => setCreating(true)} variant="secondary">
-            <Plus aria-hidden="true" size={16} weight="bold" />
-            Nueva correspondencia
-          </Button>
-        )}
-      </div>
+    <section
+      aria-labelledby={`impuestos-sri-${entityId}`}
+      className="space-y-5"
+    >
+      <SheetHeading
+        actions={
+          <>
+            {hints}
+            {definitions.length > 0 && (
+              <Button onClick={() => setCreating(true)} variant="secondary">
+                <Plus aria-hidden="true" size={16} weight="bold" />
+                Nueva correspondencia
+              </Button>
+            )}
+          </>
+        }
+        description="Relacione cada impuesto interno con su tarifa oficial."
+        id={`impuestos-sri-${entityId}`}
+        title="Impuestos y catálogo SRI"
+      />
 
       {definitions.length === 0 && (
         <p className="rounded-control bg-surface-subtle px-4 py-3 text-sm text-ink-muted">
@@ -93,11 +107,11 @@ export function TaxMappingsSection({
                       )}
                     </td>
                     <td className={sheetTableCell}>
-                      <StateChip
+                      <StateMark
                         label={
                           mapping.is_current ? 'Vigente' : 'Fuera de vigencia'
                         }
-                        tone={mapping.is_current ? 'success' : 'neutral'}
+                        tone={mapping.is_current ? 'success' : 'inactive'}
                       />
                     </td>
                   </tr>

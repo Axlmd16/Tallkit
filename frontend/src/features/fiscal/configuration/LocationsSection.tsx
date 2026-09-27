@@ -10,9 +10,9 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
+  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateChip,
   StateMark,
   useFieldProps,
   useToast,
@@ -31,7 +31,13 @@ type Dialog =
   | { kind: 'default' }
   | null
 
-export function LocationsSection({ entityId }: { entityId: number }) {
+export function LocationsSection({
+  entityId,
+  hints,
+}: {
+  entityId: number
+  hints?: React.ReactNode
+}) {
   const establishments = useEstablishments(entityId)
   const defaults = usePreparationDefaults(entityId)
   const [dialog, setDialog] = useState<Dialog>(null)
@@ -59,21 +65,24 @@ export function LocationsSection({ entityId }: { entityId: number }) {
   const effective = activePoints.find((point) => point.id === effectiveId)
 
   return (
-    <section
-      aria-label="Establecimientos y puntos de emisión"
-      className="space-y-5"
-    >
-      <div className="flex justify-end">
-        {
-          <Button
-            onClick={() => setDialog({ kind: 'establishment' })}
-            variant="secondary"
-          >
-            <Plus aria-hidden="true" size={16} weight="bold" />
-            Añadir establecimiento
-          </Button>
+    <section aria-labelledby={`puntos-${entityId}`} className="space-y-5">
+      <SheetHeading
+        actions={
+          <>
+            {hints}
+            <Button
+              onClick={() => setDialog({ kind: 'establishment' })}
+              variant="secondary"
+            >
+              <Plus aria-hidden="true" size={16} weight="bold" />
+              Añadir establecimiento
+            </Button>
+          </>
         }
-      </div>
+        description="Códigos de tres dígitos que usa el SRI."
+        id={`puntos-${entityId}`}
+        title="Establecimientos y puntos de emisión"
+      />
 
       <FactList className="max-w-3xl">
         <FactRow label="Punto predeterminado">
@@ -98,9 +107,9 @@ export function LocationsSection({ entityId }: { entityId: number }) {
             )}
             {activePoints.length > 1 && (
               <Button
-                className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
+                className="px-2"
                 onClick={() => setDialog({ kind: 'default' })}
-                variant="secondary"
+                variant="quiet"
               >
                 {effective ? 'Cambiar' : 'Designar punto'}
               </Button>
@@ -203,9 +212,9 @@ function EstablishmentRows({
           {establishment.is_active && (
             <Button
               aria-label={`Añadir punto al establecimiento ${establishment.code}`}
-              className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
+              className="px-2"
               onClick={onAddPoint}
-              variant="secondary"
+              variant="quiet"
             >
               <Plus aria-hidden="true" size={14} weight="bold" />
               Añadir punto
@@ -226,14 +235,16 @@ function EstablishmentRows({
               {establishment.code}-{point.code}
             </td>
             <td className={sheetTableCell}>
-              <StateChip
+              <StateMark
                 label={point.is_active ? 'Activo' : 'Inactivo'}
-                tone={point.is_active ? 'success' : 'neutral'}
+                tone={point.is_active ? 'success' : 'inactive'}
               />
             </td>
             <td className={`${sheetTableCell} text-[13px]`}>
               {point.id === effectiveId ? (
-                <StateChip label="Predeterminado" tone="primary" />
+                <span className="font-semibold text-accent-strong">
+                  Predeterminado
+                </span>
               ) : (
                 <span className="text-ink-muted">—</span>
               )}

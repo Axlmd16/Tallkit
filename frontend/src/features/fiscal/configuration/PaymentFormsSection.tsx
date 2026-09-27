@@ -3,9 +3,10 @@ import {
   Button,
   ErrorState,
   LoadingState,
+  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateChip,
+  StateMark,
   useToast,
 } from '@/shared/ui'
 
@@ -21,14 +22,20 @@ function formState(form: PaymentFormOption) {
   if (form.enabled)
     return {
       label: form.is_default ? 'Habilitada · predeterminada' : 'Habilitada',
-      tone: form.is_default ? ('primary' as const) : ('success' as const),
+      tone: form.is_default ? ('active' as const) : ('success' as const),
     }
   return form.enableable
-    ? { label: 'Deshabilitada', tone: 'neutral' as const }
-    : { label: 'No habilitable en V1', tone: 'neutral' as const }
+    ? { label: 'Deshabilitada', tone: 'inactive' as const }
+    : { label: 'No habilitable en V1', tone: 'unknown' as const }
 }
 
-export function PaymentFormsSection({ entityId }: { entityId: number }) {
+export function PaymentFormsSection({
+  entityId,
+  hints,
+}: {
+  entityId: number
+  hints?: React.ReactNode
+}) {
   const forms = usePaymentForms(entityId)
   const defaults = usePreparationDefaults(entityId)
   const mutations = useFiscalMutations()
@@ -45,7 +52,14 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
     mutations.setPaymentForm.error ?? mutations.savePreparationDefaults.error
 
   return (
-    <section aria-label="Formas de pago SRI" className="space-y-5">
+    <section aria-labelledby={`formas-pago-${entityId}`} className="space-y-5">
+      <SheetHeading
+        actions={<>{hints}</>}
+        description="En V1 solo se habilitan efectivo (01) y transferencia (20)."
+        id={`formas-pago-${entityId}`}
+        title="Formas de pago SRI"
+      />
+
       {failure && <ErrorState message={errorMessage(failure)} />}
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
@@ -72,14 +86,14 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                 </td>
                 <td className={`${sheetTableCell} font-mono`}>{form.code}</td>
                 <td className={sheetTableCell}>
-                  <StateChip {...formState(form)} />
+                  <StateMark {...formState(form)} />
                 </td>
                 <td className={sheetTableCell}>
                   {form.enableable && (
                     <span className="inline-flex flex-wrap justify-end gap-1">
                       {form.enabled && !form.is_default && (
                         <Button
-                          className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
+                          className="px-2"
                           onClick={() =>
                             mutations.savePreparationDefaults.mutate(
                               {
@@ -98,14 +112,14 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                               },
                             )
                           }
-                          variant="secondary"
+                          variant="quiet"
                         >
                           Usar como predeterminada
                         </Button>
                       )}
                       <Button
                         aria-label={`${form.enabled ? 'Deshabilitar' : 'Habilitar'} ${form.display_name}`}
-                        className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
+                        className="px-2"
                         onClick={() =>
                           mutations.setPaymentForm.mutate(
                             {
@@ -121,7 +135,7 @@ export function PaymentFormsSection({ entityId }: { entityId: number }) {
                             },
                           )
                         }
-                        variant="secondary"
+                        variant="quiet"
                       >
                         {form.enabled ? 'Deshabilitar' : 'Habilitar'}
                       </Button>

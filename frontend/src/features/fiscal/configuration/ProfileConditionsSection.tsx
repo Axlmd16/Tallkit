@@ -10,9 +10,10 @@ import {
   FormModal,
   getControlClasses,
   LoadingState,
+  SheetHeading,
   sheetTableCell,
   sheetTableHead,
-  StateChip,
+  StateMark,
   useFieldProps,
   useToast,
 } from '@/shared/ui'
@@ -72,12 +73,18 @@ const STATUS_LABELS: Record<ConditionStatus, string> = {
 }
 
 const STATUS_TONES = {
-  UNKNOWN: 'warning',
+  UNKNOWN: 'unknown',
   APPLICABLE: 'success',
-  NOT_APPLICABLE: 'info',
+  NOT_APPLICABLE: 'inactive',
 } as const
 
-export function ProfileConditionsSection({ entityId }: { entityId: number }) {
+export function ProfileConditionsSection({
+  entityId,
+  hints,
+}: {
+  entityId: number
+  hints?: React.ReactNode
+}) {
   const profile = useElectronicProfile(entityId)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
@@ -93,7 +100,14 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
   )
 
   return (
-    <section aria-label="Perfil tributario" className="space-y-4">
+    <section aria-labelledby={`perfil-${entityId}`} className="space-y-4">
+      <SheetHeading
+        actions={<>{hints}</>}
+        description="Declare cada condición según el certificado de RUC."
+        id={`perfil-${entityId}`}
+        title="Perfil tributario"
+      />
+
       <div className="relative overflow-x-auto">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <thead>
@@ -121,7 +135,7 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
                     {item.label}
                   </th>
                   <td className={sheetTableCell}>
-                    <StateChip
+                    <StateMark
                       label={STATUS_LABELS[status]}
                       tone={STATUS_TONES[status]}
                     />
@@ -141,9 +155,9 @@ export function ProfileConditionsSection({ entityId }: { entityId: number }) {
                   <td className={sheetTableCell}>
                     <Button
                       aria-label={`${action} ${item.label}`}
-                      className="min-h-8! px-2.5! py-1! text-[13px]! pointer-coarse:min-h-11!"
+                      className="px-2"
                       onClick={() => setSelectedKey(item.key)}
-                      variant="secondary"
+                      variant="quiet"
                     >
                       {status === 'UNKNOWN' ? (
                         <Plus aria-hidden="true" size={14} weight="bold" />
