@@ -10,3 +10,4 @@
 | Secuencial | `docs/negocio/producto/glosario.md` | Número interno que no se mezcla con los secuenciales fiscales. |
 | SRI | `docs/negocio/producto/glosario.md` | Autoridad fiscal; la configuración es solo para preparación local. |
 | Placa de RUC | `docs/negocio/producto/glosario.md` | RUC de cada entidad en las fichas, los grupos de tabla y la barra de pestañas de facturación. |
+| Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Logotipo opcional del emisor, incorporado por `logotipos-por-ruc`. |

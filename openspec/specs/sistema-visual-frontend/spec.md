@@ -159,7 +159,9 @@ La interfaz SHALL aplicar a todas sus pantallas el sistema visual propio **Tallk
 
 La interfaz SHALL mostrar el nombre **Tallkit** con el logotipo del producto y SHALL NOT reproducir marcas, logotipos, ilustraciones, textos ni datos de plantillas de terceros.
 
-**Trazabilidad:** decisiones 1, 2, 4 y 9 del proposal; `RNF-USA-008`, `RNF-USA-009`, `RNF-MAN-003`; maqueta Tallkit, tablero «Fundamentos».
+El logotipo de Tallkit identifica al sistema, no al emisor de los documentos internos. En la hoja de un documento interno, el encabezado SHALL pertenecer a la entidad fiscal emisora, conforme a PPF-09, y Tallkit SHALL aparecer solo como la mención discreta «Generado con Tallkit». Los logotipos de las entidades fiscales son contenido configurado por el negocio. SHALL NOT sustituir al logotipo de Tallkit en la navegación, la pantalla de acceso ni el resto de la interfaz.
+
+**Trazabilidad:** decisiones 1, 2, 4 y 9 del proposal; `RNF-USA-008`, `RNF-USA-009`, `RNF-MAN-003`; maqueta Tallkit, tablero «Fundamentos»; propuesta `logotipos-por-ruc` §7 y §9.
 
 #### Scenario: Recorrido por pantallas de distintos módulos
 - **WHEN** un usuario recorre acceso, inicio, una lista, una ficha, un formulario y el editor de venta
@@ -168,6 +170,10 @@ La interfaz SHALL mostrar el nombre **Tallkit** con el logotipo del producto y S
 #### Scenario: Marca visible
 - **WHEN** se muestra el marco autenticado o la pantalla de acceso
 - **THEN** SHALL aparecer el logotipo y el nombre «Tallkit», sin elementos de la plantilla SAAS Dashboard
+
+#### Scenario: Marca del sistema frente a la del emisor
+- **WHEN** las entidades fiscales tienen logotipo y un usuario recorre la navegación y un comprobante interno
+- **THEN** la navegación y el acceso SHALL seguir mostrando el logotipo de Tallkit, y el encabezado del comprobante SHALL mostrar el logotipo del emisor con «Generado con Tallkit» solo al pie
 
 ### Requirement: Tokens semánticos con bases para tema oscuro
 Colores, superficies, bordes, textos, estados, radios, sombras y tipografía SHALL definirse como tokens semánticos con nombre (por ejemplo lienzo, superficie, línea, tinta, acción, selección, éxito, advertencia o error), no como valores sueltos en cada pantalla. La estructura SHALL permitir definir más adelante un tema oscuro cambiando solo los valores de los tokens. Esta versión SHALL NOT ofrecer un tema oscuro ni un selector de tema.
@@ -207,7 +213,6 @@ La interfaz SHALL representar de forma consistente los datos propios del negocio
 #### Scenario: RUC de una entidad fiscal
 - **WHEN** se muestra el RUC `1140258475001` de una entidad fiscal en la configuración
 - **THEN** SHALL verse en una placa de RUC con la etiqueta «RUC» y los 13 dígitos en tipografía monoespaciada, y las tecnologías de asistencia SHALL anunciar «RUC 1140258475001»
-
 
 ### Requirement: Validación visual contra la maqueta Tallkit
 El rediseño SHALL entregarse en cuatro fases:

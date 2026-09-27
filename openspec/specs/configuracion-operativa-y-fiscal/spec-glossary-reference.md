@@ -15,3 +15,4 @@
 | Punto predeterminado | Nuevo término de `docs/negocio/producto/glosario.md` | Punto usado por defecto al preparar datos fiscales. |
 | Catálogo oficial | Nuevo término de `docs/negocio/producto/glosario.md` | Códigos del SRI versionados con fuente, ficha, descarga, vigencia y estado. |
 | SRI | `docs/negocio/producto/glosario.md` | Fuente primaria de los catálogos; sin conexión en esta fase. |
+| Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Logotipo opcional del emisor, incorporado por `logotipos-por-ruc`. |
