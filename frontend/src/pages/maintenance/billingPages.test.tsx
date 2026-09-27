@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -20,6 +20,11 @@ const mocks = vi.hoisted(() => {
       isError: false,
       data: undefined as unknown,
     },
+    brands: {} as Record<
+      string,
+      { logoUrl: string | null; legalName?: string }
+    >,
+    scopes: [] as string[],
     mutations: {
       pay: mutation(),
       voidOperation: mutation(),
@@ -32,6 +37,12 @@ vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
     data: { username: 'u', permissions: mocks.permissions },
   }),
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: (scope: string) => {
+    mocks.scopes.push(scope)
+    return mocks.brands[scope] ?? { logoUrl: null, legalName: undefined }
+  },
 }))
 vi.mock('@/features/maintenance/billingHooks', () => ({
   useServiceOperation: () => mocks.operation,
@@ -200,6 +211,94 @@ describe('ServiceOperationDetailPage', () => {
 })
 
 describe('ServiceOperationDocumentPage', () => {
+  const ARTISAN_LOGO =
+    '/api/v1/workshop-configuration/entity-logos/ARTESANAL/4/'
+
+  function renderDocument() {
+    mocks.operation.data = operation()
+    renderAt(
+      '/maintenance/service-operations/4/document',
+      '/maintenance/service-operations/:id/document',
+      <ServiceOperationDocumentPage />,
+    )
+  }
+
+  beforeEach(() => {
+    mocks.scopes = []
+    mocks.brands = {
+      COMERCIAL: {
+        logoUrl: '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/',
+        legalName: 'Repuestos',
+      },
+      ARTESANAL: { logoUrl: null, legalName: 'Taller vigente' },
+    }
+  })
+
+  it('encabeza con el logotipo artesanal y el nombre conservado, nunca con el comercial', () => {
+    mocks.brands.ARTESANAL = {
+      logoUrl: ARTISAN_LOGO,
+      legalName: 'Taller vigente',
+    }
+    renderDocument()
+    const issuer = screen.getByRole('group', { name: 'Emisor' })
+    expect(issuer).toHaveTextContent('Taller Artesanal')
+    expect(
+      within(issuer).getByRole('img', { name: 'Logo de Taller Artesanal' }),
+    ).toHaveAttribute('src', ARTISAN_LOGO)
+    expect(mocks.scopes.every((scope) => scope === 'ARTESANAL')).toBe(true)
+  })
+
+  it('sin logotipo artesanal muestra solo el nombre del emisor', () => {
+    renderDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Emisor' })).toHaveTextContent(
+      'Taller Artesanal',
+    )
+    expect(
+      screen.getByRole('button', { name: 'Imprimir comprobante' }),
+    ).toBeEnabled()
+  })
+
+  it('una operación anulada muestra el logotipo vigente y conserva sus datos históricos', () => {
+    mocks.brands.ARTESANAL = {
+      logoUrl: ARTISAN_LOGO,
+      legalName: 'Taller vigente',
+    }
+    mocks.operation.data = operation({
+      state: 'VOIDED',
+      void_reason: 'Precio equivocado',
+    })
+    renderAt(
+      '/maintenance/service-operations/4/document',
+      '/maintenance/service-operations/:id/document',
+      <ServiceOperationDocumentPage />,
+    )
+    const issuer = screen.getByRole('group', { name: 'Emisor' })
+    expect(
+      within(issuer).getByRole('img', { name: 'Logo de Taller Artesanal' }),
+    ).toHaveAttribute('src', ARTISAN_LOGO)
+    expect(issuer).toHaveTextContent('Taller Artesanal')
+    expect(
+      screen.getByText(/Taller Artesanal · 1790000000002/),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('ART-SER-000004').length).toBeGreaterThan(0)
+  })
+
+  it('espera el logotipo antes de permitir imprimir', () => {
+    mocks.brands.ARTESANAL = {
+      logoUrl: ARTISAN_LOGO,
+      legalName: 'Taller vigente',
+    }
+    renderDocument()
+    const button = screen.getByRole('button', { name: 'Imprimir comprobante' })
+    expect(button).toBeDisabled()
+    fireEvent.error(
+      screen.getByRole('img', { name: 'Logo de Taller Artesanal' }),
+    )
+    expect(button).toBeEnabled()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
   it('identifica el RUC artesanal y declara que no es factura del SRI', () => {
     mocks.operation.data = operation()
     renderAt(

@@ -145,6 +145,12 @@ fotografías retiradas, ejecute periódicamente (por ejemplo, a diario desde el 
 `cd backend && uv run python manage.py purge_workshop_files --older-than-minutes 60`
 (`docker compose exec backend python manage.py purge_workshop_files` en contenedores). Es idempotente.
 
+Los logotipos de las entidades fiscales (PNG, JPEG o WebP estático, hasta 2 MiB y 25 megapíxeles) usan la misma raíz
+privada, bajo `fiscal-logos/`. Para limpiar archivos reemplazados o de cargas interrumpidas, ejecute con la misma
+periodicidad:
+`cd backend && uv run python manage.py purge_entity_logos --older-than-minutes 60`
+(`docker compose exec backend python manage.py purge_entity_logos` en contenedores). Es idempotente y no toca las fotografías.
+
 ## Documentación
 
 - [Arquitectura técnica inicial](docs/tecnico/arquitectura-inicial.md)

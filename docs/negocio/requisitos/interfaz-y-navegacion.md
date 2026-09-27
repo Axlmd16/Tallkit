@@ -129,7 +129,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-010 | Lista de usuarios | Búsqueda, estado, rol, último acceso cuando esté disponible, crear, editar, activar/desactivar y restablecer credencial. |
 | UI-011 | Formulario de usuario | Identificación de acceso, datos básicos, estado y selección de uno o más roles entre Administrador, Vendedor y Encargado del taller. |
 | UI-013 | Configuración del taller | Página exclusiva del Administrador presentada como una sola hoja que, desde 768 px, ocupa todo el alto disponible sin cambiar de altura entre secciones; la descripción del encabezado ocupa una línea. Una navegación de secciones con enlaces (*Entidades fiscales*, *Bodega*, *Impuestos*, *Series y numeración*, *Facturación electrónica*), vertical desde 1024 px y barra horizontal desplazable por debajo, muestra registros y pendientes de cada sección y marca la posición con `aria-current`; se recorre con Tab. Inicia en *Entidades fiscales* salvo enlace directo (`?tab=`, `?seccion=`, `?entidad=`). El encabezado resume los pendientes de configuración con un enlace a la subsección que los resuelve. Cada sección se consulta primero (filas y tablas agrupadas por entidad con placa de RUC) y se edita solo en modales; los errores quedan en el modal o la sección de origen. |
-| UI-014 | Entidades fiscales | Pestañas o fichas independientes para RUC comercial y artesanal; nunca un formulario económico combinado. |
+| UI-014 | Entidades fiscales | Pestañas o fichas independientes para RUC comercial y artesanal; nunca un formulario económico combinado. Cada ficha incluye la fila «Logo», con vista previa o «Sin logo». «Subir logo» o «Cambiar» abren un modal con vista previa y los formatos en un aviso desplegable; «Quitar» pide confirmación. Solo para el Administrador (`logotipos-por-ruc`). |
 | UI-015 | Impuestos y vigencias | Lista cronológica por entidad fiscal, tarifa, fecha inicial y final; crear nueva vigencia. |
 | UI-016 | Series y secuenciales | Entidad, tipo, serie, valor actual y estado; muestra COM-ING, COM-PRO y COM-VEN bajo el RUC comercial y ART-SER bajo el artesanal, con vista `<SERIE>-<SECUENCIAL>` de al menos seis dígitos y sustitución explícita de una serie usada. |
 | UI-017 | Parámetros | Formas de pago, umbrales y valores configurables aprobados. |
@@ -167,7 +167,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-040 | Lista de ingresos | Secuencial, proveedor, fecha, estado, total, usuario; crear, abrir y filtrar. |
-| UI-041 | Editor de ingreso | Encabezado, proveedor, bodega principal, referencia externa y evidencia opcionales, y tabla editable de productos, cantidades y costos; guardar borrador y confirmar. |
+| UI-041 | Editor de ingreso | Encabezado, proveedor, bodega principal, referencia externa y evidencia opcionales, y tabla editable de productos, cantidades y costos; guardar borrador y confirmar. La vista previa encabeza con el logotipo comercial vigente, o con la razón social si no hay logotipo. |
 | UI-042 | Detalle de ingreso | Datos históricos, movimientos generados, costos aplicados y acción de anulación autorizada. |
 | UI-043 | Existencias | Producto, bodega principal, existencia, reserva, disponibilidad, umbral y estado de stock; búsqueda y exportación. |
 | UI-044 | Kardex | Filtros, saldo inicial, movimientos, saldo final y enlaces al origen. |
@@ -190,7 +190,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | UI-059 | Datos fiscales de la operación | Resumen de la operación y del emisor; receptor precargado pidiendo solo lo faltante; formas de pago SRI sugeridas y combinables, sin plazo; «Revisar datos para facturación» con impedimentos separados entre lo que completa el usuario y lo que resuelve el Administrador; aviso obligatorio «Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.» Nunca muestra ambiente, punto, códigos, revisiones ni fecha fiscal como datos editables. |
 | UI-056 | Devolución | Venta original, cantidades vendidas y ya devueltas, aptitud para reventa por línea, motivo, efecto de inventario y exceso pagado por reembolsar. |
 | UI-057 | Corrección comercial | Venta o devolución original, motivo, operación compensatoria y reembolso trazable cuando corresponda. |
-| UI-058 | Comprobante interno comercial | Vista imprimible con RUC comercial, cliente, líneas, totales, estado y aviso fiscal correspondiente. |
+| UI-058 | Comprobante interno comercial | Vista imprimible con RUC comercial, cliente, líneas, totales, estado y aviso fiscal correspondiente. El encabezado muestra el logotipo comercial vigente y el nombre del emisor, o solo el nombre si no hay logotipo. Al pie aparece «Generado con Tallkit». La impresión espera a que cargue el logotipo. |
 
 ### 6.6 Pagos y cuentas por cobrar
 
@@ -220,7 +220,7 @@ Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dine
 | UI-074 | Repuestos utilizados | Selección de productos y cantidades; existencia, reserva y disponibilidad; una sola venta comercial abierta y ventas confirmadas previas. Agregar reserva y retirar libera. |
 | UI-075 | Detalle de mantenimiento | Resumen e intervenciones operativas; dos bloques económicos separados: servicios artesanales y repuestos comerciales; historial de reaperturas y correcciones. |
 | UI-076 | Finalizar, cancelar o reabrir | Validaciones y documentos vinculados; impide finalizar con líneas comerciales pendientes; cancelación solo para duplicado/error/sin trabajo cobrable; reapertura por falla atribuible. |
-| UI-077 | Comprobante interno artesanal | RUC artesanal, cliente, vehículo, servicios, importes, pagos y aviso fiscal correspondiente. |
+| UI-077 | Comprobante interno artesanal | RUC artesanal, cliente, vehículo, servicios, importes, pagos y aviso fiscal correspondiente. El encabezado muestra el logotipo artesanal vigente, nunca el comercial, o solo el nombre del emisor si no hay logotipo. Al pie aparece «Generado con Tallkit». |
 | UI-078 | Intervención correctiva | Causa, trabajo realizado, servicios sin cargo y solicitud de repuestos asumidos por el taller. |
 
 Disposición conceptual del detalle:

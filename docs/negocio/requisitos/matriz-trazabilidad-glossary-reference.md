@@ -14,3 +14,4 @@
 | Modal | `docs/tecnico/glosario-tecnico.md` | Formato de los formularios cortos trazado a PPF-04. |
 | Marca de vehículo | `docs/negocio/producto/glosario.md` | Catálogo administrable separado de la marca de producto. |
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
+| Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Dato visual de SPEC-CONFIG que no se versiona. |

@@ -9,11 +9,15 @@ import {
   LoadingState,
   Money,
 } from '@/shared/ui'
+import { useIssuerBrand } from '@/shared/api/entity-logos'
+import { useSheetBrandReady } from '@/shared/ui/business'
 
 /** Comprobante interno del RUC artesanal; no es una factura electrónica autorizada. */
 export function ServiceOperationDocumentPage() {
   const id = Number(useParams().id)
   const query = useServiceOperationDocument(Number.isFinite(id) ? id : null)
+  const brand = useIssuerBrand('ARTESANAL')
+  const printable = useSheetBrandReady()
   if (query.isPending) return <LoadingState label="Cargando comprobante…" />
   if (query.isError || !query.data) {
     return (
@@ -49,6 +53,8 @@ export function ServiceOperationDocumentPage() {
           </h1>
         </div>
         <Button
+          aria-busy={!printable.ready}
+          disabled={!printable.ready}
           onClick={() => window.print()}
           type="button"
           variant="secondary"
@@ -59,7 +65,9 @@ export function ServiceOperationDocumentPage() {
       </div>
       <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">
         <DocumentSheet
+          issuer={{ name: issuer.legal_name, logoUrl: brand.logoUrl }}
           label={`Comprobante ${doc.internal_number}`}
+          onBrandReady={printable.onBrandReady}
           meta={[
             {
               label: 'Emisor (RUC artesanal)',

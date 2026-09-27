@@ -547,6 +547,2017 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/fiscal/archive/:
+    get:
+      operationId: fiscal_archive_retrieve
+      description: Lista paginada de evidencia externa no verificada ante el SRI según
+        el ámbito del usuario; admite filtros por emisor, ambiente, tipo y fecha de
+        emisión.
+      parameters:
+      - in: query
+        name: document_type
+        schema:
+          type: string
+          enum:
+          - '01'
+          - '04'
+      - in: query
+        name: environment
+        schema:
+          type: string
+          enum:
+          - '1'
+          - '2'
+      - in: query
+        name: fiscal_entity_id
+        schema:
+          type: integer
+        description: Emisor.
+      - in: query
+        name: issued_from
+        schema:
+          type: string
+          format: date
+        description: Emisión desde (AAAA-MM-DD).
+      - in: query
+        name: issued_to
+        schema:
+          type: string
+          format: date
+        description: Emisión hasta (AAAA-MM-DD).
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalArchivePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: fiscal_archive_create
+      description: Incorpora XML (máximo 2 MiB) como evidencia externa no verificada.
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveUpload'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveUpload'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveUpload'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalArchiveResult'
+          description: ''
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/archive/{dossier_id}/download/:
+    get:
+      operationId: fiscal_archive_download_retrieve
+      parameters:
+      - in: path
+        name: dossier_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/archive/{dossier_id}/link/:
+    post:
+      operationId: fiscal_archive_link_create
+      parameters:
+      - in: path
+        name: dossier_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveLink'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveLink'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveLink'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalLinkResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/archive/export/:
+    post:
+      operationId: fiscal_archive_export_create
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveExport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveExport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalArchiveExport'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/catalogs/{kind}/:
+    get:
+      operationId: fiscal_configuration_catalogs_list
+      parameters:
+      - in: path
+        name: kind
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: selectable
+        schema:
+          type: boolean
+        description: Solo entradas seleccionables.
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalCatalogEntry'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/electronic-profile/:
+    get:
+      operationId: fiscal_configuration_entities_electronic_profile_retrieve
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalElectronicProfile'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    put:
+      operationId: fiscal_configuration_entities_electronic_profile_update
+      description: Conserva metadatos declarados; rechaza certificados o claves privadas.
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalElectronicProfileWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalElectronicProfileWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalElectronicProfileWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalElectronicProfile'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/electronic-status/:
+    get:
+      operationId: fiscal_configuration_entities_electronic_status_retrieve
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalElectronicStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/establishments/:
+    get:
+      operationId: fiscal_configuration_entities_establishments_list
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalEstablishment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: fiscal_configuration_entities_establishments_create
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalEstablishmentWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalEstablishmentWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalEstablishmentWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEstablishment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/payment-forms/:
+    get:
+      operationId: fiscal_configuration_entities_payment_forms_list
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalPaymentFormOption'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/payment-forms/{code}/:
+    put:
+      operationId: fiscal_configuration_entities_payment_forms_update
+      parameters:
+      - in: path
+        name: code
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalPaymentFormWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalPaymentFormWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalPaymentFormWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalPaymentFormOption'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/preparation-defaults/:
+    get:
+      operationId: fiscal_configuration_entities_preparation_defaults_retrieve
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationDefaults'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    put:
+      operationId: fiscal_configuration_entities_preparation_defaults_update
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationDefaultsWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationDefaultsWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationDefaultsWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationDefaults'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/tax-mappings/:
+    get:
+      operationId: fiscal_configuration_entities_tax_mappings_list
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalTaxMappingListItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/establishments/{establishment_id}/:
+    patch:
+      operationId: fiscal_configuration_establishments_partial_update
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEstablishment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/establishments/{establishment_id}/points/:
+    post:
+      operationId: fiscal_configuration_establishments_points_create
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalPointWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalPointWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalPointWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPoint'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/numbering-antecedents/:
+    post:
+      operationId: fiscal_configuration_numbering_antecedents_create
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalNumberingAntecedentWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalNumberingAntecedentWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalNumberingAntecedentWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalNumberingAntecedent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/points/{point_id}/:
+    patch:
+      operationId: fiscal_configuration_points_partial_update
+      parameters:
+      - in: path
+        name: point_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalActiveUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPoint'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/configuration/tax-mappings/:
+    post:
+      operationId: fiscal_configuration_tax_mappings_create
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalTaxMapping'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/:
+    get:
+      operationId: fiscal_corrections_list
+      description: Lista solicitudes locales; ninguna implica ejecución oficial.
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FiscalCorrectionSummary'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: fiscal_corrections_create
+      description: Registra una solicitud local; no ejecuta una corrección oficial.
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalCorrectionResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/{request_id}/:
+    get:
+      operationId: fiscal_corrections_retrieve
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalCorrectionDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/{request_id}/cancel/:
+    post:
+      operationId: fiscal_corrections_cancel_create
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCancel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCancel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionCancel'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalCorrectionResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/{request_id}/evidence/:
+    post:
+      operationId: fiscal_corrections_evidence_create
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionEvidence'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionEvidence'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionEvidence'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/{request_id}/prepare/:
+    post:
+      operationId: fiscal_corrections_prepare_create
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionPrepare'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionPrepare'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionPrepare'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalCorrectionResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/corrections/{request_id}/replace/:
+    post:
+      operationId: fiscal_corrections_replace_create
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionReplace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionReplace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCorrectionReplace'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalCorrectionResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/:
+    get:
+      operationId: fiscal_preparation_active
+      description: Preparación local activa de una operación; no indica emisión.
+      parameters:
+      - in: query
+        name: source_id
+        schema:
+          type: integer
+      - in: query
+        name: source_kind
+        schema:
+          type: string
+          enum:
+          - ARTISAN
+          - COMMERCIAL
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalActivePreparation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: fiscal_preparation_create
+      description: Crea un borrador fiscal local; no transmite ni autoriza un comprobante.
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalPreparationCreate'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/{preparation_id}/:
+    get:
+      operationId: fiscal_preparation_retrieve
+      description: Consulta el borrador o snapshot histórico y su discrepancia actual.
+        No representa envío ni estado oficial del SRI.
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: fiscal_preparation_update
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalDraftUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalDraftUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFiscalDraftUpdate'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalDraft'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/{preparation_id}/cancel/:
+    post:
+      operationId: fiscal_preparations_cancel_create
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalCancel'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalCancel'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalCancel'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalDraft'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/{preparation_id}/prepare/:
+    post:
+      operationId: fiscal_preparation_prepare
+      description: Prepara una instantánea local; no comunica ni obtiene estado oficial
+        del SRI.
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalPrepare'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalPrepare'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalPrepare'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/{preparation_id}/review/:
+    post:
+      operationId: fiscal_preparation_review
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalReview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/preparations/{preparation_id}/test-identity/:
+    post:
+      operationId: fiscal_preparations_test_identity_create
+      parameters:
+      - in: path
+        name: preparation_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalIdentity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/readiness/:
+    get:
+      operationId: fiscal_readiness_retrieve
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalReadiness'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: fiscal_readiness_create
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalArchivePolicyWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalArchivePolicyWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalArchivePolicyWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalReadiness'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/fiscal/readiness/restorations/:
+    post:
+      operationId: fiscal_readiness_restorations_create
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalRestorationWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalRestorationWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalRestorationWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/health/:
     get:
       operationId: health_retrieve
@@ -7533,6 +9544,173 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/workshop-configuration/entities/{entity_id}/logo/:
+    post:
+      operationId: workshop_configuration_entity_logo_upload
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EntityLogoUpload'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEntity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/entities/{entity_id}/logo/remove/:
+    post:
+      operationId: workshop_configuration_entity_logo_remove
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityLogoRemove'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EntityLogoRemove'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EntityLogoRemove'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalEntity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/entity-logos/:
+    get:
+      operationId: workshop_configuration_entity_logos_summary
+      description: 'Resumen para los comprobantes: cualquier usuario con sesión vigente.'
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityLogoSummary'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/workshop-configuration/entity-logos/{entity_type}/{revision}/:
+    get:
+      operationId: workshop_configuration_entity_logo_file
+      description: Entrega la revisión vigente del logotipo; cualquier otra responde
+        404.
+      parameters:
+      - in: path
+        name: entity_type
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: revision
+        schema:
+          type: integer
+        required: true
+      tags:
+      - workshop-configuration
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: Imagen privada.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/workshop-configuration/initialize/:
     post:
       operationId: workshop_configuration_initialize
@@ -8058,6 +10236,14 @@ paths:
           description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - ONLINE_CANCELLATION
+      - CREDIT_NOTE
+      type: string
+      description: |-
+        * `ONLINE_CANCELLATION` - ONLINE_CANCELLATION
+        * `CREDIT_NOTE` - CREDIT_NOTE
     AdminOperation:
       type: object
       properties:
@@ -8718,7 +10904,7 @@ components:
       - is_active
       - last_number
       - version
-    DocumentTypeEnum:
+    DocumentTypeBfeEnum:
       enum:
       - FACTURA
       - NOTA_DE_VENTA
@@ -8829,6 +11015,773 @@ components:
       - notice
       - order_id
       - order_number
+    EntityLogo:
+      type: object
+      properties:
+        url:
+          type: string
+        revision:
+          type: integer
+        content_type:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        size_bytes:
+          type: integer
+        uploaded_at:
+          type: string
+          format: date-time
+      required:
+      - content_type
+      - height
+      - revision
+      - size_bytes
+      - uploaded_at
+      - url
+      - width
+    EntityLogoRemove:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          maxLength: 128
+      required:
+      - idempotency_key
+    EntityLogoSummary:
+      type: object
+      properties:
+        COMERCIAL:
+          allOf:
+          - $ref: '#/components/schemas/EntityLogoSummaryItem'
+          nullable: true
+        ARTESANAL:
+          allOf:
+          - $ref: '#/components/schemas/EntityLogoSummaryItem'
+          nullable: true
+      required:
+      - ARTESANAL
+      - COMERCIAL
+    EntityLogoSummaryItem:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        legal_name:
+          type: string
+        logo:
+          allOf:
+          - $ref: '#/components/schemas/EntityLogo'
+          nullable: true
+      required:
+      - entity_id
+      - legal_name
+      - logo
+    EntityLogoUpload:
+      type: object
+      properties:
+        file:
+          type: string
+          format: uri
+        idempotency_key:
+          type: string
+          maxLength: 128
+      required:
+      - file
+      - idempotency_key
+    FiscalActivePreparation:
+      type: object
+      properties:
+        preparation_id:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          nullable: true
+      required:
+      - preparation_id
+      - state
+    FiscalArchiveExport:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        dossier_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 100
+          minItems: 1
+      required:
+      - dossier_ids
+    FiscalArchiveLink:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        source_kind:
+          $ref: '#/components/schemas/SourceKindEnum'
+        source_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - reason
+      - source_id
+      - source_kind
+    FiscalArchivePage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalArchiveSummary'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    FiscalArchivePolicyWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        fiscal_entity_id:
+          type: integer
+          minimum: 1
+        responsible:
+          type: string
+          maxLength: 300
+          minLength: 1
+        purpose:
+          type: string
+          minLength: 1
+        legal_basis:
+          type: string
+          minLength: 1
+        retention:
+          type: object
+          additionalProperties: {}
+        rights_channel:
+          type: string
+          maxLength: 500
+          minLength: 1
+        rights_procedure:
+          type: string
+          minLength: 1
+        end_of_retention_review:
+          type: string
+          minLength: 1
+        storage_fingerprint:
+          type: string
+          maxLength: 128
+          minLength: 1
+        procedure_version:
+          type: string
+          maxLength: 100
+          minLength: 1
+      required:
+      - end_of_retention_review
+      - fiscal_entity_id
+      - legal_basis
+      - procedure_version
+      - purpose
+      - responsible
+      - retention
+      - rights_channel
+      - rights_procedure
+      - storage_fingerprint
+    FiscalArchiveResult:
+      type: object
+      properties:
+        dossier_id:
+          type: string
+          format: uuid
+        replayed:
+          type: boolean
+        evidence_added:
+          type: boolean
+        verification:
+          type: string
+          default: EXTERNAL_UNVERIFIED
+      required:
+      - dossier_id
+      - evidence_added
+      - replayed
+    FiscalArchiveSummary:
+      type: object
+      properties:
+        dossier_id:
+          type: string
+          format: uuid
+        fiscal_entity_id:
+          type: integer
+        document_type:
+          type: string
+        environment:
+          type: string
+        access_key:
+          type: string
+        issue_date:
+          type: string
+          format: date
+        total:
+          type: string
+        verification_level:
+          type: string
+        linked_source:
+          type: string
+          nullable: true
+      required:
+      - access_key
+      - document_type
+      - dossier_id
+      - environment
+      - fiscal_entity_id
+      - issue_date
+      - linked_source
+      - total
+      - verification_level
+    FiscalArchiveUpload:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        fiscal_entity_id:
+          type: integer
+          minimum: 1
+        source_label:
+          type: string
+          maxLength: 500
+          minLength: 1
+        xml:
+          type: string
+          format: binary
+      required:
+      - fiscal_entity_id
+      - source_label
+      - xml
+    FiscalCancel:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - expected_version
+      - reason
+    FiscalCatalogEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        kind:
+          type: string
+        catalog_version:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        display_name:
+          type: string
+        tax_code:
+          type: string
+          nullable: true
+        rate:
+          type: string
+          nullable: true
+        treatment:
+          type: string
+          nullable: true
+        source_document:
+          type: string
+        source_version:
+          type: string
+        source_reference:
+          type: string
+        source_url:
+          type: string
+        downloaded_on:
+          type: string
+          format: date
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_to:
+          type: string
+          format: date
+          nullable: true
+        validity_note:
+          type: string
+        is_active:
+          type: boolean
+        is_selectable:
+          type: boolean
+        incorporated_at:
+          type: string
+          format: date-time
+      required:
+      - catalog_version
+      - code
+      - description
+      - display_name
+      - downloaded_on
+      - id
+      - incorporated_at
+      - is_active
+      - is_selectable
+      - kind
+      - rate
+      - source_document
+      - source_reference
+      - source_url
+      - source_version
+      - tax_code
+      - treatment
+      - valid_from
+      - valid_to
+      - validity_note
+    FiscalCorrectionCancel:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - expected_version
+      - reason
+    FiscalCorrectionCreate:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        original_dossier_id:
+          type: string
+          format: uuid
+          nullable: true
+        original_identity_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        reference_date:
+          type: string
+          format: date
+        facts:
+          $ref: '#/components/schemas/FiscalCorrectionFacts'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalCorrectionLineWrite'
+      required:
+      - action
+      - facts
+      - lines
+      - reason
+      - reference_date
+    FiscalCorrectionDetail:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        original:
+          type: object
+          additionalProperties: {}
+        action:
+          type: string
+        reason:
+          type: string
+        reference_date:
+          type: string
+          format: date
+        normative_version:
+          type: string
+        facts:
+          type: object
+          additionalProperties: {}
+        evaluation:
+          type: object
+          additionalProperties: {}
+        state:
+          type: string
+        version:
+          type: integer
+        requested_base:
+          type: string
+        requested_tax:
+          type: string
+        requested_total:
+          type: string
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        evidence_dossier_id:
+          type: string
+          format: uuid
+          nullable: true
+        reconciliation_pending:
+          type: boolean
+        cancellation_reason:
+          type: string
+        replaces_id:
+          type: string
+          format: uuid
+          nullable: true
+        officially_executed:
+          type: boolean
+      required:
+      - action
+      - cancellation_reason
+      - evaluation
+      - evidence_dossier_id
+      - facts
+      - lines
+      - normative_version
+      - officially_executed
+      - original
+      - reason
+      - reconciliation_pending
+      - reference_date
+      - replaces_id
+      - request_id
+      - requested_base
+      - requested_tax
+      - requested_total
+      - state
+      - version
+    FiscalCorrectionEvidence:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        evidence_dossier_id:
+          type: string
+          format: uuid
+      required:
+      - evidence_dossier_id
+    FiscalCorrectionFacts:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        consumer_final_transmitted:
+          type: boolean
+          nullable: true
+        supports_tax_refund:
+          type: boolean
+          nullable: true
+        negotiable_traded:
+          type: boolean
+          nullable: true
+        external_history_complete:
+          type: boolean
+          nullable: true
+        holidays_complete:
+          type: boolean
+          default: false
+        holidays:
+          type: array
+          items:
+            type: string
+            format: date
+          maxItems: 100
+        calendar_source:
+          type: string
+          default: ''
+          maxLength: 500
+        calendar_version:
+          type: string
+          default: ''
+          maxLength: 100
+    FiscalCorrectionLineWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        position:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+        base_amount:
+          type: string
+        tax_amount:
+          type: string
+        total_amount:
+          type: string
+      required:
+      - base_amount
+      - position
+      - quantity
+      - tax_amount
+      - total_amount
+    FiscalCorrectionPrepare:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+    FiscalCorrectionReplace:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        original_dossier_id:
+          type: string
+          format: uuid
+          nullable: true
+        original_identity_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+        reference_date:
+          type: string
+          format: date
+        facts:
+          $ref: '#/components/schemas/FiscalCorrectionFacts'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalCorrectionLineWrite'
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - action
+      - expected_version
+      - facts
+      - lines
+      - reason
+      - reference_date
+    FiscalCorrectionResult:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        version:
+          type: integer
+        replayed:
+          type: boolean
+        officially_executed:
+          type: boolean
+          default: false
+      required:
+      - replayed
+      - request_id
+      - state
+      - version
+    FiscalCorrectionSummary:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+        state:
+          type: string
+        version:
+          type: integer
+        reason:
+          type: string
+        reference_date:
+          type: string
+          format: date
+        requested_total:
+          type: string
+        evaluation_outcome:
+          type: string
+        has_evidence:
+          type: boolean
+        reconciliation_pending:
+          type: boolean
+        officially_executed:
+          type: boolean
+      required:
+      - action
+      - evaluation_outcome
+      - has_evidence
+      - officially_executed
+      - reason
+      - reconciliation_pending
+      - reference_date
+      - request_id
+      - requested_total
+      - state
+      - version
+    FiscalDiscrepancy:
+      type: object
+      properties:
+        source_changed:
+          type: boolean
+        state_changed:
+          type: boolean
+        corrections_changed:
+          type: boolean
+        original_state:
+          type: string
+        current_state:
+          type: string
+        original_source_version:
+          type: integer
+        current_source_version:
+          type: integer
+        current_correction_ids:
+          type: array
+          items:
+            type: integer
+      required:
+      - corrections_changed
+      - current_correction_ids
+      - current_source_version
+      - current_state
+      - original_source_version
+      - original_state
+      - source_changed
+      - state_changed
+    FiscalDraft:
+      type: object
+      properties:
+        preparation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        version:
+          type: integer
+        draft:
+          type: object
+          additionalProperties: {}
+      required:
+      - draft
+      - preparation_id
+      - state
+      - version
+    FiscalElectronicProfile:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        revision:
+          type: integer
+        conditions:
+          type: object
+          additionalProperties: {}
+        certificate:
+          type: object
+          additionalProperties: {}
+          nullable: true
+      required:
+      - certificate
+      - conditions
+      - entity_id
+      - revision
+    FiscalElectronicProfileWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 0
+        conditions:
+          type: object
+          additionalProperties: {}
+        certificate:
+          type: object
+          additionalProperties: {}
+          nullable: true
+      required:
+      - expected_revision
+    FiscalElectronicStatus:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        state:
+          $ref: '#/components/schemas/FiscalElectronicStatusStateEnum'
+        causes:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalStatusCause'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalStatusCause'
+        environment:
+          $ref: '#/components/schemas/FiscalElectronicStatusEnvironmentEnum'
+        profile_revision:
+          type: integer
+          nullable: true
+        default_point_id:
+          type: integer
+          nullable: true
+        default_payment_code:
+          type: string
+          nullable: true
+      required:
+      - causes
+      - default_payment_code
+      - default_point_id
+      - entity_id
+      - environment
+      - profile_revision
+      - state
+      - warnings
+    FiscalElectronicStatusEnvironmentEnum:
+      enum:
+      - TEST
+      type: string
+      description: '* `TEST` - TEST'
+    FiscalElectronicStatusStateEnum:
+      enum:
+      - NOT_CONFIGURED
+      - INCOMPLETE
+      - NEEDS_REVIEW
+      - READY
+      type: string
+      description: |-
+        * `NOT_CONFIGURED` - NOT_CONFIGURED
+        * `INCOMPLETE` - INCOMPLETE
+        * `NEEDS_REVIEW` - NEEDS_REVIEW
+        * `READY` - READY
     FiscalEntity:
       type: object
       properties:
@@ -8854,16 +11807,699 @@ components:
           nullable: true
         version:
           type: integer
+        logo:
+          allOf:
+          - $ref: '#/components/schemas/EntityLogo'
+          nullable: true
       required:
       - address
       - email
       - entity_type
       - id
       - legal_name
+      - logo
       - phone
       - ruc
       - trade_name
       - version
+    FiscalEstablishment:
+      type: object
+      properties:
+        id:
+          type: integer
+        entity_id:
+          type: integer
+        code:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+        points:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - address
+      - code
+      - entity_id
+      - id
+      - is_active
+      - version
+    FiscalEstablishmentWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        code:
+          type: string
+          maxLength: 3
+          minLength: 3
+        address:
+          type: string
+          maxLength: 300
+          minLength: 1
+      required:
+      - address
+      - code
+    FiscalIdentity:
+      type: object
+      properties:
+        identity_id:
+          type: integer
+        access_key:
+          type: string
+          maxLength: 49
+          minLength: 49
+        sequential:
+          type: string
+          maxLength: 9
+          minLength: 9
+        replayed:
+          type: boolean
+        official_status:
+          type: string
+          nullable: true
+      required:
+      - access_key
+      - identity_id
+      - official_status
+      - replayed
+      - sequential
+    FiscalLinkResult:
+      type: object
+      properties:
+        dossier_id:
+          type: string
+          format: uuid
+        source_kind:
+          type: string
+        source_id:
+          type: integer
+        discrepancies:
+          type: array
+          items:
+            type: string
+      required:
+      - discrepancies
+      - dossier_id
+      - source_id
+      - source_kind
+    FiscalNumberingAntecedent:
+      type: object
+      properties:
+        id:
+          type: integer
+        entity_id:
+          type: integer
+        document_type:
+          type: string
+        establishment_code:
+          type: string
+        emission_point_code:
+          type: string
+        environment:
+          type: string
+        last_declared_number:
+          type: integer
+        declared_on:
+          type: string
+          format: date
+        source:
+          type: string
+      required:
+      - declared_on
+      - document_type
+      - emission_point_code
+      - entity_id
+      - environment
+      - establishment_code
+      - id
+      - last_declared_number
+      - source
+    FiscalNumberingAntecedentWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        entity_id:
+          type: integer
+          minimum: 1
+        document_type:
+          $ref: '#/components/schemas/FiscalNumberingAntecedentWriteDocumentTypeEnum'
+        establishment_code:
+          type: string
+          maxLength: 3
+          minLength: 3
+        emission_point_code:
+          type: string
+          maxLength: 3
+          minLength: 3
+        environment:
+          $ref: '#/components/schemas/FiscalNumberingAntecedentWriteEnvironmentEnum'
+        last_declared_number:
+          type: integer
+          maximum: 999999999
+          minimum: 1
+        declared_on:
+          type: string
+          format: date
+        source:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - declared_on
+      - document_type
+      - emission_point_code
+      - entity_id
+      - environment
+      - establishment_code
+      - last_declared_number
+      - source
+    FiscalNumberingAntecedentWriteDocumentTypeEnum:
+      enum:
+      - '01'
+      - '04'
+      type: string
+      description: |-
+        * `01` - 01
+        * `04` - 04
+    FiscalNumberingAntecedentWriteEnvironmentEnum:
+      enum:
+      - '1'
+      - '2'
+      type: string
+      description: |-
+        * `1` - 1
+        * `2` - 2
+    FiscalPaymentFormOption:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        display_name:
+          type: string
+        catalog_version:
+          type: string
+        source_document:
+          type: string
+        source_version:
+          type: string
+        source_url:
+          type: string
+        downloaded_on:
+          type: string
+          format: date
+        valid_from:
+          type: string
+          format: date
+          nullable: true
+        valid_to:
+          type: string
+          format: date
+          nullable: true
+        is_current:
+          type: boolean
+        enableable:
+          type: boolean
+        enabled:
+          type: boolean
+        is_default:
+          type: boolean
+        internal_method:
+          type: string
+          nullable: true
+        version:
+          type: integer
+      required:
+      - catalog_version
+      - code
+      - description
+      - display_name
+      - downloaded_on
+      - enableable
+      - enabled
+      - internal_method
+      - is_current
+      - is_default
+      - source_document
+      - source_url
+      - source_version
+      - valid_from
+      - valid_to
+      - version
+    FiscalPaymentFormWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        enabled:
+          type: boolean
+        expected_version:
+          type: integer
+          minimum: 0
+      required:
+      - enabled
+      - expected_version
+    FiscalPoint:
+      type: object
+      properties:
+        id:
+          type: integer
+        establishment_id:
+          type: integer
+        code:
+          type: string
+        is_active:
+          type: boolean
+        version:
+          type: integer
+      required:
+      - code
+      - establishment_id
+      - id
+      - is_active
+      - version
+    FiscalPointWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        code:
+          type: string
+          maxLength: 3
+          minLength: 3
+      required:
+      - code
+    FiscalPreparationCreate:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        source_kind:
+          $ref: '#/components/schemas/SourceKindEnum'
+        source_id:
+          type: integer
+          minimum: 1
+      required:
+      - source_id
+      - source_kind
+    FiscalPreparationDefaults:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        version:
+          type: integer
+        designated_point_id:
+          type: integer
+          nullable: true
+        effective_point_id:
+          type: integer
+          nullable: true
+        point_issue:
+          type: string
+          nullable: true
+        default_payment_code:
+          type: string
+          nullable: true
+        payment_issue:
+          type: string
+          nullable: true
+      required:
+      - default_payment_code
+      - designated_point_id
+      - effective_point_id
+      - entity_id
+      - payment_issue
+      - point_issue
+      - version
+    FiscalPreparationDefaultsWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+        default_point_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        default_payment_code:
+          type: string
+          maxLength: 8
+      required:
+      - expected_version
+    FiscalPreparationDetail:
+      type: object
+      properties:
+        preparation_id:
+          type: string
+          format: uuid
+        fiscal_entity_id:
+          type: integer
+        source:
+          $ref: '#/components/schemas/FiscalPreparationSource'
+        state:
+          type: string
+        version:
+          type: integer
+        draft:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        snapshot:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        discrepancy:
+          $ref: '#/components/schemas/FiscalDiscrepancy'
+        cancellation_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        prepared_at:
+          type: string
+          format: date-time
+          nullable: true
+        official_status:
+          type: string
+          nullable: true
+        official_submission:
+          type: string
+        summary:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        issuer:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        working:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        payment_options:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        missing_fields:
+          type: array
+          items:
+            type: string
+        technical:
+          type: object
+          additionalProperties: {}
+          nullable: true
+      required:
+      - cancellation_reason
+      - created_at
+      - discrepancy
+      - draft
+      - fiscal_entity_id
+      - issuer
+      - missing_fields
+      - official_status
+      - official_submission
+      - payment_options
+      - preparation_id
+      - prepared_at
+      - snapshot
+      - source
+      - state
+      - summary
+      - technical
+      - version
+      - working
+    FiscalPreparationResult:
+      type: object
+      properties:
+        preparation_id:
+          type: string
+          format: uuid
+        replayed:
+          type: boolean
+      required:
+      - preparation_id
+      - replayed
+    FiscalPreparationSource:
+      type: object
+      properties:
+        kind:
+          type: string
+        id:
+          type: integer
+        version:
+          type: integer
+      required:
+      - id
+      - kind
+      - version
+    FiscalPrepare:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        review_token:
+          type: string
+      required:
+      - review_token
+    FiscalReadiness:
+      type: object
+      properties:
+        fiscal_entity_id:
+          type: integer
+        policy:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        restoration:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        policy_ready:
+          type: boolean
+        restoration_ready:
+          type: boolean
+        productive_archive_ready:
+          type: boolean
+        pending:
+          type: array
+          items:
+            type: string
+      required:
+      - fiscal_entity_id
+      - pending
+      - policy
+      - policy_ready
+      - productive_archive_ready
+      - restoration
+      - restoration_ready
+    FiscalRestorationWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        restored_at:
+          type: string
+          format: date-time
+        procedure_version:
+          type: string
+          maxLength: 100
+          minLength: 1
+        storage_fingerprint:
+          type: string
+          maxLength: 128
+          minLength: 1
+        responsible:
+          type: string
+          maxLength: 300
+          minLength: 1
+        backup_identifier:
+          type: string
+          maxLength: 300
+          minLength: 1
+        report_reference:
+          type: string
+          maxLength: 500
+          minLength: 1
+        destination:
+          type: string
+          maxLength: 500
+          minLength: 1
+        content_hashes_ok:
+          type: boolean
+        identities_ok:
+          type: boolean
+        permissions_ok:
+          type: boolean
+        links_ok:
+          type: boolean
+        deletion_reviewed:
+          type: boolean
+        notes:
+          type: string
+      required:
+      - backup_identifier
+      - content_hashes_ok
+      - deletion_reviewed
+      - destination
+      - identities_ok
+      - links_ok
+      - permissions_ok
+      - procedure_version
+      - report_reference
+      - responsible
+      - restored_at
+      - storage_fingerprint
+    FiscalReview:
+      type: object
+      properties:
+        impediments:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        review_token:
+          type: string
+          nullable: true
+      required:
+      - impediments
+      - review_token
+    FiscalStatusCause:
+      type: object
+      properties:
+        code:
+          type: string
+        kind:
+          $ref: '#/components/schemas/FiscalStatusCauseKindEnum'
+        message:
+          type: string
+      required:
+      - code
+      - kind
+      - message
+    FiscalStatusCauseKindEnum:
+      enum:
+      - MISSING
+      - REVIEW
+      type: string
+      description: |-
+        * `MISSING` - MISSING
+        * `REVIEW` - REVIEW
+    FiscalTaxMapping:
+      type: object
+      properties:
+        id:
+          type: integer
+        definition_id:
+          type: integer
+        catalog_version:
+          type: string
+        percentage_code:
+          type: string
+        catalog_entry_id:
+          type: integer
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        source:
+          type: string
+      required:
+      - catalog_entry_id
+      - catalog_version
+      - definition_id
+      - display_name
+      - ends_on
+      - id
+      - percentage_code
+      - source
+      - starts_on
+    FiscalTaxMappingListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        definition_id:
+          type: integer
+        catalog_version:
+          type: string
+        percentage_code:
+          type: string
+        catalog_entry_id:
+          type: integer
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        source:
+          type: string
+        definition_name:
+          type: string
+        rate:
+          type: string
+          nullable: true
+        treatment:
+          type: string
+          nullable: true
+        is_current:
+          type: boolean
+      required:
+      - catalog_entry_id
+      - catalog_version
+      - definition_id
+      - definition_name
+      - display_name
+      - ends_on
+      - id
+      - is_current
+      - percentage_code
+      - rate
+      - source
+      - starts_on
+      - treatment
+    FiscalTaxMappingWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        definition_id:
+          type: integer
+          minimum: 1
+        catalog_entry_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        source:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - catalog_entry_id
+      - definition_id
+      - source
+      - starts_on
     IdentificationTypeEnum:
       enum:
       - CI
@@ -10139,6 +13775,36 @@ components:
           type: string
         address:
           type: string
+    PatchedFiscalActiveUpdate:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+    PatchedFiscalDraftUpdate:
+      type: object
+      description: Solo datos que completa el usuario; ambiente, punto, fecha y plazo
+        se rechazan.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        receiver:
+          type: object
+          additionalProperties: {}
+        payments:
+          type: object
+          additionalProperties: {}
+        additional_info:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
+          maxItems: 15
     PatchedFiscalEntityUpdate:
       type: object
       properties:
@@ -10325,7 +13991,7 @@ components:
           type: integer
           minimum: 1
         document_type:
-          $ref: '#/components/schemas/DocumentTypeEnum'
+          $ref: '#/components/schemas/DocumentTypeBfeEnum'
         supplier_reference:
           type: string
           maxLength: 128
@@ -11021,7 +14687,7 @@ components:
           type: integer
           minimum: 1
         document_type:
-          $ref: '#/components/schemas/DocumentTypeEnum'
+          $ref: '#/components/schemas/DocumentTypeBfeEnum'
         supplier_reference:
           type: string
           maxLength: 128
@@ -11917,6 +15583,14 @@ components:
       - permissions
       - roles
       - username
+    SourceKindEnum:
+      enum:
+      - COMMERCIAL
+      - ARTISAN
+      type: string
+      description: |-
+        * `COMMERCIAL` - COMMERCIAL
+        * `ARTISAN` - ARTISAN
     StateCommand:
       type: object
       properties:

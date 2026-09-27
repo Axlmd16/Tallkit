@@ -1,5 +1,5 @@
-import { PencilSimple } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { ImageSquare, PencilSimple, Trash } from '@phosphor-icons/react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
 import {
@@ -8,15 +8,18 @@ import {
   type ConfigurationReadiness,
   type EntityReadinessSummary,
 } from '@/features/fiscal/configuration/readiness'
+import { EntityLogoModal } from '@/features/workshop-configuration/EntityLogoModal'
 import {
   useAllDocumentSeries,
   useFiscalEntities,
+  useRemoveEntityLogo,
   useUpdateFiscalEntity,
 } from '@/features/workshop-configuration/queries'
 import type { FiscalEntity } from '@/features/workshop-configuration/types'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
+  ConfirmationPanel,
   ErrorState,
   FactList,
   FactRow,
@@ -130,6 +133,9 @@ function EntityColumn({
             <span className="text-ink-muted">Sin nombre comercial</span>
           )}
         </FactRow>
+        <FactRow label="Logo">
+          <EntityLogoRow entity={entity} />
+        </FactRow>
         <FactRow label="Dirección">
           {entity.address || (
             <span className="text-ink-muted">Sin dirección registrada</span>
@@ -157,6 +163,79 @@ function EntityColumn({
         open={editing}
       />
     </article>
+  )
+}
+
+function EntityLogoRow({ entity }: { entity: FiscalEntity }) {
+  const [uploading, setUploading] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const removeRef = useRef<HTMLButtonElement>(null)
+  const remove = useRemoveEntityLogo()
+  const toast = useToast()
+  const scope = entity.entity_type === 'COMERCIAL' ? 'comercial' : 'artesanal'
+
+  async function confirmRemoval() {
+    setConfirming(false)
+    try {
+      await remove.mutateAsync({ id: entity.id, key: crypto.randomUUID() })
+      toast.success(`Logo de la entidad ${scope} quitado.`)
+    } catch {
+      toast.info('No se pudo quitar el logo. Inténtelo nuevamente.')
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      {entity.logo ? (
+        <img
+          alt={`Logo de ${entity.legal_name}`}
+          className="max-h-10 max-w-[180px] object-contain"
+          src={entity.logo.url}
+        />
+      ) : (
+        <span className="text-ink-muted">Sin logo</span>
+      )}
+      <span className="-ml-2 flex flex-wrap gap-x-0.5">
+        <Button
+          aria-label={`${entity.logo ? 'Cambiar' : 'Subir'} logo de la entidad ${scope}`}
+          className="px-2"
+          onClick={() => setUploading(true)}
+          size="40"
+          variant="quiet"
+        >
+          <ImageSquare aria-hidden="true" size={16} weight="bold" />
+          {entity.logo ? 'Cambiar' : 'Subir logo'}
+        </Button>
+        {entity.logo && (
+          <Button
+            aria-label={`Quitar logo de la entidad ${scope}`}
+            className="px-2"
+            onClick={() => setConfirming(true)}
+            ref={removeRef}
+            size="40"
+            variant="quiet"
+          >
+            <Trash aria-hidden="true" size={16} weight="bold" />
+            Quitar
+          </Button>
+        )}
+      </span>
+      <EntityLogoModal
+        entity={entity}
+        onClose={() => setUploading(false)}
+        open={uploading}
+      />
+      <ConfirmationPanel
+        confirmLabel="Quitar logo"
+        description={`Los comprobantes de ${entity.legal_name} mostrarán solo el nombre de la entidad.`}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => void confirmRemoval()}
+        open={confirming}
+        returnFocusRef={removeRef}
+        title="¿Quitar el logo?"
+        tone="danger"
+      />
+    </div>
   )
 }
 

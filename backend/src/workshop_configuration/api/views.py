@@ -1,10 +1,15 @@
 """Vistas de la API para configuración operativa y fiscal del taller."""
 
+from collections.abc import Callable
 from typing import ClassVar
 
+from django.http import FileResponse
+from django.urls import reverse
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import serializers, status
+from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,8 +17,10 @@ from rest_framework.views import APIView
 from config.api.errors import ProblemSerializer, problem_response
 from identity.api.permissions import HasBusinessPermission
 from identity.api.request_context import request_id_from
-from identity.application.authorization import require_permission
+from identity.application.authorization import BusinessPermissionDeniedError, require_permission
 from identity.models import User
+from shared.command_values import InvalidIdempotencyKeyError
+from workshop_configuration.application import entity_logos, logo_storage
 from workshop_configuration.application.entity_warehouse import (
     FiscalEntityNotFoundError,
     FiscalEntityTypeImmutableError,
@@ -62,6 +69,7 @@ from workshop_configuration.domain.validation import ConfigurationValidationErro
 from workshop_configuration.models import (
     DocumentSeries,
     FiscalEntity,
+    FiscalEntityLogo,
     TaxDefinition,
     TaxPeriod,
     Warehouse,
@@ -159,6 +167,16 @@ class InitializeResponseSerializer(serializers.Serializer[dict[str, object]]):
     installation_id = serializers.IntegerField()
 
 
+class EntityLogoSerializer(serializers.Serializer[dict[str, object]]):
+    url = serializers.CharField()
+    revision = serializers.IntegerField()
+    content_type = serializers.CharField()
+    width = serializers.IntegerField()
+    height = serializers.IntegerField()
+    size_bytes = serializers.IntegerField()
+    uploaded_at = serializers.DateTimeField()
+
+
 class FiscalEntitySerializer(serializers.Serializer[dict[str, object]]):
     id = serializers.IntegerField()
     entity_type = serializers.CharField()
@@ -169,6 +187,7 @@ class FiscalEntitySerializer(serializers.Serializer[dict[str, object]]):
     phone = serializers.CharField(allow_null=True)
     email = serializers.CharField(allow_null=True)
     version = serializers.IntegerField()
+    logo = EntityLogoSerializer(allow_null=True)
 
 
 class FiscalEntityUpdateSerializer(serializers.Serializer[dict[str, object]]):
@@ -323,6 +342,17 @@ class InitializeView(APIView):
             return _conflict_error(request, exc, "idempotency_conflict")
 
 
+def _logo_url(entity_type: str, revision: int) -> str:
+    return reverse("entity-logo-file", kwargs={"entity_type": entity_type, "revision": revision})
+
+
+def _logo_data(entity: FiscalEntity) -> dict[str, object] | None:
+    summary = entity_logos.logo_summary(entity_logos.current_logo(entity.pk))
+    if summary is None:
+        return None
+    return {"url": _logo_url(entity.entity_type, int(summary["revision"])), **summary}
+
+
 def _entity_data(entity: FiscalEntity) -> dict[str, object]:
     return {
         "id": entity.pk,
@@ -334,6 +364,7 @@ def _entity_data(entity: FiscalEntity) -> dict[str, object]:
         "phone": entity.phone,
         "email": entity.email,
         "version": entity.version,
+        "logo": _logo_data(entity),
     }
 
 
@@ -837,3 +868,196 @@ class SeriesReplaceView(APIView):
             return _conflict_error(request, exc, "code_conflict")
         except ConfigurationValidationError as exc:
             return _validation_error(request, exc)
+
+
+# ---------------------------------------------------------------------------
+# Logotipo de entidad fiscal (diseño D5)
+# ---------------------------------------------------------------------------
+
+_LOGO_HEADERS = {
+    "Cache-Control": "private, max-age=31536000, immutable",
+    "X-Content-Type-Options": "nosniff",
+    "Content-Security-Policy": "default-src 'none'",
+}
+
+
+class EntityLogoUploadSerializer(serializers.Serializer[dict[str, object]]):
+    file = serializers.FileField()
+    idempotency_key = serializers.CharField(max_length=128)
+
+
+class EntityLogoRemoveSerializer(serializers.Serializer[dict[str, object]]):
+    idempotency_key = serializers.CharField(max_length=128)
+
+
+class EntityLogoSummaryItemSerializer(serializers.Serializer[dict[str, object]]):
+    entity_id = serializers.IntegerField()
+    legal_name = serializers.CharField()
+    logo = EntityLogoSerializer(allow_null=True)
+
+
+class EntityLogoSummarySerializer(serializers.Serializer[dict[str, object]]):
+    COMERCIAL = EntityLogoSummaryItemSerializer(allow_null=True)
+    ARTESANAL = EntityLogoSummaryItemSerializer(allow_null=True)
+
+
+_LOGO_COMMAND_RESPONSES = {
+    200: FiscalEntitySerializer,
+    400: ProblemSerializer,
+    403: ProblemSerializer,
+    404: ProblemSerializer,
+    409: ProblemSerializer,
+}
+
+
+def _logo_command(request: Request, entity_id: int, command: Callable[[], object]) -> Response:
+    try:
+        command()
+    except logo_storage.LogoImageError as exc:
+        return problem_response(
+            request=request,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            title="Solicitud inválida",
+            code=exc.code,
+            detail=exc.message,
+            errors={"file": [exc.message]},
+        )
+    except InvalidIdempotencyKeyError as exc:
+        return problem_response(
+            request=request,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            title="Solicitud inválida",
+            code="validation_error",
+            detail=str(exc),
+            errors={"idempotency_key": [str(exc)]},
+        )
+    except IdempotencyConflictError as exc:
+        return _conflict_error(request, exc, "idempotency_conflict")
+    except FiscalEntityNotFoundError as exc:
+        return _not_found_error(request, exc, "entity_not_found")
+    except BusinessPermissionDeniedError as exc:
+        return problem_response(
+            request=request,
+            status_code=status.HTTP_403_FORBIDDEN,
+            title="Acceso denegado",
+            code="forbidden",
+            detail=str(exc),
+        )
+    entity = FiscalEntity.objects.get(pk=entity_id)
+    return Response(_entity_data(entity), status=status.HTTP_200_OK)
+
+
+class EntityLogoView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    required_business_permission = "entidades_fiscales.editar"
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+    parser_classes = (MultiPartParser,)
+
+    @extend_schema(
+        operation_id="workshop_configuration_entity_logo_upload",
+        request={"multipart/form-data": EntityLogoUploadSerializer},
+        responses=_LOGO_COMMAND_RESPONSES,
+    )
+    def post(self, request: Request, entity_id: int) -> Response:
+        upload = request.FILES.get("file")
+        if upload is None:
+            message = "Seleccione una imagen."
+            return problem_response(
+                request=request,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                title="Solicitud inválida",
+                code="validation_error",
+                detail=message,
+                errors={"file": [message]},
+            )
+        return _logo_command(
+            request,
+            entity_id,
+            lambda: entity_logos.upload_entity_logo(
+                actor=_actor(request),
+                entity_id=entity_id,
+                file=upload,
+                idempotency_key=request.data.get("idempotency_key"),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class EntityLogoRemoveView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    required_business_permission = "entidades_fiscales.editar"
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        operation_id="workshop_configuration_entity_logo_remove",
+        request=EntityLogoRemoveSerializer,
+        responses=_LOGO_COMMAND_RESPONSES,
+    )
+    def post(self, request: Request, entity_id: int) -> Response:
+        return _logo_command(
+            request,
+            entity_id,
+            lambda: entity_logos.remove_entity_logo(
+                actor=_actor(request),
+                entity_id=entity_id,
+                idempotency_key=request.data.get("idempotency_key"),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class EntityLogoSummaryView(APIView):
+    """Resumen para los comprobantes: cualquier usuario con sesión vigente."""
+
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        operation_id="workshop_configuration_entity_logos_summary",
+        responses={200: EntityLogoSummarySerializer, 403: ProblemSerializer},
+    )
+    def get(self, request: Request) -> Response:
+        data: dict[str, object] = {"COMERCIAL": None, "ARTESANAL": None}
+        for entity in FiscalEntity.objects.all():
+            data[entity.entity_type] = {
+                "entity_id": entity.pk,
+                "legal_name": entity.legal_name,
+                "logo": _logo_data(entity),
+            }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class EntityLogoFileView(APIView):
+    """Entrega la revisión vigente del logotipo; cualquier otra responde 404."""
+
+    permission_classes = (IsAuthenticated,)
+
+    @extend_schema(
+        operation_id="workshop_configuration_entity_logo_file",
+        responses={
+            200: OpenApiResponse(response=OpenApiTypes.BINARY, description="Imagen privada."),
+            403: ProblemSerializer,
+            404: ProblemSerializer,
+        },
+    )
+    def get(self, request: Request, entity_type: str, revision: int) -> FileResponse | Response:
+        logo = (
+            FiscalEntityLogo.objects.filter(
+                fiscal_entity__entity_type=entity_type, revision=revision
+            )
+            .only("storage_name", "content_type")
+            .first()
+        )
+        if logo is None:
+            return _not_found_error(
+                request, LookupError("Logotipo no encontrado."), "logo_not_found"
+            )
+        try:
+            handle = logo_storage.open_file(logo.storage_name)
+        except FileNotFoundError:
+            return _not_found_error(
+                request, LookupError("Logotipo no encontrado."), "logo_not_found"
+            )
+        response = FileResponse(handle, content_type=logo.content_type)
+        for header, value in _LOGO_HEADERS.items():
+            response[header] = value
+        return response

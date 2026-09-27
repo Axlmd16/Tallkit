@@ -1,3 +1,4 @@
+import { useIssuerBrand } from '@/shared/api/entity-logos'
 import { DocumentSheet } from '@/shared/ui/business/DocumentSheet'
 
 import './sales.css'
@@ -38,20 +39,29 @@ export function SalesDocument({
   data,
   updating = false,
   stale = false,
+  onBrandReady,
 }: {
   data: SheetData
   /** Hay una actualización en curso: los valores visibles quedan pendientes. */
   updating?: boolean
   /** Los valores visibles no corresponden a la captura actual. */
   stale?: boolean
+  /** Avisa cuando el encabezado del emisor está listo para imprimir. */
+  onBrandReady?: ((ready: boolean) => void) | undefined
 }) {
+  const brand = useIssuerBrand('COMERCIAL')
   const cell = (value: string | null | undefined) =>
     value === null || value === undefined ? '—' : usd(value)
   const pending = updating || stale
   return (
     <DocumentSheet
       busy={updating}
+      issuer={{
+        name: data.issuer?.legal_name ?? brand.legalName ?? 'RUC comercial',
+        logoUrl: brand.logoUrl,
+      }}
       label="Comprobante de venta"
+      onBrandReady={onBrandReady}
       meta={[
         {
           label: 'Fecha operativa',

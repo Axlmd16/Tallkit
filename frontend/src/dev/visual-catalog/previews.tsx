@@ -401,30 +401,42 @@ function WorkshopPiecesPreview() {
   )
 }
 
+/** Logotipo ficticio del emisor para el catálogo; no es la marca Tallkit ni un logotipo real. */
+const SAMPLE_ISSUER_LOGO = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="64"><rect width="240" height="64" rx="10" fill="#0f4c5c"/><text x="120" y="40" font-family="sans-serif" font-size="22" fill="#fff" text-anchor="middle">EMISOR</text></svg>',
+)}`
+
 function SheetPreview() {
   return (
-    <div className="rounded-panel bg-workspace p-4">
-      <div className="mx-auto max-w-[560px]">
-        <DocumentSheet
-          label="Comprobante de ejemplo"
-          meta={[
-            { label: 'Fecha operativa', value: '21/09/2026' },
-            { label: 'Condición de venta', value: 'Contado' },
-            {
-              label: 'Cliente',
-              value: 'Andrés Paredes · CI 1712345678',
-              wide: true,
-            },
-          ]}
-          notice="Documento interno; no constituye una factura electrónica autorizada por el SRI."
-          number={null}
-          state="Borrador · Vista previa"
-        >
-          <p className="py-6 text-center text-ink-muted">
-            Líneas del documento
-          </p>
-        </DocumentSheet>
-      </div>
+    <div className="grid gap-4 rounded-panel bg-workspace p-4 xl:grid-cols-2">
+      {[SAMPLE_ISSUER_LOGO, null].map((logoUrl) => (
+        <div className="mx-auto w-full max-w-[560px]" key={String(logoUrl)}>
+          <DocumentSheet
+            issuer={{ name: 'Repuestos del Valle S.A.', logoUrl }}
+            label={
+              logoUrl
+                ? 'Comprobante de ejemplo con logotipo'
+                : 'Comprobante de ejemplo sin logotipo'
+            }
+            meta={[
+              { label: 'Fecha operativa', value: '21/09/2026' },
+              { label: 'Condición de venta', value: 'Contado' },
+              {
+                label: 'Cliente',
+                value: 'Andrés Paredes · CI 1712345678',
+                wide: true,
+              },
+            ]}
+            notice="Documento interno; no constituye una factura electrónica autorizada por el SRI."
+            number={null}
+            state="Borrador · Vista previa"
+          >
+            <p className="py-6 text-center text-ink-muted">
+              Líneas del documento
+            </p>
+          </DocumentSheet>
+        </div>
+      ))}
     </div>
   )
 }

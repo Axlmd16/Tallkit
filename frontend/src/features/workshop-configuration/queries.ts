@@ -4,6 +4,8 @@ import {
   useQueryClient,
   type QueryClient,
 } from '@tanstack/react-query'
+import { entityLogoKeys } from '@/shared/api/entity-logos'
+
 import { workshopConfigApi } from './api'
 import type {
   FiscalEntityUpdateRequest,
@@ -92,6 +94,34 @@ export function useUpdateFiscalEntity() {
       queryClient.invalidateQueries({ queryKey: workshopKeys.entities() })
     },
   })
+}
+
+/** Tras subir o quitar un logotipo se refrescan la ficha y el resumen de los comprobantes. */
+function useEntityLogoMutation<Variables>(
+  mutationFn: (variables: Variables) => ReturnType<typeof workshopConfigApi.getEntity>,
+) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: (data) => {
+      queryClient.setQueryData(workshopKeys.entity(data.id), data)
+      void queryClient.invalidateQueries({ queryKey: workshopKeys.entities() })
+      void queryClient.invalidateQueries({ queryKey: entityLogoKeys.summary })
+    },
+  })
+}
+
+export function useUploadEntityLogo() {
+  return useEntityLogoMutation(
+    ({ id, file, key }: { id: number; file: File; key: string }) =>
+      workshopConfigApi.uploadEntityLogo(id, file, key),
+  )
+}
+
+export function useRemoveEntityLogo() {
+  return useEntityLogoMutation(({ id, key }: { id: number; key: string }) =>
+    workshopConfigApi.removeEntityLogo(id, key),
+  )
 }
 
 export function useWarehouse() {

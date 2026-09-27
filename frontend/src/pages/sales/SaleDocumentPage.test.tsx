@@ -1,11 +1,24 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ query: {} as Record<string, unknown> }))
+const mocks = vi.hoisted(() => ({
+  query: {} as Record<string, unknown>,
+  brands: {} as Record<
+    string,
+    { logoUrl: string | null | undefined; legalName?: string }
+  >,
+  scopes: [] as string[],
+}))
 vi.mock('@/features/sales/hooks', () => ({
   useSaleDocument: () => mocks.query,
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: (scope: string) => {
+    mocks.scopes.push(scope)
+    return mocks.brands[scope] ?? { logoUrl: null, legalName: undefined }
+  },
 }))
 
 import { SaleDocumentPage } from './SaleDocumentPage'
@@ -60,8 +73,54 @@ function renderPage() {
   )
 }
 
+const COMMERCIAL_LOGO =
+  '/api/v1/workshop-configuration/entity-logos/COMERCIAL/2/'
+
 beforeEach(() => {
   mocks.query = { isPending: false, isError: false, data: document }
+  mocks.brands = {
+    COMERCIAL: { logoUrl: null, legalName: 'Comercial SA' },
+    ARTESANAL: {
+      logoUrl: '/api/v1/workshop-configuration/entity-logos/ARTESANAL/1/',
+      legalName: 'Taller SA',
+    },
+  }
+  mocks.scopes = []
+})
+
+it('encabeza el comprobante con el logotipo comercial y nunca con el artesanal', () => {
+  mocks.brands.COMERCIAL = {
+    logoUrl: COMMERCIAL_LOGO,
+    legalName: 'Comercial SA',
+  }
+  renderPage()
+  const logo = screen.getByRole('img', { name: 'Logo de Comercial SA' })
+  expect(logo).toHaveAttribute('src', COMMERCIAL_LOGO)
+  expect(mocks.scopes.every((scope) => scope === 'COMERCIAL')).toBe(true)
+  expect(screen.getByRole('group', { name: 'Emisor' })).toHaveTextContent(
+    'Comercial SA',
+  )
+})
+
+it('sin logotipo comercial muestra solo el nombre del emisor', () => {
+  renderPage()
+  expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  expect(screen.getByRole('group', { name: 'Emisor' })).toHaveTextContent(
+    'Comercial SA',
+  )
+})
+
+it('espera a que cargue el logotipo antes de permitir imprimir', () => {
+  mocks.brands.COMERCIAL = {
+    logoUrl: COMMERCIAL_LOGO,
+    legalName: 'Comercial SA',
+  }
+  renderPage()
+  const button = screen.getByRole('button', { name: 'Imprimir comprobante' })
+  expect(button).toBeDisabled()
+  expect(button).toHaveAttribute('aria-busy', 'true')
+  fireEvent.load(screen.getByRole('img', { name: 'Logo de Comercial SA' }))
+  expect(button).toBeEnabled()
 })
 
 it('muestra datos históricos, número, RUC comercial, cliente, desglose y el aviso del SRI', () => {

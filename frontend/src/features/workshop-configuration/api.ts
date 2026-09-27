@@ -43,6 +43,22 @@ export function createWorkshopConfigApi(client: ApiClient) {
         body: data,
       }),
 
+    uploadEntityLogo: (id: number, file: File, idempotencyKey: string) => {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('idempotency_key', idempotencyKey)
+      return client.request<FiscalEntity>(`${BASE}/entities/${id}/logo/`, {
+        method: 'POST',
+        body: form,
+      })
+    },
+
+    removeEntityLogo: (id: number, idempotencyKey: string) =>
+      client.request<FiscalEntity>(`${BASE}/entities/${id}/logo/remove/`, {
+        method: 'POST',
+        body: { idempotency_key: idempotencyKey },
+      }),
+
     getWarehouse: () => client.request<Warehouse>(`${BASE}/warehouse/`),
 
     updateWarehouse: (data: WarehouseUpdateRequest) =>

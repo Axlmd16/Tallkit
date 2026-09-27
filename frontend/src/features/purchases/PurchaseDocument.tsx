@@ -1,3 +1,4 @@
+import { useIssuerBrand } from '@/shared/api/entity-logos'
 import { DocumentSheet } from '@/shared/ui'
 
 import { documentDate, usd } from './format'
@@ -13,7 +14,10 @@ export interface PurchaseDocumentLine {
   total: string | null
 }
 
-/** Hoja interna del ingreso. Los importes provienen del servidor o se muestran como guion. */
+/**
+ * Hoja interna del ingreso. Los importes provienen del servidor o se muestran como guion.
+ * El editor solo presenta borradores, así que el emisor es la entidad comercial vigente.
+ */
 export function PurchaseDocument({
   documentDateValue,
   documentReference,
@@ -33,11 +37,16 @@ export function PurchaseDocument({
   supplier: string
   totals: MoneyBlock | null
 }) {
+  const brand = useIssuerBrand('COMERCIAL')
   const money = (value: string | null | undefined) =>
     value === null || value === undefined ? '—' : usd(value)
 
   return (
     <DocumentSheet
+      issuer={{
+        name: brand.legalName ?? 'RUC comercial',
+        logoUrl: brand.logoUrl,
+      }}
       label="Comprobante de ingreso"
       meta={[
         {

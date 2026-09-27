@@ -4,7 +4,9 @@ import {
   expectAdaptableAndAccessible,
   REPRESENTATIVE_WIDTHS,
 } from './accessibility'
+import { seedFiscalConfiguration } from './catalog-helpers'
 import { login } from './helpers'
+import { LOGO_PNG, LOGO_SVG, removeEntityLogo } from './logo-helpers'
 
 const ENTITIES = [
   {
@@ -427,4 +429,67 @@ test('el Vendedor no accede a la configuración aunque prepare datos fiscales', 
     page.getByRole('heading', { name: 'Acceso no permitido' }),
   ).toBeVisible()
   await expect(page.getByText('Formas de pago SRI')).toHaveCount(0)
+})
+
+test('el Administrador sube, rechaza un SVG y quita el logo de una entidad', async ({
+  page,
+}) => {
+  await login(page, 'admin_e2e')
+  await seedFiscalConfiguration(page)
+  const commercial = await removeEntityLogo(page, 'COMERCIAL')
+  await page.goto('/configuration')
+
+  const card = page.getByRole('article', { name: 'Entidad comercial' })
+  await expect(card.getByText('Sin logo')).toBeVisible()
+  await card
+    .getByRole('button', { name: 'Subir logo de la entidad comercial' })
+    .click()
+  const dialog = page.getByRole('dialog', {
+    name: 'Logo de la entidad comercial',
+  })
+  await dialog.getByLabel(/Imagen del logo/).setInputFiles({
+    name: 'logo.png',
+    mimeType: 'image/png',
+    buffer: LOGO_PNG,
+  })
+  await expect(
+    dialog.getByRole('img', { name: 'Vista previa del logo' }),
+  ).toBeVisible()
+  await dialog.getByRole('button', { name: 'Guardar logo' }).click()
+  await expect(
+    page.getByText('Logo de la entidad comercial actualizado.'),
+  ).toBeVisible()
+  await expect(
+    card.getByRole('img', { name: `Logo de ${commercial.legal_name}` }),
+  ).toBeVisible()
+
+  await card
+    .getByRole('button', { name: 'Cambiar logo de la entidad comercial' })
+    .click()
+  await dialog.getByLabel(/Imagen del logo/).setInputFiles({
+    name: 'logo.png',
+    mimeType: 'image/png',
+    buffer: LOGO_SVG,
+  })
+  await dialog.getByRole('button', { name: 'Guardar logo' }).click()
+  await expect(dialog.getByText(/PNG, JPEG o WebP/).first()).toBeVisible()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Cancelar' }).click()
+  const discard = page.getByRole('button', { name: /Descartar/ })
+  if (await discard.isVisible()) await discard.click()
+  await expect(
+    card.getByRole('img', { name: `Logo de ${commercial.legal_name}` }),
+  ).toBeVisible()
+
+  await card
+    .getByRole('button', { name: 'Quitar logo de la entidad comercial' })
+    .click()
+  await page
+    .getByRole('dialog', { name: '¿Quitar el logo?' })
+    .getByRole('button', { name: 'Quitar logo' })
+    .click()
+  await expect(
+    page.getByText('Logo de la entidad comercial quitado.'),
+  ).toBeVisible()
+  await expect(card.getByText('Sin logo')).toBeVisible()
 })

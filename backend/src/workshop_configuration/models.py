@@ -50,6 +50,8 @@ class FiscalEntity(models.Model):
         max_length=254, null=True, blank=True, default=None
     )
     version = models.PositiveBigIntegerField(default=1)
+    # Contador de revisiones del logotipo; no altera `version` ni versiona el logotipo.
+    logo_revision = models.PositiveBigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -634,3 +636,38 @@ class FiscalPreparationDefaults(models.Model):
 
     def __str__(self) -> str:
         return f"Predeterminados {self.fiscal_entity_id}"
+
+
+class FiscalEntityLogo(models.Model):
+    """Logotipo vigente de una entidad fiscal; la fila existe solo mientras hay logotipo."""
+
+    fiscal_entity = models.OneToOneField(
+        FiscalEntity, on_delete=models.PROTECT, related_name="logo"
+    )
+    storage_name = models.CharField(max_length=255, unique=True)
+    content_type = models.CharField(max_length=32)
+    extension = models.CharField(max_length=8)
+    size_bytes = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
+    height = models.PositiveIntegerField()
+    sha256 = models.CharField(max_length=64)
+    revision = models.PositiveBigIntegerField()
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(content_type__in=["image/png", "image/jpeg", "image/webp"]),
+                name="fiscal_entity_logo_content_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(revision__gte=1),
+                name="fiscal_entity_logo_revision_positive",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Logo {self.fiscal_entity_id} r{self.revision}"

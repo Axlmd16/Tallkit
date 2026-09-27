@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
 import { API, send, seedFiscalConfiguration } from './catalog-helpers'
 import { login } from './helpers'
+import { removeEntityLogo, uploadEntityLogo } from './logo-helpers'
 
 const EVIDENCE = 'test-results/maintenance-billing-evidence'
 const RAIL_EXCEPTION = { exclude: ['.app-rail'] }
@@ -136,6 +137,7 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
   await page.setViewportSize({ width: 1440, height: 1000 })
   await login(page, 'admin_e2e')
   const world = await seed(page)
+  const artisan = await uploadEntityLogo(page, 'ARTESANAL')
 
   // 1. El Encargado registra la orden con un servicio y reserva un repuesto.
   await relogin(page, 'taller_e2e')
@@ -262,6 +264,23 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
     .getByRole('button', { name: 'Generar comprobante' })
     .click()
   await expect(economy.getByRole('link', { name: /ART-SER-/ })).toBeVisible()
+
+  // El comprobante de servicios encabeza con el logo artesanal, nunca con el comercial.
+  const operationHref = await economy
+    .getByRole('link', { name: /ART-SER-/ })
+    .getAttribute('href')
+  const operationId = operationHref?.match(/service-operations\/(\d+)/)?.[1]
+  expect(operationId).toBeTruthy()
+  await page.goto(`/maintenance/service-operations/${operationId}/document`)
+  const issuer = page.getByRole('group', { name: 'Emisor' })
+  await expect(
+    issuer.getByRole('img', { name: `Logo de ${artisan.legal_name}` }),
+  ).toBeVisible()
+  await expect(issuer.getByRole('img')).toHaveCount(1)
+  await expect(
+    issuer.getByRole('img', { name: `Logo de ${artisan.legal_name}` }),
+  ).toHaveAttribute('src', /entity-logos\/ARTESANAL\//)
+  await page.goto(`/maintenance/${order.id}?tab=billing`)
   await economy
     .getByRole('button', { name: 'Cobrar servicios (RUC artesanal)' })
     .click()
@@ -310,6 +329,7 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
 
   // 5. El Administrador ve el total combinado solo como información.
   await relogin(page, 'admin_e2e')
+  await removeEntityLogo(page, 'ARTESANAL')
   await page.goto(`/maintenance/${order.id}?tab=billing`)
   await expect(page.getByText('Total combinado (informativo)')).toBeVisible()
   await page.goto('/maintenance/receivables?payment_state=PAID')
