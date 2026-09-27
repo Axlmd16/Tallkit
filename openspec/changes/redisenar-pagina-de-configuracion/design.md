@@ -251,3 +251,5 @@ El usuario pidió que las subsecciones de facturación sigan el estilo de *Entid
 - cada subsección vuelve a su `SheetHeading` (título, descripción y acciones); los avisos se inyectan como `hints` desde `FiscalConfigurationSection`;
 - `HintPopover` gana la variante `button`, con el alto, el borde y la esquina de `Button` secundario, y su panel se alinea al borde del disparador;
 - los estados vuelven a `StateMark` y las acciones de fila, a `Button` `quiet`; el certificado en consulta usa `FactList` y la tarjeta queda solo como vista previa del modal.
+
+En la verificación final, la hoja pasó de alto mínimo a alto fijo desde `md` (`h-[calc(100dvh-100px)]`), con desplazamiento interno del contenido (`md:overflow-y-auto`) y de la navegación (`lg:overflow-y-auto`), para que su altura no cambie aunque una sección tenga más contenido que la ventana.

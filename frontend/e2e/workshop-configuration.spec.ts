@@ -390,6 +390,34 @@ for (const width of REPRESENTATIVE_WIDTHS) {
   })
 }
 
+test('la hoja conserva su altura hasta el borde inferior al cambiar de sección', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await login(page, 'admin_e2e')
+  await mockConfiguration(page)
+  await page.goto('/configuration')
+  const sheet = page
+    .getByRole('navigation', { name: 'Secciones de configuración' })
+    .locator('..')
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Entidades fiscales' }),
+  ).toBeVisible()
+  const first = await sheet.boundingBox()
+  await page
+    .getByRole('navigation', { name: 'Secciones de configuración' })
+    .getByRole('link', { name: /Bodega/ })
+    .click()
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Bodega' }),
+  ).toBeVisible()
+  const second = await sheet.boundingBox()
+  expect(second?.height).toBe(first?.height)
+  expect((second?.y ?? 0) + (second?.height ?? 0)).toBeGreaterThanOrEqual(
+    900 - 21,
+  )
+})
+
 test('el Vendedor no accede a la configuración aunque prepare datos fiscales', async ({
   page,
 }) => {

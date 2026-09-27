@@ -142,7 +142,7 @@ function ConfiguredWorkshopContent() {
   const activeSeries = series?.filter((item) => item.is_active).length ?? 0
 
   return (
-    <section className="animate-fade-in flex flex-col gap-6 md:min-h-[calc(100dvh-100px)]">
+    <section className="animate-fade-in flex flex-col gap-6 md:h-[calc(100dvh-100px)]">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
@@ -165,7 +165,7 @@ function ConfiguredWorkshopContent() {
         </div>
       </header>
 
-      <div className="relative grid min-h-[36rem] flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] lg:grid-rows-[1fr] overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[272px_minmax(0,1fr)]">
+      <div className="relative grid min-h-[24rem] flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] md:min-h-0 lg:grid-rows-[minmax(0,1fr)] overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[272px_minmax(0,1fr)]">
         <SectionNav
           activeChildId={
             tab === 'facturacion'
@@ -174,7 +174,7 @@ function ConfiguredWorkshopContent() {
           }
           activeId={tab}
           aria-label="Secciones de configuración"
-          className="min-w-0 border-b border-line lg:border-r lg:border-b-0 lg:py-5"
+          className="min-w-0 border-b border-line lg:overflow-y-auto lg:border-r lg:border-b-0 lg:py-5"
           items={[
             {
               id: 'entidades',
@@ -232,7 +232,7 @@ function ConfiguredWorkshopContent() {
           title="Secciones"
         />
 
-        <div className="min-w-0 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+        <div className="min-h-0 min-w-0 px-4 py-6 sm:px-6 md:overflow-y-auto lg:px-10 lg:py-8">
           <div hidden={tab !== 'entidades'}>
             <EntitiesSection readiness={readiness} />
           </div>

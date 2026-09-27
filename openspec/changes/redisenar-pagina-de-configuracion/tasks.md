@@ -155,7 +155,7 @@ Dependencias: grupos 2 a 7. Diseño D12.
   - `openspec validate redisenar-pagina-de-configuracion --strict`.
 
   Registrar comandos, resultados y lo no ejecutado (suite completa de frontend, backend y resto de Playwright).
-- [ ] 8.6 Pedir al usuario que valide la página directamente en la aplicación (`sistema-visual-frontend`, validación directa) y registrar sus correcciones antes de archivar.
+- [x] 8.6 Pedir al usuario que valide la página directamente en la aplicación (`sistema-visual-frontend`, validación directa) y registrar sus correcciones antes de archivar.
 
 ## 9. Revisión del usuario: facturación electrónica con menos texto
 
@@ -214,5 +214,15 @@ Segunda revisión: el selector de entidad pasó a un control segmentado compacto
 Tercera revisión: el título es la subsección actual, con icono en el tono del ámbito. «Preparación local» y los pendientes se consultan en `HintPopover` (puntero, foco o toque), los estados usan chips con los tonos del sistema y las cabeceras de tabla van en gris suave. El certificado es una tarjeta, y su modal amplio tiene pasos, atajos de duración y vista previa en vivo.
 
 Verificación: vitest de los archivos afectados → 287 pruebas pasan; `tsc`, ESLint y Prettier sin incidencias; `npx playwright test e2e/workshop-configuration.spec.ts e2e/fiscal.spec.ts` → 15 pasan; capturas a 1440 × 900 y 390 px revisadas. No se ejecutaron la suite completa, el backend ni el resto de Playwright.
+
+### Validación del usuario y verificación final (2026-09-26)
+
+El usuario validó la página directamente en la aplicación («ahí ya me gusta») después de las revisiones del grupo 9, y pidió verificar y archivar.
+
+La verificación contra las specs encontró tres puntos, corregidos antes de archivar:
+
+- las subsecciones anidadas de la navegación medían 40 px; ahora miden 44 px en dispositivos táctiles (`pointer-coarse:min-h-11`);
+- el escenario «Altura estable de la hoja» fallaba cuando el contenido superaba la ventana: la hoja pasó a una altura fija desde `md`, con el contenido y la navegación desplazándose dentro de ella, y la spec se ajustó en ese sentido. La nueva prueba E2E lo cubre;
+- el escenario «Formulario abierto al cambiar de entidad» no tenía una prueba explícita; se añadió en `FiscalConfigurationSection.test.tsx`.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).
