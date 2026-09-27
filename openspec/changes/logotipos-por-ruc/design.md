@@ -130,14 +130,14 @@ El contrato se actualiza en `backend/schema.yml` con `drf-spectacular`.
 
 ### D6 — Hoja del documento: `DocumentSheet` recibe al emisor
 
-`DocumentSheet` añade la propiedad obligatoria `issuer: { scope: 'COMERCIAL' | 'ARTESANAL'; name: string }` y retira la importación del isotipo.
+`DocumentSheet` añade la propiedad obligatoria `issuer: { name: string; logoUrl: string | null | undefined }` y la opcional `onBrandReady`, y retira la importación del isotipo.
 
 - **Encabezado:**
   - `<img alt="Logo de {name}">` con `object-fit: contain`, alto máximo de unos 56 px y ancho máximo del 45 % del encabezado, seguido del nombre;
   - sin logotipo, o si el evento `onError` de la imagen se dispara, solo el nombre;
   - la hoja no guarda ningún espacio reservado.
 - **Pie:** «Generado con Tallkit» en texto secundario pequeño, después del aviso fiscal.
-- **Datos del logotipo:** se obtienen con `useEntityLogos()` (TanStack Query, `staleTime` largo), en un nuevo `shared/api/entity-logos.ts`. La hoja elige la entrada de su `scope`, de modo que nunca muestra el logotipo de la otra entidad.
+- **Datos del logotipo:** `DocumentSheet` es una pieza de presentación y recibe `issuer: { name, logoUrl }`. La consulta vive en `shared/api/entity-logos.ts` como `useIssuerBrand(scope)` (TanStack Query, `staleTime` largo) y la usan los comprobantes. Solo devuelve el logotipo del `scope` pedido, de modo que una hoja nunca muestra el de la otra entidad. Ajuste hecho durante la aplicación, para que la pieza compartida no haga peticiones.
 - **Impresión:**
   - se crea `useSheetBrandReady()`, que devuelve `ready` cuando el resumen se resolvió y la imagen terminó de cargar o falló;
   - los botones «Imprimir comprobante» de `SaleDocumentPage` y `ServiceOperationDocumentPage` quedan deshabilitados, con estado ocupado accesible, hasta `ready`;

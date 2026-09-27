@@ -105,29 +105,33 @@ Dependencias: grupo 3. Diseño D5; spec `configuracion-operativa-y-fiscal` («En
 
 Dependencias: grupo 4. Diseño D5 y D6; specs `patrones-de-pantalla-frontend` (PPF-05 y PPF-09), `ventas-comerciales`, `operacion-artesanal-de-servicios` y `sistema-visual-frontend`.
 
-- [ ] 5.1 Escribir las pruebas de `useEntityLogos` y sus tipos, y crear `frontend/src/shared/api/entity-logos.ts` (TanStack Query, `staleTime` largo, clave `entity-logos`).
-- [ ] 5.2 Ampliar `src/shared/ui/business/DocumentSheet.test.tsx`:
+- [x] 5.1 Escribir las pruebas de `useEntityLogos` y sus tipos, y crear `frontend/src/shared/api/entity-logos.ts` (TanStack Query, `staleTime` largo, clave `entity-logos`).
+- [x] 5.2 Ampliar `src/shared/ui/business/DocumentSheet.test.tsx`:
   - con logotipo: `img` con alt «Logo de {nombre}» y el nombre visible;
   - sin logotipo: solo el nombre y ningún isotipo de Tallkit;
   - si la imagen falla, se muestra el nombre sin imagen rota;
   - una hoja `ARTESANAL` nunca usa la URL comercial;
   - pie «Generado con Tallkit»;
   - el logotipo muy ancho queda acotado por clase o estilo.
-- [ ] 5.3 Implementar en `DocumentSheet.tsx`:
+- [x] 5.3 Implementar en `DocumentSheet.tsx`:
   - la propiedad `issuer: { scope, name }`;
   - retirar la importación del isotipo;
   - encabezado con logotipo o nombre, y pie «Generado con Tallkit»;
   - estilos en `document-sheet.css`, incluidas las reglas de impresión A4 y la legibilidad en blanco y negro.
-- [ ] 5.4 Escribir las pruebas y crear `useSheetBrandReady`: queda listo cuando el resumen se resolvió y la imagen cargó o falló, con un máximo de 5 s.
-- [ ] 5.5 Actualizar los consumidores y sus pruebas:
+- [x] 5.4 Escribir las pruebas y crear `useSheetBrandReady`: queda listo cuando el resumen se resolvió y la imagen cargó o falló, con un máximo de 5 s.
+- [x] 5.5 Actualizar los consumidores y sus pruebas:
   - `features/sales/SalesDocument.tsx`: `scope: 'COMERCIAL'` y nombre `issuer.legal_name`;
   - `pages/maintenance/ServiceOperationDocumentPage.tsx`: `scope: 'ARTESANAL'`;
   - `features/purchases/PurchaseDocument.tsx` y `pages/purchases/PurchaseEditorPage.tsx`: nombre conservado del ingreso confirmado o razón social vigente en borrador.
 
   Si el detalle del ingreso confirmado no expone el nombre conservado, añadir primero, con TDD, su lectura en `backend/src/purchasing` y registrarlo en la evidencia.
-- [ ] 5.6 Deshabilitar «Imprimir comprobante» con estado ocupado accesible hasta `useSheetBrandReady` en `SaleDocumentPage.tsx` y `ServiceOperationDocumentPage.tsx`, con sus pruebas.
-- [ ] 5.7 Actualizar el catálogo visual interno (`src/dev/visual-catalog/previews.tsx`) con la hoja con logotipo y sin logotipo.
-- [ ] 5.8 Verificar: `npx vitest run` de `DocumentSheet.test.tsx`, `src/shared/api`, `src/features/sales`, `src/features/purchases`, `src/pages/sales`, `src/pages/maintenance` y `src/pages/purchases`, más `tsc`, ESLint y prettier sobre los archivos tocados.
+- [x] 5.6 Deshabilitar «Imprimir comprobante» con estado ocupado accesible hasta `useSheetBrandReady` en `SaleDocumentPage.tsx` y `ServiceOperationDocumentPage.tsx`, con sus pruebas.
+- [x] 5.7 Actualizar el catálogo visual interno (`src/dev/visual-catalog/previews.tsx`) con la hoja con logotipo y sin logotipo.
+- [x] 5.8 Verificar: `npx vitest run` de `DocumentSheet.test.tsx`, `src/shared/api`, `src/features/sales`, `src/features/purchases`, `src/pages/sales`, `src/pages/maintenance` y `src/pages/purchases`, más `tsc`, ESLint y prettier sobre los archivos tocados.
+  - Evidencia (2026-09-27): `npx vitest run src/shared/ui/business src/shared/api src/features/sales src/features/purchases src/pages/sales src/pages/maintenance src/pages/purchases src/dev` → 243 aprobadas y 2 fallidas. `npx tsc --noEmit -p tsconfig.app.json`, ESLint y prettier sin hallazgos sobre los archivos tocados.
+  - Las 2 fallas son previas y ajenas al cambio: `ServiceOperationDetailPage` en `billingPages.test.tsx` falla igual con el árbol limpio (`git stash -u`) por «No QueryClient set».
+  - 5.1 se implementó como `useIssuerBrand(scope)`, en lugar de `useEntityLogos`, y `DocumentSheet` recibe `issuer: { name, logoUrl }`; se ajustó D6.
+  - 5.5: el editor de ingresos solo presenta borradores, porque los confirmados redirigen al detalle. Por eso se usa la razón social vigente y no fue necesario cambiar `backend/src/purchasing`.
 
 ## 6. Fila «Logo» y modal en la configuración (frontend)
 

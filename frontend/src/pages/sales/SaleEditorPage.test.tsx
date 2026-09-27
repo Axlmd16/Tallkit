@@ -28,6 +28,15 @@ vi.mock('@/features/sales/api', () => ({
     draftPreview: (...args: unknown[]) => mocks.draftPreview(...args),
   },
 }))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: (scope: string) => ({
+    logoUrl:
+      scope === 'COMERCIAL'
+        ? '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/'
+        : '/api/v1/workshop-configuration/entity-logos/ARTESANAL/1/',
+    legalName: scope === 'COMERCIAL' ? 'Repuestos Andinos' : 'Taller Andino',
+  }),
+}))
 vi.mock('@/features/sales/hooks', () => ({
   useSale: () => ({
     data: mocks.sale,
@@ -161,6 +170,20 @@ it('compone dos superficies: editor y visor con una sola copia editable', async 
     screen.getAllByRole('article', { name: 'Comprobante de venta' }),
   ).toHaveLength(1)
   expect(sheet).toHaveTextContent('Vista previa')
+})
+
+it('la vista previa del borrador encabeza con el logotipo y la razón social vigentes del RUC comercial', () => {
+  renderEditor()
+  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const issuer = within(sheet).getByRole('group', { name: 'Emisor' })
+  expect(issuer).toHaveTextContent('Repuestos Andinos')
+  expect(
+    within(issuer).getByRole('img', { name: 'Logo de Repuestos Andinos' }),
+  ).toHaveAttribute(
+    'src',
+    '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/',
+  )
+  expect(sheet).toHaveTextContent('Generado con Tallkit')
 })
 
 it('el CSS divide 44/56 desde 1280 px con altura de ventana, visor sticky y una sola vista debajo', () => {

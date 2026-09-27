@@ -5,6 +5,7 @@ import { useSaleDocument } from '@/features/sales/hooks'
 import { SalesDocument, type SheetData } from '@/features/sales/SalesDocument'
 import { saleStateLabels } from '@/features/sales/types'
 import { Button, InlineNotice, LoadingState } from '@/shared/ui'
+import { useSheetBrandReady } from '@/shared/ui/business'
 
 /**
  * Comprobante interno imprimible. Muestra solo datos históricos del servidor, nunca costos;
@@ -13,6 +14,7 @@ import { Button, InlineNotice, LoadingState } from '@/shared/ui'
 export function SaleDocumentPage() {
   const id = Number(useParams().id)
   const query = useSaleDocument(Number.isFinite(id) ? id : null)
+  const brand = useSheetBrandReady()
   if (query.isPending) return <LoadingState label="Cargando comprobante…" />
   if (query.isError || !query.data) {
     return (
@@ -63,6 +65,8 @@ export function SaleDocumentPage() {
           </h1>
         </div>
         <Button
+          aria-busy={!brand.ready}
+          disabled={!brand.ready}
           onClick={() => window.print()}
           type="button"
           variant="secondary"
@@ -72,7 +76,7 @@ export function SaleDocumentPage() {
         </Button>
       </div>
       <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">
-        <SalesDocument data={sheet} />
+        <SalesDocument data={sheet} onBrandReady={brand.onBrandReady} />
       </div>
     </div>
   )

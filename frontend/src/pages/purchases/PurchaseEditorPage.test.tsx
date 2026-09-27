@@ -57,6 +57,15 @@ vi.mock('react-router', async (importOriginal) => {
     },
   }
 })
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: (scope: string) => ({
+    logoUrl:
+      scope === 'COMERCIAL'
+        ? '/api/v1/workshop-configuration/entity-logos/COMERCIAL/2/'
+        : '/api/v1/workshop-configuration/entity-logos/ARTESANAL/2/',
+    legalName: scope === 'COMERCIAL' ? 'Repuestos Andinos' : 'Taller Andino',
+  }),
+}))
 vi.mock('@/features/purchases/pickers', () => ({
   useSupplierOptions: () => ({
     isPending: false,
@@ -182,6 +191,20 @@ beforeEach(() => {
   mocks.update.mockResolvedValue(draftPurchase)
   mocks.preview.mockResolvedValue(review)
   mocks.confirm.mockResolvedValue({ ...draftPurchase, state: 'CONFIRMED' })
+})
+
+it('la vista previa del ingreso encabeza con el logotipo comercial y la razón social vigente', () => {
+  renderEditor('/purchases/new')
+  const sheet = screen.getByRole('article', { name: 'Comprobante de ingreso' })
+  const issuer = within(sheet).getByRole('group', { name: 'Emisor' })
+  expect(issuer).toHaveTextContent('Repuestos Andinos')
+  expect(
+    within(issuer).getByRole('img', { name: 'Logo de Repuestos Andinos' }),
+  ).toHaveAttribute(
+    'src',
+    '/api/v1/workshop-configuration/entity-logos/COMERCIAL/2/',
+  )
+  expect(sheet).toHaveTextContent('Generado con Tallkit')
 })
 
 it('valida en el cliente, asocia cada error a su campo y no envía nada', async () => {
