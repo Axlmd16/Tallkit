@@ -209,4 +209,18 @@ Dependencias: grupos 2 a 7.
   - Corrección: en escritorio, «Cambiar» y «Quitar» se apilaban con mucho alto; ahora son botones compactos que solo saltan de línea si no caben.
   - Queda para el usuario revisar la impresión física en A4.
 
+## Verificación (2026-09-27)
+
+`/opsx:verify`:
+- tareas: 45 de 45;
+- requisitos: 13 de 13 con implementación y pruebas;
+- escenarios: 52 cubiertos.
+
+Durante la verificación se añadió la prueba del escenario «Operación anulada antes de un cambio de logotipo» en `billingPages.test.tsx`.
+
+Advertencias abiertas, que no bloquean:
+- las 2 pruebas de `ServiceOperationDetailPage` que ya fallaban antes del cambio;
+- la impresión física en A4 no se verificó;
+- el tiempo máximo de 5 s para imprimir empieza a contar al montar la página, así que una carga del documento muy lenta puede habilitar la impresión sin logotipo y mostrar el nombre.
+
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

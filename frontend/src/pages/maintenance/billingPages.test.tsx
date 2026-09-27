@@ -259,6 +259,31 @@ describe('ServiceOperationDocumentPage', () => {
     ).toBeEnabled()
   })
 
+  it('una operación anulada muestra el logotipo vigente y conserva sus datos históricos', () => {
+    mocks.brands.ARTESANAL = {
+      logoUrl: ARTISAN_LOGO,
+      legalName: 'Taller vigente',
+    }
+    mocks.operation.data = operation({
+      state: 'VOIDED',
+      void_reason: 'Precio equivocado',
+    })
+    renderAt(
+      '/maintenance/service-operations/4/document',
+      '/maintenance/service-operations/:id/document',
+      <ServiceOperationDocumentPage />,
+    )
+    const issuer = screen.getByRole('group', { name: 'Emisor' })
+    expect(
+      within(issuer).getByRole('img', { name: 'Logo de Taller Artesanal' }),
+    ).toHaveAttribute('src', ARTISAN_LOGO)
+    expect(issuer).toHaveTextContent('Taller Artesanal')
+    expect(
+      screen.getByText(/Taller Artesanal · 1790000000002/),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText('ART-SER-000004').length).toBeGreaterThan(0)
+  })
+
   it('espera el logotipo antes de permitir imprimir', () => {
     mocks.brands.ARTESANAL = {
       logoUrl: ARTISAN_LOGO,
