@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
 import { API, send, seedFiscalConfiguration } from './catalog-helpers'
 import { login } from './helpers'
+import { removeEntityLogo, uploadEntityLogo } from './logo-helpers'
 
 interface World {
   tag: string
@@ -287,6 +288,38 @@ test.describe('Ventas, cobros y correcciones', () => {
       await expect(document).toContainText(fragment)
     }
     await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+  })
+
+  test('el comprobante encabeza con el logo comercial y sin él muestra solo el nombre', async ({
+    page,
+  }) => {
+    const world = await seedWorld(page)
+    const commercial = await uploadEntityLogo(page, 'COMERCIAL')
+    try {
+      const sale = await apiSale(page, world, { quantity: 1, key: 'logo' })
+      await page.goto(`/sales/${sale.id}/document`)
+      const issuer = page
+        .getByRole('article', { name: 'Comprobante de venta' })
+        .getByRole('group', { name: 'Emisor' })
+      const logo = issuer.getByRole('img', {
+        name: `Logo de ${commercial.legal_name}`,
+      })
+      await expect(logo).toBeVisible()
+      await expect
+        .poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+        .toBeGreaterThan(0)
+      await expect(
+        page.getByRole('button', { name: 'Imprimir comprobante' }),
+      ).toBeEnabled()
+      await expect(page.getByText('Generado con Tallkit')).toBeVisible()
+
+      await removeEntityLogo(page, 'COMERCIAL')
+      await page.reload()
+      await expect(issuer).toContainText(commercial.legal_name)
+      await expect(issuer.getByRole('img')).toHaveCount(0)
+    } finally {
+      await removeEntityLogo(page, 'COMERCIAL')
+    }
   })
 
   test('contado interrumpido y reanudado no inventa un pago ni lo convierte en crédito', async ({

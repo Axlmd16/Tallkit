@@ -164,9 +164,15 @@ Dependencias: grupo 4 y tarea 5.1. Diseño D7; spec `organizacion-de-la-configur
 
 Dependencias: grupos 5 y 6.
 
-- [ ] 7.1 Añadir a `frontend/e2e/workshop-configuration.spec.ts` el caso de subir un PNG válido, verlo en la ficha, rechazar un SVG con el modal abierto y quitarlo con confirmación. Usar imágenes de prueba en `frontend/e2e/fixtures/`, generadas y pequeñas.
-- [ ] 7.2 Añadir a `e2e/sales-payments.spec.ts` y `e2e/maintenance-billing.spec.ts` un caso que compruebe el encabezado del comprobante: logotipo de su entidad cuando existe y nombre cuando no.
-- [ ] 7.3 Verificar: ejecutar solo esos casos (`npx playwright test e2e/workshop-configuration.spec.ts` y los casos nuevos de los otros dos archivos con `-g`) y registrar el resultado.
+- [x] 7.1 Añadir a `frontend/e2e/workshop-configuration.spec.ts` el caso de subir un PNG válido, verlo en la ficha, rechazar un SVG con el modal abierto y quitarlo con confirmación. Usar imágenes de prueba en `frontend/e2e/fixtures/`, generadas y pequeñas.
+- [x] 7.2 Añadir a `e2e/sales-payments.spec.ts` y `e2e/maintenance-billing.spec.ts` un caso que compruebe el encabezado del comprobante: logotipo de su entidad cuando existe y nombre cuando no.
+- [x] 7.3 Verificar: ejecutar solo esos casos (`npx playwright test e2e/workshop-configuration.spec.ts` y los casos nuevos de los otros dos archivos con `-g`) y registrar el resultado.
+  - Evidencia (2026-09-27), con el backend real de `testserver`:
+    - `npx playwright test e2e/workshop-configuration.spec.ts` → 12 aprobadas, incluido el caso nuevo de subir, rechazar un SVG y quitar;
+    - `npx playwright test e2e/sales-payments.spec.ts -g "logo comercial"` → 1 aprobada;
+    - `npx playwright test e2e/maintenance-billing.spec.ts` → 1 aprobada, con el paso nuevo del comprobante artesanal.
+  - No se ejecutó el resto de `sales-payments.spec.ts` ni el resto de Playwright.
+  - Las imágenes de prueba se generan en `e2e/logo-helpers.ts`, un PNG de 1 × 1 en base64 y un SVG en memoria, en lugar de archivos en `e2e/fixtures/`. ESLint y prettier sin hallazgos.
 
 ## 8. Documentación, trazabilidad y operación
 
