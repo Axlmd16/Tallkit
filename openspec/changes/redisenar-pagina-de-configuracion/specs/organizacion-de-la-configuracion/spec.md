@@ -15,7 +15,7 @@ Desde 1024 px de ancho, la navegación de secciones SHALL mostrarse como una lis
 - *Entidades fiscales*, *Bodega*, *Impuestos* y *Series y numeración*: el número de registros vigentes de la sección.
 - *Facturación electrónica*: el número de pendientes cuando existan, con texto accesible que los identifique como pendientes.
 
-Desde 768 px de ancho, la hoja SHALL ocupar todo el alto disponible de la ventana bajo el encabezado de la página, y su altura SHALL NOT variar al cambiar de sección; el contenido que exceda ese alto SHALL desplazarse con la página. La descripción del encabezado de la página SHALL ser una frase breve que en escritorio quepa en una sola línea.
+Desde 768 px de ancho, la hoja SHALL ocupar exactamente el alto disponible de la ventana bajo el encabezado de la página, y su altura SHALL NOT variar al cambiar de sección; el contenido que exceda ese alto SHALL desplazarse dentro de la hoja. La descripción del encabezado de la página SHALL ser una frase breve que en escritorio quepa en una sola línea.
 
 La sección activa SHALL distinguirse mediante una marca lateral o inferior, un fondo suave y un peso de texto mayor, sin depender solo del color. La sección inicial SHALL ser *Entidades fiscales*, salvo navegación directa a otra.
 

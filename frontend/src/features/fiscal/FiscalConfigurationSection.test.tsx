@@ -671,3 +671,23 @@ it('mantiene el certificado opcional, lo previsualiza y rechaza datos parciales'
   ).toBeInTheDocument()
   expect(mocks.saveProfile.mutateAsync).not.toHaveBeenCalled()
 })
+
+it('descarta un formulario abierto y no lo aplica a la otra entidad', async () => {
+  const user = userEvent.setup()
+  renderSection()
+
+  await user.click(
+    screen.getByRole('button', { name: 'Declarar Agente de retención' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Declarar: Agente de retención',
+  })
+  await user.click(within(dialog).getByRole('radio', { name: 'No aplica' }))
+  await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+  await user.click(screen.getByRole('button', { name: 'Descartar' }))
+  await user.click(screen.getByRole('radio', { name: /Taller Jiménez/ }))
+
+  expect(screen.getByTestId('location')).toHaveTextContent('entidad=2')
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(mocks.saveProfile.mutateAsync).not.toHaveBeenCalled()
+})
