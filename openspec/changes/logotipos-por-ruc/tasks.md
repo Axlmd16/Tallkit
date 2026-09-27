@@ -137,24 +137,28 @@ Dependencias: grupo 4. Diseño D5 y D6; specs `patrones-de-pantalla-frontend` (P
 
 Dependencias: grupo 4 y tarea 5.1. Diseño D7; spec `organizacion-de-la-configuracion` («Administración del logotipo en modal», «Entidades fiscales en fichas de consulta paralelas»).
 
-- [ ] 6.1 Ampliar los tipos y la API de entidades con `logo` y añadir las mutaciones de subir y quitar. Al terminar con éxito, invalidan `entities` y `entity-logos`.
-- [ ] 6.2 Escribir las pruebas de `EntityLogoModal`:
+- [x] 6.1 Ampliar los tipos y la API de entidades con `logo` y añadir las mutaciones de subir y quitar. Al terminar con éxito, invalidan `entities` y `entity-logos`.
+- [x] 6.2 Escribir las pruebas de `EntityLogoModal`:
   - selector con `accept` de PNG, JPEG y WebP;
   - vista previa local del archivo elegido y URL liberada al cerrar;
   - aviso desplegable con formatos y límites;
   - la misma clave de idempotencia en los reintentos del mismo archivo y una nueva al cambiar de archivo;
   - un rechazo del servidor mantiene el modal abierto con el error junto al selector y conserva el archivo;
   - el éxito cierra el modal y muestra un toast.
-- [ ] 6.3 Crear `frontend/src/features/fiscal/configuration/EntityLogoModal.tsx` sobre `FormModal` y `HintPopover`.
-- [ ] 6.4 Escribir las pruebas de la fila «Logo» en `EntitiesSection`:
+- [x] 6.3 Crear `frontend/src/features/fiscal/configuration/EntityLogoModal.tsx` sobre `FormModal` y `HintPopover`.
+- [x] 6.4 Escribir las pruebas de la fila «Logo» en `EntitiesSection`:
   - «Sin logo» con «Subir logo»;
   - vista previa con alt, más «Cambiar» y «Quitar»;
   - «Quitar» pide confirmación y, al confirmar, muestra «Sin logo» y un toast;
   - cancelar conserva el logotipo y devuelve el foco a «Quitar»;
   - un logotipo de 2000 × 200 px no se deforma ni desborda;
   - a 360 px las acciones siguen visibles.
-- [ ] 6.5 Implementar la fila en `pages/workshop-configuration/sections/EntitiesSection.tsx` y la confirmación con `ConfirmationPanel`.
-- [ ] 6.6 Verificar: `npx vitest run src/pages/workshop-configuration src/features/fiscal/configuration`, más `tsc`, ESLint y prettier sobre los archivos tocados.
+- [x] 6.5 Implementar la fila en `pages/workshop-configuration/sections/EntitiesSection.tsx` y la confirmación con `ConfirmationPanel`.
+- [x] 6.6 Verificar: `npx vitest run src/pages/workshop-configuration src/features/fiscal/configuration`, más `tsc`, ESLint y prettier sobre los archivos tocados.
+  - Evidencia (2026-09-27): `npx vitest run src/pages/workshop-configuration src/features/workshop-configuration src/features/fiscal/configuration` → 9 archivos y 52 pruebas aprobadas. `tsc`, ESLint y prettier sin hallazgos.
+  - `EntityLogoModal` quedó en `src/features/workshop-configuration/`, junto a sus mutaciones, en lugar de `features/fiscal/configuration/`.
+  - Un fallo al quitar se comunica con `toast.info`, porque el sistema de toasts no tiene variante de error.
+  - La visibilidad a 360 px se cubre con `flex-wrap` en la fila; no hay una prueba de viewport específica.
 
 ## 7. Recorridos E2E focalizados
 

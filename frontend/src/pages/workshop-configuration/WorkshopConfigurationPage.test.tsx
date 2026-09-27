@@ -49,6 +49,8 @@ const mocks = vi.hoisted(() => {
     periodCreate: mutation(),
     seriesUpdate: mutation(),
     seriesReplace: mutation(),
+    logoUpload: mutation(),
+    logoRemove: mutation(),
     readiness: {
       isLoading: false,
       isError: false,
@@ -75,6 +77,8 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   useUpdateSeriesCode: () => mocks.seriesUpdate,
   useReplaceSeries: () => mocks.seriesReplace,
   useInitializeWorkshop: () => mocks.initialize,
+  useUploadEntityLogo: () => mocks.logoUpload,
+  useRemoveEntityLogo: () => mocks.logoRemove,
 }))
 const fiscalSection = vi.hoisted(() => ({ mounts: 0 }))
 vi.mock('@/features/fiscal/FiscalConfigurationSection', async () => {
@@ -132,6 +136,15 @@ const entities = [
     phone: null,
     email: null,
     version: 2,
+    logo: {
+      url: '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/',
+      revision: 1,
+      content_type: 'image/png',
+      width: 2000,
+      height: 200,
+      size_bytes: 1200,
+      uploaded_at: '2026-09-27T10:00:00Z',
+    },
   },
   {
     id: 1,
@@ -143,6 +156,7 @@ const entities = [
     phone: null,
     email: null,
     version: 3,
+    logo: null,
   },
 ]
 const warehouse = {
@@ -251,6 +265,8 @@ beforeEach(() => {
     mocks.periodCreate,
     mocks.seriesUpdate,
     mocks.seriesReplace,
+    mocks.logoUpload,
+    mocks.logoRemove,
   ]) {
     mutation.mutate.mockReset()
     mutation.mutateAsync.mockReset()
@@ -661,4 +677,75 @@ it('muestra estados de carga, vacío y error por sección', () => {
   mocks.status.isError = true
   renderPage()
   expect(screen.getByText('No se pudo cargar la configuración.')).toBeVisible()
+})
+
+it('muestra la fila Logo con vista previa acotada o «Sin logo» y sus acciones', () => {
+  renderPage()
+  const commercial = screen.getByRole('article', { name: 'Entidad comercial' })
+  const logo = within(commercial).getByRole('img', { name: 'Logo de Repuestos VVH' })
+  expect(logo).toHaveAttribute(
+    'src',
+    '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/',
+  )
+  expect(logo).toHaveClass('object-contain')
+  expect(logo.className).toMatch(/max-h-/)
+  expect(logo.className).toMatch(/max-w-/)
+  expect(
+    within(commercial).getByRole('button', { name: 'Cambiar logo de la entidad comercial' }),
+  ).toBeVisible()
+  expect(
+    within(commercial).getByRole('button', { name: 'Quitar logo de la entidad comercial' }),
+  ).toBeVisible()
+
+  const artisan = screen.getByRole('article', { name: 'Entidad artesanal' })
+  expect(within(artisan).getByText('Sin logo')).toBeVisible()
+  expect(
+    within(artisan).getByRole('button', { name: 'Subir logo de la entidad artesanal' }),
+  ).toBeVisible()
+  expect(within(artisan).queryByRole('button', { name: /Quitar logo/ })).toBeNull()
+})
+
+it('abre el modal para subir el logo desde la ficha', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(
+    screen.getByRole('button', { name: 'Subir logo de la entidad artesanal' }),
+  )
+  expect(
+    screen.getByRole('dialog', { name: 'Logo de la entidad artesanal' }),
+  ).toBeVisible()
+})
+
+it('quita el logo tras confirmar y notifica con un toast', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(
+    screen.getByRole('button', { name: 'Quitar logo de la entidad comercial' }),
+  )
+  const dialog = screen.getByRole('dialog', { name: '¿Quitar el logo?' })
+  expect(dialog).toHaveTextContent('mostrarán solo el nombre')
+  await user.click(within(dialog).getByRole('button', { name: 'Quitar logo' }))
+
+  expect(mocks.logoRemove.mutateAsync).toHaveBeenCalledWith({
+    id: 2,
+    key: expect.stringMatching(/^[A-Za-z0-9._:-]{8,128}$/),
+  })
+  expect(await screen.findByText('Logo de la entidad comercial quitado.')).toBeVisible()
+})
+
+it('cancelar el retiro conserva el logo y devuelve el foco a «Quitar»', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  const remove = screen.getByRole('button', {
+    name: 'Quitar logo de la entidad comercial',
+  })
+  await user.click(remove)
+  await user.click(
+    within(screen.getByRole('dialog', { name: '¿Quitar el logo?' })).getByRole(
+      'button',
+      { name: 'Cancelar' },
+    ),
+  )
+  expect(mocks.logoRemove.mutateAsync).not.toHaveBeenCalled()
+  await waitFor(() => expect(remove).toHaveFocus())
 })

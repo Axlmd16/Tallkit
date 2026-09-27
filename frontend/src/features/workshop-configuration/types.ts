@@ -1,3 +1,5 @@
+import type { EntityLogo } from '@/shared/api/entity-logos'
+
 export interface WorkshopStatus {
   is_initialized: boolean
 }
@@ -26,6 +28,8 @@ export interface FiscalEntity {
   phone: string | null
   email: string | null
   version: number
+  /** Logotipo vigente de la entidad o `null` si no tiene. */
+  logo: EntityLogo | null
 }
 
 export interface FiscalEntityUpdateRequest {

@@ -160,7 +160,7 @@ En `EntitiesSection.tsx` se añade la fila «Logo» entre «Nombre comercial» y
 
 Se crean dos piezas:
 
-- **`features/fiscal/configuration/EntityLogoModal.tsx`** (sobre `FormModal`):
+- **`features/workshop-configuration/EntityLogoModal.tsx`** (sobre `FormModal`, junto a sus mutaciones):
   - selector de archivo con `accept="image/png,image/jpeg,image/webp"`;
   - vista previa local con `URL.createObjectURL`, liberada al cerrar;
   - aviso desplegable `HintPopover` con los formatos y límites;
