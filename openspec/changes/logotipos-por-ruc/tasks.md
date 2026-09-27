@@ -10,23 +10,24 @@ Por instrucción del usuario, solo se ejecutan pruebas focalizadas:
 
 No se ejecutan `make check`, `make test` ni Playwright completo. Si una tarea los pide, se registra qué se ejecutó y qué no. Cada tarea de comportamiento sigue TDD: prueba roja por la razón esperada, implementación mínima, refactorización y prueba verde.
 
-- [ ] 1.1 Comprobar el estado Git y que los artefactos de este cambio estén en `master`. Revisar `git log` por si hay cambios ajenos en `workshop_configuration/`, `DocumentSheet.tsx` o `EntitiesSection.tsx`, y registrar cualquier contradicción nueva.
-- [ ] 1.2 Ejecutar la línea base focalizada antes de tocar código y registrar el resultado:
+- [x] 1.1 Comprobar el estado Git y que los artefactos de este cambio estén en `master`. Revisar `git log` por si hay cambios ajenos en `workshop_configuration/`, `DocumentSheet.tsx` o `EntitiesSection.tsx`, y registrar cualquier contradicción nueva.
+- [x] 1.2 Ejecutar la línea base focalizada antes de tocar código y registrar el resultado:
   - backend: `uv run pytest tests/workshop_configuration/test_api.py tests/workshop_configuration/test_entity_warehouse_services.py`;
   - frontend: `npx vitest run src/shared/ui/business/DocumentSheet.test.tsx src/pages/workshop-configuration`.
+  - Evidencia (2026-09-27): no hay cambios ajenos pendientes (árbol limpio en `develop`). Backend: 57 aprobadas; el umbral global de cobertura falla solo por ser una ejecución parcial. Frontend: 3 archivos y 22 pruebas aprobadas.
 
 ## 2. Datos y reglas del logotipo (backend)
 
 Dependencias: grupo 1. Diseño D1 y D2; spec `configuracion-operativa-y-fiscal` («Logotipo opcional por entidad fiscal», «Validación del archivo del logotipo»).
 
-- [ ] 2.1 Escribir `backend/tests/workshop_configuration/test_logo_rules.py` con los formatos admitidos, el límite de 2 MiB y el de 25 megapíxeles. Después, crear `backend/src/workshop_configuration/domain/logo_rules.py`, sin dependencias de Django.
-- [ ] 2.2 Escribir en `test_fiscal_migrations.py`, o en un archivo nuevo de modelos, estas pruebas:
+- [x] 2.1 Escribir `backend/tests/workshop_configuration/test_logo_rules.py` con los formatos admitidos, el límite de 2 MiB y el de 25 megapíxeles. Después, crear `backend/src/workshop_configuration/domain/logo_rules.py`, sin dependencias de Django.
+- [x] 2.2 Escribir en `test_fiscal_migrations.py`, o en un archivo nuevo de modelos, estas pruebas:
   - `FiscalEntityLogo` único por entidad y `storage_name` único;
   - `FiscalEntity.logo_revision` inicia en 0;
   - la migración deja ambas entidades sin logotipo y no altera `version`.
 
   Después, añadir los modelos y la migración `workshop_configuration/0013_fiscal_entity_logo`.
-- [ ] 2.3 Escribir las pruebas de inspección en `test_entity_logos.py`:
+- [x] 2.3 Escribir las pruebas de inspección en `test_entity_logos.py`:
   - aceptación: PNG con alfa, JPEG y WebP estáticos;
   - rechazo: SVG, SVG renombrado a `.png`, GIF, WebP animado, PDF, ejecutable con extensión `.jpg`, archivo dañado, 2,5 MiB y 30 MP, cada uno con su código y mensaje;
   - la imagen normalizada no conserva EXIF y PNG y WebP conservan la transparencia.
@@ -35,7 +36,10 @@ Dependencias: grupo 1. Diseño D1 y D2; spec `configuracion-operativa-y-fiscal` 
   - `inspect_logo`, que vuelve a codificar la imagen en el mismo formato;
   - `store_logo`, con prefijo `fiscal-logos/<entity_id>/<uuid>.<ext>` en `PRIVATE_MEDIA_ROOT`;
   - `delete_files`, `open_file` e `iter_logo_files`.
-- [ ] 2.4 Verificar: `uv run pytest` de los archivos de 2.1 a 2.3, `ruff`, `mypy` y `makemigrations --check --dry-run`.
+- [x] 2.4 Verificar: `uv run pytest` de los archivos de 2.1 a 2.3, `ruff`, `mypy` y `makemigrations --check --dry-run`.
+  - Evidencia (2026-09-27): `uv run pytest --no-cov tests/workshop_configuration/test_logo_rules.py test_logo_storage.py test_entity_logo_models.py` → 25 aprobadas. `ruff check` y `ruff format` sin hallazgos, `mypy src/workshop_configuration` sin errores y `makemigrations --check --dry-run` sin cambios.
+  - Las pruebas de inspección quedaron en `test_logo_storage.py` y las del modelo y la migración en `test_entity_logo_models.py`, en lugar de `test_entity_logos.py`, que se reserva para los comandos y la API.
+  - Se usa `--no-cov` porque el umbral global de cobertura no aplica a ejecuciones parciales.
 
 ## 3. Comandos de carga, reemplazo y retiro (backend)
 
