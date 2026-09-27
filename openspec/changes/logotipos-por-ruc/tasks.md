@@ -198,7 +198,15 @@ Dependencias: grupos 2 a 7.
 
 ## 9. Cierre de la aplicación
 
-- [ ] 9.1 Ejecutar la verificación focalizada final: backend (`pytest` de los archivos del grupo 1, más `ruff`, `mypy` y `makemigrations --check`), frontend (vitest de los archivos afectados, `tsc`, ESLint y prettier) y los E2E del grupo 7. Registrar en la evidencia qué se ejecutó y qué no, en particular que no se ejecutaron `make check`, `make audit` ni Playwright completo.
-- [ ] 9.2 Revisar la aplicación con la interfaz en ejecución: ficha con y sin logotipo, modal, comprobantes de venta, servicios e ingreso en pantalla y en vista de impresión. Registrar las observaciones.
+- [x] 9.1 Ejecutar la verificación focalizada final: backend (`pytest` de los archivos del grupo 1, más `ruff`, `mypy` y `makemigrations --check`), frontend (vitest de los archivos afectados, `tsc`, ESLint y prettier) y los E2E del grupo 7. Registrar en la evidencia qué se ejecutó y qué no, en particular que no se ejecutaron `make check`, `make audit` ni Playwright completo.
+  - Evidencia (2026-09-27):
+    - backend: `uv run pytest --no-cov` de los 9 archivos de `tests/workshop_configuration` del cambio y de regresión → 124 aprobadas; `ruff check src tests`, `ruff format --check`, `mypy src` (265 archivos) y `makemigrations --check --dry-run` sin hallazgos;
+    - frontend: `npx vitest run` de 11 carpetas afectadas → 295 aprobadas y 2 fallidas, las mismas previas y ajenas de `ServiceOperationDetailPage` («No QueryClient set»); `tsc`, ESLint y prettier sin hallazgos sobre los archivos cambiados respecto de `master`;
+    - E2E: los del grupo 7.
+  - No se ejecutaron `make check`, `make test`, `make audit` ni Playwright completo.
+- [x] 9.2 Revisar la aplicación con la interfaz en ejecución: ficha con y sin logotipo, modal, comprobantes de venta, servicios e ingreso en pantalla y en vista de impresión. Registrar las observaciones.
+  - Evidencia (2026-09-27): capturas con Playwright y el backend real en 1440 y 360 px del modal con vista previa, la ficha con y sin logo, la vista previa de venta y la de ingreso con el logo del emisor. Se vieron correctos el logo acotado, el nombre del emisor y la mención «Generado con Tallkit» al pie.
+  - Corrección: en escritorio, «Cambiar» y «Quitar» se apilaban con mucho alto; ahora son botones compactos que solo saltan de línea si no caben.
+  - Queda para el usuario revisar la impresión física en A4.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

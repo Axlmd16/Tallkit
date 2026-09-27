@@ -185,7 +185,7 @@ function EntityLogoRow({ entity }: { entity: FiscalEntity }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-col items-start gap-1.5">
       {entity.logo ? (
         <img
           alt={`Logo de ${entity.legal_name}`}
@@ -195,9 +195,10 @@ function EntityLogoRow({ entity }: { entity: FiscalEntity }) {
       ) : (
         <span className="text-ink-muted">Sin logo</span>
       )}
-      <span className="flex flex-wrap gap-2">
+      <span className="-ml-2 flex flex-wrap gap-x-0.5">
         <Button
           aria-label={`${entity.logo ? 'Cambiar' : 'Subir'} logo de la entidad ${scope}`}
+          className="px-2"
           onClick={() => setUploading(true)}
           size="40"
           variant="quiet"
@@ -208,6 +209,7 @@ function EntityLogoRow({ entity }: { entity: FiscalEntity }) {
         {entity.logo && (
           <Button
             aria-label={`Quitar logo de la entidad ${scope}`}
+            className="px-2"
             onClick={() => setConfirming(true)}
             ref={removeRef}
             size="40"
