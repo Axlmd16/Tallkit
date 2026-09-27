@@ -22,6 +22,10 @@ Base ejecutable, reproducible y verificada sobre la que se construirán capacida
 
 Descripción legible por herramientas de las rutas, entradas y respuestas de la API HTTP.
 
+## Code 128
+
+Simbología lineal de alta densidad que representa el código interno de un producto mediante barras verificables por suma de control.
+
 ## Combobox
 
 Campo de texto editable con una lista de resultados flotante, conforme al patrón ARIA

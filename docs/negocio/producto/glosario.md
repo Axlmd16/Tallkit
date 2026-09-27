@@ -103,6 +103,10 @@ Registro que representa una operación con importes, impuestos, pagos o saldos. 
 
 Contribuyente legal identificado por un RUC bajo el cual se registran operaciones, secuenciales, impuestos, pagos, anulaciones y reportes.
 
+### Etiqueta de producto
+
+Identificación impresa que acompaña a un producto físico y muestra su código interno, datos básicos y un código de barras, sin precio ni efectos sobre inventario.
+
 ### Encargado del taller
 
 Rol responsable de clientes, vehículos, mantenimientos, servicios, fotografías, pagos artesanales y preparación de los repuestos utilizados. No confirma ni cobra la venta comercial vinculada.
