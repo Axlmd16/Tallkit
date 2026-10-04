@@ -19,6 +19,7 @@ from catalog.application.inventory_references import (
     list_stock_catalog,
 )
 from inventory.application.errors import InventoryApplicationError, field_error, not_found
+from inventory.application.posting import ENTRY_KINDS
 from inventory.domain.validation import InventoryValidationError
 from inventory.domain.valuation import Position, reverse_exactly
 from inventory.models import (
@@ -185,9 +186,26 @@ def _stock_row(
         "last_ordinal": position.last_ordinal if position else 0,
     }
     if include_valuation:
-        result["average_cost"] = f"{position.average:.6f}" if position else "0.000000"
-        result["inventory_value"] = f"{position.value:.6f}" if position else "0.000000"
+        # Sin costo registrado no es costo cero: se informa como ausente.
+        costed = position is None or position.valued
+        result["cost_registered"] = costed
+        result["average_cost"] = (
+            (f"{position.average:.6f}" if position else "0.000000") if costed else None
+        )
+        result["inventory_value"] = (
+            (f"{position.value:.6f}" if position else "0.000000") if costed else None
+        )
     return result
+
+
+def _valuation_summary() -> dict[str, Any]:
+    """Valor del inventario valorado y cuántos productos con existencia quedan fuera."""
+    valued = InventoryPosition.objects.filter(valued=True).aggregate(total=Sum("value"))
+    without_cost = InventoryPosition.objects.filter(valued=False, quantity__gt=0).count()
+    return {
+        "total_value": _money(valued["total"] or Decimal(0)),
+        "products_without_cost": without_cost,
+    }
 
 
 def list_stock(
@@ -223,7 +241,7 @@ def list_stock(
         p.product_id: p for p in positions.filter(product_id__in=[r.id for r in catalog_page.rows])
     }
     count = catalog_page.total_count
-    return {
+    result: dict[str, Any] = {
         "count": count,
         "page": page,
         "page_size": page_size,
@@ -232,6 +250,9 @@ def list_stock(
             _stock_row(row, by_product.get(row.id), include_valuation) for row in catalog_page.rows
         ],
     }
+    if include_valuation:
+        result["valuation"] = _valuation_summary()
+    return result
 
 
 def get_stock_item(product_id: int, *, include_valuation: bool) -> dict[str, Any]:
@@ -333,6 +354,28 @@ def _totals(queryset: Any, include_valuation: bool) -> dict[str, Any]:
     return totals
 
 
+def _balance_value(movement: InventoryMovement | None) -> str | None:
+    """Valor del saldo tras un movimiento; ``None`` si ese tramo no tiene costo registrado."""
+    if movement is None:
+        return _money(Decimal(0))
+    return _money(movement.value_after) if movement.valued_after else None
+
+
+def _movement_costs(movement: InventoryMovement) -> dict[str, Any]:
+    """Campos económicos de un movimiento; los tramos sin costo se informan como ausentes."""
+    known = movement.cost_known
+    return {
+        "cost_known": known,
+        "applied_unit_cost": _money(movement.applied_unit_cost) if known else None,
+        "value_delta": _money(movement.value_delta) if known else None,
+        "value_before": _money(movement.value_before) if movement.valued_before else None,
+        "value_after": _money(movement.value_after) if movement.valued_after else None,
+        "average_after": _money(movement.average_after) if movement.valued_after else None,
+        "rounding_adjustment": _money(movement.rounding_adjustment),
+        "regularization_value": _money(movement.regularization_value),
+    }
+
+
 def _row(movement: InventoryMovement, include_valuation: bool) -> dict[str, Any]:
     operation = movement.operation
     snapshot = movement.product_snapshot
@@ -358,16 +401,7 @@ def _row(movement: InventoryMovement, include_valuation: bool) -> dict[str, Any]
         },
     }
     if include_valuation:
-        row.update(
-            {
-                "applied_unit_cost": _money(movement.applied_unit_cost),
-                "value_delta": _money(movement.value_delta),
-                "value_before": _money(movement.value_before),
-                "value_after": _money(movement.value_after),
-                "average_after": _money(movement.average_after),
-                "rounding_adjustment": _money(movement.rounding_adjustment),
-            }
-        )
+        row.update(_movement_costs(movement))
     return row
 
 
@@ -483,8 +517,8 @@ def kardex(
         "page_opening_quantity": _quantity(rows[0].quantity_before) if rows else None,
     }
     if include_valuation:
-        result["opening_value"] = _money(opening.value_after) if opening else _money(Decimal(0))
-        result["closing_value"] = _money(closing.value_after) if closing else _money(Decimal(0))
+        result["opening_value"] = _balance_value(opening)
+        result["closing_value"] = _balance_value(closing)
     return result
 
 
@@ -541,16 +575,11 @@ def get_operation(
         if line and line.entry_value is not None:
             result["entry_value"] = _money(line.entry_value)
             result["unit_cost"] = _money(line.entry_value / line.quantity)
+        elif line and operation.kind in ENTRY_KINDS:
+            result["entry_value"] = None
+            result["unit_cost"] = None
         result["movements"] = [
-            {
-                "ordinal": m.ordinal,
-                "product_id": m.product_id,
-                "applied_unit_cost": _money(m.applied_unit_cost),
-                "value_delta": _money(m.value_delta),
-                "rounding_adjustment": _money(m.rounding_adjustment),
-                "value_after": _money(m.value_after),
-                "average_after": _money(m.average_after),
-            }
+            {"ordinal": m.ordinal, "product_id": m.product_id, **_movement_costs(m)}
             for m in sorted(operation.movements.all(), key=lambda m: m.ordinal)
         ]
     return result

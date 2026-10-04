@@ -179,3 +179,81 @@ def test_inactive_product_depleted_but_with_history_still_appears(
     listed = queries.list_stock(include_valuation=False)
     row = next(r for r in listed["results"] if r["product"]["name"] == "Agotado inactivo")
     assert (row["quantity"], row["product"]["is_active"]) == ("0", False)
+
+
+# --- Productos sin costo registrado -----------------------------------------------------
+
+
+def stock_without_cost(actor: Any, warehouse: Any, product: Any, quantity: int) -> None:
+    from catalog.application.inventory_references import lock_product_references
+
+    refs = lock_product_references([product.pk], require_active=False)
+    operation = posting.prepare_operation(
+        kind="PURCHASE_RECEIPT",
+        actor=actor,
+        source_type="",
+        source_id=None,
+        entry_lines=[posting.EntryLine(product.pk, D(quantity), None)],
+    )
+    posting.post_operation(operation, posting.lock_positions(refs, warehouse_id=warehouse.pk), refs)
+
+
+COST_KEYS = {"cost_registered", "average_cost", "inventory_value", "valuation"}
+
+
+def test_administrator_identifies_products_without_cost_and_never_sees_them_as_zero(
+    actor: Any, warehouse: Any, make_product: Any
+) -> None:
+    valued = make_product(code="VAL-1", name="Con costo")
+    costless = make_product(code="SIN-1", name="Sin costo")
+    stock(actor, warehouse, valued, 20, "2.00")
+    stock_without_cost(actor, warehouse, costless, 8)
+
+    rows = {r["product"]["code"]: r for r in queries.list_stock(include_valuation=True)["results"]}
+    assert rows["VAL-1"]["cost_registered"] is True
+    assert rows["VAL-1"]["inventory_value"] == "40.000000"
+    assert rows["SIN-1"]["cost_registered"] is False
+    assert rows["SIN-1"]["average_cost"] is None
+    assert rows["SIN-1"]["inventory_value"] is None
+    assert rows["SIN-1"]["quantity"] == "8"
+
+    item = queries.get_stock_item(costless.pk, include_valuation=True)
+    assert (item["cost_registered"], item["average_cost"], item["inventory_value"]) == (
+        False,
+        None,
+        None,
+    )
+
+
+def test_total_inventory_value_excludes_products_without_cost_and_counts_them(
+    actor: Any, warehouse: Any, make_product: Any
+) -> None:
+    stock(actor, warehouse, make_product(), 20, "2.00")
+    stock_without_cost(actor, warehouse, make_product(), 8)
+
+    page = queries.list_stock(include_valuation=True)
+    assert page["valuation"] == {"total_value": "40.000000", "products_without_cost": 1}
+
+
+def test_a_product_without_movements_is_not_reported_as_missing_cost(
+    catalog: Any,
+) -> None:
+    page = queries.list_stock(search="Sin movimientos", include_valuation=True)
+    (row,) = page["results"]
+    assert row["cost_registered"] is True
+    assert page["valuation"]["products_without_cost"] == 0
+
+
+def test_operational_roles_receive_no_cost_signal_for_products_without_cost(
+    actor: Any, warehouse: Any, make_product: Any
+) -> None:
+    costless = make_product(code="SIN-2", name="Sin costo operativo")
+    stock_without_cost(actor, warehouse, costless, 3)
+
+    page = queries.list_stock(include_valuation=False)
+    assert not COST_KEYS & set(page)
+    for row in page["results"]:
+        assert not COST_KEYS & set(row)
+    item = queries.get_stock_item(costless.pk, include_valuation=False)
+    assert not COST_KEYS & set(item)
+    assert item["quantity"] == "3"

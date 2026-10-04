@@ -50,6 +50,27 @@ class Ledger:
             )
         return operation
 
+    def receive(self, quantity: int, when: datetime, value: str | None) -> Any:
+        """Compra con o sin costo (``value`` es el valor total inventariable de la línea)."""
+        self.mp.setattr(posting, "_now", lambda: when)
+        with transaction.atomic():
+            refs = lock_product_references([self.product.pk], require_active=False)
+            operation = posting.prepare_operation(
+                kind="PURCHASE_RECEIPT",
+                actor=self.actor,
+                source_type="",
+                source_id=None,
+                entry_lines=[
+                    posting.EntryLine(
+                        self.product.pk, D(quantity), None if value is None else D(value)
+                    )
+                ],
+            )
+            posting.post_operation(
+                operation, posting.lock_positions(refs, warehouse_id=self.warehouse.pk), refs
+            )
+        return operation
+
 
 @pytest.fixture
 def ledger(actor: Any, warehouse: Any, product: Any, monkeypatch: Any) -> Ledger:
@@ -321,3 +342,84 @@ class TestReversedOperations:
         assert [r["movement_type"] for r in rows] == ["ADJUSTMENT_IN", "REVERSAL"]
         assert [r["quantity_after"] for r in rows] == ["5", "0"]
         assert rows[1]["quantity_out"] == "5"  # la compensación no borra ni altera el original
+
+
+def economic_kardex(product: Any) -> dict[str, Any]:
+    return queries.kardex(
+        product_id=product.pk,
+        include_valuation=True,
+        date_from=date(2026, 9, 1),
+        date_to=date(2026, 9, 30),
+    )
+
+
+class TestMovementsWithoutCost:
+    def test_the_administrator_sees_missing_cost_instead_of_zero(
+        self, ledger: Ledger, product: Any
+    ) -> None:
+        ledger.receive(5, local(2026, 9, 5), None)
+        ledger.move("ADJUSTMENT_OUT", 2, local(2026, 9, 6))
+        result = economic_kardex(product)
+        entry, leave = result["results"]
+        assert (entry["quantity_after"], leave["quantity_after"]) == ("5", "3")
+        for row in (entry, leave):
+            assert row["cost_known"] is False
+            assert row["applied_unit_cost"] is None
+            assert row["value_delta"] is None
+            assert row["value_after"] is None
+            assert row["average_after"] is None
+        assert result["closing_value"] is None
+
+    def test_the_first_costed_entry_shows_its_regularization(
+        self, ledger: Ledger, product: Any
+    ) -> None:
+        ledger.receive(5, local(2026, 9, 5), None)
+        ledger.receive(5, local(2026, 9, 7), "10.00")
+        result = economic_kardex(product)
+        first, second = result["results"]
+        assert first["value_after"] is None
+        assert second["cost_known"] is True
+        assert second["regularization_value"] == "10.000000"
+        assert second["value_delta"] == "20.000000"
+        assert second["value_before"] is None
+        assert second["value_after"] == "20.000000"
+        assert second["applied_unit_cost"] == "2.000000"
+        assert result["closing_value"] == "20.000000"
+
+    def test_a_costless_entry_on_a_valued_product_keeps_its_average(
+        self, ledger: Ledger, product: Any
+    ) -> None:
+        ledger.move("ADJUSTMENT_IN", 10, local(2026, 9, 1))
+        ledger.receive(5, local(2026, 9, 5), None)
+        entry = economic_kardex(product)["results"][1]
+        assert entry["cost_known"] is True
+        assert entry["applied_unit_cost"] == "2.000000"
+        assert entry["value_after"] == "30.000000"
+        assert entry["regularization_value"] == "0.000000"
+
+    def test_operative_roles_receive_no_economic_field_for_costless_movements(
+        self, ledger: Ledger, product: Any
+    ) -> None:
+        ledger.receive(5, local(2026, 9, 5), None)
+        ledger.move("ADJUSTMENT_OUT", 2, local(2026, 9, 6))
+        result = kardex(product)
+        forbidden = {"cost_known", "regularization_value", "applied_unit_cost", "value_delta"}
+        assert not any(forbidden & set(row) for row in result["results"])
+        assert "closing_value" not in result
+
+    def test_operation_detail_marks_a_missing_cost_for_the_administrator_only(
+        self, ledger: Ledger, product: Any
+    ) -> None:
+        operation = ledger.receive(5, local(2026, 9, 5), None)
+        economic = queries.get_operation(
+            operation.pk, include_valuation=True, can_open_origin=False
+        )
+        assert economic["entry_value"] is None
+        assert economic["unit_cost"] is None
+        (movement,) = economic["movements"]
+        assert movement["cost_known"] is False
+        assert movement["applied_unit_cost"] is None
+        operative = queries.get_operation(
+            operation.pk, include_valuation=False, can_open_origin=False
+        )
+        assert not {"entry_value", "unit_cost", "movements"} & set(operative)

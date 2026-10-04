@@ -31,10 +31,10 @@ Evidencia del grupo: rojo y verde registrados, migración aplicada y revertida e
 
 Dependencias: grupo 2. Diseño 3 y 6; specs `existencias-y-ajustes-de-inventario` y `kardex-de-productos`, «Costos de Kardex según autorización».
 
-- [ ] 3.1 Escribir primero en `tests/inventory/test_stock_queries.py` casos rojos: el Administrador identifica productos sin costo registrado; el valor total los excluye e informa cuántos quedan fuera; el Vendedor y el Encargado no reciben ninguna indicación de costo.
-- [ ] 3.2 Escribir primero en `tests/inventory/test_kardex.py` casos rojos: movimiento sin costo mostrado como tal y no como cero, saldo valorizado no disponible en ese tramo, regularización visible para el Administrador y ausencia de campos económicos para roles operativos.
-- [ ] 3.3 Implementar la proyección en `backend/src/inventory/application/queries.py` y `api/serializers.py` mediante una única función que distinga costo cero de costo ausente; hacer pasar 3.1–3.2.
-- [ ] 3.4 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_stock_queries.py tests/inventory/test_kardex.py tests/inventory/test_api.py tests/inventory/test_authorization.py`.
+- [x] 3.1 Escribir primero en `tests/inventory/test_stock_queries.py` casos rojos: el Administrador identifica productos sin costo registrado; el valor total los excluye e informa cuántos quedan fuera; el Vendedor y el Encargado no reciben ninguna indicación de costo.
+- [x] 3.2 Escribir primero en `tests/inventory/test_kardex.py` casos rojos: movimiento sin costo mostrado como tal y no como cero, saldo valorizado no disponible en ese tramo, regularización visible para el Administrador y ausencia de campos económicos para roles operativos.
+- [x] 3.3 Implementar la proyección en `backend/src/inventory/application/queries.py` y `api/serializers.py` mediante una única función que distinga costo cero de costo ausente; hacer pasar 3.1–3.2.
+- [x] 3.4 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/inventory/test_stock_queries.py tests/inventory/test_kardex.py tests/inventory/test_api.py tests/inventory/test_authorization.py`.
 
 Evidencia del grupo: proyecciones por rol probadas en positivo y negativo, sin filtración en resúmenes ni errores.
 

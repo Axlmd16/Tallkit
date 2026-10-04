@@ -116,8 +116,11 @@ class StockRowSerializer(_Base):
     available = serializers.CharField(help_text="Existencia menos reservas vigentes.")
     version = serializers.IntegerField()
     last_ordinal = serializers.IntegerField()
-    average_cost = serializers.CharField(required=False)
-    inventory_value = serializers.CharField(required=False)
+    cost_registered = serializers.BooleanField(
+        required=False, help_text="Falso cuando la existencia no tiene costo registrado."
+    )
+    average_cost = serializers.CharField(required=False, allow_null=True)
+    inventory_value = serializers.CharField(required=False, allow_null=True)
 
 
 class StockReservationSerializer(_Base):
@@ -137,6 +140,10 @@ class StockPageSerializer(_Base):
     page_size = serializers.IntegerField()
     total_pages = serializers.IntegerField()
     results = StockRowSerializer(many=True)
+    valuation = serializers.DictField(
+        required=False,
+        help_text="Solo con valoración: valor total y cantidad de productos sin costo registrado.",
+    )
 
 
 class KardexSerializer(_Base):
@@ -151,5 +158,5 @@ class KardexSerializer(_Base):
     period_totals = serializers.DictField()
     matching_totals = serializers.DictField()
     page_opening_quantity = serializers.CharField(allow_null=True)
-    opening_value = serializers.CharField(required=False)
-    closing_value = serializers.CharField(required=False)
+    opening_value = serializers.CharField(required=False, allow_null=True)
+    closing_value = serializers.CharField(required=False, allow_null=True)
