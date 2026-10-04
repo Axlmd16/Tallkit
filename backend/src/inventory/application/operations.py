@@ -39,7 +39,7 @@ from inventory.domain.validation import (
     parse_entry_value,
     parse_movement_quantity,
 )
-from inventory.domain.valuation import Position, apply_entry, apply_exit
+from inventory.domain.valuation import Position, apply_exit, receive_entry
 from inventory.models import (
     InventoryMovement,
     InventoryOperation,
@@ -162,7 +162,7 @@ def _parse(values: dict[str, Any]) -> ManualInput:
 def _current_position(product_id: int, warehouse_id: int) -> Position:
     row = queries.get_position(product_id, warehouse_id=warehouse_id)
     return (
-        Position(row.quantity, row.value, row.average)
+        Position(row.quantity, row.value, row.average, row.valued)
         if row
         else Position(Decimal(0), Decimal(0), Decimal(0))
     )
@@ -490,7 +490,11 @@ def _position_state(product_id: int, warehouse_id: int) -> tuple[Position, int, 
     row = queries.get_position(product_id, warehouse_id=warehouse_id)
     if row is None:
         return Position(Decimal(0), Decimal(0), Decimal(0)), 0, Decimal(0)
-    return Position(row.quantity, row.value, row.average), row.last_ordinal, row.reserved
+    return (
+        Position(row.quantity, row.value, row.average, row.valued),
+        row.last_ordinal,
+        row.reserved,
+    )
 
 
 def _evaluate(
@@ -526,7 +530,7 @@ def _evaluate(
         )
     try:
         if is_entry:
-            after = apply_entry(position, line.quantity, line.entry_value or Decimal(0))
+            after = receive_entry(position, line.quantity, line.entry_value or Decimal(0)).position
         else:
             available = position.quantity - reserved
             if line.quantity > available:
@@ -643,7 +647,7 @@ def confirm_operation(
         locked = positions.positions[line.product_id]
         if operation.kind == "INITIAL_LOAD" and _has_history(line.product_id):
             raise _already_initialized()
-        state = Position(locked.quantity, locked.value, locked.average)
+        state = Position(locked.quantity, locked.value, locked.average, locked.valued)
         digest = _confirm_digest(
             operation,
             line,

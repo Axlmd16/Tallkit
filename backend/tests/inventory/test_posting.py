@@ -24,7 +24,7 @@ from inventory.application.posting import (
     reverse_operation,
 )
 from inventory.application.reservations import reserve
-from inventory.domain.validation import InsufficientStockError
+from inventory.domain.validation import InsufficientStockError, InventoryValidationError
 from inventory.models import (
     InventoryMovement,
     InventoryOperationLine,
@@ -526,6 +526,179 @@ class TestExactReversal:
             reverse_operation(
                 original, locked=lock_positions(refs, warehouse_id=warehouse.pk), **kwargs
             )
+
+
+def entry_without_cost(product_id: int, quantity: int) -> EntryLine:
+    return EntryLine(product_id, D(quantity), None)
+
+
+def leave(actor: Any, refs: Any, warehouse: Any, product: Any, quantity: int) -> Any:
+    operation = prepare_operation(
+        kind="ADJUSTMENT_OUT",
+        actor=actor,
+        source_type="",
+        source_id=None,
+        exit_lines=[ExitLine(product.pk, D(quantity))],
+    )
+    return post_operation(operation, lock_positions(refs, warehouse_id=warehouse.pk), refs)
+
+
+def undo(actor: Any, original: Any, refs: Any, warehouse: Any) -> Any:
+    return reverse_operation(
+        original,
+        actor=actor,
+        source_type="PURCHASE_VOID",
+        source_id=original.source_id,
+        reason="Error",
+        locked=lock_positions(refs, warehouse_id=warehouse.pk),
+        product_refs=refs,
+    )
+
+
+class TestEntriesWithoutCost:
+    @pytest.mark.parametrize("kind", ["PURCHASE_RECEIPT", "CUSTOMER_RETURN_IN"])
+    def test_entries_that_may_lack_a_cost(self, actor: Any, product: Any, kind: str) -> None:
+        operation = prepare_operation(
+            kind=kind,
+            actor=actor,
+            source_type="PURCHASE",
+            source_id=1,
+            entry_lines=[entry_without_cost(product.pk, 2)],
+        )
+        assert operation.lines.get().entry_value is None
+
+    @pytest.mark.parametrize("kind", ["INITIAL_LOAD", "ADJUSTMENT_IN"])
+    def test_initial_loads_and_adjustments_still_require_a_cost(
+        self, actor: Any, product: Any, kind: str
+    ) -> None:
+        with pytest.raises(InventoryValidationError) as error:
+            prepare_operation(
+                kind=kind,
+                actor=actor,
+                source_type="",
+                source_id=None,
+                entry_lines=[entry_without_cost(product.pk, 2)],
+            )
+        assert "value" in error.value.errors
+
+    def test_a_product_cannot_mix_lines_with_and_without_cost(self, product: Any) -> None:
+        with pytest.raises(InventoryValidationError):
+            group_entry_lines([entry(product.pk, 1, "2.00"), entry_without_cost(product.pk, 1)])
+
+    def test_new_product_without_cost_is_left_without_cost(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        _, result = receive(
+            actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)]
+        )
+        (movement,) = result.movements
+        assert (movement.value_delta, movement.applied_unit_cost) == (D(0), D(0))
+        assert movement.cost_known is False
+        assert (movement.valued_before, movement.valued_after) == (True, False)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (D(5), D(0), D(0))
+        assert position.valued is False
+
+    def test_entry_without_cost_takes_the_current_average(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry(product.pk, 10, "20.00")], 1)
+        _, result = receive(
+            actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)], 2
+        )
+        (movement,) = result.movements
+        assert movement.value_delta == D("10.000000")
+        assert movement.applied_unit_cost == D("2.000000")
+        assert (movement.cost_known, movement.valued_after) == (True, True)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (
+            D(15),
+            D("30.000000"),
+            D("2.000000"),
+        )
+        assert position.valued is True
+
+    def test_entry_without_cost_after_depletion_uses_the_last_known_average(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry(product.pk, 2, "7.00")], 1)
+        leave(actor, refs_for(product), warehouse, product, 2)
+        receive(actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 2)], 2)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (
+            D(2),
+            D("7.000000"),
+            D("3.500000"),
+        )
+        assert position.valued is True
+
+    def test_the_last_known_average_ignores_a_reversed_entry(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry(product.pk, 2, "7.00")], 1)
+        leave(actor, refs_for(product), warehouse, product, 2)
+        wrong, _ = receive(actor, refs_for(product), warehouse, [entry(product.pk, 1, "9.00")], 2)
+        undo(actor, wrong, refs_for(product), warehouse)
+        receive(actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 2)], 3)
+        assert InventoryPosition.objects.get().average == D("3.500000")
+
+    def test_first_costed_entry_regularizes_the_previous_units(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)], 1)
+        _, result = receive(actor, refs_for(product), warehouse, [entry(product.pk, 5, "10.00")], 2)
+        (movement,) = result.movements
+        assert movement.regularization_value == D("10.000000")
+        assert movement.value_delta == D("20.000000")
+        assert movement.applied_unit_cost == D("2.000000")
+        assert (movement.cost_known, movement.valued_before, movement.valued_after) == (
+            True,
+            False,
+            True,
+        )
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (
+            D(10),
+            D("20.000000"),
+            D("2.000000"),
+        )
+        assert position.valued is True
+
+    def test_exits_from_a_position_without_cost_carry_no_value(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)], 1)
+        partial = leave(actor, refs_for(product), warehouse, product, 2)
+        (movement,) = partial.movements
+        assert (movement.value_delta, movement.applied_unit_cost) == (D(0), D(0))
+        assert movement.cost_known is False
+        assert InventoryPosition.objects.get().valued is False
+        leave(actor, refs_for(product), warehouse, product, 3)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.valued) == (D(0), True)
+
+    def test_reversing_an_entry_without_cost_restores_the_empty_position(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        original, _ = receive(
+            actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)], 1
+        )
+        _, result = undo(actor, original, refs_for(product), warehouse)
+        (movement,) = result.movements
+        assert (movement.valued_before, movement.valued_after) == (False, True)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (D(0), D(0), D(0))
+        assert position.valued is True
+
+    def test_reversing_a_regularization_restores_the_unvalued_position(
+        self, actor: Any, product: Any, warehouse: Any, refs_for: Any
+    ) -> None:
+        receive(actor, refs_for(product), warehouse, [entry_without_cost(product.pk, 5)], 1)
+        costed, _ = receive(actor, refs_for(product), warehouse, [entry(product.pk, 5, "10.00")], 2)
+        undo(actor, costed, refs_for(product), warehouse)
+        position = InventoryPosition.objects.get()
+        assert (position.quantity, position.value, position.average) == (D(5), D(0), D(0))
+        assert position.valued is False
 
 
 class TestResourceOrder:

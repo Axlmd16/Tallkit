@@ -117,12 +117,18 @@ def reversal_blockers(operation_id: int) -> list[ReversalBlocker]:
             continue
         try:
             reverse_exactly(
-                Position(position.quantity, position.value, position.average),
+                Position(position.quantity, position.value, position.average, position.valued),
                 before=Position(
-                    movement.quantity_before, movement.value_before, movement.average_before
+                    movement.quantity_before,
+                    movement.value_before,
+                    movement.average_before,
+                    movement.valued_before,
                 ),
                 after=Position(
-                    movement.quantity_after, movement.value_after, movement.average_after
+                    movement.quantity_after,
+                    movement.value_after,
+                    movement.average_after,
+                    movement.valued_after,
                 ),
             )
         except InventoryValidationError:

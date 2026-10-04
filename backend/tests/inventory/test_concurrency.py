@@ -239,3 +239,37 @@ def test_kardex_pages_keep_one_cut_while_another_user_posts(
     assert {p["closing_quantity"] for p in pages} == {"5"}
     assert [row["ordinal"] for p in pages for row in p["results"]] == [1, 2, 3, 4, 5]
     assert InventoryPosition.objects.get().quantity == D(9)
+
+
+def test_a_costed_and_a_costless_entry_of_the_same_product_settle_in_a_valid_order(
+    run_parallel: Any, actor: Any, product: Any, warehouse: Any
+) -> None:
+    seed(actor, product, warehouse, 10)  # 10 unidades a 1.00
+
+    def costless() -> Any:
+        with transaction.atomic():
+            refs = lock_product_references([product.pk], require_active=False)
+            operation = posting.prepare_operation(
+                kind="PURCHASE_RECEIPT",
+                actor=actor,
+                source_type="",
+                source_id=None,
+                entry_lines=[posting.EntryLine(product.pk, D(5), None)],
+            )
+            posting.post_operation(
+                operation, posting.lock_positions(refs, warehouse_id=warehouse.pk), refs
+            )
+        return operation.pk
+
+    results = run_parallel(
+        lambda: post_direct(actor, product, warehouse, "ADJUSTMENT_IN", 5, "3.00"),
+        costless,
+    )
+    assert kinds(results) == ["ok", "ok"]
+    position = InventoryPosition.objects.get()
+    assert position.quantity == D(20)
+    assert position.valued is True
+    # Con costo primero: 25.00 y luego 5 al promedio 1.666667; sin costo primero: 15.00 + 15.00.
+    assert position.value in {D("33.333335"), D("30.000000")}
+    movements = list(InventoryMovement.objects.order_by("ordinal"))
+    assert [m.quantity_after for m in movements] == [D(10), movements[1].quantity_after, D(20)]

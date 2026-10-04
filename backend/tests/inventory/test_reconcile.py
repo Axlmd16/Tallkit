@@ -206,3 +206,77 @@ def test_command_is_read_only_and_offers_no_fix(history: dict[str, Any]) -> None
     assert InventoryMovement.objects.count() == movements
     with pytest.raises((CommandError, SystemExit)):
         call_command("reconcile_inventory", "--fix")
+
+
+# --- Existencias sin costo registrado ---------------------------------------------------
+
+
+def post_without_cost(
+    actor: Any, product: Any, warehouse: Any, qty: int, source_id: int | None = None
+) -> Any:
+    refs = lock_product_references([product.pk], require_active=False)
+    operation = posting.prepare_operation(
+        kind="PURCHASE_RECEIPT",
+        actor=actor,
+        source_type="PURCHASE" if source_id else "",
+        source_id=source_id,
+        entry_lines=[posting.EntryLine(product.pk, D(qty), None)],
+    )
+    posting.post_operation(operation, posting.lock_positions(refs, warehouse_id=warehouse.pk), refs)
+    return operation
+
+
+@pytest.fixture
+def costless_history(actor: Any, product: Any, warehouse: Any) -> dict[str, Any]:
+    first = post_without_cost(actor, product, warehouse, 5, 1)
+    post(actor, product, warehouse, "ADJUSTMENT_OUT", 2)
+    costed = post(actor, product, warehouse, "PURCHASE_RECEIPT", 3, "4.00", ("PURCHASE", 2))
+    post(actor, product, warehouse, "ADJUSTMENT_OUT", 6)
+    post_without_cost(actor, product, warehouse, 2, 3)
+    return {"first": first, "costed": costed}
+
+
+def test_history_with_costless_entries_regularization_and_exits_reconciles(
+    costless_history: dict[str, Any],
+) -> None:
+    assert reconcile() == []
+    position = InventoryPosition.objects.get()
+    assert position.valued is True
+
+
+def test_reversals_of_costless_and_regularizing_entries_reconcile(
+    actor: Any, product: Any, warehouse: Any
+) -> None:
+    post_without_cost(actor, product, warehouse, 5, 1)
+    costed = post(actor, product, warehouse, "PURCHASE_RECEIPT", 5, "2.00", ("PURCHASE", 2))
+    refs = lock_product_references([product.pk], require_active=False)
+    posting.reverse_operation(
+        costed,
+        actor=actor,
+        source_type="PURCHASE_VOID",
+        source_id=2,
+        reason="Error",
+        locked=posting.lock_positions(refs, warehouse_id=warehouse.pk),
+        product_refs=refs,
+    )
+    assert reconcile() == []
+    assert InventoryPosition.objects.get().valued is False
+
+
+def test_an_unvalued_position_flag_that_drifts_is_reported(
+    actor: Any, product: Any, warehouse: Any
+) -> None:
+    post_without_cost(actor, product, warehouse, 5, 1)
+    InventoryPosition.objects.update(valued=True)
+    messages = [d.render() for d in reconcile()]
+    assert any("difiere de la reconstruida" in m for m in messages)
+
+
+def test_a_costless_entry_that_carries_value_without_a_valued_position_is_reported(
+    actor: Any, product: Any, warehouse: Any
+) -> None:
+    post_without_cost(actor, product, warehouse, 5, 1)
+    disable_immutability()
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE inventory_inventorymovement SET value_delta = 1, value_after = 1")
+    assert any("promedio inconsistente" in d.render() for d in reconcile())

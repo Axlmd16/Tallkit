@@ -114,6 +114,22 @@ class TestInventoryPosition:
         )
         assert position.version == 1
         assert position.last_ordinal == 0
+        assert position.valued is True
+
+    def test_position_without_cost_must_carry_no_value_and_have_stock(
+        self, product: Any, warehouse: Any, make_product: Any
+    ) -> None:
+        position = make_position(product, warehouse, quantity=D(5), valued=False)
+        position.refresh_from_db()
+        assert position.valued is False
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_position(make_product(), warehouse, quantity=D(5), value=D("1"), valued=False)
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_position(make_product(), warehouse, quantity=D(5), average=D("1"), valued=False)
+
+    def test_an_empty_position_cannot_be_unvalued(self, product: Any, warehouse: Any) -> None:
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_position(product, warehouse, quantity=D(0), valued=False)
 
 
 @pytest.mark.django_db
@@ -186,6 +202,28 @@ class TestInventoryOperation:
                 InventoryOperationLine.objects.create(
                     operation=operation, position=1, product=product, quantity=quantity
                 )
+
+
+@pytest.mark.django_db
+class TestInventoryMovementCostState:
+    def test_cost_state_defaults_describe_a_fully_costed_movement(
+        self, actor: Any, product: Any, warehouse: Any
+    ) -> None:
+        movement = make_movement(make_operation(actor), make_position(product, warehouse))
+        assert movement.cost_known is True
+        assert movement.valued_before is True
+        assert movement.valued_after is True
+        assert movement.regularization_value == D(0)
+
+    def test_regularization_value_cannot_be_negative(
+        self, actor: Any, product: Any, warehouse: Any
+    ) -> None:
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_movement(
+                make_operation(actor),
+                make_position(product, warehouse),
+                regularization_value=D("-0.000001"),
+            )
 
 
 @pytest.mark.django_db

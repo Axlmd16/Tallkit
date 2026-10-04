@@ -49,10 +49,29 @@ def _q6(value: Decimal) -> Decimal:
     return value.quantize(SIX, rounding=ROUND_HALF_UP)
 
 
+def _entry_average_is_consistent(movement: InventoryMovement) -> bool:
+    """Una entrada pondera su costo, conserva el promedio vigente (sin costo) o queda sin costo."""
+    if not movement.valued_after:
+        return (
+            movement.value_after == 0
+            and movement.average_after == 0
+            and movement.value_delta == 0
+            and movement.quantity_after > 0
+        )
+    weighted = (
+        _q6(movement.value_after / movement.quantity_after) if movement.quantity_after > 0 else ZERO
+    )
+    if movement.average_after == weighted:
+        return True
+    if movement.quantity_before > 0 and movement.valued_before:
+        return movement.average_after == movement.average_before
+    return movement.value_delta == _q6(movement.quantity_in * movement.average_after)
+
+
 def _check_chain(product_id: int, movements: list[InventoryMovement]) -> list[Difference]:
     found: list[Difference] = []
     by_id = {m.pk: m for m in movements}
-    previous_after: tuple[Decimal, Decimal, Decimal] = (ZERO, ZERO, ZERO)
+    previous_after: tuple[Decimal, Decimal, Decimal, bool] = (ZERO, ZERO, ZERO, True)
     for expected_ordinal, movement in enumerate(movements, start=1):
 
         def diff(message: str, movement: InventoryMovement = movement) -> None:
@@ -60,7 +79,12 @@ def _check_chain(product_id: int, movements: list[InventoryMovement]) -> list[Di
 
         if movement.ordinal != expected_ordinal:
             diff(f"ordinal {movement.ordinal} no consecutivo (se esperaba {expected_ordinal})")
-        before = (movement.quantity_before, movement.value_before, movement.average_before)
+        before = (
+            movement.quantity_before,
+            movement.value_before,
+            movement.average_before,
+            movement.valued_before,
+        )
         if before != previous_after:
             diff(f"la cadena anterior/posterior se rompe en el ordinal {movement.ordinal}")
         if (
@@ -80,24 +104,36 @@ def _check_chain(product_id: int, movements: list[InventoryMovement]) -> list[Di
                 movement.quantity_after,
                 movement.value_after,
                 movement.average_after,
-            ) != (original.quantity_before, original.value_before, original.average_before):
+                movement.valued_after,
+            ) != (
+                original.quantity_before,
+                original.value_before,
+                original.average_before,
+                original.valued_before,
+            ):
                 diff(
                     f"la compensación del ordinal {movement.ordinal} no restituye el estado previo"
                 )
         elif movement.quantity_in > 0:
-            expected = (
-                _q6(movement.value_after / movement.quantity_after)
-                if movement.quantity_after > 0
-                else ZERO
-            )
-            if movement.average_after != expected:
+            if not _entry_average_is_consistent(movement):
                 diff(f"promedio inconsistente en la entrada del ordinal {movement.ordinal}")
         elif movement.quantity_after == 0:
-            if movement.value_after != 0 or movement.average_after != 0:
+            if (
+                movement.value_after != 0
+                or movement.average_after != 0
+                or not movement.valued_after
+            ):
                 diff(f"la salida que agota stock deja residuo en el ordinal {movement.ordinal}")
         elif movement.average_after != movement.average_before:
             diff(f"la salida altera el promedio en el ordinal {movement.ordinal}")
-        previous_after = (movement.quantity_after, movement.value_after, movement.average_after)
+        elif movement.valued_after != movement.valued_before:
+            diff(f"la salida altera el estado de costo en el ordinal {movement.ordinal}")
+        previous_after = (
+            movement.quantity_after,
+            movement.value_after,
+            movement.average_after,
+            movement.valued_after,
+        )
     return found
 
 
@@ -109,10 +145,22 @@ def _check_positions(
         movements = grouped.get(position.product_id, [])
         if movements:
             last = movements[-1]
-            expected = (last.quantity_after, last.value_after, last.average_after, len(movements))
+            expected = (
+                last.quantity_after,
+                last.value_after,
+                last.average_after,
+                len(movements),
+                last.valued_after,
+            )
         else:
-            expected = (ZERO, ZERO, ZERO, 0)
-        actual = (position.quantity, position.value, position.average, position.last_ordinal)
+            expected = (ZERO, ZERO, ZERO, 0, True)
+        actual = (
+            position.quantity,
+            position.value,
+            position.average,
+            position.last_ordinal,
+            position.valued,
+        )
         if actual != expected:
             found.append(
                 Difference(

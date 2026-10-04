@@ -26,9 +26,10 @@ from inventory.domain.validation import (
     parse_movement_quantity,
 )
 from inventory.domain.valuation import (
+    ZERO,
     Position,
-    apply_entry,
     apply_exit,
+    receive_entry,
     reverse_exactly,
 )
 from inventory.models import (
@@ -72,6 +73,8 @@ ENTRY_KINDS = {
     OperationKind.ADJUSTMENT_IN,
     OperationKind.CUSTOMER_RETURN_IN,
 }
+# Solo estas entradas pueden carecer de costo: la carga inicial y los ajustes lo exigen.
+COSTLESS_ENTRY_KINDS = {OperationKind.PURCHASE_RECEIPT, OperationKind.CUSTOMER_RETURN_IN}
 _TOKEN = object()
 
 
@@ -102,9 +105,11 @@ class ReversalBlockedError(Exception):
 
 @dataclass(frozen=True)
 class EntryLine:
+    """``value`` es el valor inventariable total de la línea; ``None`` = sin costo."""
+
     product_id: int
     quantity: Decimal
-    value: Decimal
+    value: Decimal | None
     source_line_ids: tuple[int, ...] = ()
 
 
@@ -133,6 +138,19 @@ class PostingResult:
     movements: tuple[InventoryMovement, ...]
 
 
+@dataclass(frozen=True)
+class _Plan:
+    line: InventoryOperationLine
+    before: Position
+    after: Position
+    delta: Decimal
+    unit_cost: Decimal
+    cost_known: bool
+    regularization: Decimal
+    adjustment: Decimal
+    reserved_after: Decimal | None
+
+
 def _now() -> datetime:
     return timezone.now()
 
@@ -145,11 +163,18 @@ def _require_transaction() -> None:
 def group_entry_lines(lines: Iterable[EntryLine]) -> list[EntryLine]:
     """Un solo movimiento por producto: suma cantidades y valores ya calculados."""
     quantity: dict[int, Decimal] = defaultdict(Decimal)
-    value: dict[int, Decimal] = defaultdict(Decimal)
+    value: dict[int, Decimal | None] = {}
     sources: dict[int, list[int]] = defaultdict(list)
     for line in lines:
+        if line.product_id in value and (value[line.product_id] is None) != (line.value is None):
+            raise InventoryValidationError(
+                "value", "Un producto no puede mezclar líneas con y sin costo."
+            )
         quantity[line.product_id] += line.quantity
-        value[line.product_id] += line.value
+        current = value.get(line.product_id)
+        value[line.product_id] = (
+            None if line.value is None else (current or Decimal(0)) + line.value
+        )
         sources[line.product_id].extend(line.source_line_ids)
     return [EntryLine(pid, quantity[pid], value[pid], tuple(sources[pid])) for pid in quantity]
 
@@ -185,7 +210,10 @@ def prepare_operation(
         raise InventoryValidationError("lines", "Las líneas no corresponden al tipo de operación.")
     for entry in entries:
         parse_movement_quantity(entry.quantity)
-        parse_entry_value(entry.value)
+        if entry.value is not None:
+            parse_entry_value(entry.value)
+        elif kind not in COSTLESS_ENTRY_KINDS:
+            raise InventoryValidationError("value", "Esta operación exige el costo de la entrada.")
     for leave in exits:
         parse_movement_quantity(leave.quantity)
     operation = InventoryOperation.objects.create(
@@ -263,7 +291,22 @@ def _snapshot(ref: ProductReference) -> dict[str, Any]:
 
 
 def _state(position: InventoryPosition) -> Position:
-    return Position(position.quantity, position.value, position.average)
+    return Position(position.quantity, position.value, position.average, position.valued)
+
+
+def last_known_average(position: InventoryPosition) -> Decimal:
+    """Último promedio positivo de los movimientos vigentes de la posición (cero si no hay).
+
+    Ignora las compensaciones y los movimientos que compensaron: la reversión restituye el
+    estado previo, así que el promedio de lo anulado no cuenta como conocido.
+    """
+    for movement in InventoryMovement.objects.filter(
+        position=position, reverses_movement__isnull=True, reversal__isnull=True
+    ).order_by("-ordinal"):
+        average: Decimal = movement.average_after or movement.average_before
+        if average > 0:
+            return average
+    return ZERO
 
 
 def _check_context(
@@ -291,6 +334,8 @@ def _insert_movement(
     quantity_out: Decimal,
     value_delta: Decimal,
     applied_unit_cost: Decimal,
+    cost_known: bool = True,
+    regularization_value: Decimal = Decimal(0),
     rounding_adjustment: Decimal = Decimal(0),
     reverses_movement: InventoryMovement | None = None,
     reserved_after: Decimal | None = None,
@@ -315,11 +360,16 @@ def _insert_movement(
         quantity_after=after.quantity,
         value_after=after.value,
         average_after=after.average,
+        cost_known=cost_known,
+        valued_before=before.valued,
+        valued_after=after.valued,
+        regularization_value=regularization_value,
         product_snapshot=_snapshot(ref),
         actor=operation.actor,
         reverses_movement=reverses_movement,
     )
     position.quantity, position.value, position.average = after.quantity, after.value, after.average
+    position.valued = after.valued
     if reserved_after is not None:
         position.reserved = reserved_after
     position.last_ordinal = ordinal
@@ -329,6 +379,7 @@ def _insert_movement(
         "quantity",
         "value",
         "average",
+        "valued",
         "last_ordinal",
         "last_effective_at",
         "version",
@@ -403,27 +454,49 @@ def post_operation(
             )
         own_reserved[reservation.product_id] += reservation.quantity
 
-    planned: list[
-        tuple[InventoryOperationLine, Position, Position, Decimal, Decimal, Decimal | None]
-    ] = []
+    planned: list[_Plan] = []
     for line in lines:  # valoración pura: el saldo insuficiente falla antes de escribir
         position = locked.positions[line.product_id]
         before = _state(position)
         if is_entry:
-            value = line.entry_value if line.entry_value is not None else Decimal(0)
-            after = apply_entry(before, line.quantity, value)
-            planned.append((line, before, after, after.value - before.value, Decimal(0), None))
+            last_average = (
+                last_known_average(position)
+                if line.entry_value is None and position.quantity == 0
+                else ZERO
+            )
+            entered = receive_entry(
+                before, line.quantity, line.entry_value, last_average=last_average
+            )
+            unit_cost = (
+                (entered.value_delta - entered.regularization_value) / line.quantity
+            ).quantize(Decimal("0.000001"))
+            planned.append(
+                _Plan(
+                    line,
+                    before,
+                    entered.position,
+                    entered.value_delta,
+                    unit_cost,
+                    entered.cost_known,
+                    entered.regularization_value,
+                    Decimal(0),
+                    None,
+                )
+            )
         else:
             available = position.quantity - position.reserved + own_reserved[line.product_id]
             if line.quantity > available:
                 raise InsufficientStockError(available, line.quantity)
             result = apply_exit(before, line.quantity)
             planned.append(
-                (
+                _Plan(
                     line,
                     before,
                     result.position,
                     -result.applied_value,
+                    before.average,
+                    before.valued,
+                    Decimal(0),
                     result.rounding_adjustment,
                     position.reserved - own_reserved[line.product_id],
                 )
@@ -431,27 +504,25 @@ def post_operation(
 
     now = _now()  # posterior a los bloqueos
     movements = []
-    for line, before, after, delta, adjustment, reserved_after in planned:
-        position = locked.positions[line.product_id]
-        if is_entry:
-            unit_cost = (delta / line.quantity).quantize(Decimal("0.000001"))
-        else:
-            unit_cost = before.average
+    for plan in planned:
+        position = locked.positions[plan.line.product_id]
         movements.append(
             _insert_movement(
                 operation=operation,
                 position=position,
-                ref=product_refs[line.product_id],
+                ref=product_refs[plan.line.product_id],
                 movement_type=operation.kind,
                 effective_at=_effective_at(position, now),
-                before=before,
-                after=after,
-                quantity_in=line.quantity if is_entry else Decimal(0),
-                quantity_out=Decimal(0) if is_entry else line.quantity,
-                value_delta=delta,
-                applied_unit_cost=unit_cost,
-                rounding_adjustment=adjustment,
-                reserved_after=reserved_after,
+                before=plan.before,
+                after=plan.after,
+                quantity_in=plan.line.quantity if is_entry else Decimal(0),
+                quantity_out=Decimal(0) if is_entry else plan.line.quantity,
+                value_delta=plan.delta,
+                applied_unit_cost=plan.unit_cost,
+                cost_known=plan.cost_known,
+                regularization_value=plan.regularization,
+                rounding_adjustment=plan.adjustment,
+                reserved_after=plan.reserved_after,
             )
         )
     if reservations:
@@ -493,8 +564,18 @@ def reverse_operation(
     restored: list[tuple[InventoryMovement, Position, Position]] = []
     for movement in movements:
         position = locked.positions[movement.product_id]
-        before = Position(movement.quantity_before, movement.value_before, movement.average_before)
-        after = Position(movement.quantity_after, movement.value_after, movement.average_after)
+        before = Position(
+            movement.quantity_before,
+            movement.value_before,
+            movement.average_before,
+            movement.valued_before,
+        )
+        after = Position(
+            movement.quantity_after,
+            movement.value_after,
+            movement.average_after,
+            movement.valued_after,
+        )
         if position.last_ordinal != movement.ordinal:
             later = (
                 InventoryMovement.objects.filter(position=position, ordinal__gt=movement.ordinal)
@@ -554,6 +635,7 @@ def reverse_operation(
                 quantity_out=movement.quantity_in if was_entry else Decimal(0),
                 value_delta=target.value - current.value,
                 applied_unit_cost=movement.applied_unit_cost,
+                cost_known=movement.cost_known,
                 reverses_movement=movement,
             )
         )

@@ -4,11 +4,11 @@ Dependencias: propuesta, specs y diseño aprobados y registrados en `master`, co
 
 Por instrucción del usuario se ejecutan solo pruebas focalizadas. Cada tarea de comportamiento sigue TDD: prueba roja por la razón esperada, implementación mínima, refactorización y prueba verde. No se ejecutan `make check`, `make test`, pytest completo, Vitest completo ni Playwright completo; el resumen final indica qué no se ejecutó.
 
-- [ ] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
-- [ ] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación, porque la reversión deja de ser posible cuando existan entradas `SIMPLE` o movimientos sin costo (diseño, Migration Plan).
-- [ ] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales/test_confirm.py tests/sales/test_allocation.py tests/sales/test_returns.py tests/identity/test_authorization.py` y `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/app/purchases-inventory-routes.test.tsx`.
-- [ ] 1.4 Leer `backend/src/purchasing/migrations/0002_history_protection.py` e `inventory/migrations/0002_history_protection.py` y anotar qué columnas protegen los triggers, para decidir en 2.x y 4.x si las migraciones deben ajustarlos.
-- [ ] 1.5 Añadir a `docs/negocio/requisitos/cobertura-compras-inventario.md` una matriz pendiente que relacione cada requirement y escenario de las cinco specs delta con los grupos y archivos de prueba de este checklist.
+- [x] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
+- [x] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación, porque la reversión deja de ser posible cuando existan entradas `SIMPLE` o movimientos sin costo (diseño, Migration Plan).
+- [x] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales/test_confirm.py tests/sales/test_allocation.py tests/sales/test_returns.py tests/identity/test_authorization.py` y `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/app/purchases-inventory-routes.test.tsx`.
+- [x] 1.4 Leer `backend/src/purchasing/migrations/0002_history_protection.py` e `inventory/migrations/0002_history_protection.py` y anotar qué columnas protegen los triggers, para decidir en 2.x y 4.x si las migraciones deben ajustarlos.
+- [x] 1.5 Añadir a `docs/negocio/requisitos/cobertura-compras-inventario.md` una matriz pendiente que relacione cada requirement y escenario de las cinco specs delta con los grupos y archivos de prueba de este checklist.
 
 Evidencia del grupo: estado Git, respaldo anotado, comandos de línea base con resultado real, hallazgos de los triggers y matriz de cobertura pendiente.
 
@@ -16,14 +16,14 @@ Evidencia del grupo: estado Git, respaldo anotado, comandos de línea base con r
 
 Dependencias: grupo 1. Diseño 2, 3 y 9; spec `existencias-y-ajustes-de-inventario`, «Valoración por promedio ponderado y conservación de valor».
 
-- [ ] 2.1 Escribir primero en `backend/tests/inventory/test_valuation.py` casos rojos para `Position.valued` y `apply_entry`: con costo sobre posición valorada o vacía (sin regresión), con costo sobre posición sin costo (regularización y `regularization_value`), sin costo sobre posición valorada (promedio intacto, residuo conservado), sin costo sobre vacía con último promedio y sin costo sin promedio previo.
-- [ ] 2.2 Añadir casos rojos para `apply_exit` desde una posición sin costo (valor cero, permanece sin costo, vuelve a vacía al agotarse) y para `reverse_exactly` comparando y restituyendo `valued`.
-- [ ] 2.3 Implementar las reglas en `backend/src/inventory/domain/valuation.py` sin dependencias de Django; hacer pasar 2.1–2.2 y refactorizar.
-- [ ] 2.4 Crear la migración `inventory` 0006: `InventoryPosition.valued` e `InventoryMovement.cost_known`, `valued_before`, `valued_after` y `regularization_value`, con valores por defecto y sin relleno; ajustar los triggers según 1.4. Ampliar `tests/inventory/test_models.py` y `test_history_protection.py`.
-- [ ] 2.5 Escribir primero en `tests/inventory/test_posting.py` casos rojos: `EntryLine.value = None` aceptado solo para `PURCHASE_RECEIPT` y `CUSTOMER_RETURN_IN` y rechazado en carga inicial y ajustes; movimientos con las banderas correctas; derivación del último promedio conocido desde el movimiento vigente más reciente; y reversión exacta de una entrada sin costo y de una regularización.
-- [ ] 2.6 Implementar en `backend/src/inventory/application/posting.py` la entrada sin costo, la derivación del último promedio y el registro de banderas y regularización; hacer pasar 2.5.
-- [ ] 2.7 Extender `reconciliation.py` y `tests/inventory/test_reconcile.py` para reproducir las reglas, y `tests/inventory/test_concurrency.py` con dos entradas simultáneas del mismo producto, una con costo y otra sin costo.
-- [ ] 2.8 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/inventory`, Ruff sobre los archivos tocados y mypy sobre `src/inventory`.
+- [x] 2.1 Escribir primero en `backend/tests/inventory/test_valuation.py` casos rojos para `Position.valued` y `apply_entry`: con costo sobre posición valorada o vacía (sin regresión), con costo sobre posición sin costo (regularización y `regularization_value`), sin costo sobre posición valorada (promedio intacto, residuo conservado), sin costo sobre vacía con último promedio y sin costo sin promedio previo.
+- [x] 2.2 Añadir casos rojos para `apply_exit` desde una posición sin costo (valor cero, permanece sin costo, vuelve a vacía al agotarse) y para `reverse_exactly` comparando y restituyendo `valued`.
+- [x] 2.3 Implementar las reglas en `backend/src/inventory/domain/valuation.py` sin dependencias de Django; hacer pasar 2.1–2.2 y refactorizar.
+- [x] 2.4 Crear la migración `inventory` 0006: `InventoryPosition.valued` e `InventoryMovement.cost_known`, `valued_before`, `valued_after` y `regularization_value`, con valores por defecto y sin relleno; ajustar los triggers según 1.4. Ampliar `tests/inventory/test_models.py` y `test_history_protection.py`.
+- [x] 2.5 Escribir primero en `tests/inventory/test_posting.py` casos rojos: `EntryLine.value = None` aceptado solo para `PURCHASE_RECEIPT` y `CUSTOMER_RETURN_IN` y rechazado en carga inicial y ajustes; movimientos con las banderas correctas; derivación del último promedio conocido desde el movimiento vigente más reciente; y reversión exacta de una entrada sin costo y de una regularización.
+- [x] 2.6 Implementar en `backend/src/inventory/application/posting.py` la entrada sin costo, la derivación del último promedio y el registro de banderas y regularización; hacer pasar 2.5.
+- [x] 2.7 Extender `reconciliation.py` y `tests/inventory/test_reconcile.py` para reproducir las reglas, y `tests/inventory/test_concurrency.py` con dos entradas simultáneas del mismo producto, una con costo y otra sin costo.
+- [x] 2.8 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/inventory`, Ruff sobre los archivos tocados y mypy sobre `src/inventory`.
 
 Evidencia del grupo: rojo y verde registrados, migración aplicada y revertida en desarrollo, conciliación sin discrepancias y regresión de inventario en verde.
 

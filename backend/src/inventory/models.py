@@ -70,6 +70,8 @@ class InventoryPosition(models.Model):
     reserved = models.DecimalField(max_digits=18, decimal_places=6, default=0)
     value = models.DecimalField(max_digits=38, decimal_places=6, default=0)
     average = models.DecimalField(max_digits=24, decimal_places=6, default=0)
+    # Falso cuando hay existencia pero ninguna entrada trajo costo ("sin costo registrado").
+    valued = models.BooleanField(default=True)
     version = models.PositiveBigIntegerField(default=1)
     last_ordinal = models.PositiveBigIntegerField(default=0)
     last_effective_at = models.DateTimeField(null=True, blank=True)
@@ -105,6 +107,11 @@ class InventoryPosition(models.Model):
             models.CheckConstraint(
                 condition=models.Q(quantity__gt=0) | models.Q(value=0, average=0),
                 name="inv_position_zero_quantity_zero_value",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(valued=True)
+                | (models.Q(quantity__gt=0) & models.Q(value=0, average=0)),
+                name="inv_position_unvalued_has_stock_and_no_value",
             ),
         ]
 
@@ -302,6 +309,12 @@ class InventoryMovement(models.Model):
     quantity_after = models.DecimalField(max_digits=18, decimal_places=6)
     value_after = models.DecimalField(max_digits=38, decimal_places=6)
     average_after = models.DecimalField(max_digits=24, decimal_places=6)
+    # Estado de costo: ``cost_known`` indica si el costo aplicado es real; las banderas
+    # ``valued_*`` permiten restituir exactamente la posición al revertir.
+    cost_known = models.BooleanField(default=True)
+    valued_before = models.BooleanField(default=True)
+    valued_after = models.BooleanField(default=True)
+    regularization_value = models.DecimalField(max_digits=38, decimal_places=6, default=0)
     product_snapshot = models.JSONField(default=dict)
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     reverses_movement = models.OneToOneField(
@@ -333,6 +346,10 @@ class InventoryMovement(models.Model):
                 condition=models.Q(quantity_in=Floor("quantity_in"))
                 & models.Q(quantity_out=Floor("quantity_out")),
                 name="inv_movement_quantities_whole",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(regularization_value__gte=0),
+                name="inv_movement_regularization_not_negative",
             ),
             models.UniqueConstraint(
                 fields=["product", "warehouse"],

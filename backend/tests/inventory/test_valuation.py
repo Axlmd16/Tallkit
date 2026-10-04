@@ -15,6 +15,7 @@ from inventory.domain.valuation import (
     Position,
     apply_entry,
     apply_exit,
+    receive_entry,
     reverse_exactly,
 )
 
@@ -146,3 +147,96 @@ def test_entry_value_rejects_invalid_values_without_rounding(value: str) -> None
 def test_entry_value_accepts_zero_and_six_decimals() -> None:
     assert parse_entry_value("0") == D(0)
     assert parse_entry_value("12.123456") == D("12.123456")
+
+
+# --- Entradas sin costo registrado (simplificar-entradas-de-stock-por-vendedor) ----------
+
+
+def unvalued(quantity: str) -> Position:
+    return Position(D(quantity), D("0.000000"), D("0.000000"), valued=False)
+
+
+def test_entry_with_cost_on_a_valued_position_keeps_the_weighted_average() -> None:
+    result = receive_entry(position("10", "20.00", "2.000000"), D(5), D("20.00"))
+    assert (result.position.quantity, result.position.value) == (D(15), D("40.000000"))
+    assert result.position.average == D("2.666667")
+    assert result.position.valued is True
+    assert result.value_delta == D("20.000000")
+    assert result.regularization_value == D(0)
+
+
+def test_first_costed_entry_values_the_previous_units_at_its_cost() -> None:
+    result = receive_entry(unvalued("5"), D(5), D("10.00"))
+    assert (result.position.quantity, result.position.value) == (D(10), D("20.000000"))
+    assert result.position.average == D("2.000000")
+    assert result.position.valued is True
+    assert result.regularization_value == D("10.000000")
+    assert result.value_delta == D("20.000000")
+
+
+def test_explicit_zero_cost_is_known_and_distinct_from_no_cost() -> None:
+    result = receive_entry(unvalued("5"), D(5), D(0))
+    assert result.position.valued is True
+    assert (result.position.value, result.position.average) == (D(0), D(0))
+    assert result.regularization_value == D(0)
+
+
+def test_entry_without_cost_on_a_valued_position_keeps_the_average() -> None:
+    result = receive_entry(position("10", "20.00", "2.000000"), D(5), None)
+    assert (result.position.quantity, result.position.value) == (D(15), D("30.000000"))
+    assert result.position.average == D("2.000000")
+    assert result.position.valued is True
+    assert result.value_delta == D("10.000000")
+
+
+def test_entry_without_cost_preserves_the_rounding_residue_of_the_value() -> None:
+    result = receive_entry(position("10", "20.000001", "2.000000"), D(5), None)
+    assert result.position.value == D("30.000001")
+    assert result.position.average == D("2.000000")
+
+
+def test_entry_without_cost_after_depletion_uses_the_last_known_average() -> None:
+    result = receive_entry(EMPTY_POSITION, D(2), None, last_average=D("3.500000"))
+    assert (result.position.quantity, result.position.value) == (D(2), D("7.000000"))
+    assert result.position.average == D("3.500000")
+    assert result.position.valued is True
+
+
+def test_entry_without_cost_and_without_any_average_stays_unvalued() -> None:
+    result = receive_entry(EMPTY_POSITION, D(5), None)
+    assert result.position == unvalued("5")
+    assert result.position.valued is False
+    assert result.value_delta == D(0)
+
+
+def test_entry_without_cost_on_an_unvalued_position_stays_unvalued() -> None:
+    result = receive_entry(unvalued("5"), D(3), None, last_average=D("9.000000"))
+    assert result.position == unvalued("8")
+
+
+def test_partial_exit_from_an_unvalued_position_carries_no_value() -> None:
+    result = apply_exit(unvalued("5"), D(2))
+    assert result.position == unvalued("3")
+    assert (result.nominal_value, result.applied_value, result.rounding_adjustment) == (
+        D(0),
+        D(0),
+        D(0),
+    )
+
+
+def test_total_exit_from_an_unvalued_position_leaves_an_empty_valued_position() -> None:
+    result = apply_exit(unvalued("5"), D(5))
+    assert result.position == EMPTY_POSITION
+    assert result.position.valued is True
+
+
+def test_exact_reversal_restores_the_valuation_state() -> None:
+    after = unvalued("5")
+    assert reverse_exactly(after, before=EMPTY_POSITION, after=after) == EMPTY_POSITION
+
+
+def test_reversal_is_blocked_when_only_the_valuation_state_differs() -> None:
+    recorded = unvalued("5")
+    drifted = Position(D(5), D("0.000000"), D("0.000000"), valued=True)
+    with pytest.raises(InventoryValidationError):
+        reverse_exactly(drifted, before=EMPTY_POSITION, after=recorded)
