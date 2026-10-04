@@ -1,11 +1,14 @@
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { Barcode, MagnifyingGlass } from '@phosphor-icons/react'
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useState,
   type KeyboardEvent,
 } from 'react'
+import { createPortal } from 'react-dom'
 
 import { productsApi } from '@/features/products/api'
 import type { Product } from '@/features/products/types'
@@ -33,33 +36,74 @@ const choiceOf = (product: Product): ProductChoice => ({
 const same = (a: string | null | undefined, b: string) =>
   Boolean(a) && a?.trim().toLowerCase() === b
 
+type Tone = 'neutral' | 'success' | 'warning' | 'danger'
+
+interface Anchor {
+  top: number
+  left: number
+  width: number
+}
+
 /**
  * Buscador de productos de la entrada. Elegir uno lo agrega y deja el cursor listo para el
  * siguiente. Con Enter, un código interno o de fabricante exacto se resuelve contra el
  * servidor sin esperar a las sugerencias, de modo que un lector de códigos funciona tecleando.
+ * Las sugerencias flotan en un portal para no quedar recortadas por el panel que las contiene.
  */
 export const ProductSearch = forwardRef<
   HTMLInputElement,
   { onChoose: (product: ProductChoice) => void; disabled?: boolean }
->(function ProductSearch({ onChoose, disabled = false }, ref) {
+>(function ProductSearch({ onChoose, disabled = false }, forwardedRef) {
   const listId = useId()
+  const [input, setInput] = useState<HTMLInputElement | null>(null)
   const [text, setText] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
-  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<{ text: string; tone: Tone }>({
+    text: '',
+    tone: 'neutral',
+  })
   const [looking, setLooking] = useState(false)
+  const [anchor, setAnchor] = useState<Anchor | null>(null)
   const term = useDebounced(text.trim())
   const suggestions = useProductSuggestions(term)
   const options = term ? (suggestions.data?.results ?? []) : []
+  const showList = open && options.length > 0
 
   useEffect(() => setActive(-1), [term])
+
+  const place = useCallback(() => {
+    if (!input) return
+    const rect = input.getBoundingClientRect()
+    setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+  }, [input])
+
+  useLayoutEffect(() => {
+    if (!showList) return
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [showList, place])
+
+  function setRefs(node: HTMLInputElement | null) {
+    setInput(node)
+    if (typeof forwardedRef === 'function') forwardedRef(node)
+    else if (forwardedRef) forwardedRef.current = node
+  }
 
   function choose(product: Product) {
     onChoose(choiceOf(product))
     setText('')
     setOpen(false)
     setActive(-1)
-    setMessage(`Agregado: ${product.code} ${product.name}`)
+    setStatus({
+      text: `Agregado: ${product.code} ${product.name}`,
+      tone: 'success',
+    })
   }
 
   async function resolve() {
@@ -80,13 +124,19 @@ export const ProductSearch = forwardRef<
       const found = exact ?? only
       if (found) choose(found)
       else if (page.results.length === 0) {
-        setMessage('No hay un producto activo con ese código o nombre.')
+        setStatus({
+          text: 'No hay un producto activo con ese código o nombre.',
+          tone: 'danger',
+        })
       } else {
         setOpen(true)
-        setMessage('Hay varias coincidencias: elija una de la lista.')
+        setStatus({
+          text: 'Hay varias coincidencias: elija una de la lista.',
+          tone: 'warning',
+        })
       }
     } catch {
-      setMessage('No se pudo buscar. Reintente.')
+      setStatus({ text: 'No se pudo buscar. Reintente.', tone: 'danger' })
     } finally {
       setLooking(false)
     }
@@ -105,81 +155,86 @@ export const ProductSearch = forwardRef<
       const highlighted = options[active]
       if (highlighted) choose(highlighted)
       else void resolve()
-    } else if (event.key === 'Escape') {
+    } else if (event.key === 'Escape' && (open || text)) {
       setOpen(false)
       setText('')
     }
   }
 
-  const showList = open && options.length > 0
   return (
-    <div className="relative">
-      <MagnifyingGlass
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2 text-ink-muted"
-        size={18}
-      />
-      <input
-        aria-activedescendant={
-          showList && active >= 0 ? `${listId}-${active}` : undefined
-        }
-        aria-autocomplete="list"
-        aria-controls={listId}
-        aria-expanded={showList}
-        aria-label="Buscar producto por código o nombre"
-        autoComplete="off"
-        className={`${getControlClasses({ density: '50' })} w-full pl-10`}
-        disabled={disabled}
-        onBlur={() => setOpen(false)}
-        onChange={(event) => {
-          setText(event.target.value)
-          setOpen(true)
-          setMessage('')
-        }}
-        onFocus={() => setOpen(true)}
-        onKeyDown={onKeyDown}
-        placeholder="Escanee o escriba un código o nombre…"
-        ref={ref}
-        role="combobox"
-        type="text"
-        value={text}
-      />
+    <div>
+      <div className="entry-search-field">
+        <MagnifyingGlass
+          aria-hidden="true"
+          className="entry-search-icon"
+          size={18}
+        />
+        <input
+          aria-activedescendant={
+            showList && active >= 0 ? `${listId}-${active}` : undefined
+          }
+          aria-autocomplete="list"
+          aria-controls={listId}
+          aria-expanded={showList}
+          aria-label="Buscar producto por código o nombre"
+          autoComplete="off"
+          className={`${getControlClasses({ density: '50' })} w-full`}
+          disabled={disabled}
+          onBlur={() => setOpen(false)}
+          onChange={(event) => {
+            setText(event.target.value)
+            setOpen(true)
+            setStatus({ text: '', tone: 'neutral' })
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          placeholder="Escanee o escriba un código o nombre…"
+          ref={setRefs}
+          role="combobox"
+          type="text"
+          value={text}
+        />
+        <Barcode aria-hidden="true" className="entry-search-scan" size={20} />
+      </div>
       <p
         aria-live="polite"
-        className="mt-1.5 min-h-4 text-xs text-ink-muted"
+        className="entry-search-status"
+        data-tone={status.tone}
         role="status"
       >
-        {message}
+        {status.text}
       </p>
-      {showList && (
-        <ul
-          aria-label="Productos sugeridos"
-          className="absolute z-30 mt-[-1.1rem] max-h-72 w-full overflow-y-auto rounded-dialog border border-line bg-surface py-1 shadow-menu"
-          id={listId}
-          onMouseDown={(event) => event.preventDefault()}
-          role="listbox"
-        >
-          {options.map((product, index) => (
-            <li
-              aria-selected={index === active}
-              className={`flex cursor-pointer items-center justify-between gap-3 px-3.5 py-2 text-[13px] ${index === active ? 'bg-accent-soft text-accent-strong' : 'text-ink hover:bg-surface-subtle'}`}
-              id={`${listId}-${index}`}
-              key={product.id}
-              onClick={() => choose(product)}
-              onMouseEnter={() => setActive(index)}
-              role="option"
-            >
-              <span className="min-w-0 truncate">
-                <span className="font-mono font-semibold">{product.code}</span>{' '}
-                {product.name}
-              </span>
-              <span className="shrink-0 text-xs text-ink-muted">
-                {product.unit?.name}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      {showList &&
+        anchor &&
+        createPortal(
+          <ul
+            aria-label="Productos sugeridos"
+            className="entry-search-menu"
+            id={listId}
+            onMouseDown={(event) => event.preventDefault()}
+            role="listbox"
+            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+          >
+            {options.map((product, index) => (
+              <li
+                aria-selected={index === active}
+                className="entry-search-option"
+                id={`${listId}-${index}`}
+                key={product.id}
+                onClick={() => choose(product)}
+                onMouseEnter={() => setActive(index)}
+                role="option"
+              >
+                <span className="min-w-0 truncate">
+                  <span className="entry-product-code">{product.code}</span>{' '}
+                  {product.name}
+                </span>
+                <small>{product.unit?.name}</small>
+              </li>
+            ))}
+          </ul>,
+          document.body,
+        )}
     </div>
   )
 })

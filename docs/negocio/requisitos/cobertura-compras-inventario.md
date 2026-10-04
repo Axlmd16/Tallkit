@@ -188,14 +188,14 @@ Cambio activo en `openspec/changes/simplificar-entradas-de-stock-por-vendedor`. 
 | Backend focalizado | `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales tests/identity tests/api` | 1132 aprobadas |
 | Backend calidad | `uv run --frozen ruff format --check src tests`; `ruff check src tests`; `mypy src tests/purchasing tests/inventory tests/identity tests/supplier_registry tests/api tests/sales/test_costless_products.py tests/sales/test_openapi.py`; `manage.py makemigrations --check --dry-run`; `manage.py check` | Sin hallazgos |
 | Conciliación | `manage.py reconcile_inventory`; `manage.py reconcile_sales` (base de desarrollo) | Sin diferencias |
-| Frontend focalizado | `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/pages/products src/app src/features/sales src/features/maintenance src/shared` | 98 archivos y 658 pruebas aprobadas |
+| Frontend focalizado | `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/pages/products src/app src/features/sales src/features/maintenance src/shared` | 98 archivos y 664 pruebas aprobadas |
+| Extremo a extremo | `npx playwright test e2e/purchases-inventory.spec.ts` con el Chrome del equipo (`channel: chrome`) | 9 de 9 aprobadas |
+| Revisión visual | Capturas de registro, modal de revisión, aviso flotante, ficha e inventario a 390 y 1440 px, comparadas con el editor de ventas | Estructura y estilos alineados con el sistema |
 | Frontend calidad | `npx tsc -b`; `npx eslint . --max-warnings 0`; `npx prettier --check` sobre los archivos tocados | Sin hallazgos |
 | OpenSpec | `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` | Válido |
 
 ### Lo que no se ejecutó
 
-- **E2E:** `frontend/e2e/purchases-inventory.spec.ts` está reescrito para el flujo del Vendedor, pero no se ejecutó porque este equipo no tiene el navegador de Playwright (`npx playwright install chromium`). Debe correrse con `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts` antes de integrar.
-- **Revisión visual humana** de la pantalla de registro a 360 y 1440 px.
 - **Suites completas** (`make check`, `make test`, Playwright completo), por indicación del usuario de ejecutar solo las pruebas del cambio.
 - **Fallos previos, ajenos a este cambio:** `backend/tests/workshop/test_boundaries.py::test_no_other_module_imports_workshop` (el módulo fiscal importa `workshop`), errores de `mypy` en `backend/tests/fiscal`, `tests/sales/test_fiscal_*` y `tests/workshop*`, y tres archivos sin formato en `frontend/src/features/workshop-configuration`.
 - Validación de un contador sobre el IVA de compras y las existencias sin valor (ver `requisitos-funcionales.md` §12).

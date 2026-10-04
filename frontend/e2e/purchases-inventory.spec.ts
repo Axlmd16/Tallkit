@@ -260,31 +260,32 @@ test.describe('Entradas de stock, inventario y Kardex', () => {
     const world = await seedWorld(page)
     await switchTo(page, 'vendedor_e2e')
     await page.goto('/purchases/new')
+    const registered = page.getByText(/Entrada COM-ING-\d{6} registrada\./)
+    const numberOf = (text: string | null) =>
+      text?.match(/COM-ING-\d{6}/)?.[0] ?? ''
+
     await addByCode(page, world.product.code)
     await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
     await page
       .getByRole('dialog')
       .getByRole('button', { name: 'Confirmar entrada' })
       .click()
-    await expect(
-      page.getByText(/Entrada COM-ING-\d{6} registrada\./),
-    ).toBeVisible()
+    await expect(registered).toBeVisible()
+    const first = numberOf(await registered.first().textContent())
 
     await addByCode(page, world.product.code)
     await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toContainText('Parece una entrada repetida')
+    await expect(dialog).toContainText(first)
     const confirm = dialog.getByRole('button', { name: 'Confirmar entrada' })
     await expect(confirm).toBeDisabled()
     await dialog.getByRole('checkbox', { name: /otra entrada/i }).check()
     await expect(confirm).toBeEnabled()
     await confirm.click()
-    await expect(
-      page.getByText(/Entrada COM-ING-\d{6} registrada\./).last(),
-    ).toBeVisible()
-
-    await page.goto('/purchases')
-    await expect(page.getByText(/COM-ING-\d{6}/)).toHaveCount(2)
+    await expect(registered).toHaveCount(2)
+    const second = numberOf(await registered.last().textContent())
+    expect(second).not.toBe(first)
   })
 
   test('doble envío y tiempo agotado no duplican efectos y reutilizan la clave', async ({

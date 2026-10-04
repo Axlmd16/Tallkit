@@ -41,16 +41,20 @@ const singularLabels: Record<string, string> = {
   Productos: 'producto',
   Servicios: 'servicio',
   Proveedores: 'proveedor',
-  Entradas: 'ingreso',
+  Entradas: 'entrada',
   Ventas: 'venta',
   Mantenimientos: 'mantenimiento',
 }
+
+/** Sustantivos femeninos: «Nueva entrada», «Nueva venta». */
+const feminineNouns = new Set(['entrada', 'venta'])
 
 function currentBreadcrumbLabel(pathname: string, itemLabel: string) {
   const exact = exactBreadcrumbLabels[pathname]
   if (exact) return exact
   const noun = singularLabels[itemLabel] ?? itemLabel.toLocaleLowerCase('es')
-  if (pathname.endsWith('/new')) return `Nuevo ${noun}`
+  if (pathname.endsWith('/new'))
+    return `${feminineNouns.has(noun) ? 'Nueva' : 'Nuevo'} ${noun}`
   if (pathname.endsWith('/edit')) return `Editar ${noun}`
   if (pathname.endsWith('/document')) return 'Comprobante'
   if (pathname.endsWith('/kardex')) return 'Kardex'

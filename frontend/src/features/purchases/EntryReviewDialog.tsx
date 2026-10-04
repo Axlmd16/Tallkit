@@ -1,11 +1,12 @@
-import { useState, type RefObject } from 'react'
+import { Package } from '@phosphor-icons/react'
+import { useEffect, useState, type RefObject } from 'react'
 
-import { Button, Dialog, InlineNotice } from '@/shared/ui'
+import { Button, InlineNotice, Modal } from '@/shared/ui'
 
+import { count } from './format'
 import type { EntryReview } from './types'
 
-const plural = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`
+import './entry.css'
 
 /**
  * Revisión corta antes de confirmar: cuánto entra y, solo si se informaron, proveedor,
@@ -28,58 +29,78 @@ export function EntryReviewDialog({
 }) {
   const [acknowledged, setAcknowledged] = useState(false)
   const needsAck = Boolean(review?.requires_acknowledgement)
+  // Cada revisión nueva exige reconocer de nuevo la coincidencia.
+  useEffect(() => setAcknowledged(false), [review])
+
   return (
-    <Dialog
-      description="Revise lo que entra antes de confirmar."
+    <Modal
+      actions={
+        review && (
+          <>
+            <Button onClick={onClose} type="button" variant="secondary">
+              Cancelar
+            </Button>
+            <Button
+              disabled={
+                pending || !review.can_confirm || (needsAck && !acknowledged)
+              }
+              onClick={() =>
+                onConfirm(
+                  needsAck ? review.duplicates.map((d) => d.purchase_id) : [],
+                )
+              }
+              type="button"
+            >
+              {pending ? 'Confirmando…' : 'Confirmar entrada'}
+            </Button>
+          </>
+        )
+      }
+      description="Al confirmar, las unidades se suman a la existencia."
       onClose={onClose}
       open={review !== null}
-      {...(returnFocusRef ? { returnFocusRef } : {})}
+      returnFocusRef={returnFocusRef}
       title="Confirmar entrada"
     >
       {review && (
-        <div className="space-y-4">
-          <p className="text-lg font-semibold text-ink" role="status">
-            Entran {plural(review.summary.products, 'producto', 'productos')} ·{' '}
-            {plural(review.summary.units, 'unidad', 'unidades')}
+        <div className="space-y-3">
+          <p className="entry-review-total" role="status">
+            <Package aria-hidden="true" size={20} weight="fill" />
+            <span>
+              Entran {count(review.summary.products, 'producto', 'productos')} ·{' '}
+              {count(review.summary.units, 'unidad', 'unidades')}
+            </span>
           </p>
-          <ul
-            aria-label="Productos que entran"
-            className="max-h-56 divide-y divide-line overflow-y-auto rounded-control border border-line text-sm"
-          >
+          <ul aria-label="Productos que entran" className="entry-review-list">
             {review.lines.map((line) => (
-              <li
-                className="flex items-center justify-between gap-3 px-3 py-2"
-                key={line.product_id}
-              >
+              <li key={line.product_id}>
                 <span className="min-w-0 truncate">
-                  <span className="font-mono font-semibold">{line.code}</span>{' '}
+                  <span className="entry-product-code">{line.code}</span>{' '}
                   {line.name}
                 </span>
-                <span className="shrink-0 font-semibold tabular-nums">
-                  × {line.quantity}
-                </span>
+                <span className="entry-review-qty">{line.quantity}</span>
               </li>
             ))}
           </ul>
           {(review.supplier || review.reference || review.observation) && (
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            <dl className="entry-facts !px-0 !pb-0">
               {review.supplier && (
-                <>
-                  <dt className="text-ink-muted">Proveedor</dt>
-                  <dd className="font-medium">{review.supplier.name}</dd>
-                </>
+                <div>
+                  <dt>Proveedor</dt>
+                  <dd>{review.supplier.name}</dd>
+                </div>
               )}
               {review.reference && (
-                <>
-                  <dt className="text-ink-muted">Referencia</dt>
-                  <dd className="font-mono font-medium">{review.reference}</dd>
-                </>
+                <div>
+                  <dt>Referencia</dt>
+                  <dd className="font-mono">{review.reference}</dd>
+                </div>
               )}
               {review.observation && (
-                <>
-                  <dt className="text-ink-muted">Observación</dt>
-                  <dd className="font-medium">{review.observation}</dd>
-                </>
+                <div>
+                  <dt>Observación</dt>
+                  <dd>{review.observation}</dd>
+                </div>
               )}
             </dl>
           )}
@@ -100,13 +121,16 @@ export function EntryReviewDialog({
           {needsAck && (
             <InlineNotice title="Parece una entrada repetida" tone="warning">
               Hoy ya se registró una igual:{' '}
-              {review.duplicates
-                .map((d) => d.internal_number ?? `#${d.purchase_id}`)
-                .join(', ')}
+              <strong className="font-mono">
+                {review.duplicates
+                  .map((d) => d.internal_number ?? `#${d.purchase_id}`)
+                  .join(', ')}
+              </strong>
               .
-              <label className="mt-2 flex items-center gap-2">
+              <label className="mt-2 flex cursor-pointer items-center gap-2 font-semibold">
                 <input
                   checked={acknowledged}
+                  className="size-4 accent-accent"
                   onChange={(event) => setAcknowledged(event.target.checked)}
                   type="checkbox"
                 />
@@ -114,26 +138,8 @@ export function EntryReviewDialog({
               </label>
             </InlineNotice>
           )}
-          <div className="flex flex-wrap justify-end gap-3">
-            <Button onClick={onClose} type="button" variant="secondary">
-              Cancelar
-            </Button>
-            <Button
-              disabled={
-                pending || !review.can_confirm || (needsAck && !acknowledged)
-              }
-              onClick={() =>
-                onConfirm(
-                  needsAck ? review.duplicates.map((d) => d.purchase_id) : [],
-                )
-              }
-              type="button"
-            >
-              {pending ? 'Confirmando…' : 'Confirmar entrada'}
-            </Button>
-          </div>
         </div>
       )}
-    </Dialog>
+    </Modal>
   )
 }

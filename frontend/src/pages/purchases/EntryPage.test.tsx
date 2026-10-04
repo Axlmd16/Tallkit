@@ -117,12 +117,13 @@ describe('EntryPage: registro sencillo', () => {
   it('agrega por código con Enter, sube la cantidad al repetir y devuelve el foco', async () => {
     renderPage()
     await addByCode('ACE-1')
-    const list = screen.getByRole('list', { name: 'Productos de la entrada' })
-    expect(within(list).getByLabelText('Cantidad de ACE-1')).toHaveValue('1')
+    const table = screen.getByRole('table', { name: /Productos de la entrada/ })
+    expect(within(table).getByLabelText('Cantidad de ACE-1')).toHaveValue('1')
     expect(search()).toHaveFocus()
     await addByCode('ace-1')
-    expect(within(list).getByLabelText('Cantidad de ACE-1')).toHaveValue('2')
-    expect(within(list).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(table).getByLabelText('Cantidad de ACE-1')).toHaveValue('2')
+    // Cabecera más una sola fila: repetir el producto no duplica la línea.
+    expect(within(table).getAllByRole('row')).toHaveLength(2)
     expect(screen.getByText('1 producto · 2 unidades')).toBeInTheDocument()
   })
 
@@ -188,6 +189,56 @@ describe('EntryPage: registro sencillo', () => {
     expect(mocks.review).toHaveBeenCalledWith({
       lines: [{ product_id: 1, quantity: '1', unit_cost: '4.5' }],
     })
+  })
+})
+
+describe('EntryPage: resumen y estructura', () => {
+  it('usa la franja de título del sistema y marca lo que falta confirmar', async () => {
+    renderPage()
+    expect(
+      screen.getByRole('heading', { name: 'Nueva entrada' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Nueva')).toBeInTheDocument()
+    expect(screen.queryByText('Sin confirmar')).toBeNull()
+    await addByCode('ACE-1')
+    expect(screen.getByText('Sin confirmar')).toBeInTheDocument()
+  })
+
+  it('el resumen refleja productos, unidades, proveedor, referencia y costos', async () => {
+    renderPage()
+    const summary = screen.getByRole('complementary', {
+      name: 'Resumen de la entrada',
+    })
+    expect(within(summary).getAllByText('0')).toHaveLength(2)
+    expect(within(summary).getByText('No se registran')).toBeInTheDocument()
+    expect(within(summary).getAllByText('Sin indicar')).toHaveLength(2)
+    await addByCode('ACE-1')
+    await addByCode('FIL-1')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Agregar una unidad de ACE-1' }),
+    )
+    expect(within(summary).getByText('2')).toBeInTheDocument()
+    expect(within(summary).getByText('3')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /más detalles/i }))
+    await userEvent.type(screen.getByLabelText('Referencia'), 'F-77')
+    expect(within(summary).getByText('F-77')).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Registrar costos' }),
+    )
+    expect(within(summary).getByText('0 de 2 con costo')).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Costo de ACE-1'), '4.5')
+    await userEvent.type(screen.getByLabelText('Costo de FIL-1'), '1')
+    expect(within(summary).getByText('2 de 2 con costo')).toBeInTheDocument()
+  })
+
+  it('los detalles con datos plegados lo indican en su cabecera', async () => {
+    renderPage()
+    const toggle = screen.getByRole('button', { name: /más detalles/i })
+    expect(within(toggle).getByText('Opcional')).toBeInTheDocument()
+    await userEvent.click(toggle)
+    await userEvent.type(screen.getByLabelText('Referencia'), 'F-1')
+    await userEvent.click(toggle)
+    expect(within(toggle).getByText('Con datos')).toBeInTheDocument()
   })
 })
 

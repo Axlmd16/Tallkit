@@ -122,10 +122,10 @@ Dependencias: grupo 9. Diseño 6 y 8; specs `compras-e-ingresos-de-mercaderia`, 
 - [x] 10.2 Escribir primero casos rojos en `PurchaseDetailPage.test.tsx`: el Administrador ve costos, «sin costo registrado» distinto de cero, la sección de compra anterior y la acción de anular; el Vendedor ve solo productos y cantidades; un borrador anterior aparece como sin efecto y sin acciones. Implementar hasta el verde.
 - [x] 10.3 Ajustar con pruebas previas las pantallas de inventario y Kardex (`frontend/src/pages/inventory`, `features/inventory`) para mostrar «sin costo registrado», el aviso de productos fuera del valor total y la regularización, solo al Administrador.
 - [x] 10.4 Ajustar con pruebas previas las lecturas administrativas de costo de venta para mostrar «sin costo registrado» cuando corresponda.
-- [ ] 10.5 Reescribir `frontend/e2e/purchases-inventory.spec.ts` para el flujo del Vendedor: entrada mínima, entrada con detalles, aviso de duplicado, consulta sin costos y anulación por el Administrador. Ejecutar solo ese archivo con `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts`.
+- [x] 10.5 Reescribir `frontend/e2e/purchases-inventory.spec.ts` para el flujo del Vendedor: entrada mínima, entrada con detalles, aviso de duplicado, consulta sin costos y anulación por el Administrador. Ejecutar solo ese archivo con `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts`.
 - [x] 10.6 Verificar con `cd frontend && npx vitest run src/pages/purchases src/pages/inventory src/features/inventory`, `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados.
 
-Evidencia del grupo: proyección por rol visible en pantalla y 658 pruebas de Vitest afectadas en verde. **Pendiente 10.5:** el E2E `e2e/purchases-inventory.spec.ts` está reescrito para el flujo del Vendedor pero no se ejecutó porque este equipo no tiene el navegador de Playwright (`chromium_headless_shell-1243`); requiere `npx playwright install chromium`. Tampoco se hizo la revisión visual a 360 y 1440 px. 10.4: el frontend no presenta costos de venta; solo se actualizó el tipo de `costs`.
+Evidencia del grupo: proyección por rol visible en pantalla y 658 pruebas de Vitest afectadas en verde. 10.5: el E2E `e2e/purchases-inventory.spec.ts` se ejecutó con el Chrome del equipo (`channel: chrome`, configuración local temporal no versionada): 9 de 9 casos aprobados. La pantalla se revisó con capturas a 390 y 1440 px y se rehízo sobre la estructura del editor de ventas (`sale-topbar`, secciones, barra de acciones) con el modal de revisión en `Modal`. 10.4: el frontend no presenta costos de venta; solo se actualizó el tipo de `costs`.
 
 ## 11. Documentación, decisiones y trazabilidad
 
@@ -146,10 +146,10 @@ Evidencia del grupo: documentos sin contradicciones con las decisiones vigentes,
 Dependencias: grupos 1 a 11.
 
 - [x] 12.1 Ejecutar `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales tests/identity/test_authorization.py tests/api/test_openapi.py`, Ruff, formato y mypy sobre los módulos tocados, y `uv run --frozen python manage.py makemigrations --check --dry-run`.
-- [ ] 12.2 Ejecutar `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/app`, `npx tsc --noEmit`, ESLint, Prettier y `npx playwright test e2e/purchases-inventory.spec.ts`.
+- [x] 12.2 Ejecutar `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/app`, `npx tsc --noEmit`, ESLint, Prettier y `npx playwright test e2e/purchases-inventory.spec.ts`.
 - [x] 12.3 Ejecutar la conciliación de inventario y de ventas sobre la base de desarrollo y registrar que no hay discrepancias.
 - [x] 12.4 Ejecutar `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` y registrar en el resumen los comandos ejecutados, sus resultados y las suites completas no ejecutadas, para que el usuario decida si quiere la verificación completa antes de integrar.
 
-Evidencia del grupo: resultados y comandos en `docs/negocio/requisitos/cobertura-compras-inventario.md` §5. 12.2 queda abierta solo por `playwright test`, que no pudo ejecutarse por falta del navegador (ver 10.5); Vitest, `tsc -b`, ESLint y Prettier sí pasaron; `make check`, `make test` y el E2E completo no se ejecutaron por indicación del usuario.
+Evidencia del grupo: resultados y comandos en `docs/negocio/requisitos/cobertura-compras-inventario.md` §5. 12.2 se cumplió: Vitest (664), `tsc -b`, ESLint, Prettier y el E2E del cambio (9 de 9 con Chrome); `make check`, `make test` y el E2E completo no se ejecutaron por indicación del usuario.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

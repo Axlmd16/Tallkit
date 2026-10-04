@@ -364,6 +364,25 @@ it('makes parent breadcrumbs navigate and names the current nested page', async 
   expect(screen.getByTestId('current-path')).toHaveTextContent('/products')
 })
 
+it.each([
+  ['/purchases/new', 'Nueva entrada'],
+  ['/purchases/7', 'Ficha de entrada'],
+  ['/products/new', 'Nuevo producto'],
+])('names %s with the right noun and gender: %s', (path, label) => {
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <AuthenticatedShell onLogout={vi.fn()} session={fullAccess}>
+        <CurrentPath />
+      </AuthenticatedShell>
+    </MemoryRouter>,
+  )
+  const breadcrumbs = screen.getByRole('navigation', { name: 'Ruta' })
+  expect(within(breadcrumbs).getByText(label)).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+})
+
 it('keeps the active option visible when its group is collapsed', async () => {
   const user = userEvent.setup()
   renderAt('/purchases')
