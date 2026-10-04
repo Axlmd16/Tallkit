@@ -106,6 +106,9 @@ ROLE_PERMISSIONS: Mapping[Role, frozenset[str]] = {
         {
             "fiscal.comercial.preparar",
             "fiscal.comercial.ver",
+            "ingresos.confirmar",
+            "ingresos.crear",
+            "ingresos.ver",
             "inventario.consumo_interno",
             "pagos_comerciales.registrar",
             "pagos_comerciales.ver",

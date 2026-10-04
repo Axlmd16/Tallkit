@@ -34,6 +34,13 @@ class PurchaseState(models.TextChoices):
     VOIDED = "VOIDED"
 
 
+class PurchaseFlow(models.TextChoices):
+    """LEGACY: compra documentada anterior (solo lectura). SIMPLE: entrada de stock."""
+
+    LEGACY = "LEGACY"
+    SIMPLE = "SIMPLE"
+
+
 class TaxTreatment(models.TextChoices):
     RECOVERABLE = "RECOVERABLE"
     NON_RECOVERABLE = "NON_RECOVERABLE"
@@ -93,10 +100,26 @@ class PurchaseDocumentIdentity(models.Model):
 class Purchase(models.Model):
     """Ingreso de mercadería: borrador → confirmado → anulado."""
 
+    flow = models.CharField(max_length=8, choices=PurchaseFlow.choices, default=PurchaseFlow.LEGACY)
     document_identity = models.ForeignKey(
-        PurchaseDocumentIdentity, on_delete=models.PROTECT, related_name="purchases"
+        PurchaseDocumentIdentity,
+        on_delete=models.PROTECT,
+        related_name="purchases",
+        null=True,
+        blank=True,
     )
-    document_date = models.DateField()
+    document_date = models.DateField(null=True, blank=True)
+    # Entrada de stock: proveedor opcional, referencia de texto libre y huella de contenido.
+    supplier = models.ForeignKey(
+        "supplier_registry.Supplier",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    external_reference = models.CharField(max_length=128, blank=True, default="")
+    content_signature = models.CharField(max_length=64, blank=True, default="")
+    confirmed_on = models.DateField(null=True, blank=True)
     observation = models.CharField(max_length=2000, blank=True, default="")
     no_document_explanation = models.CharField(max_length=500, blank=True, default="")
     state = models.CharField(
@@ -164,6 +187,33 @@ class Purchase(models.Model):
             models.CheckConstraint(
                 condition=models.Q(version__gte=1), name="pur_purchase_version_positive"
             ),
+            models.CheckConstraint(
+                condition=_in("flow", PurchaseFlow), name="pur_purchase_flow_valid"
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        flow=PurchaseFlow.LEGACY,
+                        document_identity__isnull=False,
+                        document_date__isnull=False,
+                    )
+                    | models.Q(
+                        flow=PurchaseFlow.SIMPLE,
+                        document_identity__isnull=True,
+                        document_date__isnull=True,
+                        replaces__isnull=True,
+                    )
+                ),
+                name="pur_purchase_flow_shape",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~models.Q(flow=PurchaseFlow.SIMPLE)
+                    | models.Q(state=PurchaseState.DRAFT)
+                    | (models.Q(confirmed_on__isnull=False) & ~models.Q(content_signature=""))
+                ),
+                name="pur_purchase_entry_confirmed_data",
+            ),
             models.UniqueConstraint(
                 fields=["document_identity"],
                 condition=models.Q(state=PurchaseState.CONFIRMED),
@@ -200,6 +250,11 @@ class Purchase(models.Model):
             ),
             models.Index(fields=["document_identity", "id"], name="pur_purchase_identity_idx"),
             models.Index(fields=["document_date", "id"], name="pur_purchase_date_idx"),
+            models.Index(
+                fields=["content_signature", "confirmed_on"],
+                condition=models.Q(flow=PurchaseFlow.SIMPLE),
+                name="pur_entry_signature_idx",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -211,11 +266,18 @@ class PurchaseLine(models.Model):
     position = models.PositiveIntegerField()
     product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, related_name="+")
     quantity = models.DecimalField(max_digits=18, decimal_places=6)
-    unit_cost = models.DecimalField(max_digits=24, decimal_places=6)
+    # Entrada de stock: costo e impuesto son opcionales; null en el costo = sin costo registrado.
+    unit_cost = models.DecimalField(max_digits=24, decimal_places=6, null=True, blank=True)
     tax_definition = models.ForeignKey(
-        "workshop_configuration.TaxDefinition", on_delete=models.PROTECT, related_name="+"
+        "workshop_configuration.TaxDefinition",
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
     )
-    tax_treatment = models.CharField(max_length=16, choices=TaxTreatment.choices)
+    tax_treatment = models.CharField(  # noqa: DJ001
+        max_length=16, choices=TaxTreatment.choices, null=True, blank=True
+    )
     product_snapshot = models.JSONField(null=True, blank=True, validators=[validate_snapshot])
     tax_snapshot = models.JSONField(null=True, blank=True, validators=[validate_snapshot])
     base_amount = models.DecimalField(max_digits=38, decimal_places=2, null=True, blank=True)
@@ -239,6 +301,13 @@ class PurchaseLine(models.Model):
             ),
             models.CheckConstraint(
                 condition=_in("tax_treatment", TaxTreatment), name="pur_line_treatment_valid"
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(tax_definition__isnull=True, tax_treatment__isnull=True)
+                    | models.Q(tax_definition__isnull=False, tax_treatment__isnull=False)
+                ),
+                name="pur_line_tax_coherent",
             ),
             models.CheckConstraint(
                 condition=_snapshot_ok("product_snapshot") & _snapshot_ok("tax_snapshot"),

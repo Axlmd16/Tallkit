@@ -97,6 +97,13 @@ def seller(db: None):  # type: ignore[no-untyped-def]
 
 
 @pytest.fixture
+def manager(db: None):  # type: ignore[no-untyped-def]
+    user = get_user_model().objects.create_user(username="pur-manager", password="x" * 14)
+    UserRole.objects.create(user=user, role="ENCARGADO_TALLER")
+    return user
+
+
+@pytest.fixture
 def commercial(db: None) -> dict[str, Any]:
     """Entidad comercial con tarifa de prueba 10 %, tarifa cero y serie COM-ING."""
     WorkshopConfiguration.objects.filter(pk=1).update(is_initialized=True)
@@ -113,39 +120,3 @@ def commercial(db: None) -> dict[str, Any]:
     scope = NumberingScope.objects.create(fiscal_entity=entity, document_type="INGRESO")
     series = DocumentSeries.objects.create(numbering_scope=scope, code="COM-ING", is_active=True)
     return {"entity": entity, "ten": ten, "zero": zero, "scope": scope, "series": series}
-
-
-@pytest.fixture
-def line() -> Any:
-    def build(product: Any, tax: Any, quantity: str = "2", cost: str = "10.00", **extra: Any):  # type: ignore[no-untyped-def]
-        return {
-            "product_id": product.pk,
-            "quantity": quantity,
-            "unit_cost": cost,
-            "tax_definition_id": tax.pk,
-            "tax_recoverability": "RECOVERABLE",
-            **extra,
-        }
-
-    return build
-
-
-@pytest.fixture
-def draft_payload(supplier: Any) -> Any:
-    counter = iter(range(1, 10_000))
-
-    def build(lines: list[dict[str, Any]] | None = None, **overrides: Any) -> dict[str, Any]:
-        n = next(counter)
-        payload: dict[str, Any] = {
-            "idempotency_key": f"draft-key-{n:06d}",
-            "supplier_id": supplier.pk,
-            "document_type": "FACTURA",
-            "supplier_reference": f"001-001-{n:09d}",
-            "document_date": PAST.isoformat(),
-            "notes": "",
-            "lines": lines or [],
-        }
-        payload.update(overrides)
-        return payload
-
-    return build

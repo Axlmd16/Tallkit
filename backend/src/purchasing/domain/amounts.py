@@ -1,63 +1,25 @@
-"""Reglas puras de importes de compra.
+"""Reglas puras de cantidades y costos de una entrada de stock.
 
-No depende de Django, DRF ni persistencia. Todo cálculo usa ``Decimal`` con un contexto
-local de precisión 60, sin apoyarse en el contexto global del proceso.
+No depende de Django, DRF ni persistencia. Rechaza sin truncar ni redondear.
 """
 
 import re
-from collections.abc import Iterable
-from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, Decimal, localcontext
-from enum import StrEnum
+from decimal import Decimal
 from typing import Any
 
 QUANTITY_MAX = Decimal("999999999999")
 UNIT_COST_MAX = Decimal("999999999999.999999")
 UNIT_COST_SCALE = 6
-CENTS = Decimal("0.01")
-PRECISION = 60
 
-_PLAIN_DECIMAL = re.compile(r"^\d+(\.\d+)?$")
 _SIGNED_DECIMAL = re.compile(r"^-?\d+(\.\d+)?$")
 
 
 class AmountValidationError(ValueError):
-    """Entrada de importes inválida; ``errors`` asocia campo → mensajes."""
+    """Entrada inválida; ``errors`` asocia campo → mensajes."""
 
     def __init__(self, field: str, message: str) -> None:
         super().__init__(message)
         self.errors: dict[str, list[str]] = {field: [message]}
-
-
-class InventoryTaxTreatment(StrEnum):
-    """Recuperabilidad del impuesto de una línea; no admite recuperación parcial."""
-
-    RECOVERABLE = "RECOVERABLE"
-    NON_RECOVERABLE = "NON_RECOVERABLE"
-
-    @classmethod
-    def parse(cls, value: Any) -> "InventoryTaxTreatment":
-        if isinstance(value, str) and value in cls._value2member_map_:
-            return cls(value)
-        raise AmountValidationError(
-            "tax_treatment", "Indique si el impuesto es RECOVERABLE o NON_RECOVERABLE."
-        )
-
-
-@dataclass(frozen=True)
-class LineAmounts:
-    base: Decimal
-    tax: Decimal
-    total: Decimal
-    inventory_value: Decimal
-
-
-@dataclass(frozen=True)
-class DocumentTotals:
-    base: Decimal
-    tax: Decimal
-    total: Decimal
-    inventory_value: Decimal
 
 
 def _as_decimal(value: Any, field: str, pattern: re.Pattern[str], label: str) -> Decimal:
@@ -97,44 +59,3 @@ def parse_unit_cost(value: Any) -> Decimal:
     if isinstance(exponent, int) and exponent < -UNIT_COST_SCALE:
         raise AmountValidationError("unit_cost", "El costo unitario admite hasta 6 decimales.")
     return number
-
-
-def _cents(value: Decimal) -> Decimal:
-    return value.quantize(CENTS, rounding=ROUND_HALF_UP)
-
-
-def calculate_line(
-    quantity: Decimal,
-    unit_cost: Decimal,
-    tax_rate: Decimal | None,
-    treatment: InventoryTaxTreatment,
-) -> LineAmounts:
-    """Base, impuesto, total y valor inventariable de una línea, redondeados por línea.
-
-    ``tax_rate`` ausente significa "sin vigencia": nunca se interpreta como exención.
-    Una tarifa cero explícita es válida y produce impuesto 0.00.
-    """
-    if tax_rate is None:
-        raise AmountValidationError(
-            "tax_rate", "La definición tributaria no tiene una tarifa vigente para la fecha."
-        )
-    with localcontext() as context:
-        context.prec = PRECISION
-        base = _cents(quantity * unit_cost)
-        tax = _cents(base * tax_rate / 100)
-        total = base + tax
-        inventory_value = base + tax if treatment is InventoryTaxTreatment.NON_RECOVERABLE else base
-    return LineAmounts(base=base, tax=tax, total=total, inventory_value=inventory_value)
-
-
-def calculate_document_totals(lines: Iterable[LineAmounts]) -> DocumentTotals:
-    """Suma de líneas ya redondeadas; no vuelve a redondear el documento."""
-    base = tax = total = inventory_value = Decimal("0.00")
-    with localcontext() as context:
-        context.prec = PRECISION
-        for line in lines:
-            base += line.base
-            tax += line.tax
-            total += line.total
-            inventory_value += line.inventory_value
-    return DocumentTotals(base=base, tax=tax, total=total, inventory_value=inventory_value)

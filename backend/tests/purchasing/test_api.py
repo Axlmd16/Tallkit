@@ -1,19 +1,22 @@
-"""API HTTP de compras: rutas, permisos, contrato de campos, listas y errores."""
+"""API HTTP de entradas: rutas, permisos, contrato, proyección por rol, listas y errores."""
 
+from datetime import timedelta
 from typing import Any
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.test import Client
+from django.utils import timezone
 from rest_framework.test import APIClient
 
-from identity.models import UserRole
 from purchasing.models import Purchase
 from shared.transactions import RetryableConflictError
-from workshop_configuration.models import ConfigurationUse, NumberAllocation, TaxPeriod
+
+from .test_models import make_identity, make_purchase
 
 pytestmark = pytest.mark.django_db
 BASE = "/api/v1/purchases/"
+ENTRIES = f"{BASE}entries/"
+RETIRED = ("preview/", "confirm/", "replacement/")
 
 
 @pytest.fixture(autouse=True)
@@ -21,304 +24,301 @@ def base(commercial: Any, warehouse: Any) -> None:
     """Contexto comercial, bodega y serie COM-ING."""
 
 
-@pytest.fixture
-def api(admin: Any) -> APIClient:
+def client_for(user: Any) -> APIClient:
     client = APIClient()
-    client.force_authenticate(user=admin)
+    client.force_authenticate(user=user)
     return client
 
 
-def created(api: APIClient, payload: dict[str, Any]) -> dict[str, Any]:
-    response = api.post(BASE, payload, format="json")
+@pytest.fixture
+def api(admin: Any) -> APIClient:
+    return client_for(admin)
+
+
+@pytest.fixture
+def seller_api(seller: Any) -> APIClient:
+    return client_for(seller)
+
+
+_counter = iter(range(1, 100_000))
+
+
+def entry_body(product: Any, quantity: str = "2", cost: str | None = None, **extra: Any) -> Any:
+    line: dict[str, Any] = {"product_id": product.pk, "quantity": quantity}
+    if cost is not None:
+        line["unit_cost"] = cost
+    return {"idempotency_key": f"entry-key-{next(_counter):06d}", "lines": [line], **extra}
+
+
+def register(client: APIClient, product: Any, **kwargs: Any) -> dict[str, Any]:
+    response = client.post(ENTRIES, entry_body(product, **kwargs), format="json")
     assert response.status_code == 201, response.content
     return dict(response.json())
 
 
-def confirmed_body(api: APIClient, draft: dict[str, Any], key: str) -> dict[str, Any]:
-    review = api.post(f"{BASE}{draft['id']}/preview/", {}, format="json").json()
-    response = api.post(
-        f"{BASE}{draft['id']}/confirm/",
-        {
-            "idempotency_key": key,
-            "expected_version": draft["version"],
-            "review_token": review["review_token"],
-        },
-        format="json",
-    )
-    assert response.status_code == 200, response.content
-    return dict(response.json())
-
-
-class TestRoutesAndPermissions:
-    def test_create_list_retrieve_and_patch(
-        self, api: APIClient, draft_payload: Any, commercial: Any, product: Any, line: Any
+class TestRoutes:
+    def test_the_seller_reviews_registers_lists_and_reads(
+        self, seller_api: APIClient, product: Any
     ) -> None:
-        body = created(api, draft_payload([line(product, commercial["ten"])]))
-        assert api.get(BASE).status_code == 200
-        detail = api.get(f"{BASE}{body['id']}/")
-        assert detail.status_code == 200
-        assert detail.json()["totals"]["total"] == "22.00"
-        patched = api.patch(
-            f"{BASE}{body['id']}/",
-            {"idempotency_key": "patch-key-0001", "expected_version": 1, "notes": "hola"},
+        review = seller_api.post(
+            f"{ENTRIES}review/",
+            {"lines": [{"product_id": product.pk, "quantity": "2"}]},
             format="json",
         )
-        assert patched.status_code == 200
-        assert patched.json()["version"] == 2
-
-    def test_confirmation_flow_and_required_fields(
-        self, api: APIClient, draft_payload: Any, commercial: Any, product: Any, line: Any
-    ) -> None:
-        draft = created(api, draft_payload([line(product, commercial["ten"])]))
-        review = api.post(f"{BASE}{draft['id']}/preview/", {}, format="json")
         assert review.status_code == 200
-        for payload, field in (
-            ({"expected_version": 1, "review_token": "x"}, "idempotency_key"),
-            ({"idempotency_key": "conf-key-0001", "review_token": "x"}, "expected_version"),
-            ({"idempotency_key": "conf-key-0001", "expected_version": 1}, "review_token"),
-        ):
-            response = api.post(f"{BASE}{draft['id']}/confirm/", payload, format="json")
-            assert response.status_code == 400
-            assert field in response.json()["errors"]
-        done = confirmed_body(api, draft, "conf-key-0002")
-        assert done["state"] == "CONFIRMED"
-        assert done["internal_number"] == "COM-ING-000001"
+        assert review.json()["summary"] == {"products": 1, "units": 2}
+        body = register(seller_api, product)
+        assert body["internal_number"] == "COM-ING-000001"
+        assert seller_api.get(BASE).json()["count"] == 1
+        assert seller_api.get(f"{BASE}{body['id']}/").status_code == 200
 
-    def test_void_replacement_and_reason(
-        self, api: APIClient, draft_payload: Any, commercial: Any, product: Any, line: Any
+    def test_the_administrator_voids_with_a_reviewed_token(
+        self, api: APIClient, seller_api: APIClient, product: Any
     ) -> None:
-        draft = created(api, draft_payload([line(product, commercial["ten"])]))
-        done = confirmed_body(api, draft, "conf-key-0003")
-        preview = api.post(f"{BASE}{done['id']}/void-preview/", {}, format="json")
+        body = register(seller_api, product, quantity="3", cost="2.00")
+        preview = api.post(f"{BASE}{body['id']}/void-preview/", {}, format="json")
         assert preview.status_code == 200
         token = preview.json()["review_token"]
-        no_reason = api.post(
-            f"{BASE}{done['id']}/void/",
+        missing_reason = api.post(
+            f"{BASE}{body['id']}/void/",
             {
                 "idempotency_key": "void-key-0001",
-                "expected_version": done["version"],
+                "expected_version": body["version"],
                 "review_token": token,
             },
             format="json",
         )
-        assert no_reason.status_code == 400
-        assert "reason" in no_reason.json()["errors"]
+        assert missing_reason.status_code == 400
+        assert "reason" in missing_reason.json()["errors"]
         voided = api.post(
-            f"{BASE}{done['id']}/void/",
+            f"{BASE}{body['id']}/void/",
             {
                 "idempotency_key": "void-key-0002",
-                "expected_version": done["version"],
+                "expected_version": body["version"],
                 "review_token": token,
-                "reason": "Error",
+                "reason": "Error de captura",
             },
             format="json",
         )
         assert voided.status_code == 200
         assert voided.json()["state"] == "VOIDED"
-        replacement = api.post(
-            f"{BASE}{done['id']}/replacement/", {"idempotency_key": "repl-key-0001"}, format="json"
-        )
-        assert replacement.status_code == 201
-        assert replacement.json()["replaces_id"] == done["id"]
 
-    def test_each_route_uses_its_own_permission_and_hides_data_from_other_roles(
-        self, draft_payload: Any, admin: Any, commercial: Any
+    @pytest.mark.parametrize("suffix", RETIRED)
+    def test_the_routes_of_the_previous_flow_no_longer_exist(
+        self, api: APIClient, product: Any, suffix: str
     ) -> None:
-        body = created_by(admin, draft_payload())
-        seller = get_user_model().objects.create_user(username="s1", password="pw")
-        UserRole.objects.create(user=seller, role="VENDEDOR")
-        manager = get_user_model().objects.create_user(username="m1", password="pw")
-        UserRole.objects.create(user=manager, role="ENCARGADO_TALLER")
-        for user in (seller, manager):
-            client = APIClient()
-            client.force_authenticate(user=user)
-            for method, url in (
-                ("get", BASE),
-                ("post", BASE),
-                ("get", f"{BASE}{body['id']}/"),
-                ("patch", f"{BASE}{body['id']}/"),
-                ("post", f"{BASE}{body['id']}/preview/"),
-                ("post", f"{BASE}{body['id']}/confirm/"),
-                ("post", f"{BASE}{body['id']}/void-preview/"),
-                ("post", f"{BASE}{body['id']}/void/"),
-                ("post", f"{BASE}{body['id']}/replacement/"),
-                ("get", f"{BASE}tax-options/?document_date=2026-01-15"),
+        body = register(api, product)
+        assert api.post(f"{BASE}{body['id']}/{suffix}", {}, format="json").status_code == 404
+        assert api.patch(f"{BASE}{body['id']}/", {}, format="json").status_code == 405
+        assert api.post(BASE, {}, format="json").status_code == 405
+        assert api.get(f"{BASE}tax-options/").status_code == 404
+
+    def test_each_route_hides_data_from_the_workshop_manager(
+        self, manager: Any, api: APIClient, product: Any
+    ) -> None:
+        body = register(api, product)
+        client = client_for(manager)
+        for method, url in (
+            ("get", BASE),
+            ("post", ENTRIES),
+            ("post", f"{ENTRIES}review/"),
+            ("get", f"{BASE}{body['id']}/"),
+            ("post", f"{BASE}{body['id']}/void-preview/"),
+            ("post", f"{BASE}{body['id']}/void/"),
+        ):
+            assert getattr(client, method)(url, {}, format="json").status_code == 403, url
+
+    def test_the_seller_cannot_void_even_his_own_entry(
+        self, seller_api: APIClient, product: Any
+    ) -> None:
+        body = register(seller_api, product)
+        preview = seller_api.post(f"{BASE}{body['id']}/void-preview/", {}, format="json")
+        assert preview.status_code == 403
+        assert seller_api.post(f"{BASE}{body['id']}/void/", {}, format="json").status_code == 403
+
+
+class TestRoleProjection:
+    def test_the_seller_never_receives_costs_in_any_response(
+        self, seller_api: APIClient, product: Any, supplier: Any
+    ) -> None:
+        body = register(
+            seller_api,
+            product,
+            quantity="2",
+            cost="4.50",
+            supplier_id=supplier.pk,
+            reference="F-1",
+        )
+        views = [
+            body,
+            seller_api.get(f"{BASE}{body['id']}/").json(),
+            seller_api.get(BASE).json(),
+            seller_api.post(
+                f"{ENTRIES}review/",
+                {"lines": [{"product_id": product.pk, "quantity": "2", "unit_cost": "4.50"}]},
+                format="json",
+            ).json(),
+        ]
+        for view in views:
+            text = str(view)
+            for forbidden in (
+                "4.50",
+                "unit_cost",
+                "cost_registered",
+                "amounts",
+                "legacy",
+                "'total'",
+                "inventory_value",
             ):
-                assert getattr(client, method)(url, {}, format="json").status_code == 403, url
+                assert forbidden not in text, (forbidden, text)
+            assert "identification" not in text
+        assert views[1]["supplier"] == {"id": supplier.pk, "name": supplier.name}
 
-    def test_tax_options_fix_the_commercial_scope_and_change_nothing(
-        self, api: APIClient, commercial: Any
+    def test_the_administrator_sees_costs_and_tells_no_cost_from_zero(
+        self, api: APIClient, seller_api: APIClient, product: Any, make_product: Any
     ) -> None:
-        from workshop_configuration.models import FiscalEntity, TaxDefinition
+        other = make_product()
+        payload = {
+            "idempotency_key": "entry-key-900001",
+            "lines": [
+                {"product_id": product.pk, "quantity": "2", "unit_cost": "4.50"},
+                {"product_id": other.pk, "quantity": "1"},
+            ],
+        }
+        body = seller_api.post(ENTRIES, payload, format="json").json()
+        detail = api.get(f"{BASE}{body['id']}/").json()
+        first, second = detail["lines"]
+        assert (first["cost_registered"], first["unit_cost"]) == (True, "4.500000")
+        assert (second["cost_registered"], second["unit_cost"]) == (False, None)
+        zero = register(api, make_product(), cost="0")
+        assert api.get(f"{BASE}{zero['id']}/").json()["lines"][0]["cost_registered"] is True
 
-        artisan = FiscalEntity.objects.create(
-            entity_type="ARTESANAL", legal_name="Art", ruc="1790000000002"
-        )
-        TaxDefinition.objects.create(fiscal_entity=artisan, code="ART", name="Art")
-        before = (
-            ConfigurationUse.objects.count(),
-            NumberAllocation.objects.count(),
-            TaxPeriod.objects.count(),
-        )
-        response = api.get(f"{BASE}tax-options/?document_date=2026-01-15")
-        assert response.status_code == 200
-        codes = {row["code"] for row in response.json()["results"]}
-        assert codes == {"IVA", "CERO"}
-        assert {row["tax_status"] for row in response.json()["results"]} == {"applicable"}
-        assert (
-            ConfigurationUse.objects.count(),
-            NumberAllocation.objects.count(),
-            TaxPeriod.objects.count(),
-        ) == before
-        assert api.get(f"{BASE}tax-options/").status_code == 400
-        assert api.get(f"{BASE}tax-options/?document_date=nope").status_code == 400
+    def test_a_legacy_draft_is_visible_only_to_the_administrator(
+        self, api: APIClient, seller_api: APIClient, supplier: Any, admin: Any
+    ) -> None:
+        draft = make_purchase(make_identity(supplier), admin)
+        assert api.get(f"{BASE}{draft.pk}/").status_code == 200
+        assert api.get(f"{BASE}{draft.pk}/").json()["legacy"]["is_pending_draft"] is True
+        assert seller_api.get(f"{BASE}{draft.pk}/").status_code == 404
+        assert seller_api.get(f"{BASE}?state=DRAFT").json()["count"] == 0
+        assert api.get(f"{BASE}?state=DRAFT").json()["count"] == 1
 
-
-def created_by(user: Any, payload: dict[str, Any]) -> dict[str, Any]:
-    client = APIClient()
-    client.force_authenticate(user=user)
-    return created(client, payload)
+    def test_a_reference_to_a_supplier_is_kept_without_private_data(
+        self, seller_api: APIClient, product: Any, supplier: Any
+    ) -> None:
+        body = register(seller_api, product, supplier_id=supplier.pk)
+        assert body["supplier"] == {"id": supplier.pk, "name": supplier.name}
 
 
 class TestFieldContract:
-    def test_patch_distinguishes_omitting_from_emptying_and_replaces_all_lines_in_order(
-        self,
-        api: APIClient,
-        draft_payload: Any,
-        commercial: Any,
-        product: Any,
-        line: Any,
-        make_product: Any,
+    def test_unknown_fields_and_client_totals_are_rejected(
+        self, seller_api: APIClient, product: Any
     ) -> None:
-        other = make_product()
-        body = created(
-            api,
-            draft_payload([line(product, commercial["ten"])], notes="conservar"),
+        response = seller_api.post(
+            ENTRIES,
+            entry_body(product, grand_total="1.00", document_date="2026-01-01"),
+            format="json",
         )
-        omitted = api.patch(
-            f"{BASE}{body['id']}/",
-            {
-                "idempotency_key": "patch-key-0002",
-                "expected_version": 1,
-                "supplier_reference": "Z-9",
-            },
-            format="json",
-        ).json()
-        assert omitted["notes"] == "conservar"
-        assert len(omitted["lines"]) == 1
-        replaced = api.patch(
-            f"{BASE}{body['id']}/",
-            {
-                "idempotency_key": "patch-key-0003",
-                "expected_version": 2,
-                "notes": "",
-                "lines": [line(other, commercial["zero"]), line(product, commercial["ten"], "1")],
-            },
-            format="json",
-        ).json()
-        assert replaced["notes"] == ""
-        assert [row["product"]["id"] for row in replaced["lines"]] == [other.pk, product.pk]
-        assert [row["position"] for row in replaced["lines"]] == [1, 2]
-        emptied = api.patch(
-            f"{BASE}{body['id']}/",
-            {"idempotency_key": "patch-key-0004", "expected_version": 3, "lines": []},
-            format="json",
-        ).json()
-        assert emptied["lines"] == []
-
-    @pytest.mark.parametrize(
-        ("mutation", "field"),
-        [
-            ({"supplier_reference": "x" * 129}, "supplier_reference"),
-            ({"notes": "x" * 2001}, "notes"),
-            (
-                {
-                    "no_document_reason": "x" * 2001,
-                    "document_type": "SIN_DOCUMENTO",
-                    "supplier_reference": "",
-                },
-                "no_document_reason",
-            ),
-        ],
-    )
-    def test_text_limits(
-        self, api: APIClient, draft_payload: Any, mutation: dict[str, Any], field: str
-    ) -> None:
-        response = api.post(BASE, draft_payload(**mutation), format="json")
-        assert response.status_code == 400
-        assert field in response.json()["errors"]
-
-    def test_line_limit_and_line_field_paths(
-        self, api: APIClient, draft_payload: Any, commercial: Any, product: Any, line: Any
-    ) -> None:
-        many = api.post(
-            BASE, draft_payload([line(product, commercial["ten"])] * 201), format="json"
-        )
-        assert many.status_code == 400
-        assert "lines" in many.json()["errors"]
-        lines = [line(product, commercial["ten"]) for _ in range(3)]
-        lines[2]["quantity"] = "0"
-        bad = api.post(BASE, draft_payload(lines), format="json")
-        assert bad.status_code == 400
-        assert "lines.2.quantity" in bad.json()["errors"]
-
-    def test_unknown_fields_and_client_totals(self, api: APIClient, draft_payload: Any) -> None:
-        response = api.post(BASE, draft_payload(total="1.00", state="CONFIRMED"), format="json")
         assert response.status_code == 400
         assert response.json()["code"] == "unknown_field"
-        assert set(response.json()["errors"]) == {"total", "state"}
 
-    def test_body_must_be_a_json_object(self, api: APIClient) -> None:
-        response = api.post(BASE, [], format="json")
+    def test_line_limit_and_line_field_paths(self, seller_api: APIClient, product: Any) -> None:
+        lines = [{"product_id": product.pk, "quantity": "1"}] * 201
+        response = seller_api.post(
+            ENTRIES, {"idempotency_key": "entry-key-910001", "lines": lines}, format="json"
+        )
         assert response.status_code == 400
+        assert "lines" in response.json()["errors"]
+        bad = seller_api.post(
+            ENTRIES,
+            {
+                "idempotency_key": "entry-key-910002",
+                "lines": [{"product_id": product.pk, "quantity": "0"}],
+            },
+            format="json",
+        )
+        assert "lines.0.quantity" in bad.json()["errors"]
+
+    def test_the_idempotency_key_is_required(self, seller_api: APIClient, product: Any) -> None:
+        payload = entry_body(product)
+        payload.pop("idempotency_key")
+        response = seller_api.post(ENTRIES, payload, format="json")
+        assert response.status_code == 400
+        assert "idempotency_key" in response.json()["errors"]
+
+    def test_body_must_be_a_json_object(self, seller_api: APIClient) -> None:
+        assert seller_api.post(ENTRIES, [1, 2], format="json").status_code == 400
 
 
 class TestLists:
-    def test_envelope_defaults_filters_and_order(
-        self, api: APIClient, draft_payload: Any, supplier: Any
+    def test_envelope_order_and_filters(
+        self,
+        api: APIClient,
+        seller_api: APIClient,
+        seller: Any,
+        admin: Any,
+        make_product: Any,
+        supplier: Any,
     ) -> None:
-        from supplier_registry.models import Supplier
-
-        other = Supplier.objects.create(name="Otro")
-        created(api, draft_payload(document_date="2026-01-10", supplier_reference="A-1"))
-        created(api, draft_payload(document_date="2026-01-20", supplier_reference="A-2"))
-        created(
-            api,
-            draft_payload(
-                document_date="2026-01-20", supplier_id=other.pk, supplier_reference="B-1"
-            ),
-        )
+        first = register(seller_api, make_product(), reference="A-1", supplier_id=supplier.pk)
+        second = register(api, make_product(), reference="B-2")
         page = api.get(BASE).json()
-        assert set(page) == {"count", "page", "page_size", "total_pages", "results"}
-        assert (page["page"], page["page_size"], page["count"]) == (1, 20, 3)
-        dates = [row["document_date"] for row in page["results"]]
-        assert dates == sorted(dates, reverse=True)
-        ids = [row["id"] for row in page["results"] if row["document_date"] == "2026-01-20"]
-        assert ids == sorted(ids, reverse=True)
-        assert api.get(f"{BASE}?supplier_id={other.pk}").json()["count"] == 1
-        assert api.get(f"{BASE}?state=DRAFT").json()["count"] == 3
-        assert api.get(f"{BASE}?state=CONFIRMED").json()["count"] == 0
-        assert api.get(f"{BASE}?date_from=2026-01-15").json()["count"] == 2
-        assert api.get(f"{BASE}?date_to=2026-01-15").json()["count"] == 1
-        assert api.get(f"{BASE}?search=A-2").json()["count"] == 1
-        assert api.get(f"{BASE}?search=otro").json()["count"] == 1
+        assert set(page) == {
+            "count",
+            "page",
+            "page_size",
+            "total_pages",
+            "results",
+            "registered_by_options",
+        }
+        assert (page["page"], page["page_size"], page["count"]) == (1, 20, 2)
+        assert [row["id"] for row in page["results"]] == [second["id"], first["id"]]
+        row = page["results"][1]
+        assert (row["product_count"], row["unit_count"]) == (1, "2")
+        assert row["registered_by"]["id"] == seller.pk
+        assert {o["id"] for o in page["registered_by_options"]} == {seller.pk, admin.pk}
+        assert api.get(f"{BASE}?registered_by={seller.pk}").json()["count"] == 1
+        assert api.get(f"{BASE}?state=CONFIRMED").json()["count"] == 2
+        assert api.get(f"{BASE}?state=VOIDED").json()["count"] == 0
+        assert api.get(f"{BASE}?search=A-1").json()["count"] == 1
+        assert api.get(f"{BASE}?search={supplier.name[:4]}").json()["count"] == 1
+        assert api.get(f"{BASE}?search=COM-ING-000002").json()["count"] == 1
+        assert api.get(f"{BASE}?supplier_id={supplier.pk}").json()["count"] == 1
+
+    def test_the_period_filter_uses_the_local_day_of_confirmation(
+        self, api: APIClient, product: Any
+    ) -> None:
+        register(api, product)
+        today = timezone.localdate()
+        assert api.get(f"{BASE}?date_from={today}&date_to={today}").json()["count"] == 1
+        yesterday = today - timedelta(days=1)
+        assert api.get(f"{BASE}?date_to={yesterday}").json()["count"] == 0
+        assert api.get(f"{BASE}?date_from={today + timedelta(days=1)}").json()["count"] == 0
 
     @pytest.mark.parametrize(
         "query",
-        ["page=0", "page_size=101", "page_size=0", "state=OPEN", "date_from=ayer", "supplier_id=x"],
+        [
+            "page=0",
+            "page_size=101",
+            "page_size=0",
+            "state=OPEN",
+            "date_from=ayer",
+            "supplier_id=x",
+            "registered_by=x",
+        ],
     )
     def test_invalid_query_is_a_400(self, api: APIClient, query: str) -> None:
         assert api.get(f"{BASE}?{query}").status_code == 400
 
-    def test_pages(self, api: APIClient, draft_payload: Any) -> None:
+    def test_pages(self, api: APIClient, make_product: Any) -> None:
         for _ in range(3):
-            created(api, draft_payload())
+            register(api, make_product())
         second = api.get(f"{BASE}?page=2&page_size=2").json()
         assert (len(second["results"]), second["total_pages"]) == (1, 2)
 
 
 class TestErrors:
-    def test_unauthenticated_and_csrf(self, admin: Any, draft_payload: Any) -> None:
+    def test_unauthenticated_and_csrf(self, admin: Any, product: Any) -> None:
         assert Client().get(BASE).status_code in {401, 403}
         csrf_client = Client(enforce_csrf_checks=True)
         admin.set_password("Clave-segura-2026")
@@ -332,51 +332,32 @@ class TestErrors:
             HTTP_X_CSRFTOKEN=token,
         )
         assert login.status_code == 200
-        blocked = csrf_client.post(BASE, draft_payload(), content_type="application/json")
+        blocked = csrf_client.post(ENTRIES, entry_body(product), content_type="application/json")
         assert blocked.status_code == 403
 
     def test_not_found_is_returned_after_authorizing(self, api: APIClient) -> None:
         assert api.get(f"{BASE}999999/").status_code == 404
-        assert api.post(f"{BASE}999999/preview/", {}, format="json").status_code == 404
+        assert api.post(f"{BASE}999999/void-preview/", {}, format="json").status_code == 404
 
-    def test_conflicts_use_stable_codes(
-        self, api: APIClient, draft_payload: Any, commercial: Any, product: Any, line: Any
-    ) -> None:
-        body = created(
-            api, draft_payload([line(product, commercial["ten"])], supplier_reference="D-1")
-        )
-        duplicate = api.post(BASE, draft_payload(supplier_reference="D-1"), format="json")
-        assert (duplicate.status_code, duplicate.json()["code"]) == (
-            409,
-            "duplicate_supplier_document",
-        )
-        api.patch(
-            f"{BASE}{body['id']}/",
-            {"idempotency_key": "patch-key-0005", "expected_version": 1, "notes": "A"},
-            format="json",
-        )
-        stale = api.patch(
-            f"{BASE}{body['id']}/",
-            {"idempotency_key": "patch-key-0006", "expected_version": 1, "notes": "B"},
-            format="json",
-        )
-        assert (stale.status_code, stale.json()["code"]) == (409, "stale_record")
-        review = api.post(f"{BASE}{body['id']}/preview/", {}, format="json").json()
-        TaxPeriod.objects.filter(tax_definition=commercial["ten"]).update(rate=12)
-        required = api.post(
-            f"{BASE}{body['id']}/confirm/",
-            {
-                "idempotency_key": "conf-key-0010",
-                "expected_version": 2,
-                "review_token": review["review_token"],
-            },
-            format="json",
-        )
-        assert (required.status_code, required.json()["code"]) == (409, "review_required")
-        payload = draft_payload(notes="uno")
-        assert api.post(BASE, payload, format="json").status_code == 201
-        reused = api.post(BASE, {**payload, "notes": "dos"}, format="json")
+    def test_conflicts_use_stable_codes(self, api: APIClient, product: Any) -> None:
+        payload = entry_body(product)
+        assert api.post(ENTRIES, payload, format="json").status_code == 201
+        reused = api.post(ENTRIES, {**payload, "reference": "otro"}, format="json")
         assert (reused.status_code, reused.json()["code"]) == (409, "idempotency_conflict")
+        duplicate = api.post(ENTRIES, entry_body(product), format="json")
+        assert (duplicate.status_code, duplicate.json()["code"]) == (409, "possible_duplicate")
+        first_id = Purchase.objects.get().pk
+        acknowledged = api.post(
+            ENTRIES, entry_body(product, acknowledged_entry_ids=[first_id]), format="json"
+        )
+        assert acknowledged.status_code == 201
+
+    def test_configuration_errors_are_conflicts(self, api: APIClient, product: Any) -> None:
+        from workshop_configuration.models import DocumentSeries
+
+        DocumentSeries.objects.all().delete()
+        response = api.post(ENTRIES, entry_body(product), format="json")
+        assert (response.status_code, response.json()["code"]) == (409, "configuration_missing")
 
     def test_retryable_conflicts_become_concurrent_operation(
         self, api: APIClient, monkeypatch: Any
@@ -384,7 +365,7 @@ class TestErrors:
         def boom(**kwargs: Any) -> Any:
             raise RetryableConflictError("40P01")
 
-        monkeypatch.setattr("purchasing.application.purchases.create_draft", boom)
-        response = api.post(BASE, {"idempotency_key": "any-key-00001"}, format="json")
+        monkeypatch.setattr("purchasing.application.entries.register_entry", boom)
+        response = api.post(ENTRIES, {"idempotency_key": "any-key-00001"}, format="json")
         assert (response.status_code, response.json()["code"]) == (409, "concurrent_operation")
         assert Purchase.objects.count() == 0

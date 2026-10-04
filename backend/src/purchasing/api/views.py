@@ -17,7 +17,7 @@ from identity.api.request_context import request_id_from
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.models import User
 from purchasing.api import serializers as sz
-from purchasing.application import purchases, queries
+from purchasing.application import entries, purchases, queries
 from purchasing.application.commands import CommandOutcome, IdempotencyConflictError
 from purchasing.application.errors import PurchaseApplicationError
 from shared.transactions import RetryableConflictError
@@ -31,8 +31,9 @@ _LIST_PARAMS = [
     ),
     OpenApiParameter("supplier_id", OpenApiTypes.INT),
     OpenApiParameter("state", OpenApiTypes.STR, enum=list(_STATES)),
-    OpenApiParameter("date_from", OpenApiTypes.DATE, description="Fecha documental inicial."),
-    OpenApiParameter("date_to", OpenApiTypes.DATE, description="Fecha documental final."),
+    OpenApiParameter("registered_by", OpenApiTypes.INT, description="Usuario que registró."),
+    OpenApiParameter("date_from", OpenApiTypes.DATE, description="Día de confirmación inicial."),
+    OpenApiParameter("date_to", OpenApiTypes.DATE, description="Día de confirmación final."),
     OpenApiParameter("page", OpenApiTypes.INT, description="Desde 1."),
     OpenApiParameter("page_size", OpenApiTypes.INT, description="1 a 100; omisión 20."),
 ]
@@ -136,18 +137,15 @@ class _PurchaseView(APIView):
     permission_classes = (HasBusinessPermission,)
 
 
-class PurchaseListCreateView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {
-        "GET": "ingresos.ver",
-        "POST": "ingresos.crear",
-    }
-    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+class PurchaseListView(_PurchaseView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "ingresos.ver"}
 
     @extend_schema(
         tags=[_TAG],
         operation_id="purchasing_purchase_list",
         parameters=_LIST_PARAMS,
         responses={200: sz.PurchasePageSerializer, 400: ProblemSerializer, 403: ProblemSerializer},
+        description="Entradas y compras anteriores; sin costos para quien no los puede ver.",
     )
     def get(self, request: Request) -> Response:
         def call() -> dict[str, Any]:
@@ -165,33 +163,58 @@ class PurchaseListCreateView(_PurchaseView):
                 state=state,
                 date_from=_date(request, "date_from"),
                 date_to=_date(request, "date_to"),
+                registered_by=_int(request, "registered_by"),
                 **_page_args(request),
             )
 
         return _respond(request, call)
 
+
+class EntryCreateView(_PurchaseView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "ingresos.crear"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
     @extend_schema(
         tags=[_TAG],
-        operation_id="purchasing_purchase_create",
-        request=sz.PurchaseWriteSerializer,
+        operation_id="purchasing_entry_create",
+        request=sz.EntryWriteSerializer,
         responses={201: sz.PurchaseSerializer, **_PROBLEMS},
-        description="Hasta 200 líneas; los importes derivados nunca se aceptan del cliente.",
+        description=(
+            "Registra y confirma la entrada en una sola acción. Proveedor, referencia y costo "
+            "son opcionales; fecha, impuestos y totales no se aceptan. Una entrada igual de "
+            "hoy exige reconocerla en acknowledged_entry_ids (409 possible_duplicate)."
+        ),
     )
     def post(self, request: Request) -> Response:
         return _respond(
             request,
-            lambda: purchases.create_draft(
+            lambda: entries.register_entry(
+                actor=_actor(request), payload=_body(request), request_id=request_id_from(request)
+            ),
+        )
+
+
+class EntryReviewView(_PurchaseView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "ingresos.crear"}
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="purchasing_entry_review",
+        request=sz.EntryReviewWriteSerializer,
+        responses={200: sz.EntryReviewSerializer, **_PROBLEMS},
+        description="Revisión de solo lectura: no guarda, no numera y no devuelve costos.",
+    )
+    def post(self, request: Request) -> Response:
+        return _respond(
+            request,
+            lambda: entries.review_entry(
                 actor=_actor(request), payload=_body(request), request_id=request_id_from(request)
             ),
         )
 
 
 class PurchaseDetailView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {
-        "GET": "ingresos.ver",
-        "PATCH": "ingresos.crear",
-    }
-    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"PATCH"})
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "ingresos.ver"}
 
     @extend_schema(
         tags=[_TAG],
@@ -201,64 +224,6 @@ class PurchaseDetailView(_PurchaseView):
     def get(self, request: Request, pk: int) -> Response:
         return _respond(
             request, lambda: queries.get_purchase(actor=_actor(request), purchase_id=pk)
-        )
-
-    @extend_schema(
-        tags=[_TAG],
-        operation_id="purchasing_purchase_update",
-        request=sz.PurchasePatchSerializer,
-        responses={200: sz.PurchaseSerializer, 404: ProblemSerializer, **_PROBLEMS},
-    )
-    def patch(self, request: Request, pk: int) -> Response:
-        return _respond(
-            request,
-            lambda: purchases.update_draft(
-                actor=_actor(request),
-                purchase_id=pk,
-                payload=_body(request),
-                request_id=request_id_from(request),
-            ),
-        )
-
-
-class PurchasePreviewView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {"POST": "ingresos.confirmar"}
-
-    @extend_schema(
-        tags=[_TAG],
-        operation_id="purchasing_purchase_preview",
-        request=None,
-        responses={200: sz.ReviewSerializer, 404: ProblemSerializer, 403: ProblemSerializer},
-        description="Revisión de solo lectura protegida por CSRF; no crea recibo ni efectos.",
-    )
-    def post(self, request: Request, pk: int) -> Response:
-        return _respond(
-            request,
-            lambda: purchases.preview_confirmation(
-                actor=_actor(request), purchase_id=pk, request_id=request_id_from(request)
-            ),
-        )
-
-
-class PurchaseConfirmView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {"POST": "ingresos.confirmar"}
-    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
-
-    @extend_schema(
-        tags=[_TAG],
-        operation_id="purchasing_purchase_confirm",
-        request=sz.ConfirmSerializer,
-        responses={200: sz.PurchaseSerializer, 404: ProblemSerializer, **_PROBLEMS},
-    )
-    def post(self, request: Request, pk: int) -> Response:
-        return _respond(
-            request,
-            lambda: purchases.confirm_purchase(
-                actor=_actor(request),
-                purchase_id=pk,
-                payload=_body(request),
-                request_id=request_id_from(request),
-            ),
         )
 
 
@@ -300,54 +265,3 @@ class PurchaseVoidView(_PurchaseView):
                 request_id=request_id_from(request),
             ),
         )
-
-
-class PurchaseReplacementView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {"POST": "ingresos.crear"}
-    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
-
-    @extend_schema(
-        tags=[_TAG],
-        operation_id="purchasing_purchase_replacement",
-        request=sz.ReplacementSerializer,
-        responses={201: sz.PurchaseSerializer, 404: ProblemSerializer, **_PROBLEMS},
-    )
-    def post(self, request: Request, pk: int) -> Response:
-        return _respond(
-            request,
-            lambda: purchases.create_replacement(
-                actor=_actor(request),
-                purchase_id=pk,
-                payload=_body(request),
-                request_id=request_id_from(request),
-            ),
-        )
-
-
-class PurchaseTaxOptionsView(_PurchaseView):
-    business_permissions: ClassVar[dict[str, str]] = {"GET": "ingresos.crear"}
-
-    @extend_schema(
-        tags=[_TAG],
-        operation_id="purchasing_tax_options",
-        parameters=[
-            OpenApiParameter("document_date", OpenApiTypes.DATE, required=True),
-            OpenApiParameter("search", OpenApiTypes.STR),
-            OpenApiParameter("page", OpenApiTypes.INT),
-            OpenApiParameter("page_size", OpenApiTypes.INT),
-        ],
-        responses={200: sz.TaxOptionPageSerializer, 400: ProblemSerializer, 403: ProblemSerializer},
-        description="Ámbito COMERCIAL fijo; solo lectura, no consume numeración ni usos.",
-    )
-    def get(self, request: Request) -> Response:
-        def call() -> dict[str, Any]:
-            document_date = _date(request, "document_date", required=True)
-            assert document_date is not None
-            return queries.list_tax_options(
-                actor=_actor(request),
-                document_date=document_date,
-                search=request.query_params.get("search", ""),
-                **_page_args(request),
-            )
-
-        return _respond(request, call)

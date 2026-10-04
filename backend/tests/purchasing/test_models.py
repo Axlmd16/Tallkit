@@ -247,3 +247,127 @@ class TestPurchaseLineAndCommand:
         with pytest.raises(IntegrityError), transaction.atomic():
             PurchaseCommand.objects.create(**values)
         PurchaseCommand.objects.create(**{**values, "action": "purchase.update"})
+
+
+def make_entry(actor: Any, **overrides: Any) -> Purchase:
+    """Entrada de stock (flujo SIMPLE): sin identidad ni fecha documental."""
+    values: dict[str, Any] = {"flow": "SIMPLE", "created_by": actor}
+    values.update(overrides)
+    return Purchase.objects.create(**values)
+
+
+CONFIRMED_ENTRY: dict[str, Any] = {
+    "state": "CONFIRMED",
+    "internal_number": "COM-ING-000001",
+    "content_signature": "a" * 64,
+    "confirmed_on": date(2026, 10, 4),
+}
+
+
+@pytest.mark.django_db
+class TestSimpleFlow:
+    def test_existing_purchases_default_to_the_legacy_flow(self, supplier: Any, actor: Any) -> None:
+        assert make_purchase(make_identity(supplier), actor).flow == "LEGACY"
+
+    def test_an_entry_has_no_document_identity_or_date_and_an_optional_supplier(
+        self, supplier: Any, actor: Any
+    ) -> None:
+        bare = make_entry(actor)
+        assert (bare.document_identity, bare.document_date, bare.supplier) == (None, None, None)
+        full = make_entry(actor, supplier=supplier, external_reference="F-1", observation="Obs")
+        full.refresh_from_db()
+        assert (full.supplier_id, full.external_reference) == (supplier.pk, "F-1")
+
+    def test_external_references_are_free_text_and_may_repeat(self, actor: Any) -> None:
+        make_entry(actor, external_reference="F-1")
+        make_entry(actor, external_reference="F-1")
+        assert Purchase.objects.filter(external_reference="F-1").count() == 2
+
+    def test_an_entry_cannot_carry_document_data_or_a_replacement(
+        self, supplier: Any, actor: Any
+    ) -> None:
+        root = make_purchase(make_identity(supplier), actor)
+        for overrides in (
+            {"document_identity": make_identity(supplier, reference="X", normalized_reference="X")},
+            {"document_date": date(2026, 9, 1)},
+            {"replaces": root},
+        ):
+            with pytest.raises(IntegrityError), transaction.atomic():
+                make_entry(actor, **overrides)
+
+    def test_a_legacy_purchase_still_requires_identity_and_date(
+        self, supplier: Any, actor: Any
+    ) -> None:
+        with pytest.raises(IntegrityError), transaction.atomic():
+            Purchase.objects.create(created_by=actor, document_date=date(2026, 9, 1))
+        with pytest.raises(IntegrityError), transaction.atomic():
+            Purchase.objects.create(created_by=actor, document_identity=make_identity(supplier))
+
+    def test_an_unknown_flow_is_rejected(self, actor: Any) -> None:
+        with pytest.raises(IntegrityError), transaction.atomic():
+            make_entry(actor, flow="OTHER")
+
+    def test_a_confirmed_entry_requires_its_day_and_content_signature(self, actor: Any) -> None:
+        assert make_entry(actor, **CONFIRMED_ENTRY).confirmed_on == date(2026, 10, 4)
+        for missing in ("confirmed_on", "content_signature"):
+            overrides = {**CONFIRMED_ENTRY, "internal_number": f"COM-ING-{missing}"}
+            overrides[missing] = None if missing == "confirmed_on" else ""
+            with pytest.raises(IntegrityError), transaction.atomic():
+                make_entry(actor, **overrides)
+
+    def test_entries_do_not_collide_in_the_unique_identity_constraints(self, actor: Any) -> None:
+        make_entry(actor)
+        make_entry(actor)
+        make_entry(actor, **CONFIRMED_ENTRY)
+        make_entry(actor, **{**CONFIRMED_ENTRY, "internal_number": "COM-ING-000002"})
+        assert Purchase.objects.filter(flow="SIMPLE").count() == 4
+
+
+@pytest.mark.django_db
+class TestEntryLines:
+    def test_a_line_may_lack_cost_and_tax(self, actor: Any, product: Any) -> None:
+        entry = make_entry(actor)
+        line = PurchaseLine.objects.create(
+            purchase=entry, position=1, product=product, quantity=D(3)
+        )
+        line.refresh_from_db()
+        assert (line.unit_cost, line.tax_definition, line.tax_treatment) == (None, None, None)
+
+    def test_an_explicit_zero_cost_is_distinct_from_no_cost(self, actor: Any, product: Any) -> None:
+        entry = make_entry(actor)
+        zero = PurchaseLine.objects.create(
+            purchase=entry, position=1, product=product, quantity=D(1), unit_cost=D(0)
+        )
+        assert zero.unit_cost == D(0)
+        assert zero.unit_cost is not None
+
+    def test_a_tax_definition_and_its_treatment_come_together(
+        self, actor: Any, product: Any, tax_definition: Any
+    ) -> None:
+        entry = make_entry(actor)
+        with pytest.raises(IntegrityError), transaction.atomic():
+            PurchaseLine.objects.create(
+                purchase=entry,
+                position=1,
+                product=product,
+                quantity=D(1),
+                tax_definition=tax_definition,
+            )
+        with pytest.raises(IntegrityError), transaction.atomic():
+            PurchaseLine.objects.create(
+                purchase=entry,
+                position=1,
+                product=product,
+                quantity=D(1),
+                tax_treatment="RECOVERABLE",
+            )
+
+    def test_a_negative_cost_is_still_rejected(self, actor: Any, product: Any) -> None:
+        with pytest.raises(IntegrityError), transaction.atomic():
+            PurchaseLine.objects.create(
+                purchase=make_entry(actor),
+                position=1,
+                product=product,
+                quantity=D(1),
+                unit_cost=D("-0.01"),
+            )

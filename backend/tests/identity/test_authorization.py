@@ -10,6 +10,12 @@ ADMINISTRATOR_PERMISSIONS = {
     "clientes.ver",
     "entidades_fiscales.editar",
     "entidades_fiscales.ver",
+    "fiscal.archivo.gestionar",
+    "fiscal.artesanal.preparar",
+    "fiscal.artesanal.ver",
+    "fiscal.comercial.preparar",
+    "fiscal.comercial.ver",
+    "fiscal.correcciones.gestionar",
     "ingresos.anular",
     "ingresos.confirmar",
     "ingresos.crear",
@@ -87,6 +93,11 @@ EXPECTED_PERMISSIONS = {
     Role.VENDEDOR: {
         "clientes.gestionar",
         "clientes.ver",
+        "fiscal.comercial.preparar",
+        "fiscal.comercial.ver",
+        "ingresos.confirmar",
+        "ingresos.crear",
+        "ingresos.ver",
         "inventario.consumo_interno",
         "inventario.ver",
         "pagos_comerciales.registrar",
@@ -108,6 +119,8 @@ EXPECTED_PERMISSIONS = {
     Role.ENCARGADO_TALLER: {
         "clientes.gestionar",
         "clientes.ver",
+        "fiscal.artesanal.preparar",
+        "fiscal.artesanal.ver",
         "inventario.ver",
         "mantenimientos.cambiar_precio_servicio",
         "mantenimientos.cancelar",
@@ -214,3 +227,40 @@ def test_vehicle_brand_permissions_in_role_combinations() -> None:
     assert "marcas_vehiculo.ver" in combo_admin
     assert "marcas_vehiculo.gestionar" in combo_admin
     assert "marcas_vehiculo.desactivar" in combo_admin
+
+
+ENTRY_PERMISSIONS = {"ingresos.ver", "ingresos.crear", "ingresos.confirmar"}
+RESTRICTED_FOR_SELLERS = {
+    "ingresos.anular",
+    "productos.ver_costos",
+    "inventario.ver_valorizacion",
+    "inventario.ajustar",
+    "proveedores.ver",
+    "proveedores.gestionar",
+}
+
+
+def test_the_seller_registers_and_confirms_entries_but_cannot_void_or_see_costs() -> None:
+    permissions = effective_permissions({Role.VENDEDOR})
+
+    assert permissions >= ENTRY_PERMISSIONS
+    assert not RESTRICTED_FOR_SELLERS & permissions
+
+
+def test_the_workshop_manager_alone_has_no_entry_permission() -> None:
+    permissions = effective_permissions({Role.ENCARGADO_TALLER})
+
+    assert not (ENTRY_PERMISSIONS | {"ingresos.anular"}) & permissions
+
+
+def test_the_administrator_alone_voids_entries_and_keeps_every_entry_permission() -> None:
+    assert ENTRY_PERMISSIONS | {"ingresos.anular"} <= effective_permissions({Role.ADMINISTRADOR})
+    for role in (Role.VENDEDOR, Role.ENCARGADO_TALLER):
+        assert "ingresos.anular" not in effective_permissions({role})
+
+
+def test_seller_and_manager_union_gains_entries_without_costs_or_voiding() -> None:
+    permissions = effective_permissions({Role.VENDEDOR, Role.ENCARGADO_TALLER})
+
+    assert permissions >= ENTRY_PERMISSIONS
+    assert not RESTRICTED_FOR_SELLERS & permissions

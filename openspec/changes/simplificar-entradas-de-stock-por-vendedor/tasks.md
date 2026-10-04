@@ -42,25 +42,25 @@ Evidencia del grupo: proyecciones por rol probadas en positivo y negativo, sin f
 
 Dependencias: grupo 1. Diseño 1 y 6; spec `compras-e-ingresos-de-mercaderia`, «Autorización de compras por operación» y «Compras anteriores de solo lectura».
 
-- [ ] 4.1 Escribir primero en `tests/purchasing/test_models.py` casos rojos para `flow`, los campos opcionales, `supplier`, `external_reference`, `content_signature`, `confirmed_on` y las restricciones CHECK por flujo (`SIMPLE` sin identidad, fecha documental, reemplazo ni borrador; `LEGACY` con sus exigencias actuales).
-- [ ] 4.2 Crear la migración `purchasing` 0003 con esos cambios, el índice por firma y día y `flow = LEGACY` para las filas existentes; ajustar los triggers según 1.4 y ampliar `tests/purchasing/test_history_protection.py`.
-- [ ] 4.3 Escribir primero en `tests/identity/test_authorization.py` casos rojos: el Vendedor posee `ingresos.ver`, `ingresos.crear` e `ingresos.confirmar` y no `ingresos.anular`, `productos.ver_costos` ni `inventario.ver_valorizacion`; el Encargado del taller no posee ninguno de `ingresos.*`. Después actualizar `backend/src/identity/domain/authorization.py`.
-- [ ] 4.4 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_models.py tests/purchasing/test_history_protection.py tests/identity/test_authorization.py tests/identity/test_api_permissions.py`.
+- [x] 4.1 Escribir primero en `tests/purchasing/test_models.py` casos rojos para `flow`, los campos opcionales, `supplier`, `external_reference`, `content_signature`, `confirmed_on` y las restricciones CHECK por flujo (`SIMPLE` sin identidad, fecha documental, reemplazo ni borrador; `LEGACY` con sus exigencias actuales).
+- [x] 4.2 Crear la migración `purchasing` 0003 con esos cambios, el índice por firma y día y `flow = LEGACY` para las filas existentes; ajustar los triggers según 1.4 y ampliar `tests/purchasing/test_history_protection.py`.
+- [x] 4.3 Escribir primero en `tests/identity/test_authorization.py` casos rojos: el Vendedor posee `ingresos.ver`, `ingresos.crear` e `ingresos.confirmar` y no `ingresos.anular`, `productos.ver_costos` ni `inventario.ver_valorizacion`; el Encargado del taller no posee ninguno de `ingresos.*`. Después actualizar `backend/src/identity/domain/authorization.py`.
+- [x] 4.4 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing/test_models.py tests/purchasing/test_history_protection.py tests/identity/test_authorization.py tests/identity/test_api_permissions.py`.
 
-Evidencia del grupo: migración aplicada con las compras existentes intactas y matriz de permisos por rol en verde.
+Evidencia del grupo: migración aplicada y revertida en desarrollo con las compras existentes intactas, y matriz de permisos por rol en verde. Deuda de tipos que se saldó en los grupos 5 y 6: al admitir nulo `document_date`, `document_identity`, `unit_cost`, `tax_definition` y `tax_treatment`, `mypy` falla en `purchasing/application/purchases.py` y `queries.py`; se salda al retirar el código de escritura (5.7) y reescribir las lecturas (6.4), y no se registra un commit hasta que `mypy` vuelva a pasar.
 
 ## 5. Registro, revisión y anulación de entradas (backend)
 
 Dependencias: grupos 2 y 4. Diseño 4 y 5; spec `compras-e-ingresos-de-mercaderia`.
 
-- [ ] 5.1 Crear `backend/tests/purchasing/test_entries.py` con casos rojos del flujo principal: entrada mínima sin proveedor ni costo, entrada con proveedor, referencia, observación y costos, líneas con y sin costo, costo cero explícito distinto de ausente, numeración COM-ING continua tras una compra anterior y momento efectivo asignado por el sistema.
-- [ ] 5.2 Añadir casos rojos de validación sin efectos parciales: sin líneas, producto repetido, cantidad cero o fraccionaria, costo negativo o con siete decimales, producto inactivo, servicio, proveedor inactivo o inexistente, campos desconocidos y configuración ausente de bodega o serie.
-- [ ] 5.3 Añadir casos rojos de idempotencia y concurrencia: reintento compatible devuelve la misma entrada, misma clave con otro contenido responde conflicto, falla intermedia no deja número ni movimientos, dos entradas simultáneas del mismo producto y baja concurrente de un producto.
-- [ ] 5.4 Añadir casos rojos de duplicado: coincidencia exacta el mismo día de America/Guayaquil sin reconocimiento responde `possible_duplicate` sin efectos; con `acknowledged_entry_ids` confirma; una entrada anulada o de otro día no coincide; la advertencia no revela costos.
-- [ ] 5.5 Implementar `register_entry` y `review_entry` en `backend/src/purchasing/application/` con el orden total de bloqueos de ADR-0005 y el recibo `PurchaseCommand`; hacer pasar 5.1–5.4 y refactorizar.
-- [ ] 5.6 Ampliar `tests/purchasing/test_void.py` con casos rojos: anulación de una entrada sin costo restituye existencia y estado sin costo; anulación de una regularización; el Vendedor no puede anular; compras anteriores siguen anulándose. Ajustar `void_purchase` hasta el verde.
-- [ ] 5.7 Retirar el código de escritura del flujo anterior (crear y editar borrador, vista previa, confirmación, reemplazo y opciones de impuesto) y sus pruebas (`test_drafts.py`, `test_review.py`, `test_confirm.py`, `test_replacement.py`, `test_document_identity.py`, `test_amounts.py`), conservando o trasladando las aserciones que sigan vigentes. Añadir pruebas de que un borrador anterior no puede confirmarse ni editarse.
-- [ ] 5.8 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing`, Ruff sobre los archivos tocados y mypy sobre `src/purchasing`.
+- [x] 5.1 Crear `backend/tests/purchasing/test_entries.py` con casos rojos del flujo principal: entrada mínima sin proveedor ni costo, entrada con proveedor, referencia, observación y costos, líneas con y sin costo, costo cero explícito distinto de ausente, numeración COM-ING continua tras una compra anterior y momento efectivo asignado por el sistema.
+- [x] 5.2 Añadir casos rojos de validación sin efectos parciales: sin líneas, producto repetido, cantidad cero o fraccionaria, costo negativo o con siete decimales, producto inactivo, servicio, proveedor inactivo o inexistente, campos desconocidos y configuración ausente de bodega o serie.
+- [x] 5.3 Añadir casos rojos de idempotencia y concurrencia: reintento compatible devuelve la misma entrada, misma clave con otro contenido responde conflicto, falla intermedia no deja número ni movimientos, dos entradas simultáneas del mismo producto y baja concurrente de un producto.
+- [x] 5.4 Añadir casos rojos de duplicado: coincidencia exacta el mismo día de America/Guayaquil sin reconocimiento responde `possible_duplicate` sin efectos; con `acknowledged_entry_ids` confirma; una entrada anulada o de otro día no coincide; la advertencia no revela costos.
+- [x] 5.5 Implementar `register_entry` y `review_entry` en `backend/src/purchasing/application/` con el orden total de bloqueos de ADR-0005 y el recibo `PurchaseCommand`; hacer pasar 5.1–5.4 y refactorizar.
+- [x] 5.6 Ampliar `tests/purchasing/test_void.py` con casos rojos: anulación de una entrada sin costo restituye existencia y estado sin costo; anulación de una regularización; el Vendedor no puede anular; compras anteriores siguen anulándose. Ajustar `void_purchase` hasta el verde.
+- [x] 5.7 Retirar el código de escritura del flujo anterior (crear y editar borrador, vista previa, confirmación, reemplazo y opciones de impuesto) y sus pruebas (`test_drafts.py`, `test_review.py`, `test_confirm.py`, `test_replacement.py`, `test_document_identity.py`, `test_amounts.py`), conservando o trasladando las aserciones que sigan vigentes. Añadir pruebas de que un borrador anterior no puede confirmarse ni editarse.
+- [x] 5.8 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing`, Ruff sobre los archivos tocados y mypy sobre `src/purchasing`.
 
 Evidencia del grupo: rojo y verde registrados, atomicidad e idempotencia probadas y ausencia de rutas de escritura del flujo anterior.
 
@@ -68,13 +68,13 @@ Evidencia del grupo: rojo y verde registrados, atomicidad e idempotencia probada
 
 Dependencias: grupo 5. Diseño 5 y 6; specs `compras-e-ingresos-de-mercaderia` («Consulta y experiencia de compras») y `kardex-de-productos` («Acceso al origen y correcciones enlazadas»).
 
-- [ ] 6.1 Escribir primero en `tests/purchasing/test_api.py` y `test_authorization.py` casos rojos para `POST /api/v1/purchases/entries/review/` y `POST /api/v1/purchases/entries/` por rol, incluida la unión de roles y la sesión invalidada, y para la respuesta 404 o 405 de las seis rutas retiradas.
-- [ ] 6.2 Añadir casos rojos de lista y detalle: filtros `state`, período de confirmación, `registered_by` y búsqueda; orden estable del más reciente al más antiguo; usuarios disponibles para el filtro sin `usuarios.ver`; y columnas de número, momento, usuario, productos, unidades y estado.
-- [ ] 6.3 Añadir casos rojos de proyección: el Vendedor no recibe costos, valores, impuestos, totales ni identificación del proveedor en lista, detalle, compras anteriores, advertencias o errores, ni el costo que él mismo informó; el Administrador distingue línea sin costo de costo cero; los borradores anteriores solo son visibles para el Administrador.
-- [ ] 6.4 Implementar vistas, serializadores, rutas y consultas en `backend/src/purchasing/api/` y `application/queries.py`; hacer pasar 6.1–6.3.
-- [ ] 6.5 Ampliar las pruebas de origen del Kardex: el Vendedor abre la entrada sin costos y el Encargado recibe denegación; ajustar la consulta si hace falta.
-- [ ] 6.6 Actualizar el **contrato OpenAPI**, ampliar `backend/tests/api/test_openapi.py` y regenerar `backend/schema.yml` con `cd backend && uv run --frozen python manage.py spectacular --file schema.yml --validate`.
-- [ ] 6.7 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory/test_kardex.py tests/api/test_openapi.py`.
+- [x] 6.1 Escribir primero en `tests/purchasing/test_api.py` y `test_authorization.py` casos rojos para `POST /api/v1/purchases/entries/review/` y `POST /api/v1/purchases/entries/` por rol, incluida la unión de roles y la sesión invalidada, y para la respuesta 404 o 405 de las seis rutas retiradas.
+- [x] 6.2 Añadir casos rojos de lista y detalle: filtros `state`, período de confirmación, `registered_by` y búsqueda; orden estable del más reciente al más antiguo; usuarios disponibles para el filtro sin `usuarios.ver`; y columnas de número, momento, usuario, productos, unidades y estado.
+- [x] 6.3 Añadir casos rojos de proyección: el Vendedor no recibe costos, valores, impuestos, totales ni identificación del proveedor en lista, detalle, compras anteriores, advertencias o errores, ni el costo que él mismo informó; el Administrador distingue línea sin costo de costo cero; los borradores anteriores solo son visibles para el Administrador.
+- [x] 6.4 Implementar vistas, serializadores, rutas y consultas en `backend/src/purchasing/api/` y `application/queries.py`; hacer pasar 6.1–6.3.
+- [x] 6.5 Ampliar las pruebas de origen del Kardex: el Vendedor abre la entrada sin costos y el Encargado recibe denegación; ajustar la consulta si hace falta.
+- [x] 6.6 Actualizar el **contrato OpenAPI**, ampliar `backend/tests/api/test_openapi.py` y regenerar `backend/schema.yml` con `cd backend && uv run --frozen python manage.py spectacular --file schema.yml --validate`.
+- [x] 6.7 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory/test_kardex.py tests/api/test_openapi.py`.
 
 Evidencia del grupo: matriz de permisos completa por endpoint, pruebas negativas de filtración y OpenAPI validado.
 
@@ -82,9 +82,9 @@ Evidencia del grupo: matriz de permisos completa por endpoint, pruebas negativas
 
 Dependencias: grupo 4. Diseño 5; spec `catalogo-de-proveedores`, «Acceso exclusivo de administración a proveedores».
 
-- [ ] 7.1 Escribir primero casos rojos en `backend/tests/supplier_registry/` para `GET /api/v1/suppliers/options/`: exige `ingresos.crear`; devuelve solo identificador y nombre de activos; busca por nombre; excluye inactivos, identificación y contacto; deniega al Encargado y a la sesión inválida; y el catálogo completo sigue vedado al Vendedor.
-- [ ] 7.2 Implementar la vista y la ruta reutilizando `list_supplier_references`, sin escrituras; hacer pasar 7.1 y actualizar OpenAPI.
-- [ ] 7.3 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/supplier_registry tests/api/test_openapi.py`.
+- [x] 7.1 Escribir primero casos rojos en `backend/tests/supplier_registry/` para `GET /api/v1/suppliers/options/`: exige `ingresos.crear`; devuelve solo identificador y nombre de activos; busca por nombre; excluye inactivos, identificación y contacto; deniega al Encargado y a la sesión inválida; y el catálogo completo sigue vedado al Vendedor.
+- [x] 7.2 Implementar la vista y la ruta reutilizando `list_supplier_references`, sin escrituras; hacer pasar 7.1 y actualizar OpenAPI.
+- [x] 7.3 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/supplier_registry tests/api/test_openapi.py`.
 
 Evidencia del grupo: proyección mínima probada y catálogo de proveedores sin nuevas concesiones.
 

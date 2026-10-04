@@ -73,3 +73,16 @@ class SupplierMatchSerializer(_Base):
 class SupplierMatchesSerializer(_Base):
     results = SupplierMatchSerializer(many=True)
     has_more = serializers.BooleanField()
+
+
+class SupplierOptionSerializer(_Base):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class SupplierOptionPageSerializer(_Base):
+    count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    results = SupplierOptionSerializer(many=True)

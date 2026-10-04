@@ -111,7 +111,7 @@ def test_error_responses_and_query_parameters_are_declared(schema: dict[str, Any
 def test_existing_contracts_were_not_changed(schema: dict[str, Any]) -> None:
     for path in ("/api/v1/purchases/", "/api/v1/inventory/operations/", "/api/v1/users/"):
         assert any(p.startswith(path) for p in schema["paths"]), path
-    assert "Confirm" in schema["components"]["schemas"]  # compras conserva su componente
+    assert "EntryWrite" in schema["components"]["schemas"]  # compras publica la entrada de stock
     assert "SaleConfirm" in schema["components"]["schemas"]
 
 

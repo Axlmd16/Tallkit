@@ -5709,19 +5709,21 @@ paths:
   /api/v1/purchases/:
     get:
       operationId: purchasing_purchase_list
+      description: Entradas y compras anteriores; sin costos para quien no los puede
+        ver.
       parameters:
       - in: query
         name: date_from
         schema:
           type: string
           format: date
-        description: Fecha documental inicial.
+        description: Día de confirmación inicial.
       - in: query
         name: date_to
         schema:
           type: string
           format: date
-        description: Fecha documental final.
+        description: Día de confirmación final.
       - in: query
         name: page
         schema:
@@ -5732,6 +5734,11 @@ paths:
         schema:
           type: integer
         description: 1 a 100; omisión 20.
+      - in: query
+        name: registered_by
+        schema:
+          type: integer
+        description: Usuario que registró.
       - in: query
         name: search
         schema:
@@ -5772,50 +5779,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
-    post:
-      operationId: purchasing_purchase_create
-      description: Hasta 200 líneas; los importes derivados nunca se aceptan del cliente.
-      tags:
-      - Purchases
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PurchaseWrite'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PurchaseWrite'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PurchaseWrite'
-        required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Purchase'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
   /api/v1/purchases/{id}/:
     get:
       operationId: purchasing_purchase_retrieve
@@ -5843,206 +5806,6 @@ paths:
                 $ref: '#/components/schemas/Problem'
           description: ''
         '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-    patch:
-      operationId: purchasing_purchase_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - Purchases
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPurchasePatch'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPurchasePatch'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPurchasePatch'
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Purchase'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-  /api/v1/purchases/{id}/confirm/:
-    post:
-      operationId: purchasing_purchase_confirm
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - Purchases
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Confirm'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Confirm'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Confirm'
-        required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Purchase'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-  /api/v1/purchases/{id}/preview/:
-    post:
-      operationId: purchasing_purchase_preview
-      description: Revisión de solo lectura protegida por CSRF; no crea recibo ni
-        efectos.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - Purchases
-      security:
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Review'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-  /api/v1/purchases/{id}/replacement/:
-    post:
-      operationId: purchasing_purchase_replacement
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - Purchases
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Replacement'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Replacement'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Replacement'
-        required: true
-      security:
-      - cookieAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Purchase'
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-          description: ''
-        '409':
           content:
             application/json:
               schema:
@@ -6136,39 +5899,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
-  /api/v1/purchases/tax-options/:
-    get:
-      operationId: purchasing_tax_options
-      description: Ámbito COMERCIAL fijo; solo lectura, no consume numeración ni usos.
-      parameters:
-      - in: query
-        name: document_date
-        schema:
-          type: string
-          format: date
-        required: true
-      - in: query
-        name: page
-        schema:
-          type: integer
-      - in: query
-        name: page_size
-        schema:
-          type: integer
-      - in: query
-        name: search
-        schema:
-          type: string
+  /api/v1/purchases/entries/:
+    post:
+      operationId: purchasing_entry_create
+      description: Registra y confirma la entrada en una sola acción. Proveedor, referencia
+        y costo son opcionales; fecha, impuestos y totales no se aceptan. Una entrada
+        igual de hoy exige reconocerla en acknowledged_entry_ids (409 possible_duplicate).
       tags:
       - Purchases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EntryWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EntryWrite'
+        required: true
       security:
       - cookieAuth: []
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaxOptionPage'
+                $ref: '#/components/schemas/Purchase'
           description: ''
         '400':
           content:
@@ -6177,6 +5935,57 @@ paths:
                 $ref: '#/components/schemas/Problem'
           description: ''
         '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/purchases/entries/review/:
+    post:
+      operationId: purchasing_entry_review
+      description: 'Revisión de solo lectura: no guarda, no numera y no devuelve costos.'
+      tags:
+      - Purchases
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryReviewWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EntryReviewWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EntryReviewWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryReview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
           content:
             application/json:
               schema:
@@ -8546,6 +8355,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/suppliers/options/:
+    get:
+      operationId: suppliers_options
+      description: Proveedores activos para elegir uno al registrar una entrada; solo
+        id y nombre. Lo usa quien puede registrar entradas, sin acceso al catálogo
+        completo.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Solo por nombre.
+      tags:
+      - Suppliers
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupplierOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/users/:
     get:
       operationId: identity_users_list
@@ -10688,26 +10541,6 @@ components:
       description: |-
         * `CONTADO` - CONTADO
         * `CREDITO` - CREDITO
-    Confirm:
-      type: object
-      properties:
-        idempotency_key:
-          type: string
-          description: Clave del intento, 8 a 128 caracteres ASCII.
-          pattern: ^[A-Za-z0-9._:-]{8,128}$
-        expected_version:
-          type: integer
-          minimum: 1
-        review_token:
-          type: string
-        acknowledged_matches:
-          type: array
-          items:
-            type: integer
-      required:
-      - expected_version
-      - idempotency_key
-      - review_token
     ConflictInfo:
       type: object
       properties:
@@ -10959,18 +10792,14 @@ components:
       - is_active
       - last_number
       - version
-    DocumentTypeBfeEnum:
+    DocumentTypeEnum:
       enum:
-      - FACTURA
-      - NOTA_DE_VENTA
-      - OTRO
-      - SIN_DOCUMENTO
+      - '01'
+      - '04'
       type: string
       description: |-
-        * `FACTURA` - FACTURA
-        * `NOTA_DE_VENTA` - NOTA_DE_VENTA
-        * `OTRO` - OTRO
-        * `SIN_DOCUMENTO` - SIN_DOCUMENTO
+        * `01` - 01
+        * `04` - 04
     DraftPreview:
       type: object
       properties:
@@ -11148,6 +10977,121 @@ components:
       required:
       - file
       - idempotency_key
+    EntryLineWrite:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+          description: Entero positivo de presentaciones, como cadena.
+        unit_cost:
+          type: string
+          nullable: true
+          description: Opcional. USD por presentación, hasta 6 decimales, como cadena.
+      required:
+      - product_id
+      - quantity
+    EntryReview:
+      type: object
+      properties:
+        can_confirm:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        summary:
+          type: object
+          additionalProperties: {}
+          description: products y units que entran.
+        supplier:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        reference:
+          type: string
+        observation:
+          type: string
+        lines:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        duplicates:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Entradas vigentes de hoy con los mismos productos y cantidades.
+        requires_acknowledgement:
+          type: boolean
+      required:
+      - can_confirm
+      - duplicates
+      - issues
+      - lines
+      - observation
+      - reference
+      - requires_acknowledgement
+      - summary
+      - supplier
+    EntryReviewWrite:
+      type: object
+      properties:
+        supplier_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        reference:
+          type: string
+          maxLength: 128
+        observation:
+          type: string
+          maxLength: 2000
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryLineWrite'
+          maxItems: 200
+        acknowledged_entry_ids:
+          type: array
+          items:
+            type: integer
+      required:
+      - lines
+    EntryWrite:
+      type: object
+      description: Registra y confirma la entrada en una sola acción.
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        supplier_id:
+          type: integer
+          minimum: 1
+          nullable: true
+        reference:
+          type: string
+          maxLength: 128
+        observation:
+          type: string
+          maxLength: 2000
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryLineWrite'
+          maxItems: 200
+        acknowledged_entry_ids:
+          type: array
+          items:
+            type: integer
+      required:
+      - idempotency_key
+      - lines
     FiscalActivePreparation:
       type: object
       properties:
@@ -12005,7 +11949,7 @@ components:
           type: integer
           minimum: 1
         document_type:
-          $ref: '#/components/schemas/FiscalNumberingAntecedentWriteDocumentTypeEnum'
+          $ref: '#/components/schemas/DocumentTypeEnum'
         establishment_code:
           type: string
           maxLength: 3
@@ -12036,14 +11980,6 @@ components:
       - establishment_code
       - last_declared_number
       - source
-    FiscalNumberingAntecedentWriteDocumentTypeEnum:
-      enum:
-      - '01'
-      - '04'
-      type: string
-      description: |-
-        * `01` - 01
-        * `04` - 04
     FiscalNumberingAntecedentWriteEnvironmentEnum:
       enum:
       - '1'
@@ -12558,6 +12494,14 @@ components:
       - definition_id
       - source
       - starts_on
+    FlowEnum:
+      enum:
+      - SIMPLE
+      - LEGACY
+      type: string
+      description: |-
+        * `SIMPLE` - SIMPLE
+        * `LEGACY` - LEGACY
     IdentificationTypeEnum:
       enum:
       - CI
@@ -12645,8 +12589,10 @@ components:
           nullable: true
         opening_value:
           type: string
+          nullable: true
         closing_value:
           type: string
+          nullable: true
       required:
       - closing_quantity
       - count
@@ -13404,22 +13350,6 @@ components:
       description: |-
         * `EFECTIVO` - EFECTIVO
         * `TRANSFERENCIA` - TRANSFERENCIA
-    MoneyBlock:
-      type: object
-      properties:
-        base:
-          type: string
-        tax:
-          type: string
-        total:
-          type: string
-        inventory_value:
-          type: string
-      required:
-      - base
-      - inventory_value
-      - tax
-      - total
     MoneyReview:
       type: object
       properties:
@@ -14036,41 +13966,6 @@ components:
         expected_version:
           type: integer
           minimum: 1
-    PatchedPurchasePatch:
-      type: object
-      description: Omitir un campo lo conserva; enviarlo vacío lo vacía; ``lines``
-        reemplaza la colección.
-      properties:
-        idempotency_key:
-          type: string
-          description: Clave del intento, 8 a 128 caracteres ASCII.
-          pattern: ^[A-Za-z0-9._:-]{8,128}$
-        supplier_id:
-          type: integer
-          minimum: 1
-        document_type:
-          $ref: '#/components/schemas/DocumentTypeBfeEnum'
-        supplier_reference:
-          type: string
-          maxLength: 128
-        document_date:
-          type: string
-          format: date
-          description: ISO; no posterior al día local.
-        notes:
-          type: string
-          maxLength: 2000
-        no_document_reason:
-          type: string
-          maxLength: 2000
-        lines:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseLineWrite'
-          maxItems: 200
-        expected_version:
-          type: integer
-          minimum: 1
     PatchedSalePatch:
       type: object
       description: Omitir un campo lo conserva; enviarlo vacío lo vacía; ``lines``
@@ -14588,6 +14483,8 @@ components:
       properties:
         id:
           type: integer
+        flow:
+          $ref: '#/components/schemas/FlowEnum'
         state:
           $ref: '#/components/schemas/PurchaseStateEnum'
         version:
@@ -14598,26 +14495,16 @@ components:
         supplier:
           type: object
           additionalProperties: {}
-        document:
+          nullable: true
+        reference:
+          type: string
+        observation:
+          type: string
+        registered_by:
           type: object
           additionalProperties: {}
-        document_date:
-          type: string
-          format: date
-        notes:
-          type: string
-        replaces_id:
-          type: integer
           nullable: true
-        replacements:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
         created_at:
-          type: string
-          format: date-time
-        updated_at:
           type: string
           format: date-time
         confirmed_at:
@@ -14630,43 +14517,42 @@ components:
           nullable: true
         void_reason:
           type: string
+        voided_by:
+          type: object
+          additionalProperties: {}
+          nullable: true
         inventory_operation_id:
           type: integer
           nullable: true
         void_operation_id:
           type: integer
           nullable: true
-        totals:
-          allOf:
-          - $ref: '#/components/schemas/MoneyBlock'
-          nullable: true
-        totals_status:
-          $ref: '#/components/schemas/TotalsStatusEnum'
         lines:
           type: array
           items:
             $ref: '#/components/schemas/PurchaseLine'
+        legacy:
+          type: object
+          additionalProperties: {}
+          description: Datos de la compra anterior; solo con permiso de costos.
       required:
       - confirmed_at
       - created_at
-      - document
-      - document_date
+      - flow
       - id
       - internal_number
       - inventory_operation_id
       - lines
-      - notes
-      - replacements
-      - replaces_id
+      - observation
+      - reference
+      - registered_by
       - state
       - supplier
-      - totals
-      - totals_status
-      - updated_at
       - version
       - void_operation_id
       - void_reason
       - voided_at
+      - voided_by
     PurchaseLine:
       type: object
       properties:
@@ -14679,49 +14565,26 @@ components:
           additionalProperties: {}
         quantity:
           type: string
+        cost_registered:
+          type: boolean
         unit_cost:
           type: string
+          nullable: true
         tax_recoverability:
           type: string
+          nullable: true
         tax:
           type: object
           additionalProperties: {}
         amounts:
-          allOf:
-          - $ref: '#/components/schemas/MoneyBlock'
+          type: object
+          additionalProperties: {}
           nullable: true
       required:
-      - amounts
       - id
       - position
       - product
       - quantity
-      - tax
-      - tax_recoverability
-      - unit_cost
-    PurchaseLineWrite:
-      type: object
-      properties:
-        product_id:
-          type: integer
-          minimum: 1
-        quantity:
-          type: string
-          description: Entero positivo de presentaciones, como cadena.
-        unit_cost:
-          type: string
-          description: USD sin impuesto, hasta 6 decimales, como cadena.
-        tax_definition_id:
-          type: integer
-          minimum: 1
-        tax_recoverability:
-          $ref: '#/components/schemas/TaxRecoverabilityEnum'
-      required:
-      - product_id
-      - quantity
-      - tax_definition_id
-      - tax_recoverability
-      - unit_cost
     PurchasePage:
       type: object
       properties:
@@ -14737,10 +14600,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PurchaseSummary'
+        registered_by_options:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Usuarios que han registrado entradas.
       required:
       - count
       - page
       - page_size
+      - registered_by_options
       - results
       - total_pages
     PurchaseStateEnum:
@@ -14758,69 +14628,40 @@ components:
       properties:
         id:
           type: integer
+        flow:
+          $ref: '#/components/schemas/FlowEnum'
         state:
           type: string
-        version:
-          type: integer
         internal_number:
           type: string
           nullable: true
+        moment:
+          type: string
+          format: date-time
+        registered_by:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        product_count:
+          type: integer
+        unit_count:
+          type: string
         supplier:
           type: object
           additionalProperties: {}
-        document:
-          type: object
-          additionalProperties: {}
-        document_date:
-          type: string
-          format: date
+          nullable: true
         total:
           type: string
-          nullable: true
       required:
-      - document
-      - document_date
+      - flow
       - id
       - internal_number
+      - moment
+      - product_count
+      - registered_by
       - state
       - supplier
-      - total
-      - version
-    PurchaseWrite:
-      type: object
-      properties:
-        idempotency_key:
-          type: string
-          description: Clave del intento, 8 a 128 caracteres ASCII.
-          pattern: ^[A-Za-z0-9._:-]{8,128}$
-        supplier_id:
-          type: integer
-          minimum: 1
-        document_type:
-          $ref: '#/components/schemas/DocumentTypeBfeEnum'
-        supplier_reference:
-          type: string
-          maxLength: 128
-        document_date:
-          type: string
-          format: date
-          description: ISO; no posterior al día local.
-        notes:
-          type: string
-          maxLength: 2000
-        no_document_reason:
-          type: string
-          maxLength: 2000
-        lines:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseLineWrite'
-          maxItems: 200
-      required:
-      - document_date
-      - document_type
-      - idempotency_key
-      - supplier_id
+      - unit_count
     ReceivablesPage:
       type: object
       properties:
@@ -14958,15 +14799,6 @@ components:
       - reason
       - review_token
       - sale_return_id
-    Replacement:
-      type: object
-      properties:
-        idempotency_key:
-          type: string
-          description: Clave del intento, 8 a 128 caracteres ASCII.
-          pattern: ^[A-Za-z0-9._:-]{8,128}$
-      required:
-      - idempotency_key
     ResultEnum:
       enum:
       - SUCCESS
@@ -15076,55 +14908,6 @@ components:
       - operation_id
       - reason
       - review_token
-    Review:
-      type: object
-      properties:
-        purchase_id:
-          type: integer
-        state:
-          type: string
-        version:
-          type: integer
-        can_confirm:
-          type: boolean
-        issues:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        review_token:
-          type: string
-          nullable: true
-        expires_in_seconds:
-          type: integer
-        totals:
-          allOf:
-          - $ref: '#/components/schemas/MoneyBlock'
-          nullable: true
-        effects:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        matches:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        requires_acknowledgement:
-          type: boolean
-      required:
-      - can_confirm
-      - effects
-      - expires_in_seconds
-      - issues
-      - matches
-      - purchase_id
-      - requires_acknowledgement
-      - review_token
-      - state
-      - totals
-      - version
     RoleRead:
       type: object
       properties:
@@ -15739,10 +15522,15 @@ components:
           type: integer
         last_ordinal:
           type: integer
+        cost_registered:
+          type: boolean
+          description: Falso cuando la existencia no tiene costo registrado.
         average_cost:
           type: string
+          nullable: true
         inventory_value:
           type: string
+          nullable: true
         reservations:
           type: array
           items:
@@ -15770,6 +15558,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StockRow'
+        valuation:
+          type: object
+          additionalProperties: {}
+          description: 'Solo con valoración: valor total y cantidad de productos sin
+            costo registrado.'
       required:
       - count
       - page
@@ -15813,10 +15606,15 @@ components:
           type: integer
         last_ordinal:
           type: integer
+        cost_registered:
+          type: boolean
+          description: Falso cuando la existencia no tiene costo registrado.
         average_cost:
           type: string
+          nullable: true
         inventory_value:
           type: string
+          nullable: true
       required:
       - available
       - last_ordinal
@@ -15899,6 +15697,37 @@ components:
       required:
       - has_more
       - results
+    SupplierOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    SupplierOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplierOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     SupplierPage:
       type: object
       properties:
@@ -16012,50 +15841,6 @@ components:
       - code
       - entity_id
       - name
-    TaxOption:
-      type: object
-      properties:
-        id:
-          type: integer
-        code:
-          type: string
-        name:
-          type: string
-        entity_type:
-          type: string
-        rate:
-          type: string
-          nullable: true
-        tax_status:
-          $ref: '#/components/schemas/TaxStatusEnum'
-      required:
-      - code
-      - entity_type
-      - id
-      - name
-      - rate
-      - tax_status
-    TaxOptionPage:
-      type: object
-      properties:
-        count:
-          type: integer
-        page:
-          type: integer
-        page_size:
-          type: integer
-        total_pages:
-          type: integer
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/TaxOption'
-      required:
-      - count
-      - page
-      - page_size
-      - results
-      - total_pages
     TaxPeriod:
       type: object
       properties:
@@ -16116,14 +15901,6 @@ components:
       - name
       - rate
       - tax_status
-    TaxRecoverabilityEnum:
-      enum:
-      - RECOVERABLE
-      - NON_RECOVERABLE
-      type: string
-      description: |-
-        * `RECOVERABLE` - RECOVERABLE
-        * `NON_RECOVERABLE` - NON_RECOVERABLE
     TaxStatusEnum:
       enum:
       - applicable
@@ -16141,14 +15918,6 @@ components:
           type: string
       required:
       - temporary_password
-    TotalsStatusEnum:
-      enum:
-      - calculated
-      - not_calculable
-      type: string
-      description: |-
-        * `calculated` - calculated
-        * `not_calculable` - not_calculable
     Unit:
       type: object
       properties:

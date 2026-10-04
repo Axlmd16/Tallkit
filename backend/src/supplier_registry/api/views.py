@@ -102,6 +102,33 @@ class SupplierListCreateView(APIView):
         )
 
 
+class SupplierOptionsView(APIView):
+    permission_classes = (HasBusinessPermission,)
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "ingresos.crear"}
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="suppliers_options",
+        parameters=[
+            OpenApiParameter("search", OpenApiTypes.STR, description="Solo por nombre."),
+            OpenApiParameter("page", OpenApiTypes.INT),
+            OpenApiParameter("page_size", OpenApiTypes.INT, description="1 a 100; omisión 20."),
+        ],
+        responses={
+            200: sz.SupplierOptionPageSerializer,
+            400: ProblemSerializer,
+            403: ProblemSerializer,
+        },
+        description=(
+            "Proveedores activos para elegir uno al registrar una entrada; solo id y nombre. "
+            "Lo usa quien puede registrar entradas, sin acceso al catálogo completo."
+        ),
+    )
+    def get(self, request: Request) -> Response:
+        params = {k: request.query_params.get(k) for k in request.query_params}
+        return _respond(request, lambda: Response(queries.list_supplier_options(params).as_dict()))
+
+
 class SupplierMatchesView(APIView):
     permission_classes = (HasBusinessPermission,)
     business_permissions: ClassVar[dict[str, str]] = {"POST": "proveedores.ver"}

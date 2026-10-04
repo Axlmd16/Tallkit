@@ -67,52 +67,22 @@ def world(admin: Any, product: Any, warehouse: Any, commercial_world: Any) -> di
 
 @pytest.fixture
 def commercial_world(admin: Any, product: Any, warehouse: Any) -> dict[str, Any]:
-    """Un ingreso confirmado por el flujo real de compras y una carga inicial de otro producto."""
-    from datetime import date
-
-    from purchasing.application import purchases
+    """Una entrada confirmada por el flujo real y una carga inicial de otro producto."""
+    from purchasing.application import entries
     from supplier_registry.models import Supplier
-    from workshop_configuration.models import (
-        DocumentSeries,
-        FiscalEntity,
-        NumberingScope,
-        TaxDefinition,
-        TaxPeriod,
-    )
+    from workshop_configuration.models import DocumentSeries, FiscalEntity, NumberingScope
 
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
-    tax = TaxDefinition.objects.get(fiscal_entity=entity, code="IVA")
-    TaxPeriod.objects.create(tax_definition=tax, rate=D("10"), starts_on=date(2025, 1, 1))
     scope = NumberingScope.objects.create(fiscal_entity=entity, document_type="INGRESO")
     DocumentSeries.objects.create(numbering_scope=scope, code="COM-ING", is_active=True)
     supplier = Supplier.objects.create(name="Proveedor Secreto SA")
-    draft = purchases.create_draft(
+    purchase = entries.register_entry(
         actor=admin,
         payload={
             "idempotency_key": "world-key-0001",
             "supplier_id": supplier.pk,
-            "document_type": "FACTURA",
-            "supplier_reference": "SECRETO-1",
-            "document_date": "2026-01-15",
-            "lines": [
-                {
-                    "product_id": product.pk,
-                    "quantity": "4",
-                    "unit_cost": "7.00",
-                    "tax_definition_id": tax.pk,
-                    "tax_recoverability": "NON_RECOVERABLE",
-                }
-            ],
-        },
-    ).body
-    review = purchases.preview_confirmation(actor=admin, purchase_id=draft["id"])
-    purchase = purchases.confirm_purchase(
-        actor=admin,
-        purchase_id=draft["id"],
-        payload={
-            "idempotency_key": "world-key-0002",
-            "expected_version": 1,
-            "review_token": review["review_token"],
+            "reference": "SECRETO-1",
+            "lines": [{"product_id": product.pk, "quantity": "4", "unit_cost": "7.00"}],
         },
     ).body
     return {
@@ -156,8 +126,26 @@ def test_responses_never_leak_purchase_amounts_or_supplier_data_to_operative_rol
     client = client_for(Role.ENCARGADO_TALLER)
     texts = [client.get(url).content.decode() for url in urls(world)]
     for text in texts:
-        for secret in ("Proveedor Secreto", "SECRETO-1", "7.00", "28.00", "30.80"):
+        for secret in ("Proveedor Secreto", "SECRETO-1", "7.00", "28.00"):
             assert secret not in text
+
+
+def test_the_seller_opens_the_origin_of_an_entry_without_costs_and_the_manager_cannot(
+    world: dict[str, Any],
+) -> None:
+    operation = BASE + f"operations/{world['operation_id']}/"
+    purchase_url = f"/api/v1/purchases/{world['purchase']['id']}/"
+    seller = client_for(Role.VENDEDOR)
+    detail = seller.get(operation).json()
+    assert detail["origin"]["origin_url"] == f"/purchases/{world['purchase']['id']}"
+    assert walk(detail) == []
+    opened = seller.get(purchase_url)
+    assert opened.status_code == 200
+    for secret in ("7.00", "28.00", "unit_cost"):
+        assert secret not in opened.content.decode()
+    manager = client_for(Role.ENCARGADO_TALLER)
+    assert "origin_url" not in manager.get(operation).json()["origin"]
+    assert manager.get(purchase_url).status_code == 403
 
 
 def test_error_messages_and_denied_writes_do_not_reveal_economics(world: dict[str, Any]) -> None:

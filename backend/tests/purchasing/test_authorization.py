@@ -1,4 +1,4 @@
-"""Autorización de compras: cada método y ruta con los tres roles y sus combinaciones."""
+"""Autorización de entradas: cada ruta con los tres roles y sus combinaciones."""
 
 from typing import Any
 
@@ -11,10 +11,8 @@ from identity.application.authorization import BusinessPermissionDeniedError
 from identity.application.users import update_user
 from identity.domain.authorization import Role
 from identity.models import User, UserRole
-from purchasing.application import purchases
+from purchasing.application import entries
 from purchasing.models import PurchaseCommand
-
-from .test_drafts import create
 
 pytestmark = pytest.mark.django_db
 BASE = "/api/v1/purchases/"
@@ -37,26 +35,24 @@ def client_for(user: User) -> APIClient:
 def routes(purchase_id: int) -> list[tuple[str, str]]:
     return [
         ("get", BASE),
-        ("post", BASE),
+        ("post", f"{BASE}entries/"),
+        ("post", f"{BASE}entries/review/"),
         ("get", f"{BASE}{purchase_id}/"),
-        ("patch", f"{BASE}{purchase_id}/"),
-        ("post", f"{BASE}{purchase_id}/preview/"),
-        ("post", f"{BASE}{purchase_id}/confirm/"),
         ("post", f"{BASE}{purchase_id}/void-preview/"),
         ("post", f"{BASE}{purchase_id}/void/"),
-        ("post", f"{BASE}{purchase_id}/replacement/"),
-        ("get", f"{BASE}tax-options/?document_date=2026-01-15"),
     ]
 
 
+# none: ninguna ruta; entries: todas salvo la anulación; all: todas.
 ROLE_SETS = [
-    ((Role.VENDEDOR,), False),
-    ((Role.ENCARGADO_TALLER,), False),
-    ((Role.VENDEDOR, Role.ENCARGADO_TALLER), False),
-    ((Role.ADMINISTRADOR,), True),
-    ((Role.ADMINISTRADOR, Role.VENDEDOR), True),
-    ((Role.ADMINISTRADOR, Role.VENDEDOR, Role.ENCARGADO_TALLER), True),
+    ((Role.VENDEDOR,), "entries"),
+    ((Role.ENCARGADO_TALLER,), "none"),
+    ((Role.VENDEDOR, Role.ENCARGADO_TALLER), "entries"),
+    ((Role.ADMINISTRADOR,), "all"),
+    ((Role.ADMINISTRADOR, Role.VENDEDOR), "all"),
+    ((Role.ADMINISTRADOR, Role.VENDEDOR, Role.ENCARGADO_TALLER), "all"),
 ]
+VOID_ROUTES = ("void-preview/", "void/")
 
 
 @pytest.fixture(autouse=True)
@@ -64,14 +60,20 @@ def base(commercial: Any, warehouse: Any) -> None:
     """Contexto comercial, bodega y serie COM-ING."""
 
 
-@pytest.mark.parametrize(("roles", "allowed"), ROLE_SETS)
-def test_only_the_administrator_role_reaches_any_route(
-    roles: tuple[Role, ...], allowed: bool, admin: Any, draft_payload: Any
+def register(actor: Any, product: Any, key: str = "entry-key-800001") -> dict[str, Any]:
+    payload = {"idempotency_key": key, "lines": [{"product_id": product.pk, "quantity": "2"}]}
+    return dict(entries.register_entry(actor=actor, payload=payload).body)
+
+
+@pytest.mark.parametrize(("roles", "reach"), ROLE_SETS)
+def test_routes_follow_the_entry_permissions_of_each_role_combination(
+    roles: tuple[Role, ...], reach: str, admin: Any, product: Any
 ) -> None:
-    purchase = create(admin, draft_payload())
+    purchase = register(admin, product)
     client = client_for(user_with("combo-" + "-".join(roles), *roles))
     for method, url in routes(purchase["id"]):
         status = getattr(client, method)(url, {}, format="json").status_code
+        allowed = reach == "all" or (reach == "entries" and not url.endswith(VOID_ROUTES))
         if allowed:
             assert status != 403, (method, url)
         else:
@@ -79,7 +81,7 @@ def test_only_the_administrator_role_reaches_any_route(
 
 
 def test_removing_the_administrator_role_invalidates_the_session(admin: Any) -> None:
-    multi = user_with("multi", Role.ADMINISTRADOR, Role.VENDEDOR)
+    multi = user_with("multi", Role.ADMINISTRADOR, Role.ENCARGADO_TALLER)
     client = Client()
     client.get("/api/v1/auth/csrf/")
     login = client.post(
@@ -90,7 +92,7 @@ def test_removing_the_administrator_role_invalidates_the_session(admin: Any) -> 
     )
     assert login.status_code == 200
     assert client.get(BASE).status_code == 200
-    update_user(actor=admin, user_id=multi.pk, username="multi", roles=[Role.VENDEDOR])
+    update_user(actor=admin, user_id=multi.pk, username="multi", roles=[Role.ENCARGADO_TALLER])
     assert client.get(BASE).status_code == 403  # debe autenticarse de nuevo
     relogin = Client()
     relogin.get("/api/v1/auth/csrf/")
@@ -103,15 +105,34 @@ def test_removing_the_administrator_role_invalidates_the_session(admin: Any) -> 
     assert relogin.get(BASE).status_code == 403  # solo aplican los permisos vigentes
 
 
-def test_authorization_is_checked_before_any_idempotent_replay(
-    admin: Any, draft_payload: Any
-) -> None:
-    payload = draft_payload()
-    assert purchases.create_draft(actor=admin, payload=payload).status == 201
+def test_removing_the_seller_role_invalidates_the_session_and_the_entry_permissions() -> None:
+    seller = user_with("vend-multi", Role.VENDEDOR, Role.ENCARGADO_TALLER)
+    admin = user_with("admin-x", Role.ADMINISTRADOR)
+    client = Client()
+    client.get("/api/v1/auth/csrf/")
+    client.post(
+        "/api/v1/auth/login/",
+        {"username": "vend-multi", "password": PASSWORD},
+        content_type="application/json",
+        HTTP_X_CSRFTOKEN=client.cookies["csrftoken"].value,
+    )
+    assert client.get(BASE).status_code == 200
+    update_user(
+        actor=admin, user_id=seller.pk, username="vend-multi", roles=[Role.ENCARGADO_TALLER]
+    )
+    assert client.get(BASE).status_code == 403
+
+
+def test_authorization_is_checked_before_any_idempotent_replay(admin: Any, product: Any) -> None:
+    payload = {
+        "idempotency_key": "entry-key-800002",
+        "lines": [{"product_id": product.pk, "quantity": "2"}],
+    }
+    assert entries.register_entry(actor=admin, payload=payload).status == 201
     UserRole.objects.filter(user=admin).delete()
     reloaded = User.objects.get(pk=admin.pk)
     with pytest.raises(BusinessPermissionDeniedError):
-        purchases.create_draft(actor=reloaded, payload=payload)
+        entries.register_entry(actor=reloaded, payload=payload)
     assert PurchaseCommand.objects.count() == 1
 
 

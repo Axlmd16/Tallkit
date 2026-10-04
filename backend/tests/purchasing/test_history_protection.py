@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from purchasing.models import Purchase, PurchaseLine
 
-from .test_models import make_identity, make_purchase
+from .test_models import CONFIRMED_ENTRY, make_entry, make_identity, make_purchase
 
 D = Decimal
 
@@ -138,3 +138,26 @@ class TestConfirmedPurchase:
     def test_draft_purchases_remain_editable(self, supplier: Any, actor: Any) -> None:
         purchase = make_purchase(make_identity(supplier), actor)
         Purchase.objects.filter(pk=purchase.pk).update(observation="editable")
+
+
+@pytest.mark.django_db
+class TestConfirmedEntry:
+    def test_an_entry_is_assembled_as_a_draft_and_frozen_once_confirmed(
+        self, actor: Any, product: Any, supplier: Any
+    ) -> None:
+        entry = make_entry(actor)
+        line = PurchaseLine.objects.create(
+            purchase=entry, position=1, product=product, quantity=D(2), unit_cost=D("4.50")
+        )
+        Purchase.objects.filter(pk=entry.pk).update(
+            **{**CONFIRMED_ENTRY, "confirmed_at": timezone.now(), "confirmed_by": actor}
+        )
+        with pytest.raises(DatabaseError, match="confirmada"):
+            raw("UPDATE purchasing_purchaseline SET unit_cost = 1 WHERE id = %s", [line.pk])
+        with pytest.raises(DatabaseError, match="metadatos de anulación"):
+            raw("UPDATE purchasing_purchase SET external_reference = 'X' WHERE id = %s", [entry.pk])
+        with pytest.raises(DatabaseError, match="metadatos de anulación"):
+            raw(
+                "UPDATE purchasing_purchase SET supplier_id = %s WHERE id = %s",
+                [supplier.pk, entry.pk],
+            )

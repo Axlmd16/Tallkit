@@ -85,6 +85,27 @@ def list_suppliers(params: dict[str, Any]) -> Page:
     return Page([supplier_dict(s) for s in rows], count, page, page_size)
 
 
+def list_supplier_options(params: dict[str, Any]) -> Page:
+    """Selección mínima para registrar una entrada: id y nombre de los activos.
+
+    Busca solo por nombre; nunca expone ni empareja identificación, contacto o dirección.
+    """
+    search = params.get("search", "")
+    if not isinstance(search, str):
+        raise field_error("validation_error", "search", "La búsqueda debe ser texto.")
+    page = _positive_int(params.get("page", 1), "page")
+    page_size = _positive_int(params.get("page_size", 20), "page_size", MAX_PAGE_SIZE)
+    queryset = Supplier.objects.filter(is_active=True)
+    term = search.strip()
+    if term:
+        queryset = queryset.filter(name__icontains=term)
+    queryset = _ordered(queryset)
+    count = queryset.count()
+    offset = (page - 1) * page_size
+    rows = queryset.values("id", "name")[offset : offset + page_size]
+    return Page([{"id": row["id"], "name": row["name"]} for row in rows], count, page, page_size)
+
+
 def get_supplier(pk: int) -> dict[str, Any]:
     supplier = Supplier.objects.filter(pk=pk).first()
     if supplier is None:

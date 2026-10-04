@@ -4,6 +4,7 @@ from supplier_registry.api import views
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path("", views.SupplierListCreateView.as_view(), name="supplier-list"),
+    path("options/", views.SupplierOptionsView.as_view(), name="supplier-options"),
     path("matches/", views.SupplierMatchesView.as_view(), name="supplier-matches"),
     path("<int:pk>/", views.SupplierDetailView.as_view(), name="supplier-detail"),
     path("<int:pk>/activate/", views.SupplierActivateView.as_view(), name="supplier-activate"),

@@ -122,6 +122,7 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "idempotency_conflict": (409, "Clave de idempotencia reutilizada"),
     "review_required": (409, "Revisión requerida"),
     "duplicate_supplier_document": (409, "Documento del proveedor duplicado"),
+    "possible_duplicate": (409, "Posible entrada duplicada"),
     "configuration_missing": (409, "Configuración ausente"),
     "configuration_ambiguous": (409, "Configuración ambigua"),
     "insufficient_stock": (409, "Existencia insuficiente"),
