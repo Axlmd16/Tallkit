@@ -223,6 +223,14 @@ Cambio OpenSpec `gestionar-compras-entradas-inventario-kardex`. Concreta la pers
 
 Índices de compras: `(state, document_date, id)`, `(document_identity, id)`, `(document_date, id)` y líneas `(product, purchase)`.
 
+### Cambio `simplificar-entradas-de-stock-por-vendedor` (migraciones `inventory/0006`, `purchasing/0003`, `sales/0006`)
+Persistencia aditiva de la entrada de stock (DP-030) y del costo ausente (ADR-0011). No se reescribe historia y los triggers no cambian.
+- `purchasing_purchase`: `flow` (`LEGACY` por omisión, `SIMPLE`), `supplier` opcional, `external_reference` de texto libre sin unicidad, `content_signature` (huella de productos y cantidades), `confirmed_on` (día local de confirmación). `document_identity` y `document_date` admiten nulo. Restricciones: `LEGACY` exige identidad y fecha; `SIMPLE` las prohíbe y no admite reemplazo; una entrada confirmada exige `confirmed_on` y huella. Índice parcial `(content_signature, confirmed_on)` para `SIMPLE`. La entrada se inserta como borrador solo dentro de la transacción de registro y nunca persiste en ese estado.
+- `purchasing_purchaseline`: `unit_cost`, `tax_definition` y `tax_treatment` admiten nulo (nulo en el costo = sin costo registrado; cero es un costo conocido). Definición y tratamiento tributario van juntos o ausentes.
+- `inventory_inventoryposition.valued` (verdadero por omisión): falso solo con existencia positiva y valor y promedio cero.
+- `inventory_inventorymovement`: `cost_known`, `valued_before`, `valued_after` y `regularization_value >= 0` (verdadero, verdadero, verdadero y cero por omisión).
+- `sales_salecostallocation.cost_known` (verdadero por omisión).
+
 ### Historia inmutable (triggers PostgreSQL)
 - `inventory_movement_immutable`: rechaza `UPDATE` y `DELETE` de movimientos.
 - `inventory_line_guard`: solo admite cambios en líneas mientras su operación está `PREPARED`.

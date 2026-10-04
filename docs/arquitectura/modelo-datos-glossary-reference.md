@@ -15,3 +15,5 @@
 | Posición de inventario / Corte de consulta | `docs/negocio/producto/glosario.md` | Proyección conciliable y lectura estable de los módulos `inventory` y `purchasing`. |
 | Orden total de bloqueos | `docs/tecnico/glosario-tecnico.md` | Protocolo de concurrencia de las confirmaciones. |
 | Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Tabla `workshop_configuration_fiscalentitylogo` y archivos en `fiscal-logos/`. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Flujo `SIMPLE` de `purchasing_purchase`. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado `valued = false` de la posición. |
