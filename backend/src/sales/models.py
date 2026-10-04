@@ -298,6 +298,8 @@ class SaleCostAllocation(Record):
     quantity = models.DecimalField(max_digits=18, decimal_places=6)
     published_unit_cost = models.DecimalField(max_digits=24, decimal_places=6)
     applied_value = models.DecimalField(max_digits=38, decimal_places=6)
+    # Falso cuando el producto no tenía costo registrado: el valor cero no es un costo conocido.
+    cost_known = models.BooleanField(default=True)
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [

@@ -92,11 +92,11 @@ Evidencia del grupo: proyección mínima probada y catálogo de proveedores sin 
 
 Dependencias: grupo 2. Diseño 7; spec `ventas-comerciales`, «Venta de productos sin costo registrado».
 
-- [ ] 8.1 Escribir primero en `tests/sales/test_confirm.py` y `test_allocation.py` casos rojos: venta de un producto sin costo confirma con sus importes habituales y `cost_known` falso; venta mixta en una sola confirmación; un costo registrado después no reescribe la venta.
-- [ ] 8.2 Crear la migración de `sales` que añade `SaleCostAllocation.cost_known` y copiarlo del movimiento en `record_allocations`; hacer pasar 8.1.
-- [ ] 8.3 Escribir primero en `tests/sales/test_returns.py` un caso rojo: la devolución apta de una línea con costo desconocido reingresa como entrada sin costo. Ajustar `returns.py` hasta el verde.
-- [ ] 8.4 Ampliar `tests/sales/test_queries.py` y `test_authorization.py`: el Administrador ve «sin costo registrado» y el Vendedor no percibe diferencia alguna. Ajustar `reads.py`.
-- [ ] 8.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/sales/test_confirm.py tests/sales/test_allocation.py tests/sales/test_returns.py tests/sales/test_queries.py tests/sales/test_authorization.py tests/sales/test_reconcile.py tests/sales/test_void.py`.
+- [x] 8.1 Escribir primero en `tests/sales/test_confirm.py` y `test_allocation.py` casos rojos: venta de un producto sin costo confirma con sus importes habituales y `cost_known` falso; venta mixta en una sola confirmación; un costo registrado después no reescribe la venta.
+- [x] 8.2 Crear la migración de `sales` que añade `SaleCostAllocation.cost_known` y copiarlo del movimiento en `record_allocations`; hacer pasar 8.1.
+- [x] 8.3 Escribir primero en `tests/sales/test_returns.py` un caso rojo: la devolución apta de una línea con costo desconocido reingresa como entrada sin costo. Ajustar `returns.py` hasta el verde.
+- [x] 8.4 Ampliar `tests/sales/test_queries.py` y `test_authorization.py`: el Administrador ve «sin costo registrado» y el Vendedor no percibe diferencia alguna. Ajustar `reads.py`.
+- [x] 8.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/sales/test_confirm.py tests/sales/test_allocation.py tests/sales/test_returns.py tests/sales/test_queries.py tests/sales/test_authorization.py tests/sales/test_reconcile.py tests/sales/test_void.py`.
 
 Evidencia del grupo: ventas y devoluciones con costo ausente en verde y conciliación de ventas sin discrepancias.
 

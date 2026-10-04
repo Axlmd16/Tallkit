@@ -44,6 +44,8 @@ COST_KEYS = {
     "valuation",
     "average",
     "unit_cost",
+    "cost_known",
+    "has_missing_cost",
 }
 
 

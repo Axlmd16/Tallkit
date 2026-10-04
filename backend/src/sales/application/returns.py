@@ -378,8 +378,14 @@ def register_return(
                 quantity + plan.request.fit,
                 value + plan.fit_value,
             )
+        costless_products = set(
+            SaleCostAllocation.objects.filter(
+                sale_line__in=[p.line for p in plans], cost_known=False
+            ).values_list("sale_line__product_id", flat=True)
+        )
         entries = [
-            posting.EntryLine(pid, quantity, value)
+            # Un costo histórico ausente reingresa como entrada sin costo, nunca como costo cero.
+            posting.EntryLine(pid, quantity, None if pid in costless_products else value)
             for pid, (quantity, value) in sorted(fit_by_product.items())
             if quantity > 0
         ]

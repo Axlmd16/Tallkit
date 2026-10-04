@@ -342,15 +342,17 @@ def _costs(sale: Sale) -> dict[str, Any]:
         .select_related("sale_line")
         .order_by("sale_line__position", "id")
     )
-    total = sum((r.applied_value for r in rows), Decimal("0.000000"))
+    total = sum((r.applied_value for r in rows if r.cost_known), Decimal("0.000000"))
     return {
         "total_cost": f"{total:.6f}",
+        "has_missing_cost": any(not r.cost_known for r in rows),
         "lines": [
             {
                 "position": r.sale_line.position,
                 "quantity": f"{r.quantity:.0f}",
-                "published_unit_cost": f"{r.published_unit_cost:.6f}",
-                "applied_value": f"{r.applied_value:.6f}",
+                "cost_known": r.cost_known,
+                "published_unit_cost": f"{r.published_unit_cost:.6f}" if r.cost_known else None,
+                "applied_value": f"{r.applied_value:.6f}" if r.cost_known else None,
             }
             for r in rows
         ],

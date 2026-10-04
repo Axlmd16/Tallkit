@@ -322,6 +322,7 @@ def record_allocations(sale_lines: list[SaleLine], operation: posting.PostingRes
                     quantity=line.quantity,
                     published_unit_cost=movement.applied_unit_cost,
                     applied_value=values[line.position],
+                    cost_known=movement.cost_known,
                 )
             )
     SaleCostAllocation.objects.bulk_create(rows)
