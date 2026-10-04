@@ -11,3 +11,5 @@
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Resultado de la alternativa 6a de CU-006, sin efectos sobre inventario. |
 | Code 128 | `docs/tecnico/glosario-tecnico.md` | Simbología que bloquea la impresión si el código interno no es representable. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Operación de CU-007. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de la alternativa 6c de CU-007. |

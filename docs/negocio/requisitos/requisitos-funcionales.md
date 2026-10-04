@@ -83,12 +83,12 @@
 
 | ID | Requisito | Prioridad | Criterio de cumplimiento resumido |
 |---|---|---|---|
-| RF-INV-001 | El sistema debe permitir crear y editar un ingreso de mercadería en borrador con proveedor, productos, cantidades, costos unitarios, referencia externa y evidencias opcionales. | Debe | Guardar el borrador no modifica existencias ni costos. |
-| RF-INV-002 | El sistema debe validar que un ingreso confirmado tenga proveedor activo, líneas válidas, cantidades positivas y costos no negativos. | Debe | Una confirmación inválida es rechazada sin efectos parciales. |
-| RF-INV-003 | Al confirmar un ingreso, el sistema debe aumentar existencias y recalcular el costo promedio ponderado en una transacción atómica. | Debe | Todos los movimientos y costos se aplican juntos o ninguno se aplica. |
-| RF-INV-004 | El sistema debe asignar al ingreso confirmado un identificador y secuencial únicos según la configuración aprobada. | Debe | Confirmaciones concurrentes no duplican secuenciales. |
-| RF-INV-005 | El sistema debe impedir que un mismo ingreso produzca dos veces sus efectos. | Debe | Repetir la solicitud de confirmación no duplica existencias ni movimientos. |
-| RF-INV-006 | El Administrador debe poder anular un ingreso confirmado indicando motivo. | Debe | La anulación genera movimientos inversos relacionados y conserva el original. |
+| RF-INV-001 | El sistema debe permitir al Vendedor o al Administrador registrar y confirmar una entrada de stock en una sola acción, con revisión previa, a partir de productos y cantidades; proveedor, referencia externa, observación y costo unitario son opcionales. | Debe | Revisar o abandonar el formulario no guarda nada ni modifica existencias o costos; no hay borrador persistente. |
+| RF-INV-002 | El sistema debe validar que la entrada tenga productos activos sin repetir, cantidades enteras positivas y, si se informan, proveedor activo y costos no negativos de hasta seis decimales. | Debe | Una confirmación inválida es rechazada sin efectos parciales. |
+| RF-INV-003 | Al confirmar una entrada, el sistema debe aumentar existencias y, si trae costo, recalcular el costo promedio ponderado en una transacción atómica; sin costo la valora al promedio vigente o la deja sin costo registrado. | Debe | Todos los movimientos y costos se aplican juntos o ninguno se aplica. |
+| RF-INV-004 | El sistema debe asignar a la entrada confirmada un identificador y secuencial únicos (serie COM-ING) según la configuración aprobada. | Debe | Confirmaciones concurrentes no duplican secuenciales. |
+| RF-INV-005 | El sistema debe impedir que una misma solicitud de entrada produzca dos veces sus efectos y advertir cuando hoy ya se registró una entrada con los mismos productos y cantidades. | Debe | Repetir la solicitud no duplica existencias ni movimientos; la coincidencia exige reconocimiento sin bloquear. |
+| RF-INV-006 | Solo el Administrador debe poder anular una entrada confirmada indicando motivo. | Debe | La anulación genera movimientos inversos relacionados y conserva el original. |
 | RF-INV-007 | El sistema debe mostrar la existencia actual por producto y bodega habilitada. | Debe | El saldo coincide con la suma de movimientos válidos del Kardex. |
 | RF-INV-008 | El sistema debe permitir consultar el Kardex por producto, fecha, tipo, documento de origen, bodega y usuario. | Debe | Cada fila identifica entrada o salida, saldo y origen trazable. |
 | RF-INV-009 | El Administrador debe poder registrar un ajuste de inventario con producto, cantidad, sentido, bodega y motivo obligatorio. | Debe | Confirmar el ajuste crea un movimiento; no edita directamente el saldo. |
@@ -102,6 +102,8 @@
 | RF-INV-017 | El Administrador o Vendedor debe poder registrar la entrega de presentaciones completas para consumo interno solicitado por el taller. | Debe | La salida genera Kardex sin venta ni deuda para el cliente. |
 | RF-INV-018 | El Administrador debe poder confirmar una reposición por corrección vinculada a una intervención correctiva. | Debe | La salida reduce existencia, queda auditada y no crea cobro al cliente. |
 | RF-INV-019 | El Administrador debe poder registrar una devolución a proveedor vinculada al ingreso original. | Debe | La salida reduce existencia sin registrar cuentas por pagar ni reembolso del proveedor. |
+
+**Estado de implementación (cambio `openspec/changes/simplificar-entradas-de-stock-por-vendedor`, en aplicación).** RF-INV-001…006 se redefinen como entrada de stock sin borrador, con proveedor, referencia y costo opcionales (DP-030); las evidencias adjuntas de RF-INV-001 dejan de formar parte del alcance. Las compras documentadas anteriores se conservan de solo lectura. La evidencia por escenario del cambio está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md) §5.
 
 **Estado de implementación (cambio `openspec/changes/archive/2026-09-24-gestionar-compras-entradas-inventario-kardex`).** Cubiertos en su alcance: RF-INV-001 (borrador, referencia y observación; **sin** evidencias adjuntas, que quedan pendientes), RF-INV-002…010, RF-INV-012 (para salidas y ajustes manuales), RF-INV-013 y RF-INV-014. **Pendientes:** RF-INV-011 (alertas de umbral), las evidencias adjuntas de RF-INV-001 y RF-INV-015…019 (reservas, desarme, consumo interno, reposición y devolución a proveedor). Con esto no se declara implementado todo RF-INV. La evidencia por escenario está en [cobertura-compras-inventario.md](cobertura-compras-inventario.md).
 
@@ -226,6 +228,7 @@
 | Decisión | Requisitos afectados | Regla provisional |
 |---|---|---|
 | Validación fiscal externa | RF-CAT-015, RF-INV-017, RF-INV-018, RF-REP-014 | Un contador debe confirmar tratamiento, tarifas, clasificación y redondeo antes de la operación real. |
+| Validación contable de entradas sin documento ni costo | RF-INV-001…006, RF-REP-013 | Un contador debe confirmar el efecto de dejar de registrar el IVA y el documento de las compras, y de mantener existencias sin valor, antes de operar con datos reales (DP-030). El sistema no reemplaza la contabilidad ni el crédito tributario del cliente. |
 
 ## 13. Exclusiones funcionales expresas
 

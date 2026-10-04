@@ -17,3 +17,5 @@
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Pieza de 100 × 55 mm que se prepara desde la lista o ficha de productos (PPF-10). |
 | Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras del código interno impreso en la etiqueta. |
 | RUC comercial | `docs/negocio/producto/glosario.md` | Identidad cuyo logotipo encabeza la etiqueta de producto. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Operación que registran UI-040 a UI-042. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Marca que muestran UI-042 y UI-043 al Administrador. |

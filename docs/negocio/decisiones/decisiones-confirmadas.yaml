@@ -86,9 +86,9 @@ context: |
   - DP-010: un kit comprado es un producto vendible completo. Puede desarmarse mediante
     una operación explícita que consume el kit, registra los componentes reales y
     distribuye exactamente su costo entre ellos. V1 no arma kits de inventario con piezas sueltas.
-  - DP-011: un ingreso confirmado requiere proveedor, incluso si es una persona ocasional.
-    Para un proveedor ocasional solo el nombre es obligatorio; identificación y contacto
-    son opcionales. V1 no gestiona cuentas por pagar ni pagos a proveedores.
+  - DP-011 (sustituida en lo relativo al proveedor obligatorio por DP-030): un proveedor
+    ocasional solo exige el nombre; identificación y contacto son opcionales. V1 no gestiona
+    cuentas por pagar ni pagos a proveedores.
   - DP-012: solo la venta abierta vinculada a un mantenimiento reserva existencias. La
     reserva reduce disponibilidad, no existencia, y no genera Kardex. Proformas y ventas
     directas en borrador no reservan.
@@ -118,18 +118,21 @@ context: |
   - DP-021: un mantenimiento no puede finalizar mientras su venta comercial abierta tenga
     líneas. El Vendedor o Administrador debe confirmar la venta o retirar las líneas no
     utilizadas; finalizar nunca confirma automáticamente la venta.
-  - DP-022: en compras, cada línea selecciona una definición tributaria del ámbito
-    comercial, sugerida desde el producto y revisable antes de confirmar, y se clasifica
+  - DP-022 (sustituida por DP-030 para las entradas nuevas; vigente como historia de las
+    compras anteriores): en compras, cada línea selecciona una definición tributaria del
+    ámbito comercial, sugerida desde el producto y revisable antes de confirmar, y se clasifica
     como recuperable o no recuperable. No se admite recuperación parcial. El impuesto
     recuperable se excluye del valor inventariable; el no recuperable se suma a él.
-  - DP-023: base, impuesto y total de cada línea de compra se redondean a centavos con
-    HALF_UP y los totales del documento suman las líneas ya redondeadas. El costo unitario
-    de captura admite hasta seis decimales y el costo derivado no se redondea antes de
-    valorar. El promedio ponderado se publica con seis decimales HALF_UP.
-  - DP-024: la fecha del documento del proveedor, obligatoria y no posterior al día de
-    America/Guayaquil, es la fecha operativa que resuelve la vigencia tributaria de la
-    compra. El momento efectivo del movimiento de inventario es el de confirmación,
-    asignado por el sistema.
+  - DP-023 (sustituida por DP-030 en lo relativo a importes de compra; el costo unitario y el
+    promedio conservan su precisión): base, impuesto y total de cada línea de compra se
+    redondean a centavos con HALF_UP y los totales del documento suman las líneas ya
+    redondeadas. El costo unitario de captura admite hasta seis decimales y el costo derivado
+    no se redondea antes de valorar. El promedio ponderado se publica con seis decimales
+    HALF_UP.
+  - DP-024 (sustituida por DP-030 para las entradas nuevas; vigente como historia): la fecha
+    del documento del proveedor, obligatoria y no posterior al día de America/Guayaquil, es la
+    fecha operativa que resuelve la vigencia tributaria de la compra. El momento efectivo del
+    movimiento de inventario es el de confirmación, asignado por el sistema.
   - DP-025 (ventas directas, aprobada 2026-09-20 en la propuesta de
     gestionar-ventas-pagos-credito-simple): importes en USD con precios finales de hasta dos
     decimales y cantidades enteras positivas de presentaciones completas. La venta usa la
@@ -167,6 +170,22 @@ context: |
     vinculada confirmada no se anula; la operación artesanal la anula solo el Administrador y
     sin pagos vigentes. En una orden reabierta no se agregan repuestos cobrables. Cliente y
     vehículo se bloquean cuando existen documentos vinculados.
+  - DP-030 (entradas de stock, aprobada 2026-10-04 en la propuesta de
+    simplificar-entradas-de-stock-por-vendedor, D1…D5 y R1…R6): el cliente prescinde de la
+    revisión del Administrador y de conservar costos y documentos del proveedor. El ingreso
+    de mercadería pasa a ser una **entrada de stock** que el Vendedor (y el Administrador)
+    registra y confirma en una sola acción, con revisión previa y sin borrador persistente.
+    Solo exige productos activos y cantidades enteras de presentaciones completas; proveedor,
+    referencia externa de texto libre, observación y costo unitario son opcionales y no se
+    registran impuestos, fecha documental ni totales. Una entrada sin costo se valora al
+    promedio vigente (o al último conocido) y, si el producto nunca tuvo costo, queda **sin
+    costo registrado**, estado distinto del costo cero; la primera entrada con costo valora a
+    ese costo las unidades previas y deja constancia. Una entrada igual de hoy se advierte y
+    exige reconocimiento, sin bloquear. Solo el Administrador anula, con la regla
+    conservadora vigente. Las compras anteriores se conservan como historia de solo lectura.
+    El Vendedor nunca recibe costos, promedio ni valoración. Queda pendiente la validación
+    con un contador del efecto de dejar de registrar el IVA de compras y de mantener
+    existencias sin valor.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
@@ -178,8 +197,8 @@ context: |
   - Confirmar una operación económica no implica marcarla pagada o facturada.
   - Estado del documento, estado de pago y estado de facturación son independientes.
   - Los pagos y abonos se registran con medios reales y pertenecen a una sola entidad fiscal.
-  - Ingresos confirmados requieren un Proveedor registrado y actualizan el costo promedio
-    ponderado dentro de la misma transacción.
+  - Las entradas de stock confirmadas actualizan existencias y, cuando traen costo, el costo
+    promedio ponderado dentro de la misma transacción; el proveedor es opcional (DP-030).
   - Todo cambio de inventario genera un movimiento de Kardex trazable e inmutable.
   - Documentos confirmados no se editan ni eliminan físicamente mediante CRUD ordinario.
   - Anulaciones, devoluciones y correcciones conservan el original, el motivo, el usuario
@@ -193,9 +212,11 @@ context: |
 
   Roles y responsabilidades:
   - Administrador: usuarios, configuración, entidades fiscales, catálogos, proveedores,
-    ingresos, inventario, ajustes, reportes, auditoría, respaldos y acciones críticas.
-  - Vendedor: clientes, proformas, ventas y cobros comerciales; confirma la venta de
-    repuestos vinculada a un mantenimiento y registra consumos internos solicitados.
+    entradas de stock (registro y anulación), inventario, ajustes, reportes, auditoría,
+    respaldos y acciones críticas.
+  - Vendedor: clientes, proformas, ventas y cobros comerciales; registra y confirma entradas
+    de stock sin ver costos; confirma la venta de repuestos vinculada a un mantenimiento y
+    registra consumos internos solicitados.
   - Encargado del taller: clientes, vehículos, servicios, mantenimientos, fotografías,
     repuestos utilizados, solicitudes de consumo interno, reaperturas y cobros artesanales.
   - El backend es la autoridad de autorización. Ocultar acciones en el frontend solo es

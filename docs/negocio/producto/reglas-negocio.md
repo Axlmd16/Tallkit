@@ -83,7 +83,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-CAT-007 | Los precios y costos deben almacenarse con precisión monetaria y no pueden ser negativos. |
 | RN-CAT-008 | Cada servicio del catálogo debe tener un nombre, estado y precio referencial. |
 | RN-CAT-009 | Modificar el precio referencial de un servicio no debe alterar mantenimientos anteriores. |
-| RN-CAT-010 | Un proveedor inactivo no puede utilizarse en nuevos ingresos, pero debe conservarse en operaciones históricas. |
+| RN-CAT-010 | Un proveedor inactivo no puede utilizarse en nuevas entradas, pero debe conservarse en operaciones históricas. |
 | RN-CAT-011 | Cada presentación completa vendible debe tener código, existencia, costo y precio propios; V1 no vende fracciones de envases abiertos. |
 | RN-CAT-012 | Cantidad debe conservar valor y unidad; las unidades y presentaciones administrables no habilitan conversiones o fraccionamientos automáticos. |
 | RN-CAT-013 | Marca de producto y compatibilidad con marca de vehículo sirven para búsqueda y filtros; la compatibilidad es informativa y no bloquea la venta. |
@@ -106,10 +106,11 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 |---|---|
 | RN-INV-001 | El stock no debe editarse directamente; toda variación debe originar un movimiento de Kardex. |
 | RN-INV-002 | Todo movimiento debe registrar producto, bodega, cantidad, tipo, fecha, usuario y origen o motivo. |
-| RN-INV-003 | Un ingreso de mercadería confirmado debe estar relacionado con un proveedor registrado. |
-| RN-INV-004 | Un ingreso en borrador no modifica existencias ni costos. |
-| RN-INV-005 | Al confirmar un ingreso, el sistema debe aumentar existencias y recalcular el costo promedio ponderado en una sola transacción. |
+| RN-INV-003 | Una entrada de stock puede relacionarse con un proveedor activo, pero no lo exige (DP-030). Las compras anteriores conservan el suyo. |
+| RN-INV-004 | Una entrada no existe hasta confirmarse: revisar o abandonar el formulario no modifica existencias ni costos. Un borrador de compra anterior no puede confirmarse. |
+| RN-INV-005 | Al confirmar una entrada, el sistema debe aumentar existencias y, si trae costo, recalcular el costo promedio ponderado en una sola transacción. |
 | RN-INV-006 | El nuevo costo promedio se calculará como `(existencia_anterior × costo_promedio_anterior + cantidad_ingresada × costo_unitario_ingreso) / existencia_resultante`, siempre que la existencia resultante sea mayor que cero. |
+| RN-INV-006A | Una entrada sin costo se valora al promedio vigente (o al último conocido si la existencia es cero) sin modificarlo; si el producto nunca tuvo costo queda sin costo registrado. La primera entrada con costo valora a ese costo las unidades previas y deja constancia. El costo ausente nunca se trata como cero. |
 | RN-INV-007 | Una salida de inventario no debe recalcular retroactivamente el costo promedio; debe conservar el costo aplicable al momento del movimiento. |
 | RN-INV-008 | La confirmación de una venta debe generar las salidas de Kardex correspondientes. |
 | RN-INV-009 | Una proforma o una venta directa en borrador no genera movimientos ni reservas de inventario. |

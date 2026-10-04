@@ -17,3 +17,5 @@
 | Consumo interno | `docs/negocio/producto/glosario.md` | Salida para uso del taller sin venta. |
 | Reposición por corrección | `docs/negocio/producto/glosario.md` | Salida sin cargo asumida por el taller. |
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación separada por RUC y medio de pago. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Ingreso de mercadería simplificado, sin borrador ni impuestos (DP-030). |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Existencia sin valor conocido, distinta del costo cero. |

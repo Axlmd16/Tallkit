@@ -25,11 +25,11 @@
 
 ### ACT-001 — Administrador
 
-Responsable del control general del sistema. Administra usuarios, asigna uno o más de los tres roles disponibles, configura las entidades fiscales y los parámetros, gestiona catálogos, proveedores, ingresos e inventario, supervisa ventas y mantenimientos, ejecuta correcciones de alto impacto, consulta todos los reportes y realiza las tareas de respaldo, restauración y actualización.
+Responsable del control general del sistema. Administra usuarios, asigna uno o más de los tres roles disponibles, configura las entidades fiscales y los parámetros, gestiona catálogos, proveedores e inventario, anula entradas de stock y consulta sus costos, supervisa ventas y mantenimientos, ejecuta correcciones de alto impacto, consulta todos los reportes y realiza las tareas de respaldo, restauración y actualización.
 
 ### ACT-002 — Vendedor
 
-Responsable del proceso comercial del RUC comercial. Gestiona clientes, consulta productos, existencias y disponibilidad, elabora proformas, registra y confirma ventas de repuestos, entrega consumos internos solicitados, registra pagos comerciales y consulta los reportes necesarios para sus actividades. V1 no admite descuentos.
+Responsable del proceso comercial del RUC comercial. Gestiona clientes, consulta productos, existencias y disponibilidad, elabora proformas, registra y confirma ventas de repuestos, registra y confirma entradas de stock sin ver costos (DP-030), entrega consumos internos solicitados, registra pagos comerciales y consulta los reportes necesarios para sus actividades. V1 no admite descuentos.
 
 ### ACT-003 — Encargado del taller
 
@@ -78,14 +78,14 @@ El cliente es una parte interesada y un dato del negocio, pero no es un usuario 
 | `proveedores.ver` | Consultar proveedores. | Administrador |
 | `proveedores.gestionar` | Gestionar proveedores. | Administrador |
 
-### 3.3 Inventario e ingresos
+### 3.3 Inventario y entradas de stock
 
 | Permiso | Acción protegida | Roles con permiso |
 |---|---|---|
-| `ingresos.ver` | Consultar ingresos de mercadería. | Administrador |
-| `ingresos.crear` | Crear y editar ingresos en borrador. | Administrador |
-| `ingresos.confirmar` | Confirmar un ingreso y afectar existencias y costo promedio. | Administrador |
-| `ingresos.anular` | Anular un ingreso mediante movimientos inversos. | Administrador |
+| `ingresos.ver` | Consultar entradas de stock y compras anteriores, sin costos para quien no tenga `productos.ver_costos`. | Administrador, Vendedor |
+| `ingresos.crear` | Preparar y revisar una entrada de stock y elegir proveedores activos por nombre. | Administrador, Vendedor |
+| `ingresos.confirmar` | Registrar y confirmar una entrada de stock, afectando existencias y, si trae costo, el costo promedio. | Administrador, Vendedor |
+| `ingresos.anular` | Anular una entrada mediante movimientos inversos. | Administrador |
 | `inventario.ver` | Consultar existencias y Kardex sin costos restringidos. | Administrador, Vendedor, Encargado del taller |
 | `inventario.ver_valorizacion` | Consultar costos y valorización de inventario. | Administrador |
 | `inventario.ajustar` | Registrar y confirmar ajustes con motivo. | Administrador |
@@ -158,7 +158,9 @@ Leyenda: `✓` gestión o ejecución; `C` consulta; `V` acceso limitado al vínc
 | Vehículos | ✓ | C | ✓ |
 | Productos, costos y precios | ✓ | C sin costos | C sin costos |
 | Servicios | ✓ | C | ✓ |
-| Proveedores e ingresos | ✓ | — | — |
+| Proveedores | ✓ | — | — |
+| Entradas de stock (registrar) | ✓ | ✓ sin costos | — |
+| Entradas de stock (anular) | ✓ | — | — |
 | Inventario y Kardex | ✓ | C sin valorización | C sin valorización |
 | Ajustes de inventario | ✓ | — | — |
 | Desarme, devolución a proveedor y reposición correctiva | ✓ | — | — |
@@ -184,7 +186,7 @@ Leyenda: `✓` gestión o ejecución; `C` consulta; `V` acceso limitado al vínc
 - El Encargado solicita materiales para consumo interno y el Vendedor o Administrador registra su entrega.
 - El Encargado puede reabrir el mantenimiento; solo el Administrador confirma una reposición de inventario sin cargo.
 - El Encargado del taller confirma y cobra la operación artesanal de servicios; el Vendedor no gestiona esos cobros.
-- Solo el Administrador anula ingresos, ventas, pagos u operaciones de servicios y registra devoluciones.
+- Solo el Administrador anula entradas de stock, ventas, pagos u operaciones de servicios y registra devoluciones.
 - Aunque el Administrador tenga acceso total, las acciones críticas continúan separadas y auditadas.
 
 ## 6. Reglas de denegación

@@ -6,3 +6,5 @@
 | Vendedor | `docs/negocio/producto/glosario.md` | Rol del proceso comercial. |
 | Encargado del taller | `docs/negocio/producto/glosario.md` | Rol del proceso artesanal. |
 | Rol | `docs/negocio/producto/glosario.md` | Conjunto fijo y acumulable de permisos. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Ingreso simple que el Vendedor registra sin ver costos. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado que solo el Administrador ve. |

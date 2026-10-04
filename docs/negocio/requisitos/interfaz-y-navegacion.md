@@ -168,10 +168,10 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
-| UI-040 | Lista de ingresos | Secuencial, proveedor, fecha, estado, total, usuario; crear, abrir y filtrar. |
-| UI-041 | Editor de ingreso | Encabezado, proveedor, bodega principal, referencia externa y evidencia opcionales, y tabla editable de productos, cantidades y costos; guardar borrador y confirmar. La vista previa encabeza con el logotipo comercial vigente, o con la razón social si no hay logotipo. |
-| UI-042 | Detalle de ingreso | Datos históricos, movimientos generados, costos aplicados y acción de anulación autorizada. |
-| UI-043 | Existencias | Producto, bodega principal, existencia, reserva, disponibilidad, umbral y estado de stock; búsqueda y exportación. |
+| UI-040 | Lista de entradas | Número, fecha y hora, usuario que registró, productos y unidades, estado; registrar, abrir y filtrar por estado, período y usuario. Sin importes. |
+| UI-041 | Registro de entrada | Una sola página: buscador de productos (también con lector de códigos: Enter con un código exacto agrega el producto), lista con cantidad ajustable con botones, y un bloque plegado «Más detalles» con proveedor, referencia, observación e interruptor de costos. Resumen fijo de productos y unidades y acción «Revisar y confirmar»; la revisión muestra qué entra, avisa de una entrada igual de hoy y no muestra costos. Al confirmar, aviso con el número y formulario listo para otra entrada. |
+| UI-042 | Detalle de entrada | Quién y cuándo la registró, proveedor y referencia si existen, productos y cantidades, y movimientos generados. El Administrador ve además costos («Sin costo» cuando falta), la pestaña de la compra anterior y la acción de anulación. |
+| UI-043 | Existencias | Producto, bodega principal, existencia, reserva, disponibilidad, umbral y estado de stock; búsqueda y exportación. El Administrador ve además costo, valor y el total del inventario con los productos sin costo registrado señalados. |
 | UI-044 | Kardex | Filtros, saldo inicial, movimientos, saldo final y enlaces al origen. |
 | UI-045 | Ajuste de inventario | Producto, bodega, existencia actual, sentido, cantidad, resultado previsto y motivo. |
 | UI-046 | Alertas de stock bajo | Productos bajo umbral y acceso a ficha o historial de ingresos. |

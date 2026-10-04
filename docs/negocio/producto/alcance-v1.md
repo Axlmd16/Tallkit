@@ -72,17 +72,18 @@ La capacidad fiscal local comprende perfil declarado por emisor, establecimiento
 - Piezas vendidas individualmente registradas como productos independientes.
 - Activación o desactivación sin eliminar el historial transaccional.
 
-### 3.4 Proveedores e ingresos de mercadería
+### 3.4 Proveedores y entradas de stock
 
 - Registro y consulta de proveedores.
-- Ingresos de mercadería en borrador y confirmados.
-- Detalles con cantidades y costos unitarios.
-- Asociación obligatoria del ingreso confirmado con un proveedor.
+- Entradas de stock que registra y confirma el Vendedor o el Administrador en una sola acción, con revisión previa y sin borrador (DP-030).
+- Cantidades por producto; proveedor, referencia de texto libre, observación y costo unitario opcionales.
+- Sin impuestos, fecha del documento ni totales de compra; el cliente no conserva el documento del proveedor.
 - Proveedor ocasional con nombre obligatorio e identificación y contacto opcionales.
-- Referencia externa y fotografías o PDF opcionales como evidencia de compra.
 - Incremento de existencias al confirmar.
-- Actualización del costo promedio ponderado.
-- Anulación controlada mediante movimientos inversos.
+- Actualización del costo promedio ponderado cuando la entrada trae costo; productos sin costo registrado hasta la primera entrada con costo.
+- Aviso de posible duplicado cuando hoy ya se registró una entrada igual.
+- Anulación controlada, solo del Administrador, mediante movimientos inversos.
+- Compras documentadas anteriores conservadas como historia de solo lectura.
 - Devolución a proveedor vinculada al ingreso original, sin cuentas por pagar ni seguimiento del reembolso del proveedor.
 
 ### 3.5 Inventario y Kardex
@@ -186,12 +187,12 @@ Cada usuario tendrá al menos uno de estos tres roles y podrá reunir varios cua
 
 ## 5. Flujos esenciales de la versión
 
-### 5.1 Ingreso de mercadería
+### 5.1 Entrada de stock
 
-1. El Administrador selecciona un proveedor y registra productos, cantidades y costos.
-2. El ingreso permanece en borrador mientras se revisa.
-3. Al confirmar, se generan movimientos de entrada y se recalcula el costo promedio.
-4. Una anulación posterior genera movimientos inversos; no borra el ingreso.
+1. El Vendedor busca o escanea los productos que llegaron y ajusta sus cantidades; proveedor, referencia y costos son opcionales.
+2. Revisa un resumen de lo que entra y confirma; no hay borrador ni aprobación del Administrador.
+3. Al confirmar, se generan movimientos de entrada y, si hay costo, se recalcula el costo promedio.
+4. Una anulación posterior, solo del Administrador, genera movimientos inversos; no borra la entrada.
 
 ### 5.2 Venta directa
 

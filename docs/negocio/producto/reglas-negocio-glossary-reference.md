@@ -10,3 +10,5 @@
 | Marca de vehículo | `glosario.md` | Catálogo administrable de marcas de los vehículos del cliente. |
 | Propietario vigente | `glosario.md` | Cliente del período de propiedad abierto de un vehículo. |
 | Período de propiedad | `glosario.md` | Intervalo de propiedad de un cliente sobre un vehículo. |
+| Entrada de stock | `glosario.md` | Ingreso simple sin borrador ni impuestos (RN-INV-003 a RN-INV-005). |
+| Sin costo registrado | `glosario.md` | Estado de valoración de RN-INV-006A. |

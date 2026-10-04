@@ -79,7 +79,7 @@ El glosario de negocio ampliado se mantiene en `../negocio/producto/glosario.md`
 - **Entidad fiscal**, **Usuario**, **Cliente**, **Vehículo**, **Proveedor**, **Producto**, **Servicio** y **Bodega** conservan identidad e historia propia.
 - **Categoría de producto**, **Marca de producto**, **Marca de vehículo** y **Unidad de medida** son catálogos administrables. Una compatibilidad producto–marca de vehículo sirve para búsqueda y no bloquea una venta.
 - El Vehículo tiene exactamente un propietario vigente y conserva períodos anteriores de propiedad. El cliente histórico de cada mantenimiento no cambia por una transferencia posterior.
-- El Proveedor es deliberadamente liviano: el nombre es obligatorio; identificación y contacto son opcionales. Es requerido al confirmar un ingreso, aunque sea una persona ocasional.
+- El Proveedor es deliberadamente liviano: el nombre es obligatorio; identificación y contacto son opcionales. Una entrada de stock puede registrarse con o sin proveedor (DP-030); si se informa, debe estar activo.
 
 ### 5.2 Objetos de valor
 
@@ -88,7 +88,7 @@ El glosario de negocio ampliado se mantiene en `../negocio/producto/glosario.md`
 - **Desglose de impuesto**: base, tarifa, impuesto y total históricos.
 - **Presentación**: cantidad cerrada vendible. Un galón y medio galón son productos distintos si ambos se venden cerrados.
 - **Período de propiedad**: propietario, inicio y fin opcional.
-- **Referencia externa**: número o descripción de factura de compra y evidencias opcionales.
+- **Referencia externa**: texto libre opcional del documento del proveedor (por ejemplo, el número de factura); no es única ni sustituye al número interno.
 
 Estos objetos expresan valores del negocio; su forma futura de almacenamiento no se decide aquí.
 
@@ -109,7 +109,7 @@ Un agregado marca el conjunto que debe conservar consistencia en una misma acci�
 | Cliente | Datos compartidos | Mantener una identidad utilizable por ambos RUC. |
 | Vehículo | Períodos de propiedad | Garantizar un solo propietario vigente y conservar la historia. |
 | Producto | Presentación y referencias de catálogo | Definir la unidad vendible sin contener existencias ni movimientos. |
-| Ingreso de mercadería | Líneas, proveedor y referencia externa | Al confirmar, crear entradas y recalcular costo promedio atómicamente. |
+| Ingreso de mercadería (entrada de stock) | Líneas, proveedor opcional y referencia externa opcional | Al registrarse, crear entradas y, si traen costo, recalcular el costo promedio atómicamente; sin costo, valorar al promedio vigente o dejar el producto sin costo registrado. |
 | Inventario por producto y bodega | Existencia y reservas vigentes | Impedir existencia o disponibilidad negativa. |
 | Operación de inventario | Líneas y motivo/origen | Producir movimientos trazables sin modificar movimientos previos. |
 | Proforma | Líneas y vigencia | Mantener una oferta sin reservar ni crear deuda; convertir una sola vez. |
@@ -125,7 +125,7 @@ Los límites exactos de transacción, bloqueo e idempotencia se decidirán en el
 
 | Concepto | Estados relevantes | Transiciones permitidas |
 |---|---|---|
-| Ingreso | borrador, confirmado, anulado | borrador → confirmado; confirmado → anulado mediante compensación. |
+| Ingreso | confirmado, anulado (las compras anteriores conservan también borrador) | La entrada se registra ya confirmada, sin borrador persistente; confirmado → anulado mediante compensación. |
 | Proforma | borrador, vigente, vencida, convertida, anulada | borrador → vigente; vigente → convertida o vencida; una vencida origina otra vinculada. |
 | Venta | borrador, confirmada, anulada | borrador → confirmada; confirmada → anulada mediante operación compensatoria. |
 | Pago de operación | pendiente, parcial, pagado | Se deriva del importe exigible y de los pagos netos de correcciones; el reembolso liquida un exceso. |
@@ -192,7 +192,8 @@ No deben almacenarse innecesariamente como hechos independientes:
 - estado de pago derivado del saldo;
 - cantidad todavía devolvible = vendida − devoluciones válidas previas;
 - totales de cierre derivados de pagos válidos de la misma fecha, entidad y medio;
-- margen bruto histórico = importe neto histórico de venta − costo histórico de salida.
+- margen bruto histórico = importe neto histórico de venta − costo histórico de salida; no es calculable cuando el costo histórico de la salida es ausente (producto sin costo registrado), situación distinta de un costo cero.
+- existencia sin costo registrado: una posición con existencia cuyo valor y promedio son desconocidos; se regulariza con la primera entrada que traiga costo (DP-030).
 
 La existencia actual puede mantenerse como saldo operativo por concurrencia y rendimiento, pero siempre debe poder conciliarse con el Kardex. El margen bruto no es ganancia neta ni contabilidad completa.
 
@@ -200,7 +201,7 @@ La existencia actual puede mantenerse como saldo operativo por concurrencia y re
 
 ### 11.1 Decisiones adoptadas
 
-Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, numeración interna con series y formato definidos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo obligatorio, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
+Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `DP-030` (que sustituye el proveedor obligatorio de `DP-011` y los importes tributarios de compra de `DP-022` a `DP-024`), `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, numeración interna con series y formato definidos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
 
 ### 11.2 Recomendaciones todavía no aprobadas
 
@@ -430,7 +431,7 @@ Venta y Operación artesanal crean importes exigibles independientes. Los pagos 
 | Separación fiscal y datos compartidos | CT-001 | RN-FIS-001…010; RF-ACC-010; RF-TAL-007…012 |
 | Propiedad de vehículo | DM-003 V1 | RN-CLI-004…008; RF-CLI-006…011 |
 | Presentaciones, marcas y kits | DP-009, DP-010 | RN-CAT-001…014; RF-CAT-001…016; RF-INV-016 |
-| Proveedor e ingresos | DP-011 | RN-CAT-010…013; RN-INV-003…007; RF-INV-001…005, RF-INV-014 |
+| Proveedor e ingresos | DP-011, DP-030 | RN-CAT-010…013; RN-INV-003…007; RF-INV-001…005, RF-INV-014 |
 | Existencia, reserva y Kardex | DP-001, DP-002, DP-012 | RN-INV-001…023; RF-INV-006…019 |
 | Proformas y ventas | DP-004, DP-017, DP-021 | RN-PRO-001…009; RN-VEN-001…018; RF-PRO-*; RF-VEN-* |
 | Crédito, pagos y devoluciones | DP-003, DP-013, DP-014 | RN-VEN-008…016; RF-PAG-*; RF-VEN-012…018 |

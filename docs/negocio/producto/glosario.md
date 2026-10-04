@@ -77,7 +77,7 @@ Acción que convierte un borrador en una operación con efectos definitivos. Pue
 
 ### Costo promedio ponderado
 
-Método de valoración que recalcula el costo unitario promedio al ingresar mercadería, ponderando el valor de la existencia anterior y el valor de la nueva entrada.
+Método de valoración que recalcula el costo unitario promedio al ingresar mercadería, ponderando el valor de la existencia anterior y el valor de la nueva entrada. Una entrada sin costo no lo modifica.
 
 ### Crédito
 
@@ -187,6 +187,10 @@ Conjunto protegido de XML externos, bytes originales, hashes, identidades, proce
 
 Comprobante o envoltorio incorporado desde fuera del sistema. Su contenido puede declarar autorización, pero el sistema no la confirma ante el SRI en esta entrega.
 
+### Sin costo registrado
+
+Estado de un producto con existencia cuyo costo se desconoce porque ninguna entrada lo informó ni hubo un promedio previo. Es distinto de un costo cero: no suma al valor del inventario, no permite calcular margen y se regulariza con la primera entrada que traiga costo. Solo el Administrador lo ve.
+
 ### Solicitud de corrección fiscal
 
 Preparación administrativa local de una anulación en línea o nota de crédito. Puede quedar pendiente, bloqueada, preparada o cancelada localmente y nunca prueba ejecución oficial.
@@ -203,9 +207,13 @@ Conjunto cronológico de mantenimientos y operaciones relacionadas con un vehíc
 
 Valor calculado conforme a una tarifa y regla configuradas para una entidad fiscal y un período de vigencia.
 
+### Entrada de stock
+
+Forma simple del ingreso de mercadería que registra y confirma el Vendedor (o el Administrador) en una sola acción, tras una revisión previa. Solo exige productos y cantidades; proveedor, referencia, observación y costo son opcionales. No lleva impuestos, fecha del documento ni totales. Reemplaza a la compra documentada con borrador.
+
 ### Ingreso de mercadería
 
-Documento que registra productos recibidos de un proveedor, con cantidades y costos. Solo al confirmarse aumenta el inventario y actualiza el costo promedio.
+Operación que registra productos recibidos en la bodega. Al confirmarse aumenta el inventario y, si trae costo, actualiza el costo promedio. En V1 se registra como **entrada de stock**; las compras documentadas anteriores se conservan como historia de solo lectura.
 
 ### Invariante
 
@@ -319,7 +327,7 @@ Oferta de productos con precios y vigencia. No representa una venta confirmada, 
 
 ### Proveedor
 
-Persona o empresa que suministra productos al RUC comercial y con la que se relacionan los ingresos de mercadería. Para un proveedor ocasional solo el nombre es obligatorio.
+Persona o empresa que suministra productos al RUC comercial. Una entrada de stock puede indicarlo o no. Para un proveedor ocasional solo el nombre es obligatorio.
 
 ### Reembolso
 

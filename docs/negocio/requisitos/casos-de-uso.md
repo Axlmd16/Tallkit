@@ -28,7 +28,7 @@
 | CU-004 | Gestionar cliente | Administrador / Vendedor / Encargado del taller | RF-CLI-001 a RF-CLI-005, RF-CLI-012 |
 | CU-005 | Gestionar vehículo e historial | Administrador / Encargado del taller | RF-CLI-006 a RF-CLI-011 |
 | CU-006 | Gestionar catálogos | Administrador | RF-CAT-001 a RF-CAT-016 |
-| CU-007 | Registrar y confirmar ingreso de mercadería | Administrador | RF-INV-001 a RF-INV-005, RF-INV-014 |
+| CU-007 | Registrar entrada de stock | Vendedor / Administrador | RF-INV-001 a RF-INV-005, RF-INV-014 |
 | CU-008 | Consultar inventario y Kardex | Administrador / Vendedor / Encargado del taller | RF-INV-007, RF-INV-008, RF-INV-011, RF-REP-001, RF-REP-002 |
 | CU-009 | Ajustar inventario | Administrador | RF-INV-009, RF-INV-010, RF-AUD-001 a RF-AUD-004 |
 | CU-010 | Elaborar proforma | Administrador / Vendedor | RF-PRO-001 a RF-PRO-006, RF-PRO-010, RF-PRO-011 |
@@ -204,31 +204,33 @@
 
 **Garantía de éxito:** el catálogo actualizado se usa en operaciones futuras.
 
-## 9. CU-007 — Registrar y confirmar ingreso de mercadería
+## 9. CU-007 — Registrar entrada de stock
 
-**Actor principal:** Administrador.
+**Actor principal:** Vendedor o Administrador.
 
-**Precondiciones:** proveedor y productos activos; bodega habilitada.
+**Precondiciones:** productos activos; bodega y serie COM-ING configuradas.
 
 **Flujo principal**
 
-1. El actor crea un ingreso y selecciona proveedor y bodega.
-2. Agrega productos, cantidades, costos unitarios, referencia externa y fotografías o PDF opcionales.
-3. Guarda el documento en borrador para revisión.
-4. Solicita confirmar.
-5. El sistema vuelve a validar proveedor, líneas, permisos y estado.
-6. En una transacción, asigna secuencial, crea movimientos de entrada, aumenta existencias y recalcula costos promedio.
-7. El sistema muestra el documento confirmado y sus movimientos.
+1. El actor busca o escanea los productos que llegaron y ajusta su cantidad.
+2. Opcionalmente indica proveedor, referencia, observación y costos.
+3. Solicita revisar; el sistema muestra cuántos productos y unidades entran, sin costos.
+4. Confirma.
+5. El sistema vuelve a validar productos, proveedor, permisos y configuración.
+6. En una transacción, asigna secuencial, crea movimientos de entrada, aumenta existencias y, si hay costo, recalcula el promedio.
+7. El sistema avisa el número asignado y deja el formulario listo para otra entrada.
 
 **Alternativas y excepciones**
 
-- 3a. Guardar borrador: no cambia existencia ni costo.
-- 5a. Hay datos inválidos o proveedor inactivo: se rechaza sin efectos.
+- 3a. Cancelar la revisión: no se guarda nada; lo escrito se conserva en pantalla.
+- 3b. Hoy ya hay una entrada igual: se advierte y exige reconocerla para continuar.
+- 5a. Hay datos inválidos o un producto o proveedor inactivo: se rechaza sin efectos.
 - 6a. Ocurre un error: se revierte toda la transacción.
-- 6b. La petición se repite: no se duplican ingreso ni movimientos.
+- 6b. La petición se repite: no se duplican la entrada ni los movimientos.
+- 6c. Un producto sin costo recibe su primera entrada con costo: se valoran a ese costo las unidades previas y se deja constancia.
 
-**Garantía de éxito:** ingreso, existencias, costos y Kardex quedan consistentes.  
-**Garantía mínima:** el borrador permanece revisable o la confirmación queda completamente revertida.
+**Garantía de éxito:** entrada, existencias, costos y Kardex quedan consistentes.  
+**Garantía mínima:** no queda ningún registro parcial.
 
 ## 10. CU-008 — Consultar inventario y Kardex
 
@@ -378,7 +380,7 @@
 
 ## 17. CU-015 — Anular operación confirmada
 
-**Actor principal:** Administrador.  
+**Actor principal:** Administrador (solo él anula entradas, ventas, pagos u operaciones de servicios).  
 **Precondiciones:** documento anulable; motivo y procedimiento aplicable definidos.
 
 **Flujo principal**

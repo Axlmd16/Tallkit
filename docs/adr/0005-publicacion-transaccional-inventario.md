@@ -47,3 +47,7 @@ Consultas rápidas y explicables, fronteras comprobables y un núcleo reutilizab
 mantenimientos. A cambio se mantiene un protocolo de bloqueo, snapshots históricos, la
 reconciliación de solo lectura y pruebas de concurrencia sobre PostgreSQL. Complementa a
 ADR-0001 y ADR-0004 sin reemplazarlos.
+
+## Actualización
+
+La valoración de entradas sin costo registrado y el estado «sin costo» de la posición se rigen por [ADR-0011](0011-valoracion-de-inventario-con-costo-ausente.md), que complementa esta decisión sin reemplazarla.

@@ -17,3 +17,5 @@
 | Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Dato visual de SPEC-CONFIG que no se versiona. |
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Objeto de la capacidad `impresion-de-etiquetas-de-productos`. |
 | Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras trazado en la capacidad de etiquetas. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Operación trazada por DP-030. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de valoración de RN-INV-006A. |

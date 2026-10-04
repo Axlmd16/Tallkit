@@ -157,28 +157,54 @@
 - La cobertura de este documento no declara implementados todos los requisitos RF-INV.
 - La conciliación de solo lectura verifica el historial de inventario; no importa ni repara datos externos.
 
-## 5. Cambio `simplificar-entradas-de-stock-por-vendedor` (en aplicación)
+## 5. Cambio `simplificar-entradas-de-stock-por-vendedor`
 
-Cambio activo en `openspec/changes/simplificar-entradas-de-stock-por-vendedor`. Sustituye la compra documentada por la **entrada de stock** que registra el Vendedor, con proveedor, referencia y costo opcionales. Mientras el cambio no se archive, las secciones 1 a 4 describen el comportamiento anterior. Estado: todos los requisitos de esta matriz están **Pendientes** hasta que su grupo de tareas termine y registre la prueba ejecutada.
+Cambio activo en `openspec/changes/simplificar-entradas-de-stock-por-vendedor`. Sustituye la compra documentada por la **entrada de stock** que registra el Vendedor, con proveedor, referencia y costo opcionales (DP-030). Mientras el cambio no se archive, las secciones 1 a 4 describen el comportamiento anterior. Rutas relativas a la raíz del repositorio.
 
-| Spec | Requisito | Grupo de tareas | Pruebas previstas | Estado |
-|---|---|---|---|---|
-| compras-e-ingresos-de-mercaderia | Registro directo de entradas con revisión (nuevo) | 5, 9 | `backend/tests/purchasing/test_entries.py`; `frontend/src/pages/purchases/EntryPage.test.tsx` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Registro sencillo de entradas (nuevo) | 9 | `frontend/src/pages/purchases/EntryPage.test.tsx`; `frontend/src/features/purchases/EntryReviewDialog.test.tsx` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Compras anteriores de solo lectura (nuevo) | 5, 6, 10 | `backend/tests/purchasing/test_entries.py`; `backend/tests/purchasing/test_api.py`; `frontend/src/pages/purchases/PurchaseDetailPage.test.tsx` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Autorización de compras por operación | 4, 6 | `backend/tests/identity/test_authorization.py`; `backend/tests/purchasing/test_authorization.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Productos y proveedores confirmables | 5 | `backend/tests/purchasing/test_entries.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Cantidades de presentaciones y costos de compra | 5 | `backend/tests/purchasing/test_entries.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Referencia del proveedor y prevención de duplicados | 5, 9 | `backend/tests/purchasing/test_entries.py`; `frontend/src/features/purchases/EntryReviewDialog.test.tsx` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Confirmación atómica y numeración comercial | 5 | `backend/tests/purchasing/test_entries.py`; `backend/tests/purchasing/test_concurrency.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Confirmación idempotente e historia económica | 5 | `backend/tests/purchasing/test_entries.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Anulación conservadora con compensación | 5 | `backend/tests/purchasing/test_void.py` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Consulta y experiencia de compras | 6, 10 | `backend/tests/purchasing/test_api.py`; `frontend/src/pages/purchases/PurchasesPage.test.tsx` | Pendiente |
-| compras-e-ingresos-de-mercaderia | Retirados: borradores, impuestos, fechas documentales y reemplazos | 5 | Pruebas de rutas retiradas en `backend/tests/purchasing/test_api.py` | Pendiente |
-| existencias-y-ajustes-de-inventario | Valoración por promedio ponderado y conservación de valor | 2, 3 | `backend/tests/inventory/test_valuation.py`; `test_posting.py`; `test_reconcile.py`; `test_stock_queries.py` | Pendiente |
-| kardex-de-productos | Costos de Kardex según autorización | 3, 10 | `backend/tests/inventory/test_kardex.py`; `frontend/src/pages/inventory` | Pendiente |
-| kardex-de-productos | Acceso al origen y correcciones enlazadas | 6 | `backend/tests/inventory/test_kardex.py`; `backend/tests/purchasing/test_api.py` | Pendiente |
-| catalogo-de-proveedores | Acceso exclusivo de administración a proveedores | 7 | `backend/tests/supplier_registry/test_supplier_options.py` | Pendiente |
-| ventas-comerciales | Venta de productos sin costo registrado (nuevo) | 8, 10 | `backend/tests/sales/test_confirm.py`; `test_allocation.py`; `test_returns.py` | Pendiente |
+| Spec | Requisito | Pruebas | Estado |
+|---|---|---|---|
+| compras-e-ingresos-de-mercaderia | Registro directo de entradas con revisión (nuevo) | `backend/tests/purchasing/test_entries.py`; `frontend/src/pages/purchases/EntryPage.test.tsx` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Registro sencillo de entradas (nuevo) | `frontend/src/pages/purchases/EntryPage.test.tsx`; `frontend/src/features/purchases/ProductSearch.test.tsx`; `EntryReviewDialog.test.tsx`; `entry.test.ts` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Compras anteriores de solo lectura (nuevo) | `backend/tests/purchasing/test_api.py::TestRoleProjection`; `test_void.py::test_a_legacy_confirmed_purchase_remains_voidable`; `frontend/src/pages/purchases/PurchaseDetailPage.test.tsx` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Autorización de compras por operación | `backend/tests/identity/test_authorization.py`; `backend/tests/purchasing/test_authorization.py`; `test_api.py::TestRoutes` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Productos y proveedores confirmables | `backend/tests/purchasing/test_entries.py::TestValidation` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Cantidades de presentaciones y costos de compra | `backend/tests/purchasing/test_entries.py::TestValidation`, `TestMainFlow`; `frontend/src/features/purchases/entry.test.ts` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Referencia del proveedor y prevención de duplicados | `backend/tests/purchasing/test_entries.py::TestPossibleDuplicates`; `frontend/src/features/purchases/EntryReviewDialog.test.tsx` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Confirmación atómica y numeración comercial | `backend/tests/purchasing/test_entries.py`; `test_concurrency.py` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Confirmación idempotente e historia económica | `backend/tests/purchasing/test_entries.py::TestIdempotencyAndAtomicity`; `test_history_protection.py::TestConfirmedEntry` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Anulación conservadora con compensación | `backend/tests/purchasing/test_void.py` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Consulta y experiencia de compras | `backend/tests/purchasing/test_api.py::TestLists`; `frontend/src/pages/purchases/PurchasesPage.test.tsx` | Cumplido |
+| compras-e-ingresos-de-mercaderia | Retirados: borradores, impuestos, fechas documentales y reemplazos | `backend/tests/purchasing/test_api.py::TestRoutes::test_the_routes_of_the_previous_flow_no_longer_exist`; `backend/tests/api/test_openapi.py`; `frontend/src/features/purchases/api.test.ts` | Cumplido |
+| existencias-y-ajustes-de-inventario | Valoración por promedio ponderado y conservación de valor | `backend/tests/inventory/test_valuation.py`; `test_posting.py::TestEntriesWithoutCost`; `test_reconcile.py`; `test_stock_queries.py`; `test_concurrency.py` | Cumplido |
+| kardex-de-productos | Costos de Kardex según autorización | `backend/tests/inventory/test_kardex.py::TestMovementsWithoutCost`; `frontend/src/pages/inventory/KardexPage.test.tsx`; `InventoryOperationDetailPage.test.tsx` | Cumplido |
+| kardex-de-productos | Acceso al origen y correcciones enlazadas | `backend/tests/inventory/test_authorization.py::test_the_seller_opens_the_origin_of_an_entry_without_costs_and_the_manager_cannot` | Cumplido |
+| catalogo-de-proveedores | Acceso exclusivo de administración a proveedores | `backend/tests/supplier_registry/test_supplier_options.py` | Cumplido |
+| ventas-comerciales | Venta de productos sin costo registrado (nuevo) | `backend/tests/sales/test_costless_products.py`; `test_authorization.py` | Cumplido |
 
-Evidencia de la línea base (grupo 1, 2026-10-04): backend `tests/purchasing tests/inventory tests/supplier_registry tests/sales/test_confirm.py tests/sales/test_allocation.py tests/sales/test_returns.py tests/identity/test_authorization.py` con 535 pruebas aprobadas y 1 fallo previo, `test_permission_catalog_matches_the_approved_business_matrix`, porque la matriz esperada no incluía los permisos `fiscal.*` del módulo fiscal; frontend `src/pages/purchases src/features/purchases src/app/purchases-inventory-routes.test.tsx` con 54 pruebas aprobadas. Los triggers de historia de `purchasing` e `inventory` no comparan las columnas que este cambio añade, por lo que no requieren modificación.
+### Comandos ejecutados el 2026-10-04 y resultados
+
+| Ámbito | Comando | Resultado |
+|---|---|---|
+| Backend focalizado | `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales tests/identity tests/api` | 1132 aprobadas |
+| Backend calidad | `uv run --frozen ruff format --check src tests`; `ruff check src tests`; `mypy src tests/purchasing tests/inventory tests/identity tests/supplier_registry tests/api tests/sales/test_costless_products.py tests/sales/test_openapi.py`; `manage.py makemigrations --check --dry-run`; `manage.py check` | Sin hallazgos |
+| Conciliación | `manage.py reconcile_inventory`; `manage.py reconcile_sales` (base de desarrollo) | Sin diferencias |
+| Frontend focalizado | `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/pages/products src/app src/features/sales src/features/maintenance src/shared` | 98 archivos y 658 pruebas aprobadas |
+| Frontend calidad | `npx tsc -b`; `npx eslint . --max-warnings 0`; `npx prettier --check` sobre los archivos tocados | Sin hallazgos |
+| OpenSpec | `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` | Válido |
+
+### Lo que no se ejecutó
+
+- **E2E:** `frontend/e2e/purchases-inventory.spec.ts` está reescrito para el flujo del Vendedor, pero no se ejecutó porque este equipo no tiene el navegador de Playwright (`npx playwright install chromium`). Debe correrse con `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts` antes de integrar.
+- **Revisión visual humana** de la pantalla de registro a 360 y 1440 px.
+- **Suites completas** (`make check`, `make test`, Playwright completo), por indicación del usuario de ejecutar solo las pruebas del cambio.
+- **Fallos previos, ajenos a este cambio:** `backend/tests/workshop/test_boundaries.py::test_no_other_module_imports_workshop` (el módulo fiscal importa `workshop`), errores de `mypy` en `backend/tests/fiscal`, `tests/sales/test_fiscal_*` y `tests/workshop*`, y tres archivos sin formato en `frontend/src/features/workshop-configuration`.
+- Validación de un contador sobre el IVA de compras y las existencias sin valor (ver `requisitos-funcionales.md` §12).
+
+## 6. Comandos de verificación
+
+| Ámbito | Comando |
+|---|---|
+| Backend enfocado | `cd backend && uv run --frozen pytest --no-cov tests/inventory tests/purchasing` |
+| Frontend enfocado | `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory` |
+| Extremo a extremo | `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts` |
+| Conciliación | `cd backend && uv run --frozen python manage.py reconcile_inventory` |

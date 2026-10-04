@@ -131,13 +131,13 @@ Evidencia del grupo: proyección por rol visible en pantalla y 658 pruebas de Vi
 
 Dependencias: grupos 2 a 10.
 
-- [ ] 11.1 Registrar en `docs/negocio/decisiones/decisiones-confirmadas.yaml` la nueva decisión que sustituye DP-011, DP-022, DP-023 en compras y DP-024, con fecha y origen en esta propuesta, y actualizar reglas esenciales y roles (el Vendedor registra entradas). Actualizar su referencia de glosario.
-- [ ] 11.2 Actualizar `docs/arquitectura/modelo-dominio.md` (§5.1, §6, §7, §10 y trazabilidad): proveedor opcional, ingreso sin borrador en el flujo nuevo y costo ausente.
-- [ ] 11.3 Actualizar `docs/negocio/producto/alcance-v1.md` §3.4, `reglas-negocio.md` (RN-INV-003/004/006, RN-CAT-010) y `glosario.md` con «Entrada de stock» y «Sin costo registrado», junto con sus referencias de glosario.
-- [ ] 11.4 Actualizar `docs/negocio/requisitos/`: `requisitos-funcionales.md` (RF-INV-001…006 y estado de implementación), `casos-de-uso.md` (CU-007, CU-015), `actores-y-roles.md` §3.3 y matriz de roles, `interfaz-y-navegacion.md` (UI-040…042) y `matriz-trazabilidad.md`.
-- [ ] 11.5 Crear `docs/adr/0011-valoracion-de-inventario-con-costo-ausente.md` con su referencia de glosario y añadir a ADR-0005 una nota de referencia sin reemplazarlo.
-- [ ] 11.6 Completar en `cobertura-compras-inventario.md` la matriz de 1.5 con los archivos de prueba reales, los comandos ejecutados, sus resultados y lo que no se ejecutó.
-- [ ] 11.7 Dejar constancia, como asunto externo pendiente, de la validación con un contador sobre el IVA de compras y las existencias sin valor.
+- [x] 11.1 Registrar en `docs/negocio/decisiones/decisiones-confirmadas.yaml` la nueva decisión que sustituye DP-011, DP-022, DP-023 en compras y DP-024, con fecha y origen en esta propuesta, y actualizar reglas esenciales y roles (el Vendedor registra entradas). Actualizar su referencia de glosario.
+- [x] 11.2 Actualizar `docs/arquitectura/modelo-dominio.md` (§5.1, §6, §7, §10 y trazabilidad): proveedor opcional, ingreso sin borrador en el flujo nuevo y costo ausente.
+- [x] 11.3 Actualizar `docs/negocio/producto/alcance-v1.md` §3.4, `reglas-negocio.md` (RN-INV-003/004/006, RN-CAT-010) y `glosario.md` con «Entrada de stock» y «Sin costo registrado», junto con sus referencias de glosario.
+- [x] 11.4 Actualizar `docs/negocio/requisitos/`: `requisitos-funcionales.md` (RF-INV-001…006 y estado de implementación), `casos-de-uso.md` (CU-007, CU-015), `actores-y-roles.md` §3.3 y matriz de roles, `interfaz-y-navegacion.md` (UI-040…042) y `matriz-trazabilidad.md`.
+- [x] 11.5 Crear `docs/adr/0011-valoracion-de-inventario-con-costo-ausente.md` con su referencia de glosario y añadir a ADR-0005 una nota de referencia sin reemplazarlo.
+- [x] 11.6 Completar en `cobertura-compras-inventario.md` la matriz de 1.5 con los archivos de prueba reales, los comandos ejecutados, sus resultados y lo que no se ejecutó.
+- [x] 11.7 Dejar constancia, como asunto externo pendiente, de la validación con un contador sobre el IVA de compras y las existencias sin valor.
 
 Evidencia del grupo: documentos sin contradicciones con las decisiones vigentes, glosarios sincronizados y ADR aceptado.
 
@@ -145,11 +145,11 @@ Evidencia del grupo: documentos sin contradicciones con las decisiones vigentes,
 
 Dependencias: grupos 1 a 11.
 
-- [ ] 12.1 Ejecutar `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales tests/identity/test_authorization.py tests/api/test_openapi.py`, Ruff, formato y mypy sobre los módulos tocados, y `uv run --frozen python manage.py makemigrations --check --dry-run`.
+- [x] 12.1 Ejecutar `cd backend && uv run --frozen pytest --no-cov tests/purchasing tests/inventory tests/supplier_registry tests/sales tests/identity/test_authorization.py tests/api/test_openapi.py`, Ruff, formato y mypy sobre los módulos tocados, y `uv run --frozen python manage.py makemigrations --check --dry-run`.
 - [ ] 12.2 Ejecutar `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/pages/inventory src/features/inventory src/app`, `npx tsc --noEmit`, ESLint, Prettier y `npx playwright test e2e/purchases-inventory.spec.ts`.
-- [ ] 12.3 Ejecutar la conciliación de inventario y de ventas sobre la base de desarrollo y registrar que no hay discrepancias.
-- [ ] 12.4 Ejecutar `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` y registrar en el resumen los comandos ejecutados, sus resultados y las suites completas no ejecutadas, para que el usuario decida si quiere la verificación completa antes de integrar.
+- [x] 12.3 Ejecutar la conciliación de inventario y de ventas sobre la base de desarrollo y registrar que no hay discrepancias.
+- [x] 12.4 Ejecutar `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` y registrar en el resumen los comandos ejecutados, sus resultados y las suites completas no ejecutadas, para que el usuario decida si quiere la verificación completa antes de integrar.
 
-Evidencia del grupo: resultados reales de cada comando y lista explícita de lo no ejecutado.
+Evidencia del grupo: resultados y comandos en `docs/negocio/requisitos/cobertura-compras-inventario.md` §5. 12.2 queda abierta solo por `playwright test`, que no pudo ejecutarse por falta del navegador (ver 10.5); Vitest, `tsc -b`, ESLint y Prettier sí pasaron; `make check`, `make test` y el E2E completo no se ejecutaron por indicación del usuario.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

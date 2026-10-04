@@ -10,3 +10,5 @@
 | Presentación | `docs/negocio/producto/glosario.md` | Unidad vendible cerrada que cuentan las cantidades. |
 | Idempotencia | `docs/tecnico/glosario-tecnico.md` | Reintento seguro mediante clave y recibo. |
 | OpenSpec | `docs/tecnico/glosario-tecnico.md` | Marco que gobierna los 105 escenarios cubiertos. |
+| Entrada de stock | `docs/negocio/producto/glosario.md` | Operación que cubre la sección 5. |
+| Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de valoración probado en la sección 5. |
