@@ -1,3 +1,5 @@
+import type { Page } from '@/shared/api/catalog-resource'
+
 /** Contratos del backend de inventario. Los decimales viajan como cadenas. */
 
 export type OperationKind =
@@ -57,8 +59,15 @@ export interface StockRow {
   version: number
   last_ordinal: number
   /** Solo con `inventario.ver_valorizacion`. */
-  average_cost?: string
-  inventory_value?: string
+  cost_registered?: boolean
+  /** `null` cuando el producto no tiene costo registrado: no es cero. */
+  average_cost?: string | null
+  inventory_value?: string | null
+}
+
+/** Existencias paginadas; `valuation` solo llega con `inventario.ver_valorizacion`. */
+export interface StockPage extends Page<StockRow> {
+  valuation?: { total_value: string; products_without_cost: number }
 }
 
 export interface StockFilters {
@@ -95,12 +104,16 @@ export interface KardexRow {
     unit_name: string | null
     unit_symbol: string | null
   }
-  applied_unit_cost?: string
-  value_delta?: string
-  value_before?: string
-  value_after?: string
-  average_after?: string
+  /** Falso cuando el movimiento ocurrió sin costo registrado. */
+  cost_known?: boolean
+  applied_unit_cost?: string | null
+  value_delta?: string | null
+  value_before?: string | null
+  value_after?: string | null
+  average_after?: string | null
   rounding_adjustment?: string
+  /** Valor asignado a las unidades previas sin costo cuando esta entrada trajo el primero. */
+  regularization_value?: string
 }
 
 export interface Kardex {
@@ -115,8 +128,8 @@ export interface Kardex {
   period_totals: KardexTotals
   matching_totals: KardexTotals
   page_opening_quantity: string | null
-  opening_value?: string
-  closing_value?: string
+  opening_value?: string | null
+  closing_value?: string | null
 }
 
 export interface KardexFilters {
@@ -144,16 +157,18 @@ export interface OperationProjection {
   created_at: string
   posted_at: string | null
   reason?: string
-  unit_cost?: string
-  entry_value?: string
+  unit_cost?: string | null
+  entry_value?: string | null
   movements?: {
     ordinal: number
     product_id: number
-    applied_unit_cost: string
-    value_delta: string
+    cost_known: boolean
+    applied_unit_cost: string | null
+    value_delta: string | null
     rounding_adjustment: string
-    value_after: string
-    average_after: string
+    regularization_value: string
+    value_after: string | null
+    average_after: string | null
   }[]
 }
 

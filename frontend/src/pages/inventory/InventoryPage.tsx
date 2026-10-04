@@ -1,4 +1,4 @@
-import { ChartLineUp, Plus } from '@phosphor-icons/react'
+import { ChartLineUp, Plus, Warning } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -7,6 +7,7 @@ import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import { AdjustmentModal } from '@/features/inventory/AdjustmentModal'
 import { useStock } from '@/features/inventory/hooks'
+import { NoCost } from '@/features/inventory/NoCost'
 import type { StockRow } from '@/features/inventory/types'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
 import {
@@ -14,6 +15,7 @@ import {
   ElevatedDataList,
   Field,
   FilterPanel,
+  HintPopover,
   Input,
   PageHeader,
   RowActions,
@@ -33,8 +35,9 @@ interface FlatRow {
   quantity: string
   reserved: string
   available: string
-  average_cost: string | undefined
-  inventory_value: string | undefined
+  cost_registered: boolean
+  average_cost: string | null | undefined
+  inventory_value: string | null | undefined
   is_active: boolean
 }
 
@@ -47,6 +50,7 @@ const flatten = (row: StockRow): FlatRow => ({
   quantity: row.quantity,
   reserved: row.reserved,
   available: row.available,
+  cost_registered: row.cost_registered !== false,
   average_cost: row.average_cost,
   inventory_value: row.inventory_value,
   is_active: row.product.is_active,
@@ -106,6 +110,35 @@ export function InventoryPage() {
         description={`Existencias por presentación completa en la bodega única. El cero es una existencia confirmada; no hay umbrales ni alertas en esta versión.${canSeeValuation ? ' El costo promedio es un costo de compra valorado por el sistema; no es el precio final de venta.' : ''}`}
         title="Inventario"
       />
+      {canSeeValuation && query.data?.valuation && (
+        <section
+          aria-label="Valor del inventario"
+          className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-panel border border-line bg-surface px-4 py-3 text-sm"
+        >
+          <span className="text-ink-muted">Valor del inventario</span>
+          <strong className="text-base tabular-nums text-ink">
+            USD {query.data.valuation.total_value}
+          </strong>
+          {query.data.valuation.products_without_cost > 0 && (
+            <HintPopover
+              description="Productos con existencia sin costo registrado"
+              label="Productos sin costo registrado"
+              trigger={
+                <>
+                  <Warning aria-hidden="true" size={15} weight="fill" />
+                  {query.data.valuation.products_without_cost} sin costo
+                </>
+              }
+              triggerClassName="bg-warning-soft text-warning"
+            >
+              {query.data.valuation.products_without_cost === 1
+                ? 'Un producto tiene existencia sin costo registrado y no suma a este valor.'
+                : `${query.data.valuation.products_without_cost} productos tienen existencia sin costo registrado y no suman a este valor.`}{' '}
+              Su primera entrada con costo los valora.
+            </HintPopover>
+          )}
+        </section>
+      )}
       <ListStates
         toolbar={
           <>
@@ -274,7 +307,9 @@ export function InventoryPage() {
                       priority: 'secondary' as const,
                       align: 'end' as const,
                       render: (row: FlatRow) =>
-                        row.average_cost !== undefined ? (
+                        !row.cost_registered ? (
+                          <NoCost />
+                        ) : row.average_cost != null ? (
                           <span className="tabular-nums">{`USD ${row.average_cost}`}</span>
                         ) : (
                           '—'
@@ -286,7 +321,9 @@ export function InventoryPage() {
                       priority: 'secondary' as const,
                       align: 'end' as const,
                       render: (row: FlatRow) =>
-                        row.inventory_value !== undefined ? (
+                        !row.cost_registered ? (
+                          <NoCost />
+                        ) : row.inventory_value != null ? (
                           <span className="tabular-nums">{`USD ${row.inventory_value}`}</span>
                         ) : (
                           '—'

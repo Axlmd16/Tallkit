@@ -126,7 +126,18 @@ export interface Sale {
   refunds?: SaleRefundRow[]
   returns?: SaleReturnRow[]
   /** Solo con el permiso de valoración. */
-  costs?: { total_cost: string }
+  /** Solo con `inventario.ver_valorizacion`; el costo ausente llega como `null`, no como cero. */
+  costs?: {
+    total_cost: string
+    has_missing_cost: boolean
+    lines: {
+      position: number
+      quantity: string
+      cost_known: boolean
+      published_unit_cost: string | null
+      applied_value: string | null
+    }[]
+  }
 }
 
 export interface SaleSummary {

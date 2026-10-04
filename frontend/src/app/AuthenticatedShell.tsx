@@ -41,7 +41,7 @@ const singularLabels: Record<string, string> = {
   Productos: 'producto',
   Servicios: 'servicio',
   Proveedores: 'proveedor',
-  Ingresos: 'ingreso',
+  Entradas: 'ingreso',
   Ventas: 'venta',
   Mantenimientos: 'mantenimiento',
 }

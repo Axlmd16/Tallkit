@@ -29,10 +29,10 @@ const { stub } = vi.hoisted(() => ({
   stub: (name: string) => () => `Pantalla ${name}`,
 }))
 vi.mock('@/pages/purchases/PurchasesPage', () => ({
-  PurchasesPage: stub('lista de ingresos'),
+  PurchasesPage: stub('lista de entradas'),
 }))
-vi.mock('@/pages/purchases/PurchaseEditorPage', () => ({
-  PurchaseEditorPage: stub('editor de ingreso'),
+vi.mock('@/pages/purchases/EntryPage', () => ({
+  EntryPage: stub('registro de entrada'),
 }))
 vi.mock('@/pages/purchases/PurchaseDetailPage', () => ({
   PurchaseDetailPage: stub('detalle de ingreso'),
@@ -72,10 +72,9 @@ beforeEach(() => {
 })
 
 const routes: Array<[string, string, string]> = [
-  ['/purchases', 'ingresos.ver', 'Pantalla lista de ingresos'],
-  ['/purchases/new', 'ingresos.crear', 'Pantalla editor de ingreso'],
+  ['/purchases', 'ingresos.ver', 'Pantalla lista de entradas'],
+  ['/purchases/new', 'ingresos.crear', 'Pantalla registro de entrada'],
   ['/purchases/7', 'ingresos.ver', 'Pantalla detalle de ingreso'],
-  ['/purchases/7/edit', 'ingresos.crear', 'Pantalla editor de ingreso'],
   ['/inventory', 'inventario.ver', 'Pantalla inventario'],
   ['/inventory/products/3/kardex', 'inventario.ver', 'Pantalla Kardex'],
   [
@@ -102,14 +101,14 @@ it.each(routes)('%s se deniega sin su permiso', async (path) => {
   ).toBeInTheDocument()
 })
 
-it('la navegación muestra Ingresos e Inventario solo con su permiso', async () => {
+it('la navegación muestra Entradas e Inventario solo con su permiso', async () => {
   currentSession = session(['inventario.ver'])
   renderPath('/')
   await openGroups('Compras e inventario')
   expect(
     await (await mainNav()).findByRole('link', { name: 'Inventario' }),
   ).toHaveAttribute('href', '/inventory')
-  expect((await mainNav()).queryByRole('link', { name: 'Ingresos' })).toBeNull()
+  expect((await mainNav()).queryByRole('link', { name: 'Entradas' })).toBeNull()
 })
 
 it('un Administrador ve ambas entradas', async () => {
@@ -117,7 +116,7 @@ it('un Administrador ve ambas entradas', async () => {
   renderPath('/')
   await openGroups('Compras e inventario')
   expect(
-    await (await mainNav()).findByRole('link', { name: 'Ingresos' }),
+    await (await mainNav()).findByRole('link', { name: 'Entradas' }),
   ).toHaveAttribute('href', '/purchases')
   expect(
     (await mainNav()).getByRole('link', { name: 'Inventario' }),

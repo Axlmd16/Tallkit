@@ -6,18 +6,18 @@ import {
 } from '@tanstack/react-query'
 
 import { purchasesApi } from './api'
-import type { PurchaseFilters, PurchaseInput } from './types'
+import type { EntryInput, PurchaseFilters } from './types'
 
 export const purchaseKeys = {
   root: ['purchases'] as const,
   list: (filters: PurchaseFilters) => ['purchases', 'list', filters] as const,
   detail: (id: number | null) => ['purchases', 'detail', id] as const,
-  taxOptions: (date: string | null, search: string) =>
-    ['purchases', 'tax-options', date, search] as const,
+  suppliers: (search: string, page: number) =>
+    ['purchases', 'supplier-options', search, page] as const,
 }
 
 /**
- * Tras una mutación propia se invalidan compras, existencias, fichas y Kardex.
+ * Tras una mutación propia se invalidan entradas, existencias, fichas y Kardex.
  * Los Kardex en caché se eliminan: su corte ya no representa el estado vigente y
  * la siguiente lectura debe solicitar un corte nuevo.
  */
@@ -48,14 +48,6 @@ export function usePurchase(id: number | null) {
   })
 }
 
-export function usePurchaseTaxOptions(date: string | null, search = '') {
-  return useQuery({
-    queryKey: purchaseKeys.taxOptions(date, search),
-    queryFn: () => purchasesApi.taxOptions(date as string, search),
-    enabled: Boolean(date),
-  })
-}
-
 /**
  * Mutaciones idempotentes: nunca reintentan por sí solas (`retry: false`); tras un
  * resultado incierto el llamador reenvía el mismo payload con la misma clave.
@@ -65,38 +57,10 @@ export function usePurchaseMutations() {
   const onSuccess = () => invalidateAfterPurchaseMutation(queryClient)
   const base = { retry: false, onSuccess } as const
   return {
-    create: useMutation({
+    register: useMutation({
       ...base,
-      mutationFn: ({ data, key }: { data: PurchaseInput; key: string }) =>
-        purchasesApi.create(data, key),
-    }),
-    update: useMutation({
-      ...base,
-      mutationFn: (v: {
-        id: number
-        data: Partial<PurchaseInput>
-        expectedVersion: number
-        key: string
-      }) => purchasesApi.update(v.id, v.data, v.expectedVersion, v.key),
-    }),
-    confirm: useMutation({
-      ...base,
-      mutationFn: (v: {
-        id: number
-        expectedVersion: number
-        reviewToken: string
-        acknowledgedMatches?: number[]
-        key: string
-      }) =>
-        purchasesApi.confirm(
-          v.id,
-          {
-            expectedVersion: v.expectedVersion,
-            reviewToken: v.reviewToken,
-            acknowledgedMatches: v.acknowledgedMatches,
-          },
-          v.key,
-        ),
+      mutationFn: ({ input, key }: { input: EntryInput; key: string }) =>
+        purchasesApi.registerEntry(input, key),
     }),
     void: useMutation({
       ...base,
@@ -117,14 +81,9 @@ export function usePurchaseMutations() {
           v.key,
         ),
     }),
-    replacement: useMutation({
-      ...base,
-      mutationFn: (v: { id: number; key: string }) =>
-        purchasesApi.replacement(v.id, v.key),
-    }),
-    preview: useMutation({
+    review: useMutation({
       retry: false,
-      mutationFn: (id: number) => purchasesApi.preview(id),
+      mutationFn: (input: EntryInput) => purchasesApi.reviewEntry(input),
     }),
     voidPreview: useMutation({
       retry: false,

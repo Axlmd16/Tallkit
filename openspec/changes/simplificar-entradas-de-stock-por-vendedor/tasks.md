@@ -104,13 +104,13 @@ Evidencia del grupo: ventas y devoluciones con costo ausente en verde y concilia
 
 Dependencias: grupos 6 y 7. Diseño 8; spec `compras-e-ingresos-de-mercaderia`, «Registro sencillo de entradas» y «Registro directo de entradas con revisión».
 
-- [ ] 9.1 Actualizar `frontend/src/features/purchases/types.ts`, `api.ts` y `hooks.ts` al contrato nuevo, con pruebas rojas previas en `api.test.ts` y `hooks.test.tsx`; añadir la consulta de opciones de proveedor.
-- [ ] 9.2 Escribir primero `frontend/src/pages/purchases/EntryPage.test.tsx` con casos rojos: foco inicial en el buscador; producto agregado con cantidad 1; elegirlo de nuevo suma uno; código interno exacto con Enter agrega y devuelve el foco; botones de más y menos; quitar una fila; detalles opcionales plegados; ningún campo marcado como obligatorio; ausencia de impuestos, fechas y totales.
-- [ ] 9.3 Implementar `EntryPage` de ancho completo con el buscador, la lista de filas y el desplegable de detalles con proveedor, referencia, observación e interruptor «Registrar costos»; hacer pasar 9.2.
-- [ ] 9.4 Escribir primero `EntryReviewDialog.test.tsx` con casos rojos: resumen «Entran N productos, M unidades», detalles solo si se informaron, aviso de posible duplicado con número y casilla de reconocimiento, cancelación que conserva lo escrito y prevención de doble envío. Implementar el diálogo hasta el verde.
-- [ ] 9.5 Añadir casos rojos e implementar el resultado: toast con el número asignado, formulario vacío, foco en el buscador, errores asociados a sus campos sin perder lo escrito y aviso de cambios sin guardar al salir.
-- [ ] 9.6 Eliminar `PurchaseEditorPage`, `LinesEditor`, `ReplacementDialog`, `draft.ts` y los selectores de impuesto junto con sus pruebas; actualizar `frontend/src/app/App.tsx` (sin `/purchases/:id/edit`), `navigation.ts` (etiqueta «Entradas») y `purchases-inventory-routes.test.tsx`.
-- [ ] 9.7 Verificar con `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/app/purchases-inventory-routes.test.tsx src/app/AuthenticatedShell.test.tsx`, `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados.
+- [x] 9.1 Actualizar `frontend/src/features/purchases/types.ts`, `api.ts` y `hooks.ts` al contrato nuevo, con pruebas rojas previas en `api.test.ts` y `hooks.test.tsx`; añadir la consulta de opciones de proveedor.
+- [x] 9.2 Escribir primero `frontend/src/pages/purchases/EntryPage.test.tsx` con casos rojos: foco inicial en el buscador; producto agregado con cantidad 1; elegirlo de nuevo suma uno; código interno exacto con Enter agrega y devuelve el foco; botones de más y menos; quitar una fila; detalles opcionales plegados; ningún campo marcado como obligatorio; ausencia de impuestos, fechas y totales.
+- [x] 9.3 Implementar `EntryPage` de ancho completo con el buscador, la lista de filas y el desplegable de detalles con proveedor, referencia, observación e interruptor «Registrar costos»; hacer pasar 9.2.
+- [x] 9.4 Escribir primero `EntryReviewDialog.test.tsx` con casos rojos: resumen «Entran N productos, M unidades», detalles solo si se informaron, aviso de posible duplicado con número y casilla de reconocimiento, cancelación que conserva lo escrito y prevención de doble envío. Implementar el diálogo hasta el verde.
+- [x] 9.5 Añadir casos rojos e implementar el resultado: toast con el número asignado, formulario vacío, foco en el buscador, errores asociados a sus campos sin perder lo escrito y aviso de cambios sin guardar al salir.
+- [x] 9.6 Eliminar `PurchaseEditorPage`, `LinesEditor`, `ReplacementDialog`, `draft.ts` y los selectores de impuesto junto con sus pruebas; actualizar `frontend/src/app/App.tsx` (sin `/purchases/:id/edit`), `navigation.ts` (etiqueta «Entradas») y `purchases-inventory-routes.test.tsx`.
+- [x] 9.7 Verificar con `cd frontend && npx vitest run src/pages/purchases src/features/purchases src/app/purchases-inventory-routes.test.tsx src/app/AuthenticatedShell.test.tsx`, `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados.
 
 Evidencia del grupo: rojo y verde registrados, flujo mínimo completado sin abrir detalles y navegación visible para el Vendedor.
 
@@ -118,14 +118,14 @@ Evidencia del grupo: rojo y verde registrados, flujo mínimo completado sin abri
 
 Dependencias: grupo 9. Diseño 6 y 8; specs `compras-e-ingresos-de-mercaderia`, `kardex-de-productos` y `existencias-y-ajustes-de-inventario`.
 
-- [ ] 10.1 Escribir primero casos rojos en `PurchasesPage.test.tsx`: columnas de número, momento, usuario, productos, unidades y estado; filtros por estado, período y usuario conservados al volver del detalle; estados de carga, vacío y error. Implementar hasta el verde.
-- [ ] 10.2 Escribir primero casos rojos en `PurchaseDetailPage.test.tsx`: el Administrador ve costos, «sin costo registrado» distinto de cero, la sección de compra anterior y la acción de anular; el Vendedor ve solo productos y cantidades; un borrador anterior aparece como sin efecto y sin acciones. Implementar hasta el verde.
-- [ ] 10.3 Ajustar con pruebas previas las pantallas de inventario y Kardex (`frontend/src/pages/inventory`, `features/inventory`) para mostrar «sin costo registrado», el aviso de productos fuera del valor total y la regularización, solo al Administrador.
-- [ ] 10.4 Ajustar con pruebas previas las lecturas administrativas de costo de venta para mostrar «sin costo registrado» cuando corresponda.
+- [x] 10.1 Escribir primero casos rojos en `PurchasesPage.test.tsx`: columnas de número, momento, usuario, productos, unidades y estado; filtros por estado, período y usuario conservados al volver del detalle; estados de carga, vacío y error. Implementar hasta el verde.
+- [x] 10.2 Escribir primero casos rojos en `PurchaseDetailPage.test.tsx`: el Administrador ve costos, «sin costo registrado» distinto de cero, la sección de compra anterior y la acción de anular; el Vendedor ve solo productos y cantidades; un borrador anterior aparece como sin efecto y sin acciones. Implementar hasta el verde.
+- [x] 10.3 Ajustar con pruebas previas las pantallas de inventario y Kardex (`frontend/src/pages/inventory`, `features/inventory`) para mostrar «sin costo registrado», el aviso de productos fuera del valor total y la regularización, solo al Administrador.
+- [x] 10.4 Ajustar con pruebas previas las lecturas administrativas de costo de venta para mostrar «sin costo registrado» cuando corresponda.
 - [ ] 10.5 Reescribir `frontend/e2e/purchases-inventory.spec.ts` para el flujo del Vendedor: entrada mínima, entrada con detalles, aviso de duplicado, consulta sin costos y anulación por el Administrador. Ejecutar solo ese archivo con `cd frontend && npx playwright test e2e/purchases-inventory.spec.ts`.
-- [ ] 10.6 Verificar con `cd frontend && npx vitest run src/pages/purchases src/pages/inventory src/features/inventory`, `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados.
+- [x] 10.6 Verificar con `cd frontend && npx vitest run src/pages/purchases src/pages/inventory src/features/inventory`, `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados.
 
-Evidencia del grupo: proyección por rol visible en pantalla, E2E del cambio en verde y revisión visual en ancho de escritorio y de teléfono.
+Evidencia del grupo: proyección por rol visible en pantalla y 658 pruebas de Vitest afectadas en verde. **Pendiente 10.5:** el E2E `e2e/purchases-inventory.spec.ts` está reescrito para el flujo del Vendedor pero no se ejecutó porque este equipo no tiene el navegador de Playwright (`chromium_headless_shell-1243`); requiere `npx playwright install chromium`. Tampoco se hizo la revisión visual a 360 y 1440 px. 10.4: el frontend no presenta costos de venta; solo se actualizó el tipo de `costs`.
 
 ## 11. Documentación, decisiones y trazabilidad
 

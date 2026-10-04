@@ -191,3 +191,64 @@ it('vuelve a la ficha del producto cuando se llegó desde ella', () => {
     screen.getByRole('link', { name: 'Volver a la ficha del producto' }),
   ).toHaveAttribute('href', '/products/9')
 })
+
+it('los movimientos sin costo registrado se marcan como tales y no como cero', () => {
+  mocks.permissions = ['inventario.ver', 'inventario.ver_valorizacion']
+  mocks.result = {
+    isPending: false,
+    isError: false,
+    data: kardex({
+      opening_value: '0.000000',
+      closing_value: null,
+      results: [
+        row(2, {
+          cost_known: false,
+          applied_unit_cost: null,
+          value_delta: null,
+          value_after: null,
+          regularization_value: '0.000000',
+        }),
+      ],
+    }),
+  }
+  renderPage()
+  expect(screen.getAllByText('Sin costo').length).toBeGreaterThanOrEqual(3)
+  expect(screen.getByText(/Valor inicial USD 0.000000/)).toBeInTheDocument()
+  expect(screen.queryByText(/valor final USD null/i)).toBeNull()
+})
+
+it('la primera entrada con costo explica el valor asignado a las unidades previas', async () => {
+  mocks.permissions = ['inventario.ver', 'inventario.ver_valorizacion']
+  mocks.result = {
+    isPending: false,
+    isError: false,
+    data: kardex({
+      opening_value: null,
+      closing_value: '20.000000',
+      results: [
+        row(2, {
+          cost_known: true,
+          applied_unit_cost: '2.000000',
+          value_after: '20.000000',
+          regularization_value: '10.000000',
+        }),
+      ],
+    }),
+  }
+  renderPage()
+  const [hint] = screen.getAllByRole('button', {
+    name: /costo asignado a unidades previas/i,
+  })
+  await userEvent.hover(hint!)
+  expect(await screen.findByText(/asignó USD 10.000000/)).toBeInTheDocument()
+})
+
+it('los roles sin valoración no reciben ni insinúan costos ausentes', () => {
+  mocks.result = {
+    isPending: false,
+    isError: false,
+    data: kardex({ results: [row(2)] }),
+  }
+  renderPage()
+  expect(screen.queryByText('Sin costo')).toBeNull()
+})

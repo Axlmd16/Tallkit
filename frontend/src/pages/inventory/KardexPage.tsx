@@ -1,10 +1,11 @@
-import { ArrowLeft, ArrowsClockwise } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowsClockwise, Info } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { useKardex } from '@/features/inventory/hooks'
+import { NoCost } from '@/features/inventory/NoCost'
 import {
   kindLabels,
   type KardexRow,
@@ -17,6 +18,7 @@ import {
   ElevatedDataList,
   Field,
   FilterPanel,
+  HintPopover,
   InlineNotice,
   Input,
   LoadingState,
@@ -248,9 +250,19 @@ export function KardexPage() {
               </div>
             </dl>
             {canSeeValuation && data.opening_value !== undefined && (
-              <p className="border-t border-line px-4 py-2 text-[13px] text-ink-muted tabular-nums">
-                Valor inicial USD {data.opening_value} · valor final USD{' '}
-                {data.closing_value}
+              <p className="flex flex-wrap items-center gap-x-1.5 border-t border-line px-4 py-2 text-[13px] text-ink-muted tabular-nums">
+                Valor inicial{' '}
+                {data.opening_value === null ? (
+                  <NoCost />
+                ) : (
+                  `USD ${data.opening_value}`
+                )}{' '}
+                · valor final{' '}
+                {data.closing_value === null ? (
+                  <NoCost />
+                ) : (
+                  `USD ${data.closing_value}`
+                )}
               </p>
             )}
           </section>
@@ -347,14 +359,39 @@ export function KardexPage() {
                         priority: 'secondary' as const,
                         align: 'end' as const,
                         render: (row: KardexRow) =>
-                          row.applied_unit_cost ?? '—',
+                          row.cost_known === false ? (
+                            <NoCost />
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5">
+                              {row.applied_unit_cost ?? '—'}
+                              {Number(row.regularization_value ?? 0) > 0 && (
+                                <HintPopover
+                                  align="end"
+                                  label="Costo asignado a unidades previas"
+                                  size="sm"
+                                  trigger={
+                                    <Info aria-hidden="true" size={14} />
+                                  }
+                                >
+                                  Esta entrada trajo el primer costo: asignó USD{' '}
+                                  {row.regularization_value} a las unidades que
+                                  ya estaban sin costo.
+                                </HintPopover>
+                              )}
+                            </span>
+                          ),
                       },
                       {
                         header: 'Valor del saldo',
                         key: 'value_after' as const,
                         priority: 'secondary' as const,
                         align: 'end' as const,
-                        render: (row: KardexRow) => row.value_after ?? '—',
+                        render: (row: KardexRow) =>
+                          row.value_after === null ? (
+                            <NoCost />
+                          ) : (
+                            (row.value_after ?? '—')
+                          ),
                       },
                     ]
                   : []),

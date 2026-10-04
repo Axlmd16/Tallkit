@@ -16,6 +16,25 @@ export const timestamp = (iso: string | null) =>
 export const usd = (value: string | null | undefined) =>
   value === null || value === undefined ? '—' : `USD ${value}`
 
+/** Cuenta con singular y plural: «1 producto», «3 productos». */
+export const count = (value: number | string, one: string, many: string) => {
+  const number = Number(value)
+  return `${number} ${number === 1 ? one : many}`
+}
+
+/**
+ * Costo unitario tal como lo guardó el servidor (hasta 6 decimales): se quitan los ceros
+ * sobrantes pero nunca se redondea, y quedan al menos dos decimales.
+ */
+export function unitCost(value: string | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  const match = value.trim().match(/^(\d+)(?:\.(\d+))?$/)
+  if (!match) return '—'
+  const [, whole = '0', fraction = ''] = match
+  const trimmed = fraction.replace(/0+$/, '').padEnd(2, '0')
+  return `USD ${whole}.${trimmed}`
+}
+
 const stateTone = {
   DRAFT: 'neutral',
   CONFIRMED: 'success',

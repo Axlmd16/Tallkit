@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -95,4 +95,33 @@ it('muestra la valoración únicamente cuando la proyección económica la inclu
   expect(screen.getByLabelText('Movimientos')).toHaveTextContent(
     'Ajuste de redondeo',
   )
+})
+
+it('una entrada sin costo se presenta como sin costo registrado, no como cero', () => {
+  mocks.data = {
+    ...base,
+    kind: 'PURCHASE_RECEIPT',
+    entry_value: null,
+    unit_cost: null,
+    movements: [
+      {
+        ordinal: 1,
+        product_id: 5,
+        cost_known: false,
+        applied_unit_cost: null,
+        value_delta: null,
+        rounding_adjustment: '0.000000',
+        regularization_value: '0.000000',
+        value_after: null,
+        average_after: null,
+      },
+    ],
+  }
+  renderPage()
+  expect(screen.getByLabelText('Valoración')).toHaveTextContent('Sin costo')
+  expect(screen.getByLabelText('Valoración')).not.toHaveTextContent('USD')
+  const movimientos = within(screen.getByLabelText('Movimientos'))
+  // Costo aplicado, variación y valor posterior: tres celdas ausentes, ninguna en cero.
+  expect(movimientos.getAllByText('Sin costo')).toHaveLength(3)
+  expect(screen.getByLabelText('Movimientos')).not.toHaveTextContent('null')
 })

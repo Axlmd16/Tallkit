@@ -1,14 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 
 import { expectNoSeriousAccessibilityViolations } from './accessibility'
-import { API, csrf, send, seedFiscalConfiguration } from './catalog-helpers'
-import { login } from './helpers'
+import { API, send, seedFiscalConfiguration } from './catalog-helpers'
+import { login, logout } from './helpers'
 
 interface World {
   tag: string
   supplier: { id: number; name: string }
   product: { id: number; code: string; name: string }
-  tax: { id: number }
 }
 
 let counter = 0
@@ -67,50 +66,41 @@ async function seedWorld(page: Page): Promise<World> {
     }),
   )
   await page.reload()
-  return { tag, supplier, product, tax }
+  return { tag, supplier, product }
 }
 
-/** Crea y confirma un ingreso por la API para preparar escenarios de lectura. */
-async function apiConfirmedPurchase(
+/** Registra una entrada por la API (con la sesión actual) para preparar escenarios de lectura. */
+async function apiEntry(
   page: Page,
   world: World,
-  options: { quantity: string; reference: string },
+  options: { quantity: string; key: string; cost?: string; reference?: string },
 ) {
-  const request = page.request
-  const created = await (
-    await send(request, 'post', '/purchases/', {
-      idempotency_key: `e2e-pur-${world.tag}-${options.reference}`,
-      supplier_id: world.supplier.id,
-      document_type: 'FACTURA',
-      supplier_reference: options.reference,
-      document_date: '2026-09-01',
-      notes: '',
-      lines: [
-        {
-          product_id: world.product.id,
-          quantity: options.quantity,
-          unit_cost: '10.00',
-          tax_definition_id: world.tax.id,
-          tax_recoverability: 'RECOVERABLE',
-        },
-      ],
+  const response = await send(page.request, 'post', '/purchases/entries/', {
+    idempotency_key: `e2e-ent-${world.tag}-${options.key}`,
+    lines: [
+      {
+        product_id: world.product.id,
+        quantity: options.quantity,
+        ...(options.cost ? { unit_cost: options.cost } : {}),
+      },
+    ],
+    ...(options.reference ? { reference: options.reference } : {}),
+    acknowledged_entry_ids: await duplicateIds(page, world, options.quantity),
+  })
+  expect(response.ok(), await response.text()).toBeTruthy()
+  return response.json()
+}
+
+/** Reconoce las coincidencias del día: varios escenarios repiten contenido a propósito. */
+async function duplicateIds(page: Page, world: World, quantity: string) {
+  const review = await (
+    await send(page.request, 'post', '/purchases/entries/review/', {
+      lines: [{ product_id: world.product.id, quantity }],
     })
   ).json()
-  const review = await (
-    await send(request, 'post', `/purchases/${created.id}/preview/`, {})
-  ).json()
-  const confirmed = await send(
-    request,
-    'post',
-    `/purchases/${created.id}/confirm/`,
-    {
-      idempotency_key: `e2e-conf-${world.tag}-${options.reference}`,
-      expected_version: created.version,
-      review_token: review.review_token,
-    },
+  return (review.duplicates ?? []).map(
+    (d: { purchase_id: number }) => d.purchase_id,
   )
-  expect(confirmed.ok(), await confirmed.text()).toBeTruthy()
-  return confirmed.json()
 }
 
 async function apiAdjust(
@@ -162,72 +152,139 @@ async function pickOption(
     .click()
 }
 
-async function chooseSupplier(page: Page, name: string) {
-  await pickOption(page, page, 'Proveedor', name)
+const searchBox = (page: Page) =>
+  page.getByRole('combobox', { name: /buscar producto/i })
+
+/** Agrega un producto tecleando su código y pulsando Enter, como lo haría un lector. */
+async function addByCode(page: Page, code: string) {
+  await searchBox(page).fill(code)
+  await searchBox(page).press('Enter')
+  await expect(page.getByLabel(`Cantidad de ${code}`)).toBeVisible()
 }
 
-async function fillFirstLine(page: Page, world: World, quantity: string) {
-  await page.getByRole('button', { name: 'Agregar línea' }).click()
-  const line = page.getByRole('group', { name: /Línea 1/ })
-  await pickOption(page, line, 'Producto', world.product.code)
-  await line.getByLabel('Cantidad de presentaciones').fill(quantity)
-  await line.getByLabel('Costo unitario').fill('10.00')
-  await line
-    .getByLabel('Recuperabilidad del impuesto')
-    .selectOption('RECOVERABLE')
-  return line
+/** Cambia de sesión: el mismo navegador pasa del Administrador al Vendedor. */
+async function switchTo(page: Page, username: string) {
+  await logout(page)
+  await login(page, username)
 }
 
-test.describe('Ingresos, inventario y Kardex', () => {
-  test('flujo completo: borrador, revisión de importes, confirmación y Kardex', async ({
+test.describe('Entradas de stock, inventario y Kardex', () => {
+  test('el Vendedor registra una entrada en un paso y el Administrador la ve en el Kardex', async ({
     page,
   }) => {
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
+    await switchTo(page, 'vendedor_e2e')
+
     await page.goto('/purchases/new')
-    await chooseSupplier(page, world.supplier.name)
-    await page.getByLabel('Referencia del proveedor').fill(`F-${world.tag}`)
-    await page.getByLabel('Fecha del documento').fill('2026-09-01')
-    const line = await fillFirstLine(page, world, '2')
-    await expect(line.getByLabel('Impuesto', { exact: true })).toHaveValue(
-      String(world.tax.id),
-    )
-    await page.getByRole('button', { name: 'Guardar borrador' }).click()
-    await expect(page).toHaveURL(/\/purchases\/\d+\/edit$/)
-    await expect(
-      page.getByText('Total del ingreso').locator('..'),
-    ).toContainText('USD 23.00')
+    await expect(searchBox(page)).toBeFocused()
+    await addByCode(page, world.product.code)
+    await page.getByLabel(`Cantidad de ${world.product.code}`).fill('4')
+    await expect(page.getByText('1 producto · 4 unidades')).toBeVisible()
+    // Lo opcional está plegado: no hay campos de costo ni de proveedor a la vista.
+    await expect(page.getByLabel('Referencia')).toHaveCount(0)
+    await expect(page.getByLabel(/Costo de/)).toHaveCount(0)
 
     await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
     const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('Entran 1 producto · 4 unidades')
     await expect(dialog).toContainText(world.product.code)
-    await expect(dialog).toContainText(
-      'recibirá 2 presentaciones; pasa de 0 a 2',
-    )
+    await expect(dialog).not.toContainText(/USD/)
+    await dialog.getByRole('button', { name: 'Confirmar entrada' }).click()
+
     await expect(
-      dialog.getByLabel('Totales calculados por el sistema'),
-    ).toContainText('USD 23.00')
-    await dialog.getByRole('button', { name: 'Confirmar ingreso' }).click()
+      page.getByText(/Entrada COM-ING-\d{6} registrada\./),
+    ).toBeVisible()
+    await expect(searchBox(page)).toBeFocused()
+    await expect(page.getByText('Nada por registrar')).toBeVisible()
+
+    await page.getByRole('link', { name: 'Ver entrada' }).click()
     await expect(
       page.getByRole('heading', { name: /COM-ING-\d{6}/ }),
     ).toBeVisible()
     await expect(
-      page.getByRole('status', { name: 'Estado: Confirmado' }),
+      page.getByRole('status', { name: 'Estado: Registrada' }),
     ).toBeVisible()
+    await expect(page.getByText(/costo|USD/i)).toHaveCount(0)
+    await expect(
+      page.getByRole('button', { name: 'Anular entrada' }),
+    ).toHaveCount(0)
 
+    await switchTo(page, 'admin_e2e')
     await page.goto(`/inventory/products/${world.product.id}/kardex`)
     const period = page.getByLabel('Saldos del período')
-    await expect(period).toContainText('Saldo final')
-    await expect(page.getByRole('table').first()).toContainText('2')
-    await expect(period).toContainText('1 movimientos · entradas 2 · salidas 0')
+    await expect(period).toContainText('1 movimientos · entradas 4 · salidas 0')
+    await expect(page.getByText('Sin costo').first()).toBeVisible()
+  })
+
+  test('con detalles y costos el Administrador ve el costo y el Vendedor no', async ({
+    page,
+  }) => {
+    await login(page, 'admin_e2e')
+    const world = await seedWorld(page)
+    await switchTo(page, 'vendedor_e2e')
+
+    await page.goto('/purchases/new')
+    await addByCode(page, world.product.code)
+    await page.getByRole('button', { name: /más detalles/i }).click()
+    await pickOption(page, page, 'Proveedor', world.supplier.name)
+    await page.getByLabel('Referencia').fill(`F-${world.tag}`)
+    await page.getByRole('checkbox', { name: 'Registrar costos' }).check()
+    await page.getByLabel(`Costo de ${world.product.code}`).fill('4.5')
+    await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText(world.supplier.name)
+    await expect(dialog).toContainText(`F-${world.tag}`)
+    await expect(dialog).not.toContainText('4.5')
+    await dialog.getByRole('button', { name: 'Confirmar entrada' }).click()
+    await page.getByRole('link', { name: 'Ver entrada' }).click()
+    const entryUrl = page.url()
+    await expect(page.getByText(`F-${world.tag}`)).toBeVisible()
+    await expect(page.getByText('4.50')).toHaveCount(0)
+
+    await switchTo(page, 'admin_e2e')
+    await page.goto(entryUrl)
+    await expect(page.getByLabel('Línea 1')).toContainText('USD 4.50')
     await page.goto('/inventory')
     await page
       .getByLabel('Código, código de fabricante o nombre')
       .fill(world.product.code)
     await page.getByRole('button', { name: 'Buscar' }).click()
-    await expect(page.getByRole('table').first()).toContainText(
-      world.product.code,
-    )
+    await expect(page.getByLabel('Valor del inventario')).toContainText('USD')
+  })
+
+  test('una entrada igual de hoy exige reconocerla antes de confirmar', async ({
+    page,
+  }) => {
+    await login(page, 'admin_e2e')
+    const world = await seedWorld(page)
+    await switchTo(page, 'vendedor_e2e')
+    await page.goto('/purchases/new')
+    await addByCode(page, world.product.code)
+    await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Confirmar entrada' })
+      .click()
+    await expect(
+      page.getByText(/Entrada COM-ING-\d{6} registrada\./),
+    ).toBeVisible()
+
+    await addByCode(page, world.product.code)
+    await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('Parece una entrada repetida')
+    const confirm = dialog.getByRole('button', { name: 'Confirmar entrada' })
+    await expect(confirm).toBeDisabled()
+    await dialog.getByRole('checkbox', { name: /otra entrada/i }).check()
+    await expect(confirm).toBeEnabled()
+    await confirm.click()
+    await expect(
+      page.getByText(/Entrada COM-ING-\d{6} registrada\./).last(),
+    ).toBeVisible()
+
+    await page.goto('/purchases')
+    await expect(page.getByText(/COM-ING-\d{6}/)).toHaveCount(2)
   })
 
   test('doble envío y tiempo agotado no duplican efectos y reutilizan la clave', async ({
@@ -235,20 +292,17 @@ test.describe('Ingresos, inventario y Kardex', () => {
   }) => {
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
+    await switchTo(page, 'vendedor_e2e')
     await page.goto('/purchases/new')
-    await chooseSupplier(page, world.supplier.name)
-    await page.getByLabel('Referencia del proveedor').fill(`T-${world.tag}`)
-    await page.getByLabel('Fecha del documento').fill('2026-09-01')
-    await fillFirstLine(page, world, '3')
-    await page.getByRole('button', { name: 'Guardar borrador' }).click()
-    await expect(page).toHaveURL(/\/purchases\/\d+\/edit$/)
+    await addByCode(page, world.product.code)
+    await page.getByLabel(`Cantidad de ${world.product.code}`).fill('3')
     await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toBeVisible()
 
     const keys: string[] = []
     let first = true
-    await page.route('**/api/v1/purchases/*/confirm/', async (route) => {
+    await page.route('**/api/v1/purchases/entries/', async (route) => {
       keys.push(JSON.parse(route.request().postData() ?? '{}').idempotency_key)
       if (first) {
         first = false
@@ -257,17 +311,22 @@ test.describe('Ingresos, inventario y Kardex', () => {
       }
       await route.continue()
     })
-    await dialog.getByRole('button', { name: 'Confirmar ingreso' }).click()
+    await dialog.getByRole('button', { name: 'Confirmar entrada' }).click()
     await expect(
       page.getByText(/no sabemos si el cambio se aplicó/i),
     ).toBeVisible()
-    await dialog.getByRole('button', { name: 'Confirmar ingreso' }).click()
+    await page.getByRole('button', { name: 'Revisar y confirmar' }).click()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Confirmar entrada' })
+      .click()
     await expect(
-      page.getByRole('heading', { name: /COM-ING-\d{6}/ }),
+      page.getByText(/Entrada COM-ING-\d{6} registrada\./),
     ).toBeVisible()
     expect(keys).toHaveLength(2)
     expect(keys[0]).toBe(keys[1])
 
+    await switchTo(page, 'admin_e2e')
     await page.goto(`/inventory/products/${world.product.id}/kardex`)
     await expect(page.getByLabel('Saldos del período')).toContainText(
       '1 movimientos · entradas 3',
@@ -279,9 +338,10 @@ test.describe('Ingresos, inventario y Kardex', () => {
   }) => {
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
-    const purchase = await apiConfirmedPurchase(page, world, {
+    const entry = await apiEntry(page, world, {
       quantity: '5',
-      reference: `B-${world.tag}`,
+      key: 'b',
+      cost: '2.00',
     })
     await apiAdjust(page, world, 'ADJUSTMENT_OUT', '1', 'a')
 
@@ -303,16 +363,39 @@ test.describe('Ingresos, inventario y Kardex', () => {
       .getByRole('button', { name: 'Abandonar sin confirmar' })
       .click()
 
-    await page.goto(`/purchases/${purchase.id}`)
-    await page.getByRole('button', { name: 'Anular ingreso' }).click()
+    await page.goto(`/purchases/${entry.id}`)
+    await page.getByRole('button', { name: 'Anular entrada' }).click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toContainText(world.product.code)
     await expect(dialog).toContainText(/movimientos posteriores/)
     await expect(dialog.getByRole('link', { name: /INV-\d+/ })).toBeVisible()
     await dialog.getByLabel('Motivo de la anulación').fill('Error')
     await expect(
-      dialog.getByRole('button', { name: 'Anular ingreso' }),
+      dialog.getByRole('button', { name: 'Anular entrada' }),
     ).toBeDisabled()
+  })
+
+  test('el Administrador anula una entrada del Vendedor y su efecto se compensa', async ({
+    page,
+  }) => {
+    await login(page, 'admin_e2e')
+    const world = await seedWorld(page)
+    await switchTo(page, 'vendedor_e2e')
+    const entry = await apiEntry(page, world, { quantity: '2', key: 'v' })
+    await switchTo(page, 'admin_e2e')
+    await page.goto(`/purchases/${entry.id}`)
+    await page.getByRole('button', { name: 'Anular entrada' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog
+      .getByLabel('Motivo de la anulación')
+      .fill('Registrada por error')
+    await dialog.getByRole('button', { name: 'Anular entrada' }).click()
+    await expect(page.getByText(/anulada y su efecto compensado/)).toBeVisible()
+    await expect(page.getByText('Entrada anulada')).toBeVisible()
+    await page.goto(`/inventory/products/${world.product.id}/kardex`)
+    await expect(page.getByLabel('Saldos del período')).toContainText(
+      '2 movimientos · entradas 2 · salidas 2',
+    )
   })
 
   test('filtros conservados al volver del detalle y corte estable al paginar el Kardex', async ({
@@ -320,21 +403,22 @@ test.describe('Ingresos, inventario y Kardex', () => {
   }) => {
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
-    const purchase = await apiConfirmedPurchase(page, world, {
+    const entry = await apiEntry(page, world, {
       quantity: '30',
-      reference: `K-${world.tag}`,
+      key: 'k',
+      cost: '1.00',
     })
     for (let i = 0; i < 21; i += 1) {
       await apiAdjust(page, world, 'ADJUSTMENT_OUT', '1', `k${i}`)
     }
 
     await page.goto('/purchases?state=CONFIRMED')
-    await page.getByText(purchase.internal_number).first().click()
-    await expect(page).toHaveURL(new RegExp(`/purchases/${purchase.id}$`))
-    await page.getByRole('link', { name: 'Volver a ingresos' }).click()
+    await page.getByText(entry.internal_number).first().click()
+    await expect(page).toHaveURL(new RegExp(`/purchases/${entry.id}$`))
+    await page.getByRole('link', { name: 'Volver a entradas' }).click()
     await expect(page).toHaveURL(/state=CONFIRMED/)
     await expect(
-      page.getByRole('radio', { name: 'Confirmados' }),
+      page.getByRole('radio', { name: 'Registradas' }),
     ).toHaveAttribute('aria-checked', 'true')
 
     const cuts: Array<string | null> = []
@@ -363,10 +447,7 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
-    await apiConfirmedPurchase(page, world, {
-      quantity: '2',
-      reference: `A-${world.tag}`,
-    })
+    await apiEntry(page, world, { quantity: '2', key: 'a' })
 
     for (const path of ['/purchases', '/purchases/new', '/inventory']) {
       await page.goto(path)
@@ -377,14 +458,14 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await expect(page.getByLabel('Saldos del período')).toBeVisible()
     await expectNoSeriousAccessibilityViolations(page)
 
-    // El diálogo devuelve el foco al disparador al cerrarse con Escape.
+    // Con teclado: buscar, revisar y cerrar con Escape devuelve el foco al buscador.
     await page.goto('/purchases/new')
-    await chooseSupplier(page, world.supplier.name)
-    await page.getByLabel('Referencia del proveedor').fill(`AC-${world.tag}`)
-    await page.getByLabel('Fecha del documento').fill('2026-09-01')
-    await fillFirstLine(page, world, '1')
-    await page.getByRole('button', { name: 'Guardar borrador' }).click()
-    await expect(page).toHaveURL(/\/purchases\/\d+\/edit$/)
+    await expect(searchBox(page)).toBeFocused()
+    await searchBox(page).fill(world.product.code)
+    await page.keyboard.press('Enter')
+    await expect(
+      page.getByLabel(`Cantidad de ${world.product.code}`),
+    ).toBeVisible()
     const trigger = page.getByRole('button', { name: 'Revisar y confirmar' })
     await trigger.focus()
     await page.keyboard.press('Enter')
@@ -392,7 +473,7 @@ test.describe('Ingresos, inventario y Kardex', () => {
     await expectNoSeriousAccessibilityViolations(page)
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).toHaveCount(0)
-    await expect(trigger).toBeFocused()
+    await expect(searchBox(page)).toBeFocused()
   })
 
   test('evidencia visual a 360, 768, 1024, 1279, 1280 y 1440', async ({
@@ -401,13 +482,15 @@ test.describe('Ingresos, inventario y Kardex', () => {
     test.setTimeout(180_000)
     await login(page, 'admin_e2e')
     const world = await seedWorld(page)
-    const purchase = await apiConfirmedPurchase(page, world, {
+    const entry = await apiEntry(page, world, {
       quantity: '4',
-      reference: `V-${world.tag}`,
+      key: 'vv',
+      cost: '2.00',
     })
     const views: Array<[string, string]> = [
-      ['compras-lista', '/purchases'],
-      ['compra-detalle', `/purchases/${purchase.id}`],
+      ['entradas-lista', '/purchases'],
+      ['entrada-nueva', '/purchases/new'],
+      ['entrada-detalle', `/purchases/${entry.id}`],
       ['inventario', '/inventory'],
       ['kardex', `/inventory/products/${world.product.id}/kardex`],
     ]
@@ -440,6 +523,3 @@ test.describe('Ingresos, inventario y Kardex', () => {
     }
   })
 })
-
-// La cookie CSRF puede rotar entre llamadas directas; se reutiliza el helper compartido.
-void csrf

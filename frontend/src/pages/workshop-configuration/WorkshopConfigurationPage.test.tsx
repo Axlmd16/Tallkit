@@ -682,7 +682,9 @@ it('muestra estados de carga, vacío y error por sección', () => {
 it('muestra la fila Logo con vista previa acotada o «Sin logo» y sus acciones', () => {
   renderPage()
   const commercial = screen.getByRole('article', { name: 'Entidad comercial' })
-  const logo = within(commercial).getByRole('img', { name: 'Logo de Repuestos VVH' })
+  const logo = within(commercial).getByRole('img', {
+    name: 'Logo de Repuestos VVH',
+  })
   expect(logo).toHaveAttribute(
     'src',
     '/api/v1/workshop-configuration/entity-logos/COMERCIAL/1/',
@@ -691,18 +693,26 @@ it('muestra la fila Logo con vista previa acotada o «Sin logo» y sus acciones'
   expect(logo.className).toMatch(/max-h-/)
   expect(logo.className).toMatch(/max-w-/)
   expect(
-    within(commercial).getByRole('button', { name: 'Cambiar logo de la entidad comercial' }),
+    within(commercial).getByRole('button', {
+      name: 'Cambiar logo de la entidad comercial',
+    }),
   ).toBeVisible()
   expect(
-    within(commercial).getByRole('button', { name: 'Quitar logo de la entidad comercial' }),
+    within(commercial).getByRole('button', {
+      name: 'Quitar logo de la entidad comercial',
+    }),
   ).toBeVisible()
 
   const artisan = screen.getByRole('article', { name: 'Entidad artesanal' })
   expect(within(artisan).getByText('Sin logo')).toBeVisible()
   expect(
-    within(artisan).getByRole('button', { name: 'Subir logo de la entidad artesanal' }),
+    within(artisan).getByRole('button', {
+      name: 'Subir logo de la entidad artesanal',
+    }),
   ).toBeVisible()
-  expect(within(artisan).queryByRole('button', { name: /Quitar logo/ })).toBeNull()
+  expect(
+    within(artisan).queryByRole('button', { name: /Quitar logo/ }),
+  ).toBeNull()
 })
 
 it('abre el modal para subir el logo desde la ficha', async () => {
@@ -730,7 +740,9 @@ it('quita el logo tras confirmar y notifica con un toast', async () => {
     id: 2,
     key: expect.stringMatching(/^[A-Za-z0-9._:-]{8,128}$/),
   })
-  expect(await screen.findByText('Logo de la entidad comercial quitado.')).toBeVisible()
+  expect(
+    await screen.findByText('Logo de la entidad comercial quitado.'),
+  ).toBeVisible()
 })
 
 it('cancelar el retiro conserva el logo y devuelve el foco a «Quitar»', async () => {

@@ -10,6 +10,7 @@ import type {
   OperationProjection,
   OperationReview,
   StockFilters,
+  StockPage,
   StockRow,
 } from './types'
 
@@ -20,7 +21,7 @@ export function createInventoryApi(client: ApiClient) {
     client.request<T>(`${BASE}${path}`, { method: 'POST', body })
 
   return {
-    stock(filters: StockFilters = {}): Promise<Page<StockRow>> {
+    stock(filters: StockFilters = {}): Promise<StockPage> {
       return client.request(
         `${BASE}/${buildQuery({
           search: filters.search,

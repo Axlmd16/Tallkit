@@ -2,6 +2,7 @@ import { ArrowLeft } from '@phosphor-icons/react'
 import { Link, useParams } from 'react-router'
 
 import { useOperation } from '@/features/inventory/hooks'
+import { NoCost } from '@/features/inventory/NoCost'
 import { kindLabels, operationStateLabels } from '@/features/inventory/types'
 import { Button, InlineNotice, LoadingState, StatusBadge } from '@/shared/ui'
 
@@ -117,7 +118,13 @@ export function InventoryOperationDetailPage() {
         <section aria-label="Valoración" className={`${panel} px-4 py-3`}>
           <h2 className="text-[14.5px] font-semibold text-ink">Valoración</h2>
           <p className="mt-1 text-[13px] tabular-nums">
-            Costo unitario USD {op.unit_cost} · valor USD {op.entry_value}
+            {op.entry_value === null ? (
+              <NoCost />
+            ) : (
+              <>
+                Costo unitario USD {op.unit_cost} · valor USD {op.entry_value}
+              </>
+            )}
           </p>
         </section>
       )}
@@ -159,16 +166,28 @@ export function InventoryOperationDetailPage() {
                       Movimiento {m.ordinal}
                     </td>
                     <td className="h-11 px-4 text-right">
-                      USD {m.applied_unit_cost}
+                      {m.applied_unit_cost === null ? (
+                        <NoCost />
+                      ) : (
+                        `USD ${m.applied_unit_cost}`
+                      )}
                     </td>
                     <td className="h-11 px-4 text-right">
-                      USD {m.value_delta}
+                      {m.value_delta === null ? (
+                        <NoCost />
+                      ) : (
+                        `USD ${m.value_delta}`
+                      )}
                     </td>
                     <td className="h-11 px-4 text-right">
                       USD {m.rounding_adjustment}
                     </td>
                     <td className="h-11 px-4 text-right">
-                      USD {m.value_after}
+                      {m.value_after === null ? (
+                        <NoCost />
+                      ) : (
+                        `USD ${m.value_after}`
+                      )}
                     </td>
                   </tr>
                 ))}

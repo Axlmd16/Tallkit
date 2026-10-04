@@ -85,11 +85,11 @@ export function VoidDialog({
 
   return (
     <Dialog
-      description="Ingreso del RUC comercial. Anular compensa exactamente su efecto en las existencias y conserva el original con su número. No representa una devolución física al proveedor."
+      description="Anular compensa exactamente su efecto en las existencias y conserva la entrada con su número. No es una devolución al proveedor."
       onClose={onClose}
       open={open}
       {...(returnFocusRef ? { returnFocusRef } : {})}
-      title="Anular ingreso de mercadería"
+      title="Anular entrada"
       tone="danger"
     >
       <div className="space-y-4">
@@ -97,12 +97,12 @@ export function VoidDialog({
           <LoadingState label="Calculando el efecto…" />
         )}
         {problem && (
-          <InlineNotice title="No se anuló el ingreso" tone="danger">
+          <InlineNotice title="No se anuló la entrada" tone="danger">
             {problem.message}
           </InlineNotice>
         )}
         {review && review.issues.length > 0 && (
-          <InlineNotice title="No se puede anular este ingreso" tone="danger">
+          <InlineNotice title="No se puede anular esta entrada" tone="danger">
             <ul className="list-disc pl-5">
               {review.issues.map((issue) => (
                 <li key={`${issue.product_id}-${issue.code}`}>
@@ -162,7 +162,7 @@ export function VoidDialog({
         </Field>
         <div className="flex justify-end gap-3">
           <Button onClick={onClose} type="button" variant="secondary">
-            Conservar ingreso
+            Conservar entrada
           </Button>
           <Button
             disabled={pending || !review?.can_void || Boolean(reasonError)}
@@ -170,7 +170,7 @@ export function VoidDialog({
             type="button"
             variant="danger-solid"
           >
-            {pending ? 'Anulando…' : 'Anular ingreso'}
+            {pending ? 'Anulando…' : 'Anular entrada'}
           </Button>
         </div>
       </div>

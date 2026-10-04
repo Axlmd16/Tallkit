@@ -374,7 +374,7 @@ it('keeps the active option visible when its group is collapsed', async () => {
   await user.click(group)
 
   expect(group).toHaveAttribute('aria-expanded', 'false')
-  expect(screen.getByRole('link', { name: 'Ingresos' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: 'Entradas' })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -413,7 +413,7 @@ it('uses group icons with a popover on compact viewports', async () => {
   const popover = screen.getByRole('group', { name: 'Compras e inventario' })
   expect(group).toHaveAttribute('aria-expanded', 'true')
   expect(
-    within(popover).getByRole('link', { name: 'Ingresos' }),
+    within(popover).getByRole('link', { name: 'Entradas' }),
   ).toHaveAttribute('aria-current', 'page')
 
   await user.keyboard('{Escape}')

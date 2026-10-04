@@ -16,6 +16,7 @@ import {
 } from '@/features/catalog-common/StateChangeDialog'
 import { TaxLine } from '@/features/catalog-common/TaxLine'
 import { useStockItem } from '@/features/inventory/hooks'
+import { NoCost } from '@/features/inventory/NoCost'
 import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { useProduct, useProductMutations } from '@/features/products/hooks'
 import { inventoryAmount } from '@/features/products/format'
@@ -277,7 +278,13 @@ export function ProductDetailPage() {
                               Costo promedio
                             </dt>
                             <dd className="mt-0.5 font-medium text-ink tabular-nums">
-                              {inventoryAmount(stock.data.average_cost)}
+                              {stock.data.cost_registered === false ? (
+                                <NoCost />
+                              ) : (
+                                inventoryAmount(
+                                  stock.data.average_cost ?? undefined,
+                                )
+                              )}
                             </dd>
                           </div>
                           <div>
@@ -285,7 +292,13 @@ export function ProductDetailPage() {
                               Valor inventariable
                             </dt>
                             <dd className="mt-0.5 font-medium text-ink tabular-nums">
-                              {inventoryAmount(stock.data.inventory_value)}
+                              {stock.data.cost_registered === false ? (
+                                <NoCost />
+                              ) : (
+                                inventoryAmount(
+                                  stock.data.inventory_value ?? undefined,
+                                )
+                              )}
                             </dd>
                           </div>
                         </dl>

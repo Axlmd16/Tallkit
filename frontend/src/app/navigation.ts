@@ -156,7 +156,7 @@ export const navigationGroups: readonly NavGroup[] = [
       },
       {
         icon: DownloadSimple,
-        label: 'Ingresos',
+        label: 'Entradas',
         to: '/purchases',
         permission: 'ingresos.ver',
       },

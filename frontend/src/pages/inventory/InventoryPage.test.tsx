@@ -304,3 +304,75 @@ it('muestra reservado y disponible junto a la existencia', () => {
   expect(screen.getAllByText('Reservado').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Disponible').length).toBeGreaterThan(0)
 })
+
+it('el Administrador ve el valor del inventario y cuántos productos quedan fuera por no tener costo', async () => {
+  mocks.permissions = ['inventario.ver', 'inventario.ver_valorizacion']
+  mocks.stock = {
+    isPending: false,
+    isError: false,
+    data: {
+      count: 2,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      valuation: { total_value: '40.000000', products_without_cost: 1 },
+      results: [
+        row('Aceite', '7', {
+          cost_registered: true,
+          average_cost: '2.000000',
+          inventory_value: '14.000000',
+        }),
+        row('Filtro', '8', {
+          cost_registered: false,
+          average_cost: null,
+          inventory_value: null,
+        }),
+      ],
+    },
+  }
+  renderPage()
+  const summary = screen.getByLabelText('Valor del inventario')
+  expect(summary).toHaveTextContent('USD 40.000000')
+  expect(summary).toHaveTextContent('1 sin costo')
+  await userEvent.hover(
+    within(summary).getByRole('button', {
+      name: /productos sin costo registrado/i,
+    }),
+  )
+  expect(await screen.findByText(/no suma a este valor/)).toBeInTheDocument()
+  expect(screen.getAllByText('Sin costo').length).toBeGreaterThanOrEqual(2)
+  expect(screen.queryByText('USD null')).toBeNull()
+})
+
+it('sin productos sin costo no se muestra ninguna advertencia', () => {
+  mocks.permissions = ['inventario.ver', 'inventario.ver_valorizacion']
+  mocks.stock = {
+    isPending: false,
+    isError: false,
+    data: {
+      count: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      valuation: { total_value: '14.000000', products_without_cost: 0 },
+      results: [
+        row('Aceite', '7', {
+          cost_registered: true,
+          average_cost: '2.000000',
+          inventory_value: '14.000000',
+        }),
+      ],
+    },
+  }
+  renderPage()
+  expect(screen.getByLabelText('Valor del inventario')).toHaveTextContent(
+    'USD 14.000000',
+  )
+  expect(screen.queryByText(/sin costo/i)).toBeNull()
+})
+
+it('la interfaz operativa no recibe ni muestra el valor del inventario ni avisos de costo', () => {
+  renderPage()
+  expect(screen.queryByLabelText('Valor del inventario')).toBeNull()
+  expect(screen.queryByText(/sin costo/i)).toBeNull()
+})

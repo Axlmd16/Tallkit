@@ -229,3 +229,21 @@ it('muestra reservado, disponible y las órdenes que sostienen la reserva', () =
     '/maintenance/9?tab=parts',
   )
 })
+
+it('un producto sin costo registrado no muestra costo ni valor, ni los presenta como cero', () => {
+  mocks.stock = {
+    isPending: false,
+    isError: false,
+    data: {
+      quantity: '5',
+      cost_registered: false,
+      average_cost: null,
+      inventory_value: null,
+    },
+  }
+  renderPage()
+  const stock = screen.getByLabelText('Existencias')
+  expect(stock).toHaveTextContent('Costo promedioSin costo')
+  expect(stock).toHaveTextContent('Valor inventariableSin costo')
+  expect(stock).not.toHaveTextContent('USD 0')
+})

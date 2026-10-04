@@ -26,8 +26,8 @@ import { KardexPage } from '@/pages/inventory/KardexPage'
 import { ProductDetailPage } from '@/pages/products/ProductDetailPage'
 import { ProductEditorPage } from '@/pages/products/ProductEditorPage'
 import { ProductsPage } from '@/pages/products/ProductsPage'
+import { EntryPage } from '@/pages/purchases/EntryPage'
 import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
-import { PurchaseEditorPage } from '@/pages/purchases/PurchaseEditorPage'
 import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
 import { MaintenanceOrderDetailPage } from '@/pages/maintenance/MaintenanceOrderDetailPage'
 import { ArtisanReceivablesPage } from '@/pages/maintenance/ArtisanReceivablesPage'
@@ -250,7 +250,7 @@ export const appRoutes: RouteObject[] = [
             path: '/purchases/new',
             element: (
               <PermissionGuard permission="ingresos.crear">
-                <PurchaseEditorPage />
+                <EntryPage />
               </PermissionGuard>
             ),
           },
@@ -259,14 +259,6 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="ingresos.ver">
                 <PurchaseDetailPage />
-              </PermissionGuard>
-            ),
-          },
-          {
-            path: '/purchases/:id/edit',
-            element: (
-              <PermissionGuard permission="ingresos.crear">
-                <PurchaseEditorPage />
               </PermissionGuard>
             ),
           },

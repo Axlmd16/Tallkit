@@ -10,83 +10,60 @@ function fakeClient() {
 }
 
 describe('purchasesApi', () => {
-  it('lista con filtros de proveedor, estado y período en snake_case', async () => {
+  it('lista con filtros de estado, período y usuario en snake_case', async () => {
     const { client, request } = fakeClient()
     await createPurchasesApi(client).list({
-      supplierId: 3,
       state: 'CONFIRMED',
       dateFrom: '2026-01-01',
       dateTo: '2026-01-31',
+      registeredBy: 4,
       page: 2,
     })
     expect(request).toHaveBeenCalledWith(
-      '/purchases/?supplier_id=3&state=CONFIRMED&date_from=2026-01-01&date_to=2026-01-31&page=2',
+      '/purchases/?state=CONFIRMED&date_from=2026-01-01&date_to=2026-01-31&registered_by=4&page=2',
     )
   })
 
-  it('las escrituras llevan la clave y las lecturas de revisión no', async () => {
+  it('la revisión no lleva clave y el registro sí, sin convertir decimales', async () => {
     const { client, request } = fakeClient()
     const api = createPurchasesApi(client)
-    await api.preview(7)
-    expect(request).toHaveBeenLastCalledWith('/purchases/7/preview/', {
+    const input = {
+      lines: [{ product_id: 1, quantity: '2', unit_cost: '0.335000' }],
+      supplier_id: 3,
+      reference: 'F-1',
+    }
+    await api.reviewEntry(input)
+    expect(request).toHaveBeenLastCalledWith('/purchases/entries/review/', {
+      method: 'POST',
+      body: input,
+    })
+    await api.registerEntry(input, 'key-1')
+    expect(request).toHaveBeenLastCalledWith('/purchases/entries/', {
+      method: 'POST',
+      body: { ...input, idempotency_key: 'key-1' },
+    })
+  })
+
+  it('una entrada mínima solo envía productos y cantidades', async () => {
+    const { client, request } = fakeClient()
+    await createPurchasesApi(client).registerEntry(
+      { lines: [{ product_id: 9, quantity: '1' }] },
+      'k',
+    )
+    expect(request).toHaveBeenCalledWith('/purchases/entries/', {
+      method: 'POST',
+      body: { lines: [{ product_id: 9, quantity: '1' }], idempotency_key: 'k' },
+    })
+  })
+
+  it('la anulación usa la revisión firmada y su clave', async () => {
+    const { client, request } = fakeClient()
+    const api = createPurchasesApi(client)
+    await api.voidPreview(1)
+    expect(request).toHaveBeenLastCalledWith('/purchases/1/void-preview/', {
       method: 'POST',
       body: {},
     })
-    await api.confirm(
-      7,
-      { expectedVersion: 2, reviewToken: 'tok', acknowledgedMatches: [4] },
-      'key-1',
-    )
-    expect(request).toHaveBeenLastCalledWith('/purchases/7/confirm/', {
-      method: 'POST',
-      body: {
-        expected_version: 2,
-        review_token: 'tok',
-        acknowledged_matches: [4],
-        idempotency_key: 'key-1',
-      },
-    })
-  })
-
-  it('la edición envía versión esperada y clave sin convertir decimales', async () => {
-    const { client, request } = fakeClient()
-    await createPurchasesApi(client).update(
-      5,
-      {
-        lines: [
-          {
-            product_id: 1,
-            quantity: '2',
-            unit_cost: '0.335000',
-            tax_definition_id: 9,
-            tax_recoverability: 'RECOVERABLE',
-          },
-        ],
-      },
-      3,
-      'key-2',
-    )
-    expect(request).toHaveBeenCalledWith('/purchases/5/', {
-      method: 'PATCH',
-      body: {
-        lines: [
-          {
-            product_id: 1,
-            quantity: '2',
-            unit_cost: '0.335000',
-            tax_definition_id: 9,
-            tax_recoverability: 'RECOVERABLE',
-          },
-        ],
-        expected_version: 3,
-        idempotency_key: 'key-2',
-      },
-    })
-  })
-
-  it('anulación, reemplazo y opciones tributarias usan sus rutas', async () => {
-    const { client, request } = fakeClient()
-    const api = createPurchasesApi(client)
     await api.void(
       1,
       { expectedVersion: 2, reviewToken: 't', reason: 'Error' },
@@ -101,14 +78,28 @@ describe('purchasesApi', () => {
         idempotency_key: 'k',
       },
     })
-    await api.replacement(1, 'k2')
-    expect(request).toHaveBeenLastCalledWith('/purchases/1/replacement/', {
-      method: 'POST',
-      body: { idempotency_key: 'k2' },
-    })
-    await api.taxOptions('2026-01-15')
-    expect(request).toHaveBeenLastCalledWith(
-      '/purchases/tax-options/?document_date=2026-01-15&page_size=100',
+  })
+
+  it('los proveedores se piden a la selección mínima y no al catálogo', async () => {
+    const { client, request } = fakeClient()
+    await createPurchasesApi(client).supplierOptions('andi', 2)
+    expect(request).toHaveBeenCalledWith(
+      '/suppliers/options/?search=andi&page=2&page_size=10',
     )
+  })
+
+  it('ya no existen las rutas del flujo anterior', () => {
+    const { client } = fakeClient()
+    const api = createPurchasesApi(client) as Record<string, unknown>
+    for (const retired of [
+      'create',
+      'update',
+      'preview',
+      'confirm',
+      'replacement',
+      'taxOptions',
+    ]) {
+      expect(api[retired]).toBeUndefined()
+    }
   })
 })

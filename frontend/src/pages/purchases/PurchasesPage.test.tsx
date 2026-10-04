@@ -23,13 +23,14 @@ import { PurchasesPage } from './PurchasesPage'
 
 const summary = {
   id: 7,
+  flow: 'SIMPLE',
   state: 'CONFIRMED',
-  version: 2,
   internal_number: 'COM-ING-000007',
+  moment: '2026-10-04T15:30:00-05:00',
+  registered_by: { id: 3, name: 'Laura Vendedora' },
+  product_count: 3,
+  unit_count: '10',
   supplier: { id: 1, name: 'Repuestos SA' },
-  document: { type: 'FACTURA', reference: '001-001-123' },
-  document_date: '2026-01-15',
-  total: '22.00',
 }
 
 function Where() {
@@ -57,68 +58,103 @@ function renderPage(path = '/purchases') {
   )
 }
 
+const page = (people = [{ id: 3, name: 'Laura Vendedora' }]) => ({
+  isPending: false,
+  isError: false,
+  data: {
+    count: 1,
+    page: 1,
+    page_size: 20,
+    total_pages: 1,
+    results: [summary],
+    registered_by_options: people,
+  },
+})
+
 beforeEach(() => {
   mocks.args.length = 0
   mocks.permissions = ['ingresos.ver', 'ingresos.crear']
-  mocks.list = {
-    isPending: false,
-    isError: false,
-    data: {
-      count: 1,
-      page: 1,
-      page_size: 20,
-      total_pages: 1,
-      results: [summary],
-    },
-  }
+  mocks.list = page()
 })
 
-it('muestra fechas, estado y totales tal como los entrega el backend; el ámbito fiscal lo muestra el marco', () => {
+it('muestra número, momento, usuario, contenido y estado, sin importes', () => {
   renderPage()
   expect(screen.getAllByText('COM-ING-000007').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('Repuestos SA').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('15/01/2026').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('USD 22.00').length).toBeGreaterThan(0)
-  expect(screen.getAllByText('Confirmado').length).toBeGreaterThan(0)
-  expect(screen.queryByText('RUC comercial')).toBeNull()
+  expect(screen.getAllByText('Laura Vendedora').length).toBeGreaterThan(0)
+  expect(
+    screen.getAllByText('3 productos · 10 unidades').length,
+  ).toBeGreaterThan(0)
+  expect(screen.getAllByText('Registrada').length).toBeGreaterThan(0)
+  expect(screen.queryByText(/USD|total/i)).toBeNull()
+  expect(
+    screen.getByRole('heading', { name: 'Entradas de stock' }),
+  ).toBeInTheDocument()
 })
 
 it('filtra por estado con los segmentos de la lista', async () => {
   renderPage()
-  await userEvent.click(screen.getByRole('radio', { name: 'Anulados' }))
+  await userEvent.click(screen.getByRole('radio', { name: 'Anuladas' }))
   expect(screen.getByTestId('where')).toHaveTextContent('state=VOIDED')
 })
 
-it('los filtros de proveedor, estado y período se leen de la dirección', () => {
+it('los borradores del flujo anterior solo se ofrecen a quien ve costos', () => {
+  renderPage()
+  expect(screen.queryByRole('radio', { name: 'Sin efecto' })).toBeNull()
+  mocks.permissions = ['ingresos.ver', 'productos.ver_costos']
+  renderPage()
+  expect(screen.getByRole('radio', { name: 'Sin efecto' })).toBeInTheDocument()
+})
+
+it('lee estado, período, usuario y página de la dirección', () => {
   renderPage(
-    '/purchases?state=VOIDED&supplier_id=4&date_from=2026-01-01&date_to=2026-01-31&page=2',
+    '/purchases?state=VOIDED&date_from=2026-01-01&date_to=2026-01-31&registered_by=3&page=2',
   )
   expect(mocks.args.at(-1)).toMatchObject({
     state: 'VOIDED',
-    supplierId: 4,
     dateFrom: '2026-01-01',
     dateTo: '2026-01-31',
+    registeredBy: 3,
     page: 2,
   })
 })
 
-it('abre la ficha completa al seleccionar una fila', async () => {
+it('el filtro por usuario aparece solo si hay más de uno que haya registrado', async () => {
+  renderPage()
+  expect(screen.queryByLabelText('Registró')).toBeNull()
+  mocks.list = page([
+    { id: 3, name: 'Laura Vendedora' },
+    { id: 1, name: 'Admin' },
+  ])
+  renderPage()
+  await userEvent.selectOptions(screen.getByLabelText('Registró'), '1')
+  expect(screen.getAllByTestId('where').at(-1)).toHaveTextContent(
+    'registered_by=1',
+  )
+})
+
+it('abre la ficha completa al seleccionar una fila y recuerda de dónde vino', async () => {
   renderPage('/purchases?state=CONFIRMED')
   await userEvent.click(screen.getAllByText('COM-ING-000007')[0]!)
   expect(screen.getByTestId('where')).toHaveTextContent('/purchases/7')
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
-it('solo ofrece crear con el permiso correspondiente', () => {
+it('solo ofrece registrar con el permiso correspondiente', () => {
   mocks.permissions = ['ingresos.ver']
   renderPage()
-  expect(screen.queryByRole('button', { name: /nuevo ingreso/i })).toBeNull()
+  expect(screen.queryByRole('button', { name: /nueva entrada/i })).toBeNull()
 })
 
-it('presenta estados de carga, error recuperable y vacío sin ingresos ficticios', async () => {
+it('el botón de registrar lleva al formulario', async () => {
+  renderPage()
+  await userEvent.click(screen.getByRole('button', { name: /nueva entrada/i }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/purchases/new')
+})
+
+it('presenta estados de carga, error recuperable y vacío sin entradas ficticias', () => {
   mocks.list = { isPending: true, isError: false }
   const { unmount } = renderPage()
-  expect(screen.getByText('Cargando ingresos…')).toBeInTheDocument()
+  expect(screen.getByText('Cargando entradas…')).toBeInTheDocument()
   unmount()
   mocks.list = { isPending: false, isError: true, refetch: vi.fn() }
   const second = renderPage()
@@ -130,8 +166,15 @@ it('presenta estados de carga, error recuperable y vacío sin ingresos ficticios
   mocks.list = {
     isPending: false,
     isError: false,
-    data: { count: 0, page: 1, page_size: 20, total_pages: 0, results: [] },
+    data: {
+      count: 0,
+      page: 1,
+      page_size: 20,
+      total_pages: 0,
+      results: [],
+      registered_by_options: [],
+    },
   }
   renderPage()
-  expect(screen.getByText('No hay ingresos')).toBeInTheDocument()
+  expect(screen.getByText('No hay entradas')).toBeInTheDocument()
 })
