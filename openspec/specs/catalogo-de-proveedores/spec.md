@@ -1,21 +1,31 @@
 # catalogo-de-proveedores Specification
 
 ## Purpose
-Registrar proveedores del ámbito comercial con solo el nombre obligatorio, identificación CI/RUC y contacto opcionales, prevención de duplicados del par tipo/documento, advertencia de nombres coincidentes, acceso exclusivo del Administrador y estados sin pérdida histórica, sin operaciones de compra, saldos ni pagos.
+Registrar y administrar proveedores del ámbito comercial con identificación y contacto opcionales, acceso completo exclusivo del Administrador y selección mínima de proveedores activos para las entradas de stock, sin saldos ni pagos a proveedores.
 ## Requirements
 ### Requirement: Acceso exclusivo de administración a proveedores
 
-Solo Administrador SHALL consultar proveedores con `proveedores.ver` y crear, editar o cambiar estado con `proveedores.gestionar`. SHALL verificarse sesión, autorización vigente, protección de escrituras y unión de roles. Vendedor y Encargado del taller sin Administrador SHALL NOT recibir datos, coincidencias de identificación ni navegación de proveedores. Trazabilidad: CT-001; actores-y-roles §3.3; RN-SEG-001…007; autorizacion-y-navegacion.
+Solo Administrador SHALL consultar proveedores con `proveedores.ver` y crear, editar o cambiar estado con `proveedores.gestionar`. SHALL verificarse sesión, autorización vigente, protección de escrituras y unión de roles. Como única excepción, quien pueda registrar entradas mediante `ingresos.crear` SHALL disponer de una selección mínima de proveedores activos que entregue solo el identificador y el nombre, con búsqueda por nombre, para elegir uno al registrar una entrada. Esa selección SHALL NOT incluir identificación, contacto, dirección, proveedores inactivos, coincidencias de identificación ni permitir escrituras. Vendedor sin Administrador SHALL NOT recibir lista, ficha ni navegación del catálogo de proveedores; Encargado del taller sin otro rol SHALL NOT recibir dato alguno de proveedores. Trazabilidad: CT-001; actores-y-roles §3.3; RN-SEG-001…007; RN-CAT-010; autorizacion-y-navegacion; proposal R4.
 
 #### Scenario: Consulta y gestión autorizadas
 - **GIVEN** un Administrador autenticado
 - **WHEN** consulta o administra un proveedor válido
 - **THEN** SHALL permitirse según su permiso
 
-#### Scenario: Acceso operativo directo
+#### Scenario: Selección mínima del Vendedor
+- **GIVEN** un Vendedor sin Administrador y proveedores activos e inactivos
+- **WHEN** busca un proveedor por nombre al registrar una entrada
+- **THEN** SHALL recibir solo identificador y nombre de los activos coincidentes, sin identificación, contacto ni inactivos
+
+#### Scenario: Acceso operativo directo al catálogo
 - **GIVEN** un Vendedor o Encargado sin Administrador
-- **WHEN** solicita lista, ficha, coincidencias o escritura
+- **WHEN** solicita lista, ficha, coincidencias o escritura del catálogo de proveedores
 - **THEN** SHALL rechazarse sin revelar datos ni cambiar registros
+
+#### Scenario: Encargado solicita la selección mínima
+- **GIVEN** un Encargado del taller sin `ingresos.crear`
+- **WHEN** solicita la selección mínima de proveedores
+- **THEN** SHALL denegarse sin devolver nombres
 
 #### Scenario: Sesión inválida
 - **GIVEN** un usuario sin sesión vigente
@@ -26,6 +36,7 @@ Solo Administrador SHALL consultar proveedores con `proveedores.ver` y crear, ed
 - **GIVEN** un Administrador que también es Vendedor
 - **WHEN** consulta proveedores
 - **THEN** SHALL conservar su permiso de Administrador
+
 
 ### Requirement: Proveedor mínimo y contacto opcional
 
@@ -121,7 +132,7 @@ El Administrador SHALL buscar por coincidencia parcial de identificación o nomb
 
 ### Requirement: Estado sin pérdida histórica ni operaciones de compra
 
-Proveedor SHALL desactivarse/reactivarse explícitamente, conservando identidad y referencias. Inactivo SHALL permanecer consultable y no disponible para nuevos ingresos; esta entrega SHALL exponer su estado y selección sin implementar ingresos. Repetir estado alcanzado SHALL ser inocuo. SHALL NOT admitirse eliminación física ordinaria ni generar compras, cuentas por pagar, pagos o saldos. No SHALL imponerse relación de proveedor único al producto ni crearse relación producto-proveedor desde este catálogo. Trazabilidad: RN-CAT-010; RF-CAT-012; DP-011; modelo-dominio-taller; exclusiones de proposal.
+Proveedor SHALL desactivarse/reactivarse explícitamente, conservando identidad y referencias. Inactivo SHALL permanecer consultable y no disponible para nuevas entradas de stock; las entradas confirmadas SHALL conservar su referencia histórica. Repetir estado alcanzado SHALL ser inocuo. SHALL NOT admitirse eliminación física ordinaria ni generar compras, cuentas por pagar, pagos o saldos. No SHALL imponerse relación de proveedor único al producto ni crearse relación producto-proveedor desde este catálogo. Trazabilidad: RN-CAT-010; RF-CAT-012; DP-011; modelo-dominio-taller; exclusiones de proposal.
 
 #### Scenario: Baja de proveedor referenciado
 - **GIVEN** un proveedor con referencias históricas

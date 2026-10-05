@@ -1,24 +1,24 @@
 # kardex-de-productos Specification
 
 ## Purpose
-Consultar el Kardex de cada producto como historia inmutable y ordenada de movimientos con saldos y costos por corte estable, correcciones mediante movimientos compensatorios, reconciliación con las posiciones de inventario y presentación paginada con filtros conservados.
+Consultar el Kardex de cada producto como historia inmutable y ordenada de movimientos con saldos y costos según autorización, origen trazable, correcciones mediante movimientos compensatorios y reconciliación con las posiciones de inventario.
 ## Requirements
 ### Requirement: Historia cronológica e inmutable por producto
 
-El **Kardex** SHALL listar los movimientos confirmados de un producto en la única bodega comercial, identificando momento efectivo, tipo, origen, referencia de operación, entrada, salida, saldo resultante y usuario responsable. SHALL distinguir compra, carga inicial, ajuste de entrada, ajuste de salida y compensaciones. El orden SHALL ser cronológico de contabilización, con desempate estable acorde con el orden en que se afectó el saldo del producto. La fecha del proveedor SHALL ser informativa, no una forma de reordenar movimientos. Originales y **movimientos inversos** SHALL permanecer visibles y vinculados. Trazabilidad: RN-INV-001/002/011/012; RF-INV-008/010; CU-008; UI-044; proposal.
+El **Kardex** SHALL listar los movimientos confirmados de un producto en la única bodega comercial, identificando momento efectivo, tipo, origen, referencia de operación, entrada, salida, saldo resultante y usuario responsable. SHALL distinguir entrada de stock, compra anterior, carga inicial, ajuste de entrada, ajuste de salida y compensaciones. El orden SHALL ser cronológico de contabilización, con desempate estable acorde con el orden en que se afectó el saldo del producto. La fecha documental conservada en compras anteriores SHALL ser informativa, no una forma de reordenar movimientos. Originales y **movimientos inversos** SHALL permanecer visibles y vinculados. Trazabilidad: RN-INV-001/002/011/012; RF-INV-008/010; CU-008; UI-044; proposal.
 
 #### Scenario: Horas coincidentes
 - **GIVEN** una entrada de 5 y una salida de 2 contabilizadas en ese orden con la misma hora visible
 - **WHEN** se consulta repetidamente el Kardex
 - **THEN** SHALL conservarse primero la entrada con saldo 5 y después la salida con saldo 3, sin invertir su orden
 
-#### Scenario: Documento antiguo recibido hoy
-- **GIVEN** movimientos ya confirmados y una compra con fecha documental anterior
-- **WHEN** se confirma hoy y se consulta el Kardex
+#### Scenario: Entrada confirmada después de movimientos anteriores
+- **GIVEN** movimientos ya confirmados de un producto y una entrada de stock válida
+- **WHEN** se confirma la entrada y se consulta el Kardex
 - **THEN** SHALL aparecer después de los efectos ya contabilizados sin cambiar sus saldos ni costos
 
 #### Scenario: Operación anulada
-- **GIVEN** una compra de 5 unidades posteriormente anulada
+- **GIVEN** una entrada de stock de 5 unidades posteriormente anulada
 - **WHEN** se consulta su historia
 - **THEN** SHALL mostrarse la entrada original y su salida compensatoria relacionadas, sin borrar ni excluir la entrada del cálculo
 
@@ -86,7 +86,7 @@ La paginación SHALL conservar saldos anteriores reales a cada movimiento y SHAL
 
 ### Requirement: Costos de Kardex según autorización
 
-Los tres roles SHALL consultar cantidades mediante `inventario.ver`. Solo Administrador con `inventario.ver_valorizacion` SHALL recibir costo unitario aplicado, valor de entrada/salida, promedio y saldo valorizado, incluida la precisión y residuos necesarios para explicar la conciliación. Resúmenes, datos de origen y errores SHALL aplicar la misma restricción. La consulta histórica SHALL usar cantidades, unidades, costos y valores conservados en el movimiento, no recalcularlos con el catálogo actual. Trazabilidad: RF-CAT-005; RF-INV-008; RN-INV-007; RN-CON-002; actores-y-roles §3.3; proposal.
+Los tres roles SHALL consultar cantidades mediante `inventario.ver`. Solo Administrador con `inventario.ver_valorizacion` SHALL recibir costo unitario aplicado, valor de entrada/salida, promedio y saldo valorizado, incluida la precisión y residuos necesarios para explicar la conciliación. Resúmenes, datos de origen y errores SHALL aplicar la misma restricción. La consulta histórica SHALL usar cantidades, unidades, costos y valores conservados en el movimiento, no recalcularlos con el catálogo actual. Un movimiento sin costo SHALL presentarse al Administrador como sin costo registrado, distinto de un costo cero, y los saldos valorizados de ese tramo SHALL indicarse como no disponibles en lugar de mostrarse en cero. La regularización producida por la primera entrada con costo SHALL ser visible y trazable para el Administrador. Trazabilidad: RF-CAT-005; RF-INV-008; RN-INV-007; RN-CON-002; actores-y-roles §3.3; proposal R1 y R3.
 
 #### Scenario: Kardex administrativo valorizado
 - **GIVEN** un Administrador autorizado y movimientos con costos históricos
@@ -103,24 +103,40 @@ Los tres roles SHALL consultar cantidades mediante `inventario.ver`. Solo Admini
 - **WHEN** se consulta la fila histórica
 - **THEN** SHALL conservar su identificación y unidad aplicadas y no recalcular costos con el catálogo vigente
 
+#### Scenario: Movimiento sin costo registrado
+- **GIVEN** un producto sin costo registrado con una entrada de 5 unidades y una salida de 2
+- **WHEN** el Administrador consulta su Kardex
+- **THEN** SHALL ver cantidades y saldos 5 y 3, con costo y valor indicados como sin costo registrado y no como cero
+
+#### Scenario: Regularización visible
+- **GIVEN** un producto sin costo registrado que recibe su primera entrada con costo
+- **WHEN** el Administrador consulta el Kardex
+- **THEN** SHALL identificarse en esa entrada el valor asignado a las unidades previas, y los movimientos anteriores SHALL permanecer sin costo
+
 ### Requirement: Acceso al origen y correcciones enlazadas
 
-Cada movimiento SHALL identificar una referencia interna trazable de su operación y, cuando esté autorizado, permitir abrir el documento de origen. Abrir compras SHALL exigir `ingresos.ver`; consultar sus cantidades en Kardex SHALL NOT concederlo. Las compensaciones SHALL enlazar el movimiento original y viceversa. La referencia externa del proveedor y su identidad privada SHALL permanecer restringidas a permisos de compra. Trazabilidad: RN-INV-002/012; RF-INV-008/010; RN-SEG-007; CU-008/015; proposal.
+Cada movimiento SHALL identificar una referencia interna trazable de su operación y, cuando esté autorizado, permitir abrir el documento de origen. Abrir una entrada o compra SHALL exigir `ingresos.ver`; consultar sus cantidades en Kardex SHALL NOT concederlo. El Vendedor, que posee `ingresos.ver`, SHALL abrir el origen de una entrada recibiendo productos, cantidades, usuario y estado, sin costos ni valores. Las compensaciones SHALL enlazar el movimiento original y viceversa. Los datos privados del proveedor SHALL permanecer restringidos al Administrador. Trazabilidad: RN-INV-002/012; RF-INV-008/010; RN-SEG-007; CU-008/015; proposal R3 y R4.
 
-#### Scenario: Administrador abre la compra
-- **GIVEN** un movimiento de compra y un Administrador con permisos
+#### Scenario: Administrador abre la entrada
+- **GIVEN** un movimiento de entrada y un Administrador con permisos
 - **WHEN** abre su origen
-- **THEN** SHALL mostrarse el documento real con su estado, número y movimientos relacionados
+- **THEN** SHALL mostrarse el documento real con su estado, número, costos y movimientos relacionados
 
-#### Scenario: Operativo intenta abrir compra
-- **GIVEN** un usuario con `inventario.ver` sin `ingresos.ver`
+#### Scenario: Vendedor abre la entrada
+- **GIVEN** un Vendedor sin Administrador y un movimiento de entrada
+- **WHEN** abre su origen
+- **THEN** SHALL mostrarse la entrada con productos, cantidades, usuario y estado, sin costos, valores ni datos privados del proveedor
+
+#### Scenario: Encargado intenta abrir la entrada
+- **GIVEN** un Encargado del taller con `inventario.ver` y sin `ingresos.ver`
 - **WHEN** intenta acceder directamente al documento de una entrada
-- **THEN** SHALL denegarse sin revelar compra, proveedor o costos; la interfaz SHALL conservar únicamente la referencia interna autorizada
+- **THEN** SHALL denegarse sin revelar la entrada, el proveedor o costos; la interfaz SHALL conservar únicamente la referencia interna autorizada
 
 #### Scenario: Navegación entre compensación y original
 - **GIVEN** un movimiento corregido y su compensación
 - **WHEN** se consulta cualquiera de ellos
 - **THEN** SHALL identificarse el vínculo y sentido de la corrección sin ocultar la operación original
+
 
 ### Requirement: Experiencia de consulta y verificación de integridad
 
@@ -140,7 +156,5 @@ El Kardex SHALL ofrecer navegación accesible, contexto de producto, filtros con
 - **GIVEN** un usuario que navega por teclado y una consulta fallida
 - **WHEN** se presenta el estado
 - **THEN** SHALL comunicarse el error y ofrecer reintento sin presentar historial vacío o saldo cero como información confirmada
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
 
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
