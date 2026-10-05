@@ -267,4 +267,10 @@ Resultado registrado (2026-10-05):
 - Pendiente de confirmar fuera del sistema: la leyenda exacta de Negocio Popular en la factura electrónica (el XSD 2.1.0 solo admite `CONTRIBUYENTE RÉGIMEN RIMPE`), el tope de consumidor final para ese régimen (el sistema aplica USD 50 a todos) y el tratamiento de retenciones.
 - Aviso operativo: al cambiar de régimen los precios de catálogo son finales con impuesto incluido, de modo que el IVA sale de ese mismo precio; subir precios para conservar el ingreso neto es una decisión del negocio.
 
+Verificación completa antes de integrar (2026-10-05), ejecutada a petición del titular en lugar de las pruebas focalizadas:
+- Backend: `pytest` completo, 2513 pruebas, con cobertura 92,36 % (umbral 85 %); `ruff format --check`, `ruff check`, `mypy src tests` sin errores en 479 archivos, `manage.py check` y `makemigrations --check` sin cambios. Falló una prueba de migración de readiness (datos previos sin las columnas posteriores del logotipo) y una de fronteras (el taller no admitía a fiscal como consumidor de `workshop.application.fiscal_source`); ambas corregidas.
+- Frontend: `format:check`, `lint` (sin avisos), `typecheck`, `test:coverage` con 1266 pruebas (funciones 86,32 %, ramas 80,02 %, umbral 85 % y 80 %) y `build`; la cobertura estaba bajo el umbral y se añadieron pruebas de contrato de los hooks fiscales y de facturación del mantenimiento, de puntos de emisión y de correspondencias.
+- `docker compose config` y `openspec validate --strict` correctos.
+- No ejecutado: la suite E2E de Playwright con el navegador; los E2E del grupo 9 se ejecutaron antes de las enmiendas del grupo 13 y las pantallas nuevas («Programar cambio» y «Programar tarifa») solo tienen pruebas de componente.
+
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).
