@@ -252,7 +252,7 @@ Cambio `simplificar-flujo-fiscal-y-configuracion-centralizada`: 19 requisitos y 
 
 ## Estructurar perfil del emisor y códigos fiscales
 
-Cambio `estructurar-perfil-del-emisor-y-codigos-fiscales`: 8 requisitos y 46 escenarios en las dos specs fiscales delta (los de catálogos están en `cobertura-catalogos.md`). Matriz cerrada el 2026-10-05: cada fila indica las pruebas reales que la cubren; todas pasan en la verificación focalizada registrada en `tasks.md`.
+Cambio `estructurar-perfil-del-emisor-y-codigos-fiscales`: 8 requisitos y 45 escenarios en las dos specs fiscales delta (los de catálogos están en `cobertura-catalogos.md`). Matriz cerrada el 2026-10-05: cada fila indica las pruebas reales que la cubren; todas pasan en la verificación focalizada registrada en `tasks.md`.
 
 | Capacidad / requisito | Escenarios | Tareas | Prueba o evidencia | Estado |
 |---|---|---|---|---|
