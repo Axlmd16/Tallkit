@@ -23,13 +23,15 @@ Resultado registrado (2026-10-04):
 
 Dependencias: grupo 1. Diseño 1; spec `configuracion-operativa-y-fiscal`, «Perfil fiscal adicional…» y «Calificación artesanal con número y vencimiento».
 
-- [ ] 2.1 Escribir primero en `backend/tests/workshop_configuration/test_electronic_profile.py` casos rojos del formato 2: régimen solo entre los tres valores; contabilidad solo `SI`/`NO`; agente de retención con resolución de 1 a 8 dígitos y rechazo de `NAC-0012`, nueve dígitos y ausencia de número; contribuyente especial alfanumérico de 1 a 13; rechazo de la clave `rimpe` y de texto libre como «Sí, desde 2024».
-- [ ] 2.2 Añadir casos rojos de la calificación artesanal: número de 1 a 50 sin espacios exteriores, organismo obligatorio, vencimiento obligatorio y posterior al inicio, y *No aplica* sin datos.
-- [ ] 2.3 Añadir casos rojos de la función pura de leyenda: `RIMPE_EMPRENDEDOR` produce `CONTRIBUYENTE RÉGIMEN RIMPE`, `GENERAL` ninguna.
-- [ ] 2.4 Implementar en `backend/src/workshop_configuration/domain/electronic_profile.py` los analizadores por clave del formato 2 y la leyenda derivada, conservando el analizador de formato 1 solo para lectura; hacer pasar 2.1–2.3 y refactorizar.
-- [ ] 2.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration/test_electronic_profile.py`, Ruff sobre los archivos tocados y mypy sobre `src/workshop_configuration`.
+- [x] 2.1 Escribir primero en `backend/tests/workshop_configuration/test_electronic_profile.py` casos rojos del formato 2: régimen solo entre los tres valores; contabilidad solo `SI`/`NO`; agente de retención con resolución de 1 a 8 dígitos y rechazo de `NAC-0012`, nueve dígitos y ausencia de número; contribuyente especial alfanumérico de 1 a 13; rechazo de la clave `rimpe` y de texto libre como «Sí, desde 2024».
+- [x] 2.2 Añadir casos rojos de la calificación artesanal: número de 1 a 50 sin espacios exteriores, organismo obligatorio, vencimiento obligatorio y posterior al inicio, y *No aplica* sin datos.
+- [x] 2.3 Añadir casos rojos de la función pura de leyenda: `RIMPE_EMPRENDEDOR` produce `CONTRIBUYENTE RÉGIMEN RIMPE`, `GENERAL` ninguna.
+- [x] 2.4 Implementar en `backend/src/workshop_configuration/domain/electronic_profile.py` los analizadores por clave del formato 2 y la leyenda derivada, conservando el analizador de formato 1 solo para lectura; hacer pasar 2.1–2.3 y refactorizar.
+- [x] 2.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration/test_electronic_profile.py`, Ruff sobre los archivos tocados y mypy sobre `src/workshop_configuration`.
 
 Evidencia del grupo: rojo y verde registrados; el dominio no importa Django ni DRF.
+
+Resultado registrado (2026-10-04): 55 de 69 pruebas rojas por `AttributeError` (las funciones no existían) y 69 de 69 verdes tras implementar `parse_closed_condition`, `parse_profile_conditions`, `condition_payload` y `regime_legend`; Ruff y mypy sin hallazgos en `src/workshop_configuration`. Los errores de campo del perfil completo se califican como `<condición>.<campo>`.
 
 ## 3. Revisiones del perfil, estado y avisos
 
