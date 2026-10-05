@@ -1121,3 +1121,34 @@ def test_snapshots_of_earlier_formats_are_read_back_unchanged(
         assert detail.snapshot == legacy
         assert detail.technical is not None
         assert "tax_profile" not in detail.technical["issuer"]
+
+
+def test_popular_business_regime_blocks_only_the_invoice_and_not_internal_sales(
+    prepared_context: dict[str, Any], confirmed_sale: Any, seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import review
+
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    save_profile(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_revision=1,
+        idempotency_key="profile:comercial:popular",
+        payload={"conditions": profile_conditions(tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))},
+    )
+
+    # La venta interna, con su número y sus importes, se confirma igual que antes.
+    internal = confirmed_sale(price="40.00", condition="CONTADO")
+    assert internal["body"]["grand_total"] == "40.00"
+    assert internal["body"]["internal_number"].startswith("COM-VEN-")
+
+    # Lo que se bloquea es solo preparar la factura, con la causa dirigida al Administrador.
+    prep_id = prepared_context["preparation_id"]
+    _fill_draft(seller, prep_id, prepared_context["point_id"])
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.token is None
+    [impediment] = [
+        i for i in result.impediments if i["code"] == "conditions.tax_regime.unsupported"
+    ]
+    assert impediment["audience"] == "ADMINISTRATOR"
+    assert "notas de venta" in impediment["message"]

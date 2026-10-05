@@ -134,7 +134,7 @@ La migración de `workshop` depende de la de `catalog`.
 
 ### 10. Frontend
 
-- `ProfileConditionsSection.tsx`: selectores para régimen y contabilidad; para agente de retención, contribuyente especial y calificación, un selector *No aplica / Aplica* que revela los campos. Leyenda del régimen como texto de solo lectura. Revisión en formato 1: aviso con detalle desplegable y botón para declarar de nuevo. Sigue los patrones vigentes: formulario corto en modal, confirmación con toast, avisos como iconos con detalle.
+- `ProfileConditionsSection.tsx`: selectores para régimen y contabilidad; para agente de retención, contribuyente especial y calificación, un selector *No aplica / Aplica* que revela los campos. Leyenda del régimen como texto de solo lectura. Revisión en formato 1: aviso «Perfil anterior» con detalle desplegable, todas las condiciones como «Sin declarar» y el texto anterior solo de lectura en la información avanzada; se vuelve a declarar con las acciones «Declarar» de cada fila, sin un botón aparte, porque ese botón no añadiría una función distinta. Sigue los patrones vigentes: formulario corto en modal, confirmación con toast, avisos como iconos con detalle.
 - Aviso de vencimiento de la calificación en la subsección del perfil, con color de advertencia y texto con fecha y días.
 - Servicios: columna y campo de solo lectura con el código; búsqueda por código. La operación artesanal muestra el código junto al nombre.
 - Productos: `maxLength` y mensaje del límite; filtro de códigos por corregir.

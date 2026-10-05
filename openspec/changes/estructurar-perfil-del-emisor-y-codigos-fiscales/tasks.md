@@ -163,7 +163,7 @@ Resultado registrado (2026-10-05):
 Dependencias: grupo 8. Diseño 10; spec `configuracion-operativa-y-fiscal`.
 
 - [x] 9.1 Actualizar los tipos y el cliente de la configuración fiscal al contrato nuevo, con sus pruebas.
-- [x] 9.2 Escribir primero pruebas Vitest de `ProfileConditionsSection.tsx`: selectores de régimen y contabilidad; *No aplica / Aplica* revela resolución o datos de calificación; leyenda del régimen de solo lectura; errores de campo del backend junto a cada control; revisión de formato 1 con aviso y acción de declarar de nuevo; sin campo de texto libre para ninguna condición.
+- [x] 9.2 Escribir primero pruebas Vitest de `ProfileConditionsSection.tsx`: selectores de régimen y contabilidad; *No aplica / Aplica* revela resolución o datos de calificación; leyenda del régimen de solo lectura; errores de campo del backend junto a cada control; revisión de formato 1 con aviso y condiciones «Sin declarar» que se declaran de nuevo con las acciones de cada fila; sin campo de texto libre para ninguna condición.
 - [x] 9.3 Implementar el formulario siguiendo los patrones vigentes: modal para formulario corto, toast de confirmación, campos que llenan el ancho y avisos como iconos con detalle desplegable.
 - [x] 9.4 Escribir primero pruebas del aviso de vencimiento (fecha y días, color de advertencia, ausente fuera del umbral) y de `readiness.ts` con las causas nuevas; implementar.
 - [x] 9.5 Verificar con Vitest sobre los archivos de `frontend/src/features/fiscal/configuration` tocados, `tsc`, ESLint y Prettier sobre esos archivos.
