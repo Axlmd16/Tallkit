@@ -171,6 +171,10 @@ Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE
 
 Reconocimiento vigente que la Junta Nacional de Defensa del Artesano otorga al artesano y que sustenta la tarifa 0 % de sus servicios. Se declara con número, organismo, fecha de inicio y fecha de vencimiento obligatoria; el sistema avisa al Administrador 60 días antes del vencimiento y, mientras esté vigente, solo prepara líneas con IVA 0 %. No acredita el beneficio legal ante el SRI.
 
+### Negocio Popular
+
+Valor del régimen tributario RIMPE para contribuyentes pequeños: no cobra IVA (sus operaciones llevan tarifa 0 %) y puede emitir comprobantes electrónicos de forma voluntaria. Al superar el tope de ingresos pasa a RIMPE Emprendedor, lo que el Administrador declara con el régimen nuevo y con la tarifa y su correspondencia con el SRI programadas para esa fecha.
+
 ### Agente de retención
 
 Contribuyente que el SRI obliga a retener impuestos cuando paga a un proveedor. El perfil lo declara con el número de su resolución (hasta 8 dígitos) cuando aplica. Es una condición del emisor; las retenciones que los clientes aplican al taller al pagar son un asunto distinto.
