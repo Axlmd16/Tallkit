@@ -19,3 +19,6 @@
 | RUC comercial | `docs/negocio/producto/glosario.md` | Identidad cuyo logotipo encabeza la etiqueta de producto. |
 | Entrada de stock | `docs/negocio/producto/glosario.md` | Operación que registran UI-040 a UI-042. |
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Marca que muestran UI-042 y UI-043 al Administrador. |
+| Perfil del emisor | `docs/negocio/producto/glosario.md` | Perfil tributario de UI-019 y emisor preparado de UI-059. |
+| Calificación artesanal | `docs/negocio/producto/glosario.md` | Aviso «Calificación por vencer» de UI-019. |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Dato de solo lectura de UI-034 y UI-035. |

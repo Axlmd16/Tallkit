@@ -113,7 +113,7 @@
 2. Registra o actualiza sus datos permitidos.
 3. Configura impuestos o tarifas con fecha de vigencia.
 4. Configura series, secuenciales, umbrales y formas de pago habilitadas según decisiones aprobadas.
-4a. En la pestaña *Facturación electrónica* declara el perfil tributario, los establecimientos y el punto predeterminado, las correspondencias con el catálogo oficial del SRI, las formas de pago SRI habilitadas (en V1 solo 01 y 20) y, de forma opcional, los metadatos del certificado. El sistema muestra el estado del perfil con sus causas y mantiene producción bloqueada.
+4a. En la pestaña *Facturación electrónica* declara el perfil tributario (régimen y contabilidad con listas cerradas, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y la calificación artesanal con número, organismo y vencimiento), los establecimientos y el punto predeterminado, las correspondencias con el catálogo oficial del SRI, las formas de pago SRI habilitadas (en V1 solo 01 y 20) y, de forma opcional, los metadatos del certificado. El sistema muestra el estado del perfil con sus causas y mantiene producción bloqueada.
 5. El sistema valida solapamientos, unicidad y permisos.
 6. El administrador confirma y el sistema registra la auditoría.
 
@@ -124,6 +124,9 @@
 - 5c. Se edita una configuración usada históricamente: se crea una nueva vigencia en lugar de alterar documentos.
 - 5d. Se intenta habilitar una forma de pago distinta de 01 o 20, configurar producción o designar un punto de otra entidad: se rechaza sin cambios.
 - 5e. Se cambia la configuración fiscal después de preparar datos fiscales: las preparaciones locales completadas conservan la configuración que usaron.
+- 5f. Un valor queda fuera de las opciones o su formato no es el del comprobante, o la calificación artesanal no trae vencimiento: se rechaza el campo sin guardar una revisión parcial.
+- 5g. La calificación artesanal vence en 60 días o menos: se muestra un aviso con la fecha y los días restantes; vencida, el perfil requiere revisión y no se preparan facturas de esa entidad.
+- 5h. La revisión vigente del perfil está escrita como texto libre: se muestra como pendiente de declarar de nuevo y la anterior se conserva como historia.
 
 **Garantía de éxito:** los parámetros futuros se aplican a la entidad y período correctos.  
 **Garantía mínima:** ningún documento confirmado cambia retroactivamente.
@@ -195,7 +198,7 @@
 
 **Alternativas y excepciones**
 
-- 4a. Código interno repetido, código del fabricante repetido para la misma marca o importe negativo: se rechaza.
+- 4a. Código interno repetido o de más de 25 caracteres, código del fabricante repetido para la misma marca o importe negativo: se rechaza.
 - 5a. Se desactiva un elemento: no se usa en operaciones nuevas y permanece en históricas.
 - 5b. Se modifica precio: el nuevo valor no altera líneas históricas.
 - 5c. Se marca un kit comprado: se trata como producto completo; cualquier desarme se realiza con `CU-022`.
@@ -618,7 +621,7 @@
 
 ### CU-027 — Preparar información fiscal
 
-**Actores:** Administrador o Vendedor para venta comercial; Administrador o Encargado para operación artesanal. **Precondición:** operación confirmada y vigente. El actor crea el borrador, declara receptor, punto, ambiente de pruebas y formas fiscales, revisa impedimentos y completa una instantánea local. El sistema no cobra, transmite ni autoriza.
+**Actores:** Administrador o Vendedor para venta comercial; Administrador o Encargado para operación artesanal. **Precondición:** operación confirmada y vigente. El actor crea el borrador, declara receptor, punto, ambiente de pruebas y formas fiscales, revisa impedimentos y completa una instantánea local que conserva también el emisor estructurado. Un código de línea de más de 25 caracteres, una descripción de más de 300 o una tarifa distinta de IVA 0 % con calificación artesanal vigente quedan como impedimentos que resuelve el Administrador. El sistema no cobra, transmite ni autoriza.
 
 ### CU-028 — Incorporar evidencia fiscal externa
 

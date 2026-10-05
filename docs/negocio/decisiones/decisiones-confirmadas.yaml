@@ -186,6 +186,27 @@ context: |
     El Vendedor nunca recibe costos, promedio ni valoración. Queda pendiente la validación
     con un contador del efecto de dejar de registrar el IVA de compras y de mantener
     existencias sin valor.
+  - DP-031 (perfil del emisor y códigos del comprobante, aprobada 2026-10-05 en la propuesta de
+    estructurar-perfil-del-emisor-y-codigos-fiscales, D1…D5): el perfil tributario de cada
+    entidad fiscal se declara con valores cerrados representables en el esquema de factura del SRI:
+    régimen (General, RIMPE Emprendedor o RIMPE Negocio Popular), contabilidad SI o NO, agente de
+    retención y contribuyente especial con su número de resolución (1 a 8 dígitos y 1 a 13
+    caracteres alfanuméricos) solo cuando aplican, y calificación artesanal con número, organismo
+    y vencimiento obligatorio. La leyenda del régimen se deriva y no se escribe; RIMPE Negocio
+    Popular, que emite notas de venta, impide preparar facturas. D1: un perfil guardado en texto
+    libre se conserva como historia, no se convierte y debe declararse de nuevo. D2: el código de
+    producto admite hasta 25 caracteres al crearlo o cambiarlo; los anteriores más largos se
+    conservan, se localizan con un filtro y bloquean la preparación fiscal de sus operaciones
+    sin recortarse. D3: cada servicio recibe del sistema un código SRV-, único e inmutable, que
+    es el código de línea de la factura. D4: el aviso de vencimiento de la calificación es de 60
+    días. D5: el número de calificación se conserva en la instantánea fiscal y su presentación
+    en el comprobante se decide en el cambio de emisión. Mientras la calificación artesanal esté
+    vigente solo se preparan líneas con IVA 0 %; vencida, la entidad no prepara facturas. Datos
+    confirmados por el titular el 2026-10-04 con la consulta pública de RUC: el RUC artesanal es de
+    persona natural en régimen General, no obligado a llevar contabilidad, ni agente de retención
+    ni contribuyente especial, y cuenta con calificación artesanal; el RUC comercial cargado es
+    provisional y se sustituirá por el definitivo, a nombre de otra persona, al pasar a producción.
+    No certifica obligaciones tributarias reales ni cierra la regla de redondeo del IVA incluido.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

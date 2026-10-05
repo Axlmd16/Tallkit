@@ -11,3 +11,9 @@
 | Período de propiedad | `docs/negocio/producto/glosario.md` | Intervalo en que un cliente es propietario vigente de un vehículo. |
 | Entrada de stock | `docs/negocio/producto/glosario.md` | Operación descrita por RF-INV-001 a RF-INV-006. |
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de valoración de RF-INV-003. |
+| Perfil del emisor | `docs/negocio/producto/glosario.md` | Condiciones tributarias con valores cerrados de RF-ACC-015 y RF-FIS-007. |
+| Régimen tributario | `docs/negocio/producto/glosario.md` | Valor cerrado del perfil del emisor de RF-ACC-015. |
+| Calificación artesanal | `docs/negocio/producto/glosario.md` | Condición con número y vencimiento de RF-ACC-015 y RF-FIS-007. |
+| Agente de retención | `docs/negocio/producto/glosario.md` | Condición del emisor con número de resolución de RF-ACC-015. |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Código asignado por el sistema de RF-CAT-010. |
+| Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo con campo y longitudes de RF-FIS-007. |

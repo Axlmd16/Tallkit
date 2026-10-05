@@ -10,3 +10,8 @@
 | Entrada de stock | `docs/negocio/producto/glosario.md` | Ingreso de mercadería simplificado que registra el Vendedor (DP-030). |
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Existencia sin valor conocido, distinta del costo cero (DP-030). |
 | Documento interno | `docs/negocio/producto/glosario.md` | Documento distinto de la factura electrónica. |
+| Perfil del emisor | `docs/negocio/producto/glosario.md` | Objeto de DP-031. |
+| Régimen tributario | `docs/negocio/producto/glosario.md` | Valor cerrado de DP-031. |
+| Calificación artesanal | `docs/negocio/producto/glosario.md` | Condición con vencimiento de DP-031. |
+| Agente de retención | `docs/negocio/producto/glosario.md` | Condición del emisor con número de resolución de DP-031. |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Código SRV- de DP-031 (D3). |

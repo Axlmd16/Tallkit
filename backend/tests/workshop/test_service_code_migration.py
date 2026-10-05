@@ -13,6 +13,16 @@ BEFORE = ("workshop", "0004_mark_orders_predating_billing")
 AFTER = ("workshop", "0005_service_codes_on_lines")
 
 
+def _restore_latest_schema() -> None:
+    """Deja la base con todas las migraciones aplicadas.
+
+    Retroceder una aplicación desaplica también las que dependen de ella; avanzar solo hasta su
+    última migración no las reaplica, y las pruebas siguientes verían un esquema incompleto.
+    """
+    executor = MigrationExecutor(connection)
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+
 @pytest.mark.django_db(transaction=True)
 def test_backfill_copies_codes_from_the_catalog_and_leaves_dangling_services_empty(
     manager: Any, artisan_billing: Any, customer: Any, vehicle: Any, make_service: Any
@@ -26,19 +36,22 @@ def test_backfill_copies_codes_from_the_catalog_and_leaves_dangling_services_emp
     # Un servicio inexistente solo puede quedar en la copia de la operación (id sin clave foránea).
     ServiceOperationLine.objects.filter(position=2).update(service_id=999_999)
 
-    executor = MigrationExecutor(connection)
-    executor.migrate([BEFORE])
-    executor = MigrationExecutor(connection)
-    executor.migrate([AFTER])
-    apps = executor.loader.project_state([AFTER]).apps
+    try:
+        executor = MigrationExecutor(connection)
+        executor.migrate([BEFORE])
+        executor = MigrationExecutor(connection)
+        executor.migrate([AFTER])
+        apps = executor.loader.project_state([AFTER]).apps
 
-    lines = apps.get_model("workshop", "ServiceLine").objects.order_by("position")
-    assert [(line.service_id, line.service_code) for line in lines] == [
-        (first.pk, "SRV-000042"),
-        (second.pk, "SRV-000043"),
-    ]
-    operation_lines = apps.get_model("workshop", "ServiceOperationLine").objects.order_by(
-        "position"
-    )
-    assert [line.service_code for line in operation_lines] == ["SRV-000042", ""]
-    assert ServiceLine.objects.count() == 2
+        lines = apps.get_model("workshop", "ServiceLine").objects.order_by("position")
+        assert [(line.service_id, line.service_code) for line in lines] == [
+            (first.pk, "SRV-000042"),
+            (second.pk, "SRV-000043"),
+        ]
+        operation_lines = apps.get_model("workshop", "ServiceOperationLine").objects.order_by(
+            "position"
+        )
+        assert [line.service_code for line in operation_lines] == ["SRV-000042", ""]
+        assert ServiceLine.objects.count() == 2
+    finally:
+        _restore_latest_schema()

@@ -19,3 +19,5 @@
 | Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras trazado en la capacidad de etiquetas. |
 | Entrada de stock | `docs/negocio/producto/glosario.md` | Operación trazada por DP-030. |
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de valoración de RN-INV-006A. |
+| Perfil del emisor | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |

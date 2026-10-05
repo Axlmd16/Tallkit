@@ -37,6 +37,7 @@
 | RF-ACC-012 | El sistema debe permitir configurar series y secuenciales por entidad fiscal y tipo de documento. | Debe | La configuración inicial crea COM-ING, COM-PRO y COM-VEN para el RUC comercial y ART-SER para el artesanal; cada ámbito conserva una serie activa y números `<SERIE>-<SECUENCIAL>` no reutilizables, con al menos seis dígitos. |
 | RF-ACC-013 | El sistema debe permitir configurar umbrales de stock bajo por producto. | Debería | El umbral guardado determina cuándo el producto aparece en la alerta. |
 | RF-ACC-014 | El sistema debe habilitar EFECTIVO y TRANSFERENCIA como formas de pago de V1. | Debe | Solo esas formas pueden utilizarse y combinarse en pagos nuevos. |
+| RF-ACC-015 | El Administrador debe poder declarar el perfil del emisor de cada entidad fiscal con valores cerrados y la calificación artesanal con número y vencimiento. | Debe | Régimen, contabilidad, agente de retención y contribuyente especial solo admiten los valores y formatos del comprobante; un texto libre se rechaza; la calificación exige número, organismo y vencimiento, se avisa 60 días antes de que venza y, vencida, el perfil requiere revisión. Un perfil anterior en texto libre se conserva como historia y debe declararse de nuevo. |
 
 ## 3. Clientes y vehículos
 
@@ -60,7 +61,7 @@
 
 | ID | Requisito | Prioridad | Criterio de cumplimiento resumido |
 |---|---|---|---|
-| RF-CAT-001 | El sistema debe permitir registrar productos con código interno único, código del fabricante opcional, nombre, descripción, categoría, marca de producto, presentación, unidad, precio final y estado. | Debe | Un producto válido se guarda; un código interno repetido es rechazado y un código de fabricante repetido dentro de la misma marca también. |
+| RF-CAT-001 | El sistema debe permitir registrar productos con código interno único de hasta 25 caracteres, código del fabricante opcional, nombre, descripción, categoría, marca de producto, presentación, unidad, precio final y estado. | Debe | Un producto válido se guarda; un código interno repetido o de más de 25 caracteres es rechazado y un código de fabricante repetido dentro de la misma marca también. Un producto anterior con un código más largo se conserva, puede editarse sin tocar el código y se localiza con un filtro para acortarlo. |
 | RF-CAT-002 | El sistema debe permitir editar un producto sin modificar líneas históricas de documentos confirmados. | Debe | Los cambios aplican a operaciones futuras y el histórico conserva sus valores. |
 | RF-CAT-003 | El sistema debe permitir activar y desactivar productos sin eliminarlos. | Debe | Un producto inactivo no se agrega a operaciones nuevas, pero sigue visible en el historial. |
 | RF-CAT-004 | El sistema debe permitir buscar y filtrar productos por código interno, código del fabricante, nombre, categoría, marca de producto, marca de vehículo, estado y disponibilidad. | Debe | Los filtros pueden combinarse y los resultados reflejan los criterios. |
@@ -69,8 +70,8 @@
 | RF-CAT-007 | El sistema debe permitir registrar compatibilidades vehiculares como información de referencia. | Debería | La compatibilidad puede consultarse y no bloquea por sí sola una venta. |
 | RF-CAT-008 | El sistema debe permitir marcar un producto como kit completo sin descomponer automáticamente sus componentes. | Debe | La venta del kit afecta solo la existencia del producto kit. |
 | RF-CAT-009 | Toda pieza vendida por separado debe poder registrarse como un producto independiente. | Debe | La pieza tiene código, precio, existencia y Kardex propios. |
-| RF-CAT-010 | El sistema debe permitir crear, editar, activar y desactivar servicios con nombre y precio referencial. | Debe | El cambio de precio no altera servicios aplicados a mantenimientos previos. |
-| RF-CAT-011 | El sistema debe permitir buscar y filtrar el catálogo de servicios. | Debe | Se localizan servicios activos por nombre y criterios disponibles. |
+| RF-CAT-010 | El sistema debe permitir crear, editar, activar y desactivar servicios con nombre y precio referencial, y asignar a cada uno un código propio. | Debe | El cambio de precio no altera servicios aplicados a mantenimientos previos. El código lo asigna el sistema (`SRV-` y un correlativo), es único, no se edita y se conserva en las líneas de las operaciones. |
+| RF-CAT-011 | El sistema debe permitir buscar y filtrar el catálogo de servicios. | Debe | Se localizan servicios activos por nombre, código y criterios disponibles. |
 | RF-CAT-012 | El sistema debe permitir registrar, editar, buscar, activar y desactivar proveedores. | Debe | Un proveedor inactivo queda en históricos y no se selecciona en ingresos nuevos. |
 | RF-CAT-013 | Cada presentación completa vendible debe registrarse como producto distinto. | Debe | Envases de un galón y medio galón tienen códigos, existencias, costos y precios independientes. |
 | RF-CAT-014 | El sistema debe representar cantidades con valor y unidad sin convertir ni fraccionar automáticamente presentaciones. | Debe | Una operación respeta la precisión configurada y no abre envases para vender fracciones. |
@@ -242,5 +243,6 @@
 | RF-FIS-004 | El Administrador debe poder archivar, consultar, descargar y exportar XML externos. | Debe | Se preservan bytes y SHA-256 y se etiqueta su procedencia como no verificada. |
 | RF-FIS-005 | El Administrador debe preparar solicitudes locales de anulación y nota de crédito. | Debe | Impedimentos y remanentes se muestran sin ejecutar efecto oficial. |
 | RF-FIS-006 | El archivo productivo debe exigir política y restauración aplicables. | Debe | El cambio de procedimiento o almacenamiento vuelve a bloquearlo hasta nueva evidencia. |
+| RF-FIS-007 | La preparación debe conservar el emisor estructurado y comprobar los límites de código y descripción del comprobante. | Debe | La instantánea guarda régimen, leyenda derivada, contabilidad, números de resolución y calificación solo cuando aplican; un código de más de 25 caracteres o una descripción de más de 300 bloquea con un impedimento sin recortar el valor; con calificación artesanal vigente solo se preparan líneas con IVA 0 %. |
 
 No se derivarán requisitos V1 para firma, transmisión, autorización o entrega electrónica ante el SRI, migración desde Flutter, funcionamiento sin conexión, portal de clientes, asignación a mecánicos, agenda, módulo completo de garantías, presupuesto y aprobación previa del mantenimiento, contabilidad general, conciliación bancaria, cuentas por pagar, armado de kits con piezas sueltas ni múltiples sucursales avanzadas.

@@ -19,3 +19,8 @@
 | Cierre diario | `docs/negocio/producto/glosario.md` | Conciliación separada por RUC y medio de pago. |
 | Entrada de stock | `docs/negocio/producto/glosario.md` | Ingreso de mercadería simplificado, sin borrador ni impuestos (DP-030). |
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Existencia sin valor conocido, distinta del costo cero. |
+| Perfil del emisor | `docs/negocio/producto/glosario.md` | Extensión fiscal local de la sección 11.6. |
+| Régimen tributario | `docs/negocio/producto/glosario.md` | Valor cerrado del perfil del emisor de la sección 11.6. |
+| Calificación artesanal | `docs/negocio/producto/glosario.md` | Condición con vencimiento y regla de tarifa de la sección 11.6. |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Código de línea de los servicios de la sección 11.6. |
+| Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo de preparación por longitudes o tarifa de la sección 11.6. |

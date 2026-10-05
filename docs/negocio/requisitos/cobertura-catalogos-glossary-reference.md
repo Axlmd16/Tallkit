@@ -14,3 +14,4 @@
 | OpenSpec | `docs/tecnico/glosario-tecnico.md` | Marco de especificación y cambio que gobierna los 128 escenarios. |
 | Etiqueta de producto | `docs/negocio/producto/glosario.md` | Unidad imprimible de 100 × 55 mm cubierta por el cambio `imprimir-etiquetas-de-productos`. |
 | Code 128 | `docs/tecnico/glosario-tecnico.md` | Código de barras verificable del código interno. |
+| Código de servicio | `docs/negocio/producto/glosario.md` | Filas de cobertura del cambio `estructurar-perfil-del-emisor-y-codigos-fiscales`. |

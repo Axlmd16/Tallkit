@@ -221,13 +221,30 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupos 2 a 11.
 
-- [ ] 12.1 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md` con el formato 3, los campos de `tax_profile` y los límites de longitud comprobados.
-- [ ] 12.2 Incorporar a `docs/negocio/producto/glosario.md` los términos perfil del emisor, régimen tributario, calificación artesanal, agente de retención, código de servicio e impedimento, y actualizar sus referencias de glosario.
-- [ ] 12.3 Actualizar `docs/negocio/requisitos/requisitos-funcionales.md`, `casos-de-uso.md` (CU-003), `interfaz-y-navegacion.md` y `matriz-trazabilidad.md` con sus archivos de referencia de glosario; completar las matrices de cobertura abiertas en 1.5.
-- [ ] 12.4 Actualizar `docs/arquitectura/modelo-datos.md` con `conditions_format`, `Service.code`, `ServiceCodeCounter` y `service_code`, y `docs/arquitectura/modelo-dominio.md` §11.6 con el perfil estructurado y la calificación artesanal. Registrar en `decisiones-confirmadas.yaml` los datos confirmados del RUC artesanal y las decisiones D1–D5.
-- [ ] 12.5 Ejecutar la verificación focalizada final: los comandos de los grupos 3, 4, 5, 6 y 7, `uv run python manage.py makemigrations --check --dry-run`, Ruff y mypy sobre los cuatro módulos tocados, Vitest de los archivos tocados, `tsc`, ESLint, Prettier y `openspec validate estructurar-perfil-del-emisor-y-codigos-fiscales --strict`.
-- [ ] 12.6 Redactar el resumen de cierre con comandos y resultados reales, indicando expresamente qué no se ejecutó (`make check`, `make test`, suites completas y el resto de Playwright) para que el usuario decida si quiere la verificación completa antes de integrar.
+- [x] 12.1 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md` con el formato 3, los campos de `tax_profile` y los límites de longitud comprobados.
+- [x] 12.2 Incorporar a `docs/negocio/producto/glosario.md` los términos perfil del emisor, régimen tributario, calificación artesanal, agente de retención, código de servicio e impedimento, y actualizar sus referencias de glosario.
+- [x] 12.3 Actualizar `docs/negocio/requisitos/requisitos-funcionales.md`, `casos-de-uso.md` (CU-003), `interfaz-y-navegacion.md` y `matriz-trazabilidad.md` con sus archivos de referencia de glosario; completar las matrices de cobertura abiertas en 1.5.
+- [x] 12.4 Actualizar `docs/arquitectura/modelo-datos.md` con `conditions_format`, `Service.code`, `ServiceCodeCounter` y `service_code`, y `docs/arquitectura/modelo-dominio.md` §11.6 con el perfil estructurado y la calificación artesanal. Registrar en `decisiones-confirmadas.yaml` los datos confirmados del RUC artesanal y las decisiones D1–D5.
+- [x] 12.5 Ejecutar la verificación focalizada final: los comandos de los grupos 3, 4, 5, 6 y 7, `uv run python manage.py makemigrations --check --dry-run`, Ruff y mypy sobre los cuatro módulos tocados, Vitest de los archivos tocados, `tsc`, ESLint, Prettier y `openspec validate estructurar-perfil-del-emisor-y-codigos-fiscales --strict`.
+- [x] 12.6 Redactar el resumen de cierre con comandos y resultados reales, indicando expresamente qué no se ejecutó (`make check`, `make test`, suites completas y el resto de Playwright) para que el usuario decida si quiere la verificación completa antes de integrar.
 
 Evidencia del grupo: documentación sincronizada, validación de OpenSpec en verde y resumen con lo ejecutado y lo no ejecutado.
+
+Resultado registrado (2026-10-05):
+- 12.1: `docs/tecnico/matriz-instantanea-fiscal.md` incorpora el formato 3 (`issuer.tax_profile`), los límites de longitud verificados, la regla de calificación y la actualización de las filas del XSD (`agenteRetencion`, `contribuyenteRimpe`, `contribuyenteEspecial`, `obligadoContabilidad`, `codigoPrincipal`, `descripcion`).
+- 12.2: `docs/negocio/producto/glosario.md` incorpora perfil del emisor, régimen tributario, calificación artesanal, agente de retención, código de servicio e impedimento.
+- 12.3: requisitos (RF-ACC-015, RF-FIS-007 y ajustes de RF-CAT-001, 010 y 011), casos de uso (CU-003 con 5f a 5h y CU-027), interfaz (UI-019, 030, 032, 034, 035 y 059), matriz de trazabilidad (fila «Perfil del emisor y códigos del comprobante») y las dos matrices de cobertura, cerradas con las pruebas reales; todos con su archivo de referencia de glosario actualizado.
+- 12.4: `docs/arquitectura/modelo-datos.md` (`conditions_format`, `catalog_service.code`, `catalog_servicecodecounter`, `service_code` de las líneas y el límite del código de producto), `modelo-dominio.md` §11.6 y `decisiones-confirmadas.yaml` con DP-031 (D1 a D5 y los datos confirmados del RUC artesanal, sin RUC ni nombre del titular); el YAML se valida con `yaml.safe_load`.
+- 12.5: verificación focalizada final.
+  - Backend, `uv run --frozen pytest --no-cov -q tests/workshop_configuration tests/fiscal tests/catalog tests/workshop tests/sales/test_fiscal_prepare_flow.py tests/sales/test_workshop_links.py`: 1203 pruebas, 1201 pasan y 2 fallan por causas ajenas ya registradas (`tests/fiscal/test_migrations.py::test_readiness_migration_preserves_existing_archive_and_internal_series` y `tests/workshop/test_boundaries.py::test_no_other_module_imports_workshop`).
+  - Corrección hallada en esta pasada: la prueba de migración de catálogo retrocedía también `workshop.0005` y dejaba la base sin `service_code` para las pruebas siguientes; mis tres pruebas de migración restauran ahora el esquema completo (`leaf_nodes()`).
+  - `ruff format --check .` y `ruff check .` sobre todo el backend, `manage.py check`, `makemigrations --check --dry-run` y `spectacular --validate` sin hallazgos; `schema.yml` coincide con la generación; mypy sobre los cuatro módulos y sus pruebas: 82 errores que ya existían y ninguno nuevo.
+  - Frontend, Vitest de `features/{fiscal,services,maintenance,products,product-labels}`, `pages/{fiscal,services,maintenance,products,workshop-configuration}` y `app`: 49 archivos, 437 pruebas pasan; `tsc` del proyecto y ESLint sobre `src` y `e2e` sin hallazgos; Prettier sin hallazgos salvo 3 archivos del módulo de logotipos que este cambio no toca (`EntityLogoModal.tsx`, `EntityLogoModal.test.tsx` y `workshop-configuration/queries.ts`).
+  - E2E: `fiscal.spec.ts` (7), `workshop-configuration.spec.ts` (13) y `catalogs.spec.ts` (6), ver el grupo 11.
+  - `openspec validate estructurar-perfil-del-emisor-y-codigos-fiscales --strict`: válido.
+- 12.6: resumen de cierre.
+  - No se ejecutó: `make check`, `make test`, `make audit`, `compose-check`, `npm run build`, pytest completo, Vitest completo ni el resto de Playwright (solo las tres especificaciones citadas), conforme a la instrucción de ejecutar pruebas focalizadas. Falta decidir si se quiere la verificación completa antes de integrar.
+  - Hallazgos ajenos que siguen abiertos: las 2 pruebas de backend citadas, los 82 errores de mypy previos, los 3 archivos sin formatear del módulo de logotipos, el puerto 8001 de `playwright.config.ts` ocupado por otro proyecto local y el navegador de Playwright sin instalar.
+  - Queda para otros cambios: la regla de redondeo del IVA incluido, las retenciones recibidas, la preparación automática, las notas de crédito y la emisión mediante proveedor.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

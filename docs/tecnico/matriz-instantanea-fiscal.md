@@ -42,8 +42,8 @@ Leyenda:
 | `infoTributaria/ptoEmi` | Obligatorio | `issuer.emission_point_code`, del punto predeterminado efectivo; su id y versión en `configuration.point` | C |
 | `infoTributaria/secuencial` | Obligatorio | Identidad fiscal inmutable, nueve dígitos | I |
 | `infoTributaria/dirMatriz` | Obligatorio | `issuer.address` | C |
-| `infoTributaria/agenteRetencion` | Condicional | Condición tributaria versionada; se omite si no aplica | C/NA |
-| `infoTributaria/contribuyenteRimpe` | Condicional | Leyenda tributaria versionada aplicable | C/NA |
+| `infoTributaria/agenteRetencion` | Condicional | `issuer.tax_profile.withholding_agent_resolution`, de 1 a 8 dígitos; se omite si no aplica | C/NA |
+| `infoTributaria/contribuyenteRimpe` | Condicional | `issuer.tax_profile.regime_legend`, derivada del régimen (`CONTRIBUYENTE RÉGIMEN RIMPE` solo para RIMPE Emprendedor); se omite en los demás | C/NA |
 
 La clave, el secuencial y la fecha usada por la clave pertenecen a la identidad posterior. Su
 ausencia en una preparación no vuelve incompleta la instantánea; sí impide construir un XML. La
@@ -55,8 +55,8 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 |---|---|---|---|
 | `fechaEmision` | Obligatorio | Fecha local de identidad; debe concordar con `reference_date` o exigir nueva revisión | I/D |
 | `dirEstablecimiento` | Condicional | Dirección del establecimiento de la revisión fiscal; si difiere de matriz debe conservarse antes de preparar | C |
-| `contribuyenteEspecial` | Condicional | Condición tributaria versionada aplicable | C/NA |
-| `obligadoContabilidad` | Condicional | Condición tributaria versionada aplicable | C/NA |
+| `contribuyenteEspecial` | Condicional | `issuer.tax_profile.special_taxpayer_resolution`, alfanumérico de 1 a 13; se omite si no aplica | C/NA |
+| `obligadoContabilidad` | Condicional | `issuer.tax_profile.accounting_obligation`, `SI` o `NO` | C |
 | `comercioExterior` | Condicional | Operaciones de comercio exterior fuera del alcance | NA |
 | `incoTermFactura` | Condicional | Comercio exterior fuera del alcance | NA |
 | `lugarIncoTerm` | Condicional | Comercio exterior fuera del alcance | NA |
@@ -108,9 +108,9 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 | Campo XSD 2.1.0 | Condición | Fuente o regla | Estado |
 |---|---|---|---|
 | `detalles/detalle[*]` | Uno o más | Un registro por `lines[*]`, conservando posición | C |
-| `codigoPrincipal` | Condicional en XSD; requerido localmente | `lines[*].item_code` del snapshot del producto o servicio | C |
+| `codigoPrincipal` | Condicional en XSD; requerido localmente | `lines[*].item_code`: código interno conservado del producto o código de servicio conservado; de 1 a 25 caracteres | C |
 | `codigoAuxiliar` | Condicional | No se usa mientras no exista un código auxiliar histórico | NA |
-| `descripcion` | Obligatorio | `lines[*].description` conservada | C |
+| `descripcion` | Obligatorio | `lines[*].description` conservada; de 1 a 300 caracteres | C |
 | `unidadMedida` | Condicional | No se declara sin una unidad histórica aprobada | NA |
 | `cantidad` | Obligatorio | `lines[*].quantity` | C |
 | `precioUnitario` | Obligatorio | `lines[*].unit_price_without_tax`, seis decimales; debe reconstruir la base | D |
@@ -159,6 +159,38 @@ Desde `simplificar-flujo-fiscal-y-configuracion-centralizada`, las preparaciones
 | `payments[*].description`, `display_name`, `catalog_version` | Forma de pago tal como figuraba en el catálogo |
 
 Las claves de `issuer` se mantienen sin cambios, porque las consume la identidad de ensayo. Una instantánea sin `snapshot_format` es de formato 1 y se muestra sin completar las referencias que no conservaba. La fecha de referencia se fija en la revisión final con el calendario de America/Guayaquil.
+
+## Formato 3 de la instantánea
+
+Desde `estructurar-perfil-del-emisor-y-codigos-fiscales`, las preparaciones nuevas conservan `snapshot_format: 3`. Respecto del formato 2:
+
+| Clave | Contenido |
+|---|---|
+| `issuer.tax_profile.regime` | `GENERAL`, `RIMPE_EMPRENDEDOR` o `RIMPE_NEGOCIO_POPULAR` (este último impide preparar). Obligatorio |
+| `issuer.tax_profile.regime_legend` | Solo para RIMPE Emprendedor; derivada, nunca escrita |
+| `issuer.tax_profile.accounting_obligation` | `SI` o `NO`. Obligatorio |
+| `issuer.tax_profile.withholding_agent_resolution` | Solo si el emisor es agente de retención |
+| `issuer.tax_profile.special_taxpayer_resolution` | Solo si el emisor es contribuyente especial |
+| `issuer.tax_profile.artisan_qualification` | `number`, `issuing_body` y `ends_on`, solo si hay calificación declarada |
+| `legends` | Siempre vacía: las condiciones del emisor ya no se conservan como texto `clave: valor` |
+
+Una condición que no aplica se omite; nunca se representa con un texto, un cero ni un valor vacío. Las preparaciones de formato 1 y 2 no se migran: se leen tal como se conservaron, con sus `legends`, y no reciben `tax_profile`.
+
+### Límites de longitud verificados
+
+La preparación comprueba antes de completarse los límites del XSD 2.1.0 y bloquea con un impedimento que muestra la longitud observada y la admitida; nunca recorta ni sustituye el valor.
+
+| Campo XSD | Límite | Origen del dato |
+|---|---|---|
+| `codigoPrincipal` | 25 caracteres, una sola línea | Código interno del producto (editable solo hasta 25) o código de servicio `SRV-######` |
+| `descripcion` | 300 caracteres, una sola línea | Nombre del producto o del servicio conservado |
+| `agenteRetencion` | 8 dígitos | Resolución declarada en el perfil |
+| `contribuyenteEspecial` | 13 caracteres alfanuméricos | Resolución declarada en el perfil |
+| `obligadoContabilidad` | `SI` o `NO` | Perfil |
+
+### Coherencia con la calificación artesanal
+
+Si el emisor declara una calificación artesanal vigente en la fecha de referencia, toda línea debe resolver a la entrada IVA 0 % del catálogo (tratamiento `ZERO`; no objeto y exento no cuentan). Es una comprobación local que no acredita el beneficio legal.
 
 ## Resultado de suficiencia
 

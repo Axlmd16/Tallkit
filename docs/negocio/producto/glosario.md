@@ -151,9 +151,29 @@ Preparación fiscal todavía editable. Se crea con los datos de la operación y 
 
 Preparación fiscal completada y congelada en el sistema. No es una factura electrónica: no ha sido firmada ni enviada al SRI. Conserva los datos revisados y las referencias de configuración usadas, que no cambian si después se modifica la configuración.
 
+### Impedimento
+
+Causa identificada, con el campo afectado y los valores esperado y observado cuando aplica, por la que una preparación fiscal permanece en borrador. Nunca se resuelve con valores ficticios, recortes ni ajustes: lo corrige quien tiene el dato, el usuario operativo o el Administrador.
+
 ### Pendiente de emisión
 
 Situación de una preparación local para la que todavía no existe emisión electrónica. No indica que se haya solicitado ni obtenido una autorización.
+
+### Perfil del emisor
+
+Conjunto de condiciones tributarias que el Administrador declara para cada entidad fiscal con valores cerrados, fuente y vigencia: régimen tributario, obligación de llevar contabilidad, agente de retención, contribuyente especial y calificación artesanal. Se declara con base en el certificado de RUC y la documentación vigente; el sistema no lo deduce ni lo valida ante el SRI.
+
+### Régimen tributario
+
+Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE Negocio Popular. La leyenda oficial del comprobante se deriva del régimen y no se escribe. RIMPE Negocio Popular emite notas de venta, un documento que el sistema no contempla, por lo que impide preparar facturas.
+
+### Calificación artesanal
+
+Reconocimiento vigente que la Junta Nacional de Defensa del Artesano otorga al artesano y que sustenta la tarifa 0 % de sus servicios. Se declara con número, organismo, fecha de inicio y fecha de vencimiento obligatoria; el sistema avisa al Administrador 60 días antes del vencimiento y, mientras esté vigente, solo prepara líneas con IVA 0 %. No acredita el beneficio legal ante el SRI.
+
+### Agente de retención
+
+Contribuyente que el SRI obliga a retener impuestos cuando paga a un proveedor. El perfil lo declara con el número de su resolución (hasta 8 dígitos) cuando aplica. Es una condición del emisor; las retenciones que los clientes aplican al taller al pagar son un asunto distinto.
 
 ### Punto predeterminado
 
@@ -380,6 +400,10 @@ Número único y ordenado asignado a un documento dentro de una entidad fiscal, 
 ### Servicio
 
 Trabajo o mano de obra ofrecido por el taller, registrado en un catálogo y aplicado a un mantenimiento.
+
+### Código de servicio
+
+Identificador visible, único e inmutable de un servicio del catálogo, asignado por el sistema al crearlo con el formato `SRV-` y un número correlativo de al menos seis dígitos. Se copia a las líneas de las operaciones artesanales y es el código de línea de la factura; nadie lo escribe y no se reutiliza.
 
 ### SRI
 
