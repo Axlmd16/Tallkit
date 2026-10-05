@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
@@ -7,7 +13,10 @@ import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({ mutateAsync: vi.fn() }))
 vi.mock('./queries', () => ({
-  useUploadEntityLogo: () => ({ mutateAsync: mocks.mutateAsync, isPending: false }),
+  useUploadEntityLogo: () => ({
+    mutateAsync: mocks.mutateAsync,
+    isPending: false,
+  }),
 }))
 
 import { EntityLogoModal } from './EntityLogoModal'
@@ -43,10 +52,13 @@ function png(name = 'logo.png') {
 beforeEach(() => {
   vi.clearAllMocks()
   let counter = 0
-  vi.stubGlobal('URL', Object.assign(URL, {
-    createObjectURL: vi.fn(() => `blob:vista-${++counter}`),
-    revokeObjectURL: vi.fn(),
-  }))
+  vi.stubGlobal(
+    'URL',
+    Object.assign(URL, {
+      createObjectURL: vi.fn(() => `blob:vista-${++counter}`),
+      revokeObjectURL: vi.fn(),
+    }),
+  )
   mocks.mutateAsync.mockResolvedValue({ ...entity, logo: {} })
 })
 
@@ -59,18 +71,26 @@ function fileInput() {
 it('acepta solo PNG, JPEG y WebP y muestra la vista previa del archivo elegido', async () => {
   const user = userEvent.setup()
   renderModal()
-  const dialog = screen.getByRole('dialog', { name: 'Logo de la entidad comercial' })
+  const dialog = screen.getByRole('dialog', {
+    name: 'Logo de la entidad comercial',
+  })
   expect(dialog).toHaveTextContent('Repuestos VVH')
-  expect(fileInput()).toHaveAttribute('accept', 'image/png,image/jpeg,image/webp')
-  expect(within(dialog).getByRole('button', { name: 'Guardar logo' })).toBeDisabled()
+  expect(fileInput()).toHaveAttribute(
+    'accept',
+    'image/png,image/jpeg,image/webp',
+  )
+  expect(
+    within(dialog).getByRole('button', { name: 'Guardar logo' }),
+  ).toBeDisabled()
 
   await user.upload(fileInput(), png())
 
-  expect(within(dialog).getByRole('img', { name: 'Vista previa del logo' })).toHaveAttribute(
-    'src',
-    'blob:vista-1',
-  )
-  expect(within(dialog).getByRole('button', { name: 'Guardar logo' })).toBeEnabled()
+  expect(
+    within(dialog).getByRole('img', { name: 'Vista previa del logo' }),
+  ).toHaveAttribute('src', 'blob:vista-1')
+  expect(
+    within(dialog).getByRole('button', { name: 'Guardar logo' }),
+  ).toBeEnabled()
 })
 
 it('explica formatos y límites en un aviso desplegable', async () => {
@@ -94,7 +114,9 @@ it('guarda, cierra y notifica con un toast', async () => {
     file,
     key: expect.stringMatching(/^[A-Za-z0-9._:-]{8,128}$/),
   })
-  expect(await screen.findByText('Logo de la entidad comercial actualizado.')).toBeVisible()
+  expect(
+    await screen.findByText('Logo de la entidad comercial actualizado.'),
+  ).toBeVisible()
   await waitFor(() => expect(onClose).toHaveBeenCalled())
 })
 
@@ -109,23 +131,35 @@ it('mantiene el modal, el archivo y la clave cuando el servidor rechaza la image
   await user.upload(fileInput(), png())
   await user.click(screen.getByRole('button', { name: 'Guardar logo' }))
 
-  const dialog = screen.getByRole('dialog', { name: 'Logo de la entidad comercial' })
+  const dialog = screen.getByRole('dialog', {
+    name: 'Logo de la entidad comercial',
+  })
   expect(
-    await within(dialog).findByText('Suba una imagen PNG, JPEG o WebP estática y válida.'),
+    await within(dialog).findByText(
+      'Suba una imagen PNG, JPEG o WebP estática y válida.',
+    ),
   ).toBeVisible()
   expect(fileInput()).toHaveAttribute('aria-invalid', 'true')
-  expect(within(dialog).getByRole('img', { name: 'Vista previa del logo' })).toBeInTheDocument()
+  expect(
+    within(dialog).getByRole('img', { name: 'Vista previa del logo' }),
+  ).toBeInTheDocument()
   expect(onClose).not.toHaveBeenCalled()
-  expect(screen.queryByText('Logo de la entidad comercial actualizado.')).toBeNull()
+  expect(
+    screen.queryByText('Logo de la entidad comercial actualizado.'),
+  ).toBeNull()
 
   await user.click(screen.getByRole('button', { name: 'Guardar logo' }))
-  const [first, second] = mocks.mutateAsync.mock.calls.map((call) => call[0].key)
+  const [first, second] = mocks.mutateAsync.mock.calls.map(
+    (call) => call[0].key,
+  )
   expect(second).toBe(first)
 })
 
 it('usa una clave nueva al elegir otro archivo y libera la vista previa anterior', async () => {
   const user = userEvent.setup()
-  mocks.mutateAsync.mockRejectedValueOnce(new ProblemError('x', 400, 'invalid_image', undefined, { file: ['x'] }))
+  mocks.mutateAsync.mockRejectedValueOnce(
+    new ProblemError('x', 400, 'invalid_image', undefined, { file: ['x'] }),
+  )
   renderModal()
   await user.upload(fileInput(), png('uno.png'))
   await user.click(screen.getByRole('button', { name: 'Guardar logo' }))
@@ -133,6 +167,8 @@ it('usa una clave nueva al elegir otro archivo y libera la vista previa anterior
   fireEvent.change(fileInput(), { target: { files: [png('dos.png')] } })
   expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:vista-1')
   await user.click(screen.getByRole('button', { name: 'Guardar logo' }))
-  const [first, second] = mocks.mutateAsync.mock.calls.map((call) => call[0].key)
+  const [first, second] = mocks.mutateAsync.mock.calls.map(
+    (call) => call[0].key,
+  )
   expect(second).not.toBe(first)
 })

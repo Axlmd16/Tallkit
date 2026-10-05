@@ -98,7 +98,9 @@ export function useUpdateFiscalEntity() {
 
 /** Tras subir o quitar un logotipo se refrescan la ficha y el resumen de los comprobantes. */
 function useEntityLogoMutation<Variables>(
-  mutationFn: (variables: Variables) => ReturnType<typeof workshopConfigApi.getEntity>,
+  mutationFn: (
+    variables: Variables,
+  ) => ReturnType<typeof workshopConfigApi.getEntity>,
 ) {
   const queryClient = useQueryClient()
   return useMutation({

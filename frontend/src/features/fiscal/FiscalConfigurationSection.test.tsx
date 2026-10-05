@@ -31,6 +31,7 @@ const mocks = vi.hoisted(() => {
     statusByEntity: {} as Record<number, unknown>,
     establishmentsByEntity: {} as Record<number, unknown>,
     mappingsByEntity: {} as Record<number, unknown>,
+    mappingsStatus: 'ok' as 'ok' | 'loading' | 'error',
     formsByEntity: {} as Record<number, unknown>,
     defaultsByEntity: {} as Record<number, unknown>,
     profileByEntity: {} as Record<number, unknown>,
@@ -51,7 +52,11 @@ vi.mock('./hooks', () => ({
   useElectronicStatus: (id: number) => query(mocks.statusByEntity[id]),
   useElectronicProfile: (id: number) => query(mocks.profileByEntity[id]),
   useEstablishments: (id: number) => query(mocks.establishmentsByEntity[id]),
-  useTaxMappings: (id: number) => query(mocks.mappingsByEntity[id]),
+  useTaxMappings: (id: number) => ({
+    ...query(mocks.mappingsByEntity[id]),
+    isLoading: mocks.mappingsStatus === 'loading',
+    isError: mocks.mappingsStatus === 'error',
+  }),
   usePaymentForms: (id: number) => query(mocks.formsByEntity[id]),
   usePreparationDefaults: (id: number) => query(mocks.defaultsByEntity[id]),
   useCatalog: () => query(mocks.catalog),
@@ -269,6 +274,7 @@ beforeEach(() => {
     2: establishment(2, ['003']),
   }
   mocks.mappingsByEntity = { 1: [mapping], 2: [] }
+  mocks.mappingsStatus = 'ok'
   mocks.formsByEntity = { 1: paymentForms(), 2: paymentForms() }
   mocks.defaultsByEntity = {
     1: {
@@ -820,4 +826,127 @@ it('muestra el rechazo del servidor al programar el cambio sin cerrar el modal',
     await within(dialog).findByText(/contradice una tarifa interna/),
   ).toBeVisible()
   expect(screen.getByRole('dialog')).toBeVisible()
+})
+
+it('guarda una correspondencia eligiendo el impuesto interno, la tarifa y las fechas', async () => {
+  const user = userEvent.setup()
+  renderSection('?tab=facturacion&seccion=impuestos')
+  await user.click(
+    within(panel('Impuestos y catálogo SRI')).getByRole('button', {
+      name: 'Nueva correspondencia',
+    }),
+  )
+
+  const dialog = screen.getByRole('dialog', {
+    name: 'Nueva correspondencia tributaria',
+  })
+  await user.selectOptions(
+    within(dialog).getByLabelText(/Impuesto interno/),
+    '11',
+  )
+  await user.selectOptions(
+    within(dialog).getByLabelText(/Tarifa del catálogo SRI/),
+    '1',
+  )
+  await user.type(within(dialog).getByLabelText(/Vigente desde/), '2027-01-01')
+  await user.type(within(dialog).getByLabelText(/Vigente hasta/), '2027-12-31')
+  await user.type(
+    within(dialog).getByLabelText(/Fundamento/),
+    'Certificado RUC',
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar correspondencia' }),
+  )
+
+  expect(mocks.createTaxMapping.mutateAsync).toHaveBeenCalledWith({
+    definition_id: 11,
+    catalog_entry_id: 1,
+    starts_on: '2027-01-01',
+    ends_on: '2027-12-31',
+    source: 'Certificado RUC',
+  })
+  expect(
+    await screen.findByText('Correspondencia tributaria guardada.'),
+  ).toBeVisible()
+})
+
+it('presenta una correspondencia cerrada y sin entrada del catálogo como fuera de vigencia', () => {
+  mocks.mappingsByEntity = {
+    1: [
+      {
+        ...mapping,
+        id: 5,
+        display_name: null,
+        ends_on: '2026-12-31',
+        is_current: false,
+      },
+    ],
+    2: [],
+  }
+  renderSection('?tab=facturacion&seccion=impuestos')
+
+  const section = panel('Impuestos y catálogo SRI')
+  expect(within(section).getByRole('table')).toHaveTextContent(
+    'Sin entrada del catálogo',
+  )
+  expect(within(section).getByRole('table')).toHaveTextContent(
+    'hasta 2026-12-31',
+  )
+  expect(within(section).getByText('Fuera de vigencia')).toBeVisible()
+  // Una correspondencia con fecha de fin ya no admite programar otro cambio.
+  expect(
+    within(section).queryByRole('button', { name: /Programar cambio/ }),
+  ).toBeNull()
+})
+
+it('indica la carga y el fallo de las correspondencias', () => {
+  mocks.mappingsStatus = 'loading'
+  const { unmount } = renderSection('?tab=facturacion&seccion=impuestos')
+  expect(
+    within(panel('Impuestos y catálogo SRI')).queryByRole('table'),
+  ).toBeNull()
+  unmount()
+
+  mocks.mappingsStatus = 'error'
+  renderSection('?tab=facturacion&seccion=impuestos')
+  expect(
+    screen.getByText('No se pudieron cargar las correspondencias.'),
+  ).toBeVisible()
+})
+
+it('sin correspondencias avisa y guarda la primera sin fecha de fin', async () => {
+  const user = userEvent.setup()
+  mocks.mappingsByEntity = { 1: [], 2: [] }
+  renderSection('?tab=facturacion&seccion=impuestos', [taxes[0]!])
+  const section = panel('Impuestos y catálogo SRI')
+  expect(
+    within(section).getByText('Todavía no hay correspondencias registradas.'),
+  ).toBeVisible()
+
+  await user.click(
+    within(section).getByRole('button', { name: 'Nueva correspondencia' }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Nueva correspondencia tributaria',
+  })
+  await user.selectOptions(
+    within(dialog).getByLabelText(/Tarifa del catálogo SRI/),
+    '2',
+  )
+  await user.type(within(dialog).getByLabelText(/Vigente desde/), '2027-01-01')
+  await user.type(
+    within(dialog).getByLabelText(/Fundamento/),
+    'Certificado RUC',
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar correspondencia' }),
+  )
+
+  expect(mocks.createTaxMapping.mutateAsync).toHaveBeenCalledWith({
+    definition_id: 10,
+    catalog_entry_id: 2,
+    starts_on: '2027-01-01',
+    ends_on: null,
+    source: 'Certificado RUC',
+  })
 })

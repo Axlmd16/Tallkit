@@ -858,3 +858,32 @@ it('mantiene el rechazo del servidor dentro del modal de programar tarifa', asyn
   ).toBeVisible()
   expect(screen.getByRole('dialog')).toBeVisible()
 })
+
+it('muestra la vigencia con fecha de fin y avisa de la entidad sin impuestos', () => {
+  mocks.taxes.data = [
+    {
+      id: 1,
+      code: 'IVA',
+      name: 'IVA',
+      fiscal_entity_id: 2,
+      entity_type: 'COMERCIAL',
+      current_rate: '15',
+      starts_on: '2026-09-15',
+      ends_on: '2098-12-31',
+    },
+  ]
+  renderPage('?tab=impuestos')
+
+  const table = screen.getByRole('table')
+  expect(table).toHaveTextContent('Desde 2026-09-15 hasta 2098-12-31')
+  expect(table).toHaveTextContent(
+    'Sin impuestos registrados para esta entidad.',
+  )
+})
+
+it('no ofrece programar tarifa mientras se cargan las vigencias del impuesto', () => {
+  mocks.periods = {}
+  renderPage('?tab=impuestos')
+
+  expect(screen.queryByRole('button', { name: /Programar tarifa/ })).toBeNull()
+})

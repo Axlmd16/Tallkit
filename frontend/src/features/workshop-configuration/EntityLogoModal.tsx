@@ -2,7 +2,13 @@ import { Info } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { ProblemError } from '@/shared/api/client'
-import { Field, FormModal, HintPopover, useFieldProps, useToast } from '@/shared/ui'
+import {
+  Field,
+  FormModal,
+  HintPopover,
+  useFieldProps,
+  useToast,
+} from '@/shared/ui'
 
 import { useUploadEntityLogo } from './queries'
 import type { FiscalEntity } from './types'
@@ -81,7 +87,12 @@ export function EntityLogoModal({
     >
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <Field className="min-w-0 flex-1" error={error} label="Imagen del logo" required>
+          <Field
+            className="min-w-0 flex-1"
+            error={error}
+            label="Imagen del logo"
+            required
+          >
             <LogoFileInput onChoose={choose} />
           </Field>
           <HintPopover
@@ -110,7 +121,11 @@ export function EntityLogoModal({
   )
 }
 
-function LogoFileInput({ onChoose }: { onChoose: (file: File | null) => void }) {
+function LogoFileInput({
+  onChoose,
+}: {
+  onChoose: (file: File | null) => void
+}) {
   const field = useFieldProps()
   return (
     <input
