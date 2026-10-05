@@ -371,6 +371,12 @@ class FiscalTaxMappingWrite(StrictSerializer):
     source: Any = serializers.CharField(min_length=1, max_length=500, trim_whitespace=True)
 
 
+class FiscalTaxMappingSuccessorWrite(StrictSerializer):
+    catalog_entry_id = serializers.IntegerField(min_value=1)
+    starts_on = serializers.DateField()
+    source: Any = serializers.CharField(min_length=1, max_length=500, trim_whitespace=True)
+
+
 class FiscalTaxMapping(serializers.Serializer[dict[str, Any]]):
     id = serializers.IntegerField()
     definition_id = serializers.IntegerField()

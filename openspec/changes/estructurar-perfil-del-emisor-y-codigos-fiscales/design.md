@@ -53,7 +53,7 @@ La leyenda del régimen es una función pura del valor: `RIMPE_EMPRENDEDOR` → 
 `evaluate_electronic_status` cambia así:
 
 - Revisión vigente en formato 1 → causa `MISSING` con código `profile.legacy_format` y mensaje «Declare de nuevo el perfil con las opciones actuales». No se analizan sus condiciones para producir otras causas. El estado resultante es *Falta completar*.
-- Régimen `RIMPE_NEGOCIO_POPULAR` vigente → causa `REVIEW` con código `conditions.tax_regime.unsupported`. Como toda causa ya es impedimento en `fiscal_resolver`, la preparación se bloquea sin tocar ventas ni cobros.
+- Régimen `RIMPE_NEGOCIO_POPULAR`: no genera causa. El SRI permite a un negocio popular emitir comprobantes electrónicos de forma voluntaria; lo que lo distingue es que no cobra IVA, y eso se comprueba al preparar (decisión 6).
 - Calificación artesanal `APPLICABLE` cuyo `ends_on` está a 60 días o menos de `on` y no ha vencido → **advertencia** `artisan_qualification_expiring`, con la fecha y los días restantes. Va en `warnings`, que no bloquea, igual que las del certificado. Vencida, la regla general de vigencia ya produce `conditions.artisan_qualification.expired` (`REVIEW`).
 
 El umbral de 60 días es una constante de dominio. El cálculo usa la fecha local que ya recibe la función, que el llamador obtiene con `timezone.localdate()` en America/Guayaquil.
@@ -105,6 +105,12 @@ Cada incumplimiento agrega un impedimento con `field`, `message`, `expected` y `
 En `assemble_snapshot`, después de resolver la correspondencia de cada línea (`resolve_mapping` ya devuelve la entrada oficial): si el perfil tiene calificación `APPLICABLE` vigente en `reference_date`, toda línea debe resolver a la entrada con tratamiento `ZERO` del catálogo oficial. Si no, se agrega un impedimento por línea con código `line[n].artisan_rate`. La regla no se evalúa si la calificación no aplica o si el perfil no está listo (en ese caso ya hay impedimentos de configuración).
 
 Se usa el tratamiento del catálogo (`ZERO`) y no el número `0`, para no confundir tarifa cero con *no objeto* o *exento*, que el catálogo distingue.
+
+### 6a. Negocio Popular y cambio de régimen
+
+`snapshot_builder` exige tratamiento `ZERO` en toda línea cuando `tax_profile.regime` es `RIMPE_NEGOCIO_POPULAR` (impedimento `line[n].popular_rate`, mismo tratamiento y destinatario que la regla de calificación artesanal). La leyenda de Negocio Popular no se deriva: el esquema 2.1.0 solo admite `CONTRIBUYENTE RÉGIMEN RIMPE` en `contribuyenteRimpe` y el texto para negocios populares está por confirmar; el régimen sí se guarda en `tax_profile.regime`.
+
+El cambio de régimen se apoya en piezas que ya eran por vigencia: revisión nueva del perfil (la anterior queda como historia), `schedule_successor` para la tarifa interna y una operación nueva, `schedule_mapping_successor`, para la correspondencia con el SRI. Esta última bloquea la entidad y la correspondencia, exige que esté abierta y que el inicio sea futuro, cierra la actual el día anterior y crea la sucesora con `create_mapping`, que ya comprueba que el código no contradiga la tarifa interna. Se expone en `POST /fiscal/configuration/tax-mappings/{id}/successor/` y en un modal «Programar cambio» de la subsección *Impuestos y catálogo SRI*. Sin ella, una correspondencia abierta impedía crear la siguiente por solapamiento y el código de IVA 0 % seguía rigiendo tras el cambio.
 
 ### 7. Código de producto
 

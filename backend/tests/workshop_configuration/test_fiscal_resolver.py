@@ -229,7 +229,7 @@ def _save(entity: FiscalEntity, role_admin: User, **overrides: dict[str, str]) -
     )
 
 
-def test_popular_business_regime_is_a_preparation_issue(
+def test_popular_business_regime_prepares_without_a_regime_legend_yet(
     entity: FiscalEntity, role_admin: User
 ) -> None:
     _prepare_location(entity, role_admin)
@@ -237,8 +237,10 @@ def test_popular_business_regime_is_a_preparation_issue(
     result = api().resolve_fiscal_configuration(
         actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
     )
-    assert not result.ready_for_preparation
-    assert "conditions.tax_regime.unsupported" in result.preparation_issues
+    assert result.ready_for_preparation
+    assert result.tax_profile["regime"] == "RIMPE_NEGOCIO_POPULAR"
+    # La leyenda de Negocio Popular está por confirmar con la ficha técnica del SRI.
+    assert "regime_legend" not in result.tax_profile
 
 
 def test_legacy_format_profile_is_a_preparation_issue(

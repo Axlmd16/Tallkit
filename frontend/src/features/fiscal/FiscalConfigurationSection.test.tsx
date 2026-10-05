@@ -39,6 +39,7 @@ const mocks = vi.hoisted(() => {
     createEstablishment: mutation(),
     createPoint: mutation(),
     createTaxMapping: mutation(),
+    scheduleTaxMappingSuccessor: mutation(),
     savePreparationDefaults: mutation(),
     setPaymentForm: mutation(),
   }
@@ -59,6 +60,7 @@ vi.mock('./hooks', () => ({
     createEstablishment: mocks.createEstablishment,
     createPoint: mocks.createPoint,
     createTaxMapping: mocks.createTaxMapping,
+    scheduleTaxMappingSuccessor: mocks.scheduleTaxMappingSuccessor,
     savePreparationDefaults: mocks.savePreparationDefaults,
     setPaymentForm: mocks.setPaymentForm,
   }),
@@ -321,6 +323,7 @@ beforeEach(() => {
     mocks.createEstablishment,
     mocks.createPoint,
     mocks.createTaxMapping,
+    mocks.scheduleTaxMappingSuccessor,
     mocks.savePreparationDefaults,
     mocks.setPaymentForm,
   ]) {
@@ -738,4 +741,83 @@ it('lleva el aviso de vencimiento de la calificación al perfil y deja el certif
   expect(
     screen.getByRole('button', { name: 'Calificación por vencer' }),
   ).toBeVisible()
+})
+
+it('programa el cambio del código del SRI de una correspondencia abierta', async () => {
+  const user = userEvent.setup()
+  mocks.mappingsByEntity = {
+    1: [
+      mapping,
+      { ...mapping, id: 2, ends_on: '2025-12-31', is_current: false },
+    ],
+    2: [],
+  }
+  renderSection('?tab=facturacion&seccion=impuestos')
+  const section = panel('Impuestos y catálogo SRI')
+
+  // Solo la correspondencia abierta ofrece el cambio; la cerrada es historia.
+  const buttons = within(section).getAllByRole('button', {
+    name: /Programar cambio/,
+  })
+  expect(buttons).toHaveLength(1)
+  await user.click(buttons[0]!)
+
+  const dialog = screen.getByRole('dialog', {
+    name: 'Programar cambio de tarifa SRI',
+  })
+  expect(dialog).toHaveTextContent('IVA venta')
+  expect(dialog).toHaveTextContent('IVA 15 %')
+  await user.selectOptions(
+    within(dialog).getByLabelText(/Nueva tarifa del catálogo SRI/),
+    '1',
+  )
+  await user.type(within(dialog).getByLabelText(/Rige desde/), '2027-01-01')
+  await user.type(
+    within(dialog).getByLabelText(/Fundamento/),
+    'Pasa a RIMPE Emprendedor',
+  )
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Programar cambio' }),
+  )
+
+  expect(mocks.scheduleTaxMappingSuccessor.mutateAsync).toHaveBeenCalledWith({
+    mappingId: 3,
+    data: {
+      catalog_entry_id: 1,
+      starts_on: '2027-01-01',
+      source: 'Pasa a RIMPE Emprendedor',
+    },
+  })
+  expect(await screen.findByText('Cambio de tarifa programado.')).toBeVisible()
+})
+
+it('muestra el rechazo del servidor al programar el cambio sin cerrar el modal', async () => {
+  const user = userEvent.setup()
+  mocks.scheduleTaxMappingSuccessor.mutateAsync.mockRejectedValue(
+    new Error(
+      'El código contradice una tarifa interna vigente en el intervalo.',
+    ),
+  )
+  renderSection('?tab=facturacion&seccion=impuestos')
+  await user.click(
+    within(panel('Impuestos y catálogo SRI')).getByRole('button', {
+      name: /Programar cambio/,
+    }),
+  )
+  const dialog = screen.getByRole('dialog', {
+    name: 'Programar cambio de tarifa SRI',
+  })
+  await user.selectOptions(
+    within(dialog).getByLabelText(/Nueva tarifa del catálogo SRI/),
+    '1',
+  )
+  await user.type(within(dialog).getByLabelText(/Rige desde/), '2027-01-01')
+  await user.type(within(dialog).getByLabelText(/Fundamento/), 'Cambio')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Programar cambio' }),
+  )
+  expect(
+    await within(dialog).findByText(/contradice una tarifa interna/),
+  ).toBeVisible()
+  expect(screen.getByRole('dialog')).toBeVisible()
 })

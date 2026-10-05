@@ -247,4 +247,23 @@ Resultado registrado (2026-10-05):
   - Hallazgos ajenos que siguen abiertos: las 2 pruebas de backend citadas, los 82 errores de mypy previos, los 3 archivos sin formatear del módulo de logotipos, el puerto 8001 de `playwright.config.ts` ocupado por otro proyecto local y el navegador de Playwright sin instalar.
   - Queda para otros cambios: la regla de redondeo del IVA incluido, las retenciones recibidas, la preparación automática, las notas de crédito y la emisión mediante proveedor.
 
+## 13. Negocio Popular y continuidad ante un cambio de régimen
+
+Origen: el 2026-10-05 el titular confirmó que el RUC comercial es RIMPE Negocio Popular, que facturará de forma electrónica y que el negocio superará el tope de ingresos y pasará a Emprendedor. La página del SRI sobre RIMPE indica que un negocio popular puede emitir notas de venta o comprobantes electrónicos, así que el impedimento que se había diseñado (notas de venta, no contempladas) era incorrecto. Dependencias: grupos 3, 7, 8, 9 y 10.
+
+- [x] 13.1 Escribir primero casos rojos y quitar el impedimento por régimen: Negocio Popular queda *Lista para preparación local*, su regla pasa a exigir líneas a IVA 0 % (`line[n].popular_rate`, dirigida al Administrador) y la venta interna no cambia. Cubre `test_electronic_status.py`, `test_fiscal_resolver.py` y `tests/sales/test_fiscal_prepare_flow.py`.
+- [x] 13.2 Escribir primero casos rojos y añadir `schedule_mapping_successor` en `workshop_configuration/application/fiscal_tax_mapping.py` y su endpoint `POST /fiscal/configuration/tax-mappings/{id}/successor/`: cierra la correspondencia abierta el día anterior y abre la sucesora atómicamente, con inicio futuro, tarifa interna sucesora previa, auditoría y solo para el Administrador. Regenerar `backend/schema.yml`.
+- [x] 13.3 Escribir primero casos rojos y añadir en *Impuestos y catálogo SRI* la acción «Programar cambio» (modal con tarifa nueva, fecha y fundamento) solo en la correspondencia abierta, con el cliente `scheduleTaxMappingSuccessor` y su hook.
+- [x] 13.4 Añadir la prueba de continuidad de punta a punta: Negocio Popular a IVA 0 % → programar tarifa y correspondencia → el día del cambio declarar Emprendedor y facturar con IVA 15 %, código `4` y leyenda, sin alterar lo preparado.
+- [x] 13.5 Enmendar propuesta, specs (dos requisitos nuevos y el escenario de Negocio Popular), diseño, DP-031, glosario, matriz de la instantánea, modelo de dominio, requisitos (RF-ACC-016), interfaz, trazabilidad y cobertura.
+
+Evidencia del grupo: rojo y verde registrados, la transición completa en una sola prueba y documentación sin frases contradictorias.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada: la causa `conditions.tax_regime.unsupported` seguía bloqueando, `AttributeError` por `schedule_mapping_successor` inexistente, `404` en el endpoint y el modal sin botón; verde tras implementar.
+- Hallazgo que motivó 13.2: `schedule_successor` ya programaba la tarifa interna, pero una correspondencia abierta impedía crear la siguiente por solapamiento, de modo que el código de IVA 0 % habría seguido rigiendo tras el cambio y no se habrían podido preparar facturas con IVA.
+- La prueba de transición adelanta los relojes de `django.utils.timezone.now` y `sales.application.reviews.today`; antes del cambio prepara con IVA 0 % y régimen Negocio Popular (también con el cambio ya programado), y el día del cambio con IVA 15 %, código `4`, régimen Emprendedor, leyenda `CONTRIBUYENTE RÉGIMEN RIMPE` y totales 86,96 + 13,04; las instantáneas anteriores conservan Negocio Popular y IVA 0 %.
+- Pendiente de confirmar fuera del sistema: la leyenda exacta de Negocio Popular en la factura electrónica (el XSD 2.1.0 solo admite `CONTRIBUYENTE RÉGIMEN RIMPE`), el tope de consumidor final para ese régimen (el sistema aplica USD 50 a todos) y el tratamiento de retenciones.
+- Aviso operativo: al cambiar de régimen los precios de catálogo son finales con impuesto incluido, de modo que el IVA sale de ese mismo precio; subir precios para conservar el ingreso neto es una decisión del negocio.
+
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

@@ -555,7 +555,7 @@ it('explains the new line limits and rate rule with the text of the server', () 
       },
       {
         field: 'line[2].artisan_rate',
-        code: 'line_artisan_rate',
+        code: 'line_zero_rate_required',
         audience: 'ADMINISTRATOR',
         message:
           'La calificación artesanal declarada exige IVA 0 %, pero esta línea usa «IVA 15 %».',

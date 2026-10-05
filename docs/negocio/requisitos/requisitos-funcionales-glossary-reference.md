@@ -17,3 +17,5 @@
 | Agente de retención | `docs/negocio/producto/glosario.md` | Condición del emisor con número de resolución de RF-ACC-015. |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Código asignado por el sistema de RF-CAT-010. |
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo con campo y longitudes de RF-FIS-007. |
+| Correspondencia tributaria | `docs/negocio/producto/glosario.md` | Relación de un impuesto interno con su tarifa oficial de RF-ACC-016. |
+| Negocio Popular | `docs/negocio/producto/glosario.md` | Régimen que exige líneas a IVA 0 % en RF-FIS-007. |

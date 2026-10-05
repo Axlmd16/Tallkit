@@ -7,6 +7,7 @@ import type {
   DraftUpdate,
   FiscalSourceKind,
   PreparationDefaultsWrite,
+  TaxMappingSuccessorWrite,
 } from './types'
 
 export const fiscalKeys = {
@@ -342,6 +343,21 @@ export function useFiscalMutations() {
     }),
     createTaxMapping: useMutation({
       mutationFn: fiscalApi.createTaxMapping,
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['workshop-configuration', 'taxes'],
+        })
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() })
+      },
+    }),
+    scheduleTaxMappingSuccessor: useMutation({
+      mutationFn: ({
+        mappingId,
+        data,
+      }: {
+        mappingId: number
+        data: TaxMappingSuccessorWrite
+      }) => fiscalApi.scheduleTaxMappingSuccessor(mappingId, data),
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ['workshop-configuration', 'taxes'],

@@ -254,14 +254,14 @@ def test_legacy_format_profile_asks_to_declare_again_without_interpreting_text(
     assert status.profile_revision == 1
 
 
-def test_popular_business_regime_blocks_invoice_preparation_with_its_reason(
+def test_popular_business_regime_is_ready_to_prepare_electronic_invoices(
     entity: FiscalEntity, role_admin: User
 ) -> None:
     _ready_entity(entity, role_admin, tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))
     status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
-    assert status.state == NEEDS_REVIEW
-    cause = next(c for c in status.causes if c.code == "conditions.tax_regime.unsupported")
-    assert "notas de venta" in cause.message
+    assert status.state == READY
+    assert status.causes == ()
+    assert dict(status.conditions)["tax_regime"].value == "RIMPE_NEGOCIO_POPULAR"
 
 
 @pytest.mark.parametrize(

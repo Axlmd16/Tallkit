@@ -111,4 +111,27 @@ Trazabilidad: propuesta §B.9; DP-025/029; RN-FIS-010; RF-ACC-011.
 - **CUANDO** se intenta completar una preparación
 - **ENTONCES** SHALL bloquearse por el estado *Requiere revisión* del perfil, y SHALL NOT aplicarse la regla de tarifa cero como si la calificación siguiera vigente.
 
+### Requirement: Negocio Popular sin IVA y continuidad ante un cambio de régimen
+
+Cuando el emisor declare el régimen *RIMPE Negocio Popular*, que no cobra IVA, toda línea de la preparación SHALL corresponder a la entrada IVA 0 % del catálogo oficial (tratamiento `ZERO`; no objeto y exento no cuentan). Una línea con otra tarifa SHALL dejar la preparación en borrador con un impedimento dirigido al Administrador que identifique la línea y la tarifa, sin modificar los importes de la operación. SHALL NOT bloquearse una preparación únicamente por el régimen.
+
+Un cambio de régimen o de tarifa SHALL NOT alterar las preparaciones completadas: cada instantánea conserva el régimen, la leyenda y la tarifa con que se preparó. Después del cambio, las preparaciones nuevas SHALL usar el régimen y la tarifa vigentes en su fecha de referencia, siempre que el Administrador haya declarado el nuevo régimen y programado la tarifa y su correspondencia.
+
+Trazabilidad: propuesta §A.5 y §D; DP-017/025; RN-FIS-010; RF-FIS-007.
+
+#### Scenario: Negocio popular con producto a tarifa cero
+- **DADO** una entidad en régimen *RIMPE Negocio Popular* y una venta cuyas líneas están a IVA 0 %
+- **CUANDO** se completa su preparación
+- **ENTONCES** SHALL completarse con el régimen *RIMPE Negocio Popular* en el emisor, impuesto 0,00 y código de tarifa `0`.
+
+#### Scenario: Negocio popular con una línea a IVA 15 %
+- **DADO** una entidad en régimen *RIMPE Negocio Popular* y una venta con una línea a IVA 15 %
+- **CUANDO** se intenta completar su preparación
+- **ENTONCES** SHALL permanecer en borrador con un impedimento que indique que ese régimen no cobra IVA, sin modificar los importes de la venta.
+
+#### Scenario: Paso de Negocio Popular a Emprendedor
+- **DADO** una entidad que prepara a IVA 0 % como Negocio Popular, con su tarifa interna y su correspondencia sucesoras de 15 % programadas
+- **CUANDO** llega la fecha del cambio y el Administrador declara el régimen *RIMPE Emprendedor*
+- **ENTONCES** las preparaciones nuevas SHALL usar IVA 15 %, código de tarifa `4` y la leyenda del régimen Emprendedor, y las anteriores SHALL conservar el régimen *RIMPE Negocio Popular* y el IVA 0 %.
+
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

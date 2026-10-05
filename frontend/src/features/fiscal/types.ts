@@ -362,6 +362,12 @@ export interface TaxMappingWrite {
   source: string
 }
 
+export interface TaxMappingSuccessorWrite {
+  catalog_entry_id: number
+  starts_on: string
+  source: string
+}
+
 export type ElectronicState =
   | 'NOT_CONFIGURED'
   | 'INCOMPLETE'

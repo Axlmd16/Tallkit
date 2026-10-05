@@ -22,9 +22,6 @@ _CONFIGURATION_MESSAGES = {
         "El perfil tributario conserva condiciones escritas como texto libre; declárelo de "
         "nuevo con las opciones actuales."
     ),
-    "conditions.tax_regime.unsupported": (
-        "El régimen RIMPE Negocio Popular emite notas de venta, que este sistema no contempla."
-    ),
 }
 _SUFFIX = " Debe resolverlo el Administrador en Configuración, pestaña Facturación electrónica."
 
@@ -57,10 +54,10 @@ def classify(impediment: dict[str, Any]) -> dict[str, str]:
             "audience": ADMINISTRATOR,
             "message": f"{message} Corrija el producto o servicio en el catálogo.",
         }
-    if field.startswith("line[") and field.endswith(".artisan_rate"):
+    if field.startswith("line[") and field.endswith((".artisan_rate", ".popular_rate")):
         return {
             "field": field,
-            "code": "line_artisan_rate",
+            "code": "line_zero_rate_required",
             "audience": ADMINISTRATOR,
             "message": message + _SUFFIX,
         }

@@ -20,7 +20,7 @@ Fuentes consultadas: `docs/negocio/decisiones/decisiones-confirmadas.yaml` (DP-0
 2. **Obligado a llevar contabilidad** se declara como *Sí* o *No* y se conserva como `SI`/`NO`.
 3. **Agente de retención** y **contribuyente especial** se declaran como *No aplica* o *Aplica*; cuando aplican exigen el número de resolución con el formato del esquema (dígitos, hasta 8; alfanumérico, hasta 13).
 4. Cada condición conserva lo que ya tiene hoy: fundamento, inicio y fin de vigencia y responsable del registro. Sigue distinguiéndose «sin información» de «no aplica».
-5. **Régimen RIMPE Negocio Popular** se puede declarar, pero deja la entidad con un impedimento para preparar facturas: ese régimen emite notas de venta, un tipo de documento que este sistema no contempla. El impedimento explica el motivo en lugar de preparar un documento equivocado.
+5. **Régimen RIMPE Negocio Popular** se puede declarar y la entidad **puede preparar facturas electrónicas**: el SRI permite a un negocio popular emitir notas de venta o, de forma voluntaria, comprobantes electrónicos. Como ese régimen no cobra IVA, la preparación exige que toda línea resuelva a IVA 0 % y explica el impedimento si no es así. La leyenda del comprobante de Negocio Popular queda pendiente de confirmar con la ficha técnica del SRI o con el proveedor; el régimen sí se conserva en la instantánea.
 6. La **instantánea fiscal** de las preparaciones nuevas conserva estos datos como campos estructurados del emisor, no como leyendas de texto. Las preparaciones ya completadas no se modifican.
 
 ### B. Calificación artesanal
@@ -39,7 +39,12 @@ El sistema sigue sin deducir la calificación por el tipo COMERCIAL/ARTESANAL: s
 13. **Código propio de servicio.** Cada servicio recibe un código visible, único y estable, asignado por el sistema al crearlo (por ejemplo `SRV-000012`). Los servicios existentes reciben el suyo en la migración. Se muestra en el catálogo y en la operación artesanal, y es el que la preparación usa como código de línea.
 14. La preparación comprueba además que la descripción de cada línea no supere los 300 caracteres del esquema, y bloquea con un impedimento en lugar de recortarla.
 
-### D. Verificación
+### D. Continuidad ante un cambio de régimen
+
+16. **Cambio programado del código del SRI.** Un negocio que pasa de Negocio Popular (IVA 0 %) a Emprendedor (IVA 15 %) ya podía programar la tarifa interna, pero no el código del SRI de su correspondencia. El Administrador puede ahora programar el cambio de una correspondencia abierta: la actual termina el día anterior y la nueva rige desde una fecha futura, atómicamente y con la tarifa interna sucesora programada antes.
+17. **Prueba de continuidad.** Un recorrido de punta a punta comprueba que antes del cambio se prepara con IVA 0 % y régimen Negocio Popular, y el día del cambio con IVA 15 %, régimen Emprendedor y su leyenda, sin alterar lo ya preparado.
+
+### E. Verificación
 
 15. La matriz `docs/tecnico/matriz-instantanea-fiscal.md` se actualiza con los campos estructurados del emisor y los límites de longitud comprobados.
 
@@ -59,7 +64,7 @@ Las siguientes son recomendaciones. La propuesta se detiene aquí hasta que el t
 - Habilitar el ambiente de producción.
 - La regla de redondeo del IVA incluido en el precio (DP-025): corresponde al cambio `alinear-calculo-de-iva-con-el-sri`.
 - Retenciones recibidas en cobros, preparación automática al confirmar, notas de crédito y plazo del crédito: cada uno tiene su propio cambio.
-- Notas de venta para el régimen RIMPE Negocio Popular.
+- Notas de venta preimpresas: este cambio no las genera; el negocio que las use las emite fuera del sistema.
 - Una marca de «datos de prueba» para la entidad comercial. El titular confirmó que el RUC comercial cargado hoy es provisional y que se sustituirá por el definitivo al pasar a producción; no se añade ningún control para ello.
 - Cambios en precios, tarifas internas, numeración interna, ventas, cobros o inventario.
 
@@ -71,8 +76,8 @@ Ninguna.
 
 ### Modified Capabilities
 
-- `configuracion-operativa-y-fiscal`: el requisito «Perfil fiscal adicional sin alterar la configuración operativa» pasa de condiciones en texto libre a valores cerrados con formato; se añaden el número y el vencimiento de la calificación artesanal, el aviso previo al vencimiento y el impedimento del régimen RIMPE Negocio Popular.
-- `preparacion-y-seguimiento-fiscal`: la instantánea conserva el emisor en campos estructurados; se añaden los impedimentos por código o descripción de línea que exceden el esquema y por tarifa incoherente con la calificación artesanal; el código de línea de un servicio es su código propio.
+- `configuracion-operativa-y-fiscal`: el requisito «Perfil fiscal adicional sin alterar la configuración operativa» pasa de condiciones en texto libre a valores cerrados con formato; se añaden el número y el vencimiento de la calificación artesanal, el aviso previo al vencimiento y el cambio programado del código del SRI de una correspondencia.
+- `preparacion-y-seguimiento-fiscal`: la instantánea conserva el emisor en campos estructurados; se añaden los impedimentos por código o descripción de línea que exceden el esquema por tarifa incoherente con la calificación artesanal y por una línea con IVA en un Negocio Popular; el código de línea de un servicio es su código propio.
 - `catalogo-de-productos-y-categorias`: el código interno de producto admite como máximo 25 caracteres en altas y ediciones; los existentes más largos se conservan y pueden localizarse.
 - `catalogo-de-servicios`: cada servicio tiene un código visible, único e inmutable asignado por el sistema.
 

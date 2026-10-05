@@ -1,11 +1,12 @@
 """Correspondencias declaradas; una tarifa oficial no acredita el beneficio del emisor."""
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from identity.application.audit import record_audit_event
 from identity.application.authorization import require_permission
@@ -102,6 +103,67 @@ def create_mapping(
             },
         )
         return result
+
+
+def schedule_mapping_successor(
+    *,
+    actor: User,
+    mapping_id: int,
+    catalog_entry_id: int,
+    starts_on: date,
+    source: str,
+) -> FiscalTaxMapping:
+    """Cierra la correspondencia abierta el día anterior y abre la sucesora, atómicamente.
+
+    Es el equivalente fiscal de la sucesión prospectiva de tarifas: permite que el código del
+    SRI cambie a futuro (por ejemplo de IVA 0 % a IVA 15 % al pasar de régimen) sin tocar lo ya
+    preparado. El inicio debe ser estrictamente futuro en America/Guayaquil y la tarifa interna
+    sucesora debe estar programada antes: el código nuevo no puede contradecirla.
+    """
+    require_permission(actor=actor, permission="parametros.gestionar")
+    if type(starts_on) is not date or starts_on <= timezone.localdate():
+        raise ConfigurationValidationError(
+            "El cambio debe iniciar en una fecha futura.",
+            errors={"starts_on": ["Elija una fecha posterior a hoy."]},
+        )
+    with transaction.atomic():
+        ref = (
+            FiscalTaxMapping.objects.filter(pk=mapping_id)
+            .values("tax_definition__fiscal_entity_id")
+            .first()
+        )
+        if ref is None:
+            raise ConfigurationValidationError("Correspondencia no encontrada.")
+        FiscalEntity.objects.select_for_update().get(pk=ref["tax_definition__fiscal_entity_id"])
+        mapping = FiscalTaxMapping.objects.select_for_update().get(pk=mapping_id)
+        if mapping.ends_on is not None:
+            raise ConfigurationValidationError(
+                "Solo se programa el cambio de la correspondencia abierta."
+            )
+        if starts_on <= mapping.starts_on:
+            raise ConfigurationValidationError(
+                "El cambio debe iniciar después de la correspondencia vigente.",
+                errors={"starts_on": ["Elija una fecha posterior al inicio vigente."]},
+            )
+        mapping.ends_on = starts_on - timedelta(days=1)
+        mapping.save(update_fields=["ends_on"])
+        successor = create_mapping(
+            actor=actor,
+            definition_id=mapping.tax_definition_id,
+            catalog_entry_id=catalog_entry_id,
+            starts_on=starts_on,
+            ends_on=None,
+            source=source,
+        )
+        record_audit_event(
+            actor=actor,
+            action="fiscal.tax_mapping_succession",
+            target_type="fiscal_tax_mapping",
+            target_id=str(successor.pk),
+            result=AuditResult.SUCCESS,
+            metadata={"predecessor_id": mapping.pk, "starts_on": starts_on.isoformat()},
+        )
+        return successor
 
 
 def list_mappings(*, actor: User, entity_id: int) -> tuple[FiscalTaxMapping, ...]:

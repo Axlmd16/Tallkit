@@ -23,7 +23,7 @@ El perfil SHALL mostrar uno de estos estados, siempre con su causa en texto y nu
 
 Una revisión anterior con condiciones en texto libre SHALL conservarse como historia sin modificarse y SHALL NOT convertirse automáticamente a los valores cerrados. Mientras sea la vigente, el perfil SHALL mostrarse como *Falta completar* indicando que debe declararse de nuevo.
 
-El régimen *RIMPE Negocio Popular* SHALL poder declararse, pero SHALL producir un impedimento que bloquee la preparación de facturas de esa entidad, explicando que ese régimen emite notas de venta y que el sistema no las contempla. SHALL NOT bloquear las operaciones internas de la entidad.
+El régimen *RIMPE Negocio Popular* SHALL poder declararse y SHALL NOT impedir por sí mismo la preparación de facturas electrónicas, que el SRI permite a ese régimen de forma voluntaria. Su leyenda del comprobante SHALL NOT derivarse mientras no esté confirmada con la ficha técnica; el régimen SHALL conservarse en la instantánea.
 
 Ningún estado SHALL afirmar validación, habilitación o declaración ante el SRI. El certificado opcional SHALL NOT afectar el estado. La información incompleta SHALL impedir preparar, sin bloquear operaciones internas que satisfagan su configuración actual. Antes de una emisión en producción, la configuración deberá revisarla el responsable tributario; esta capacidad no realiza esa habilitación.
 
@@ -91,8 +91,8 @@ Trazabilidad: propuesta §A y D1; propuesta de simplificación B7, R4; DP-018/02
 
 #### Scenario: Régimen de negocio popular
 - **DADO** una entidad con régimen *RIMPE Negocio Popular* declarado y el resto del perfil completo
-- **CUANDO** se intenta preparar la factura de una operación de esa entidad
-- **ENTONCES** SHALL bloquearse con un impedimento que explique que ese régimen emite notas de venta, y las ventas y cobros internos de la entidad SHALL seguir operando.
+- **CUANDO** se evalúa su estado
+- **ENTONCES** SHALL mostrarse *Lista para preparación local*, sin causa por el régimen, y las ventas y cobros internos de la entidad SHALL seguir operando.
 
 ## ADDED Requirements
 
@@ -135,5 +135,36 @@ Trazabilidad: propuesta §B, D4 y D5; DP-029; RN-FIS-010; RF-ACC-010/011; CU-003
 - **DADO** un Encargado del taller sin rol Administrador
 - **CUANDO** intenta consultar o modificar la calificación artesanal de la entidad
 - **ENTONCES** SHALL denegarse sin revelar el número ni las fechas.
+
+### Requirement: Cambio programado del código del SRI de una correspondencia
+
+El Administrador SHALL poder programar el cambio de una correspondencia tributaria **abierta** (sin fecha de fin): el sistema SHALL cerrarla el día anterior al inicio elegido y abrir una sucesora con la tarifa oficial indicada, en una sola operación atómica. El inicio SHALL ser estrictamente posterior a hoy (America/Guayaquil) y posterior al inicio de la correspondencia vigente. La tarifa oficial sucesora SHALL concordar con la tarifa interna vigente en su intervalo, por lo que la tarifa interna sucesora SHALL programarse antes. Una correspondencia ya cerrada SHALL NOT admitir otra sucesión. Un rechazo SHALL NOT modificar la correspondencia actual. La operación SHALL auditarse y SHALL NOT alterar las preparaciones ya completadas, que conservan la tarifa que usaron. Solo el Administrador SHALL poder programarla.
+
+Trazabilidad: continuidad ante un cambio de régimen (propuesta §D); DP-017/025; RN-FIS-010; RF-ACC-011/016; CU-003.
+
+#### Scenario: Cambio de IVA 0 % a IVA 15 %
+- **DADO** una correspondencia abierta a IVA 0 % y una tarifa interna sucesora de 15 % programada para dentro de 30 días
+- **CUANDO** el Administrador programa el código de IVA 15 % para esa fecha
+- **ENTONCES** la correspondencia actual SHALL terminar el día anterior, la nueva SHALL regir desde esa fecha, y las resoluciones anteriores a ella SHALL seguir devolviendo el código de IVA 0 %.
+
+#### Scenario: Tarifa interna aún no programada
+- **DADO** una correspondencia abierta a IVA 0 % sin tarifa interna sucesora
+- **CUANDO** se intenta programar el código de IVA 15 %
+- **ENTONCES** SHALL rechazarse por contradecir la tarifa interna vigente, sin cerrar la correspondencia actual.
+
+#### Scenario: Fecha no futura
+- **DADO** una correspondencia abierta
+- **CUANDO** se intenta programar un cambio que inicia hoy o antes
+- **ENTONCES** SHALL rechazarse con un error en la fecha, sin modificar la correspondencia.
+
+#### Scenario: Correspondencia ya cerrada
+- **DADO** una correspondencia que ya tiene sucesora programada
+- **CUANDO** se intenta programar otro cambio sobre ella
+- **ENTONCES** SHALL rechazarse por no estar abierta.
+
+#### Scenario: Usuario sin permiso
+- **DADO** un Vendedor
+- **CUANDO** intenta programar el cambio
+- **ENTONCES** SHALL denegarse sin modificar ninguna correspondencia.
 
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

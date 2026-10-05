@@ -26,8 +26,6 @@ from workshop_configuration.application.preparation_settings import (
 from workshop_configuration.domain.electronic_profile import (
     ARTISAN_QUALIFICATION,
     CONDITION_KEYS,
-    REGIME_RIMPE_NEGOCIO_POPULAR,
-    TAX_REGIME,
     DeclaredCertificate,
     DeclaredCondition,
     parse_certificate_metadata,
@@ -109,20 +107,6 @@ def _condition_causes(key: str, condition: DeclaredCondition, on: date) -> list[
             )
         ]
     return []
-
-
-def _regime_causes(conditions: tuple[tuple[str, DeclaredCondition], ...]) -> list[StatusCause]:
-    regime = dict(conditions).get(TAX_REGIME)
-    if regime is None or regime.value != REGIME_RIMPE_NEGOCIO_POPULAR:
-        return []
-    return [
-        StatusCause(
-            "conditions.tax_regime.unsupported",
-            REVIEW,
-            "Régimen tributario: RIMPE Negocio Popular emite notas de venta, un documento que "
-            "este sistema no contempla; no se pueden preparar facturas de esta entidad.",
-        )
-    ]
 
 
 def _days_text(days: int) -> str:
@@ -299,7 +283,6 @@ def evaluate_electronic_status(*, entity_id: int, on: date) -> ElectronicStatus:
             conditions = tuple((key, parsed[key]) for key in sorted(CONDITION_KEYS))
             for key, condition in conditions:
                 causes.extend(_condition_causes(key, condition, on))
-            causes.extend(_regime_causes(conditions))
         if profile.certificate is not None:
             certificate = parse_certificate_metadata(profile.certificate)
     causes.extend(_point_causes(entity, defaults))

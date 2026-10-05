@@ -192,8 +192,12 @@ context: |
     régimen (General, RIMPE Emprendedor o RIMPE Negocio Popular), contabilidad SI o NO, agente de
     retención y contribuyente especial con su número de resolución (1 a 8 dígitos y 1 a 13
     caracteres alfanuméricos) solo cuando aplican, y calificación artesanal con número, organismo
-    y vencimiento obligatorio. La leyenda del régimen se deriva y no se escribe; RIMPE Negocio
-    Popular, que emite notas de venta, impide preparar facturas. D1: un perfil guardado en texto
+    y vencimiento obligatorio. La leyenda del régimen se deriva y no se escribe. RIMPE Negocio
+    Popular no cobra IVA y puede emitir facturas electrónicas de forma voluntaria (confirmado
+    por el titular el 2026-10-05, que usará facturas electrónicas): su preparación exige líneas a
+    IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro, incluida la correspondencia
+    con el SRI, y no altera lo ya preparado. La leyenda de Negocio Popular y el tope de
+    consumidor final para ese régimen están por confirmar con la ficha técnica del SRI. D1: un perfil guardado en texto
     libre se conserva como historia, no se convierte y debe declararse de nuevo. D2: el código de
     producto admite hasta 25 caracteres al crearlo o cambiarlo; los anteriores más largos se
     conservan, se localizan con un filtro y bloquean la preparación fiscal de sus operaciones

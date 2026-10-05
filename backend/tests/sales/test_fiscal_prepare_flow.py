@@ -455,7 +455,7 @@ def test_prefilled_draft_is_reviewable_without_user_input(
 
     prep_id = prepared_context["preparation_id"]
     result = review(actor=seller, preparation_id=prep_id)
-    assert result.impediments == (), result.impediments
+    assert result.impediments == ()
     prepare(
         actor=seller,
         preparation_id=prep_id,
@@ -612,7 +612,7 @@ def test_legacy_draft_ignores_technical_fields(
     assert detail.working is not None
     assert detail.working["payments"]["forms"] == [{"payment_code": "20", "amount": "100.00"}]
     result = review(actor=seller, preparation_id=prep_id)
-    assert result.impediments == (), result.impediments
+    assert result.impediments == ()
 
 
 def test_detail_hides_technical_block_from_seller(
@@ -769,7 +769,7 @@ def _prepare(seller: Any, prep_id: Any, key: str) -> Any:
     from fiscal.models import FiscalPreparation
 
     result = review(actor=seller, preparation_id=prep_id)
-    assert result.impediments == (), result.impediments
+    assert result.impediments == ()
     prepare(actor=seller, preparation_id=prep_id, review_token=result.token, idempotency_key=key)
     return FiscalPreparation.objects.get(pk=prep_id)
 
@@ -1073,7 +1073,7 @@ def test_expired_qualification_blocks_by_profile_state_not_by_the_rate_rule(
     codes = {impediment["code"] for impediment in result.impediments}
     assert result.token is None
     assert "conditions.artisan_qualification.expired" in codes
-    assert "line_artisan_rate" not in codes
+    assert "line_zero_rate_required" not in codes
 
 
 def test_profile_in_legacy_format_blocks_the_review_with_an_administrator_impediment(
@@ -1123,11 +1123,7 @@ def test_snapshots_of_earlier_formats_are_read_back_unchanged(
         assert "tax_profile" not in detail.technical["issuer"]
 
 
-def test_popular_business_regime_blocks_only_the_invoice_and_not_internal_sales(
-    prepared_context: dict[str, Any], confirmed_sale: Any, seller: Any, admin: Any
-) -> None:
-    from fiscal.application.preparations import review
-
+def _declare_popular_business(admin: Any) -> None:
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
     save_profile(
         actor=admin,
@@ -1137,18 +1133,185 @@ def test_popular_business_regime_blocks_only_the_invoice_and_not_internal_sales(
         payload={"conditions": profile_conditions(tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))},
     )
 
-    # La venta interna, con su número y sus importes, se confirma igual que antes.
-    internal = confirmed_sale(price="40.00", condition="CONTADO")
-    assert internal["body"]["grand_total"] == "40.00"
-    assert internal["body"]["internal_number"].startswith("COM-VEN-")
 
-    # Lo que se bloquea es solo preparar la factura, con la causa dirigida al Administrador.
+def test_popular_business_can_invoice_lines_at_zero_rate(
+    prepared_context: dict[str, Any],
+    confirmed_sale: Any,
+    make_product: Any,
+    stock: Any,
+    commercial: dict[str, Any],
+    seller: Any,
+    admin: Any,
+) -> None:
+    from decimal import Decimal
+
+    from fiscal.application.preparations import create_draft, prepare, review
+    from fiscal.models import FiscalPreparation
+
+    _declare_popular_business(admin)
+    product = make_product(sale_price=Decimal("40.00"), tax_definition=commercial["zero"])
+    stock(product, 20, "80.00")
+    sale = confirmed_sale(product=product, condition="CONTADO")
+    assert sale["body"]["grand_total"] == "40.00"
+    assert sale["body"]["internal_number"].startswith("COM-VEN-")
+    draft = create_draft(
+        actor=seller,
+        source_kind="COMMERCIAL",
+        source_id=sale["id"],
+        idempotency_key="fiscal:create:popular",
+    )
+    _fill_draft(
+        seller,
+        draft.preparation_id,
+        prepared_context["point_id"],
+        payments={"forms": [{"payment_code": "01", "amount": "40.00"}]},
+    )
+    result = review(actor=seller, preparation_id=draft.preparation_id)
+    assert result.impediments == ()
+    assert result.token is not None
+    prepare(
+        actor=seller,
+        preparation_id=draft.preparation_id,
+        review_token=result.token,
+        idempotency_key="fiscal:prepare:popular",
+    )
+    snapshot = FiscalPreparation.objects.get(pk=draft.preparation_id).snapshot
+    assert snapshot is not None
+    assert snapshot["issuer"]["tax_profile"]["regime"] == "RIMPE_NEGOCIO_POPULAR"
+    assert snapshot["totals"] == {"base": "40.00", "tax": "0.00", "grand": "40.00"}
+    assert snapshot["lines"][0]["percentage_code"] == "0"
+
+
+def test_popular_business_never_prepares_a_line_with_iva(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import review
+
+    _declare_popular_business(admin)
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     result = review(actor=seller, preparation_id=prep_id)
     assert result.token is None
-    [impediment] = [
-        i for i in result.impediments if i["code"] == "conditions.tax_regime.unsupported"
-    ]
+    [impediment] = [i for i in result.impediments if i["field"] == "line[1].popular_rate"]
     assert impediment["audience"] == "ADMINISTRATOR"
-    assert "notas de venta" in impediment["message"]
+    assert "no cobra IVA" in impediment["message"]
+    assert "IVA 15 %" in impediment["message"]
+    # La venta interna no cambia: sigue confirmada con sus importes.
+    assert prepared_context["sale"]["body"]["grand_total"] == "100.00"
+
+
+def test_business_keeps_invoicing_when_it_moves_from_popular_business_to_entrepreneur(
+    confirmed_sale: Any,
+    make_product: Any,
+    stock: Any,
+    commercial: dict[str, Any],
+    seller: Any,
+    admin: Any,
+) -> None:
+    """El día del cambio de régimen se programa y después se factura con IVA y nueva leyenda."""
+    from datetime import datetime, timedelta
+    from decimal import Decimal
+    from unittest import mock
+    from zoneinfo import ZoneInfo
+
+    from django.utils import timezone
+
+    from fiscal.application.preparations import create_draft, prepare, review
+    from fiscal.models import FiscalPreparation
+    from workshop_configuration.application.fiscal_tax_mapping import schedule_mapping_successor
+    from workshop_configuration.application.taxes import schedule_successor
+    from workshop_configuration.models import FiscalTaxMapping, TaxPeriod
+
+    point_id = _setup_commercial_config(admin)
+    entity = commercial["entity"]
+    sales_tax = TaxDefinition.objects.create(
+        fiscal_entity=entity, code="IVAV", name="IVA ventas del negocio"
+    )
+    period = TaxPeriod.objects.create(
+        tax_definition=sales_tax, rate=Decimal("0"), starts_on=date(2025, 1, 1)
+    )
+    mapping = create_mapping(
+        actor=admin,
+        definition_id=sales_tax.pk,
+        catalog_entry_id=_iva_15_entry("0"),
+        starts_on=date(2025, 1, 1),
+        ends_on=None,
+        source="Certificado de RUC",
+    )
+    product = make_product(sale_price=Decimal("100.00"), tax_definition=sales_tax)
+    stock(product, 20, "80.00")
+    _declare_popular_business(admin)
+
+    def invoice(sale: dict[str, Any], key: str) -> dict[str, Any]:
+        draft = create_draft(
+            actor=seller,
+            source_kind="COMMERCIAL",
+            source_id=sale["id"],
+            idempotency_key=f"fiscal:create:{key}",
+        )
+        _fill_draft(seller, draft.preparation_id, point_id)
+        result = review(actor=seller, preparation_id=draft.preparation_id)
+        assert result.impediments == ()
+        assert result.token is not None
+        prepare(
+            actor=seller,
+            preparation_id=draft.preparation_id,
+            review_token=result.token,
+            idempotency_key=f"fiscal:prepare:{key}",
+        )
+        snapshot = FiscalPreparation.objects.get(pk=draft.preparation_id).snapshot
+        assert snapshot is not None
+        return dict(snapshot)
+
+    # Antes del cambio: Negocio Popular, IVA 0 %.
+    before = invoice(confirmed_sale(product=product, condition="CONTADO"), "before")
+    assert before["issuer"]["tax_profile"]["regime"] == "RIMPE_NEGOCIO_POPULAR"
+    assert (before["lines"][0]["percentage_code"], before["totals"]["tax"]) == ("0", "0.00")
+
+    # El Administrador programa el cambio de IVA con antelación; el negocio sigue operando.
+    day = timezone.localdate() + timedelta(days=30)
+    schedule_successor(
+        actor=admin,
+        period_id=period.pk,
+        expected_version=period.version,
+        new_rate="15",
+        successor_starts_on=day,
+    )
+    schedule_mapping_successor(
+        actor=admin,
+        mapping_id=mapping.pk,
+        catalog_entry_id=_iva_15_entry("4"),
+        starts_on=day,
+        source="Pasa a RIMPE Emprendedor",
+    )
+    still = invoice(confirmed_sale(product=product, condition="CONTADO"), "still")
+    assert (still["lines"][0]["percentage_code"], still["totals"]["tax"]) == ("0", "0.00")
+
+    # El día del cambio declara el nuevo régimen y factura con IVA, sin más ajustes.
+    moved = datetime.combine(day, datetime.min.time(), tzinfo=ZoneInfo("America/Guayaquil"))
+    with (
+        mock.patch("django.utils.timezone.now", return_value=moved + timedelta(hours=10)),
+        mock.patch("sales.application.reviews.today", return_value=day),
+    ):
+        save_profile(
+            actor=admin,
+            entity_id=entity.pk,
+            expected_revision=2,
+            idempotency_key="profile:comercial:emprendedor",
+            payload={
+                "conditions": profile_conditions(
+                    tax_regime=applicable("RIMPE_EMPRENDEDOR", starts_on=day.isoformat())
+                )
+            },
+        )
+        after = invoice(confirmed_sale(product=product, condition="CONTADO"), "after")
+
+    assert after["issuer"]["tax_profile"]["regime"] == "RIMPE_EMPRENDEDOR"
+    assert after["issuer"]["tax_profile"]["regime_legend"] == "CONTRIBUYENTE RÉGIMEN RIMPE"
+    assert (after["lines"][0]["percentage_code"], after["lines"][0]["tax_rate"]) == ("4", "15.0000")
+    assert after["totals"] == {"base": "86.96", "tax": "13.04", "grand": "100.00"}
+    assert after["reference_date"] == day.isoformat()
+
+    # Lo ya preparado conserva su régimen y su tarifa.
+    assert before["issuer"]["tax_profile"]["regime"] == "RIMPE_NEGOCIO_POPULAR"
+    assert FiscalTaxMapping.objects.filter(tax_definition=sales_tax).count() == 2

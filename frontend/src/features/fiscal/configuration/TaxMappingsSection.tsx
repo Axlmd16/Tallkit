@@ -1,4 +1,4 @@
-import { Plus } from '@phosphor-icons/react'
+import { CalendarPlus, Plus } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import type { TaxDefinition } from '@/features/workshop-configuration/types'
@@ -19,6 +19,7 @@ import {
 } from '@/shared/ui'
 
 import { useCatalog, useFiscalMutations, useTaxMappings } from '../hooks'
+import type { TaxMappingItem } from '../types'
 
 export function TaxMappingsSection({
   entityId,
@@ -31,6 +32,7 @@ export function TaxMappingsSection({
 }) {
   const mappings = useTaxMappings(entityId)
   const [creating, setCreating] = useState(false)
+  const [succeeding, setSucceeding] = useState<TaxMappingItem | null>(null)
   const list = mappings.data ?? []
 
   return (
@@ -84,6 +86,9 @@ export function TaxMappingsSection({
                   <th className={sheetTableHead}>Tarifa SRI</th>
                   <th className={sheetTableHead}>Vigencia</th>
                   <th className={sheetTableHead}>Estado</th>
+                  <th className={sheetTableHead}>
+                    <span className="sr-only">Acciones</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -114,6 +119,23 @@ export function TaxMappingsSection({
                         tone={mapping.is_current ? 'success' : 'inactive'}
                       />
                     </td>
+                    <td className={sheetTableCell}>
+                      {mapping.ends_on === null && (
+                        <Button
+                          aria-label={`Programar cambio de ${mapping.definition_name}`}
+                          className="px-2"
+                          onClick={() => setSucceeding(mapping)}
+                          variant="quiet"
+                        >
+                          <CalendarPlus
+                            aria-hidden="true"
+                            size={14}
+                            weight="bold"
+                          />
+                          Programar cambio
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -138,6 +160,12 @@ export function TaxMappingsSection({
         </>
       )}
 
+      {succeeding && (
+        <SuccessorModal
+          mapping={succeeding}
+          onClose={() => setSucceeding(null)}
+        />
+      )}
       {creating && (
         <MappingModal
           definitions={definitions}
@@ -259,6 +287,95 @@ function MappingModal({
         </div>
         <Field
           hint="Fuente o referencia que justifica esta correspondencia tributaria."
+          label="Fundamento"
+          required
+        >
+          <Input
+            maxLength={500}
+            onChange={set('source')}
+            value={values.source}
+          />
+        </Field>
+      </div>
+    </FormModal>
+  )
+}
+
+function SuccessorModal({
+  mapping,
+  onClose,
+}: {
+  mapping: TaxMappingItem
+  onClose: () => void
+}) {
+  const catalog = useCatalog('TAX_RATE', true)
+  const mutations = useFiscalMutations()
+  const toast = useToast()
+  const [values, setValues] = useState({ entry: '', startsOn: '', source: '' })
+  const dirty = Boolean(values.entry || values.startsOn || values.source)
+  const set = (key: keyof typeof values) => (value: string) =>
+    setValues((current) => ({ ...current, [key]: value }))
+
+  async function save() {
+    await mutations.scheduleTaxMappingSuccessor.mutateAsync({
+      mappingId: mapping.id,
+      data: {
+        catalog_entry_id: Number(values.entry),
+        starts_on: values.startsOn,
+        source: values.source.trim(),
+      },
+    })
+    toast.success('Cambio de tarifa programado.')
+    return true
+  }
+
+  return (
+    <FormModal
+      description="La correspondencia actual termina el día anterior y la nueva rige desde la fecha elegida. Antes programe el cambio de la tarifa interna en Impuestos: la nueva tarifa no puede contradecirla."
+      dirty={dirty}
+      onClose={onClose}
+      onSave={save}
+      open
+      saveLabel="Programar cambio"
+      title="Programar cambio de tarifa SRI"
+    >
+      <div className="space-y-4">
+        <div className="text-sm">
+          <p className="text-xs font-semibold text-ink">
+            Correspondencia actual
+          </p>
+          <p className="mt-1.5 text-ink">
+            {mapping.definition_name} · {mapping.display_name ?? 'Sin entrada'}
+          </p>
+          <p className="mt-1 text-xs text-ink-muted">
+            Vigente desde <span className="font-mono">{mapping.starts_on}</span>
+          </p>
+        </div>
+        <Field label="Nueva tarifa del catálogo SRI" required>
+          {catalog.isLoading ? (
+            <LoadingState />
+          ) : (
+            <Select onChange={set('entry')} value={values.entry}>
+              <option disabled value="">
+                Seleccione una tarifa
+              </option>
+              {(catalog.data ?? []).map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.display_name}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
+        <Field hint="Debe ser una fecha futura." label="Rige desde" required>
+          <Input
+            onChange={set('startsOn')}
+            type="date"
+            value={values.startsOn}
+          />
+        </Field>
+        <Field
+          hint="Por ejemplo, el cambio de régimen que lo origina."
           label="Fundamento"
           required
         >

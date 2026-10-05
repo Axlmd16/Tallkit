@@ -11,3 +11,5 @@
 | Calificación artesanal | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Condición con número, organismo y vencimiento obligatorio. |
 | Agente de retención | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Condición que, si aplica, exige número de resolución de hasta 8 dígitos. |
 | Impedimento | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Causa que bloquea preparar facturas en régimen de negocio popular. |
+| Correspondencia tributaria | `docs/negocio/producto/glosario.md` | Relación de un impuesto interno con su tarifa oficial; su cambio se programa a futuro. |
+| Negocio Popular | `docs/negocio/producto/glosario.md` | Valor del régimen tributario que no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria. |

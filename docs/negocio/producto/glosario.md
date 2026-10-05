@@ -165,7 +165,7 @@ Conjunto de condiciones tributarias que el Administrador declara para cada entid
 
 ### Régimen tributario
 
-Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE Negocio Popular. La leyenda oficial del comprobante se deriva del régimen y no se escribe. RIMPE Negocio Popular emite notas de venta, un documento que el sistema no contempla, por lo que impide preparar facturas.
+Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE Negocio Popular. La leyenda del comprobante se deriva del régimen y no se escribe (la de Negocio Popular está por confirmar con la ficha técnica del SRI). RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria; el sistema solo prepara sus facturas con líneas a IVA 0 %. Al pasar de Negocio Popular a Emprendedor el Administrador declara el nuevo régimen y programa la tarifa y su correspondencia con el SRI.
 
 ### Calificación artesanal
 

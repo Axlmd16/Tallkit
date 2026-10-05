@@ -12,3 +12,4 @@
 | Calificación artesanal | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Condición vigente que exige líneas a IVA 0 %. |
 | Código de servicio | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Código de línea de los servicios en la preparación. |
 | Impedimento | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Causa identificada que deja la preparación en borrador. |
+| Negocio Popular | `docs/negocio/producto/glosario.md` | Régimen que exige líneas a IVA 0 % al preparar. |

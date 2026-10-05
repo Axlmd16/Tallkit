@@ -32,6 +32,7 @@ from fiscal.api.views import (
     PreparationPrepareView,
     PreparationReviewView,
     TaxMappingCreateView,
+    TaxMappingSuccessorView,
 )
 
 urlpatterns = [
@@ -153,6 +154,11 @@ urlpatterns = [
         "configuration/entities/<int:entity_id>/payment-forms/<str:code>/",
         PaymentFormDetailView.as_view(),
         name="fiscal-payment-form-detail",
+    ),
+    path(
+        "configuration/tax-mappings/<int:mapping_id>/successor/",
+        TaxMappingSuccessorView.as_view(),
+        name="fiscal-tax-mapping-successor",
     ),
     path(
         "configuration/tax-mappings/",

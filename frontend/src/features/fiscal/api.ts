@@ -31,6 +31,7 @@ import type {
   ReviewResult,
   RestorationEvidenceWrite,
   TaxMappingItem,
+  TaxMappingSuccessorWrite,
   TaxMappingWrite,
   TestIdentity,
 } from './types'
@@ -205,6 +206,15 @@ export function createFiscalApi(client: ApiClient) {
         method: 'POST',
         body: data,
       }),
+    /** Programa el cambio del código del SRI de una correspondencia abierta. */
+    scheduleTaxMappingSuccessor: (
+      mappingId: number,
+      data: TaxMappingSuccessorWrite,
+    ) =>
+      client.request(
+        `${BASE}/configuration/tax-mappings/${mappingId}/successor/`,
+        { method: 'POST', body: data },
+      ),
     getElectronicStatus: (entityId: number) =>
       client.request<ElectronicStatus>(
         `${BASE}/configuration/entities/${entityId}/electronic-status/`,

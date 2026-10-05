@@ -332,3 +332,89 @@ def test_status_endpoint_reports_the_qualification_expiry_warning(
     expiring = next(w for w in warnings if w["code"] == "artisan_qualification_expiring")
     assert ends_on in expiring["message"]
     assert "30 días" in expiring["message"]
+
+
+def _zero_rate_mapping(entity: FiscalEntity, admin: User) -> tuple[Any, Any]:
+    from datetime import date
+    from decimal import Decimal
+
+    from workshop_configuration.application.fiscal_tax_mapping import create_mapping
+    from workshop_configuration.models import TaxPeriod
+
+    definition = TaxDefinition.objects.create(fiscal_entity=entity, code="IVA0", name="IVA ventas")
+    period = TaxPeriod.objects.create(
+        tax_definition=definition, rate=Decimal("0"), starts_on=date(2025, 1, 1)
+    )
+    entry = OfficialCatalogEntry.objects.get(
+        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="0"
+    )
+    mapping = create_mapping(
+        actor=admin,
+        definition_id=definition.pk,
+        catalog_entry_id=entry.pk,
+        starts_on=date(2025, 1, 1),
+        ends_on=None,
+        source="Certificado de RUC",
+    )
+    return period, mapping
+
+
+def test_mapping_successor_is_scheduled_through_the_api(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    from workshop_configuration.application.taxes import schedule_successor
+
+    period, mapping = _zero_rate_mapping(entity, role_admin)
+    day = timezone.localdate() + timedelta(days=30)
+    schedule_successor(
+        actor=role_admin,
+        period_id=period.pk,
+        expected_version=period.version,
+        new_rate="15",
+        successor_starts_on=day,
+    )
+    fifteen = OfficialCatalogEntry.objects.get(
+        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="4"
+    )
+    path = f"{BASE}/tax-mappings/{mapping.pk}/successor/"
+    body = {
+        "catalog_entry_id": fifteen.pk,
+        "starts_on": day.isoformat(),
+        "source": "Pasa a RIMPE Emprendedor",
+    }
+
+    created = _write(_client(role_admin), "post", path, body)
+
+    assert created.status_code == 201
+    assert created.json()["percentage_code"] == "4"
+    assert created.json()["starts_on"] == day.isoformat()
+    assert created.json()["ends_on"] is None
+    mapping.refresh_from_db()
+    assert mapping.ends_on == day - timedelta(days=1)
+
+    again = _write(_client(role_admin), "post", path, body)
+    # Ya no está abierta: no se programa un segundo cambio sobre la misma correspondencia.
+    assert again.status_code == 400
+
+
+def test_mapping_successor_rejects_a_past_date_and_other_roles(
+    entity: FiscalEntity, role_admin: User, role_seller: User
+) -> None:
+    _, mapping = _zero_rate_mapping(entity, role_admin)
+    fifteen = OfficialCatalogEntry.objects.get(
+        kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="4"
+    )
+    path = f"{BASE}/tax-mappings/{mapping.pk}/successor/"
+    past = {
+        "catalog_entry_id": fifteen.pk,
+        "starts_on": timezone.localdate().isoformat(),
+        "source": "Cambio",
+    }
+
+    rejected = _write(_client(role_admin), "post", path, past)
+    assert rejected.status_code == 400
+    assert "starts_on" in rejected.json()["errors"]
+    denied = _write(_client(role_seller), "post", path, past)
+    assert denied.status_code == 403
+    mapping.refresh_from_db()
+    assert mapping.ends_on is None

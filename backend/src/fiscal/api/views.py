@@ -62,7 +62,11 @@ from workshop_configuration.application.entity_warehouse import (
     FiscalEntityNotFoundError,
     StaleRecordError,
 )
-from workshop_configuration.application.fiscal_tax_mapping import create_mapping, list_mappings
+from workshop_configuration.application.fiscal_tax_mapping import (
+    create_mapping,
+    list_mappings,
+    schedule_mapping_successor,
+)
 from workshop_configuration.application.initialization import (
     IdempotencyConflictError as ConfigurationIdempotencyConflictError,
 )
@@ -941,6 +945,20 @@ class PointDetailView(_FiscalConfigurationView):
         return _respond(request, operation)
 
 
+def _mapping_response(result: Any) -> dict[str, Any]:
+    return {
+        "id": result.id,
+        "definition_id": result.tax_definition_id,
+        "catalog_version": result.catalog_version,
+        "percentage_code": result.percentage_code,
+        "catalog_entry_id": result.catalog_entry_id,
+        "display_name": result.catalog_entry.display_name if result.catalog_entry else None,
+        "starts_on": result.starts_on,
+        "ends_on": result.ends_on,
+        "source": result.source,
+    }
+
+
 class TaxMappingCreateView(_FiscalConfigurationView):
     @extend_schema(
         tags=[_TAG],
@@ -952,22 +970,29 @@ class TaxMappingCreateView(_FiscalConfigurationView):
             result = create_mapping(
                 actor=_actor(request), **_validated(sz.FiscalTaxMappingWrite, request)
             )
-            return Response(
-                {
-                    "id": result.id,
-                    "definition_id": result.tax_definition_id,
-                    "catalog_version": result.catalog_version,
-                    "percentage_code": result.percentage_code,
-                    "catalog_entry_id": result.catalog_entry_id,
-                    "display_name": result.catalog_entry.display_name
-                    if result.catalog_entry
-                    else None,
-                    "starts_on": result.starts_on,
-                    "ends_on": result.ends_on,
-                    "source": result.source,
-                },
-                status=201,
+            return Response(_mapping_response(result), status=201)
+
+        return _respond(request, operation)
+
+
+class TaxMappingSuccessorView(_FiscalConfigurationView):
+    @extend_schema(
+        tags=[_TAG],
+        request=sz.FiscalTaxMappingSuccessorWrite,
+        responses={201: sz.FiscalTaxMapping, **_PROBLEMS},
+        description=(
+            "Programa el cambio del código del SRI de una correspondencia abierta: la cierra "
+            "el día anterior y abre la sucesora. La tarifa interna sucesora debe programarse antes."
+        ),
+    )
+    def post(self, request: Request, mapping_id: int) -> Response:
+        def operation() -> Response:
+            result = schedule_mapping_successor(
+                actor=_actor(request),
+                mapping_id=mapping_id,
+                **_validated(sz.FiscalTaxMappingSuccessorWrite, request),
             )
+            return Response(_mapping_response(result), status=201)
 
         return _respond(request, operation)
 

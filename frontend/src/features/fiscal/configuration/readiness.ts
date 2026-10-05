@@ -50,7 +50,7 @@ export function sectionForCause(code: string): ReadinessSection | null {
   if (
     code === 'profile' ||
     code === 'profile.legacy_format' ||
-    /^conditions\.[^.]+\.(unknown|future|expired|unsupported)$/.test(code)
+    /^conditions\.[^.]+\.(unknown|future|expired)$/.test(code)
   )
     return 'perfil'
   if (/^tax_mapping\.\d+\.(missing|expired|review)$/.test(code))

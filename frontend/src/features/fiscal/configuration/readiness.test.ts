@@ -13,7 +13,6 @@ describe('readiness fiscal', () => {
     ['profile', 'perfil'],
     ['conditions.tax_regime.unknown', 'perfil'],
     ['conditions.artisan_qualification.expired', 'perfil'],
-    ['conditions.tax_regime.unsupported', 'perfil'],
     ['profile.legacy_format', 'perfil'],
     ['tax_mapping.4.missing', 'impuestos'],
     ['default_point_required', 'puntos'],

@@ -166,7 +166,7 @@ Desde `estructurar-perfil-del-emisor-y-codigos-fiscales`, las preparaciones nuev
 
 | Clave | Contenido |
 |---|---|
-| `issuer.tax_profile.regime` | `GENERAL`, `RIMPE_EMPRENDEDOR` o `RIMPE_NEGOCIO_POPULAR` (este último impide preparar). Obligatorio |
+| `issuer.tax_profile.regime` | `GENERAL`, `RIMPE_EMPRENDEDOR` o `RIMPE_NEGOCIO_POPULAR` (este último exige líneas a IVA 0 % y su leyenda está por confirmar). Obligatorio |
 | `issuer.tax_profile.regime_legend` | Solo para RIMPE Emprendedor; derivada, nunca escrita |
 | `issuer.tax_profile.accounting_obligation` | `SI` o `NO`. Obligatorio |
 | `issuer.tax_profile.withholding_agent_resolution` | Solo si el emisor es agente de retención |
@@ -187,6 +187,10 @@ La preparación comprueba antes de completarse los límites del XSD 2.1.0 y bloq
 | `agenteRetencion` | 8 dígitos | Resolución declarada en el perfil |
 | `contribuyenteEspecial` | 13 caracteres alfanuméricos | Resolución declarada en el perfil |
 | `obligadoContabilidad` | `SI` o `NO` | Perfil |
+
+### Negocio Popular y cambio de régimen
+
+Con régimen `RIMPE_NEGOCIO_POPULAR` toda línea debe resolver a IVA 0 % (impedimento `line[n].popular_rate`). El cambio de régimen o de tarifa se programa a futuro con tres piezas independientes: una revisión nueva del perfil, la tarifa interna sucesora y la correspondencia sucesora con el SRI (`POST /fiscal/configuration/tax-mappings/{id}/successor/`). Cada instantánea conserva el régimen, la leyenda y la tarifa con que se preparó.
 
 ### Coherencia con la calificación artesanal
 

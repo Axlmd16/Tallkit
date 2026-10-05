@@ -1656,6 +1656,65 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/fiscal/configuration/tax-mappings/{mapping_id}/successor/:
+    post:
+      operationId: fiscal_configuration_tax_mappings_successor_create
+      description: 'Programa el cambio del código del SRI de una correspondencia abierta:
+        la cierra el día anterior y abre la sucesora. La tarifa interna sucesora debe
+        programarse antes.'
+      parameters:
+      - in: path
+        name: mapping_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingSuccessorWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingSuccessorWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalTaxMappingSuccessorWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalTaxMapping'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/fiscal/corrections/:
     get:
       operationId: fiscal_corrections_list
@@ -12518,6 +12577,24 @@ components:
       - source
       - starts_on
       - treatment
+    FiscalTaxMappingSuccessorWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        catalog_entry_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          format: date
+        source:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - catalog_entry_id
+      - source
+      - starts_on
     FiscalTaxMappingWrite:
       type: object
       description: Contrato que denuncia campos desconocidos en vez de descartarlos.

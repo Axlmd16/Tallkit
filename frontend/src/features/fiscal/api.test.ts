@@ -173,6 +173,11 @@ describe('fiscalApi', () => {
       starts_on: '2026-01-01',
       source: 'Ficha SRI',
     })
+    await api.scheduleTaxMappingSuccessor(3, {
+      catalog_entry_id: 11,
+      starts_on: '2027-01-01',
+      source: 'Cambio de régimen',
+    })
     await api.recordNumberingAntecedent({
       entity_id: 2,
       document_type: '01',
@@ -192,6 +197,7 @@ describe('fiscalApi', () => {
       '/fiscal/configuration/establishments/5/points/',
       '/fiscal/configuration/points/8/',
       '/fiscal/configuration/tax-mappings/',
+      '/fiscal/configuration/tax-mappings/3/successor/',
       '/fiscal/configuration/numbering-antecedents/',
     ])
   })

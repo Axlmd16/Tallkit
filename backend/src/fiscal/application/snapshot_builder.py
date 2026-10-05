@@ -128,6 +128,9 @@ def assemble_snapshot(
         qualification is not None and date.fromisoformat(qualification["ends_on"]) >= reference_date
     )
 
+    # Un Negocio Popular no cobra IVA: todas sus operaciones van con tarifa cero.
+    popular_business = config.tax_profile.get("regime") == "RIMPE_NEGOCIO_POPULAR"
+
     lines: list[dict[str, Any]] = []
     line_details: dict[int, dict[str, Any]] = {}
     catalog_versions: dict[str, str] = {"payment_forms": SELECTABLE_PAYMENT_VERSION}
@@ -163,6 +166,16 @@ def assemble_snapshot(
         else:
             item_code = str(getattr(line, "service_code", ""))
             description = str(getattr(line, "description", ""))
+        if popular_business and resolved.treatment != "ZERO":
+            impediments.append(
+                {
+                    "field": f"line[{line.position}].popular_rate",
+                    "message": (
+                        "El régimen RIMPE Negocio Popular no cobra IVA, pero esta línea usa "
+                        f"«{resolved.display_name}»."
+                    ),
+                }
+            )
         if qualification_active and resolved.treatment != "ZERO":
             impediments.append(
                 {
