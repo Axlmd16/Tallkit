@@ -4,13 +4,20 @@ Dependencias: propuesta, specs y diseño aprobados y registrados en `master`, co
 
 Por instrucción del usuario se ejecutan solo pruebas focalizadas. Cada tarea de comportamiento sigue TDD: prueba roja por la razón esperada, implementación mínima, refactorización y prueba verde. No se ejecutan `make check`, `make test`, pytest completo, Vitest completo ni toda la suite de Playwright; el resumen final indica qué se ejecutó y qué no.
 
-- [ ] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
-- [ ] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación (diseño, Migration Plan).
-- [ ] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration/test_electronic_profile.py tests/workshop_configuration/test_electronic_profile_services.py tests/workshop_configuration/test_electronic_status.py tests/workshop_configuration/test_fiscal_resolver.py tests/fiscal/test_snapshot.py tests/fiscal/test_snapshot_amounts.py tests/fiscal/test_api.py tests/catalog/test_catalog_validation.py tests/catalog/test_catalog_services.py tests/catalog/test_catalog_api.py`.
-- [ ] 1.4 Consultar en la base de desarrollo cuántos productos tienen código de más de 25 caracteres, cuántas revisiones de perfil existen por entidad y cuántos servicios y líneas artesanales hay, y anotar los resultados para contrastar las migraciones.
-- [ ] 1.5 Añadir a `docs/negocio/requisitos/cobertura-modulo-fiscal.md` y `cobertura-catalogos.md` una matriz pendiente que relacione cada requirement y escenario de las cuatro specs delta con los grupos y archivos de prueba de este checklist.
+- [x] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
+- [x] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación (diseño, Migration Plan).
+- [x] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/workshop_configuration/test_electronic_profile.py tests/workshop_configuration/test_electronic_profile_services.py tests/workshop_configuration/test_electronic_status.py tests/workshop_configuration/test_fiscal_resolver.py tests/fiscal/test_snapshot.py tests/fiscal/test_snapshot_amounts.py tests/fiscal/test_api.py tests/catalog/test_catalog_validation.py tests/catalog/test_catalog_services.py tests/catalog/test_catalog_api.py`.
+- [x] 1.4 Consultar en la base de desarrollo cuántos productos tienen código de más de 25 caracteres, cuántas revisiones de perfil existen por entidad y cuántos servicios y líneas artesanales hay, y anotar los resultados para contrastar las migraciones.
+- [x] 1.5 Añadir a `docs/negocio/requisitos/cobertura-modulo-fiscal.md` y `cobertura-catalogos.md` una matriz pendiente que relacione cada requirement y escenario de las cuatro specs delta con los grupos y archivos de prueba de este checklist.
 
 Evidencia del grupo: estado Git, respaldo anotado, comandos de línea base con resultado real, conteos de 1.4 y matriz de cobertura pendiente.
+
+Resultado registrado (2026-10-04):
+- 1.1: rama `develop`, árbol limpio y las cuatro fases del cambio en `master` (commit `640e68d`).
+- 1.2: respaldo `pg_dump -Fc` de `sys_taller` (contenedor `sys-taller-db-1`) en el scratchpad de la sesión, `sys_taller-antes-perfil-emisor.dump` (543 KB); no se versiona.
+- 1.3: 138 pruebas pasan en 45 s con el comando de la tarea.
+- 1.4: 5 productos (0 con código de más de 25 caracteres), 6 servicios, 8 líneas de servicio y 6 líneas de operación artesanal, 0 revisiones de perfil y 2 preparaciones fiscales.
+- 1.5: matrices pendientes añadidas a `cobertura-modulo-fiscal.md` y `cobertura-catalogos.md`.
 
 ## 2. Perfil del emisor con valores cerrados (dominio)
 

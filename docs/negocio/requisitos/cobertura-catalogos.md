@@ -54,6 +54,16 @@ El cambio `imprimir-etiquetas-de-productos` amplía la cobertura sin alterar los
 
 No se ejecutaron `make check`, `make test`, pytest completo, Vitest completo ni el resto de Playwright. No había una impresora física disponible; la salida sí se verificó como PDF en Chromium y Firefox.
 
+### Cambio: estructurar perfil del emisor y códigos fiscales
+
+El cambio `estructurar-perfil-del-emisor-y-codigos-fiscales` modifica y amplía los catálogos de productos y servicios sin alterar los 128 escenarios archivados. Matriz abierta al iniciar la aplicación: todas las filas están **Pendientes** hasta cerrar cada grupo de tareas.
+
+| Requirement delta | Escenarios | Tareas | Prueba o evidencia prevista | Estado |
+|---|---|---|---|---|
+| [Producto por presentación completa](../../../openspec/changes/estructurar-perfil-del-emisor-y-codigos-fiscales/specs/catalogo-de-productos-y-categorias/spec.md) (modificado) | Código de veintiséis caracteres; Código en el límite; Producto existente con código largo; Acortar un código largo; Cambiar un código largo por otro largo | 4.1–4.3, 4.5, 10.3, 11.2 | `test_catalog_validation.py`, `test_catalog_services.py`; `ProductForm.test.tsx`; `e2e/catalogs.spec.ts` | Pendiente |
+| [Localización de productos con código excedido](../../../openspec/changes/estructurar-perfil-del-emisor-y-codigos-fiscales/specs/catalogo-de-productos-y-categorias/spec.md) | Productos por corregir; Sin productos por corregir; Vendedor sin permiso de edición | 4.4–4.5, 10.3, 11.2 | `test_catalog_api.py`; `ProductsPage.test.tsx`; `e2e/catalogs.spec.ts` | Pendiente |
+| [Ficha persistente de servicio referencial](../../../openspec/changes/estructurar-perfil-del-emisor-y-codigos-fiscales/specs/catalogo-de-servicios/spec.md) (modificado) | Código asignado al crear; Intento de enviar o cambiar el código; Altas concurrentes; Servicios existentes; Servicio desactivado; Búsqueda por código | 5.1–5.6, 6.1–6.4, 10.1–10.2 | `test_catalog_services.py`, `test_catalog_concurrency.py`, `test_catalog_api.py`, prueba de migración; `ServicesPage.test.tsx`, `ServiceForm.test.tsx` | Pendiente |
+
 ## 2. Comandos y resultados de la verificación local (2026-09-20)
 
 Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (sin cambios de este cambio) o corresponde a archivos que este cambio no modifica; no se bajó ningún umbral ni se ocultó ninguna comprobación.
