@@ -97,6 +97,7 @@ def test_new_storage_policy_invalidates_previous_restoration(role_admin: Any) ->
         fiscal_entity_id=entity.id,
         data=_policy("postgresql:v2"),
     )
+    assert changed.policy is not None
     assert changed.policy["version"] == 2
     assert changed.restoration_ready is False
     assert changed.productive_archive_ready is False

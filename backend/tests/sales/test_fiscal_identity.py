@@ -12,7 +12,9 @@ from sales.models import Sale
 from workshop_configuration.models import FiscalEntity
 
 
-def _snapshot(entity: FiscalEntity, *, environment: str = "1", establishment: str = "001") -> dict:
+def _snapshot(
+    entity: FiscalEntity, *, environment: str = "1", establishment: str = "001"
+) -> dict[str, Any]:
     return {
         "schema_version": "factura-2.1.0",
         "currency": "USD",

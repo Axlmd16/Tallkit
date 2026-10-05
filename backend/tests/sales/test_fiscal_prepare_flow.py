@@ -67,10 +67,26 @@ def _iva_15_entry(code: str = "4") -> int:
     ).pk
 
 
+def _snapshot(preparation_id: Any) -> dict[str, Any]:
+    from fiscal.models import FiscalPreparation
+
+    snapshot = FiscalPreparation.objects.get(pk=preparation_id).snapshot
+    assert snapshot is not None
+    return dict(snapshot)
+
+
+def _draft(preparation_id: Any) -> dict[str, Any]:
+    from fiscal.models import FiscalPreparation
+
+    draft = FiscalPreparation.objects.get(pk=preparation_id).draft
+    assert draft is not None
+    return dict(draft)
+
+
 def _fill_draft(seller: Any, preparation_id: Any, point_id: int, **overrides: Any) -> Any:
     from fiscal.application.preparations import update_draft
 
-    payload = {
+    payload: dict[str, Any] = {
         "receiver": {
             "identification_type": "04",
             "identification": "0999999999001",
@@ -157,9 +173,9 @@ def test_review_and_prepare_stores_immutable_snapshot(
 
     preparation = FiscalPreparation.objects.get(pk=prep_id)
     assert preparation.state == PreparationState.PREPARED
-    assert preparation.snapshot["schema_version"] == "factura-2.1.0"
-    assert preparation.snapshot["totals"]["grand"] == "100.00"
-    assert preparation.snapshot["receiver"]["identification"] == "0999999999001"
+    assert _snapshot(prep_id)["schema_version"] == "factura-2.1.0"
+    assert _snapshot(prep_id)["totals"]["grand"] == "100.00"
+    assert _snapshot(prep_id)["receiver"]["identification"] == "0999999999001"
     assert FiscalPreparationHistory.objects.filter(
         preparation=preparation, event="PREPARED"
     ).exists()
@@ -172,6 +188,7 @@ def test_prepare_is_idempotent_on_replay(prepared_context: dict[str, Any], selle
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
 
     first = prepare(
         actor=seller,
@@ -207,6 +224,7 @@ def test_concurrent_draft_edit_invalidates_review(
     point_id = prepared_context["point_id"]
     _fill_draft(seller, prep_id, point_id)
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
 
     # Edición del borrador después de revisar (versión pasa de 2 a 3).
     update_draft(
@@ -233,26 +251,24 @@ def test_master_data_change_after_prepared_keeps_snapshot(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
     from fiscal.application.preparations import prepare, review
-    from fiscal.models import FiscalPreparation
 
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
         review_token=token,
         idempotency_key="fiscal:prepare:master",
     )
-    original_name = FiscalPreparation.objects.get(pk=prep_id).snapshot["issuer"]["legal_name"]
+    original_name = _snapshot(prep_id)["issuer"]["legal_name"]
 
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
     entity.legal_name = "Comercial Renombrada S.A."
     entity.save(update_fields=["legal_name"])
 
-    assert (
-        FiscalPreparation.objects.get(pk=prep_id).snapshot["issuer"]["legal_name"] == original_name
-    )
+    assert _snapshot(prep_id)["issuer"]["legal_name"] == original_name
 
 
 def test_cancel_prepared_keeps_snapshot_and_history(
@@ -265,6 +281,7 @@ def test_cancel_prepared_keeps_snapshot_and_history(
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
@@ -295,6 +312,7 @@ def test_replace_links_new_draft_and_preserves_original(
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
@@ -326,6 +344,7 @@ def test_profile_change_between_review_and_prepare_requires_revalidation(
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
 
     # El Administrador registra una nueva revisión del perfil (cambia una leyenda).
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
@@ -434,9 +453,8 @@ def test_review_not_found(seller: Any, admin: Any, db: None) -> None:
 def test_created_draft_is_prefilled_from_sale_and_configuration(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
-    from fiscal.models import FiscalPreparation
 
-    draft = FiscalPreparation.objects.get(pk=prepared_context["preparation_id"]).draft
+    draft = _draft(prepared_context["preparation_id"])
     assert draft["draft_format"] == 2
     assert draft["receiver"]["identification_type"] in {"04", "05"}
     assert draft["receiver"]["legal_name"]
@@ -451,18 +469,18 @@ def test_prefilled_draft_is_reviewable_without_user_input(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
     from fiscal.application.preparations import prepare, review
-    from fiscal.models import FiscalPreparation
 
     prep_id = prepared_context["preparation_id"]
     result = review(actor=seller, preparation_id=prep_id)
     assert result.impediments == ()
+    assert result.token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
         review_token=result.token,
         idempotency_key="fiscal:prepare:prefilled",
     )
-    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    snapshot = _snapshot(prep_id)
     assert snapshot["issuer"]["environment"] == "1"
     assert snapshot["configuration"]["point"]["id"] == prepared_context["point_id"]
     assert snapshot["configuration"]["profile_revision"] == 1
@@ -501,11 +519,11 @@ def test_default_point_change_after_prepare_keeps_snapshot(
     from uuid import uuid4
 
     from fiscal.application.preparations import prepare, review
-    from fiscal.models import FiscalPreparation
     from workshop_configuration.application.preparation_settings import set_preparation_defaults
 
     prep_id = prepared_context["preparation_id"]
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
@@ -522,7 +540,7 @@ def test_default_point_change_after_prepare_keeps_snapshot(
         idempotency_key=str(uuid4()),
         default_point_id=second.pk,
     )
-    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    snapshot = _snapshot(prep_id)
     assert snapshot["issuer"]["emission_point_code"] == "001"
     assert snapshot["configuration"]["point"]["code"] == "001"
 
@@ -537,6 +555,7 @@ def test_configuration_change_between_review_and_prepare_is_stale(
 
     prep_id = prepared_context["preparation_id"]
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
     set_preparation_defaults(
         actor=admin,
@@ -563,6 +582,7 @@ def test_day_change_between_review_and_prepare_is_stale(
     prep_id = prepared_context["preparation_id"]
     monkeypatch.setattr(preparations, "_today_guayaquil", lambda: "2026-09-26")
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     monkeypatch.setattr(preparations, "_today_guayaquil", lambda: "2026-09-27")
     with pytest.raises(StaleReviewError):
         prepare(
@@ -579,7 +599,8 @@ def test_reference_date_uses_guayaquil_calendar(monkeypatch: Any) -> None:
     from fiscal.application import preparations
 
     monkeypatch.setattr(
-        preparations.timezone, "now", lambda: datetime(2026, 9, 27, 3, 30, tzinfo=UTC)
+        "fiscal.application.preparations.timezone.now",
+        lambda: datetime(2026, 9, 27, 3, 30, tzinfo=UTC),
     )
     assert preparations._today_guayaquil() == "2026-09-26"
 
@@ -626,6 +647,7 @@ def test_detail_hides_technical_block_from_seller(
     assert detail.summary["grand_total"] == "100.00"
     assert [option["code"] for option in detail.payment_options] == ["01", "20"]
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=prep_id,
@@ -655,17 +677,17 @@ def test_prepare_expired_token_is_stale(
 ) -> None:
     from django.core import signing
 
-    from fiscal.application import preparations
     from fiscal.application.preparations import StaleReviewError, prepare, review
 
     prep_id = prepared_context["preparation_id"]
     _fill_draft(seller, prep_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=prep_id).token
+    assert token is not None
 
     def _expired(*args: Any, **kwargs: Any) -> None:
         raise signing.SignatureExpired("expired")
 
-    monkeypatch.setattr(preparations.signing, "loads", _expired)
+    monkeypatch.setattr("fiscal.application.preparations.signing.loads", _expired)
     with pytest.raises(StaleReviewError):
         prepare(
             actor=seller,
@@ -703,6 +725,7 @@ def test_prepare_same_key_different_preparation_conflicts(
     _fill_draft(seller, first.preparation_id, point_id)
     _fill_draft(seller, second.preparation_id, point_id)
     token = review(actor=seller, preparation_id=first.preparation_id).token
+    assert token is not None
     prepare(
         actor=seller,
         preparation_id=first.preparation_id,
@@ -710,6 +733,7 @@ def test_prepare_same_key_different_preparation_conflicts(
         idempotency_key="fiscal:prepare:shared",
     )
     second_token = review(actor=seller, preparation_id=second.preparation_id).token
+    assert second_token is not None
     with pytest.raises(IdempotencyConflictError):
         prepare(
             actor=seller,
@@ -770,6 +794,7 @@ def _prepare(seller: Any, prep_id: Any, key: str) -> Any:
 
     result = review(actor=seller, preparation_id=prep_id)
     assert result.impediments == ()
+    assert result.token is not None
     prepare(actor=seller, preparation_id=prep_id, review_token=result.token, idempotency_key=key)
     return FiscalPreparation.objects.get(pk=prep_id)
 
@@ -778,7 +803,6 @@ def test_customer_change_after_prepare_keeps_frozen_receiver(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
     from customer_registry.models import Customer
-    from fiscal.models import FiscalPreparation
     from sales.models import Sale
 
     prep_id = prepared_context["preparation_id"]
@@ -791,20 +815,19 @@ def test_customer_change_after_prepare_keeps_frozen_receiver(
         address="Nueva dirección 999", name="Nombre cambiado"
     )
 
-    assert FiscalPreparation.objects.get(pk=prep_id).snapshot["receiver"] == frozen
+    assert _snapshot(prep_id)["receiver"] == frozen
     assert frozen["address"] == "Calle 10"
 
 
 def test_catalog_update_after_prepare_keeps_codes_and_version(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
-    from fiscal.models import FiscalPreparation
     from workshop_configuration.application import official_catalog
     from workshop_configuration.models import OfficialCatalogEntry
 
     prep_id = prepared_context["preparation_id"]
     prepared = _prepare(seller, prep_id, "fiscal:prepare:catalog")
-    before = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    before = _snapshot(prep_id)
     assert before["payments"][0]["catalog_version"] == official_catalog.SELECTABLE_PAYMENT_VERSION
     assert before["catalog_versions"]["iva"] == official_catalog.SELECTABLE_TAX_VERSION
 
@@ -830,7 +853,7 @@ def test_catalog_update_after_prepare_keeps_codes_and_version(
         }
     )
 
-    after = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    after = _snapshot(prep_id)
     assert after == before
     assert after["payments"][0]["description"] == "SIN UTILIZACION DEL SISTEMA FINANCIERO"
     assert prepared.snapshot["lines"][0]["display_name"] == "IVA 15 %"
@@ -875,7 +898,6 @@ def test_format_1_snapshot_is_returned_without_added_references(
 
 def _prepared_snapshot(seller: Any, context: dict[str, Any], key: str) -> dict[str, Any]:
     from fiscal.application.preparations import prepare, review
-    from fiscal.models import FiscalPreparation
 
     prep_id = context["preparation_id"]
     _fill_draft(seller, prep_id, context["point_id"])
@@ -883,7 +905,7 @@ def _prepared_snapshot(seller: Any, context: dict[str, Any], key: str) -> dict[s
     assert result.impediments == ()
     assert result.token is not None
     prepare(actor=seller, preparation_id=prep_id, review_token=result.token, idempotency_key=key)
-    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    snapshot = _snapshot(prep_id)
     assert snapshot is not None
     return dict(snapshot)
 
@@ -923,6 +945,7 @@ def test_profile_change_after_preparing_keeps_the_old_issuer_and_applies_to_the_
     )
     _fill_draft(seller, outcome.preparation_id, prepared_context["point_id"])
     token = review(actor=seller, preparation_id=outcome.preparation_id).token
+    assert token is not None
     assert token is not None
     prepare(
         actor=seller,

@@ -74,7 +74,7 @@ def _original(role_admin: Any, entity: FiscalEntity) -> Any:
     )
 
 
-def _line(total: str = "10.00", quantity: str = "1.00") -> list[dict[str, str | int]]:
+def _line(total: str = "10.00", quantity: str = "1.00") -> list[dict[str, object]]:
     return [
         {
             "position": 1,
@@ -495,7 +495,7 @@ def test_creation_rejects_ambiguous_or_incoherent_requests(
     reason: str,
     dossier: str | None,
     identity: int | None,
-    lines: list[dict[str, str | int]],
+    lines: list[dict[str, object]],
     message: str,
 ) -> None:
     original = _original(role_admin, fiscal_entity)
@@ -533,7 +533,7 @@ def test_creation_rejects_ambiguous_or_incoherent_requests(
 def test_credit_note_rejects_missing_excessive_or_incoherent_lines(
     role_admin: Any,
     fiscal_entity: FiscalEntity,
-    lines: list[dict[str, str | int]],
+    lines: list[dict[str, object]],
 ) -> None:
     original = _original(role_admin, fiscal_entity)
 

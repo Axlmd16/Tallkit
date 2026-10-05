@@ -5,10 +5,12 @@ Trazabilidad: spec `configuracion-operativa-y-fiscal`: «Entrega privada del log
 """
 
 import uuid
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
+from django.http import StreamingHttpResponse
 from rest_framework.test import APIClient
 from tests.workshop_configuration.logo_helpers import SVG, image_bytes
 
@@ -183,7 +185,9 @@ def test_every_role_reads_the_logo_summary_and_file(
     assert file["Cache-Control"] == "private, max-age=31536000, immutable"
     assert file["X-Content-Type-Options"] == "nosniff"
     assert file["Content-Security-Policy"] == "default-src 'none'"
-    assert b"".join(file.streaming_content).startswith(b"\x89PNG")
+    assert b"".join(
+        cast(Iterable[bytes], cast(StreamingHttpResponse, file).streaming_content)
+    ).startswith(b"\x89PNG")
 
 
 @pytest.mark.django_db

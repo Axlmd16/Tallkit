@@ -38,7 +38,7 @@ def test_artisan_source_contains_services_and_no_commercial_parts(
     assert not hasattr(source, "parts")
     assert not hasattr(source.lines[0], "product_id")
     with pytest.raises(FrozenInstanceError):
-        source.state = "VOIDED"
+        source.state = "VOIDED"  # type: ignore[misc]
 
 
 def test_locking_read_does_not_change_artisan_operation(

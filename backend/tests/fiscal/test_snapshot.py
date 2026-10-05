@@ -2,12 +2,12 @@
 
 import pytest
 
-from fiscal.domain.payment_declaration import validate_payment_declaration
-from fiscal.domain.receiver import parse_receiver
+from fiscal.domain.payment_declaration import PaymentDeclaration, validate_payment_declaration
+from fiscal.domain.receiver import FiscalReceiver, parse_receiver
 
 
 def _issuer(**overrides: object) -> dict[str, object]:
-    issuer = {
+    issuer: dict[str, object] = {
         "ruc": "0991234567001",
         "legal_name": "Comercial Andina S.A.",
         "trade_name": "Andina",
@@ -26,7 +26,7 @@ def _tax_profile(**overrides: object) -> dict[str, object]:
     return profile
 
 
-def _receiver() -> object:
+def _receiver() -> FiscalReceiver:
     return parse_receiver(
         {
             "identification_type": "04",
@@ -54,7 +54,7 @@ def _lines() -> list[dict[str, object]]:
     ]
 
 
-def _payments() -> object:
+def _payments() -> PaymentDeclaration:
     return validate_payment_declaration(
         condition="CONTADO",
         forms=[{"payment_code": "01", "amount": "11.50"}],
@@ -93,7 +93,8 @@ def test_snapshot_is_assembled_with_schema_version_and_decimal_strings() -> None
 
 
 def test_missing_issuer_field_blocks_with_impediment() -> None:
-    from fiscal.domain.snapshot import SnapshotImpedimentError, build_snapshot
+    from fiscal.domain.snapshot import build_snapshot
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 
     with pytest.raises(SnapshotImpedimentError) as exc:
         build_snapshot(
@@ -114,7 +115,8 @@ def test_missing_issuer_field_blocks_with_impediment() -> None:
 
 
 def test_empty_lines_block() -> None:
-    from fiscal.domain.snapshot import SnapshotImpedimentError, build_snapshot
+    from fiscal.domain.snapshot import build_snapshot
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 
     with pytest.raises(SnapshotImpedimentError):
         build_snapshot(
@@ -172,7 +174,8 @@ def test_credit_snapshot_keeps_configuration_and_payment_details() -> None:
 
 
 def test_amount_impediments_propagate() -> None:
-    from fiscal.domain.snapshot import SnapshotImpedimentError, build_snapshot
+    from fiscal.domain.snapshot import build_snapshot
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 
     with pytest.raises(SnapshotImpedimentError) as exc:
         build_snapshot(
@@ -192,7 +195,8 @@ def test_amount_impediments_propagate() -> None:
 
 
 def test_invalid_reference_date_blocks() -> None:
-    from fiscal.domain.snapshot import SnapshotImpedimentError, build_snapshot
+    from fiscal.domain.snapshot import build_snapshot
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 
     with pytest.raises(SnapshotImpedimentError) as exc:
         build_snapshot(

@@ -15,7 +15,7 @@ def _validate(condition: str, forms: list[dict[str, object]], total: str = "11.5
         condition=condition,
         forms=forms,
         total=total,
-        enabled_codes=ENABLED,  # type: ignore[arg-type]
+        enabled_codes=ENABLED,
     )
 
 

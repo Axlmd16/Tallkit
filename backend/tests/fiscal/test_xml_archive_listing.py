@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import io
 import zipfile
+from collections.abc import Iterable
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 import pytest
+from django.http import FileResponse
 from rest_framework.test import APIClient
 
 from fiscal.application.xml_archive import (
@@ -143,8 +145,9 @@ def test_export_streams_from_temporary_file_with_private_headers(
     assert response.status_code == 200
     assert response["Cache-Control"] == "private, no-store"
     assert response["Content-Disposition"].startswith("attachment;")
-    assert not isinstance(response.file_to_stream, io.BytesIO)
-    body = b"".join(response.streaming_content)
+    streamed = cast(FileResponse, response)
+    assert not isinstance(streamed.file_to_stream, io.BytesIO)
+    body = b"".join(cast(Iterable[bytes], streamed.streaming_content))
     with zipfile.ZipFile(io.BytesIO(body)) as archive:
         assert archive.read("factura.xml") == b"<factura/>"
 

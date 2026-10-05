@@ -111,6 +111,7 @@ def test_prepared_state_requires_versioned_snapshot_and_audit_fields(
         prepared_at=timezone.now(),
         prepared_by=seller,
     )
+    assert prepared.snapshot is not None
     assert prepared.snapshot["schema_version"] == 1
 
 

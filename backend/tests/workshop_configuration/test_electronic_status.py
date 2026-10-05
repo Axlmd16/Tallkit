@@ -70,6 +70,8 @@ def _tax(entity: FiscalEntity, *, mapped: bool, ends_on: date | None = None) -> 
         tax_definition=definition, rate=Decimal("0"), starts_on=date(2026, 1, 1)
     )
     if mapped:
+        creator = User.objects.first()
+        assert creator is not None
         entry = OfficialCatalogEntry.objects.get(
             kind="TAX_RATE", catalog_version=official_catalog.SELECTABLE_TAX_VERSION, code="0"
         )
@@ -81,7 +83,7 @@ def _tax(entity: FiscalEntity, *, mapped: bool, ends_on: date | None = None) -> 
             starts_on=date(2026, 1, 1),
             ends_on=ends_on,
             source="Certificado RUC",
-            created_by=User.objects.first(),
+            created_by=creator,
         )
     return definition
 

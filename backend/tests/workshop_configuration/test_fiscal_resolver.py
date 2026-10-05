@@ -119,7 +119,7 @@ def test_environment_is_always_test_and_not_a_parameter(
     )
     assert result.environment == "1"
     with pytest.raises(TypeError):
-        api().resolve_fiscal_configuration(  # type: ignore[call-arg]
+        api().resolve_fiscal_configuration(
             actor=role_admin, entity_id=entity.pk, environment="2", on=date(2026, 9, 25)
         )
 

@@ -28,7 +28,7 @@ def test_confirmed_sale_source_uses_historical_snapshots_and_decimal_strings(
     assert source.return_ids == ()
     assert not source.has_void
     with pytest.raises(FrozenInstanceError):
-        source.state = "VOIDED"
+        source.state = "VOIDED"  # type: ignore[misc]
 
 
 def test_locking_read_returns_same_source_without_mutating_sale(confirmed_sale: Any) -> None:
