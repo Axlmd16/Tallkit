@@ -297,6 +297,13 @@ export interface DeclaredCondition {
   source?: string | null
   starts_on?: string | null
   ends_on?: string | null
+  /** Solo la calificación artesanal declara el organismo que la otorgó. */
+  issuing_body?: string | null
+}
+
+export interface ClosedOption {
+  value: string
+  label: string
 }
 
 export interface CertificateMetadata {
@@ -311,8 +318,16 @@ export interface CertificateMetadata {
 export interface ElectronicProfile {
   entity_id: number
   revision: number
+  /** 1: condiciones en texto libre (historia, solo lectura); 2: valores cerrados. */
+  conditions_format: 1 | 2
   conditions: Record<string, DeclaredCondition>
   certificate: CertificateMetadata | null
+  /** Leyenda oficial derivada del régimen; solo informativa. */
+  regime_legend: string | null
+  options: {
+    tax_regime: ClosedOption[]
+    accounting_obligation: ClosedOption[]
+  }
 }
 
 export interface ElectronicProfileWrite {

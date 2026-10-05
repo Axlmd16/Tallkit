@@ -49,7 +49,8 @@ export interface ReadinessDestination {
 export function sectionForCause(code: string): ReadinessSection | null {
   if (
     code === 'profile' ||
-    /^conditions\.[^.]+\.(unknown|future|expired)$/.test(code)
+    code === 'profile.legacy_format' ||
+    /^conditions\.[^.]+\.(unknown|future|expired|unsupported)$/.test(code)
   )
     return 'perfil'
   if (/^tax_mapping\.\d+\.(missing|expired|review)$/.test(code))
@@ -65,6 +66,16 @@ export function sectionForCause(code: string): ReadinessSection | null {
   if (['payment_forms_missing', 'default_payment_form_required'].includes(code))
     return 'formas-pago'
   if (code.startsWith('certificate_')) return 'certificado'
+  return null
+}
+
+/**
+ * Subsección que explica una advertencia: las del certificado van a su subsección y el
+ * aviso de vencimiento de la calificación artesanal, al perfil tributario.
+ */
+export function warningSection(code: string): ReadinessSection | null {
+  if (code.startsWith('certificate_')) return 'certificado'
+  if (code.startsWith('artisan_qualification_')) return 'perfil'
   return null
 }
 
@@ -128,10 +139,14 @@ export function sectionIndicator(
       tone: 'warning',
       count: pending,
     }
+  const warned = summary.warnings.some(
+    (warning) => warningSection(warning.code) === section,
+  )
   if (section === 'certificado')
-    return summary.warnings.length
+    return warned
       ? { label: 'Revisar', tone: 'warning' }
       : { label: 'Opcional', tone: 'neutral' }
+  if (warned) return { label: 'Revisar', tone: 'warning' }
   return { label: 'Completo', tone: 'success' }
 }
 

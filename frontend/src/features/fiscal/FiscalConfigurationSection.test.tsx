@@ -95,6 +95,18 @@ const entities: FiscalEntity[] = [
   },
 ] as FiscalEntity[]
 
+const PROFILE_OPTIONS = {
+  tax_regime: [
+    { value: 'GENERAL', label: 'General' },
+    { value: 'RIMPE_EMPRENDEDOR', label: 'RIMPE Emprendedor' },
+    { value: 'RIMPE_NEGOCIO_POPULAR', label: 'RIMPE Negocio Popular' },
+  ],
+  accounting_obligation: [
+    { value: 'SI', label: 'Sí' },
+    { value: 'NO', label: 'No' },
+  ],
+}
+
 const taxes = [
   {
     id: 10,
@@ -280,6 +292,9 @@ beforeEach(() => {
     1: {
       entity_id: 1,
       revision: 1,
+      conditions_format: 2,
+      regime_legend: null,
+      options: PROFILE_OPTIONS,
       conditions: {
         tax_regime: {
           status: 'APPLICABLE',
@@ -290,7 +305,15 @@ beforeEach(() => {
       },
       certificate: null,
     },
-    2: { entity_id: 2, revision: 0, conditions: {}, certificate: null },
+    2: {
+      entity_id: 2,
+      revision: 0,
+      conditions_format: 2,
+      regime_legend: null,
+      options: PROFILE_OPTIONS,
+      conditions: {},
+      certificate: null,
+    },
   }
   mocks.catalog = catalog
   for (const mutation of [
@@ -476,9 +499,9 @@ it('presenta el perfil como tabla de consulta y declara una condición en su mod
 
   const table = within(panel('Perfil tributario')).getByRole('table')
   const rows = within(table).getAllByRole('row').slice(1)
-  expect(rows).toHaveLength(6)
-  expect(rows[0]).toHaveTextContent('Régimen tributarioAplicaGENERAL2026-01-01')
-  expect(rows[3]).toHaveTextContent('Agente de retenciónSin declarar')
+  expect(rows).toHaveLength(5)
+  expect(rows[0]).toHaveTextContent('Régimen tributarioAplicaGeneral2026-01-01')
+  expect(rows[2]).toHaveTextContent('Agente de retenciónSin declarar')
   expect(within(table).queryByRole('textbox')).not.toBeInTheDocument()
 
   await user.click(
@@ -511,7 +534,6 @@ it('presenta el perfil como tabla de consulta y declara una condición en su mod
             source: 'Certificado RUC',
             starts_on: '2026-02-01',
           },
-          rimpe: { status: 'UNKNOWN' },
         }),
       },
     }),
@@ -532,9 +554,8 @@ it('explica el conflicto de revisión dentro del modal y conserva lo escrito', a
   const dialog = screen.getByRole('dialog', {
     name: 'Editar: Régimen tributario',
   })
-  const value = within(dialog).getByLabelText(/Régimen declarado/)
-  await user.clear(value)
-  await user.type(value, 'RIMPE')
+  const value = within(dialog).getByRole('combobox', { name: /Régimen/ })
+  await user.selectOptions(value, 'RIMPE_EMPRENDEDOR')
   await user.click(
     within(dialog).getByRole('button', { name: 'Guardar condición' }),
   )
@@ -542,8 +563,8 @@ it('explica el conflicto de revisión dentro del modal y conserva lo escrito', a
   expect(
     await within(dialog).findByText(/Otro guardado cambió el perfil/),
   ).toBeInTheDocument()
-  expect(within(dialog).getByLabelText(/Régimen declarado/)).toHaveValue(
-    'RIMPE',
+  expect(within(dialog).getByRole('combobox', { name: /Régimen/ })).toHaveValue(
+    'RIMPE_EMPRENDEDOR',
   )
 })
 
@@ -690,4 +711,31 @@ it('descarta un formulario abierto y no lo aplica a la otra entidad', async () =
   expect(screen.getByTestId('location')).toHaveTextContent('entidad=2')
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(mocks.saveProfile.mutateAsync).not.toHaveBeenCalled()
+})
+
+it('lleva el aviso de vencimiento de la calificación al perfil y deja el certificado opcional', () => {
+  mocks.statusByEntity[2] = status(2, {
+    warnings: [
+      {
+        code: 'artisan_qualification_expiring',
+        kind: 'REVIEW',
+        message:
+          'Calificación artesanal: vence el 2026-11-10 (faltan 45 días).',
+      },
+    ],
+  })
+  renderSection('?tab=facturacion&entidad=2')
+
+  const navigation = screen.getByRole('navigation', {
+    name: 'Subsecciones de facturación electrónica',
+  })
+  expect(
+    within(navigation).getByRole('link', { name: /Perfil tributario/ }),
+  ).toHaveTextContent('Revisar')
+  expect(
+    within(navigation).getByRole('link', { name: /Certificado/ }),
+  ).toHaveTextContent('Opcional')
+  expect(
+    screen.getByRole('button', { name: 'Calificación por vencer' }),
+  ).toBeVisible()
 })

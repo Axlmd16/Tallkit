@@ -16,6 +16,7 @@ import {
   READINESS_SECTION_SHORT_LABELS,
   READINESS_SECTIONS,
   sectionIndicator,
+  warningSection,
   type ConfigurationReadiness,
   type ReadinessSection,
 } from './configuration/readiness'
@@ -114,7 +115,11 @@ export function FiscalConfigurationSection({
         />
 
         <div hidden={section !== 'perfil'}>
-          <ProfileConditionsSection entityId={selected.id} hints={hints} />
+          <ProfileConditionsSection
+            entityId={selected.id}
+            hints={hints}
+            warnings={warningsFor(summary?.warnings, 'perfil')}
+          />
         </div>
         <div hidden={section !== 'puntos'}>
           <LocationsSection entityId={selected.id} hints={hints} />
@@ -133,11 +138,20 @@ export function FiscalConfigurationSection({
           <CertificateSection
             entityId={selected.id}
             hints={hints}
-            warnings={summary?.warnings ?? []}
+            warnings={warningsFor(summary?.warnings, 'certificado')}
           />
         </div>
       </div>
     </section>
+  )
+}
+
+function warningsFor(
+  warnings: StatusCause[] | undefined,
+  section: ReadinessSection,
+): StatusCause[] {
+  return (warnings ?? []).filter(
+    (warning) => warningSection(warning.code) === section,
   )
 }
 

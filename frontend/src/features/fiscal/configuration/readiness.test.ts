@@ -5,12 +5,16 @@ import {
   sectionForCause,
   sectionIndicator,
   summarizeEntityStatus,
+  warningSection,
 } from './readiness'
 
 describe('readiness fiscal', () => {
   it.each([
     ['profile', 'perfil'],
-    ['conditions.rimpe.unknown', 'perfil'],
+    ['conditions.tax_regime.unknown', 'perfil'],
+    ['conditions.artisan_qualification.expired', 'perfil'],
+    ['conditions.tax_regime.unsupported', 'perfil'],
+    ['profile.legacy_format', 'perfil'],
     ['tax_mapping.4.missing', 'impuestos'],
     ['default_point_required', 'puntos'],
     ['payment_forms_missing', 'formas-pago'],
@@ -84,5 +88,44 @@ describe('readiness fiscal', () => {
     expect(
       sectionIndicator({ ...summary, warnings: [] }, 'certificado').label,
     ).toBe('Opcional')
+  })
+
+  it.each([
+    ['certificate_missing', 'certificado'],
+    ['certificate_expired', 'certificado'],
+    ['artisan_qualification_expiring', 'perfil'],
+    ['aviso_nuevo', null],
+  ])('asigna la advertencia %s a %s', (code, section) => {
+    expect(warningSection(code)).toBe(section)
+  })
+
+  it('marca el perfil a revisar por el aviso de calificación sin tocar el certificado', () => {
+    const summary = summarizeEntityStatus({
+      entity_id: 2,
+      state: 'READY',
+      causes: [],
+      warnings: [
+        {
+          code: 'artisan_qualification_expiring',
+          kind: 'REVIEW',
+          message:
+            'Calificación artesanal: vence el 2026-11-10 (faltan 45 días).',
+        },
+      ],
+      environment: 'TEST',
+      profile_revision: 3,
+      default_point_id: 1,
+      default_payment_code: '01',
+    })
+
+    expect(sectionIndicator(summary, 'perfil')).toEqual({
+      label: 'Revisar',
+      tone: 'warning',
+    })
+    expect(sectionIndicator(summary, 'certificado')).toEqual({
+      label: 'Opcional',
+      tone: 'neutral',
+    })
+    expect(summary.pending).toBe(0)
   })
 })

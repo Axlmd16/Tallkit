@@ -162,13 +162,22 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupo 8. Diseño 10; spec `configuracion-operativa-y-fiscal`.
 
-- [ ] 9.1 Actualizar los tipos y el cliente de la configuración fiscal al contrato nuevo, con sus pruebas.
-- [ ] 9.2 Escribir primero pruebas Vitest de `ProfileConditionsSection.tsx`: selectores de régimen y contabilidad; *No aplica / Aplica* revela resolución o datos de calificación; leyenda del régimen de solo lectura; errores de campo del backend junto a cada control; revisión de formato 1 con aviso y acción de declarar de nuevo; sin campo de texto libre para ninguna condición.
-- [ ] 9.3 Implementar el formulario siguiendo los patrones vigentes: modal para formulario corto, toast de confirmación, campos que llenan el ancho y avisos como iconos con detalle desplegable.
-- [ ] 9.4 Escribir primero pruebas del aviso de vencimiento (fecha y días, color de advertencia, ausente fuera del umbral) y de `readiness.ts` con las causas nuevas; implementar.
-- [ ] 9.5 Verificar con Vitest sobre los archivos de `frontend/src/features/fiscal/configuration` tocados, `tsc`, ESLint y Prettier sobre esos archivos.
+- [x] 9.1 Actualizar los tipos y el cliente de la configuración fiscal al contrato nuevo, con sus pruebas.
+- [x] 9.2 Escribir primero pruebas Vitest de `ProfileConditionsSection.tsx`: selectores de régimen y contabilidad; *No aplica / Aplica* revela resolución o datos de calificación; leyenda del régimen de solo lectura; errores de campo del backend junto a cada control; revisión de formato 1 con aviso y acción de declarar de nuevo; sin campo de texto libre para ninguna condición.
+- [x] 9.3 Implementar el formulario siguiendo los patrones vigentes: modal para formulario corto, toast de confirmación, campos que llenan el ancho y avisos como iconos con detalle desplegable.
+- [x] 9.4 Escribir primero pruebas del aviso de vencimiento (fecha y días, color de advertencia, ausente fuera del umbral) y de `readiness.ts` con las causas nuevas; implementar.
+- [x] 9.5 Verificar con Vitest sobre los archivos de `frontend/src/features/fiscal/configuration` tocados, `tsc`, ESLint y Prettier sobre esos archivos.
 
 Evidencia del grupo: pruebas en verde y revisión visual en claro y oscuro, escritorio y móvil.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada: `warningSection` inexistente, el formulario ofrecía seis condiciones con texto libre y no conocía `warnings`; verde tras reescribir `ProfileConditionsSection.tsx`.
+- Tipos: `ElectronicProfile` añade `conditions_format`, `regime_legend` y `options`; `DeclaredCondition`, `issuing_body`. `readiness.ts` asigna `profile.legacy_format` y `conditions.*.unsupported` al perfil y `warningSection` separa el aviso de calificación (perfil) de los del certificado.
+- Formulario: cinco condiciones; régimen y contabilidad con lista cerrada del servidor (sin radios ni texto libre); agente de retención y contribuyente especial piden el número solo cuando aplican y limitan su longitud (8 y 13); la calificación pide número, organismo y vencimiento obligatorio; la leyenda del régimen es de solo lectura; los errores del servidor se muestran junto a su campo (`<condición>.<campo>`) sin cerrar el modal; el conflicto de revisión conserva lo escrito.
+- Perfil anterior: se muestra como «Sin declarar» con el aviso «Perfil anterior» (detalle desplegable), su texto queda en la información avanzada como solo lectura y al declarar no se reenvía.
+- Avisos interactivos con detalle desplegable (`HintPopover`): «Perfil anterior» y «Calificación por vencer»; el indicador de la subsección pasa a «Revisar» por el aviso sin tocar el estado del certificado.
+- Verificación 9.5: `src/features/fiscal` + `src/pages/workshop-configuration`, 92 pruebas pasan (31 nuevas o actualizadas de este grupo); `tsc`, ESLint y Prettier sin hallazgos sobre `src/features/fiscal`.
+- La revisión visual en claro y oscuro, escritorio y móvil queda para el grupo 11, junto con el recorrido en navegador.
 
 ## 10. Frontend: códigos de servicio y de producto, y preparación
 
