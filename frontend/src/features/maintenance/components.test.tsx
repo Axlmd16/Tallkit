@@ -43,6 +43,7 @@ const user = { id: 1, name: 'Encargado' }
 const line = {
   id: 11,
   service_id: 2,
+  service_code: 'SRV-000002',
   service_name: 'Ajuste de frenos',
   service_is_active: false,
   reference_price: '20.00',
@@ -307,6 +308,7 @@ describe('servicios documentados en una operación artesanal', () => {
       screen.getByText('En comprobante ART-SER-000004'),
     ).toBeInTheDocument()
     expect(screen.getByText('Sin comprobante')).toBeInTheDocument()
+    expect(screen.getAllByText('SRV-000002')).toHaveLength(2)
     expect(
       screen.queryByRole('button', { name: 'Editar Alineación' }),
     ).not.toBeInTheDocument()

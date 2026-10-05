@@ -33,6 +33,7 @@ const taxPage = (results: unknown[]) => ({
 
 const service: Service = {
   id: 2,
+  code: 'SRV-000002',
   name: 'Alineación',
   description: '',
   reference_price: '25.00',
@@ -165,4 +166,20 @@ it('al editar conserva el impuesto del servicio aunque no sea el primero', () =>
     />,
   )
   expect(screen.getByLabelText(/impuesto/i)).toHaveValue('9')
+})
+
+it('no ofrece ni envía el código del servicio', async () => {
+  const user = userEvent.setup()
+  const onSubmit = vi.fn().mockResolvedValue(undefined)
+  render(
+    <ServiceForm onCancel={vi.fn()} onSubmit={onSubmit} service={service} />,
+  )
+  expect(screen.queryByLabelText(/código/i)).toBeNull()
+  await user.clear(screen.getByLabelText(/^nombre/i))
+  await user.type(screen.getByLabelText(/^nombre/i), 'Alineación 3D')
+  await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+  await waitFor(() =>
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Alineación 3D' }),
+  )
+  expect(JSON.stringify(onSubmit.mock.calls[0])).not.toContain('SRV-')
 })

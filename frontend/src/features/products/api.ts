@@ -40,6 +40,7 @@ export function createProductsApi(client: ApiClient) {
         category_id: filters.categoryId,
         product_brand_id: filters.productBrandId,
         vehicle_brand_id: filters.vehicleBrandId,
+        code_over_limit: filters.codeOverLimit ? 'true' : undefined,
       }),
     ),
     /** Opciones tributarias del ámbito comercial; el ámbito no se puede elegir. */

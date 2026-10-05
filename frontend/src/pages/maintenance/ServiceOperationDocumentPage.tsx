@@ -110,7 +110,14 @@ export function ServiceOperationDocumentPage() {
             <tbody>
               {doc.lines.map((line) => (
                 <tr className="border-b border-line" key={line.id}>
-                  <td className="py-1 pr-2">{line.service_name}</td>
+                  <td className="py-1 pr-2">
+                    {line.service_name}
+                    {line.service_code && (
+                      <span className="block font-mono text-xs text-ink-muted">
+                        {line.service_code}
+                      </span>
+                    )}
+                  </td>
                   <td className="py-1 pr-2 text-right">{line.quantity}</td>
                   <td className="py-1 pr-2 text-right">
                     <Money amount={line.base_amount} />

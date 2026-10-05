@@ -172,7 +172,14 @@ export function ServiceOperationDialog({
                     className="border-b border-line last:border-0"
                     key={line.service_line_id}
                   >
-                    <td className="py-2 pr-3">{line.service_name}</td>
+                    <td className="py-2 pr-3">
+                      {line.service_name}
+                      {line.service_code && (
+                        <span className="block font-mono text-xs text-ink-muted">
+                          {line.service_code}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-2 pr-3 text-right">{line.quantity}</td>
                     <td className="py-2 pr-3 text-right">
                       <Money amount={line.base_amount} />

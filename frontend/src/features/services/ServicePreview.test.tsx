@@ -6,6 +6,7 @@ import type { Service } from './types'
 
 const service: Service = {
   id: 3,
+  code: 'SRV-000012',
   name: 'Alineación',
   description: '',
   reference_price: '25.00',
@@ -61,4 +62,12 @@ it('muestra las fechas de registro sin la hora', () => {
   expect(screen.getByText('Actualizado').nextElementSibling).toHaveTextContent(
     '18 sept 2026',
   )
+})
+
+it('muestra el código del servicio como dato de solo lectura', () => {
+  render(<ServicePreview service={service} />)
+
+  const code = screen.getByText('Código').nextElementSibling
+  expect(code).toHaveTextContent('SRV-000012')
+  expect(screen.queryByRole('textbox')).toBeNull()
 })

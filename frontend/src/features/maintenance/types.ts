@@ -62,6 +62,7 @@ export interface OrderListItem {
 export interface ServiceLine {
   id: number
   service_id: number
+  service_code: string
   service_name: string
   service_is_active: boolean
   reference_price: string
@@ -306,6 +307,7 @@ export interface ServiceOperationLine {
   service_line_id: number | null
   position: number
   service_id: number
+  service_code: string
   service_name: string
   quantity: number
   reference_price: string
@@ -342,6 +344,7 @@ export interface ServiceOperationPreview {
   operational_date: string
   lines: {
     service_line_id: number
+    service_code: string
     service_name: string
     quantity: number
     applied_price: string

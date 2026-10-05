@@ -419,3 +419,156 @@ it('shows a format-1 local preparation as frozen without inventing configuration
   expect(screen.queryByText('Información avanzada')).toBeNull()
   expectNoForbiddenFiscalTerms(container)
 })
+
+const FORMAT_THREE_LINE = {
+  position: 1,
+  item_code: 'SRV-000012',
+  description: 'Reparación de caja',
+  quantity: '1',
+  total_amount: '25.00',
+  display_name: 'IVA 0 %',
+}
+
+it('shows the structured issuer of a format-3 preparation', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      snapshot_format: 3,
+      reference_date: '2026-10-05',
+      issuer: {
+        ruc: '1104018559001',
+        legal_name: 'Jiménez Juan Alberto',
+        tax_profile: {
+          regime: 'GENERAL',
+          accounting_obligation: 'NO',
+          artisan_qualification: {
+            number: 'JNDA-12345',
+            issuing_body: 'Junta Nacional de Defensa del Artesano',
+            ends_on: '2028-05-31',
+          },
+        },
+      },
+      receiver: { legal_name: 'Cliente', identification: '0999999999001' },
+      totals: { tax: '0.00', grand: '25.00' },
+      lines: [FORMAT_THREE_LINE],
+      payments: [{ payment_code: '01', amount: '25.00' }],
+      legends: [],
+    },
+  })
+  const { container } = renderPage()
+
+  const issuer = screen.getByLabelText('Emisor preparado')
+  expect(issuer).toHaveTextContent('Régimen')
+  expect(issuer).toHaveTextContent('General')
+  expect(issuer).toHaveTextContent('Obligado a llevar contabilidad')
+  expect(issuer).toHaveTextContent('No')
+  expect(issuer).toHaveTextContent('JNDA-12345 · vence 2028-05-31')
+  expect(screen.getByText('SRV-000012')).toBeVisible()
+  expectNoForbiddenFiscalTerms(container)
+})
+
+it('shows the RIMPE legend and the designation numbers only when they apply', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      snapshot_format: 3,
+      reference_date: '2026-10-05',
+      issuer: {
+        tax_profile: {
+          regime: 'RIMPE_EMPRENDEDOR',
+          regime_legend: 'CONTRIBUYENTE RÉGIMEN RIMPE',
+          accounting_obligation: 'SI',
+          withholding_agent_resolution: '12345',
+        },
+      },
+      receiver: {},
+      totals: {},
+      lines: [],
+      payments: [],
+      legends: [],
+    },
+  })
+  renderPage()
+  const issuer = screen.getByLabelText('Emisor preparado')
+  expect(issuer).toHaveTextContent('RIMPE Emprendedor')
+  expect(issuer).toHaveTextContent('CONTRIBUYENTE RÉGIMEN RIMPE')
+  expect(issuer).toHaveTextContent('Agente de retención')
+  expect(issuer).toHaveTextContent('12345')
+  expect(issuer).not.toHaveTextContent('Contribuyente especial')
+  expect(issuer).not.toHaveTextContent('Calificación artesanal')
+})
+
+it('shows the text legends of an earlier preparation instead of inventing an issuer profile', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      snapshot_format: 2,
+      reference_date: '2026-09-20',
+      issuer: { ruc: '1104018559001', legal_name: 'Taller' },
+      receiver: { legal_name: 'Cliente antiguo' },
+      totals: {},
+      lines: [],
+      payments: [],
+      legends: ['special_taxpayer: 12345'],
+    },
+  })
+  renderPage()
+  const issuer = screen.getByLabelText('Emisor preparado')
+  expect(issuer).toHaveTextContent('special_taxpayer: 12345')
+  expect(issuer).not.toHaveTextContent('Régimen')
+})
+
+it('omits the issuer section of a preparation that never kept conditions', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      schema_version: 'factura-2.1.0',
+      reference_date: '2026-09-20',
+      receiver: { legal_name: 'Cliente antiguo' },
+      totals: {},
+      lines: [],
+      payments: [],
+    },
+  })
+  renderPage()
+  expect(screen.queryByLabelText('Emisor preparado')).toBeNull()
+})
+
+it('explains the new line limits and rate rule with the text of the server', () => {
+  mocks.review.data = {
+    review_token: null,
+    impediments: [
+      {
+        field: 'line[1].item_code',
+        code: 'line_text_limit',
+        audience: 'ADMINISTRATOR',
+        message:
+          'El código «CCCC…» de «Filtro» tiene 31 caracteres y el comprobante admite hasta 25. Corrija el producto o servicio en el catálogo.',
+      },
+      {
+        field: 'line[2].artisan_rate',
+        code: 'line_artisan_rate',
+        audience: 'ADMINISTRATOR',
+        message:
+          'La calificación artesanal declarada exige IVA 0 %, pero esta línea usa «IVA 15 %».',
+      },
+    ],
+  }
+  renderPage()
+  const admin = screen.getByRole('list', {
+    name: 'Debe resolverlo el Administrador',
+  })
+  expect(within(admin).getByText(/tiene 31 caracteres/)).toBeVisible()
+  expect(within(admin).getByText(/exige IVA 0 %/)).toBeVisible()
+  expect(
+    screen.queryByRole('list', { name: 'Puede completarlo aquí' }),
+  ).toBeNull()
+})

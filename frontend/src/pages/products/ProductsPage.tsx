@@ -72,6 +72,8 @@ export function ProductsPage() {
   const categoryId = filters.getNumber('category_id')
   const productBrandId = filters.getNumber('product_brand_id')
   const vehicleBrandId = filters.getNumber('vehicle_brand_id')
+  // Solo quien gestiona productos puede corregir códigos; los demás no usan este filtro.
+  const codeOverLimit = canManage && filters.get('code_over_limit') === 'true'
 
   const guardedFilters = {
     ...filters,
@@ -94,6 +96,7 @@ export function ProductsPage() {
     categoryId,
     productBrandId,
     vehicleBrandId,
+    codeOverLimit: codeOverLimit || undefined,
   })
   const categories = useProductCategoryList(PICKER)
   const productBrands = useProductBrandList(PICKER)
@@ -265,6 +268,24 @@ export function ProductsPage() {
                   vehicleBrandId,
                   vehicleBrands.data?.results ?? [],
                 )}
+                {canManage && (
+                  <div className="w-48">
+                    <Field id="product-filter-code" label="Código">
+                      <Select
+                        id="product-filter-code"
+                        onChange={(event) =>
+                          guardedFilters.set({
+                            code_over_limit: event.target.value,
+                          })
+                        }
+                        value={codeOverLimit ? 'true' : ''}
+                      >
+                        <option value="">Todos</option>
+                        <option value="true">Excede 25 caracteres</option>
+                      </Select>
+                    </Field>
+                  </div>
+                )}
               </>
             }
             filters={guardedFilters}
@@ -276,10 +297,16 @@ export function ProductsPage() {
             statusLabels={{ active: 'Activos', inactive: 'Inactivos' }}
           />
         }
-        emptyText="Aún no hay productos registrados."
-        emptyTitle="No hay productos"
+        emptyText={
+          codeOverLimit
+            ? 'Ningún producto tiene un código de más de 25 caracteres con los filtros aplicados.'
+            : 'Aún no hay productos registrados.'
+        }
+        emptyTitle={
+          codeOverLimit ? 'No hay códigos por corregir' : 'No hay productos'
+        }
         errorText="No fue posible consultar los productos. Reintente en unos instantes."
-        filtered={filters.filtered}
+        filtered={filters.filtered && !codeOverLimit}
         loadingLabel="Cargando productos…"
         onPage={(page) => filters.set({ page })}
         query={query}
@@ -307,7 +334,16 @@ export function ProductsPage() {
                   <Printer aria-hidden="true" size={16} />
                   Imprimir etiquetas
                 </Button>
-                <Button onClick={openFilteredLabels} variant="secondary">
+                <Button
+                  disabled={codeOverLimit}
+                  onClick={openFilteredLabels}
+                  title={
+                    codeOverLimit
+                      ? 'El filtro de códigos por corregir no se imprime.'
+                      : undefined
+                  }
+                  variant="secondary"
+                >
                   Todos los del filtro actual
                 </Button>
               </div>
@@ -363,7 +399,14 @@ export function ProductsPage() {
                   key: 'code',
                   priority: 'primary',
                   render: (row) => (
-                    <span className="font-mono font-medium">{row.code}</span>
+                    <>
+                      <span className="font-mono font-medium">{row.code}</span>
+                      {row.code_length !== undefined && (
+                        <span className="block text-xs text-ink-muted">
+                          {row.code_length} caracteres
+                        </span>
+                      )}
+                    </>
                   ),
                 },
                 {

@@ -220,6 +220,11 @@ export function ServiceOperationDetailPage() {
                 >
                   <td className="py-2 pr-3">
                     {line.service_name}
+                    {line.service_code && (
+                      <span className="block font-mono text-xs text-ink-muted">
+                        {line.service_code}
+                      </span>
+                    )}
                     <span className="block text-xs text-ink-muted">
                       {line.tax_name} · {line.tax_rate} %
                     </span>

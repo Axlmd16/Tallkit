@@ -31,6 +31,7 @@ import { ToastProvider } from '@/shared/ui'
 
 const service = {
   id: 1,
+  code: 'SRV-000001',
   name: 'Alineación',
   description: '',
   reference_price: '25.00',
@@ -187,4 +188,22 @@ it.each([
     </MemoryRouter>,
   )
   expect(screen.getAllByText(text)[0]).toBeInTheDocument()
+})
+
+it('muestra el código de cada servicio y permite buscar por él', () => {
+  render(
+    <MemoryRouter>
+      <ToastProvider>
+        <ServicesPage />
+      </ToastProvider>
+    </MemoryRouter>,
+  )
+  const table = screen.getByRole('table', { name: 'Servicios' })
+  expect(
+    within(table).getByRole('columnheader', { name: 'Código' }),
+  ).toBeInTheDocument()
+  expect(within(table).getByText('SRV-000001')).toBeInTheDocument()
+  expect(
+    screen.getByPlaceholderText('Buscar por nombre o código…'),
+  ).toBeInTheDocument()
 })

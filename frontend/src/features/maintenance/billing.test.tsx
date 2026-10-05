@@ -294,6 +294,7 @@ describe('Diálogos de servicios', () => {
       lines: [
         {
           service_line_id: 1,
+          service_code: 'SRV-000012',
           service_name: 'Alineación',
           quantity: 1,
           applied_price: '23.00',
@@ -327,6 +328,7 @@ describe('Diálogos de servicios', () => {
       />,
     )
     expect(await screen.findByText('Alineación')).toBeInTheDocument()
+    expect(screen.getByText('SRV-000012')).toBeInTheDocument()
     expect(
       screen.getByText(/No afecta inventario ni registra pagos/),
     ).toBeInTheDocument()

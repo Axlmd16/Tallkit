@@ -203,6 +203,11 @@ function InterventionLines({
                     <span className="font-medium text-ink">
                       {line.service_name}
                     </span>
+                    {line.service_code && (
+                      <span className="block font-mono text-xs text-ink-muted">
+                        {line.service_code}
+                      </span>
+                    )}
                     {!line.service_is_active && (
                       <StatusBadge
                         className="ml-2"

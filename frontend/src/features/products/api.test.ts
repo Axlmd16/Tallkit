@@ -85,3 +85,16 @@ it('obtiene la proyección completa para etiquetas con los cinco filtros vigente
     '/products/label-data/?search=filtro&is_active=all&category_id=3&product_brand_id=4&vehicle_brand_id=5',
   )
 })
+
+it('envía el filtro de códigos por corregir solo cuando está activo', async () => {
+  const request = vi.fn().mockResolvedValue({})
+  const api = createProductsApi({ request } as unknown as ApiClient)
+
+  await api.list({ isActive: 'true', codeOverLimit: true })
+  await api.list({ isActive: 'true', codeOverLimit: false })
+  await api.list({ isActive: 'true' })
+
+  expect(request.mock.calls[0]?.[0]).toContain('code_over_limit=true')
+  expect(request.mock.calls[1]?.[0]).not.toContain('code_over_limit')
+  expect(request.mock.calls[2]?.[0]).not.toContain('code_over_limit')
+})

@@ -44,6 +44,10 @@ vi.mock('@/shared/api/entity-logos', () => ({
     return mocks.brands[scope] ?? { logoUrl: null, legalName: undefined }
   },
 }))
+// El enlace de preparación fiscal tiene sus propias pruebas y exige un QueryClient.
+vi.mock('@/features/fiscal/FiscalPreparationLink', () => ({
+  FiscalPreparationLink: () => null,
+}))
 vi.mock('@/features/maintenance/billingHooks', () => ({
   useServiceOperation: () => mocks.operation,
   useServiceOperationDocument: () => mocks.operation,
@@ -96,6 +100,7 @@ function operation(overrides: Record<string, unknown> = {}) {
         service_line_id: 10,
         position: 1,
         service_id: 2,
+        service_code: 'SRV-000012',
         service_name: 'Alineación',
         quantity: 1,
         reference_price: '60.00',
@@ -164,6 +169,7 @@ describe('ServiceOperationDetailPage', () => {
     const balance = screen.getByLabelText('Saldo de la operación')
     expect(within(balance).getByText('Saldo')).toBeInTheDocument()
     expect(screen.getByText('Alineación')).toBeInTheDocument()
+    expect(screen.getByText('SRV-000012')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'ART-SER-000003' }),
     ).toBeInTheDocument()

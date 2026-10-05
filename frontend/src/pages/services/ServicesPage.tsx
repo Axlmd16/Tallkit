@@ -88,7 +88,7 @@ export function ServicesPage() {
                 idPrefix="service"
                 label="Barra de herramientas de servicios"
                 searchLabel="Buscar servicio"
-                searchPlaceholder="Buscar por nombre…"
+                searchPlaceholder="Buscar por nombre o código…"
               />
             }
             emptyText="Aún no hay servicios registrados."
@@ -151,6 +151,16 @@ export function ServicesPage() {
                           <Wrench aria-hidden="true" size={17} weight="fill" />
                         </span>
                         {row.name}
+                      </span>
+                    ),
+                  },
+                  {
+                    header: 'Código',
+                    key: 'code',
+                    priority: 'secondary',
+                    render: (row) => (
+                      <span className="font-mono text-[13px] text-ink-muted">
+                        {row.code}
                       </span>
                     ),
                   },

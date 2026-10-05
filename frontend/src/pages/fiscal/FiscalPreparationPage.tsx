@@ -43,6 +43,12 @@ const TITLES = {
   CANCELLED: 'Preparación cancelada',
 } as const
 
+const REGIME_LABELS: Record<string, string> = {
+  GENERAL: 'General',
+  RIMPE_EMPRENDEDOR: 'RIMPE Emprendedor',
+  RIMPE_NEGOCIO_POPULAR: 'RIMPE Negocio Popular',
+}
+
 const ID_TYPES: Record<string, string> = {
   '04': 'RUC',
   '05': 'Cédula',
@@ -591,6 +597,11 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
     ? snapshot.payments.map(record)
     : []
   const lines = Array.isArray(snapshot.lines) ? snapshot.lines.map(record) : []
+  const profile = record(record(snapshot.issuer).tax_profile)
+  // Las preparaciones anteriores guardaban las condiciones como leyendas de texto.
+  const legends = Array.isArray(snapshot.legends)
+    ? snapshot.legends.map(text).filter(Boolean)
+    : []
   return (
     <div className="space-y-4">
       <Surface aria-label="Datos preparados">
@@ -610,11 +621,13 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
           <Datum label="Total" value={money(totals.grand)} />
         </dl>
       </Surface>
+      <IssuerSummary legends={legends} profile={profile} />
       <Surface className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="bg-surface-subtle text-xs text-ink-muted">
               <tr>
+                <th className="px-4 py-2">Código</th>
                 <th className="px-4 py-2">Descripción</th>
                 <th className="px-4 py-2">Impuesto</th>
                 <th className="px-4 py-2 text-right">Cantidad</th>
@@ -624,6 +637,9 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             <tbody className="divide-y divide-line">
               {lines.map((line, index) => (
                 <tr key={`${text(line.position)}-${index}`}>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    {text(line.item_code)}
+                  </td>
                   <td className="px-4 py-3">{text(line.description)}</td>
                   <td className="px-4 py-3">
                     {text(line.display_name) || `${text(line.tax_rate)} %`}
@@ -662,6 +678,76 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
         </details>
       )}
     </div>
+  )
+}
+
+/** Datos tributarios del emisor tal como se conservaron al preparar. */
+function IssuerSummary({
+  profile,
+  legends,
+}: {
+  profile: Record<string, unknown>
+  legends: string[]
+}) {
+  const hasProfile = Object.keys(profile).length > 0
+  if (!hasProfile && legends.length === 0) return null
+  const regime = text(profile.regime)
+  const qualification = record(profile.artisan_qualification)
+  return (
+    <Surface aria-label="Emisor preparado">
+      <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        {hasProfile ? (
+          <>
+            {regime && (
+              <Datum label="Régimen" value={REGIME_LABELS[regime] ?? regime} />
+            )}
+            {text(profile.regime_legend) && (
+              <Datum
+                label="Leyenda en el comprobante"
+                value={text(profile.regime_legend)}
+              />
+            )}
+            {text(profile.accounting_obligation) && (
+              <Datum
+                label="Obligado a llevar contabilidad"
+                value={profile.accounting_obligation === 'SI' ? 'Sí' : 'No'}
+              />
+            )}
+            {text(profile.withholding_agent_resolution) && (
+              <Datum
+                label="Agente de retención"
+                mono
+                value={text(profile.withholding_agent_resolution)}
+              />
+            )}
+            {text(profile.special_taxpayer_resolution) && (
+              <Datum
+                label="Contribuyente especial"
+                mono
+                value={text(profile.special_taxpayer_resolution)}
+              />
+            )}
+            {text(qualification.number) && (
+              <Datum
+                label="Calificación artesanal"
+                value={`${text(qualification.number)} · vence ${text(qualification.ends_on)}`}
+              />
+            )}
+          </>
+        ) : (
+          <div className="sm:col-span-2 lg:col-span-4">
+            <dt className="text-xs text-ink-muted">Condiciones declaradas</dt>
+            <dd className="mt-1 font-medium">
+              <ul className="list-none space-y-0.5 p-0">
+                {legends.map((legend) => (
+                  <li key={legend}>{legend}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </Surface>
   )
 }
 

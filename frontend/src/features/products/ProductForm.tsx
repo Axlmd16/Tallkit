@@ -28,6 +28,8 @@ import { useProductTaxOptions } from './hooks'
 import type { CatalogRef, Product, ProductInput, TaxProjection } from './types'
 import { VehicleBrandPicker } from './VehicleBrandPicker'
 
+// `codigoPrincipal` del comprobante electrónico admite hasta 25 caracteres.
+const CODE_MAX = 25
 const QUANTITY = /^\d{1,12}(\.\d{1,6})?$/
 const PRICE = /^\d{1,12}(\.\d{1,2})?$/
 
@@ -104,6 +106,9 @@ export function ProductForm({
   const canChangePrice = !product || permissions.has('productos.cambiar_precio')
   const canConfigure = permissions.has('parametros.gestionar')
   const [draft, setDraft] = useState<Draft>(() => toDraft(product))
+  // Un producto registrado antes del límite conserva su código largo mientras no lo cambie.
+  const hasLongCode = (product?.code.length ?? 0) > CODE_MAX
+  const keepsLongCode = hasLongCode && draft.code.trim() === product?.code
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [problem, setProblem] = useState<ProblemView | null>(null)
   const [pending, setPending] = useState(false)
@@ -159,8 +164,11 @@ export function ProductForm({
   function validate(): boolean {
     const next: Record<string, string> = {}
     if (!draft.code.trim()) next.code = 'El código interno es obligatorio.'
-    else if (draft.code.trim().length > 64)
-      next.code = 'El código interno no puede exceder 64 caracteres.'
+    else if (
+      draft.code.trim().length > CODE_MAX &&
+      draft.code.trim() !== product?.code
+    )
+      next.code = `El código interno no puede exceder ${CODE_MAX} caracteres.`
     if (draft.manufacturerCode.trim().length > 64)
       next.manufacturer_code =
         'El código del fabricante no puede exceder 64 caracteres.'
@@ -282,7 +290,11 @@ export function ProductForm({
           >
             <Field
               error={errors.code}
-              hint="Único en el catálogo. Se usa para buscar y en el comprobante."
+              hint={
+                keepsLongCode
+                  ? `Este código excede los ${CODE_MAX} caracteres del comprobante; acórtelo para poder facturar.`
+                  : `Único en el catálogo, hasta ${CODE_MAX} caracteres. Se usa para buscar y en el comprobante.`
+              }
               id="product-code"
               label="Código interno"
               required
@@ -291,7 +303,7 @@ export function ProductForm({
                 className="font-mono"
                 disabled={pending}
                 id="product-code"
-                maxLength={64}
+                maxLength={hasLongCode ? undefined : CODE_MAX}
                 onChange={(e) => update('code', e.target.value, 'code')}
                 value={draft.code}
               />

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -312,4 +312,66 @@ it('en edición permite vaciar el código de fabricante', async () => {
   await waitFor(() =>
     expect(onSubmit).toHaveBeenCalledWith({ manufacturer_code: '' }),
   )
+})
+
+it('limita el código interno a los 25 caracteres del comprobante y lo explica', () => {
+  renderForm()
+  const code = screen.getByLabelText(/^código interno/i)
+  expect(code).toHaveAttribute('maxlength', '25')
+  expect(screen.getByText(/hasta 25 caracteres/i)).toBeInTheDocument()
+})
+
+it('rechaza un código nuevo de más de 25 caracteres sin enviarlo', async () => {
+  const user = userEvent.setup()
+  const { onSubmit } = renderForm({ product })
+  fireEvent.change(screen.getByLabelText(/^código interno/i), {
+    target: { value: 'M'.repeat(26) },
+  })
+  await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+  expect(
+    await screen.findByText(
+      'El código interno no puede exceder 25 caracteres.',
+    ),
+  ).toBeInTheDocument()
+  expect(onSubmit).not.toHaveBeenCalled()
+})
+
+it('conserva un código largo ya registrado, lo avisa y no lo envía si no se toca', async () => {
+  const user = userEvent.setup()
+  const legacy = { ...product, code: 'L'.repeat(40) }
+  const { onSubmit } = renderForm({ product: legacy })
+
+  const code = screen.getByLabelText(/^código interno/i)
+  expect(code).toHaveValue('L'.repeat(40))
+  expect(
+    screen.getByText(/excede los 25 caracteres del comprobante/i),
+  ).toBeInTheDocument()
+
+  const name = screen.getByLabelText(/^nombre/i)
+  await user.clear(name)
+  await user.type(name, 'Aceite renovado')
+  await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+  await waitFor(() =>
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Aceite renovado' }),
+  )
+})
+
+it('no acepta cambiar un código largo por otro igual de largo, pero sí por uno corto', async () => {
+  const user = userEvent.setup()
+  const legacy = { ...product, code: 'L'.repeat(40) }
+  const { onSubmit } = renderForm({ product: legacy })
+  const code = screen.getByLabelText(/^código interno/i)
+
+  fireEvent.change(code, { target: { value: 'M'.repeat(30) } })
+  await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+  expect(
+    await screen.findByText(
+      'El código interno no puede exceder 25 caracteres.',
+    ),
+  ).toBeInTheDocument()
+  expect(onSubmit).not.toHaveBeenCalled()
+
+  fireEvent.change(code, { target: { value: 'ACE-12' } })
+  await user.click(screen.getByRole('button', { name: /guardar cambios/i }))
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ code: 'ACE-12' }))
 })

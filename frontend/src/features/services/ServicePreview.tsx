@@ -48,6 +48,12 @@ export function ServicePreview({ service }: { service: Service }) {
 
       <Section title="Registro">
         <dl className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <dt className="text-xs text-ink-muted">Código</dt>
+            <dd className="mt-0.5 font-mono text-[13px] font-medium text-ink">
+              {service.code}
+            </dd>
+          </div>
           <div>
             <dt className="text-xs text-ink-muted">Creado</dt>
             <dd className="mt-0.5 text-[13px] font-medium text-ink">

@@ -424,3 +424,60 @@ it.each([
   renderPage()
   expect(screen.getByText(text)).toBeInTheDocument()
 })
+
+it('solo ofrece el filtro de códigos por corregir a quien gestiona productos', () => {
+  renderPage()
+  expect(screen.queryByLabelText('Código')).toBeNull()
+})
+
+it('filtra los códigos que exceden el comprobante y muestra su longitud', async () => {
+  mocks.permissions = ['productos.ver', 'productos.gestionar']
+  mocks.list = page([{ ...product, code: 'L'.repeat(40), code_length: 40 }])
+  const user = userEvent.setup()
+  renderPage()
+
+  const filter = screen.getByLabelText('Código')
+  expect(
+    within(filter)
+      .getAllByRole('option')
+      .map((option) => option.textContent),
+  ).toEqual(['Todos', 'Excede 25 caracteres'])
+  await user.selectOptions(filter, 'true')
+
+  expect(mocks.listArgs.at(-1)).toMatchObject({ codeOverLimit: true, page: 1 })
+  const table = screen.getByRole('table', { name: 'Productos' })
+  expect(within(table).getByText('40 caracteres')).toBeInTheDocument()
+})
+
+it('lee el filtro de códigos por corregir desde la dirección solo con permiso', () => {
+  mocks.permissions = ['productos.ver', 'productos.gestionar']
+  const { unmount } = renderPage('/products?code_over_limit=true')
+  expect(mocks.listArgs.at(-1)).toMatchObject({ codeOverLimit: true })
+  unmount()
+
+  mocks.permissions = ['productos.ver']
+  mocks.listArgs.length = 0
+  renderPage('/products?code_over_limit=true')
+  expect(mocks.listArgs.at(-1)).not.toHaveProperty('codeOverLimit', true)
+})
+
+it('explica que no hay códigos por corregir cuando el filtro no devuelve productos', () => {
+  mocks.permissions = ['productos.ver', 'productos.gestionar']
+  mocks.list = {
+    isPending: false,
+    isError: false,
+    data: { count: 0, page: 1, page_size: 20, total_pages: 0, results: [] },
+  }
+  renderPage('/products?code_over_limit=true')
+  expect(screen.getByText('No hay códigos por corregir')).toBeInTheDocument()
+  expect(screen.queryByText('Sin coincidencias')).toBeNull()
+})
+
+it('no imprime etiquetas del filtro de códigos por corregir', () => {
+  mocks.permissions = ['productos.ver', 'productos.gestionar']
+  mocks.list = page([{ ...product, code: 'L'.repeat(40), code_length: 40 }])
+  renderPage('/products?code_over_limit=true')
+  expect(
+    screen.getByRole('button', { name: 'Todos los del filtro actual' }),
+  ).toBeDisabled()
+})

@@ -38,15 +38,23 @@ export interface Product {
   version: number
   created_at: string
   updated_at: string
+  /** Solo con el filtro de códigos por corregir: longitud del código interno. */
+  code_length?: number
 }
 
 export interface ProductFilters extends BaseFilters {
   categoryId?: number | undefined
   productBrandId?: number | undefined
   vehicleBrandId?: number | undefined
+  /** Solo productos cuyo código excede el límite del comprobante; exige gestionar productos. */
+  codeOverLimit?: boolean | undefined
 }
 
-export type ProductLabelFilters = Omit<ProductFilters, 'page' | 'pageSize'>
+/** El filtro de códigos por corregir no aplica a las etiquetas. */
+export type ProductLabelFilters = Omit<
+  ProductFilters,
+  'page' | 'pageSize' | 'codeOverLimit'
+>
 
 export interface ProductLabelRef {
   id: number

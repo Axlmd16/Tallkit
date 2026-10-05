@@ -183,13 +183,22 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupo 8. Diseño 10; specs de catálogos y de preparación.
 
-- [ ] 10.1 Servicios: escribir primero pruebas y luego mostrar el código en listado y ficha como dato de solo lectura, incluirlo en la búsqueda y no enviarlo en altas ni ediciones.
-- [ ] 10.2 Operación artesanal: escribir primero la prueba y mostrar el código junto al nombre del servicio en las líneas.
-- [ ] 10.3 Productos: escribir primero pruebas del límite de 25 en el formulario con el mensaje del backend, de la edición de un producto con código largo sin tocarlo, y del filtro de códigos por corregir visible solo para quien edita, con su estado vacío; implementar en `ProductsPage` y el formulario de producto.
-- [ ] 10.4 Preparación fiscal: escribir primero pruebas de `FiscalPreparationPage` que muestren el emisor estructurado en formato 3, las leyendas en formatos anteriores y los impedimentos nuevos con el texto del backend; implementar.
-- [ ] 10.5 Verificar con Vitest sobre las páginas y componentes tocados, `tsc`, ESLint y Prettier sobre esos archivos.
+- [x] 10.1 Servicios: escribir primero pruebas y luego mostrar el código en listado y ficha como dato de solo lectura, incluirlo en la búsqueda y no enviarlo en altas ni ediciones.
+- [x] 10.2 Operación artesanal: escribir primero la prueba y mostrar el código junto al nombre del servicio en las líneas.
+- [x] 10.3 Productos: escribir primero pruebas del límite de 25 en el formulario con el mensaje del backend, de la edición de un producto con código largo sin tocarlo, y del filtro de códigos por corregir visible solo para quien edita, con su estado vacío; implementar en `ProductsPage` y el formulario de producto.
+- [x] 10.4 Preparación fiscal: escribir primero pruebas de `FiscalPreparationPage` que muestren el emisor estructurado en formato 3, las leyendas en formatos anteriores y los impedimentos nuevos con el texto del backend; implementar.
+- [x] 10.5 Verificar con Vitest sobre las páginas y componentes tocados, `tsc`, ESLint y Prettier sobre esos archivos.
 
 Evidencia del grupo: pruebas en verde; el frontend no decide límites ni reglas, solo refleja al backend.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada en cada superficie (código de servicio ausente, límite de 64 en el formulario de producto, filtro inexistente y emisor sin mostrar); verde tras implementar.
+- Servicios: columna «Código» y búsqueda «por nombre o código» en la lista, código de solo lectura en la vista previa; el formulario no lo ofrece ni lo envía (prueba: la edición envía solo `{ name }`).
+- Operación artesanal: el código aparece bajo el nombre del servicio en las líneas de la orden, la vista previa de documentación, el detalle de la operación y el comprobante interno.
+- Productos: el formulario limita el código nuevo a 25 caracteres con su explicación; un producto ya registrado con código largo muestra el aviso «excede los 25 caracteres del comprobante», guarda otros campos sin enviar el código y solo acepta cambiarlo por uno corto. La lista añade, solo con `productos.gestionar`, el filtro «Código · Excede 25 caracteres» (se lee de la dirección únicamente con permiso), muestra la longitud de cada código, explica «No hay códigos por corregir» cuando está vacío y deshabilita «Todos los del filtro actual» porque el servidor no lo admite en etiquetas.
+- Preparación fiscal: nueva sección «Emisor preparado» con régimen, leyenda, contabilidad, agente de retención, contribuyente especial y calificación (solo lo que aplica) para el formato 3, las leyendas de texto para el formato 2, nada para el formato 1; columna «Código» en las líneas; los impedimentos nuevos se muestran con el texto del servidor agrupados bajo el Administrador. Sin términos fiscales prohibidos.
+- Verificación 10.5: servicios, taller, productos, fiscal y `src/app` (42 archivos), 372 pruebas pasan; `tsc` del proyecto, ESLint y Prettier sin hallazgos.
+- Hallazgo ajeno al cambio: `src/pages/maintenance/billingPages.test.tsx` fallaba en 2 pruebas del detalle de la operación (`No QueryClient set`) también sin los cambios de este cambio, porque `FiscalPreparationLink` exige un cliente de consultas que esa prueba no provee. Se aisló el enlace con un `vi.mock` para poder verificar el código de servicio; las 10 pruebas del archivo pasan.
 
 ## 11. Recorridos E2E focalizados
 
