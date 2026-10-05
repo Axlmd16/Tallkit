@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.db.models import Exists, OuterRef, Q, QuerySet
-from django.db.models.functions import Lower
+from django.db.models.functions import Length, Lower
 
 from catalog.application.errors import field_error, not_found
+from catalog.domain.validation import PRODUCT_CODE_MAX
 from catalog.models import (
     MeasurementUnit,
     Product,
@@ -271,13 +272,27 @@ def _product_queryset(params: dict[str, Any], search: str, is_active: str) -> Qu
                 )
             )
         )
+    if (over_limit := params.get("code_over_limit")) is not None:
+        if over_limit != "true":
+            raise field_error(
+                "validation_error",
+                "code_over_limit",
+                "Use true para listar solo los códigos que exceden el límite.",
+            )
+        queryset = queryset.annotate(code_length=Length("code")).filter(
+            code_length__gt=PRODUCT_CODE_MAX
+        )
     return _ordered(queryset)
 
 
 def list_products(params: dict[str, Any]) -> Page:
     search, is_active, page, page_size = parse_list_params(params)
     rows, count = _paginate(_product_queryset(params, search, is_active), page, page_size)
-    return Page(product_dicts(rows), count, page, page_size)
+    results = product_dicts(rows)
+    if params.get("code_over_limit") is not None:
+        for row, product in zip(results, rows, strict=True):
+            row["code_length"] = len(product.code)
+    return Page(results, count, page, page_size)
 
 
 _PRODUCT_LABEL_PARAMS = frozenset(

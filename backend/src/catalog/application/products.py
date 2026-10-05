@@ -139,9 +139,9 @@ def _check_tax(tax_definition_id: int) -> None:
         ) from None
 
 
-def _normalized(data: dict[str, Any]) -> NormalizedProduct:
+def _normalized(data: dict[str, Any], current_code: str | None = None) -> NormalizedProduct:
     try:
-        return validate_product(data)
+        return validate_product(data, current_code=current_code)
     except CatalogValidationError as exc:
         raise translate_validation(exc) from None
 
@@ -227,8 +227,12 @@ def update_product(
         if preliminary is None:
             raise not_found("El producto")
         old_input = _current_input(preliminary)
-        old = _normalized(old_input)
-        new = _normalized({**old_input, **{k: v for k, v in payload.items() if k in FIELDS}})
+        # El código vigente se conserva aunque exceda el límite actual; solo uno nuevo debe caber.
+        old = _normalized(old_input, current_code=preliminary.code)
+        new = _normalized(
+            {**old_input, **{k: v for k, v in payload.items() if k in FIELDS}},
+            current_code=preliminary.code,
+        )
 
         _lock_references(old, new)
         product = Product.objects.select_for_update().filter(pk=pk).first()

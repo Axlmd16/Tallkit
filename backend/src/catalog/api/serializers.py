@@ -133,6 +133,8 @@ class ProductSerializer(_Record):
     sale_price = serializers.CharField()
     is_kit = serializers.BooleanField()
     tax = TaxProjectionSerializer(allow_null=True)
+    # Solo con el filtro `code_over_limit`: longitud del código que excede el comprobante.
+    code_length = serializers.IntegerField(required=False)
 
 
 class ProductLabelRefSerializer(_Base):

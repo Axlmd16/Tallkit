@@ -17,7 +17,7 @@ from catalog.application.errors import CatalogApplicationError
 from config.api.errors import ProblemSerializer, application_error_response, problem_response
 from identity.api.permissions import HasBusinessPermission
 from identity.api.request_context import request_id_from
-from identity.application.authorization import BusinessPermissionDeniedError
+from identity.application.authorization import BusinessPermissionDeniedError, require_permission
 from identity.models import User
 
 _PROBLEMS = {400: ProblemSerializer, 403: ProblemSerializer, 409: ProblemSerializer}
@@ -249,11 +249,26 @@ class ProductListCreateView(_CatalogView):
             OpenApiParameter("category_id", OpenApiTypes.INT),
             OpenApiParameter("product_brand_id", OpenApiTypes.INT),
             OpenApiParameter("vehicle_brand_id", OpenApiTypes.INT),
+            OpenApiParameter(
+                "code_over_limit",
+                OpenApiTypes.STR,
+                enum=["true"],
+                description=(
+                    "Solo los productos cuyo código supera los 25 caracteres del comprobante; "
+                    "exige el permiso de gestión de productos y añade `code_length`."
+                ),
+            ),
         ],
         responses={200: sz.ProductPageSerializer, 400: ProblemSerializer, 403: ProblemSerializer},
     )
     def get(self, request: Request) -> Response:
-        return _respond(request, lambda: _page(queries.list_products(_query(request))))
+        def operation() -> Response:
+            params = _query(request)
+            if "code_over_limit" in params:
+                require_permission(actor=_actor(request), permission="productos.gestionar")
+            return _page(queries.list_products(params))
+
+        return _respond(request, operation)
 
     @extend_schema(
         tags=[_PRODUCT_TAG],

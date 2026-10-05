@@ -281,3 +281,68 @@ def test_non_object_body_rejected(objs: dict[str, int]) -> None:
     admin = client_for("ADMINISTRADOR")
     r = admin.post("/api/v1/suppliers/", [1, 2], format="json")
     assert (r.status_code, r.data["code"]) == (400, "validation_error")
+
+
+def _long_code_product(objs: dict[str, int], tax: TaxDefinition, code: str, **extra: Any) -> None:
+    Product.objects.create(
+        code=code,
+        name=f"Producto {code[:6]}",
+        category=ProductCategory.objects.get(pk=objs["product-categories"]),
+        unit=MeasurementUnit.objects.get(pk=objs["measurement-units"]),
+        content_quantity=1,
+        sale_price=1,
+        tax_definition=tax,
+        **extra,
+    )
+
+
+def test_code_over_limit_filter_lists_only_the_long_codes_with_their_length(
+    objs: dict[str, int], commercial_tax: TaxDefinition
+) -> None:
+    _long_code_product(objs, commercial_tax, "A" * 26)
+    _long_code_product(objs, commercial_tax, "B" * 40)
+    _long_code_product(objs, commercial_tax, "C" * 30, is_active=False)
+    _long_code_product(objs, commercial_tax, "D" * 25)
+    admin = client_for("ADMINISTRADOR")
+    response = admin.get("/api/v1/products/?code_over_limit=true&is_active=all")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["count"] == 3
+    assert {row["code"]: row["code_length"] for row in body["results"]} == {
+        "A" * 26: 26,
+        "B" * 40: 40,
+        "C" * 30: 30,
+    }
+    active_only = admin.get("/api/v1/products/?code_over_limit=true").json()
+    assert active_only["count"] == 2
+    assert "code_length" not in admin.get("/api/v1/products/").json()["results"][0]
+
+
+def test_code_over_limit_filter_without_matches_is_an_empty_page(objs: dict[str, int]) -> None:
+    response = client_for("ADMINISTRADOR").get("/api/v1/products/?code_over_limit=true")
+    assert response.status_code == 200
+    assert response.json()["results"] == []
+    assert response.json()["count"] == 0
+
+
+@pytest.mark.parametrize("role", ["VENDEDOR", "ENCARGADO_TALLER"])
+def test_code_over_limit_filter_requires_the_product_edit_permission(
+    objs: dict[str, int], commercial_tax: TaxDefinition, role: str
+) -> None:
+    _long_code_product(objs, commercial_tax, "A" * 26)
+    client = client_for(role)
+    denied = client.get("/api/v1/products/?code_over_limit=true")
+    assert denied.status_code == 403
+    assert "A" * 26 not in denied.content.decode()
+    assert client.get("/api/v1/products/").status_code == 200
+
+
+def test_code_over_limit_only_accepts_true_and_is_not_a_label_filter(
+    objs: dict[str, int],
+) -> None:
+    admin = client_for("ADMINISTRADOR")
+    invalid = admin.get("/api/v1/products/?code_over_limit=false")
+    assert invalid.status_code == 400
+    assert "code_over_limit" in invalid.json()["errors"]
+    labels = admin.get("/api/v1/products/label-data/?code_over_limit=true")
+    assert labels.status_code == 400

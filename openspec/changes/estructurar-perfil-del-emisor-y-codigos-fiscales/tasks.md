@@ -60,13 +60,20 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupo 1. Diseño 7; spec `catalogo-de-productos-y-categorias`.
 
-- [ ] 4.1 Escribir primero en `backend/tests/catalog/test_catalog_validation.py` casos rojos: alta con 25 caracteres aceptada y con 26 rechazada con error en `code`; el código del fabricante sigue admitiendo 64.
-- [ ] 4.2 Escribir primero en `tests/catalog/test_catalog_services.py` casos rojos de edición: producto existente con 40 caracteres guarda otro campo sin tocar el código; cambiarlo a 12 se acepta y las líneas históricas conservan su instantánea; cambiarlo a 30 se rechaza conservando el anterior.
-- [ ] 4.3 Implementar en `backend/src/catalog/domain/validation.py` las constantes `PRODUCT_CODE_MAX = 25` y `MANUFACTURER_CODE_MAX = 64` y el paso del código vigente a `validate_product`; ajustar el servicio de edición. Hacer pasar 4.1–4.2 sin crear migración.
-- [ ] 4.4 Escribir primero en `tests/catalog/test_catalog_api.py` casos rojos del filtro `code_over_limit`: lista exactamente los excedidos, activos e inactivos, con `code_length`; lista vacía sin error; 403 para quien no edita productos. Implementar en `application/queries.py`, `api/serializers.py` y `api/views.py`.
-- [ ] 4.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/catalog/test_catalog_validation.py tests/catalog/test_catalog_services.py tests/catalog/test_catalog_api.py tests/catalog/test_manufacturer_code.py tests/catalog/test_product_label_data_api.py`, Ruff y mypy sobre `src/catalog`.
+- [x] 4.1 Escribir primero en `backend/tests/catalog/test_catalog_validation.py` casos rojos: alta con 25 caracteres aceptada y con 26 rechazada con error en `code`; el código del fabricante sigue admitiendo 64.
+- [x] 4.2 Escribir primero en `tests/catalog/test_catalog_services.py` casos rojos de edición: producto existente con 40 caracteres guarda otro campo sin tocar el código; cambiarlo a 12 se acepta y las líneas históricas conservan su instantánea; cambiarlo a 30 se rechaza conservando el anterior.
+- [x] 4.3 Implementar en `backend/src/catalog/domain/validation.py` las constantes `PRODUCT_CODE_MAX = 25` y `MANUFACTURER_CODE_MAX = 64` y el paso del código vigente a `validate_product`; ajustar el servicio de edición. Hacer pasar 4.1–4.2 sin crear migración.
+- [x] 4.4 Escribir primero en `tests/catalog/test_catalog_api.py` casos rojos del filtro `code_over_limit`: lista exactamente los excedidos, activos e inactivos, con `code_length`; lista vacía sin error; 403 para quien no edita productos. Implementar en `application/queries.py`, `api/serializers.py` y `api/views.py`.
+- [x] 4.5 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/catalog/test_catalog_validation.py tests/catalog/test_catalog_services.py tests/catalog/test_catalog_api.py tests/catalog/test_manufacturer_code.py tests/catalog/test_product_label_data_api.py`, Ruff y mypy sobre `src/catalog`.
 
 Evidencia del grupo: límite probado en 25 y 26, productos largos existentes intactos, filtro con permisos.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada: `TypeError` (`current_code` inexistente), códigos de 26 y 40 caracteres aceptados y filtro `code_over_limit` ignorado; verde tras implementar `PRODUCT_CODE_MAX = 25`, `MANUFACTURER_CODE_MAX = 64`, `normalize_code(..., current=)` y la consulta con `Length`.
+- Sin migración: `Product.code` conserva `max_length=64` porque existen filas válidas más largas. La edición pasa el código vigente a la validación para que un producto largo guarde otros campos sin tocarlo.
+- Los códigos con saltos de línea se rechazan.
+- El filtro exige `productos.gestionar` (403 para Vendedor y Encargado del taller sin revelar el listado), solo acepta `true` (400 en otro caso), no es un filtro de etiquetas y añade `code_length` a cada resultado.
+- Verificación 4.5: `tests/catalog` completo, 170 pruebas en 25 s; Ruff y mypy sin hallazgos sobre `src/catalog` y `tests/catalog`.
 
 ## 5. Código de servicio
 

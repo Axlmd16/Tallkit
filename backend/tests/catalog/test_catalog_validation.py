@@ -58,9 +58,43 @@ def test_name_key_is_case_insensitive_but_keeps_accents_and_inner_spaces() -> No
 def test_code_uppercased_and_trimmed() -> None:
     assert normalize_code("  fil-01ñ ") == "FIL-01Ñ"
     with pytest.raises(CatalogValidationError):
-        normalize_code("x" * 65)
-    with pytest.raises(CatalogValidationError):
         normalize_code("  ")
+
+
+def test_code_limit_is_twenty_five_characters_after_normalizing() -> None:
+    assert normalize_code("x" * 25) == "X" * 25
+    assert normalize_code(f"  {'x' * 25}  ") == "X" * 25
+    with pytest.raises(CatalogValidationError) as caught:
+        normalize_code("x" * 26)
+    assert "25" in caught.value.errors["code"][0]
+
+
+@pytest.mark.parametrize("code", ["AB\n1", "AB\r1", "AB\r\n1"])
+def test_code_cannot_contain_line_breaks(code: str) -> None:
+    with pytest.raises(CatalogValidationError) as caught:
+        normalize_code(code)
+    assert "code" in caught.value.errors
+
+
+def test_an_unchanged_long_code_is_kept_but_a_changed_one_must_fit() -> None:
+    legacy = "L" * 40
+    assert normalize_code(legacy.lower(), current=legacy) == legacy
+    with pytest.raises(CatalogValidationError):
+        normalize_code("M" * 30, current=legacy)
+    with pytest.raises(CatalogValidationError):
+        normalize_code(legacy)
+    assert normalize_code("NUEVO-12", current=legacy) == "NUEVO-12"
+
+
+def test_product_validation_takes_the_current_code_and_keeps_the_manufacturer_limit() -> None:
+    legacy = "L" * 40
+    assert validate_product(_product(code=legacy), current_code=legacy).code == legacy
+    with pytest.raises(CatalogValidationError):
+        validate_product(_product(code=legacy))
+    assert validate_product(_product(manufacturer_code="m" * 64)).manufacturer_code == "M" * 64
+    with pytest.raises(CatalogValidationError) as caught:
+        validate_product(_product(manufacturer_code="m" * 65))
+    assert "manufacturer_code" in caught.value.errors
 
 
 def test_category_rejects_hierarchy() -> None:

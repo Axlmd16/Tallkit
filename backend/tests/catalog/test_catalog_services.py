@@ -511,3 +511,64 @@ def test_repeated_product_and_service_state_changes_are_harmless(
             payload={"expected_version": 9, "idempotency_key": key()},
         )
     assert exc.value.code == "stale_record"
+
+
+def test_create_product_accepts_twenty_five_characters_and_rejects_twenty_six(
+    base: dict[str, Any],
+) -> None:
+    created = new_product(base, code="a" * 25)
+    assert created["code"] == "A" * 25
+    with pytest.raises(CatalogApplicationError) as exc:
+        new_product(base, code="b" * 26)
+    assert exc.value.code == "validation_error"
+    assert "code" in exc.value.errors
+    assert Product.objects.count() == 1
+
+
+def _legacy_product(base: dict[str, Any], code: str = "L" * 40) -> dict[str, Any]:
+    created = new_product(base, code="TEMP-1")
+    Product.objects.filter(pk=created["id"]).update(code=code)
+    return created
+
+
+def test_existing_long_code_is_kept_when_another_field_changes(base: dict[str, Any]) -> None:
+    legacy = _legacy_product(base)
+    out = products.update_product(
+        legacy["id"],
+        actor=base["admin"],
+        payload={"expected_version": 1, "name": "Aceite renovado", "idempotency_key": key()},
+    ).body
+    assert out["code"] == "L" * 40
+    assert out["name"] == "Aceite renovado"
+    assert out["version"] == 2
+    # La ficha sigue disponible para cambios de precio sin tocar el código.
+    priced = products.update_product(
+        legacy["id"],
+        actor=base["admin"],
+        payload={"expected_version": 2, "sale_price": "11.00", "idempotency_key": key()},
+    ).body
+    assert priced["code"] == "L" * 40
+
+
+def test_long_code_can_be_shortened_and_the_new_code_is_unique(base: dict[str, Any]) -> None:
+    legacy = _legacy_product(base)
+    out = products.update_product(
+        legacy["id"],
+        actor=base["admin"],
+        payload={"expected_version": 1, "code": " ace-12 ", "idempotency_key": key()},
+    ).body
+    assert out["code"] == "ACE-12"
+    assert Product.objects.get(pk=legacy["id"]).code == "ACE-12"
+
+
+def test_long_code_cannot_be_replaced_by_another_long_code(base: dict[str, Any]) -> None:
+    legacy = _legacy_product(base)
+    with pytest.raises(CatalogApplicationError) as exc:
+        products.update_product(
+            legacy["id"],
+            actor=base["admin"],
+            payload={"expected_version": 1, "code": "M" * 30, "idempotency_key": key()},
+        )
+    assert exc.value.code == "validation_error"
+    assert "code" in exc.value.errors
+    assert Product.objects.get(pk=legacy["id"]).code == "L" * 40

@@ -13,7 +13,10 @@ from catalog.domain.errors import CatalogValidationError
 
 NAME_MAX = 255
 DESCRIPTION_MAX = 2000
-CODE_MAX = 64
+# `codigoPrincipal` del comprobante electrónico admite 25 caracteres; el código del fabricante
+# es una referencia externa que no viaja al comprobante.
+PRODUCT_CODE_MAX = 25
+MANUFACTURER_CODE_MAX = 64
 SYMBOL_MAX = 32
 
 PRICE_MAX = Decimal("999999999999.99")
@@ -43,12 +46,19 @@ def normalize_name_key(value: str) -> str:
     return value.strip().lower()
 
 
-def normalize_code(value: Any) -> str:
+def normalize_code(value: Any, *, current: str | None = None) -> str:
+    """Código interno normalizado; `current` es el código vigente de un producto que se edita.
+
+    Un producto registrado antes del límite conserva su código largo mientras no lo cambie:
+    solo un código distinto del vigente debe caber en `PRODUCT_CODE_MAX`.
+    """
     if not isinstance(value, str) or not value.strip():
         raise _fail("code", "El código es obligatorio.")
     code = value.strip().upper()
-    if len(code) > CODE_MAX:
-        raise _fail("code", f"El código no puede exceder {CODE_MAX} caracteres.")
+    if "\n" in code or "\r" in code:
+        raise _fail("code", "El código no puede contener saltos de línea.")
+    if len(code) > PRODUCT_CODE_MAX and code != current:
+        raise _fail("code", f"El código no puede exceder {PRODUCT_CODE_MAX} caracteres.")
     return code
 
 
@@ -59,10 +69,10 @@ def normalize_manufacturer_code(value: Any) -> str:
     if not isinstance(value, str):
         raise _fail("manufacturer_code", "El código del fabricante debe ser texto.")
     code = value.strip().upper()
-    if len(code) > CODE_MAX:
+    if len(code) > MANUFACTURER_CODE_MAX:
         raise _fail(
             "manufacturer_code",
-            f"El código del fabricante no puede exceder {CODE_MAX} caracteres.",
+            f"El código del fabricante no puede exceder {MANUFACTURER_CODE_MAX} caracteres.",
         )
     return code
 
@@ -192,12 +202,12 @@ class NormalizedProduct:
     is_kit: bool
 
 
-def validate_product(data: dict[str, Any]) -> NormalizedProduct:
+def validate_product(data: dict[str, Any], *, current_code: str | None = None) -> NormalizedProduct:
     is_kit = data.get("is_kit", False)
     if not isinstance(is_kit, bool):
         raise _fail("is_kit", "El indicador de kit debe ser verdadero o falso.")
     return NormalizedProduct(
-        code=normalize_code(data.get("code")),
+        code=normalize_code(data.get("code"), current=current_code),
         manufacturer_code=normalize_manufacturer_code(data.get("manufacturer_code")),
         name=normalize_name(data.get("name"), label="El nombre del producto"),
         description=normalize_optional_text(
