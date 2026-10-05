@@ -47,6 +47,8 @@ const mocks = vi.hoisted(() => {
     warehouseUpdate: mutation(),
     taxCreate: mutation(),
     periodCreate: mutation(),
+    scheduleSuccessor: mutation(),
+    periods: {} as Record<number, Array<Record<string, unknown>>>,
     seriesUpdate: mutation(),
     seriesReplace: mutation(),
     logoUpload: mutation(),
@@ -74,6 +76,12 @@ vi.mock('@/features/workshop-configuration/queries', () => ({
   useUpdateWarehouse: () => mocks.warehouseUpdate,
   useCreateTaxDefinition: () => mocks.taxCreate,
   useCreateTaxPeriod: () => mocks.periodCreate,
+  useScheduleSuccessor: () => mocks.scheduleSuccessor,
+  useTaxPeriods: (id: number) => ({
+    data: mocks.periods[id],
+    isLoading: false,
+    isError: false,
+  }),
   useUpdateSeriesCode: () => mocks.seriesUpdate,
   useReplaceSeries: () => mocks.seriesReplace,
   useInitializeWorkshop: () => mocks.initialize,
@@ -263,6 +271,7 @@ beforeEach(() => {
     mocks.warehouseUpdate,
     mocks.taxCreate,
     mocks.periodCreate,
+    mocks.scheduleSuccessor,
     mocks.seriesUpdate,
     mocks.seriesReplace,
     mocks.logoUpload,
@@ -271,6 +280,18 @@ beforeEach(() => {
     mutation.mutate.mockReset()
     mutation.mutateAsync.mockReset()
     mutation.mutateAsync.mockResolvedValue({ id: 99 })
+  }
+  mocks.periods = {
+    1: [
+      {
+        id: 11,
+        rate: '15',
+        starts_on: '2026-09-15',
+        ends_on: null,
+        version: 3,
+      },
+    ],
+    2: [],
   }
   mocks.readiness = {
     isLoading: false,
@@ -760,4 +781,80 @@ it('cancelar el retiro conserva el logo y devuelve el foco a «Quitar»', async 
   )
   expect(mocks.logoRemove.mutateAsync).not.toHaveBeenCalled()
   await waitFor(() => expect(remove).toHaveFocus())
+})
+
+it('programa una tarifa nueva sobre el mismo impuesto sin editar la vigente', async () => {
+  const user = userEvent.setup()
+  renderPage('?tab=impuestos')
+
+  const table = screen.getByRole('table')
+  // Solo el impuesto con una tarifa abierta ofrece programar otra.
+  expect(
+    within(table).getAllByRole('button', { name: /Programar tarifa/ }),
+  ).toHaveLength(1)
+  await user.click(
+    within(table).getByRole('button', { name: 'Programar tarifa de IVA' }),
+  )
+
+  const dialog = screen.getByRole('dialog', { name: 'Programar tarifa de IVA' })
+  expect(dialog).toHaveTextContent('15 %')
+  expect(dialog).toHaveTextContent('2026-09-15')
+  await user.type(within(dialog).getByLabelText(/Nueva tarifa/), '0')
+  await user.type(within(dialog).getByLabelText(/Rige desde/), '2099-01-01')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Programar tarifa' }),
+  )
+
+  expect(mocks.scheduleSuccessor.mutateAsync).toHaveBeenCalledWith({
+    periodId: 11,
+    data: {
+      new_rate: '0',
+      successor_starts_on: '2099-01-01',
+      expected_version: 3,
+    },
+  })
+  expect(await screen.findByText('Tarifa programada.')).toBeVisible()
+})
+
+it('muestra la tarifa ya programada para el futuro en la fila del impuesto', () => {
+  mocks.periods[1] = [
+    {
+      id: 11,
+      rate: '15',
+      starts_on: '2026-09-15',
+      ends_on: '2098-12-31',
+      version: 4,
+    },
+    { id: 12, rate: '0', starts_on: '2099-01-01', ends_on: null, version: 0 },
+  ]
+  renderPage('?tab=impuestos')
+
+  expect(screen.getByRole('table')).toHaveTextContent(
+    'Luego 0 % desde 2099-01-01',
+  )
+})
+
+it('mantiene el rechazo del servidor dentro del modal de programar tarifa', async () => {
+  const user = userEvent.setup()
+  mocks.scheduleSuccessor.mutateAsync.mockRejectedValue(
+    new Error('El inicio de la nueva tarifa debe ser posterior a hoy.'),
+  )
+  renderPage('?tab=impuestos')
+
+  await user.click(
+    screen.getByRole('button', { name: 'Programar tarifa de IVA' }),
+  )
+  const dialog = screen.getByRole('dialog', { name: 'Programar tarifa de IVA' })
+  await user.type(within(dialog).getByLabelText(/Nueva tarifa/), '0')
+  await user.type(within(dialog).getByLabelText(/Rige desde/), '2000-01-01')
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Programar tarifa' }),
+  )
+
+  expect(
+    await within(dialog).findByText(
+      'El inicio de la nueva tarifa debe ser posterior a hoy.',
+    ),
+  ).toBeVisible()
+  expect(screen.getByRole('dialog')).toBeVisible()
 })

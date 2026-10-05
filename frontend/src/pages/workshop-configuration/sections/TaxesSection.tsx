@@ -1,4 +1,4 @@
-import { Plus } from '@phosphor-icons/react'
+import { CalendarPlus, Plus } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 
 import {
@@ -6,11 +6,14 @@ import {
   useCreateTaxDefinition,
   useCreateTaxPeriod,
   useFiscalEntities,
+  useScheduleSuccessor,
+  useTaxPeriods,
 } from '@/features/workshop-configuration/queries'
 import { EntityGroupRow } from './EntityGroupRow'
 import type {
   FiscalEntity,
   TaxDefinition,
+  TaxPeriod,
 } from '@/features/workshop-configuration/types'
 import {
   Button,
@@ -68,6 +71,9 @@ export function TaxesSection() {
                 <th className={sheetTableHead}>Tarifa vigente</th>
                 <th className={sheetTableHead}>Vigencia</th>
                 <th className={sheetTableHead}>Estado</th>
+                <th className={sheetTableHead}>
+                  <span className="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -112,56 +118,171 @@ function EntityGroup({
 }) {
   return (
     <>
-      <EntityGroupRow colSpan={4} entity={entity} />
+      <EntityGroupRow colSpan={5} entity={entity} />
       {definitions.length === 0 ? (
         <tr>
-          <td className={`${sheetTableCell} text-ink-muted`} colSpan={4}>
+          <td className={`${sheetTableCell} text-ink-muted`} colSpan={5}>
             Sin impuestos registrados para esta entidad.
           </td>
         </tr>
       ) : (
         definitions.map((definition) => (
-          <tr key={definition.id}>
-            <td className={sheetTableCell}>
-              <span className="font-mono font-semibold text-ink">
-                {definition.code}
-              </span>
-              <span className="block text-[13px] text-ink-muted">
-                {definition.name}
-              </span>
-            </td>
-            <td className={`${sheetTableCell} font-mono tabular-nums`}>
-              {definition.current_rate ? `${definition.current_rate} %` : '—'}
-            </td>
-            <td className={`${sheetTableCell} text-[13px]`}>
-              {definition.starts_on ? (
-                <>
-                  Desde{' '}
-                  <span className="font-mono">{definition.starts_on}</span>
-                  {definition.ends_on && (
-                    <>
-                      {' '}
-                      hasta{' '}
-                      <span className="font-mono">{definition.ends_on}</span>
-                    </>
-                  )}
-                </>
-              ) : (
-                <span className="text-ink-muted">Sin vigencia</span>
-              )}
-            </td>
-            <td className={sheetTableCell}>
-              <StateMark
-                label={
-                  definition.current_rate ? 'Vigente' : 'Sin tarifa vigente'
-                }
-                tone={definition.current_rate ? 'success' : 'unknown'}
-              />
-            </td>
-          </tr>
+          <TaxRow definition={definition} key={definition.id} />
         ))
       )}
     </>
+  )
+}
+
+function todayInEcuador() {
+  return new Date().toLocaleDateString('en-CA', {
+    timeZone: 'America/Guayaquil',
+  })
+}
+
+function TaxRow({ definition }: { definition: TaxDefinition }) {
+  const periods = useTaxPeriods(definition.id)
+  const [scheduling, setScheduling] = useState(false)
+  const list = periods.data ?? []
+  const open = list.find((period) => period.ends_on === null)
+  const today = todayInEcuador()
+  const upcoming = list
+    .filter((period) => period.starts_on > today)
+    .sort((a, b) => a.starts_on.localeCompare(b.starts_on))
+
+  return (
+    <tr>
+      <td className={sheetTableCell}>
+        <span className="font-mono font-semibold text-ink">
+          {definition.code}
+        </span>
+        <span className="block text-[13px] text-ink-muted">
+          {definition.name}
+        </span>
+      </td>
+      <td className={`${sheetTableCell} font-mono tabular-nums`}>
+        {definition.current_rate ? `${definition.current_rate} %` : '—'}
+      </td>
+      <td className={`${sheetTableCell} text-[13px]`}>
+        {definition.starts_on ? (
+          <>
+            Desde <span className="font-mono">{definition.starts_on}</span>
+            {definition.ends_on && (
+              <>
+                {' '}
+                hasta <span className="font-mono">{definition.ends_on}</span>
+              </>
+            )}
+          </>
+        ) : (
+          <span className="text-ink-muted">Sin vigencia</span>
+        )}
+        {upcoming.map((period) => (
+          <span className="mt-1 block text-ink-muted" key={period.id}>
+            Luego <span className="font-mono">{Number(period.rate)} %</span>{' '}
+            desde <span className="font-mono">{period.starts_on}</span>
+          </span>
+        ))}
+      </td>
+      <td className={sheetTableCell}>
+        <StateMark
+          label={definition.current_rate ? 'Vigente' : 'Sin tarifa vigente'}
+          tone={definition.current_rate ? 'success' : 'unknown'}
+        />
+      </td>
+      <td className={sheetTableCell}>
+        {open && (
+          <Button
+            aria-label={`Programar tarifa de ${definition.code}`}
+            className="px-2"
+            onClick={() => setScheduling(true)}
+            variant="quiet"
+          >
+            <CalendarPlus aria-hidden="true" size={14} weight="bold" />
+            Programar tarifa
+          </Button>
+        )}
+      </td>
+      {scheduling && open && (
+        <ScheduleRateModal
+          definition={definition}
+          onClose={() => setScheduling(false)}
+          period={open}
+        />
+      )}
+    </tr>
+  )
+}
+
+function ScheduleRateModal({
+  definition,
+  period,
+  onClose,
+}: {
+  definition: TaxDefinition
+  period: TaxPeriod
+  onClose: () => void
+}) {
+  const schedule = useScheduleSuccessor()
+  const toast = useToast()
+  const [values, setValues] = useState({ rate: '', startsOn: '' })
+  const set = (key: keyof typeof values) => (value: string) =>
+    setValues((current) => ({ ...current, [key]: value }))
+
+  async function save() {
+    await schedule.mutateAsync({
+      periodId: period.id,
+      data: {
+        new_rate: values.rate.trim(),
+        successor_starts_on: values.startsOn,
+        expected_version: period.version,
+      },
+    })
+    toast.success('Tarifa programada.')
+    return true
+  }
+
+  return (
+    <FormModal
+      description="La tarifa actual no se modifica: termina el día anterior y la nueva rige desde la fecha elegida. Lo vendido antes conserva su tarifa."
+      dirty={Boolean(values.rate || values.startsOn)}
+      onClose={onClose}
+      onSave={save}
+      open
+      saveLabel="Programar tarifa"
+      title={`Programar tarifa de ${definition.code}`}
+    >
+      <div className="space-y-4">
+        <div className="text-sm">
+          <p className="text-xs font-semibold text-ink">Tarifa actual</p>
+          <p className="mt-1.5 text-ink">
+            <span className="font-mono">{Number(period.rate)} %</span> · desde{' '}
+            <span className="font-mono">{period.starts_on}</span>
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            hint="Entre 0 y 100, hasta cuatro decimales."
+            label="Nueva tarifa (%)"
+            required
+          >
+            <Control
+              inputMode="decimal"
+              onChange={(event) => set('rate')(event.target.value)}
+              placeholder="0"
+              value={values.rate}
+            />
+          </Field>
+          <Field hint="Debe ser posterior a hoy." label="Rige desde" required>
+            <Control
+              onChange={(event) => set('startsOn')(event.target.value)}
+              type="date"
+              value={values.startsOn}
+            />
+          </Field>
+        </div>
+      </div>
+    </FormModal>
   )
 }
 

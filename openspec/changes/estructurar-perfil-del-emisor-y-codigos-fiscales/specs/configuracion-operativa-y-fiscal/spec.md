@@ -167,4 +167,25 @@ Trazabilidad: continuidad ante un cambio de régimen (propuesta §D); DP-017/025
 - **CUANDO** intenta programar el cambio
 - **ENTONCES** SHALL denegarse sin modificar ninguna correspondencia.
 
+### Requirement: Programar una tarifa interna desde la configuración de Impuestos
+
+La página de Impuestos SHALL permitir al Administrador programar, sobre el **mismo impuesto**, una tarifa que rija desde una fecha futura, y SHALL mostrar en la fila del impuesto las tarifas ya programadas. La tarifa vigente SHALL cerrarse el día anterior sin modificarse y las ventas anteriores SHALL conservar la tarifa con que se hicieron. SHALL ofrecerse solo sobre un impuesto con una tarifa abierta (sin fecha de fin). El servidor SHALL seguir decidiendo las reglas de la sucesión (inicio posterior a hoy y a todo uso registrado, tarifa válida, versión no obsoleta, solo el Administrador) y su rechazo SHALL mostrarse sin cerrar el formulario. Los productos y servicios SHALL NOT requerir cambio alguno, porque apuntan al impuesto y no a una tarifa.
+
+Trazabilidad: RF-ACC-011; UI-015; DP-017.
+
+#### Scenario: Programar IVA 0 % sobre un impuesto de 15 %
+- **DADO** un impuesto con una tarifa abierta de 15 %
+- **CUANDO** el Administrador programa 0 % desde una fecha futura
+- **ENTONCES** SHALL registrarse la sucesión sobre la tarifa abierta con su versión actual, SHALL mostrarse «Luego 0 % desde» esa fecha en la fila del impuesto y los productos SHALL seguir apuntando al mismo impuesto.
+
+#### Scenario: Impuesto sin tarifa abierta
+- **DADO** un impuesto sin ninguna tarifa
+- **CUANDO** se muestra la lista de impuestos
+- **ENTONCES** SHALL NOT ofrecerse la acción de programar tarifa para ese impuesto.
+
+#### Scenario: Fecha no válida
+- **DADO** el formulario de programar tarifa
+- **CUANDO** el servidor rechaza la fecha por no ser posterior a hoy
+- **ENTONCES** SHALL mostrarse el motivo dentro del formulario sin cerrarlo ni modificar la tarifa vigente.
+
 Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

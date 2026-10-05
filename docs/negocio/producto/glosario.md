@@ -227,6 +227,14 @@ Conjunto cronológico de mantenimientos y operaciones relacionadas con un vehíc
 
 Valor calculado conforme a una tarifa y regla configuradas para una entidad fiscal y un período de vigencia.
 
+### Tarifa programada
+
+Tarifa interna de un impuesto que rige desde una fecha futura. La tarifa vigente termina el día anterior y no se modifica; lo vendido antes conserva la suya y los productos no cambian porque apuntan al impuesto.
+
+### Correspondencia tributaria
+
+Relación entre un impuesto interno y su tarifa oficial del catálogo del SRI, con vigencia. Debe coincidir con la tarifa interna del mismo período; su cambio se programa a futuro.
+
 ### Entrada de stock
 
 Forma simple del ingreso de mercadería que registra y confirma el Vendedor (o el Administrador) en una sola acción, tras una revisión previa. Solo exige productos y cantidades; proveedor, referencia, observación y costo son opcionales. No lleva impuestos, fecha del documento ni totales. Reemplaza a la compra documentada con borrador.

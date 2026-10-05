@@ -42,7 +42,8 @@ El sistema sigue sin deducir la calificación por el tipo COMERCIAL/ARTESANAL: s
 ### D. Continuidad ante un cambio de régimen
 
 16. **Cambio programado del código del SRI.** Un negocio que pasa de Negocio Popular (IVA 0 %) a Emprendedor (IVA 15 %) ya podía programar la tarifa interna, pero no el código del SRI de su correspondencia. El Administrador puede ahora programar el cambio de una correspondencia abierta: la actual termina el día anterior y la nueva rige desde una fecha futura, atómicamente y con la tarifa interna sucesora programada antes.
-17. **Prueba de continuidad.** Un recorrido de punta a punta comprueba que antes del cambio se prepara con IVA 0 % y régimen Negocio Popular, y el día del cambio con IVA 15 %, régimen Emprendedor y su leyenda, sin alterar lo ya preparado.
+17. **Programar tarifa interna desde Impuestos.** La sucesión de tarifas ya existía en el servidor pero no tenía ningún botón, de modo que un impuesto usado no podía pasar de 15 % a 0 % ni volver a 15 % sin crear otro impuesto y reasignar productos. La página de Impuestos ofrece «Programar tarifa» sobre el mismo impuesto y muestra las tarifas ya programadas.
+18. **Prueba de continuidad.** Un recorrido de punta a punta comprueba que antes del cambio se prepara con IVA 0 % y régimen Negocio Popular, y el día del cambio con IVA 15 %, régimen Emprendedor y su leyenda, sin alterar lo ya preparado.
 
 ### E. Verificación
 
