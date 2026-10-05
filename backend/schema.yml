@@ -5312,6 +5312,14 @@ paths:
         schema:
           type: integer
       - in: query
+        name: code_over_limit
+        schema:
+          type: string
+          enum:
+          - 'true'
+        description: Solo los productos cuyo código supera los 25 caracteres del comprobante;
+          exige el permiso de gestión de productos y añade `code_length`.
+      - in: query
         name: is_active
         schema:
           type: string
@@ -10541,6 +10549,14 @@ components:
       description: |-
         * `CONTADO` - CONTADO
         * `CREDITO` - CREDITO
+    ConditionsFormatEnum:
+      enum:
+      - 1
+      - 2
+      type: integer
+      description: |-
+        * `1` - 1
+        * `2` - 2
     ConflictInfo:
       type: object
       properties:
@@ -11361,6 +11377,30 @@ components:
       - valid_from
       - valid_to
       - validity_note
+    FiscalClosedOption:
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required:
+      - label
+      - value
+    FiscalClosedOptions:
+      type: object
+      properties:
+        tax_regime:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalClosedOption'
+        accounting_obligation:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalClosedOption'
+      required:
+      - accounting_obligation
+      - tax_regime
     FiscalCorrectionCancel:
       type: object
       description: Contrato que denuncia campos desconocidos en vez de descartarlos.
@@ -11704,6 +11744,8 @@ components:
           type: integer
         revision:
           type: integer
+        conditions_format:
+          $ref: '#/components/schemas/ConditionsFormatEnum'
         conditions:
           type: object
           additionalProperties: {}
@@ -11711,10 +11753,18 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
+        regime_legend:
+          type: string
+          nullable: true
+        options:
+          $ref: '#/components/schemas/FiscalClosedOptions'
       required:
       - certificate
       - conditions
+      - conditions_format
       - entity_id
+      - options
+      - regime_legend
       - revision
     FiscalElectronicProfileWrite:
       type: object
@@ -12794,6 +12844,8 @@ components:
           type: integer
         service_id:
           type: integer
+        service_code:
+          type: string
         service_name:
           type: string
         service_is_active:
@@ -12822,6 +12874,7 @@ components:
       - no_charge
       - quantity
       - reference_price
+      - service_code
       - service_id
       - service_is_active
       - service_name
@@ -14314,6 +14367,8 @@ components:
           allOf:
           - $ref: '#/components/schemas/TaxProjection'
           nullable: true
+        code_length:
+          type: integer
       required:
       - category
       - code
@@ -15193,6 +15248,8 @@ components:
         updated_at:
           type: string
           format: date-time
+        code:
+          type: string
         name:
           type: string
         description:
@@ -15204,6 +15261,7 @@ components:
           - $ref: '#/components/schemas/TaxProjection'
           nullable: true
       required:
+      - code
       - created_at
       - description
       - id

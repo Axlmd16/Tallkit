@@ -148,10 +148,15 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupos 3, 4, 5, 6 y 7.
 
-- [ ] 8.1 Regenerar `backend/schema.yml` y revisar el diff: cuerpo y respuesta del perfil, `code` de servicio, `service_code` de líneas, filtro `code_over_limit` y `tax_profile`.
-- [ ] 8.2 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/fiscal/test_openapi.py` y las pruebas de contrato de catálogo y configuración existentes.
+- [x] 8.1 Regenerar `backend/schema.yml` y revisar el diff: cuerpo y respuesta del perfil, `code` de servicio, `service_code` de líneas, filtro `code_over_limit` y `tax_profile`.
+- [x] 8.2 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/fiscal/test_openapi.py` y las pruebas de contrato de catálogo y configuración existentes.
 
 Evidencia del grupo: diff del contrato revisado y pruebas de contrato en verde.
+
+Resultado registrado (2026-10-05):
+- `backend/schema.yml` regenerado con `manage.py spectacular`: +58 líneas, todas esperadas: parámetro `code_over_limit` de `GET /products/`, `code_length` del producto, `code` del servicio, `service_code` de la línea de mantenimiento, y del perfil electrónico `conditions_format` (enum 1 y 2), `regime_legend` y `options` (`FiscalClosedOptions`).
+- `spectacular --validate` sin advertencias y `schema.yml` idéntico a la generación.
+- `tests/fiscal/test_openapi.py` y `tests/workshop/test_openapi.py`: 5 pruebas pasan.
 
 ## 9. Frontend: perfil del emisor y calificación artesanal
 
