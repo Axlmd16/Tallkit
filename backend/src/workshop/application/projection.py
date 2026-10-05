@@ -39,6 +39,7 @@ def _line(
     return {
         "id": line.pk,
         "service_id": line.service_id,
+        "service_code": line.service_code,
         "service_name": line.service_name,
         "service_is_active": active.get(line.service_id, False),
         "reference_price": money(line.reference_price),

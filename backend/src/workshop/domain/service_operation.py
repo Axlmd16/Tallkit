@@ -33,6 +33,7 @@ class DocumentableLine:
 
     line_id: int
     service_id: int
+    service_code: str
     service_name: str
     quantity: int
     reference_price: Decimal

@@ -282,3 +282,15 @@ def orders_detail(actor: Any, order_id: int) -> dict[str, Any]:
     from workshop.application import queries
 
     return queries.get_order(actor=actor, order_id=order_id)
+
+
+def test_add_service_copies_the_service_code_and_keeps_it_after_catalog_changes(  # type: ignore[no-untyped-def]
+    manager, order, make_service
+) -> None:
+    service = make_service(name="Alineación", code="SRV-000042")
+    body = add_line(manager, order["id"], service_id=service.pk)
+    [line] = lines_of(body)
+    assert line["service_code"] == "SRV-000042"
+    assert ServiceLine.objects.get().service_code == "SRV-000042"
+    Service.objects.filter(pk=service.pk).update(code="SRV-000099")
+    assert ServiceLine.objects.get().service_code == "SRV-000042"

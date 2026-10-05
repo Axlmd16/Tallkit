@@ -106,6 +106,7 @@ def _documentable(lines: list[ServiceLine]) -> list[DocumentableLine]:
         DocumentableLine(
             line_id=line.pk,
             service_id=line.service_id,
+            service_code=line.service_code,
             service_name=line.service_name,
             quantity=line.quantity,
             reference_price=line.reference_price,
@@ -165,6 +166,7 @@ def _line_view(computation: LineComputation) -> dict[str, Any]:
     return {
         "service_line_id": line.line_id,
         "service_id": line.service_id,
+        "service_code": line.service_code,
         "service_name": line.service_name,
         "quantity": line.quantity,
         "reference_price": _money(line.reference_price),
@@ -365,6 +367,7 @@ def confirm_operation(
                 service_line_id=c.line.line_id,
                 position=index,
                 service_id=c.line.service_id,
+                service_code=c.line.service_code,
                 service_name=c.line.service_name,
                 quantity=c.line.quantity,
                 reference_price=c.line.reference_price,
@@ -488,6 +491,7 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
                     "service_line_id": line.service_line_id,
                     "position": line.position,
                     "service_id": line.service_id,
+                    "service_code": line.service_code,
                     "service_name": line.service_name,
                     "quantity": line.quantity,
                     "reference_price": _money(line.reference_price),

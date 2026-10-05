@@ -106,3 +106,17 @@ def test_artisan_collected_by_method_excludes_corrected_payments(
     )
     collected = read_fiscal_source(operation.pk).collected_by_method
     assert {method: str(amount) for method, amount in collected.items()} == {"EFECTIVO": "5.00"}
+
+
+def test_artisan_source_line_carries_the_service_code_and_not_the_database_id(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    service = make_service(name="Alineación", code="SRV-000042")
+    add_line(manager, order["id"], service_id=service.pk, applied_price="25.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    [line] = read_fiscal_source(operation_id).lines
+
+    assert line.service_code == "SRV-000042"
+    assert line.service_code != str(service.pk)

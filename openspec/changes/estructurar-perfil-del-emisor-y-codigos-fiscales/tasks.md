@@ -102,12 +102,21 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupo 5. Diseño 9; spec `preparacion-y-seguimiento-fiscal`, «Códigos y descripciones de línea…».
 
-- [ ] 6.1 Crear la migración de `workshop`, dependiente de la de `catalog`, que añade `service_code` a `ServiceLine` y `ServiceOperationLine` y lo rellena por `service_id` mediante la lectura del catálogo, sin escribir en tablas ajenas. Añadir prueba de migración con líneas previas, incluida una cuyo servicio no exista.
-- [ ] 6.2 Escribir primero casos rojos en las pruebas de líneas y operaciones de `backend/tests/workshop`: al agregar un servicio y al documentar la operación se copia `service_code` junto a `service_name`; la fuente fiscal entrega ese código y no `service_id`.
-- [ ] 6.3 Implementar en `workshop/application/service_lines.py`, `service_operations.py` y `fiscal_source.py`; exponer el código en los serializadores de la operación artesanal. Hacer pasar 6.2.
-- [ ] 6.4 Verificar con `cd backend && uv run --frozen pytest --no-cov` sobre los archivos de `tests/workshop` tocados más los de operaciones de servicios y límites de módulo, Ruff y mypy sobre `src/workshop`, y el chequeo de migraciones.
+- [x] 6.1 Crear la migración de `workshop`, dependiente de la de `catalog`, que añade `service_code` a `ServiceLine` y `ServiceOperationLine` y lo rellena por `service_id` mediante la lectura del catálogo, sin escribir en tablas ajenas. Añadir prueba de migración con líneas previas, incluida una cuyo servicio no exista.
+- [x] 6.2 Escribir primero casos rojos en las pruebas de líneas y operaciones de `backend/tests/workshop`: al agregar un servicio y al documentar la operación se copia `service_code` junto a `service_name`; la fuente fiscal entrega ese código y no `service_id`.
+- [x] 6.3 Implementar en `workshop/application/service_lines.py`, `service_operations.py` y `fiscal_source.py`; exponer el código en los serializadores de la operación artesanal. Hacer pasar 6.2.
+- [x] 6.4 Verificar con `cd backend && uv run --frozen pytest --no-cov` sobre los archivos de `tests/workshop` tocados más los de operaciones de servicios y límites de módulo, Ruff y mypy sobre `src/workshop`, y el chequeo de migraciones.
 
 Evidencia del grupo: líneas existentes con código igual al del servicio, frontera entre módulos respetada.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada: `KeyError: 'service_code'` en las líneas, la vista previa, la operación y la fuente fiscal, y `NodeNotFoundError` en la prueba de migración; verde tras implementar.
+- Migración `0005_service_codes_on_lines` (depende de `catalog.0005`): añade `service_code` a `ServiceLine` y `ServiceOperationLine` y lo rellena leyendo el catálogo, sin escribir en tablas ajenas ni tocar `updated_at`. Una línea de operación cuyo servicio ya no existe queda con código vacío (probado).
+- La prueba de migración usa datos reales del taller, retrocede a `0004` (se pierde la columna) y vuelve a `0005`, de modo que verifica el relleno.
+- Base de desarrollo: aplicada, revertida a `0004` y reaplicada; las 8 líneas de servicio y las 6 líneas de operación (iguales al conteo de 1.4) quedaron con el código de su servicio y ninguna difiere del catálogo.
+- El código se copia al agregar el servicio y al documentar la operación; la vista previa, la operación, el detalle de la orden, el serializador y `ArtisanFiscalLine.service_code` lo exponen, y un cambio posterior del catálogo no lo altera.
+- Verificación 6.4: `tests/workshop` + `tests/catalog` + `tests/sales/test_workshop_links.py`, 489 pruebas, 488 pasan; Ruff y `makemigrations --check` sin hallazgos; mypy con el mismo único error que ya existía.
+- La única falla es `tests/workshop/test_boundaries.py::test_no_other_module_imports_workshop`, ya registrada en el grupo 5 y previa a este cambio.
 
 ## 7. Instantánea de formato 3, límites de línea y regla de calificación
 

@@ -36,6 +36,7 @@ def _collected_by_method(source_id: int) -> Mapping[str, Decimal]:
 class ArtisanFiscalLine:
     position: int
     service_id: int
+    service_code: str
     description: str
     quantity: str
     tax_definition_id: int
@@ -77,6 +78,7 @@ def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
         ArtisanFiscalLine(
             position=line.position,
             service_id=line.service_id,
+            service_code=line.service_code,
             description=line.service_name,
             quantity=str(line.quantity),
             tax_definition_id=line.tax_definition_id,

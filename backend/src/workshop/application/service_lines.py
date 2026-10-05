@@ -107,6 +107,7 @@ def add_line(
         ServiceLine.objects.create(
             intervention=intervention,
             service_id=service.id,
+            service_code=service.code,
             service_name=service.name,
             reference_price=service.reference_price,
             applied_price=applied,

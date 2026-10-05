@@ -19,6 +19,7 @@ from tests.workshop.workshop_helpers import (
     version,
 )
 
+from catalog.models import Service
 from identity.application.authorization import BusinessPermissionDeniedError
 from inventory.models import InventoryMovement, InventoryPosition
 from workshop.application import orders, service_operations
@@ -248,3 +249,21 @@ def test_orders_predating_billing_warn_before_confirming(manager, order, make_se
     MaintenanceOrder.objects.filter(pk=order["id"]).update(predates_billing=True)
     body = preview_services(manager, order["id"])
     assert [w["code"] for w in body["warnings"]] == ["predates_billing"]
+
+
+def test_preview_and_confirm_carry_the_service_code_into_the_operation_lines(  # type: ignore[no-untyped-def]
+    manager, order, make_service
+) -> None:
+    service = make_service(name="Alineación", code="SRV-000042")
+    add_line(manager, order["id"], service_id=service.pk, applied_price="25.00")
+
+    preview = preview_services(manager, order["id"], "CONTADO")
+    assert [line["service_code"] for line in preview["lines"]] == ["SRV-000042"]
+
+    body = confirm_services(manager, order["id"], "CONTADO")
+    assert [line["service_code"] for line in body["lines"]] == ["SRV-000042"]
+    stored = ServiceOperationLine.objects.get()
+    assert stored.service_code == "SRV-000042"
+    Service.objects.filter(pk=service.pk).update(code="SRV-000099")
+    stored.refresh_from_db()
+    assert stored.service_code == "SRV-000042"

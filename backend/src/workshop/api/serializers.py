@@ -95,6 +95,7 @@ class MaintenanceVehicleSnapshotSerializer(_Base):
 class MaintenanceLineSerializer(_Base):
     id = serializers.IntegerField()
     service_id = serializers.IntegerField()
+    service_code = serializers.CharField(allow_blank=True)
     service_name = serializers.CharField()
     service_is_active = serializers.BooleanField()
     reference_price = serializers.CharField()

@@ -178,6 +178,8 @@ class ServiceLine(models.Model):
         Intervention, on_delete=models.PROTECT, related_name="service_lines"
     )
     service = models.ForeignKey("catalog.Service", on_delete=models.PROTECT, related_name="+")
+    # Copia histórica del código del servicio; vacío solo si no pudo determinarse.
+    service_code = models.CharField(max_length=25, blank=True, default="")
     service_name = models.CharField(max_length=255)
     reference_price = models.DecimalField(max_digits=14, decimal_places=2)
     applied_price = models.DecimalField(max_digits=14, decimal_places=2)
@@ -416,6 +418,7 @@ class ServiceOperationLine(models.Model):
     )
     position = models.PositiveIntegerField()
     service_id = models.PositiveBigIntegerField()
+    service_code = models.CharField(max_length=25, blank=True, default="")
     service_name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     reference_price = models.DecimalField(max_digits=14, decimal_places=2)
