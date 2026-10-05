@@ -4,12 +4,22 @@ from types import ModuleType
 from typing import Any
 
 import pytest
+from tests.workshop_configuration.profile_helpers import (
+    applicable,
+    profile_conditions,
+    qualification,
+)
 
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.models import User
 from workshop_configuration.application.entity_warehouse import StaleRecordError
+from workshop_configuration.domain.electronic_profile import CONDITION_KEYS
 from workshop_configuration.domain.validation import ConfigurationValidationError
-from workshop_configuration.models import FiscalEntity
+from workshop_configuration.models import (
+    ConfigurationCommand,
+    ElectronicProfileRevision,
+    FiscalEntity,
+)
 
 
 def services() -> ModuleType:
@@ -176,3 +186,73 @@ def test_competing_revisions_do_not_overwrite_history(role_admin: User, run_para
     assert len(failures) == 1
     assert isinstance(failures[0], StaleRecordError)
     assert api.get_profile(actor=role_admin, entity_id=entity.pk).revision == 1
+
+
+def test_save_profile_stores_closed_values_in_format_two(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    revision = services().save_profile(
+        actor=role_admin,
+        entity_id=entity.pk,
+        expected_revision=0,
+        idempotency_key="profile:format2",
+        payload={"conditions": profile_conditions(artisan_qualification=qualification())},
+    )
+    assert revision.conditions_format == 2
+    assert set(revision.conditions) == set(CONDITION_KEYS)
+    assert "rimpe" not in revision.conditions
+    assert revision.conditions["accounting_obligation"] == {
+        "status": "APPLICABLE",
+        "value": "NO",
+        "source": "Certificado de RUC",
+        "starts_on": "2026-01-01",
+    }
+    assert revision.conditions["artisan_qualification"]["ends_on"] == "2028-05-31"
+    assert revision.conditions["artisan_qualification"]["issuing_body"].startswith("Junta")
+    assert revision.conditions["withholding_agent"]["status"] == "NOT_APPLICABLE"
+
+
+@pytest.mark.parametrize(
+    ("conditions", "field"),
+    [
+        (
+            {"accounting_obligation": applicable("Sí, desde 2024")},
+            "accounting_obligation.value",
+        ),
+        ({"tax_regime": applicable("General")}, "tax_regime.value"),
+        ({"withholding_agent": applicable("NAC-0012")}, "withholding_agent.value"),
+        ({"rimpe": {"status": "UNKNOWN"}}, "conditions"),
+    ],
+)
+def test_legacy_or_free_text_body_is_rejected_without_receipt_or_revision(
+    entity: FiscalEntity,
+    role_admin: User,
+    conditions: dict[str, object],
+    field: str,
+) -> None:
+    with pytest.raises(ConfigurationValidationError) as caught:
+        services().save_profile(
+            actor=role_admin,
+            entity_id=entity.pk,
+            expected_revision=0,
+            idempotency_key="profile:legacy",
+            payload={"conditions": {**profile_conditions(), **conditions}},
+        )
+    assert field in caught.value.errors
+    assert not ElectronicProfileRevision.objects.exists()
+    assert not ConfigurationCommand.objects.exists()
+
+
+def test_replay_of_a_format_two_save_returns_the_same_revision(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    args: dict[str, Any] = {
+        "actor": role_admin,
+        "entity_id": entity.pk,
+        "expected_revision": 0,
+        "idempotency_key": "profile:replay2",
+        "payload": {"conditions": profile_conditions()},
+    }
+    first = services().save_profile(**args)
+    assert services().save_profile(**args).pk == first.pk
+    assert ElectronicProfileRevision.objects.count() == 1

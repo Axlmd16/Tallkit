@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from identity.application.authorization import require_permission
 from identity.models import User
-from workshop_configuration.application.electronic_profiles import CONDITIONS
+from workshop_configuration.application.electronic_profiles import CURRENT_CONDITIONS_FORMAT
 from workshop_configuration.application.entity_warehouse import FiscalEntityNotFoundError
 from workshop_configuration.application.official_catalog import is_current
 from workshop_configuration.application.preparation_settings import (
@@ -24,10 +24,15 @@ from workshop_configuration.application.preparation_settings import (
     effective_defaults,
 )
 from workshop_configuration.domain.electronic_profile import (
+    ARTISAN_QUALIFICATION,
+    CONDITION_KEYS,
+    REGIME_RIMPE_NEGOCIO_POPULAR,
+    TAX_REGIME,
     DeclaredCertificate,
     DeclaredCondition,
     parse_certificate_metadata,
-    parse_condition,
+    parse_profile_conditions,
+    qualification_days_left,
 )
 from workshop_configuration.models import (
     ElectronicProfileRevision,
@@ -52,7 +57,6 @@ CONDITION_LABELS = {
     "accounting_obligation": "Obligación de llevar contabilidad",
     "special_taxpayer": "Contribuyente especial",
     "withholding_agent": "Agente de retención",
-    "rimpe": "RIMPE",
     "artisan_qualification": "Calificación artesanal",
 }
 
@@ -105,6 +109,44 @@ def _condition_causes(key: str, condition: DeclaredCondition, on: date) -> list[
             )
         ]
     return []
+
+
+def _regime_causes(conditions: tuple[tuple[str, DeclaredCondition], ...]) -> list[StatusCause]:
+    regime = dict(conditions).get(TAX_REGIME)
+    if regime is None or regime.value != REGIME_RIMPE_NEGOCIO_POPULAR:
+        return []
+    return [
+        StatusCause(
+            "conditions.tax_regime.unsupported",
+            REVIEW,
+            "Régimen tributario: RIMPE Negocio Popular emite notas de venta, un documento que "
+            "este sistema no contempla; no se pueden preparar facturas de esta entidad.",
+        )
+    ]
+
+
+def _days_text(days: int) -> str:
+    if days == 0:
+        return "vence hoy"
+    return "falta 1 día" if days == 1 else f"faltan {days} días"
+
+
+def _qualification_warnings(
+    conditions: tuple[tuple[str, DeclaredCondition], ...], on: date
+) -> tuple[StatusCause, ...]:
+    qualification = dict(conditions).get(ARTISAN_QUALIFICATION)
+    days = qualification_days_left(qualification, on) if qualification else None
+    if qualification is None or qualification.ends_on is None or days is None:
+        return ()
+    return (
+        StatusCause(
+            "artisan_qualification_expiring",
+            REVIEW,
+            f"Calificación artesanal: vence el {qualification.ends_on.isoformat()} "
+            f"({_days_text(days)}). Renuévela antes de esa fecha para seguir "
+            "preparando facturas con IVA 0 %.",
+        ),
+    )
 
 
 def _covers(on: date) -> Q:
@@ -243,12 +285,21 @@ def evaluate_electronic_status(*, entity_id: int, on: date) -> ElectronicStatus:
     if not (entity.address or "").strip():
         causes.append(StatusCause("matrix_address", MISSING, "Registre la dirección matriz."))
     if profile is not None:
-        conditions = tuple(
-            (key, parse_condition(profile.conditions.get(key, {"status": "UNKNOWN"})))
-            for key in sorted(CONDITIONS)
-        )
-        for key, condition in conditions:
-            causes.extend(_condition_causes(key, condition, on))
+        if profile.conditions_format != CURRENT_CONDITIONS_FORMAT:
+            causes.append(
+                StatusCause(
+                    "profile.legacy_format",
+                    MISSING,
+                    "Declare de nuevo el perfil con las opciones actuales: la revisión vigente "
+                    "conserva condiciones escritas como texto libre.",
+                )
+            )
+        else:
+            parsed = parse_profile_conditions(profile.conditions)
+            conditions = tuple((key, parsed[key]) for key in sorted(CONDITION_KEYS))
+            for key, condition in conditions:
+                causes.extend(_condition_causes(key, condition, on))
+            causes.extend(_regime_causes(conditions))
         if profile.certificate is not None:
             certificate = parse_certificate_metadata(profile.certificate)
     causes.extend(_point_causes(entity, defaults))
@@ -271,7 +322,7 @@ def evaluate_electronic_status(*, entity_id: int, on: date) -> ElectronicStatus:
         entity_id=entity.pk,
         state=state,
         causes=tuple(causes),
-        warnings=_certificate_warnings(certificate, on),
+        warnings=_certificate_warnings(certificate, on) + _qualification_warnings(conditions, on),
         environment=ENVIRONMENT_TEST,
         profile_revision=profile.revision if profile else None,
         conditions=conditions,

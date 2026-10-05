@@ -141,6 +141,7 @@ REGIME_LABELS = {
 # Elemento `contribuyenteRimpe` del XSD de factura 2.1.0: su único valor admitido.
 RIMPE_LEGEND = "CONTRIBUYENTE RÉGIMEN RIMPE"
 ACCOUNTING_VALUES = ("SI", "NO")
+ACCOUNTING_LABELS = {"SI": "Sí", "NO": "No"}
 
 # `agenteRetencion`: hasta 8 dígitos; `contribuyenteEspecial`: alfanumérico de hasta 13.
 _WITHHOLDING_RE = re.compile(r"[0-9]{1,8}")
@@ -157,6 +158,24 @@ _FORMAT2_FIELDS = frozenset({"status", "value", "source", "starts_on", "ends_on"
 def regime_legend(regime: str | None) -> str | None:
     """Leyenda oficial derivada del régimen; nunca se escribe ni se declara aparte."""
     return RIMPE_LEGEND if regime == REGIME_RIMPE_EMPRENDEDOR else None
+
+
+def closed_options() -> dict[str, list[dict[str, str]]]:
+    """Opciones de las condiciones de valor cerrado, para que la interfaz no las duplique."""
+    return {
+        TAX_REGIME: [{"value": v, "label": label} for v, label in REGIME_LABELS.items()],
+        ACCOUNTING_OBLIGATION: [
+            {"value": v, "label": label} for v, label in ACCOUNTING_LABELS.items()
+        ],
+    }
+
+
+def qualification_days_left(condition: DeclaredCondition, on: date) -> int | None:
+    """Días hasta el vencimiento si cae en la ventana de advertencia; si no, ninguno."""
+    if condition.status != "APPLICABLE" or condition.ends_on is None:
+        return None
+    days = (condition.ends_on - on).days
+    return days if 0 <= days <= QUALIFICATION_WARNING_DAYS else None
 
 
 def _bounded_text(data: dict[str, Any], field: str, maximum: int, label: str) -> str:

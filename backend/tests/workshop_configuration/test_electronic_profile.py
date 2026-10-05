@@ -345,3 +345,37 @@ def test_condition_payload_round_trips_without_empty_fields() -> None:
     assert payload["tax_regime"]["starts_on"] == "2026-01-01"
     again = api.parse_profile_conditions(payload)
     assert again == parsed
+
+
+def _qualification_condition(ends_on: str) -> object:
+    api = profile_api()
+    parsed = api.parse_profile_conditions(
+        workshop_profile(artisan_qualification={**QUALIFICATION, "ends_on": ends_on})
+    )
+    return parsed["artisan_qualification"]
+
+
+@pytest.mark.parametrize(
+    ("ends_on", "days"),
+    [
+        ("2026-11-25", 60),
+        ("2026-11-26", None),
+        ("2026-09-26", 0),
+        ("2026-09-25", None),
+        ("2026-10-26", 30),
+    ],
+)
+def test_qualification_days_left_only_inside_the_warning_window(
+    ends_on: str, days: int | None
+) -> None:
+    api = profile_api()
+    assert api.QUALIFICATION_WARNING_DAYS == 60
+    condition = _qualification_condition(ends_on)
+    assert api.qualification_days_left(condition, date(2026, 9, 26)) == days
+
+
+def test_qualification_days_left_ignores_conditions_that_do_not_apply() -> None:
+    api = profile_api()
+    assert api.qualification_days_left(api.DeclaredCondition("UNKNOWN"), date(2026, 9, 26)) is None
+    parsed = api.parse_profile_conditions(workshop_profile(artisan_qualification=NOT_APPLICABLE))
+    assert api.qualification_days_left(parsed["artisan_qualification"], date(2026, 9, 26)) is None

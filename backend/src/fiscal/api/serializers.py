@@ -310,11 +310,25 @@ class FiscalElectronicProfileWrite(StrictSerializer):
     certificate = serializers.DictField(required=False, allow_null=True)
 
 
+class FiscalClosedOption(serializers.Serializer[dict[str, Any]]):
+    value = serializers.CharField()
+    label: Any = serializers.CharField()
+
+
+class FiscalClosedOptions(serializers.Serializer[dict[str, Any]]):
+    tax_regime = FiscalClosedOption(many=True)
+    accounting_obligation = FiscalClosedOption(many=True)
+
+
 class FiscalElectronicProfile(serializers.Serializer[dict[str, Any]]):
     entity_id = serializers.IntegerField()
     revision = serializers.IntegerField()
+    # 1: condiciones en texto libre (historia, solo lectura); 2: valores cerrados.
+    conditions_format = serializers.ChoiceField(choices=(1, 2))
     conditions = serializers.DictField()
     certificate = serializers.DictField(allow_null=True)
+    regime_legend = serializers.CharField(allow_null=True)
+    options = FiscalClosedOptions()
 
 
 class FiscalEstablishmentWrite(StrictSerializer):

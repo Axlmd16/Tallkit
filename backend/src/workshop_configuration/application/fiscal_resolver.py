@@ -91,7 +91,11 @@ def resolve_fiscal_configuration(*, actor: User, entity_id: int, on: date) -> Fi
         entity = FiscalEntity.objects.select_for_update().get(pk=entity_id)
         status = evaluate_electronic_status(entity_id=entity.pk, on=on)
         issues = [f"{cause.code}" for cause in status.causes]
-        emission_issues = [warning.code for warning in status.warnings]
+        # Solo el certificado es un asunto de la emisión futura; el aviso de vencimiento de la
+        # calificación artesanal pertenece a la configuración y no bloquea ni se arrastra aquí.
+        emission_issues = [
+            warning.code for warning in status.warnings if warning.code.startswith("certificate_")
+        ]
         emission_issues.append("emission_not_implemented")
         point = (
             FiscalEmissionPoint.objects.select_related("establishment")

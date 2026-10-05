@@ -45,7 +45,11 @@ from fiscal.infrastructure.xml_parser import MAX_XML_BYTES, FiscalXmlError
 from identity.api.permissions import HasBusinessPermission
 from identity.application.authorization import BusinessPermissionDeniedError, require_permission
 from identity.models import User
-from workshop_configuration.application.electronic_profiles import get_profile, save_profile
+from workshop_configuration.application.electronic_profiles import (
+    describe_profile,
+    get_profile,
+    save_profile,
+)
 from workshop_configuration.application.electronic_status import get_electronic_status
 from workshop_configuration.application.emission_locations import (
     create_establishment,
@@ -787,13 +791,20 @@ class _FiscalConfigurationView(APIView):
 
 def _profile_payload(profile: Any, entity_id: int) -> dict[str, Any]:
     if profile is None:
-        return {"entity_id": entity_id, "revision": 0, "conditions": {}, "certificate": None}
-    return {
-        "entity_id": entity_id,
-        "revision": profile.revision,
-        "conditions": profile.conditions,
-        "certificate": profile.certificate,
-    }
+        base: dict[str, Any] = {
+            "entity_id": entity_id,
+            "revision": 0,
+            "conditions": {},
+            "certificate": None,
+        }
+    else:
+        base = {
+            "entity_id": entity_id,
+            "revision": profile.revision,
+            "conditions": profile.conditions,
+            "certificate": profile.certificate,
+        }
+    return {**base, **describe_profile(profile)}
 
 
 class ElectronicProfileView(_FiscalConfigurationView):

@@ -1,16 +1,24 @@
 """API de configuración fiscal centralizada: solo Administrador, sin producción."""
 
+from datetime import timedelta
 from itertools import combinations
 from typing import Any
 from uuid import uuid4
 
 import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
+from tests.workshop_configuration.profile_helpers import (
+    applicable,
+    profile_conditions,
+    qualification,
+)
 
 from identity.domain.authorization import Role
 from identity.models import User, UserRole
 from workshop_configuration.application import official_catalog
 from workshop_configuration.models import (
+    ElectronicProfileRevision,
     FiscalEmissionPoint,
     FiscalEntity,
     FiscalEstablishment,
@@ -178,6 +186,7 @@ def test_only_administrator_reads_or_writes_configuration(
     client = _client(_user(roles))
     allowed = Role.ADMINISTRADOR in roles
     reads = [
+        f"{BASE}/entities/{entity.pk}/electronic-profile/",
         f"{BASE}/entities/{entity.pk}/electronic-status/",
         f"{BASE}/entities/{entity.pk}/preparation-defaults/",
         f"{BASE}/entities/{entity.pk}/payment-forms/",
@@ -193,3 +202,133 @@ def test_only_administrator_reads_or_writes_configuration(
         {"enabled": True, "expected_version": 0},
     )
     assert (write.status_code == 403) == (not allowed)
+
+
+PROFILE = f"{BASE}/entities/%d/electronic-profile/"
+
+
+def _put_profile(client: APIClient, entity: FiscalEntity, revision: int, **overrides: Any) -> Any:
+    return _write(
+        client,
+        "put",
+        PROFILE % entity.pk,
+        {"expected_revision": revision, "conditions": profile_conditions(**overrides)},
+    )
+
+
+def test_unconfigured_profile_offers_the_closed_options(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    body = _client(role_admin).get(PROFILE % entity.pk).json()
+    assert body["revision"] == 0
+    assert body["conditions_format"] == 2
+    assert body["regime_legend"] is None
+    assert body["options"]["tax_regime"] == [
+        {"value": "GENERAL", "label": "General"},
+        {"value": "RIMPE_EMPRENDEDOR", "label": "RIMPE Emprendedor"},
+        {"value": "RIMPE_NEGOCIO_POPULAR", "label": "RIMPE Negocio Popular"},
+    ]
+    assert body["options"]["accounting_obligation"] == [
+        {"value": "SI", "label": "Sí"},
+        {"value": "NO", "label": "No"},
+    ]
+
+
+def test_profile_is_saved_in_closed_format_and_exposes_the_derived_legend(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    client = _client(role_admin)
+    first = _put_profile(client, entity, 0, artisan_qualification=qualification())
+    assert first.status_code == 200
+    body = first.json()
+    assert body["conditions_format"] == 2
+    assert body["regime_legend"] is None
+    assert body["conditions"]["accounting_obligation"]["value"] == "NO"
+    assert "rimpe" not in body["conditions"]
+    second = _put_profile(client, entity, 1, tax_regime=applicable("RIMPE_EMPRENDEDOR"))
+    assert second.json()["regime_legend"] == "CONTRIBUYENTE RÉGIMEN RIMPE"
+    assert client.get(PROFILE % entity.pk).json()["regime_legend"] == "CONTRIBUYENTE RÉGIMEN RIMPE"
+
+
+@pytest.mark.parametrize(
+    ("overrides", "field"),
+    [
+        ({"accounting_obligation": applicable("Sí, desde 2024")}, "accounting_obligation.value"),
+        ({"withholding_agent": applicable("NAC-0012")}, "withholding_agent.value"),
+        ({"rimpe": {"status": "UNKNOWN"}}, "conditions"),
+    ],
+)
+def test_profile_rejects_free_text_with_field_errors(
+    entity: FiscalEntity, role_admin: User, overrides: dict[str, Any], field: str
+) -> None:
+    response = _put_profile(_client(role_admin), entity, 0, **overrides)
+    assert response.status_code == 400
+    assert field in response.json()["errors"]
+    assert not ElectronicProfileRevision.objects.exists()
+
+
+def test_legacy_revision_is_read_only_and_a_new_declaration_replaces_it(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=1,
+        conditions={
+            "accounting_obligation": {
+                "status": "APPLICABLE",
+                "value": "no obligado",
+                "source": "Certificado",
+                "starts_on": "2026-01-01",
+            }
+        },
+        created_by=role_admin,
+    )
+    client = _client(role_admin)
+    legacy = client.get(PROFILE % entity.pk).json()
+    assert legacy["conditions_format"] == 1
+    assert legacy["conditions"]["accounting_obligation"]["value"] == "no obligado"
+    assert legacy["regime_legend"] is None
+    rejected = _write(
+        client,
+        "put",
+        PROFILE % entity.pk,
+        {"expected_revision": 1, "conditions": legacy["conditions"]},
+    )
+    assert rejected.status_code == 400
+    declared = _put_profile(client, entity, 1)
+    assert declared.status_code == 200
+    assert declared.json()["revision"] == 2
+    assert declared.json()["conditions_format"] == 2
+    assert ElectronicProfileRevision.objects.get(revision=1).conditions_format == 1
+
+
+@pytest.mark.parametrize("role", ["role_seller", "role_manager"])
+def test_operational_roles_cannot_read_or_write_the_qualification(
+    entity: FiscalEntity, role_admin: User, request: pytest.FixtureRequest, role: str
+) -> None:
+    admin = _client(role_admin)
+    assert _put_profile(admin, entity, 0, artisan_qualification=qualification()).status_code == 200
+    operational = _client(request.getfixturevalue(role))
+    read = operational.get(PROFILE % entity.pk)
+    assert read.status_code == 403
+    assert "JNDA-12345" not in read.content.decode()
+    write = _put_profile(operational, entity, 1, artisan_qualification=qualification("2030-01-01"))
+    assert write.status_code == 403
+    assert "JNDA-12345" not in write.content.decode()
+    assert ElectronicProfileRevision.objects.count() == 1
+
+
+def test_status_endpoint_reports_the_qualification_expiry_warning(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    ends_on = (timezone.localdate() + timedelta(days=30)).isoformat()
+    client = _client(role_admin)
+    assert (
+        _put_profile(client, entity, 0, artisan_qualification=qualification(ends_on)).status_code
+        == 200
+    )
+    warnings = client.get(f"{BASE}/entities/{entity.pk}/electronic-status/").json()["warnings"]
+    expiring = next(w for w in warnings if w["code"] == "artisan_qualification_expiring")
+    assert ends_on in expiring["message"]
+    assert "30 días" in expiring["message"]

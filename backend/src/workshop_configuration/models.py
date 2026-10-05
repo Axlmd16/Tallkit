@@ -405,6 +405,8 @@ class ElectronicProfileRevision(models.Model):
     )
     revision = models.PositiveBigIntegerField()
     conditions = models.JSONField()
+    # 1: condiciones en texto libre (historia, solo lectura); 2: valores cerrados.
+    conditions_format = models.PositiveSmallIntegerField(default=1)
     certificate = models.JSONField(null=True, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
@@ -418,6 +420,10 @@ class ElectronicProfileRevision(models.Model):
             ),
             models.CheckConstraint(
                 condition=models.Q(revision__gte=1), name="electronic_profile_revision_positive"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(conditions_format__in=[1, 2]),
+                name="electronic_profile_revision_format_known",
             ),
         ]
         ordering: ClassVar[list[str]] = ["fiscal_entity_id", "revision"]

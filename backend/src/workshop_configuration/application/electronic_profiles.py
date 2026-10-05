@@ -16,8 +16,12 @@ from workshop_configuration.application.entity_warehouse import (
 )
 from workshop_configuration.application.initialization import IdempotencyConflictError
 from workshop_configuration.domain.electronic_profile import (
+    TAX_REGIME,
+    closed_options,
+    condition_payload,
     parse_certificate_metadata,
-    parse_condition,
+    parse_profile_conditions,
+    regime_legend,
 )
 from workshop_configuration.domain.validation import ConfigurationValidationError
 from workshop_configuration.models import (
@@ -26,16 +30,8 @@ from workshop_configuration.models import (
     FiscalEntity,
 )
 
-CONDITIONS = frozenset(
-    {
-        "tax_regime",
-        "accounting_obligation",
-        "special_taxpayer",
-        "withholding_agent",
-        "rimpe",
-        "artisan_qualification",
-    }
-)
+# Formato de las condiciones de toda revisión nueva; el formato 1 (texto libre) es historia.
+CURRENT_CONDITIONS_FORMAT = 2
 ACTION = "workshop_configuration.electronic_profile_saved"
 
 
@@ -50,17 +46,30 @@ def _json_value(value: Any) -> Any:
 def _validate(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any] | None]:
     if not isinstance(payload, dict) or payload.keys() - {"conditions", "certificate"}:
         raise ConfigurationValidationError("Campos de perfil no admitidos.")
-    conditions = payload.get("conditions", {})
-    if not isinstance(conditions, dict) or conditions.keys() - CONDITIONS:
-        raise ConfigurationValidationError("Condiciones tributarias no admitidas.")
-    parsed = {
-        key: _json_value(asdict(parse_condition(conditions.get(key, {"status": "UNKNOWN"}))))
-        for key in sorted(CONDITIONS)
-    }
+    parsed_conditions = parse_profile_conditions(payload.get("conditions", {}))
+    parsed = {key: condition_payload(condition) for key, condition in parsed_conditions.items()}
     certificate = payload.get("certificate")
     if certificate is not None:
         certificate = _json_value(asdict(parse_certificate_metadata(certificate)))
     return parsed, certificate
+
+
+def describe_profile(profile: ElectronicProfileRevision | None) -> dict[str, Any]:
+    """Datos derivados de una revisión; sin perfil se describe el formato vigente."""
+    if profile is None:
+        return {
+            "conditions_format": CURRENT_CONDITIONS_FORMAT,
+            "regime_legend": None,
+            "options": closed_options(),
+        }
+    legend = None
+    if profile.conditions_format == CURRENT_CONDITIONS_FORMAT:
+        legend = regime_legend(profile.conditions.get(TAX_REGIME, {}).get("value"))
+    return {
+        "conditions_format": profile.conditions_format,
+        "regime_legend": legend,
+        "options": closed_options(),
+    }
 
 
 def get_profile(*, actor: User, entity_id: int) -> ElectronicProfileRevision | None:
@@ -129,6 +138,7 @@ def save_profile(
             fiscal_entity=entity,
             revision=revision + 1,
             conditions=conditions,
+            conditions_format=CURRENT_CONDITIONS_FORMAT,
             certificate=certificate,
             created_by=actor,
         )

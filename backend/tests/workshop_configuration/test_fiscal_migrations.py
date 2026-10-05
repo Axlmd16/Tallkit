@@ -126,3 +126,61 @@ def test_mapping_without_catalog_entry_fails_the_link() -> None:
     )
     with pytest.raises(CatalogManifestError, match="VERSION-INEXISTENTE"):
         link_mappings(FiscalTaxMapping, OfficialCatalogEntry)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_existing_profile_revisions_stay_in_format_one_without_rewriting_their_json() -> None:
+    before = ("workshop_configuration", "0013_fiscal_entity_logo")
+    after = ("workshop_configuration", "0014_electronicprofilerevision_conditions_format")
+    executor = MigrationExecutor(connection)
+    executor.migrate([before])
+    old_apps = executor.loader.project_state([before]).apps
+    user = old_apps.get_model("identity", "User").objects.create(
+        username="migrador-perfil", email="migrador-perfil@example.com"
+    )
+    entity = old_apps.get_model("workshop_configuration", "FiscalEntity").objects.create(
+        entity_type="ARTESANAL", ruc="0991234567001", legal_name="Taller existente"
+    )
+    legacy_json = {
+        "accounting_obligation": {
+            "status": "APPLICABLE",
+            "value": "no obligado",
+            "source": "Certificado",
+            "starts_on": "2026-01-01",
+        },
+        "rimpe": {"status": "UNKNOWN"},
+    }
+    revision = old_apps.get_model(
+        "workshop_configuration", "ElectronicProfileRevision"
+    ).objects.create(fiscal_entity=entity, revision=1, conditions=legacy_json, created_by=user)
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([after])
+    apps = executor.loader.project_state([after]).apps
+    migrated = apps.get_model("workshop_configuration", "ElectronicProfileRevision").objects.get(
+        pk=revision.pk
+    )
+    assert migrated.conditions_format == 1
+    assert migrated.conditions == legacy_json
+    assert migrated.revision == 1
+
+
+@pytest.mark.django_db
+def test_profile_revision_format_is_restricted_to_known_formats() -> None:
+    from django.db import IntegrityError, transaction
+
+    from identity.models import User
+    from workshop_configuration.models import ElectronicProfileRevision, FiscalEntity
+
+    user = User.objects.create(username="formato", email="formato@example.com")
+    entity = FiscalEntity.objects.create(
+        entity_type="ARTESANAL", ruc="0991234567001", legal_name="Taller"
+    )
+    created = ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity, revision=1, conditions={}, created_by=user
+    )
+    assert created.conditions_format == 1
+    with pytest.raises(IntegrityError), transaction.atomic():
+        ElectronicProfileRevision.objects.create(
+            fiscal_entity=entity, revision=2, conditions={}, conditions_format=3, created_by=user
+        )

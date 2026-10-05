@@ -5,10 +5,15 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
+from tests.workshop_configuration.profile_helpers import (
+    applicable,
+    profile_conditions,
+    qualification,
+)
 
 from identity.models import User
 from workshop_configuration.application import official_catalog
-from workshop_configuration.application.electronic_profiles import CONDITIONS, save_profile
+from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.electronic_status import (
     INCOMPLETE,
     NEEDS_REVIEW,
@@ -17,6 +22,7 @@ from workshop_configuration.application.electronic_status import (
     evaluate_electronic_status,
 )
 from workshop_configuration.models import (
+    ElectronicProfileRevision,
     FiscalEmissionPoint,
     FiscalEntity,
     FiscalEstablishment,
@@ -38,12 +44,7 @@ def entity(db: None) -> FiscalEntity:
 
 
 def _conditions(**overrides: dict[str, Any]) -> dict[str, Any]:
-    conditions: dict[str, Any] = {
-        key: {"status": "NOT_APPLICABLE", "source": "Certificado RUC", "starts_on": "2026-01-01"}
-        for key in CONDITIONS
-    }
-    conditions.update(overrides)
-    return conditions
+    return profile_conditions(**overrides)
 
 
 def _profile(actor: User, entity: FiscalEntity, revision: int = 0, **overrides: Any) -> None:
@@ -149,19 +150,15 @@ def test_expired_condition_requires_review(entity: FiscalEntity, role_admin: Use
     _profile(
         role_admin,
         entity,
-        rimpe={
-            "status": "APPLICABLE",
-            "value": "Emprendedor",
-            "source": "Certificado RUC",
-            "starts_on": "2025-01-01",
-            "ends_on": "2026-09-25",
-        },
+        withholding_agent=applicable("12345", ends_on="2026-09-25"),
     )
     _point(entity)
     status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
     assert status.state == NEEDS_REVIEW
-    rimpe = next(cause for cause in status.causes if cause.code == "conditions.rimpe.expired")
-    assert "2026-09-25" in rimpe.message
+    agent = next(
+        cause for cause in status.causes if cause.code == "conditions.withholding_agent.expired"
+    )
+    assert "2026-09-25" in agent.message
 
 
 def test_definition_without_mapping_is_incomplete(entity: FiscalEntity, role_admin: User) -> None:
@@ -193,14 +190,111 @@ def test_missing_items_prevail_and_all_causes_are_listed(
     _profile(
         role_admin,
         entity,
-        rimpe={
-            "status": "APPLICABLE",
-            "value": "Emprendedor",
-            "source": "Certificado RUC",
-            "starts_on": "2025-01-01",
-            "ends_on": "2025-12-31",
-        },
+        withholding_agent=applicable("12345", starts_on="2025-01-01", ends_on="2025-12-31"),
     )
     status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
     assert status.state == INCOMPLETE
-    assert {"conditions.rimpe.expired", "point_missing"} <= _codes(entity)
+    assert {"conditions.withholding_agent.expired", "point_missing"} <= _codes(entity)
+
+
+def _ready_entity(entity: FiscalEntity, role_admin: User, **overrides: Any) -> None:
+    _profile(role_admin, entity, **overrides)
+    _point(entity)
+    _tax(entity, mapped=True)
+
+
+def test_real_workshop_profile_is_ready(entity: FiscalEntity, role_admin: User) -> None:
+    _ready_entity(entity, role_admin, artisan_qualification=qualification("2028-05-31"))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == READY
+    assert status.causes == ()
+    assert [warning.code for warning in status.warnings] == ["certificate_missing"]
+
+
+def test_current_format_conditions_are_exposed_in_order(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _ready_entity(entity, role_admin)
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert [key for key, _ in status.conditions] == [
+        "accounting_obligation",
+        "artisan_qualification",
+        "special_taxpayer",
+        "tax_regime",
+        "withholding_agent",
+    ]
+
+
+def test_legacy_format_profile_asks_to_declare_again_without_interpreting_text(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=1,
+        conditions={
+            "accounting_obligation": {
+                "status": "APPLICABLE",
+                "value": "no obligado",
+                "source": "Certificado",
+                "starts_on": "2026-01-01",
+            },
+            "rimpe": {"status": "UNKNOWN"},
+        },
+        created_by=role_admin,
+    )
+    _point(entity)
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == INCOMPLETE
+    legacy = [cause for cause in status.causes if cause.code == "profile.legacy_format"]
+    assert len(legacy) == 1
+    assert "de nuevo" in legacy[0].message
+    assert not [cause for cause in status.causes if cause.code.startswith("conditions.")]
+    assert status.conditions == ()
+    assert status.profile_revision == 1
+
+
+def test_popular_business_regime_blocks_invoice_preparation_with_its_reason(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _ready_entity(entity, role_admin, tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == NEEDS_REVIEW
+    cause = next(c for c in status.causes if c.code == "conditions.tax_regime.unsupported")
+    assert "notas de venta" in cause.message
+
+
+@pytest.mark.parametrize(
+    ("ends_on", "warns"),
+    [("2026-11-25", True), ("2026-11-26", False), ("2026-09-26", True)],
+)
+def test_qualification_warning_starts_sixty_days_before_expiry(
+    entity: FiscalEntity, role_admin: User, ends_on: str, warns: bool
+) -> None:
+    _ready_entity(entity, role_admin, artisan_qualification=qualification(ends_on))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    codes = [warning.code for warning in status.warnings]
+    assert ("artisan_qualification_expiring" in codes) is warns
+    assert status.state == READY
+    assert status.causes == ()
+
+
+def test_qualification_warning_states_date_and_remaining_days(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _ready_entity(entity, role_admin, artisan_qualification=qualification("2026-11-10"))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    warning = next(w for w in status.warnings if w.code == "artisan_qualification_expiring")
+    assert "2026-11-10" in warning.message
+    assert "45 días" in warning.message
+
+
+def test_qualification_expired_yesterday_requires_review(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _ready_entity(entity, role_admin, artisan_qualification=qualification("2026-09-25"))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == NEEDS_REVIEW
+    expired = next(c for c in status.causes if c.code == "conditions.artisan_qualification.expired")
+    assert "2026-09-25" in expired.message
+    assert "artisan_qualification_expiring" not in [w.code for w in status.warnings]

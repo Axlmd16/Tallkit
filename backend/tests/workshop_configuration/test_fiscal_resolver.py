@@ -5,12 +5,17 @@ from datetime import date
 from types import ModuleType
 
 import pytest
+from tests.workshop_configuration.profile_helpers import (
+    applicable,
+    profile_conditions,
+    qualification,
+)
 
 from identity.application.authorization import BusinessPermissionDeniedError
 from identity.models import User
-from workshop_configuration.application.electronic_profiles import CONDITIONS, save_profile
+from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.emission_locations import create_establishment, create_point
-from workshop_configuration.models import FiscalEntity
+from workshop_configuration.models import ElectronicProfileRevision, FiscalEntity
 
 
 def api() -> ModuleType:
@@ -56,16 +61,7 @@ def test_ready_profile_is_immutable_and_does_not_require_certificate(
     from workshop_configuration.application.official_catalog import ensure_installed
 
     ensure_installed()
-    conditions = {
-        key: {"status": "NOT_APPLICABLE", "source": "Revisión", "starts_on": "2026-01-01"}
-        for key in CONDITIONS
-    }
-    conditions["tax_regime"] = {
-        "status": "APPLICABLE",
-        "value": "GENERAL",
-        "source": "Revisión",
-        "starts_on": "2026-01-01",
-    }
+    conditions = profile_conditions()
     save_profile(
         actor=role_admin,
         entity_id=entity.pk,
@@ -104,13 +100,7 @@ def test_expired_conditions_remain_pending(entity: FiscalEntity, role_admin: Use
         idempotency_key="resolver:expired",
         payload={
             "conditions": {
-                "artisan_qualification": {
-                    "status": "APPLICABLE",
-                    "value": "Declaración",
-                    "source": "Revisión",
-                    "starts_on": "2025-01-01",
-                    "ends_on": "2025-12-31",
-                }
+                "artisan_qualification": qualification(ends_on="2025-12-31", starts_on="2025-01-01")
             }
         },
     )
@@ -217,3 +207,67 @@ def test_default_point_belongs_to_the_entity_and_must_be_active(
     )
     assert result.point_id is None
     assert "point_missing" in result.preparation_issues
+
+
+def _prepare_location(entity: FiscalEntity, role_admin: User) -> None:
+    from workshop_configuration.application.official_catalog import ensure_installed
+
+    ensure_installed()
+    establishment = create_establishment(
+        actor=role_admin, entity_id=entity.pk, code="001", address="Local"
+    )
+    create_point(actor=role_admin, establishment_id=establishment.pk, code="001")
+
+
+def _save(entity: FiscalEntity, role_admin: User, **overrides: dict[str, str]) -> None:
+    save_profile(
+        actor=role_admin,
+        entity_id=entity.pk,
+        expected_revision=0,
+        idempotency_key="resolver:closed",
+        payload={"conditions": profile_conditions(**overrides)},
+    )
+
+
+def test_popular_business_regime_is_a_preparation_issue(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _prepare_location(entity, role_admin)
+    _save(entity, role_admin, tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
+    )
+    assert not result.ready_for_preparation
+    assert "conditions.tax_regime.unsupported" in result.preparation_issues
+
+
+def test_legacy_format_profile_is_a_preparation_issue(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _prepare_location(entity, role_admin)
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=1,
+        conditions={"rimpe": {"status": "UNKNOWN"}},
+        created_by=role_admin,
+    )
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
+    )
+    assert not result.ready_for_preparation
+    assert "profile.legacy_format" in result.preparation_issues
+    assert result.conditions == ()
+
+
+def test_expiring_qualification_neither_blocks_nor_is_an_emission_issue(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _prepare_location(entity, role_admin)
+    _save(entity, role_admin, artisan_qualification=qualification(ends_on="2026-10-25"))
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
+    )
+    assert result.ready_for_preparation
+    assert result.preparation_issues == ()
+    assert result.future_emission_issues == ("certificate_missing", "emission_not_implemented")

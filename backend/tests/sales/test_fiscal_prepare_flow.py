@@ -4,8 +4,9 @@ from datetime import date
 from typing import Any
 
 import pytest
+from tests.workshop_configuration.profile_helpers import applicable, profile_conditions
 
-from workshop_configuration.application.electronic_profiles import CONDITIONS, save_profile
+from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.fiscal_tax_mapping import create_mapping
 from workshop_configuration.models import (
     FiscalEmissionPoint,
@@ -28,12 +29,7 @@ def _setup_commercial_config(admin: Any) -> int:
         entity_id=entity.pk,
         expected_revision=0,
         idempotency_key="profile:comercial:1",
-        payload={
-            "conditions": {
-                key: {"status": "NOT_APPLICABLE", "source": "Ley", "starts_on": "2025-01-01"}
-                for key in CONDITIONS
-            }
-        },
+        payload={"conditions": profile_conditions()},
     )
     iva = TaxDefinition.objects.get(fiscal_entity=entity, code="IVA")
     create_mapping(
@@ -329,16 +325,7 @@ def test_profile_change_between_review_and_prepare_requires_revalidation(
 
     # El Administrador registra una nueva revisión del perfil (cambia una leyenda).
     entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
-    conditions = {
-        key: {"status": "NOT_APPLICABLE", "source": "Ley", "starts_on": "2025-01-01"}
-        for key in CONDITIONS
-    }
-    conditions["special_taxpayer"] = {
-        "status": "APPLICABLE",
-        "value": "12345",
-        "source": "Resolución",
-        "starts_on": "2025-01-01",
-    }
+    conditions = profile_conditions(special_taxpayer=applicable("12345"))
     save_profile(
         actor=admin,
         entity_id=entity.pk,
