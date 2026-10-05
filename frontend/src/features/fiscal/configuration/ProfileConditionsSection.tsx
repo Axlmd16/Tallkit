@@ -215,7 +215,9 @@ export function ProfileConditionsSection({
                         </span>
                       )}
                   </td>
-                  <td className={`${sheetTableCell} font-mono text-[13px]`}>
+                  <td
+                    className={`${sheetTableCell} font-mono text-[13px] whitespace-nowrap`}
+                  >
                     {condition?.starts_on ?? (
                       <span className="font-sans text-ink-muted">—</span>
                     )}
@@ -298,7 +300,7 @@ export function ProfileConditionsSection({
 function LegacyNotice() {
   return (
     <HintPopover
-      align="end"
+      align="start"
       label={LEGACY_LABEL}
       trigger={
         <>
@@ -326,7 +328,7 @@ function LegacyNotice() {
 function ExpiringNotice({ warnings }: { warnings: StatusCause[] }) {
   return (
     <HintPopover
-      align="end"
+      align="start"
       label={EXPIRING_LABEL}
       trigger={
         <>

@@ -225,14 +225,46 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     await form.getByLabel('Impuesto (RUC artesanal)').selectOption({ index: 1 })
     await form.getByRole('button', { name: 'Guardar servicio' }).click()
     await expect(form).not.toBeVisible()
-    await expect(
-      page.getByRole('row').filter({ hasText: 'Alineación E2E' }),
-    ).toContainText('USD 25.00')
+    const serviceRow = page
+      .getByRole('row')
+      .filter({ hasText: 'Alineación E2E' })
+    await expect(serviceRow).toContainText('USD 25.00')
+    // El sistema asigna el código del servicio; nadie lo escribe.
+    await expect(serviceRow).toContainText(/SRV-\d{6}/)
 
     await goToSection(page, 'Productos')
     await expect(
       page.getByRole('button', { name: 'Nuevo producto' }),
     ).toHaveCount(0)
+    await page.context().clearCookies()
+  })
+
+  test('el formulario no admite más de 25 caracteres, el servidor rechaza 26 y el filtro de códigos por corregir lo refleja', async ({
+    page,
+  }) => {
+    await login(page, 'admin_e2e')
+    await seedFiscalConfiguration(page)
+
+    await page.goto('/products/new')
+    const code = page
+      .locator('main')
+      .getByLabel('Código interno', { exact: true })
+    // El campo corta en 25: el código nunca llega más largo de lo que admite el comprobante.
+    await code.fill('X'.repeat(26))
+    await expect(code).toHaveValue('X'.repeat(25))
+
+    // El servidor aplica la misma regla aunque se salte la interfaz.
+    const direct = await send(page.request, 'post', '/products/', {
+      code: 'X'.repeat(26),
+      idempotency_key: 'e2e-code-limit-0001',
+    })
+    expect(direct.status()).toBe(400)
+    expect((await direct.json()).errors).toHaveProperty('code')
+
+    await page.goto('/products')
+    await page.getByLabel('Código', { exact: true }).selectOption('true')
+    await expect(page).toHaveURL(/code_over_limit=true/)
+    await expect(page.getByText('No hay códigos por corregir')).toBeVisible()
     await page.context().clearCookies()
   })
 
@@ -250,6 +282,10 @@ test.describe('catálogos de productos, servicios y proveedores', () => {
     ).toBeVisible()
     expect((await request.get(`${API}/suppliers/`)).status()).toBe(403)
     expect((await request.get(`${API}/products/`)).status()).toBe(200)
+    // El filtro de códigos por corregir es de quien gestiona productos.
+    expect(
+      (await request.get(`${API}/products/?code_over_limit=true`)).status(),
+    ).toBe(403)
     expect(
       (await send(request, 'post', '/products/', { name: 'x' })).status(),
     ).toBe(403)

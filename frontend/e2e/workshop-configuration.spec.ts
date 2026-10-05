@@ -33,6 +33,18 @@ const ENTITIES = [
   },
 ]
 
+const PROFILE_OPTIONS = {
+  tax_regime: [
+    { value: 'GENERAL', label: 'General' },
+    { value: 'RIMPE_EMPRENDEDOR', label: 'RIMPE Emprendedor' },
+    { value: 'RIMPE_NEGOCIO_POPULAR', label: 'RIMPE Negocio Popular' },
+  ],
+  accounting_obligation: [
+    { value: 'SI', label: 'Sí' },
+    { value: 'NO', label: 'No' },
+  ],
+}
+
 const PAYMENT_FORMS = [
   ['01', 'Efectivo o sin sistema financiero', true],
   ['15', 'Compensación de deudas', false],
@@ -168,8 +180,11 @@ async function mockConfiguration(page: Page) {
         json: {
           entity_id: id,
           revision: id === 1 ? 1 : 0,
+          conditions_format: 2,
           conditions: {},
           certificate: null,
+          regime_legend: null,
+          options: PROFILE_OPTIONS,
         },
       })
     },
@@ -317,36 +332,111 @@ test('facturación electrónica designa el punto en un modal y separa las entida
   await expect(table.getByText('No habilitable en V1')).toHaveCount(6)
 })
 
-test('el perfil tributario se consulta en tabla y cada condición se declara en su modal', async ({
+test('el perfil tributario se declara con opciones cerradas y la calificación con su vencimiento', async ({
   page,
 }) => {
   await login(page, 'admin_e2e')
   const { profileWrites } = await mockConfiguration(page)
-  await page.goto('/configuration?tab=facturacion&entidad=1')
+  await page.goto('/configuration?tab=facturacion&entidad=2')
 
   const profile = page.getByRole('region', { name: 'Perfil tributario' })
-  await expect(profile.getByRole('row')).toHaveCount(7)
-  await profile.getByRole('button', { name: 'Declarar RIMPE' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Declarar: RIMPE' })
-  await dialog.getByText('Aplica', { exact: true }).click()
-  await dialog.getByLabel('Categoría RIMPE').fill('Emprendedor')
-  await dialog.getByLabel('Fuente o documento').fill('Certificado de RUC')
-  await dialog.getByLabel('Vigente desde').fill('2026-01-01')
-  await dialog.getByRole('button', { name: 'Guardar condición' }).click()
+  await expect(profile.getByRole('row')).toHaveCount(6)
+  await expect(profile.getByText('RIMPE', { exact: true })).toHaveCount(0)
+
+  await profile
+    .getByRole('button', { name: 'Declarar Régimen tributario' })
+    .click()
+  const regime = page.getByRole('dialog', {
+    name: 'Declarar: Régimen tributario',
+  })
+  await regime.getByLabel('Régimen').selectOption('GENERAL')
+  await regime.getByLabel('Fuente o documento').fill('Certificado de RUC')
+  await regime.getByLabel('Vigente desde').fill('2026-01-01')
+  await regime.getByRole('button', { name: 'Guardar condición' }).click()
 
   await expect.poll(() => profileWrites.length).toBe(1)
+  expect(Object.keys(profileWrites[0]!.conditions)).toEqual([
+    'tax_regime',
+    'accounting_obligation',
+    'withholding_agent',
+    'special_taxpayer',
+    'artisan_qualification',
+  ])
   expect(profileWrites[0]).toMatchObject({
-    expected_revision: 1,
+    expected_revision: 0,
     conditions: {
-      rimpe: {
+      tax_regime: {
         status: 'APPLICABLE',
-        value: 'Emprendedor',
+        value: 'GENERAL',
         source: 'Certificado de RUC',
         starts_on: '2026-01-01',
       },
-      tax_regime: { status: 'UNKNOWN' },
+      accounting_obligation: { status: 'UNKNOWN' },
     },
   })
+
+  await profile
+    .getByRole('button', { name: 'Declarar Calificación artesanal' })
+    .click()
+  const qualification = page.getByRole('dialog', {
+    name: 'Declarar: Calificación artesanal',
+  })
+  await qualification.getByText('Aplica', { exact: true }).click()
+  await qualification.getByLabel('Número de calificación').fill('JNDA-12345')
+  await qualification
+    .getByLabel('Organismo que la otorgó')
+    .fill('Junta Nacional de Defensa del Artesano')
+  await qualification.getByLabel('Fuente o documento').fill('Carné vigente')
+  await qualification.getByLabel('Vigente desde').fill('2026-01-01')
+  await qualification.getByLabel('Vence el').fill('2028-05-31')
+  await qualification.getByRole('button', { name: 'Guardar condición' }).click()
+
+  await expect.poll(() => profileWrites.length).toBe(2)
+  expect(profileWrites[1]).toMatchObject({
+    conditions: {
+      artisan_qualification: {
+        status: 'APPLICABLE',
+        value: 'JNDA-12345',
+        issuing_body: 'Junta Nacional de Defensa del Artesano',
+        starts_on: '2026-01-01',
+        ends_on: '2028-05-31',
+      },
+    },
+  })
+})
+
+test('el Administrador ve el aviso de vencimiento de la calificación en el perfil', async ({
+  page,
+}) => {
+  await login(page, 'admin_e2e')
+  await mockConfiguration(page)
+  await page.route(
+    '**/api/v1/fiscal/configuration/entities/2/electronic-status/',
+    (route) =>
+      route.fulfill({
+        json: {
+          entity_id: 2,
+          state: 'READY',
+          causes: [],
+          warnings: [
+            {
+              code: 'artisan_qualification_expiring',
+              kind: 'REVIEW',
+              message:
+                'Calificación artesanal: vence el 2026-11-10 (faltan 45 días). Renuévela antes de esa fecha.',
+            },
+          ],
+          environment: 'TEST',
+          profile_revision: 3,
+          default_point_id: 200,
+          default_payment_code: '01',
+        },
+      }),
+  )
+  await page.goto('/configuration?tab=facturacion&entidad=2')
+  const notice = page.getByRole('button', { name: 'Calificación por vencer' })
+  await notice.hover()
+  await expect(page.getByRole('note')).toContainText('faltan 45 días')
 })
 
 test('en un teléfono las secciones se desplazan sin mover la página', async ({

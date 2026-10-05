@@ -177,7 +177,7 @@ Resultado registrado (2026-10-05):
 - Perfil anterior: se muestra como «Sin declarar» con el aviso «Perfil anterior» (detalle desplegable), su texto queda en la información avanzada como solo lectura y al declarar no se reenvía.
 - Avisos interactivos con detalle desplegable (`HintPopover`): «Perfil anterior» y «Calificación por vencer»; el indicador de la subsección pasa a «Revisar» por el aviso sin tocar el estado del certificado.
 - Verificación 9.5: `src/features/fiscal` + `src/pages/workshop-configuration`, 92 pruebas pasan (31 nuevas o actualizadas de este grupo); `tsc`, ESLint y Prettier sin hallazgos sobre `src/features/fiscal`.
-- La revisión visual en claro y oscuro, escritorio y móvil queda para el grupo 11, junto con el recorrido en navegador.
+- Revisión visual (grupo 11, Chrome del sistema, capturas en el scratchpad de la sesión, sin versionar): el perfil con la calificación por vencer y su modal se revisaron a 1280, 1024 y 390 px. En móvil el panel del aviso salía cortado por la izquierda; se ancló al inicio del botón (`align="start"`) y la fecha «Vigente desde» ya no se parte en dos líneas. El sistema solo tiene tema claro (DESIGN.md: no hay selector ni `prefers-color-scheme`), por lo que no hay revisión en oscuro.
 
 ## 10. Frontend: códigos de servicio y de producto, y preparación
 
@@ -204,11 +204,18 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupos 9 y 10.
 
-- [ ] 11.1 Ampliar `frontend/e2e/fiscal.spec.ts`: el Administrador declara el perfil del taller con las opciones cerradas y la calificación artesanal; el Encargado prepara una operación artesanal a 0 % y la línea muestra el código `SRV-…`.
-- [ ] 11.2 Añadir en `fiscal.spec.ts` el caso de un producto con código largo cuya preparación queda bloqueada con el impedimento, y en `catalogs.spec.ts` el rechazo de un código de 26 caracteres y el filtro de códigos por corregir.
-- [ ] 11.3 Ejecutar solo `npx playwright test e2e/fiscal.spec.ts e2e/catalogs.spec.ts` y registrar el resultado.
+- [x] 11.1 Ampliar `frontend/e2e/fiscal.spec.ts`: el Administrador declara el perfil del taller con las opciones cerradas y la calificación artesanal; el Encargado prepara una operación artesanal a 0 % y la línea muestra el código `SRV-…`.
+- [x] 11.2 Añadir en `fiscal.spec.ts` el caso de un producto con código largo cuya preparación queda bloqueada con el impedimento, y en `catalogs.spec.ts` el rechazo de un código de 26 caracteres y el filtro de códigos por corregir.
+- [x] 11.3 Ejecutar solo `npx playwright test e2e/fiscal.spec.ts e2e/catalogs.spec.ts` y registrar el resultado.
 
 Evidencia del grupo: recorridos en verde con su salida; no se ejecuta el resto de Playwright.
+
+Resultado registrado (2026-10-05):
+- Alcance: el perfil tributario con opciones cerradas ya no cabía en la prueba del perfil de `workshop-configuration.spec.ts` (que declaraba RIMPE como condición y mockeaba el contrato anterior), así que esa especificación se actualizó y se ejecutó junto con las dos pedidas. El recorrido de declarar régimen y calificación vive ahí porque esa especificación ya tiene los mocks de configuración; `fiscal.spec.ts` cubre la preparación.
+- `e2e/workshop-configuration.spec.ts`: el Administrador declara el régimen con una lista cerrada y la calificación con número, organismo y vencimiento (el cuerpo guardado trae las cinco condiciones y no `rimpe`), y ve el aviso «Calificación por vencer». 13 pruebas pasan, incluidas las comprobaciones de accesibilidad con axe a cinco anchos.
+- `e2e/fiscal.spec.ts`: el Encargado ve el emisor preparado (régimen, calificación con su vencimiento) y el código `SRV-000012` de una operación a tarifa cero; un código de producto excedido bloquea la revisión y se explica bajo «Debe resolverlo el Administrador» sin ofrecer guardar. 7 pruebas pasan (5 existentes y 2 nuevas).
+- `e2e/catalogs.spec.ts` (servidor real): el servicio creado por el Encargado muestra su `SRV-######` asignado por el sistema; el campo de código de producto corta en 25 caracteres, el servidor responde 400 con error en `code` a un código de 26, el filtro «Excede 25 caracteres» queda en la dirección y muestra «No hay códigos por corregir»; el Vendedor recibe 403 en `?code_over_limit=true`. 6 pruebas pasan.
+- Entorno: el puerto 8001 de `playwright.config.ts` está ocupado por otro proyecto local (`kallpa-backend`) y el navegador de Playwright no está instalado, así que se ejecutó con una configuración temporal (puertos 8011 y 55184, Google Chrome del sistema) que se borró; la configuración del repositorio no se modificó. Se ejecutaron solo estas tres especificaciones; no se ejecutó el resto de Playwright.
 
 ## 12. Documentación, trazabilidad y cierre
 

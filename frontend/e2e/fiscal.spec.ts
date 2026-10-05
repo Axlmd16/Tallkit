@@ -317,3 +317,95 @@ test('un bloqueo crítico de readiness permanece visible y no muestra éxito', a
   await expect(page.getByText('No se incorporó el comprobante')).toBeVisible()
   await expect(page.getByText(/Evidencia conservada/)).toHaveCount(0)
 })
+
+test('el Encargado ve el emisor y el código propio del servicio de una operación a tarifa cero', async ({
+  page,
+}) => {
+  await login(page, 'taller_e2e')
+  await page.route('**/api/v1/fiscal/preparations/*/', (route) =>
+    route.fulfill({
+      json: {
+        ...preparation('ARTISAN', 9, 'PREPARED'),
+        snapshot: {
+          snapshot_format: 3,
+          reference_date: '2026-10-05',
+          issuer: {
+            ruc: '1104018559001',
+            legal_name: 'Taller E2E',
+            tax_profile: {
+              regime: 'GENERAL',
+              accounting_obligation: 'NO',
+              artisan_qualification: {
+                number: 'JNDA-12345',
+                issuing_body: 'Junta Nacional de Defensa del Artesano',
+                ends_on: '2028-05-31',
+              },
+            },
+          },
+          receiver: {
+            legal_name: 'Cliente E2E',
+            identification: '0102030405',
+          },
+          totals: { tax: '0.00', grand: '25.00' },
+          lines: [
+            {
+              position: 1,
+              item_code: 'SRV-000012',
+              description: 'Reparación de caja de cambios',
+              quantity: '1',
+              total_amount: '25.00',
+              display_name: 'IVA 0 %',
+            },
+          ],
+          payments: [{ payment_code: '01', amount: '25.00' }],
+          legends: [],
+        },
+      },
+    }),
+  )
+  await page.goto('/fiscal/preparations/22222222-1111-4111-8111-111111111111')
+
+  const issuer = page.getByLabel('Emisor preparado')
+  await expect(issuer).toContainText('General')
+  await expect(issuer).toContainText('JNDA-12345 · vence 2028-05-31')
+  await expect(page.getByText('SRV-000012')).toBeVisible()
+  await expect(page.getByText('IVA 0 %')).toBeVisible()
+  await expect(page.getByText(/factura emitida|autorizada/i)).toHaveCount(0)
+})
+
+test('un código de producto excedido bloquea la preparación y se explica al Administrador', async ({
+  page,
+}) => {
+  await login(page, 'vendedor_e2e')
+  await mockPreparationFlow(page, 'COMMERCIAL', 7)
+  await page.route('**/api/v1/fiscal/preparations/*/review/', (route) =>
+    route.fulfill({
+      json: {
+        review_token: null,
+        impediments: [
+          {
+            field: 'line[1].item_code',
+            code: 'line_text_limit',
+            audience: 'ADMINISTRATOR',
+            message:
+              'El código «CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC» de «Filtro de aceite» tiene 31 caracteres y el comprobante admite hasta 25. Corrija el producto o servicio en el catálogo.',
+          },
+        ],
+      },
+    }),
+  )
+  await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
+  await page.getByLabel('Dirección (opcional)').fill('Av. Principal 1')
+  await page
+    .getByRole('button', { name: 'Revisar datos para facturación' })
+    .click()
+
+  const admin = page.getByRole('list', {
+    name: 'Debe resolverlo el Administrador',
+  })
+  await expect(admin).toContainText('tiene 31 caracteres')
+  await expect(admin).toContainText('admite hasta 25')
+  await expect(
+    page.getByRole('button', { name: 'Guardar preparación local' }),
+  ).toHaveCount(0)
+})
