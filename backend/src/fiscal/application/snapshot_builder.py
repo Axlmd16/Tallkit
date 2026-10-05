@@ -45,14 +45,6 @@ def _issuer_dict(config: FiscalConfiguration) -> dict[str, str]:
     }
 
 
-def _legends(config: FiscalConfiguration) -> list[str]:
-    legends: list[str] = []
-    for key, condition in config.conditions:
-        if condition.is_resolved and condition.status == "APPLICABLE" and condition.value:
-            legends.append(f"{key}: {condition.value}")
-    return legends
-
-
 def _configuration(config: FiscalConfiguration, catalogs: dict[str, str]) -> dict[str, Any]:
     return {
         "entity_id": config.entity_id,
@@ -131,6 +123,11 @@ def assemble_snapshot(
         for field, messages in error.errors.items():
             impediments.append({"field": f"payments.{field}", "message": messages[0]})
 
+    qualification = config.tax_profile.get("artisan_qualification")
+    qualification_active = (
+        qualification is not None and date.fromisoformat(qualification["ends_on"]) >= reference_date
+    )
+
     lines: list[dict[str, Any]] = []
     line_details: dict[int, dict[str, Any]] = {}
     catalog_versions: dict[str, str] = {"payment_forms": SELECTABLE_PAYMENT_VERSION}
@@ -164,8 +161,18 @@ def assemble_snapshot(
             item_code = str(product_snapshot.get("code", ""))
             description = str(product_snapshot.get("name", ""))
         else:
-            item_code = str(getattr(line, "service_id", ""))
+            item_code = str(getattr(line, "service_code", ""))
             description = str(getattr(line, "description", ""))
+        if qualification_active and resolved.treatment != "ZERO":
+            impediments.append(
+                {
+                    "field": f"line[{line.position}].artisan_rate",
+                    "message": (
+                        "La calificación artesanal declarada exige IVA 0 %, pero esta línea usa "
+                        f"«{resolved.display_name}»."
+                    ),
+                }
+            )
         lines.append(
             {
                 "position": line.position,
@@ -195,7 +202,7 @@ def assemble_snapshot(
             payments=payments,
             reference_date=reference_date.isoformat(),
             catalog_versions=catalog_versions,
-            legends=_legends(config),
+            tax_profile=dict(config.tax_profile),
             additional_info=draft.get("additional_info") or [],
             configuration=_configuration(config, catalog_versions),
             payment_details=_payment_details(config, reference_date),

@@ -15,6 +15,9 @@ PRECISION = 60
 CENTS = Decimal("0.01")
 # Factura 2.1.0: precio unitario y cantidad admiten hasta seis decimales.
 UNIT_PRICE_QUANTUM = Decimal("0.000001")
+# Factura 2.1.0: `codigoPrincipal` admite hasta 25 caracteres y `descripcion` hasta 300.
+ITEM_CODE_MAX = 25
+DESCRIPTION_MAX = 300
 
 
 class SnapshotImpedimentError(Exception):
@@ -66,6 +69,42 @@ def _fmt_cents(value: Decimal) -> str:
     return str(_cents(value))
 
 
+def _shown(text: str) -> str:
+    return text if len(text) <= 60 else f"{text[:60]}…"
+
+
+def _text_impediments(position: int, item_code: str, description: str) -> list[dict[str, str]]:
+    """Límites de longitud del comprobante; nunca se trunca ni se sustituye un valor."""
+    found: list[dict[str, str]] = []
+    for field, value, maximum, label in (
+        ("item_code", item_code, ITEM_CODE_MAX, f"El código «{_shown(item_code)}»"),
+        ("description", description, DESCRIPTION_MAX, "La descripción"),
+    ):
+        if not value:
+            continue  # su ausencia se informa aparte
+        if "\n" in value or "\r" in value:
+            found.append(
+                {
+                    "field": f"line[{position}].{field}",
+                    "message": f"{label} de la línea debe estar en una sola línea.",
+                }
+            )
+        elif len(value) > maximum:
+            of_item = f" de «{_shown(description)}»" if field == "item_code" else ""
+            found.append(
+                {
+                    "field": f"line[{position}].{field}",
+                    "message": (
+                        f"{label}{of_item} tiene {len(value)} caracteres y el comprobante "
+                        f"admite hasta {maximum}."
+                    ),
+                    "expected": str(maximum),
+                    "observed": str(len(value)),
+                }
+            )
+    return found
+
+
 def build_amounts(
     *,
     lines: list[dict[str, object]],
@@ -103,6 +142,7 @@ def build_amounts(
                         "message": "La línea requiere una descripción conservada para la factura.",
                     }
                 )
+            impediments.extend(_text_impediments(position, item_code, description))
             quantity = Decimal(str(line["quantity"]))
             base = Decimal(str(line["base_amount"]))
             tax = Decimal(str(line["tax_amount"]))

@@ -1,7 +1,10 @@
 """Contrato fiscal de lectura; no modifica la resolución de operaciones internas."""
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from datetime import date
+from types import MappingProxyType
+from typing import Any
 
 from django.db import transaction
 
@@ -15,6 +18,7 @@ from workshop_configuration.application.entity_warehouse import FiscalEntityNotF
 from workshop_configuration.domain.electronic_profile import (
     DeclaredCertificate,
     DeclaredCondition,
+    build_tax_profile,
 )
 from workshop_configuration.domain.validation import ConfigurationValidationError
 from workshop_configuration.models import (
@@ -50,6 +54,8 @@ class FiscalConfiguration:
     enabled_payment_codes: tuple[str, ...] = ()
     default_payment_code: str | None = None
     tax_mapping_ids: tuple[int, ...] = ()
+    # Resumen estructurado del emisor para el comprobante; se congela en la instantánea.
+    tax_profile: Mapping[str, Any] = field(default_factory=lambda: MappingProxyType({}), hash=False)
 
     @property
     def ready_for_preparation(self) -> bool:
@@ -130,4 +136,5 @@ def resolve_fiscal_configuration(*, actor: User, entity_id: int, on: date) -> Fi
             enabled_payment_codes=status.defaults.enabled_payment_codes,
             default_payment_code=status.defaults.payment_code,
             tax_mapping_ids=status.tax_mapping_ids,
+            tax_profile=MappingProxyType(build_tax_profile(dict(status.conditions))),
         )

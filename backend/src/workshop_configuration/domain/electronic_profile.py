@@ -1,6 +1,7 @@
 """Condiciones declaradas: no verifica registros ni material de firma."""
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, NoReturn
@@ -168,6 +169,39 @@ def closed_options() -> dict[str, list[dict[str, str]]]:
             {"value": v, "label": label} for v, label in ACCOUNTING_LABELS.items()
         ],
     }
+
+
+def build_tax_profile(conditions: Mapping[str, DeclaredCondition]) -> dict[str, Any]:
+    """Resumen del emisor para el comprobante: solo lo que aplica, con valores ya cerrados."""
+    profile: dict[str, Any] = {}
+    regime = conditions.get(TAX_REGIME)
+    if regime is not None and regime.status == "APPLICABLE" and regime.value:
+        profile["regime"] = regime.value
+        if (legend := regime_legend(regime.value)) is not None:
+            profile["regime_legend"] = legend
+    accounting = conditions.get(ACCOUNTING_OBLIGATION)
+    if accounting is not None and accounting.status == "APPLICABLE" and accounting.value:
+        profile["accounting_obligation"] = accounting.value
+    for key, field in (
+        (WITHHOLDING_AGENT, "withholding_agent_resolution"),
+        (SPECIAL_TAXPAYER, "special_taxpayer_resolution"),
+    ):
+        condition = conditions.get(key)
+        if condition is not None and condition.status == "APPLICABLE" and condition.value:
+            profile[field] = condition.value
+    qualification = conditions.get(ARTISAN_QUALIFICATION)
+    if (
+        qualification is not None
+        and qualification.status == "APPLICABLE"
+        and qualification.value
+        and qualification.ends_on is not None
+    ):
+        profile["artisan_qualification"] = {
+            "number": qualification.value,
+            "issuing_body": qualification.issuing_body,
+            "ends_on": qualification.ends_on.isoformat(),
+        }
+    return profile
 
 
 def qualification_days_left(condition: DeclaredCondition, on: date) -> int | None:

@@ -271,3 +271,31 @@ def test_expiring_qualification_neither_blocks_nor_is_an_emission_issue(
     assert result.ready_for_preparation
     assert result.preparation_issues == ()
     assert result.future_emission_issues == ("certificate_missing", "emission_not_implemented")
+
+
+def test_resolved_configuration_carries_the_structured_tax_profile(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _prepare_location(entity, role_admin)
+    _save(
+        entity,
+        role_admin,
+        tax_regime=applicable("RIMPE_EMPRENDEDOR"),
+        artisan_qualification=qualification(),
+    )
+    result = api().resolve_fiscal_configuration(
+        actor=role_admin, entity_id=entity.pk, on=date(2026, 9, 25)
+    )
+    assert result.ready_for_preparation
+    assert result.tax_profile == {
+        "regime": "RIMPE_EMPRENDEDOR",
+        "regime_legend": "CONTRIBUYENTE RÉGIMEN RIMPE",
+        "accounting_obligation": "NO",
+        "artisan_qualification": {
+            "number": "JNDA-12345",
+            "issuing_body": "Junta Nacional de Defensa del Artesano",
+            "ends_on": "2028-05-31",
+        },
+    }
+    with pytest.raises(TypeError):
+        result.tax_profile["regime"] = "GENERAL"

@@ -180,3 +180,60 @@ def test_amounts_are_decimal_strings() -> None:
     assert result.tax_total == "1.50"
     assert result.grand_total == "11.50"
     assert isinstance(result.lines[0].unit_price_without_tax, str)
+
+
+def _impediments(**line_overrides: object) -> list[dict[str, str]]:
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError, build_amounts
+
+    with pytest.raises(SnapshotImpedimentError) as exc:
+        build_amounts(
+            lines=[_line(**line_overrides)],
+            base_total="10.00",
+            tax_total="1.50",
+            grand_total="11.50",
+        )
+    return exc.value.impediments
+
+
+def test_line_code_of_twenty_five_characters_is_accepted_and_kept_whole() -> None:
+    from fiscal.domain.snapshot_amounts import build_amounts
+
+    code = "C" * 25
+    result = build_amounts(
+        lines=[_line(item_code=code)], base_total="10.00", tax_total="1.50", grand_total="11.50"
+    )
+    assert result.lines[0].item_code == code
+
+
+def test_line_code_over_the_limit_blocks_with_both_lengths_and_is_never_truncated() -> None:
+    [impediment] = _impediments(item_code="C" * 31)
+    assert impediment["field"] == "line[1].item_code"
+    assert (impediment["observed"], impediment["expected"]) == ("31", "25")
+    assert "31" in impediment["message"]
+    assert "25" in impediment["message"]
+    assert "Servicio sintético" in impediment["message"]
+
+
+def test_line_description_of_three_hundred_characters_is_accepted() -> None:
+    from fiscal.domain.snapshot_amounts import build_amounts
+
+    result = build_amounts(
+        lines=[_line(description="D" * 300)],
+        base_total="10.00",
+        tax_total="1.50",
+        grand_total="11.50",
+    )
+    assert len(result.lines[0].description) == 300
+
+
+def test_line_description_over_the_limit_blocks_with_both_lengths() -> None:
+    [impediment] = _impediments(description="D" * 320)
+    assert impediment["field"] == "line[1].description"
+    assert (impediment["observed"], impediment["expected"]) == ("320", "300")
+
+
+@pytest.mark.parametrize("field", ["item_code", "description"])
+def test_line_text_cannot_contain_line_breaks(field: str) -> None:
+    [impediment] = _impediments(**{field: "AB\nCD"})
+    assert impediment["field"] == f"line[1].{field}"
+    assert "una sola línea" in impediment["message"]

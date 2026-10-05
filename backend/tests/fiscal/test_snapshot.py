@@ -20,6 +20,12 @@ def _issuer(**overrides: object) -> dict[str, object]:
     return issuer
 
 
+def _tax_profile(**overrides: object) -> dict[str, object]:
+    profile: dict[str, object] = {"regime": "GENERAL", "accounting_obligation": "NO"}
+    profile.update(overrides)
+    return profile
+
+
 def _receiver() -> object:
     return parse_receiver(
         {
@@ -70,7 +76,7 @@ def test_snapshot_is_assembled_with_schema_version_and_decimal_strings() -> None
         payments=_payments(),
         reference_date="2026-09-25",
         catalog_versions={"iva": "2024-04"},
-        legends=["Contribuyente especial"],
+        tax_profile=_tax_profile(),
         additional_info=[{"name": "Placa", "value": "PBA1234"}],
     )
 
@@ -100,7 +106,7 @@ def test_missing_issuer_field_blocks_with_impediment() -> None:
             payments=_payments(),
             reference_date="2026-09-25",
             catalog_versions={"iva": "2024-04"},
-            legends=[],
+            tax_profile=_tax_profile(),
             additional_info=[],
         )
     fields = {imp["field"] for imp in exc.value.impediments}
@@ -121,7 +127,7 @@ def test_empty_lines_block() -> None:
             payments=_payments(),
             reference_date="2026-09-25",
             catalog_versions={},
-            legends=[],
+            tax_profile=_tax_profile(),
             additional_info=[],
         )
 
@@ -145,7 +151,7 @@ def test_credit_snapshot_keeps_configuration_and_payment_details() -> None:
         payments=credit,
         reference_date="2026-09-25",
         catalog_versions={"iva": "SRI-2.34-TABLA17"},
-        legends=[],
+        tax_profile=_tax_profile(),
         additional_info=[],
         configuration={"profile_revision": 3, "point": {"code": "001", "version": 2}},
         payment_details={"20": {"display_name": "Transferencia", "catalog_version": "T24"}},
@@ -179,7 +185,7 @@ def test_amount_impediments_propagate() -> None:
             payments=_payments(),
             reference_date="2026-09-25",
             catalog_versions={},
-            legends=[],
+            tax_profile=_tax_profile(),
             additional_info=[],
         )
     assert any(imp["field"] == "grand_total" for imp in exc.value.impediments)
@@ -199,7 +205,7 @@ def test_invalid_reference_date_blocks() -> None:
             payments=_payments(),
             reference_date="25-09-2026",
             catalog_versions={},
-            legends=[],
+            tax_profile=_tax_profile(),
             additional_info=[],
         )
     assert any(imp["field"] == "reference_date" for imp in exc.value.impediments)
@@ -218,7 +224,7 @@ def test_snapshot_does_not_leak_operational_customer_fields() -> None:
         payments=_payments(),
         reference_date="2026-09-25",
         catalog_versions={},
-        legends=[],
+        tax_profile=_tax_profile(),
         additional_info=[],
     )
     # El receptor fiscal es propio; no se copia el identificador del cliente operativo.
@@ -229,3 +235,63 @@ def test_snapshot_does_not_leak_operational_customer_fields() -> None:
         "address",
         "email",
     }
+
+
+def _build(**overrides: object) -> dict[str, object]:
+    from fiscal.domain.snapshot import build_snapshot
+
+    arguments: dict[str, object] = {
+        "issuer": _issuer(),
+        "receiver": _receiver(),
+        "lines": _lines(),
+        "base_total": "10.00",
+        "tax_total": "1.50",
+        "grand_total": "11.50",
+        "payments": _payments(),
+        "reference_date": "2026-09-25",
+        "catalog_versions": {"iva": "2024-04"},
+        "tax_profile": _tax_profile(),
+        "additional_info": [],
+    }
+    arguments.update(overrides)
+    return build_snapshot(**arguments)  # type: ignore[arg-type]
+
+
+def test_snapshot_format_three_keeps_the_issuer_tax_profile_and_no_text_legends() -> None:
+    from fiscal.domain.snapshot import SNAPSHOT_FORMAT
+
+    profile = _tax_profile(
+        regime="RIMPE_EMPRENDEDOR",
+        regime_legend="CONTRIBUYENTE RÉGIMEN RIMPE",
+        artisan_qualification={
+            "number": "JNDA-12345",
+            "issuing_body": "Junta Nacional de Defensa del Artesano",
+            "ends_on": "2028-05-31",
+        },
+    )
+    snapshot = _build(tax_profile=profile)
+    assert SNAPSHOT_FORMAT == 3
+    assert snapshot["snapshot_format"] == 3
+    assert snapshot["issuer"]["tax_profile"] == profile  # type: ignore[index]
+    assert snapshot["legends"] == []
+    assert snapshot["issuer"]["ruc"] == "0991234567001"  # type: ignore[index]
+
+
+def test_issuer_tax_profile_is_a_copy_independent_of_the_input() -> None:
+    profile = _tax_profile()
+    snapshot = _build(tax_profile=profile)
+    profile["regime"] = "RIMPE_NEGOCIO_POPULAR"
+    assert snapshot["issuer"]["tax_profile"]["regime"] == "GENERAL"  # type: ignore[index]
+
+
+@pytest.mark.parametrize("missing", ["regime", "accounting_obligation"])
+def test_tax_profile_without_regime_or_accounting_blocks_with_an_impediment(
+    missing: str,
+) -> None:
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
+
+    profile = _tax_profile()
+    del profile[missing]
+    with pytest.raises(SnapshotImpedimentError) as exc:
+        _build(tax_profile=profile)
+    assert f"issuer.tax_profile.{missing}" in {imp["field"] for imp in exc.value.impediments}

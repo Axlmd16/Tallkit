@@ -8,6 +8,7 @@ representación deja la preparación en borrador en lugar de completarse con val
 ficticios.
 """
 
+from copy import deepcopy
 from dataclasses import asdict
 from datetime import date
 from typing import Any
@@ -17,7 +18,7 @@ from fiscal.domain.receiver import FiscalReceiver
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError, build_amounts
 
 SCHEMA_VERSION = "factura-2.1.0"
-SNAPSHOT_FORMAT = 2
+SNAPSHOT_FORMAT = 3
 CURRENCY = "USD"
 REQUIRED_ISSUER_FIELDS = (
     "ruc",
@@ -28,6 +29,8 @@ REQUIRED_ISSUER_FIELDS = (
     "environment",
 )
 _OPTIONAL_ISSUER_FIELDS = ("trade_name",)
+# Datos tributarios del emisor sin los cuales el comprobante no puede representarse.
+REQUIRED_TAX_PROFILE_FIELDS = ("regime", "accounting_obligation")
 
 
 def _valid_iso_date(value: Any) -> bool:
@@ -51,7 +54,7 @@ def build_snapshot(
     payments: PaymentDeclaration,
     reference_date: str,
     catalog_versions: dict[str, str],
-    legends: list[str],
+    tax_profile: dict[str, Any],
     additional_info: list[dict[str, str]],
     configuration: dict[str, Any] | None = None,
     payment_details: dict[str, dict[str, str]] | None = None,
@@ -66,6 +69,16 @@ def build_snapshot(
                 {
                     "field": f"issuer.{field}",
                     "message": "Falta un dato obligatorio del emisor para la representación.",
+                }
+            )
+
+    for field in REQUIRED_TAX_PROFILE_FIELDS:
+        value = tax_profile.get(field) if isinstance(tax_profile, dict) else None
+        if not isinstance(value, str) or not value.strip():
+            impediments.append(
+                {
+                    "field": f"issuer.tax_profile.{field}",
+                    "message": "Falta un dato tributario del emisor para la representación.",
                 }
             )
 
@@ -107,6 +120,8 @@ def build_snapshot(
         if isinstance(value, str) and value.strip():
             issuer_snapshot[field] = value.strip()
 
+    issuer_snapshot["tax_profile"] = deepcopy(tax_profile)
+
     details = payment_details or {}
     extra_lines = line_details or {}
     snapshot: dict[str, Any] = {
@@ -127,7 +142,8 @@ def build_snapshot(
         "payments": [
             {**asdict(form), **details.get(form.payment_code, {})} for form in payments.forms
         ],
-        "legends": list(legends),
+        # Las condiciones del emisor viven en `issuer.tax_profile`; no hay leyendas de texto.
+        "legends": [],
         "additional_info": [dict(item) for item in additional_info],
     }
     if configuration is not None:

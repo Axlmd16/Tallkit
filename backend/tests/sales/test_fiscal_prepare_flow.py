@@ -4,7 +4,11 @@ from datetime import date
 from typing import Any
 
 import pytest
-from tests.workshop_configuration.profile_helpers import applicable, profile_conditions
+from tests.workshop_configuration.profile_helpers import (
+    applicable,
+    profile_conditions,
+    qualification,
+)
 
 from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.fiscal_tax_mapping import create_mapping
@@ -864,3 +868,256 @@ def test_format_1_snapshot_is_returned_without_added_references(
     technical = get_preparation(actor=admin, preparation_id=prep_id).technical
     assert technical is not None
     assert technical["configuration"] is None
+
+
+# --- estructurar-perfil-del-emisor-y-codigos-fiscales -------------------------------------
+
+
+def _prepared_snapshot(seller: Any, context: dict[str, Any], key: str) -> dict[str, Any]:
+    from fiscal.application.preparations import prepare, review
+    from fiscal.models import FiscalPreparation
+
+    prep_id = context["preparation_id"]
+    _fill_draft(seller, prep_id, context["point_id"])
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.impediments == ()
+    assert result.token is not None
+    prepare(actor=seller, preparation_id=prep_id, review_token=result.token, idempotency_key=key)
+    snapshot = FiscalPreparation.objects.get(pk=prep_id).snapshot
+    assert snapshot is not None
+    return dict(snapshot)
+
+
+def test_prepared_snapshot_is_format_three_with_the_structured_issuer(
+    prepared_context: dict[str, Any], seller: Any
+) -> None:
+    snapshot = _prepared_snapshot(seller, prepared_context, "fiscal:prepare:format3")
+    assert snapshot["snapshot_format"] == 3
+    assert snapshot["issuer"]["tax_profile"] == {
+        "regime": "GENERAL",
+        "accounting_obligation": "NO",
+    }
+    assert snapshot["legends"] == []
+
+
+def test_profile_change_after_preparing_keeps_the_old_issuer_and_applies_to_the_next(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import prepare, replace, review
+    from fiscal.models import FiscalPreparation
+
+    first = _prepared_snapshot(seller, prepared_context, "fiscal:prepare:profile-a")
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    save_profile(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_revision=1,
+        idempotency_key="profile:comercial:accounting",
+        payload={"conditions": profile_conditions(accounting_obligation=applicable("SI"))},
+    )
+    outcome = replace(
+        actor=seller,
+        preparation_id=prepared_context["preparation_id"],
+        reason="Cambio de perfil",
+        idempotency_key="fiscal:replace:profile",
+    )
+    _fill_draft(seller, outcome.preparation_id, prepared_context["point_id"])
+    token = review(actor=seller, preparation_id=outcome.preparation_id).token
+    assert token is not None
+    prepare(
+        actor=seller,
+        preparation_id=outcome.preparation_id,
+        review_token=token,
+        idempotency_key="fiscal:prepare:profile-b",
+    )
+    second = FiscalPreparation.objects.get(pk=outcome.preparation_id).snapshot
+    assert first["issuer"]["tax_profile"]["accounting_obligation"] == "NO"
+    assert second is not None
+    assert second["issuer"]["tax_profile"]["accounting_obligation"] == "SI"
+    stored_first = FiscalPreparation.objects.get(pk=prepared_context["preparation_id"]).snapshot
+    assert stored_first is not None
+    assert stored_first["issuer"]["tax_profile"]["accounting_obligation"] == "NO"
+
+
+def _review_for_product(
+    product: Any,
+    *,
+    seller: Any,
+    admin: Any,
+    confirmed_sale: Any,
+    key: str,
+    point_id: int | None = None,
+) -> tuple[Any, int, Any]:
+    from fiscal.application.preparations import create_draft, review
+
+    point = point_id if point_id is not None else _setup_commercial_config(admin)
+    sale = confirmed_sale(product=product, condition="CONTADO")
+    draft = create_draft(
+        actor=seller, source_kind="COMMERCIAL", source_id=sale["id"], idempotency_key=key
+    )
+    _fill_draft(seller, draft.preparation_id, point)
+    return review(actor=seller, preparation_id=draft.preparation_id), point, draft
+
+
+def test_product_code_over_the_limit_blocks_and_a_later_catalog_fix_does_not_unblock_the_sale(
+    confirmed_sale: Any, make_product: Any, stock: Any, seller: Any, admin: Any
+) -> None:
+    from decimal import Decimal
+
+    from catalog.models import Product
+    from fiscal.application.preparations import create_draft, review
+
+    product = make_product(code="C" * 31, sale_price=Decimal("100.00"))
+    stock(product, 20, "80.00")
+    result, point_id, draft = _review_for_product(
+        product, seller=seller, admin=admin, confirmed_sale=confirmed_sale, key="fiscal:limit:1"
+    )
+    assert result.token is None
+    [impediment] = [i for i in result.impediments if i["field"] == "line[1].item_code"]
+    assert impediment["audience"] == "ADMINISTRATOR"
+    assert "31" in impediment["message"]
+    assert "25" in impediment["message"]
+    assert product.name in impediment["message"]
+    assert "catálogo" in impediment["message"]
+
+    Product.objects.filter(pk=product.pk).update(code="CORTO-1")
+    assert review(actor=seller, preparation_id=draft.preparation_id).token is None
+
+    next_sale = confirmed_sale(product=product, condition="CONTADO")
+    next_draft = create_draft(
+        actor=seller,
+        source_kind="COMMERCIAL",
+        source_id=next_sale["id"],
+        idempotency_key="fiscal:limit:2",
+    )
+    _fill_draft(seller, next_draft.preparation_id, point_id)
+    ready = review(actor=seller, preparation_id=next_draft.preparation_id)
+    assert ready.impediments == ()
+    assert ready.token is not None
+
+
+def test_product_code_of_twenty_five_characters_is_prepared_whole(
+    confirmed_sale: Any, make_product: Any, stock: Any, seller: Any, admin: Any
+) -> None:
+    from decimal import Decimal
+
+    from fiscal.application.preparations import prepare
+    from fiscal.models import FiscalPreparation
+
+    product = make_product(code="D" * 25, sale_price=Decimal("100.00"))
+    stock(product, 20, "80.00")
+    result, _, draft = _review_for_product(
+        product, seller=seller, admin=admin, confirmed_sale=confirmed_sale, key="fiscal:limit:25"
+    )
+    assert result.impediments == ()
+    assert result.token is not None
+    prepare(
+        actor=seller,
+        preparation_id=draft.preparation_id,
+        review_token=result.token,
+        idempotency_key="fiscal:prepare:limit25",
+    )
+    snapshot = FiscalPreparation.objects.get(pk=draft.preparation_id).snapshot
+    assert snapshot is not None
+    assert snapshot["lines"][0]["item_code"] == "D" * 25
+
+
+def test_valid_qualification_with_a_fifteen_percent_line_blocks_without_touching_amounts(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import review
+
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    save_profile(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_revision=1,
+        idempotency_key="profile:comercial:qualification",
+        payload={"conditions": profile_conditions(artisan_qualification=qualification())},
+    )
+    prep_id = prepared_context["preparation_id"]
+    _fill_draft(seller, prep_id, prepared_context["point_id"])
+    result = review(actor=seller, preparation_id=prep_id)
+    assert result.token is None
+    [impediment] = [i for i in result.impediments if i["field"] == "line[1].artisan_rate"]
+    assert impediment["audience"] == "ADMINISTRATOR"
+    assert "IVA 15 %" in impediment["message"]
+    assert prepared_context["sale"]["body"]["grand_total"] == "100.00"
+
+
+def test_expired_qualification_blocks_by_profile_state_not_by_the_rate_rule(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from fiscal.application.preparations import review
+
+    yesterday = (timezone.localdate() - timedelta(days=1)).isoformat()
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    save_profile(
+        actor=admin,
+        entity_id=entity.pk,
+        expected_revision=1,
+        idempotency_key="profile:comercial:expired",
+        payload={
+            "conditions": profile_conditions(
+                artisan_qualification=qualification(yesterday, starts_on="2025-01-01")
+            )
+        },
+    )
+    prep_id = prepared_context["preparation_id"]
+    _fill_draft(seller, prep_id, prepared_context["point_id"])
+    result = review(actor=seller, preparation_id=prep_id)
+    codes = {impediment["code"] for impediment in result.impediments}
+    assert result.token is None
+    assert "conditions.artisan_qualification.expired" in codes
+    assert "line_artisan_rate" not in codes
+
+
+def test_profile_in_legacy_format_blocks_the_review_with_an_administrator_impediment(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import review
+    from workshop_configuration.models import ElectronicProfileRevision
+
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=2,
+        conditions_format=1,
+        conditions={"rimpe": {"status": "UNKNOWN"}},
+        created_by=admin,
+    )
+    prep_id = prepared_context["preparation_id"]
+    _fill_draft(seller, prep_id, prepared_context["point_id"])
+    result = review(actor=seller, preparation_id=prep_id)
+    [impediment] = [i for i in result.impediments if i["code"] == "profile.legacy_format"]
+    assert result.token is None
+    assert impediment["audience"] == "ADMINISTRATOR"
+    assert "de nuevo" in impediment["message"]
+
+
+def test_snapshots_of_earlier_formats_are_read_back_unchanged(
+    prepared_context: dict[str, Any], seller: Any, admin: Any
+) -> None:
+    from fiscal.application.preparations import get_preparation
+    from fiscal.models import FiscalPreparation
+
+    current = _prepared_snapshot(seller, prepared_context, "fiscal:prepare:formats")
+    format_two = {
+        **{k: v for k, v in current.items() if k != "legends"},
+        "snapshot_format": 2,
+        "legends": ["special_taxpayer: 12345"],
+        "issuer": {key: value for key, value in current["issuer"].items() if key != "tax_profile"},
+    }
+    format_one = {key: value for key, value in format_two.items() if key != "snapshot_format"}
+    for legacy in (format_two, format_one):
+        FiscalPreparation.objects.filter(pk=prepared_context["preparation_id"]).update(
+            snapshot=legacy
+        )
+        detail = get_preparation(actor=admin, preparation_id=prepared_context["preparation_id"])
+        assert detail.snapshot == legacy
+        assert detail.technical is not None
+        assert "tax_profile" not in detail.technical["issuer"]

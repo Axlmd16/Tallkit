@@ -2,6 +2,7 @@
 
 from datetime import date
 from types import ModuleType
+from typing import Any
 
 import pytest
 
@@ -379,3 +380,51 @@ def test_qualification_days_left_ignores_conditions_that_do_not_apply() -> None:
     assert api.qualification_days_left(api.DeclaredCondition("UNKNOWN"), date(2026, 9, 26)) is None
     parsed = api.parse_profile_conditions(workshop_profile(artisan_qualification=NOT_APPLICABLE))
     assert api.qualification_days_left(parsed["artisan_qualification"], date(2026, 9, 26)) is None
+
+
+def _tax_profile(**override: dict[str, str]) -> dict[str, Any]:
+    api = profile_api()
+    parsed = api.parse_profile_conditions(workshop_profile(**override))
+    result: dict[str, Any] = api.build_tax_profile(parsed)
+    return result
+
+
+def test_tax_profile_of_the_workshop_has_only_what_applies() -> None:
+    assert _tax_profile() == {
+        "regime": "GENERAL",
+        "accounting_obligation": "NO",
+        "artisan_qualification": {
+            "number": "JNDA-12345",
+            "issuing_body": "Junta Nacional de Defensa del Artesano",
+            "ends_on": "2028-05-31",
+        },
+    }
+
+
+def test_tax_profile_derives_the_rimpe_legend_and_omits_conditions_that_do_not_apply() -> None:
+    profile = _tax_profile(
+        tax_regime=declared("RIMPE_EMPRENDEDOR"), artisan_qualification=NOT_APPLICABLE
+    )
+    assert profile == {
+        "regime": "RIMPE_EMPRENDEDOR",
+        "regime_legend": "CONTRIBUYENTE RÉGIMEN RIMPE",
+        "accounting_obligation": "NO",
+    }
+
+
+def test_tax_profile_keeps_the_designation_numbers_only_when_they_apply() -> None:
+    profile = _tax_profile(
+        accounting_obligation=declared("SI"),
+        withholding_agent=declared("12345"),
+        special_taxpayer=declared("ABC123"),
+        artisan_qualification=NOT_APPLICABLE,
+    )
+    assert profile["accounting_obligation"] == "SI"
+    assert profile["withholding_agent_resolution"] == "12345"
+    assert profile["special_taxpayer_resolution"] == "ABC123"
+    assert "artisan_qualification" not in profile
+
+
+def test_tax_profile_leaves_out_undeclared_conditions() -> None:
+    api = profile_api()
+    assert api.build_tax_profile(api.parse_profile_conditions({})) == {}

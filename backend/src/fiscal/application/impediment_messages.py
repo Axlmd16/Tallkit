@@ -18,6 +18,13 @@ _CONFIGURATION_MESSAGES = {
     "establishment_address": "Falta la dirección del establecimiento predeterminado.",
     "payment_forms_missing": "La entidad no tiene formas de pago habilitadas.",
     "default_payment_form_required": "La entidad no tiene forma de pago predeterminada.",
+    "profile.legacy_format": (
+        "El perfil tributario conserva condiciones escritas como texto libre; declárelo de "
+        "nuevo con las opciones actuales."
+    ),
+    "conditions.tax_regime.unsupported": (
+        "El régimen RIMPE Negocio Popular emite notas de venta, que este sistema no contempla."
+    ),
 }
 _SUFFIX = " Debe resolverlo el Administrador en Configuración, pestaña Facturación electrónica."
 
@@ -42,6 +49,20 @@ def classify(impediment: dict[str, Any]) -> dict[str, str]:
             "code": code,
             "audience": ADMINISTRATOR,
             "message": _configuration_message(code, message),
+        }
+    if field.startswith("line[") and field.endswith((".item_code", ".description")):
+        return {
+            "field": field,
+            "code": "line_text_limit",
+            "audience": ADMINISTRATOR,
+            "message": f"{message} Corrija el producto o servicio en el catálogo.",
+        }
+    if field.startswith("line[") and field.endswith(".artisan_rate"):
+        return {
+            "field": field,
+            "code": "line_artisan_rate",
+            "audience": ADMINISTRATOR,
+            "message": message + _SUFFIX,
         }
     if field.startswith("line[") and field.endswith(".tax_mapping"):
         return {
