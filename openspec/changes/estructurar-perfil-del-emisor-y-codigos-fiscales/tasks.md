@@ -79,14 +79,24 @@ Resultado registrado (2026-10-05):
 
 Dependencias: grupo 1. Diseño 8; spec `catalogo-de-servicios`.
 
-- [ ] 5.1 Crear las migraciones de `catalog`: `Service.code` anulable y `ServiceCodeCounter` de fila única; relleno idempotente por `created_at` e `id` que fija el contador; `code` obligatorio y único. Añadir una prueba de migración con servicios previos que compruebe orden, unicidad y que nombre, precio y estado no cambian.
-- [ ] 5.2 Escribir primero en `tests/catalog/test_catalog_services.py` casos rojos: el alta asigna `SRV-` con el siguiente número; un alta fallida no deja servicio sin código; un servicio desactivado no libera su código; alta y edición rechazan un `code` recibido con error de campo.
-- [ ] 5.3 Escribir primero en `tests/catalog/test_catalog_concurrency.py` un caso rojo con dos altas simultáneas en transacciones reales que deben recibir códigos distintos.
-- [ ] 5.4 Implementar la asignación con `select_for_update` sobre el contador dentro de la transacción del alta; hacer pasar 5.2–5.3.
-- [ ] 5.5 Escribir primero en `tests/catalog/test_catalog_api.py` casos rojos: el código aparece en ficha y listado y la búsqueda « srv-000012 » localiza el servicio. Implementar en consultas y serializadores, y exponer el código en `tests/catalog/test_workshop_references.py` y su interfaz de referencia para el taller.
-- [ ] 5.6 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/catalog`, Ruff y mypy sobre `src/catalog`, y el chequeo de migraciones.
+- [x] 5.1 Crear las migraciones de `catalog`: `Service.code` anulable y `ServiceCodeCounter` de fila única; relleno idempotente por `created_at` e `id` que fija el contador; `code` obligatorio y único. Añadir una prueba de migración con servicios previos que compruebe orden, unicidad y que nombre, precio y estado no cambian.
+- [x] 5.2 Escribir primero en `tests/catalog/test_catalog_services.py` casos rojos: el alta asigna `SRV-` con el siguiente número; un alta fallida no deja servicio sin código; un servicio desactivado no libera su código; alta y edición rechazan un `code` recibido con error de campo.
+- [x] 5.3 Escribir primero en `tests/catalog/test_catalog_concurrency.py` un caso rojo con dos altas simultáneas en transacciones reales que deben recibir códigos distintos.
+- [x] 5.4 Implementar la asignación con `select_for_update` sobre el contador dentro de la transacción del alta; hacer pasar 5.2–5.3.
+- [x] 5.5 Escribir primero en `tests/catalog/test_catalog_api.py` casos rojos: el código aparece en ficha y listado y la búsqueda « srv-000012 » localiza el servicio. Implementar en consultas y serializadores, y exponer el código en `tests/catalog/test_workshop_references.py` y su interfaz de referencia para el taller.
+- [x] 5.6 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/catalog`, Ruff y mypy sobre `src/catalog`, y el chequeo de migraciones.
 
 Evidencia del grupo: migración aplicada y revertida en desarrollo, conteo de servicios con código igual al de 1.4, concurrencia en verde.
+
+Resultado registrado (2026-10-05):
+- Rojo inicial por la razón esperada: `ImportError` (`ServiceCodeCounter` inexistente), `NodeNotFoundError` (migración inexistente) y `AttributeError` en la referencia del taller; verde tras implementar el modelo, las tres migraciones (`0003_service_code_and_counter`, `0004_backfill_service_codes`, `0005_service_code_required_unique`) y `catalog.application.service_codes.next_service_code`.
+- Tres migraciones separadas para que el relleno y el cambio a `NOT NULL`/único no compartan transacción en PostgreSQL. El relleno guarda solo la columna `code`: no cambia versión ni fecha de actualización.
+- Base de desarrollo: aplicada, revertida a `0002` y reaplicada. Los 6 servicios existentes quedaron con `SRV-000001` a `SRV-000006` en orden de creación (6 códigos distintos, igual al conteo de 1.4), contador en 6 y nombres, versiones y estado intactos.
+- Concurrencia: dos altas simultáneas con transacciones reales reciben `SRV-000001` y `SRV-000002`; una alta con fallo de persistencia revierte el número.
+- `Service.code` es obligatorio y único: las seis creaciones directas de `Service` en pruebas de otros módulos reciben un código explícito de prueba.
+- La búsqueda de servicios (API y referencia del taller) también encuentra por código, y la interfaz de referencia entrega `code` para el grupo 6.
+- Verificación 5.6: `tests/catalog` + `tests/workshop` + `tests/sales/test_workshop_links.py`, 485 pruebas, 484 pasan; Ruff, mypy sobre `src/catalog` y `tests/catalog` y `makemigrations --check` sin hallazgos.
+- Hallazgo ajeno al cambio: `tests/workshop/test_boundaries.py::test_no_other_module_imports_workshop` falla también sin los cambios de este cambio (`fiscal/application/xml_archive.py` y `preparations.py` importan `workshop`). No se modificó.
 
 ## 6. Código de servicio en las líneas artesanales
 

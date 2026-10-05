@@ -1,5 +1,6 @@
 """Interfaz pública de servicios del catálogo para el taller."""
 
+import itertools
 from decimal import Decimal
 
 import pytest
@@ -16,8 +17,12 @@ from workshop_configuration.models import TaxDefinition
 pytestmark = pytest.mark.django_db
 
 
+_codes = itertools.count(1)
+
+
 def make(tax: TaxDefinition, name: str, **overrides: object) -> Service:
     values: dict[str, object] = {
+        "code": f"SRV-9{next(_codes):05d}",
         "name": name,
         "reference_price": Decimal("25.00"),
         "tax_definition": tax,
@@ -60,3 +65,18 @@ def test_options_are_active_searchable_and_paginated(artisanal_tax: TaxDefinitio
     assert page.total_count == 5
     assert [s.name for s in page.items] == ["Cambio 2", "Cambio 3"]
     assert all(s.reference_price == Decimal("25.00") for s in page.items)
+
+
+def test_lock_returns_the_service_code(artisanal_tax: TaxDefinition) -> None:
+    service = make(artisanal_tax, "Alineación", code="SRV-000042")
+    with transaction.atomic():
+        ref = lock_service_reference(service.pk)
+    assert ref.code == "SRV-000042"
+
+
+def test_options_expose_the_code_and_search_matches_it(artisanal_tax: TaxDefinition) -> None:
+    make(artisanal_tax, "Alineación", code="SRV-000101")
+    make(artisanal_tax, "Balanceo", code="SRV-000102")
+    by_code = list_service_options(search=" srv-000102 ")
+    assert [(s.name, s.code) for s in by_code.items] == [("Balanceo", "SRV-000102")]
+    assert list_service_options(search="alinea").items[0].code == "SRV-000101"

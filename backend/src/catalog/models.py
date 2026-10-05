@@ -163,7 +163,25 @@ class ProductCompatibility(models.Model):
         return f"{self.product_id}:{self.vehicle_brand_id}"
 
 
+class ServiceCodeCounter(models.Model):
+    """Contador único del código SRV-; se bloquea en la transacción del alta del servicio."""
+
+    last_number = models.PositiveBigIntegerField(default=0)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(id=1), name="service_code_counter_single_row"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"SRV {self.last_number}"
+
+
 class Service(_Auditable):
+    # Asignado por el sistema al crear (`catalog.application.service_codes`); nunca se edita.
+    code = models.CharField(max_length=25, unique=True)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=2000, blank=True, default="")
     reference_price = models.DecimalField(max_digits=14, decimal_places=2)

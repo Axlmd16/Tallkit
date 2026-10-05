@@ -335,3 +335,29 @@ def test_same_product_code_only_one_wins(admin: Any) -> None:
     assert getattr(loser, "code", None) == "duplicate_code"
     assert Product.objects.filter(code="SAME-CODE").count() == 1
     assert Product.objects.count() == 1
+
+
+def test_simultaneous_service_creation_assigns_different_codes(admin: Any) -> None:
+    from catalog.application import services as service_commands
+    from catalog.models import Service
+
+    entity = FiscalEntity.objects.create(
+        entity_type="ARTESANAL", legal_name="A", ruc="1790000000002"
+    )
+    tax = TaxDefinition.objects.create(fiscal_entity=entity, code="ART", name="Artesanal")
+
+    def make(n: int) -> Callable[[], Any]:
+        return lambda: service_commands.create_service(
+            actor=admin,
+            payload={
+                "name": f"Servicio {n}",
+                "reference_price": "10",
+                "tax_definition_id": tax.pk,
+                "idempotency_key": f"conc-svc-{n:04d}",
+            },
+        )
+
+    a, b = run_pair(make(1), make(2))
+    assert not isinstance(a, Exception), a
+    assert not isinstance(b, Exception), b
+    assert sorted(Service.objects.values_list("code", flat=True)) == ["SRV-000001", "SRV-000002"]

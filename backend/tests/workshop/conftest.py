@@ -68,6 +68,7 @@ def make_service(artisan: dict[str, Any]):  # type: ignore[no-untyped-def]
     def factory(**overrides: Any) -> Service:
         number = next(_sequence)
         values: dict[str, Any] = {
+            "code": f"SRV-9{number:05d}",
             "name": f"Servicio {number}",
             "reference_price": Decimal("25.00"),
             "tax_definition": artisan["tax"],

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from django.db import transaction
+from django.db.models import Q
 
 from catalog.models import Service
 
@@ -15,6 +16,7 @@ from catalog.models import Service
 @dataclass(frozen=True)
 class WorkshopServiceReference:
     id: int
+    code: str
     name: str
     description: str
     reference_price: Decimal
@@ -40,6 +42,7 @@ class ServiceReferenceError(Exception):
 def _reference(service: Service) -> WorkshopServiceReference:
     return WorkshopServiceReference(
         id=service.pk,
+        code=service.code,
         name=service.name,
         description=service.description,
         reference_price=service.reference_price,
@@ -69,11 +72,11 @@ def lock_service_reference(service_id: int) -> WorkshopServiceReference:
 def list_service_options(
     *, search: str = "", page: int = 1, page_size: int = 20
 ) -> WorkshopServicePage:
-    """Servicios activos seleccionables, por nombre parcial y paginados en servidor."""
+    """Servicios activos seleccionables, por nombre o código parcial y paginados en servidor."""
     queryset = Service.objects.filter(is_active=True).select_related("tax_definition")
     term = search.strip()
     if term:
-        queryset = queryset.filter(name__icontains=term)
+        queryset = queryset.filter(Q(name__icontains=term) | Q(code__icontains=term))
     queryset = queryset.order_by("name", "id")
     total = queryset.count()
     offset = (page - 1) * page_size

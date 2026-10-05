@@ -104,6 +104,7 @@ def test_linked_line_rejects_unavailable_inactive_service_and_client_prices(
 
     service = Service.objects.create(
         id=999_999,
+        code="SRV-999999",
         name="Alineación",
         reference_price=D("20.00"),
         tax_definition=product.tax_definition,

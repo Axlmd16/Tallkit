@@ -50,7 +50,9 @@ def objs(commercial_tax: TaxDefinition, artisanal_tax: TaxDefinition) -> dict[st
         sale_price=1,
         tax_definition=commercial_tax,
     )
-    service = Service.objects.create(name="S", reference_price=1, tax_definition=artisanal_tax)
+    service = Service.objects.create(
+        code="SRV-900001", name="S", reference_price=1, tax_definition=artisanal_tax
+    )
     supplier = Supplier.objects.create(name="Sup")
     return {
         "product-categories": cat.pk,
@@ -346,3 +348,42 @@ def test_code_over_limit_only_accepts_true_and_is_not_a_label_filter(
     assert "code_over_limit" in invalid.json()["errors"]
     labels = admin.get("/api/v1/products/label-data/?code_over_limit=true")
     assert labels.status_code == 400
+
+
+def test_service_code_is_assigned_exposed_and_never_accepted_from_the_client(
+    objs: dict[str, int], artisanal_tax: TaxDefinition
+) -> None:
+    manager = client_for("ENCARGADO_TALLER")
+    body = {
+        "name": "Alineación",
+        "reference_price": "12",
+        "tax_definition_id": artisanal_tax.pk,
+    }
+    created = manager.post(
+        "/api/v1/services/", {**body, "idempotency_key": "api-key-0030"}, format="json"
+    )
+    assert created.status_code == 201
+    code = created.json()["code"]
+    assert code.startswith("SRV-")
+    assert len(code) <= 25
+    detail = manager.get(f"/api/v1/services/{created.json()['id']}/").json()
+    assert detail["code"] == code
+    assert [row["code"] for row in manager.get("/api/v1/services/").json()["results"]].count(
+        code
+    ) == 1
+    found = manager.get(f"/api/v1/services/?search={code.lower()}").json()
+    assert [row["id"] for row in found["results"]] == [created.json()["id"]]
+    rejected = manager.post(
+        "/api/v1/services/",
+        {**body, "code": "MI-CODIGO", "idempotency_key": "api-key-0031"},
+        format="json",
+    )
+    assert rejected.status_code == 400
+    assert "code" in rejected.json()["errors"]
+    edited = manager.patch(
+        f"/api/v1/services/{created.json()['id']}/",
+        {"expected_version": 1, "code": "OTRO", "idempotency_key": "api-key-0032"},
+        format="json",
+    )
+    assert edited.status_code == 400
+    assert Service.objects.get(pk=created.json()["id"]).code == code

@@ -175,6 +175,8 @@ class ServicePatchSerializer(ServiceWriteSerializer):
 
 
 class ServiceSerializer(_Record):
+    # Asignado por el sistema al crear; no se envía ni se edita.
+    code = serializers.CharField()
     name = serializers.CharField()
     description = serializers.CharField()
     reference_price = serializers.CharField()

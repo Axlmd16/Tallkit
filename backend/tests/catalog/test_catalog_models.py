@@ -109,17 +109,42 @@ def test_compatibility_unique_and_protected(
     assert VehicleBrand.objects.count() == 1
 
 
-def test_services_may_share_names_and_have_no_code(commercial_tax: TaxDefinition) -> None:
+def test_services_may_share_names_but_each_has_a_unique_code(
+    commercial_tax: TaxDefinition,
+) -> None:
     Service.objects.create(
-        name="Alineación", reference_price=Decimal("5"), tax_definition=commercial_tax
+        code="SRV-000001",
+        name="Alineación",
+        reference_price=Decimal("5"),
+        tax_definition=commercial_tax,
     )
     Service.objects.create(
-        name="Alineación", reference_price=Decimal("0"), tax_definition=commercial_tax
+        code="SRV-000002",
+        name="Alineación",
+        reference_price=Decimal("0"),
+        tax_definition=commercial_tax,
     )
     assert Service.objects.count() == 2
     with pytest.raises(IntegrityError), transaction.atomic():
         Service.objects.create(
-            name="x", reference_price=Decimal("-1"), tax_definition=commercial_tax
+            code="SRV-000001",
+            name="Otro",
+            reference_price=Decimal("1"),
+            tax_definition=commercial_tax,
+        )
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Service.objects.create(
+            code=None,  # type: ignore[misc]
+            name="Sin código",
+            reference_price=Decimal("1"),
+            tax_definition=commercial_tax,
+        )
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Service.objects.create(
+            code="SRV-000003",
+            name="x",
+            reference_price=Decimal("-1"),
+            tax_definition=commercial_tax,
         )
 
 

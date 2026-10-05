@@ -154,6 +154,7 @@ def service_dicts(services: list[Service]) -> list[dict[str, Any]]:
     tax = get_catalog_tax_options({s.tax_definition_id for s in services})
     return [
         {
+            "code": s.code,
             "name": s.name,
             "description": s.description,
             "reference_price": _decimal_text(s.reference_price, 2),
@@ -340,7 +341,7 @@ def list_services(params: dict[str, Any]) -> Page:
     search, is_active, page, page_size = parse_list_params(params)
     queryset = _state_filter(Service.objects.all(), is_active)
     if search:
-        queryset = queryset.filter(name__icontains=search)
+        queryset = queryset.filter(Q(name__icontains=search) | Q(code__icontains=search))
     rows, count = _paginate(_ordered(queryset), page, page_size)
     return Page(service_dicts(rows), count, page, page_size)
 

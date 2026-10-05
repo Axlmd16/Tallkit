@@ -15,6 +15,7 @@ from catalog.application.commands import (
 )
 from catalog.application.errors import field_error, not_found, stale_record
 from catalog.application.queries import service_dict
+from catalog.application.service_codes import next_service_code
 from catalog.domain.errors import CatalogValidationError
 from catalog.domain.validation import NormalizedService, validate_service
 from catalog.models import Service
@@ -68,7 +69,9 @@ def create_service(
     def work() -> tuple[int, dict[str, Any], list[str]]:
         new = _normalized(payload)
         _check_tax(new.tax_definition_id)
-        service = save_or_translate(lambda: Service.objects.create(**asdict(new)), {})
+        service = save_or_translate(
+            lambda: Service.objects.create(code=next_service_code(), **asdict(new)), {}
+        )
         return 201, service_dict(service), list(FIELDS)
 
     return execute_write(
