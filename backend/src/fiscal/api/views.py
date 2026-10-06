@@ -81,6 +81,10 @@ from workshop_configuration.application.preparation_settings import (
     set_payment_form_enabled,
     set_preparation_defaults,
 )
+from workshop_configuration.application.withholding_settings import (
+    get_withholding_settings,
+    set_withholding_settings,
+)
 from workshop_configuration.domain.validation import ConfigurationValidationError
 
 _PROBLEMS = {
@@ -1049,6 +1053,51 @@ class ElectronicStatusView(_FiscalConfigurationView):
                     "default_point_id": result.defaults.point_id,
                     "default_payment_code": result.defaults.payment_code,
                 }
+            )
+
+        return _respond(request, operation)
+
+
+def _withholding_payload(current: Any) -> dict[str, Any]:
+    return {
+        "entity_id": current.entity_id,
+        "version": current.version,
+        "registration_enabled": current.registration_enabled,
+        "warning_percentage": (
+            None if current.warning_percentage is None else f"{current.warning_percentage:.2f}"
+        ),
+    }
+
+
+class WithholdingSettingsView(_FiscalConfigurationView):
+    @extend_schema(tags=[_TAG], responses={200: sz.FiscalWithholdingSettings, **_PROBLEMS})
+    def get(self, request: Request, entity_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: Response(
+                _withholding_payload(
+                    get_withholding_settings(actor=_actor(request), entity_id=entity_id)
+                )
+            ),
+        )
+
+    @extend_schema(
+        tags=[_TAG],
+        request=sz.FiscalWithholdingSettingsWrite,
+        responses={200: sz.FiscalWithholdingSettings, **_PROBLEMS},
+    )
+    def put(self, request: Request, entity_id: int) -> Response:
+        def operation() -> Response:
+            data = _validated(sz.FiscalWithholdingSettingsWrite, request)
+            actor = _actor(request)
+            set_withholding_settings(
+                actor=actor,
+                entity_id=entity_id,
+                idempotency_key=_idempotency_key(request),
+                **data,
+            )
+            return Response(
+                _withholding_payload(get_withholding_settings(actor=actor, entity_id=entity_id))
             )
 
         return _respond(request, operation)

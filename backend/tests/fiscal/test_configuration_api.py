@@ -418,3 +418,38 @@ def test_mapping_successor_rejects_a_past_date_and_other_roles(
     assert denied.status_code == 403
     mapping.refresh_from_db()
     assert mapping.ends_on is None
+
+
+def test_withholding_settings_default_change_and_validation(
+    entity: FiscalEntity, role_admin: User, role_seller: User
+) -> None:
+    client = _client(role_admin)
+    path = f"{BASE}/entities/{entity.pk}/withholding-settings/"
+    current = client.get(path).json()
+    assert current == {
+        "entity_id": entity.pk,
+        "version": 0,
+        "registration_enabled": True,
+        "warning_percentage": "20.00",
+    }
+    saved = _write(
+        client,
+        "put",
+        path,
+        {"expected_version": 0, "registration_enabled": False, "warning_percentage": None},
+    )
+    assert saved.status_code == 200
+    assert saved.json()["registration_enabled"] is False
+    assert saved.json()["warning_percentage"] is None
+    assert saved.json()["version"] == 1
+
+    invalid = _write(client, "put", path, {"expected_version": 1, "warning_percentage": "150"})
+    assert invalid.status_code == 400
+    stale = _write(client, "put", path, {"expected_version": 0, "registration_enabled": True})
+    assert stale.status_code == 409
+
+    seller = _client(role_seller)
+    assert seller.get(path).status_code == 403
+    denied = _write(seller, "put", path, {"expected_version": 1, "registration_enabled": True})
+    assert denied.status_code == 403
+    assert client.get(path).json()["registration_enabled"] is False

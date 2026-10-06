@@ -36,13 +36,15 @@ Resultado registrado (2026-10-05): rojo por `ImportError` (`validate_settlement`
 
 Dependencias: grupo 2. Diseño 4 y 6; spec `configuracion-operativa-y-fiscal`, «Ajustes de retenciones recibidas en el perfil tributario».
 
-- [ ] 3.1 Crear la migración aditiva de `workshop_configuration` con `ReceivedWithholdingSetting` (entidad uno a uno, `registration_enabled`, `warning_percentage` con restricción `> 0` y `≤ 100`, `version`, autoría). Añadir prueba de modelo de las restricciones.
-- [ ] 3.2 Escribir primero `backend/tests/workshop_configuration/test_withholding_settings.py` con casos rojos: valores por defecto sin fila (activado, 20), cambio en una sola entidad, porcentaje inválido (0, más de 100, tres decimales), advertencia desactivada, denegación a un Vendedor, auditoría del cambio, idempotencia del comando y ausencia de efecto sobre el estado del perfil y sobre `FiscalConfiguration`.
-- [ ] 3.3 Implementar el servicio de aplicación (lectura `withholding_settings` para otros módulos y comando administrativo con `entidades_fiscales.editar`) y hacer pasar 3.2.
-- [ ] 3.4 Exponer `GET` y `PUT` de los ajustes en `workshop_configuration/api`, con casos de API en `tests/workshop_configuration/test_api.py`.
-- [ ] 3.5 Verificar con pytest focalizado de los archivos de este grupo, `uv run --frozen python manage.py makemigrations --check --dry-run`, Ruff y mypy sobre `src/workshop_configuration`.
+- [x] 3.1 Crear la migración aditiva de `workshop_configuration` con `ReceivedWithholdingSetting` (entidad uno a uno, `registration_enabled`, `warning_percentage` con restricción `> 0` y `≤ 100`, `version`, autoría). Añadir prueba de modelo de las restricciones.
+- [x] 3.2 Escribir primero `backend/tests/workshop_configuration/test_withholding_settings.py` con casos rojos: valores por defecto sin fila (activado, 20), cambio en una sola entidad, porcentaje inválido (0, más de 100, tres decimales), advertencia desactivada, denegación a un Vendedor, auditoría del cambio, idempotencia del comando y ausencia de efecto sobre el estado del perfil y sobre `FiscalConfiguration`.
+- [x] 3.3 Implementar el servicio de aplicación (lectura `withholding_settings` para otros módulos y comando administrativo con `entidades_fiscales.editar`) y hacer pasar 3.2.
+- [x] 3.4 Exponer `GET` y `PUT` de los ajustes en `workshop_configuration/api`, con casos de API en `tests/workshop_configuration/test_api.py`.
+- [x] 3.5 Verificar con pytest focalizado de los archivos de este grupo, `uv run --frozen python manage.py makemigrations --check --dry-run`, Ruff y mypy sobre `src/workshop_configuration`.
 
 Evidencia del grupo: pruebas en verde, chequeo de migraciones sin pendientes.
+
+Resultado registrado (2026-10-05): rojo por `ImportError` (el servicio y el modelo no existían); verde con 21 pruebas en `test_withholding_settings.py` y 32 en `tests/fiscal/test_configuration_api.py`; `makemigrations --check` sin cambios; Ruff y mypy sin hallazgos. Ajustes respecto del diseño: el permiso es `parametros.gestionar`, el mismo de los demás ajustes fiscales por entidad (solo Administrador), y las rutas `GET`/`PUT` viven en `fiscal/api` (`configuration/entities/{id}/withholding-settings/`), junto a las del perfil tributario, por lo que su prueba de API está en `tests/fiscal/test_configuration_api.py`. La auditoría registra `changed_fields`, porque el registro de auditoría solo admite claves seguras.
 
 ## 4. Marca de agente de retención en el cliente
 

@@ -447,6 +447,19 @@ class FiscalPreparationDefaultsWrite(StrictSerializer):
     default_payment_code = serializers.CharField(max_length=8, required=False)
 
 
+class FiscalWithholdingSettings(serializers.Serializer[dict[str, Any]]):
+    entity_id = serializers.IntegerField()
+    version = serializers.IntegerField()
+    registration_enabled = serializers.BooleanField()
+    warning_percentage = serializers.CharField(allow_null=True)
+
+
+class FiscalWithholdingSettingsWrite(StrictSerializer):
+    expected_version = serializers.IntegerField(min_value=0)
+    registration_enabled = serializers.BooleanField(required=False)
+    warning_percentage = serializers.CharField(max_length=8, required=False, allow_null=True)
+
+
 class FiscalCatalogEntry(serializers.Serializer[dict[str, Any]]):
     id = serializers.IntegerField()
     kind = serializers.CharField()

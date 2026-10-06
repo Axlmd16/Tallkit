@@ -33,6 +33,7 @@ from fiscal.api.views import (
     PreparationReviewView,
     TaxMappingCreateView,
     TaxMappingSuccessorView,
+    WithholdingSettingsView,
 )
 
 urlpatterns = [
@@ -134,6 +135,11 @@ urlpatterns = [
         "configuration/entities/<int:entity_id>/preparation-defaults/",
         PreparationDefaultsView.as_view(),
         name="fiscal-preparation-defaults",
+    ),
+    path(
+        "configuration/entities/<int:entity_id>/withholding-settings/",
+        WithholdingSettingsView.as_view(),
+        name="fiscal-withholding-settings",
     ),
     path(
         "configuration/catalogs/<str:kind>/",

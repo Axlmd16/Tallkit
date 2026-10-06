@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import ClassVar
 
 from django.conf import settings
@@ -642,6 +643,36 @@ class FiscalPreparationDefaults(models.Model):
 
     def __str__(self) -> str:
         return f"Predeterminados {self.fiscal_entity_id}"
+
+
+class ReceivedWithholdingSetting(models.Model):
+    """Ajustes de retenciones recibidas de una entidad; sin fila rigen los valores por defecto."""
+
+    fiscal_entity = models.OneToOneField(
+        FiscalEntity, on_delete=models.PROTECT, related_name="withholding_setting"
+    )
+    registration_enabled = models.BooleanField(default=True)
+    # Nulo = advertencia desactivada.
+    warning_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, default=Decimal("20.00")
+    )
+    version = models.PositiveBigIntegerField(default=1)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(warning_percentage__isnull=True)
+                | (models.Q(warning_percentage__gt=0) & models.Q(warning_percentage__lte=100)),
+                name="wc_withholding_warning_range",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Retenciones {self.fiscal_entity_id}"
 
 
 class FiscalEntityLogo(models.Model):
