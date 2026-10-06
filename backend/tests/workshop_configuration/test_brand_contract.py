@@ -12,7 +12,7 @@ from typing import Any
 import pytest
 from django.db import transaction
 from django.test.utils import CaptureQueriesContext
-from tests.workshop_configuration.logo_helpers import image_bytes, upload
+from tests.workshop_configuration.logo_helpers import image_bytes, jpeg_with_exif, upload
 
 from identity.models import User, UserRole
 from workshop_configuration.application import brand, entity_logos, logo_storage
@@ -76,10 +76,42 @@ def test_logo_is_returned_as_normalized_bytes_with_its_hash(
     result = brand.read_entity_brand("COMERCIAL")
     assert result.asset is not None
     assert hashlib.sha256(result.asset.content).hexdigest() == result.asset.sha256
-    assert result.identity.logo_sha256 == result.asset.sha256
+    assert result.identity.logo_sha256 == FiscalEntityLogo.objects.get().sha256
     assert result.asset.content_type == "image/png"
     assert result.asset.size == len(result.asset.content) <= 2 * 1024 * 1024
     assert result.identity.logo_revision == 1
+
+
+def test_logo_whose_normalization_changes_the_bytes_is_still_readable(
+    admin: User, entity: FiscalEntity
+) -> None:
+    """Regresión: el hash registrado es el de la carga, no el del archivo normalizado."""
+    original = jpeg_with_exif()
+    entity_logos.upload_entity_logo(
+        actor=admin,
+        entity_id=entity.pk,
+        file=upload(original, "logo.jpg", "image/jpeg"),
+        idempotency_key=f"logo-{uuid.uuid4().hex}",
+    )
+    stored = FiscalEntityLogo.objects.get()
+    result = brand.read_entity_brand("COMERCIAL")
+    assert result.asset is not None
+    assert result.asset.content != original
+    assert stored.sha256 == hashlib.sha256(original).hexdigest() != result.asset.sha256
+    assert result.asset.size == stored.size_bytes
+    assert result.asset.content_type == "image/jpeg"
+    assert brand.lock_brand_identity("COMERCIAL") == result.identity
+
+
+def test_truncated_image_of_the_registered_size_is_unreadable(
+    admin: User, entity: FiscalEntity, private_media: Path
+) -> None:
+    _upload(admin, entity)
+    stored = FiscalEntityLogo.objects.get()
+    (private_media / stored.storage_name).write_bytes(b"x" * stored.size_bytes)
+    with pytest.raises(brand.BrandUnavailableError) as error:
+        brand.read_entity_brand("COMERCIAL")
+    assert error.value.code == "logo_unreadable"
 
 
 def test_dto_never_exposes_storage_paths(admin: User, entity: FiscalEntity) -> None:

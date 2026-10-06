@@ -74,7 +74,12 @@ export function QuoteComparison({
   const { totals } = comparison
   return (
     <section aria-label="Comparación con la cotización" className="space-y-3">
-      <div className="overflow-x-auto">
+      <div
+        aria-label="Tabla de comparación"
+        className="overflow-x-auto"
+        role="group"
+        tabIndex={0}
+      >
         <table className="w-full min-w-[520px] text-[13px]">
           <caption className="sr-only">
             Productos cotizados frente a {currentLabel.toLowerCase()}: cantidad,

@@ -58,7 +58,13 @@ export function ProformaDocumentPage() {
           Imprimir o guardar PDF
         </Button>
       </div>
-      <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">
+      {/* En pantallas estrechas la hoja se desplaza dentro de su panel; al imprimir no se recorta. */}
+      <div
+        aria-label="Documento de la proforma"
+        className="overflow-x-auto rounded-panel bg-workspace p-4 max-sm:p-2 print:overflow-visible print:bg-transparent print:p-0"
+        role="region"
+        tabIndex={0}
+      >
         <ProformaDocument
           data={doc}
           id={id}

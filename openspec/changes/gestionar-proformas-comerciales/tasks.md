@@ -98,8 +98,8 @@ Cubre D5 de propuesta, diseño D4/D8 y RNF-USA aplicables.
 
 - [x] 9.1 Probar e implementar documento de proforma reutilizando `frontend/src/shared/ui/business/DocumentSheet`, con identidad y logo históricos, vigencia, líneas, impuestos, totales, avisos y estado. Cierre: nunca consulta logo vigente para oferta emitida ni incluye condición de cobro, costos o identidad artesanal.
 - [x] 9.2 Probar logo reemplazado/eliminado después de emitir, ausencia original de logo, imagen ilegible antes de emitir y espera de recursos antes de imprimir. Cierre: historia reproducible, sin huecos artificiales ni omisiones silenciosas; guardar PDF usa el navegador.
-- [ ] 9.3 Añadir E2E en `frontend/e2e/` para crear → revisar → emitir → imprimir → convertir → ajustar líneas → confirmar, incluyendo respuesta perdida, oferta vencida y stock insuficiente. Cierre: vínculos/números/estados coherentes y una sola venta, sin efectos de stock hasta confirmar.
-- [ ] 9.4 Verificar y corregir impresión A4 multipágina, ancho 360 px, teclado, foco, etiquetas, contraste y estados independientes del color. Cierre: evidencia visual y de accesibilidad identificada, guardada fuera del repositorio; sin filas o totales recortados.
+- [x] 9.3 Añadir E2E en `frontend/e2e/` para crear → revisar → emitir → imprimir → convertir → ajustar líneas → confirmar, incluyendo respuesta perdida, oferta vencida y stock insuficiente. Cierre: vínculos/números/estados coherentes y una sola venta, sin efectos de stock hasta confirmar.
+- [x] 9.4 Verificar y corregir impresión A4 multipágina, ancho 360 px, teclado, foco, etiquetas, contraste y estados independientes del color. Cierre: evidencia visual y de accesibilidad identificada, guardada fuera del repositorio; sin filas o totales recortados.
 
 Dependencias: grupo 8. Evidencia: `npm run test:e2e -- <archivo-de-proformas>` y pruebas enfocadas de documento; capturas e inspección de impresión con y sin logo. No afirmar fidelidad visual solo por aprobar tests DOM.
 

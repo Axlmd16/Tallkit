@@ -56,78 +56,86 @@ function ReferenceLink({ reference }: { reference: ProformaReference }) {
 function Lines({ proforma }: { proforma: Proforma }) {
   const issued = Boolean(proforma.internal_number)
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[560px] text-sm">
-        <caption className="sr-only">Productos de la proforma</caption>
-        <thead>
-          <tr className="text-left text-xs text-ink-muted">
-            <th className="py-2 pr-3 font-semibold" scope="col">
-              Producto
-            </th>
-            <th className="px-2 py-2 text-right font-semibold" scope="col">
-              Cantidad
-            </th>
-            <th className="px-2 py-2 text-right font-semibold" scope="col">
-              {issued ? 'Disponible al emitir' : 'Disponible'}
-            </th>
-            <th className="px-2 py-2 text-right font-semibold" scope="col">
-              Precio final
-            </th>
-            <th className="py-2 pl-2 text-right font-semibold" scope="col">
-              Total
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {proforma.lines.length === 0 && (
-            <tr>
-              <td className="py-4 text-ink-muted" colSpan={5}>
-                Sin productos.
-              </td>
-            </tr>
-          )}
-          {proforma.lines.map((line) => (
-            <tr className="border-t border-line" key={line.position}>
-              <th className="py-2.5 pr-3 text-left font-normal" scope="row">
-                <span className="font-mono">{line.product_code}</span>{' '}
-                {line.product_name}
-                {line.product_active === false && (
-                  <span className="ml-2 text-xs font-semibold text-danger">
-                    Inactivo
-                  </span>
-                )}
+    <div>
+      {/* Región desplazable accesible con teclado en pantallas estrechas. */}
+      <div
+        aria-label="Productos de la proforma"
+        className="overflow-x-auto"
+        role="region"
+        tabIndex={0}
+      >
+        <table className="w-full min-w-[560px] text-sm">
+          <caption className="sr-only">Productos de la proforma</caption>
+          <thead>
+            <tr className="text-left text-xs text-ink-muted">
+              <th className="py-2 pr-3 font-semibold" scope="col">
+                Producto
               </th>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                {line.quantity}
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                <span className="inline-flex items-center justify-end gap-1">
-                  {!line.availability_sufficient && (
-                    <Tooltip
-                      content="Disponibilidad insuficiente; la proforma no reserva unidades."
-                      position="top"
-                    >
-                      <Warning
-                        aria-label="Disponibilidad insuficiente"
-                        className="text-warning"
-                        size={16}
-                        weight="fill"
-                      />
-                    </Tooltip>
-                  )}
-                  {line.availability_at_issue ?? line.availability ?? '—'}
-                </span>
-              </td>
-              <td className="px-2 py-2.5 text-right tabular-nums">
-                <Money amount={line.unit_price} />
-              </td>
-              <td className="py-2.5 pl-2 text-right font-semibold tabular-nums">
-                <Money amount={line.total_amount} />
-              </td>
+              <th className="px-2 py-2 text-right font-semibold" scope="col">
+                Cantidad
+              </th>
+              <th className="px-2 py-2 text-right font-semibold" scope="col">
+                {issued ? 'Disponible al emitir' : 'Disponible'}
+              </th>
+              <th className="px-2 py-2 text-right font-semibold" scope="col">
+                Precio final
+              </th>
+              <th className="py-2 pl-2 text-right font-semibold" scope="col">
+                Total
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {proforma.lines.length === 0 && (
+              <tr>
+                <td className="py-4 text-ink-muted" colSpan={5}>
+                  Sin productos.
+                </td>
+              </tr>
+            )}
+            {proforma.lines.map((line) => (
+              <tr className="border-t border-line" key={line.position}>
+                <th className="py-2.5 pr-3 text-left font-normal" scope="row">
+                  <span className="font-mono">{line.product_code}</span>{' '}
+                  {line.product_name}
+                  {line.product_active === false && (
+                    <span className="ml-2 text-xs font-semibold text-danger">
+                      Inactivo
+                    </span>
+                  )}
+                </th>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  {line.quantity}
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  <span className="inline-flex items-center justify-end gap-1">
+                    {!line.availability_sufficient && (
+                      <Tooltip
+                        content="Disponibilidad insuficiente; la proforma no reserva unidades."
+                        position="top"
+                      >
+                        <Warning
+                          aria-label="Disponibilidad insuficiente"
+                          className="text-warning"
+                          size={16}
+                          weight="fill"
+                        />
+                      </Tooltip>
+                    )}
+                    {line.availability_at_issue ?? line.availability ?? '—'}
+                  </span>
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums">
+                  <Money amount={line.unit_price} />
+                </td>
+                <td className="py-2.5 pl-2 text-right font-semibold tabular-nums">
+                  <Money amount={line.total_amount} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <dl className="mt-3 ml-auto grid max-w-[280px] grid-cols-2 gap-1 text-sm">
         <dt className="text-ink-muted">Base imponible</dt>
         <dd className="text-right tabular-nums">

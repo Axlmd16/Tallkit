@@ -208,7 +208,9 @@
 }
 
 @media print {
-  body * {
+  /* Solo mientras la hoja de etiquetas está montada: sin este alcance la regla dejaba en
+     blanco la impresión de cualquier otro documento (ventas, proformas). */
+  body:has(.product-label-print-surface) * {
     visibility: hidden !important;
   }
 

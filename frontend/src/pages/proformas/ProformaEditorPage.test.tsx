@@ -178,7 +178,7 @@ it('permite cotizar sin disponibilidad suficiente y lo avisa sin bloquear', asyn
   expect(screen.getByRole('button', { name: 'Revisar y emitir' })).toBeEnabled()
 })
 
-it('guarda cliente, vigencia, productos y cantidades y avisa con un toast', async () => {
+it('guarda cliente, vigencia, productos y cantidades y lo confirma junto a las acciones', async () => {
   const user = userEvent.setup()
   mocks.update.mockResolvedValue(saved({ version: 4 }))
   renderEditor()

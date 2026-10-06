@@ -123,8 +123,8 @@ export function ProformaEditorPage() {
             })
           : mutations.create.mutateAsync({ data, key }),
       )
+      // La barra de acciones confirma el guardado: un toast taparía «Revisar y emitir».
       setSavedSignature(sig)
-      toast.success('Borrador guardado.')
       if (!proformaId)
         navigate(`/proformas/${result.id}/edit`, { replace: true })
       else await saved.refetch()

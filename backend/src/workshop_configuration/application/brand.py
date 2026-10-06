@@ -7,7 +7,7 @@ ruta de almacenamiento.
 
 Dos pasos, para no leer ni decodificar archivos dentro de una sección crítica:
 
-- ``read_entity_brand``: lectura previa, sin bloqueos, que verifica tamaño y hash;
+- ``read_entity_brand``: lectura previa, sin bloqueos, que verifica tamaño e imagen;
 - ``lock_brand_identity``: bajo la transacción del consumidor, bloquea la entidad (la misma
   fila que serializa la carga y el retiro del logotipo) y devuelve solo la identidad, para
   comprobar que sigue siendo la revisada.
@@ -17,8 +17,10 @@ Un logotipo configurado cuyo archivo falta o no coincide es un error corregible,
 
 import hashlib
 from dataclasses import dataclass
+from io import BytesIO
 
 from django.db import transaction
+from PIL import Image, UnidentifiedImageError
 
 from workshop_configuration.application import logo_storage
 from workshop_configuration.domain.logo_rules import MAX_BYTES
@@ -43,6 +45,7 @@ class BrandIdentity:
     phone: str | None
     email: str | None
     logo_revision: int
+    # Huella de la carga vigente (o ``None`` sin logotipo); cambia al reemplazarlo o retirarlo.
     logo_sha256: str | None
 
 
@@ -87,17 +90,29 @@ def _unreadable() -> BrandUnavailableError:
 
 
 def _read_asset(logo: FiscalEntityLogo) -> BrandAsset:
+    """Bytes normalizados guardados al cargar el logotipo, verificados sin confiar en el disco.
+
+    ``logo.sha256`` identifica la carga original, no el archivo normalizado: la integridad del
+    archivo se comprueba con el tamaño registrado y decodificando la imagen. El hash del
+    activo se calcula sobre los bytes realmente leídos.
+    """
     try:
         with logo_storage.open_file(logo.storage_name) as handle:
             content = handle.read(MAX_BYTES + 1)
     except OSError:
         raise _unreadable() from None
-    if not content or len(content) > MAX_BYTES:
+    if not content or len(content) > MAX_BYTES or len(content) != logo.size_bytes:
         raise _unreadable()
-    if hashlib.sha256(content).hexdigest() != logo.sha256:
-        raise _unreadable()
+    try:
+        with Image.open(BytesIO(content)) as probe:
+            probe.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError):
+        raise _unreadable() from None
     return BrandAsset(
-        content=content, content_type=logo.content_type, size=len(content), sha256=logo.sha256
+        content=content,
+        content_type=logo.content_type,
+        size=len(content),
+        sha256=hashlib.sha256(content).hexdigest(),
     )
 
 
