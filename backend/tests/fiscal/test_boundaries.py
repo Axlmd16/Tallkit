@@ -31,6 +31,9 @@ ALLOWED_CROSS_MODULES = {
     "workshop_configuration.application.electronic_status",
     "workshop_configuration.application.official_catalog",
     "workshop_configuration.application.preparation_settings",
+    # Ajustes de retenciones recibidas por entidad (registrar-retenciones-recibidas-en-cobros):
+    # la API fiscal compone el servicio propietario de configuración, como los anteriores.
+    "workshop_configuration.application.withholding_settings",
     "workshop_configuration.application.initialization",
 }
 

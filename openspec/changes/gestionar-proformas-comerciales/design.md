@@ -162,4 +162,6 @@ Comandos oficiales en apply: `make check`, `make test`, `make audit`; las prueba
 
 No quedan decisiones de negocio bloqueantes: el usuario aprobó propuesta y specs. El diseño y ADR-0012 fueron aprobados el 2026-10-06 mediante «gestionar-proformas-comerciales, haz commit y continua», autorizando su registro en master y la creación de tasks. Esta aprobación no autoriza implementación. Los nombres nuevos y contratos aquí descritos se implementarán solo tras aprobación; los contratos existentes no se consideran automáticamente compatibles hasta cubrir sus pruebas de frontera. Tarifas reales y obligaciones externas siguen fuera del alcance.
 
+Ajustes durante la aplicación (2026-10-06, aprobados por el usuario): el cliente de `Proforma` es opcional y la conversión recibe el cliente de la venta cuando la oferta no lo tiene; el impreso omite disponibilidad y leyendas y añade código de fabricante y marca, conservados en la instantánea de la línea. El detalle y las demás desviaciones están en el informe de verificación de `docs/negocio/requisitos/cobertura-proformas.md` §4.
+
 Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

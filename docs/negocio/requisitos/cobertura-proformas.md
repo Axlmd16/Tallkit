@@ -3,19 +3,19 @@
 | Campo | Valor |
 |---|---|
 | Cambio OpenSpec | `openspec/changes/gestionar-proformas-comerciales`; specs `proformas-comerciales` (nueva) y `ventas-comerciales` (delta) |
-| Estado | Implementado (44 de 46 tareas); pendientes la suite completa (10.5), la verificación OpenSpec formal (10.6), la revisión visual humana del impreso y el archivo del cambio |
+| Estado | Implementado y verificado (46 de 46 tareas); pendientes la revisión visual humana del impreso, la sincronización final de specs y el archivo del cambio |
 | Fecha | 2026-10-06 |
-| Alcance | **Proformas** de productos del **RUC comercial**: borrador, emisión numerada, vigencia, anulación, copia vinculada, impresión y conversión única a venta. Excluye servicios, descuentos, reservas, anticipos, PDF en servidor y facturación electrónica |
+| Alcance | **Proformas** de productos del **RUC comercial**: borrador con cliente opcional, emisión numerada, vigencia, anulación, copia vinculada, impresión y conversión única a venta. Excluye servicios, descuentos, reservas, anticipos, PDF en servidor y facturación electrónica |
 
 ## 1. Resumen
 
 | Capacidad | Requisitos | Escenarios | Cumplidos | Parciales | Pendientes |
 |---|---|---|---|---|---|
-| Proformas comerciales | 10 | 45 | 45 | 0 | 0 |
+| Proformas comerciales | 10 | 47 | 47 | 0 | 0 |
 | Ventas comerciales (delta) | 5 | 31 | 31 | 0 | 0 |
-| **Total** | **15** | **76** | **76** | **0** | **0** |
+| **Total** | **15** | **78** | **78** | **0** | **0** |
 
-«Cumplido» significa que una prueba automatizada ejecutada localmente verifica el comportamiento del escenario. «Regresión preservada» identifica los 18 escenarios ya vigentes de los requisitos modificados de `ventas-comerciales`: su evidencia original está en [cobertura de ventas y pagos](cobertura-ventas-pagos.md) y aquí se volvieron a ejecutar. Las rutas son relativas a la raíz del repositorio y `archivo::prueba` identifica la prueba exacta (cuando se cita un archivo, todas sus pruebas).
+Las specs aprobadas tenían 76 escenarios; dos ajustes pedidos por el usuario durante la aplicación añadieron P-46 y P-47 (cliente opcional). «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el escenario. «Regresión preservada» identifica los 18 escenarios ya vigentes de los requisitos modificados de `ventas-comerciales`: su evidencia original está en [cobertura de ventas y pagos](cobertura-ventas-pagos.md) y aquí se volvieron a ejecutar. Las rutas son relativas a la raíz del repositorio y `archivo::prueba` identifica la prueba exacta (cuando se cita un archivo, todas sus pruebas).
 
 ## 2. Escenarios
 
@@ -29,6 +29,7 @@
 | P-04 | Autorización de proformas por acción | Reintento después de perder autorización | `backend/tests/proformas/test_api.py::test_replay_after_losing_permission_reveals_nothing_and_repeats_nothing, ::test_unauthenticated_or_invalidated_session_is_rejected` | Cumplido |
 | P-05 | Borradores de oferta comercial sin efectos definitivos | Preparar y corregir el borrador | `backend/tests/proformas/test_drafts.py::test_prepare_and_correct_the_draft` | Cumplido |
 | P-06 | Borradores de oferta comercial sin efectos definitivos | Emitir una oferta incompleta | `backend/tests/proformas/test_issue.py::test_incomplete_offer_cannot_be_issued` | Cumplido |
+| P-46 | Borradores de oferta comercial sin efectos definitivos | Cotizar sin cliente registrado | `backend/tests/proformas/test_optional_customer.py::test_draft_without_customer_is_saved_previewed_and_issued`; `frontend/e2e/proformas.spec.ts` | Cumplido |
 | P-07 | Borradores de oferta comercial sin efectos definitivos | Línea incompatible | `backend/tests/proformas/test_drafts.py::test_incompatible_line_is_not_partially_saved`; `backend/tests/proformas/test_domain_input.py` | Cumplido |
 | P-08 | Borradores de oferta comercial sin efectos definitivos | Producto desactivado antes de emitir | `backend/tests/proformas/test_issue.py::test_product_deactivated_before_issuing_identifies_the_line` | Cumplido |
 | P-09 | Borradores de oferta comercial sin efectos definitivos | Cotizar un kit | `backend/tests/proformas/test_drafts.py::test_kit_is_quoted_intact` | Cumplido |
@@ -49,10 +50,11 @@
 | P-24 | Emisión numerada e historia inmutable | Falla durante emisión | `backend/tests/proformas/test_issue.py::test_failure_during_issue_rolls_everything_back` | Cumplido |
 | P-25 | Emisión numerada e historia inmutable | Falta serie activa | `backend/tests/proformas/test_issue.py::test_missing_active_proforma_series_never_uses_another_series` | Cumplido |
 | P-26 | Disponibilidad informativa sin reserva | Ofertar por encima de disponibilidad | `backend/tests/proformas/test_issue.py::test_quoting_above_availability_is_allowed_and_recorded` | Cumplido |
-| P-27 | Disponibilidad informativa sin reserva | Stock cambia después de emitir | `backend/tests/proformas/test_lifecycle_queries.py::test_document_is_historical_and_separates_current_availability` | Cumplido |
+| P-27 | Disponibilidad informativa sin reserva | Stock cambia después de emitir | `backend/tests/proformas/test_lifecycle_queries.py::test_document_is_historical_and_separates_current_availability`; `frontend/src/features/proformas/ProformaDocument.test.tsx (el impreso no la muestra)` | Cumplido |
 | P-28 | Nueva oferta vinculada con valores actuales | Retomar una vencida con otro precio | `backend/tests/proformas/test_drafts.py::test_copy_of_expired_offer_uses_current_price_and_keeps_the_original` | Cumplido |
 | P-29 | Nueva oferta vinculada con valores actuales | Cambiar cantidades de una emitida | `backend/tests/proformas/test_drafts.py::test_copy_changes_quantities_only_in_the_new_draft` | Cumplido |
 | P-30 | Conversión única y atómica a venta | Conversión válida | `backend/tests/proformas/test_conversion.py::test_valid_conversion_creates_one_draft_sale_without_effects`; `frontend/e2e/proformas.spec.ts` | Cumplido |
+| P-47 | Conversión única y atómica a venta | Convertir una oferta sin cliente | `backend/tests/proformas/test_optional_customer.py::test_conversion_requires_choosing_a_customer`; `frontend/src/features/proformas/dialogs.test.tsx`; `frontend/e2e/proformas.spec.ts` | Cumplido |
 | P-31 | Conversión única y atómica a venta | Oferta no convertible | `backend/tests/proformas/test_conversion.py::test_offer_that_is_not_convertible_creates_no_sale, ::test_new_attempt_on_converted_offer_reports_the_existing_sale` | Cumplido |
 | P-32 | Conversión única y atómica a venta | Referencia desactivada al convertir | `backend/tests/proformas/test_conversion.py::test_deactivated_reference_is_reported_without_partial_sale` | Cumplido |
 | P-33 | Conversión única y atómica a venta | Fallo de creación de la venta | `backend/tests/proformas/test_conversion.py::test_failure_after_creating_the_sale_rolls_everything_back` | Cumplido |
@@ -64,7 +66,7 @@
 | P-39 | Reintentos y ediciones concurrentes de proformas | Guardado obsoleto | `backend/tests/proformas/test_drafts.py::test_stale_save_does_not_overwrite`; `backend/tests/proformas/test_concurrency.py::test_edit_competes_with_issue_without_partial_effects` | Cumplido |
 | P-40 | Reintentos y ediciones concurrentes de proformas | Emisiones independientes simultáneas | `backend/tests/proformas/test_concurrency.py::test_simultaneous_issues_of_different_offers_get_distinct_consecutive_numbers` | Cumplido |
 | P-41 | Consulta e impresión de cotizaciones | Buscar y navegar | `backend/tests/proformas/test_lifecycle_queries.py::test_search_filter_and_navigate`; `backend/tests/proformas/test_conversion.py::test_search_converted_and_open_the_linked_sale`; `frontend/src/pages/proformas/ProformasPage.test.tsx` | Cumplido |
-| P-42 | Consulta e impresión de cotizaciones | Impresión comercial completa | `frontend/src/features/proformas/ProformaDocument.test.tsx`; `frontend/e2e/proformas.spec.ts (impresión A4 de 60 líneas)` | Cumplido; la fidelidad visual del impreso queda para revisión humana (evidencia en PDF y capturas fuera del repositorio) |
+| P-42 | Consulta e impresión de cotizaciones | Impresión comercial completa | `frontend/src/features/proformas/ProformaDocument.test.tsx`; `backend/tests/proformas/test_lifecycle_queries.py::test_document_shows_the_manufacturer_code_frozen_at_issue, ::test_document_shows_the_product_brand_frozen_at_issue`; `frontend/e2e/proformas.spec.ts (A4 de 60 líneas y descripción extensa)` | Cumplido; la fidelidad visual del impreso queda para revisión humana (evidencia en PDF y capturas fuera del repositorio) |
 | P-43 | Consulta e impresión de cotizaciones | Emisor sin logo | `backend/tests/proformas/test_issue.py::test_offer_issued_without_logo_keeps_that_absence`; `frontend/src/features/proformas/ProformaDocument.test.tsx`; `frontend/e2e/proformas.spec.ts` | Cumplido |
 | P-44 | Consulta e impresión de cotizaciones | Imprimir después de anular o vencer | `backend/tests/proformas/test_lifecycle_queries.py::test_document_after_void_or_expiry_keeps_values_and_shows_state`; `frontend/src/features/proformas/ProformaDocument.test.tsx` | Cumplido |
 | P-45 | Consulta e impresión de cotizaciones | Captura accesible y error recuperable | `frontend/src/pages/proformas/ProformaEditorPage.test.tsx`; `frontend/e2e/proformas.spec.ts (360 px y teclado)` | Cumplido |
@@ -105,31 +107,47 @@
 | V-30 | Consulta comercial y comprobante interno accesibles | Encargado consulta una venta vinculada | `backend/tests/sales/test_queries.py, test_api.py; frontend/src/pages/sales/*.test.tsx` | Regresión preservada: reejecutada y aprobada |
 | V-31 | Consulta comercial y comprobante interno accesibles | Filtrar ventas originadas por proformas | `backend/tests/proformas/test_sale_from_proforma.py::test_origin_filter_lists_only_sales_from_proformas`; `frontend/src/pages/sales/proforma-origin.test.tsx` | Cumplido |
 
-## 3. Comandos y resultados
+## 3. Comandos y resultados (ejecución final del 2026-10-06)
 
 | Tarea | Comando | Resultado |
 |---|---|---|
 | 1.1 | `git status --short`; `git log --oneline` del cambio y de ADR-0012 | Propuesta `d166ec7`, specs `d23996e`, diseño y ADR `732562b`, tareas `310fd19` en `master` |
-| 1.2, 10.3 | Generación de esta matriz desde ambas specs con comprobación `total == 76` | 45 escenarios de proformas y 31 de ventas |
-| 2…7 (backend) | `cd backend && uv run --frozen pytest --no-cov tests/proformas tests/sales tests/api tests/workshop tests/fiscal tests/workshop_configuration/test_brand_contract.py` | 1464 aprobadas y 1 fallo ajeno y anterior a este cambio: `tests/fiscal/test_boundaries.py::test_fiscal_uses_only_published_cross_module_interfaces` (`fiscal/api/views.py` importa `workshop_configuration.application.withholding_settings` desde el cambio de retenciones) |
-| 3.4 | `uv run --frozen python manage.py makemigrations --check --dry-run`; `tests/proformas/test_migrations.py` | `No changes detected`; avance y reversión sin datos nuevos aprobados. No se ejecutó `make migrate` sobre datos del usuario |
-| 7.1, 7.2 | `uv run --frozen pytest --no-cov tests/proformas/test_concurrency.py` | 12 aprobadas con PostgreSQL real, conexiones independientes y barreras; sin esperas temporizadas |
-| 7.5 | `uv run --frozen python manage.py spectacular --validate --file schema.yml` | 0 errores; 9 advertencias (7 únicas) no introducidas por proformas |
-| Calidad backend | `uv run --frozen ruff format --check .`, `ruff check`, `mypy src tests/proformas` | Sin hallazgos |
-| 8, 9.1, 9.2 (frontend) | `cd frontend && npx vitest run src/features/proformas src/pages/proformas src/features/sales src/pages/sales src/app/proformas-routes.test.tsx src/app/sales-routes.test.tsx src/shared/ui/business src/features/product-labels` | 30 archivos y 256 pruebas aprobadas; `tsc --noEmit`, ESLint y Prettier sin hallazgos en los archivos tocados |
-| 9.3, 9.4 | `CI=1 PLAYWRIGHT_BASE_URL=… npx playwright test e2e/proformas.spec.ts --retries=0` | 6 aprobadas: flujo completo, respuesta perdida, sin stock, oferta vencida, logo histórico e impresión A4 de 60 líneas con 360 px, teclado y axe. Se ejecutó contra servidores en puertos alternos porque el 8001 lo ocupa otro proyecto. Además `e2e/product-labels.spec.ts` y los casos de comprobante de `e2e/sales-payments.spec.ts`: 3 aprobadas |
-| 10.4 | `uv run --frozen pytest --no-cov tests/proformas/test_backup_restore.py`; `tests/proformas/test_conversion.py -k reconcil` | Respaldo `pg_dump` y restauración en base temporal: oferta, líneas, logo (hash y tamaño), vínculo y triggers conservados; conciliación de solo lectura aprobada |
-| 10.5 (parcial) | Cobertura de `src/proformas`, `proforma_links`, `proforma_comparison` y `brand` con `tests/proformas`; `ruff format --check .`, `ruff check .`, `manage.py check`, `npm run build`, `docker compose config --quiet`, `openspec validate gestionar-proformas-comerciales --strict` | 93 % de cobertura (umbral 85 %); 278 aprobadas; lint, chequeo de Django, build, Compose y validación OpenSpec sin hallazgos. **La casilla 10.5 queda sin marcar**: `make check` completo no se ejecutó y fallaría por la prueba de frontera fiscal ajena |
+| Backend | `cd backend && uv run --frozen pytest tests/proformas tests/sales tests/fiscal/test_boundaries.py tests/catalog/test_sales_references.py tests/workshop_configuration/test_brand_contract.py tests/workshop_configuration/test_entity_logos.py tests/api/test_openapi.py tests/workshop/test_boundaries.py` con cobertura de `src/proformas`, `proforma_links`, `proforma_comparison` y `brand` | 945 aprobadas, 0 fallos; cobertura 93,17 % (umbral 85 %) |
+| Concurrencia | `tests/proformas/test_concurrency.py` (incluida arriba) | 12 aprobadas con PostgreSQL real, conexiones independientes y barreras; sin esperas temporizadas |
+| Migraciones | `uv run --frozen python manage.py makemigrations --check --dry-run`; `tests/proformas/test_migrations.py` | `No changes detected`; avance y reversión sin datos nuevos aprobados. La migración `proformas.0003` (cliente opcional) queda por aplicar en la base de desarrollo con el comando oficial de migración |
+| Calidad backend | `uv run --frozen ruff format --check .`, `ruff check .`, `mypy src tests/proformas`, `manage.py check` | Sin hallazgos (322 archivos tipados) |
+| OpenAPI | `uv run --frozen python manage.py spectacular --validate --file schema.yml` | 0 errores |
+| Frontend | `cd frontend && npx vitest run src/features/proformas src/pages/proformas src/features/sales src/pages/sales src/app/proformas-routes.test.tsx src/app/sales-routes.test.tsx src/shared/ui/business src/features/product-labels` | 35 archivos y 314 pruebas aprobadas |
+| Calidad frontend | `npx tsc --noEmit`, ESLint y Prettier sobre los archivos tocados, `npm run build` | Sin hallazgos; build correcto |
+| E2E | `npx playwright test e2e/proformas.spec.ts --retries=0` | 8 aprobadas: flujo completo, respuesta perdida, sin stock, oferta vencida, sin cliente, descripción extensa, logo histórico e impresión A4 de 60 líneas con 360 px, teclado y axe. Se ejecutó contra servidores en puertos alternos porque el 8001 lo ocupa otro proyecto |
+| Respaldo | `tests/proformas/test_backup_restore.py` (incluida en backend) | Volcado y restauración en base temporal: oferta, líneas, logo, vínculo y triggers conservados |
+| OpenSpec y Compose | `openspec validate gestionar-proformas-comerciales --strict`; `docker compose config --quiet` | Válido; sin hallazgos |
 
-No se ejecutó la suite completa (`make check`, `make test`) ni el resto de Playwright: solo las pruebas relacionadas con este cambio. `make audit` no aplica porque no se añadieron dependencias ni se tocaron los lockfiles.
+**Alcance de la ejecución (10.5).** A pedido del usuario no se ejecutó la suite completa ni el resto de Playwright: solo las pruebas de este cambio y las de los módulos que toca. No se ejecutaron las pruebas de identidad, clientes, compras, inventario, taller (salvo fronteras), fiscal (salvo fronteras) ni la cobertura global de frontend. La auditoría de dependencias no se ejecutó: no se añadieron dependencias ni cambiaron `uv.lock` o `package-lock.json`. Las pruebas E2E de comprobantes de venta y de etiquetas pasaron antes del último ajuste de márgenes de la hoja compartida y no se repitieron después.
 
-## 4. Riesgos y limitaciones
+## 4. Verificación de la implementación (10.6)
+
+**Completitud.** Las 46 tareas están marcadas. Los 78 escenarios tienen una prueba ejecutada. La validación estricta de OpenSpec es válida.
+
+**Correspondencia con el diseño.** Se cumplen D1…D8 y ADR-0012: módulo `proformas` propietario, dependencia única `proformas → sales.application.proforma_links`, estado efectivo calculado sin tareas programadas, revisión firmada de 15 minutos, emisión y conversión atómicas con el orden de bloqueos aprobado, marca histórica deduplicada y API bajo `/api/v1/proformas/`. Las pruebas de frontera impiden importaciones privadas y escrituras ajenas.
+
+**Desviaciones respecto de los artefactos aprobados.** Todas quedaron registradas; las tres primeras las pidió el usuario durante la aplicación y están recogidas en las specs, la propuesta y DP-033:
+
+1. El impreso es el documento para el cliente: no muestra disponibilidad, avisos de insuficiencia, la leyenda de cotización interna ni la mención del sistema. Sustituye lo que pedían D4 y D5 para el impreso.
+2. El impreso y la ficha muestran código de fabricante y marca del producto, conservados al emitir. Las ofertas emitidas antes de ese ajuste los leen del catálogo vigente.
+3. El cliente es opcional en la proforma y obligatorio al convertir; la venta lo recibe sin modificar la oferta emitida.
+4. La identidad de marca que se compara bajo bloqueo usa la revisión y la huella de la carga del logotipo; el hash del activo se calcula sobre los bytes normalizados (ADR-0012 actualizado).
+5. El guardado del editor se confirma en la barra de acciones y no con un aviso flotante, que tapaba «Revisar y emitir».
+6. «Proformas» se añadió al final del grupo «Ventas y cobros» de la navegación.
+7. El margen del impreso pertenece a la hoja compartida `DocumentSheet`, y al imprimir se ocultan la barra del marco y el riel: afecta también a los comprobantes de venta y de servicio. La regla de impresión de etiquetas de productos se acotó a cuando su hoja está montada, porque dejaba en blanco los demás documentos.
+8. Se registró en `tests/fiscal/test_boundaries.py` la interfaz `workshop_configuration.application.withholding_settings`, que la API fiscal usa desde el cambio de retenciones y hacía fallar esa prueba de frontera.
+
+**Riesgos y limitaciones.**
 
 - La oferta vencida en E2E se presenta interceptando la respuesta, porque la prueba no controla el día del servidor; la regla de fechas y sus rechazos se verifican en backend con reloj controlado.
-- La impresión se verificó generando un PDF A4 de varias páginas y con aserciones de visibilidad; la aceptación visual humana del impreso sigue pendiente. El marco de la aplicación deja visible la franja «RUC comercial» al imprimir, igual que en los comprobantes de venta.
-- A pedido del usuario (2026-10-06) el impreso dejó de mostrar disponibilidad, avisos y leyendas y añadió el código del fabricante y la marca del producto, con columnas de ancho fijo y letra compacta para que una descripción extensa baje de línea sin salirse de la hoja; las specs del cambio y DP-033 recogen el ajuste. Evidencia: `frontend/src/features/proformas/ProformaDocument.test.tsx` y `backend/tests/proformas/test_lifecycle_queries.py::test_document_shows_the_manufacturer_code_frozen_at_issue`. `e2e/proformas.spec.ts` se volvió a ejecutar completo tras el ajuste: 7 aprobadas, incluida la descripción extensa con marca y código de fabricante.
-- Segundo ajuste del usuario (2026-10-06): cliente opcional en la proforma y obligatorio al convertir, y ficha con las mismas columnas del impreso. Añade dos escenarios a la spec (78 en total). Evidencia: `backend/tests/proformas/test_optional_customer.py` (10 pruebas), `frontend/src/features/proformas/dialogs.test.tsx`, `frontend/src/pages/proformas/*.test.tsx` y `frontend/e2e/proformas.spec.ts` (8 aprobadas).
-- La evidencia visual (PDF y capturas) se guardó fuera del repositorio, en la carpeta temporal de la sesión; no se versiona.
-- El fallo de frontera del módulo fiscal es anterior y ajeno a este cambio; no se corrigió aquí.
+- La aceptación visual humana del impreso sigue pendiente; la evidencia (PDF y capturas) se guardó fuera del repositorio y no se versiona.
+- Sin la leyenda al pie, lo que distingue el impreso de una factura es el título «COTIZACIÓN».
+
+Integrar, sincronizar las specs principales y archivar el cambio son fases posteriores que requieren autorización.
 
 Referencia terminológica: [cobertura-proformas-glossary-reference.md](cobertura-proformas-glossary-reference.md).
