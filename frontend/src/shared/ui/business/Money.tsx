@@ -13,17 +13,26 @@ function formatExactDecimal(value: string): string | null {
   return `${sign}${grouped}.${rawFraction.padEnd(2, '0')}`
 }
 
+/** Texto del importe con moneda, o `null` si el valor no es un decimal válido. */
+export function formatMoney(
+  amount: string | null | undefined,
+  currency: 'USD' = 'USD',
+): string | null {
+  const formatted = amount == null ? null : formatExactDecimal(amount)
+  return formatted ? `${currency} ${formatted}` : null
+}
+
 export function Money({
   amount,
   className = '',
   currency = 'USD',
 }: MoneyProps) {
-  const formatted = amount == null ? null : formatExactDecimal(amount)
+  const formatted = formatMoney(amount, currency)
   return (
     <span
       className={`inline-block text-right whitespace-nowrap tabular-nums ${className}`}
     >
-      {formatted ? `${currency} ${formatted}` : '—'}
+      {formatted ?? '—'}
     </span>
   )
 }

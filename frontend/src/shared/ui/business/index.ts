@@ -1,4 +1,4 @@
-export { Money, type MoneyProps } from './Money'
+export { formatMoney, Money, type MoneyProps } from './Money'
 export { PartCode, type PartCodeProps } from './PartCode'
 export { PlateTag, type PlateTagProps } from './PlateTag'
 export { RucPlate, type RucPlateProps } from './RucPlate'

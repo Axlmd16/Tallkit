@@ -19,3 +19,11 @@ export {
   type ProgressTone,
   type ProgressVariant,
 } from './Progress'
+
+export { StatGrid, StatLink, type StatLinkProps } from './StatLink'
+
+export {
+  MiniBarChart,
+  type MiniBarChartDay,
+  type MiniBarChartProps,
+} from './MiniBarChart'

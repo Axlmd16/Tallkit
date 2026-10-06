@@ -99,6 +99,12 @@ export {
   type DataTableRowHeight,
 } from './data/DataTable'
 export { DataList, type DataListProps } from './data/DataList'
+export { StatGrid, StatLink, type StatLinkProps } from './data/StatLink'
+export {
+  MiniBarChart,
+  type MiniBarChartDay,
+  type MiniBarChartProps,
+} from './data/MiniBarChart'
 export {
   Progress,
   type ProgressProps,

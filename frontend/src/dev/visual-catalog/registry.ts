@@ -322,6 +322,48 @@ export const CATALOG: CatalogEntry[] = (
       description:
         'Composición de encabezado, filtros, panel de datos y acciones que siguen todas las páginas.',
     },
+    {
+      id: 'TK-19',
+      name: 'Indicador con conteo',
+      family: 'taller',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Pieza propia del resumen de inicio; la maqueta Tallkit no incluye un tablero de indicadores.',
+      },
+      tokens: ['surface', 'line', 'ink', 'ink-muted', 'accent', 'scope-*'],
+      variants: [
+        'Conteo',
+        'Importe con detalle',
+        'Con ámbito fiscal',
+        'Cero atenuado',
+        'Carga',
+        'Error',
+      ],
+      consumers: ['Inicio'],
+      description:
+        'Un valor, su etiqueta y su ámbito fiscal, como enlace a la lista que lo explica. Varios comparten un panel separados por líneas, sin sombra ni una tarjeta por dato.',
+    },
+    {
+      id: 'TK-20',
+      name: 'Gráfico breve',
+      family: 'taller',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Pieza propia del resumen de inicio, dibujada con los tokens del sistema y sin librería externa.',
+      },
+      tokens: ['scope-commercial', 'scope-artisan', 'line-strong', 'ink'],
+      variants: [
+        'RUC comercial',
+        'RUC artesanal',
+        'Semana en cero',
+        'Sin datos',
+      ],
+      consumers: ['Inicio'],
+      description:
+        'Serie corta de barras de un solo ámbito fiscal con su total. Cada barra se lee como texto con puntero, foco o toque; el cero conserva una línea de base y no hay animación con movimiento reducido.',
+    },
   ] satisfies CatalogEntryDefinition[]
 ).map(defineEntry)
 

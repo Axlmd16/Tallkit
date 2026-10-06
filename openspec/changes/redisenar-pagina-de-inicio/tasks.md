@@ -65,9 +65,9 @@ Dependencias: grupos 2, 3 y 4. Evidencia: `uv run --frozen pytest tests/home/`, 
 
 Cubre diseño D9 y el requisito «Indicadores con conteo y gráfico breve» de `sistema-visual-frontend`.
 
-- [ ] 6.1 Probar e implementar `frontend/src/shared/ui/data/StatLink.tsx`: valor, etiqueta, ámbito opcional con `ScopeLabel`, importe con `Money`, enlace de React Router y cero atenuado. Cierre: escenarios «Varios indicadores en un panel» e «Indicador que conduce a una lista»; nombre accesible con valor, etiqueta y ámbito; foco visible; solo tokens existentes.
-- [ ] 6.2 Probar e implementar `frontend/src/shared/ui/data/MiniBarChart.tsx` como lista ordenada con barras en HTML y CSS, tono del ámbito, total, texto de fecha e importe por barra con `Tooltip`, y línea de base para el cero. Cierre: escenarios «Gráfico de un ámbito fiscal», «Valor de una barra», «Movimiento reducido» y «Cambio de un token»; cero distinguible de «sin dato».
-- [ ] 6.3 Exportar ambas piezas desde `frontend/src/shared/ui/index.ts`, registrarlas en `frontend/src/dev/visual-catalog/registry.ts` y `previews.tsx` con sus estados de carga, vacío, cero y error, y añadir el tablero «Inicio». Cierre: `registry.test.ts` en verde.
+- [x] 6.1 Probar e implementar `frontend/src/shared/ui/data/StatLink.tsx`: valor, etiqueta, ámbito opcional con `ScopeLabel`, importe con `Money`, enlace de React Router y cero atenuado. Cierre: escenarios «Varios indicadores en un panel» e «Indicador que conduce a una lista»; nombre accesible con valor, etiqueta y ámbito; foco visible; solo tokens existentes.
+- [x] 6.2 Probar e implementar `frontend/src/shared/ui/data/MiniBarChart.tsx` como lista ordenada con barras en HTML y CSS, tono del ámbito, total, texto de fecha e importe por barra con `Tooltip`, y línea de base para el cero. Cierre: escenarios «Gráfico de un ámbito fiscal», «Valor de una barra», «Movimiento reducido» y «Cambio de un token»; cero distinguible de «sin dato».
+- [x] 6.3 Exportar ambas piezas desde `frontend/src/shared/ui/index.ts`, registrarlas en `frontend/src/dev/visual-catalog/registry.ts` y `previews.tsx` con sus estados de carga, vacío, cero y error, y añadir el tablero «Inicio». Cierre: `registry.test.ts` en verde.
 
 Dependencias: grupo 1; puede avanzar en paralelo con los grupos 2 a 5. Evidencia: `npm run test -- src/shared/ui/data src/dev/visual-catalog`.
 

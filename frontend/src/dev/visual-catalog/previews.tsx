@@ -5,6 +5,7 @@ import {
   Trash,
 } from '@phosphor-icons/react'
 import { useRef, useState, type ReactNode } from 'react'
+import { MemoryRouter } from 'react-router'
 
 import {
   Button,
@@ -26,6 +27,7 @@ import {
   IconButton,
   InlineNotice,
   Input,
+  MiniBarChart,
   Money,
   NoResultsState,
   Pagination,
@@ -37,6 +39,8 @@ import {
   SegmentedControl,
   Select,
   SkeletonRows,
+  StatGrid,
+  StatLink,
   StatusBadge,
   StockIndicator,
   AdvancedInfo,
@@ -657,6 +661,99 @@ function PatternsPreview() {
   )
 }
 
+const SAMPLE_WEEK = [
+  { date: '2026-09-30', amount: '120.00' },
+  { date: '2026-10-01', amount: '340.50' },
+  { date: '2026-10-02', amount: '95.00' },
+  { date: '2026-10-03', amount: '0.00' },
+  { date: '2026-10-04', amount: '410.00' },
+  { date: '2026-10-05', amount: '260.25' },
+  { date: '2026-10-06', amount: '180.00' },
+]
+
+function StatPreview() {
+  return (
+    <MemoryRouter>
+      <div className="space-y-4">
+        <div className="rounded-panel border border-line bg-surface">
+          <StatGrid label="Pendientes de ejemplo">
+            <StatLink label="Mantenimientos abiertos" to="/" value={4} />
+            <StatLink
+              label="Ventas de contado sin cobrar"
+              scope="commercial"
+              to="/"
+              value={3}
+            />
+            <StatLink
+              label="Servicios de contado sin cobrar"
+              scope="artesanal"
+              to="/"
+              value={0}
+            />
+            <StatLink
+              amount="1300.50"
+              detail="2 clientes"
+              label="Por cobrar"
+              scope="commercial"
+              to="/"
+            />
+          </StatGrid>
+        </div>
+        <div className="rounded-panel border border-line bg-surface">
+          <SkeletonRows label="Cargando pendientes…" rows={2} />
+        </div>
+        <ErrorState
+          message="El servidor no respondió."
+          onRetry={() => undefined}
+          title="No se pudieron cargar los pendientes"
+        />
+      </div>
+    </MemoryRouter>
+  )
+}
+
+function BarsPreview() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-panel border border-line bg-surface">
+        <MiniBarChart
+          days={SAMPLE_WEEK}
+          scope="commercial"
+          title="Cobrado en 7 días"
+          total="1405.75"
+        />
+      </div>
+      <div className="rounded-panel border border-line bg-surface">
+        <MiniBarChart
+          days={SAMPLE_WEEK.map((day, index) => ({
+            ...day,
+            amount: index % 2 ? '60.00' : '25.00',
+          }))}
+          scope="artesanal"
+          title="Cobrado en 7 días"
+          total="280.00"
+        />
+      </div>
+      <div className="rounded-panel border border-line bg-surface">
+        <MiniBarChart
+          days={SAMPLE_WEEK.map((day) => ({ ...day, amount: '0.00' }))}
+          scope="commercial"
+          title="Semana en cero"
+          total="0.00"
+        />
+      </div>
+      <div className="rounded-panel border border-line bg-surface">
+        <MiniBarChart
+          days={[]}
+          scope="artesanal"
+          title="Sin datos"
+          total={null}
+        />
+      </div>
+    </div>
+  )
+}
+
 export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-01': ColorPreview,
   'TK-02': TypePreview,
@@ -676,4 +773,6 @@ export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-16': ToastPreview,
   'TK-17': NavigationPreview,
   'TK-18': PatternsPreview,
+  'TK-19': StatPreview,
+  'TK-20': BarsPreview,
 }
