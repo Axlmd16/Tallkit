@@ -117,6 +117,12 @@ anulaciones son del Administrador. Las operaciones de dinero llevan un `operatio
 `idempotency_key`. Conciliación comercial de solo lectura:
 `cd backend && uv run python manage.py reconcile_sales` (código de salida distinto de cero si hay diferencias).
 
+Proformas comerciales: `proformas/` (borradores, `draft-preview/`, `issue-preview/`, `issue/`, `void/`, `copy/`,
+`conversion-preview/`, `convert/`, `document/`, `document/logo/` y selectores de clientes y productos). Administrador y
+Vendedor cotizan productos al precio final de catálogo, sin descuentos ni reserva; emitir asigna un número COM-PRO y
+convertir crea una única venta en borrador. El vencimiento se calcula con el día local, sin tareas programadas.
+Conciliación de solo lectura: `cd backend && uv run python manage.py reconcile_proformas`.
+
 Despliegue (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate`, comprobaciones
 funcionales y luego frontend. Las migraciones son aditivas y se ensayaron en una base limpia y en una base con
 identidad previa; ante problemas con datos reales se prefiere la corrección hacia adelante, sin deshacer migraciones ni

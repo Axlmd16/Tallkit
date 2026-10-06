@@ -1,6 +1,6 @@
 # ADR-0012: Proformas independientes y conversión comercial atómica
 
-- Estado: Aceptada el 2026-10-06 junto al diseño de `gestionar-proformas-comerciales`, mediante aprobación del usuario «haz commit y continua». Implementación pendiente.
+- Estado: Aceptada el 2026-10-06 junto al diseño de `gestionar-proformas-comerciales`, mediante aprobación del usuario «haz commit y continua». Implementada en el cambio `gestionar-proformas-comerciales` (módulo `proformas`, `sales.application.proforma_links` y `workshop_configuration.application.brand`).
 - Fecha: 2026-10-06.
 
 ## Contexto
@@ -27,7 +27,7 @@ Guardar el logo normalizado del emisor como activo binario inmutable y deduplica
 
 Se preservan fronteras, historia y conversión única con PostgreSQL, sin nuevas dependencias. A cambio, se duplica deliberadamente la referencia económica cotizada en la venta y se almacenan bytes históricos de marca. Se requieren pruebas de restricciones, concurrencia, rollback, respaldo e importaciones permitidas. El estado efectivo de vencimiento se calcula con fecha local, sin tarea programada.
 
-Complementa ADR-0004/0006/0008/0009; no modifica reservas de mantenimiento ni introduce documentos económicos comunes entre RUC. No autoriza implementación por sí mismo.
+Complementa ADR-0004/0006/0008/0009; no modifica reservas de mantenimiento ni introduce documentos económicos comunes entre RUC. La identidad de marca que se compara bajo bloqueo usa la revisión y la huella de la carga del logotipo registradas en configuración; el hash del activo emitido se calcula sobre los bytes normalizados realmente leídos.
 
 ## Referencias
 

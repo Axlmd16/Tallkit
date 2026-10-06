@@ -184,8 +184,8 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 | ID | Pantalla | Contenido y acciones esenciales |
 |---|---|---|
 | UI-050 | Lista de proformas | Número, cliente, emisión, vigencia, total, estado; crear, abrir, convertir o anular según permiso. |
-| UI-051 | Editor de proforma | Cliente, vigencia, líneas, precios finales, impuestos y disponibilidad informativa; guardar e imprimir. |
-| UI-052 | Detalle de proforma | Valores históricos, estado, venta generada y acciones permitidas. |
+| UI-051 | Editor de proforma | Solo para borradores: cliente, vigencia, productos y cantidades; precio final de catálogo no editable, impuestos y disponibilidad informativa; guardar, revisar y emitir. |
+| UI-052 | Detalle de proforma | Valores históricos, estado, proformas relacionadas, venta generada y acciones permitidas; impresión A4 de la emitida. |
 | UI-053 | Lista de ventas | Secuencial, cliente, origen, fecha, estado de venta, estado de pago, estado del documento interno y total. |
 | UI-054 | Editor de venta | Cliente, origen, condición, líneas, precios finales, impuestos y totales; guardar borrador y confirmar. Una venta vinculada a mantenimiento muestra y administra sus reservas. |
 | UI-055 | Detalle de venta | Estados independientes de venta, pago y documento interno; saldos, pagos, Kardex, origen, mantenimiento vinculado, correcciones y acceso separado a los datos fiscales cuando el rol lo permite («Preparar datos fiscales», «Borrador fiscal» o «Preparación local · Pendiente de emisión»). |
@@ -312,9 +312,11 @@ Información, advertencias y errores nunca se comunican solo con una notificaci�
 |---|---|---|
 | Ingreso | Borrador | Editar, confirmar, descartar si no tiene efectos. |
 | Ingreso | Confirmado | Consultar, imprimir, anular con permiso. |
-| Proforma | Editable/vigente | Editar, imprimir, convertir, anular. |
+| Proforma | Borrador | Editar, revisar y emitir, anular. |
+| Proforma | Vigente | Imprimir, convertir, anular o crear nueva proforma vinculada; su contenido no se edita. |
 | Proforma | Vencida | Consultar, crear nueva proforma vinculada o anular. |
-| Proforma | Convertida | Consultar y abrir venta; no convertir otra vez. |
+| Proforma | Convertida | Consultar, imprimir y abrir venta; no convertir otra vez. |
+| Proforma | Anulada | Consultar, imprimir o crear nueva proforma vinculada; no se reactiva. |
 | Venta | Borrador | Editar, confirmar, descartar. |
 | Venta | Confirmada | Consultar, cobrar, devolver, anular, imprimir. |
 | Venta | Anulada | Consultar original y compensaciones. |

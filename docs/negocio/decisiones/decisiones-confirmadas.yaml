@@ -236,6 +236,21 @@ context: |
     confirmados por el titular el 2026-10-05: el RUC artesanal recibe comprobantes de retención
     de varios clientes cada mes y hoy factura en el facturador gratuito del SRI. No calcula
     obligaciones tributarias ni acredita que el comprobante exista ante el SRI.
+  - DP-033 (proformas comerciales, aprobada 2026-10-06 en la propuesta de
+    gestionar-proformas-comerciales, D1…D6): la proforma es una oferta de productos del RUC
+    comercial para un cliente registrado, sin descuentos, reservas, deuda ni cobros. D1: usa
+    exclusivamente el precio final de catálogo, sin edición manual; conserva lo cotizado al
+    emitir y muestra las diferencias de precio e impuesto al convertir. D2: sugiere 7 días de
+    vigencia, ajustables antes de emitir; vale hasta el final del día indicado en
+    America/Guayaquil y una vencida no se reactiva: origina una nueva vinculada con valores
+    actuales. D3: el borrador se edita libremente y la emitida conserva su contenido; los
+    cambios originan una nueva proforma vinculada. D4: se puede cotizar con disponibilidad
+    insuficiente, que se informa sin bloquear; confirmar la venta sigue exigiendo stock. D5:
+    vista A4 para imprimir o guardar como PDF desde el navegador, con los datos y el logotipo
+    del emisor conservados al emitir. D6: una proforma vigente se convierte una sola vez en una
+    venta en borrador, cuyos productos y cantidades pueden ajustarse sin alterar la oferta ni
+    habilitar otra conversión. Se numera con la serie COM-PRO de DP-006; el borrador no consume
+    número y anular no lo libera. No es una factura electrónica ni garantiza precios.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

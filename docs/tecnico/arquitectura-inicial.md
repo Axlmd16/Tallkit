@@ -10,8 +10,9 @@ clientes y vehículos, catálogos de productos, servicios y proveedores, y compr
 crédito simple, devoluciones y reembolsos (módulo `sales`) se suman en el cambio `gestionar-ventas-pagos-credito-simple`;
 Las órdenes de mantenimiento del RUC artesanal (módulo `workshop`) se suman en el cambio
 `gestionar-ordenes-mantenimiento`; la integración de repuestos, ventas vinculadas, operación artesanal ART-SER y
-cobros por RUC se suma en `integrar-mantenimiento-ventas-cobros-por-ruc` (ADR-0008 y ADR-0009); proformas,
-alertas de stock mínimo y adjuntos de compras continúan sin implementación.
+cobros por RUC se suma en `integrar-mantenimiento-ventas-cobros-por-ruc` (ADR-0008 y ADR-0009); las proformas
+comerciales y su conversión a venta (módulo `proformas`) se suman en `gestionar-proformas-comerciales` (ADR-0012).
+Alertas de stock mínimo y adjuntos de compras continúan sin implementación.
 
 ### Frontera del módulo de taller
 
@@ -36,11 +37,23 @@ almacenamiento privado local y solo se entregan por la API autorizada
 `catalog.application.sales_references`, `customer_registry.application.sales_references`,
 `inventory.application.posting`/`queries` (tipos `SALE_OUT` y `CUSTOMER_RETURN_IN`) y
 `workshop_configuration.application.operation_context`, `configuration_resolver` y `numbering`, e
-`inventory.application.reservations` para las ventas vinculadas (ADR-0009). Solo `workshop` importa `sales`, y
-únicamente su interfaz `sales.application.workshop_links`; `sales/domain/` no depende de Django ni de DRF. La venta es la raíz de consistencia:
+`inventory.application.reservations` para las ventas vinculadas (ADR-0009). Solo `workshop` y `proformas` importan `sales`, y
+únicamente sus interfaces `sales.application.workshop_links` y `sales.application.proforma_links`; `sales/domain/` no depende de Django ni de DRF. La venta es la raíz de consistencia:
 toda acción que cambie exigible, dinero o cantidades devueltas la bloquea primero, dentro de una única
 transacción exterior. El saldo, el exceso y el estado de pago se derivan de los hechos; nunca se almacenan.
 Reversión y conciliación: [modelo de datos](../arquitectura/modelo-datos.md#módulo-sales-ventas-comerciales-cobros-y-correcciones).
+
+### Frontera del módulo de proformas
+
+`proformas` es propietario de las ofertas comerciales, sus recibos idempotentes y la marca histórica emitida
+([ADR-0012](../adr/0012-proformas-y-conversion-comercial-atomica.md)). La dependencia de código es unidireccional:
+`proformas → sales.application.proforma_links`; ventas nunca importa proformas y conserva una copia inmutable de lo
+cotizado para comparar y confirmar sin consultar la oferta. Además solo usa `catalog.application.sales_references`,
+`customer_registry.application.sales_references`, las lecturas de `inventory.application.reservations` (nunca reserva
+ni publica), y `workshop_configuration.application.operation_context`, `configuration_resolver`, `numbering` y
+`brand`, la interfaz pública de marca que entrega la identidad del emisor y los bytes normalizados de su logotipo.
+`proformas/domain/` no depende de Django ni de DRF y recibe el reloj como dato. La API vive bajo
+`/api/v1/proformas/`. Datos, bloqueos y reversión: [modelo de datos](../arquitectura/modelo-datos.md#módulo-proformas-ofertas-comerciales-y-conversión-a-venta).
 
 ### Fronteras de compras e inventario
 

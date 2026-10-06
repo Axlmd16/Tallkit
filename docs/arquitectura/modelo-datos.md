@@ -355,3 +355,33 @@ Recibo → orden de mantenimiento → operación artesanal / líneas de servicio
 
 ### Reversión
 Antes de usar la integración: retirar las líneas de las ventas vinculadas abiertas (libera las reservas) y revertir las migraciones con tablas vacías. Con operaciones, ventas vinculadas o cobros ya registrados, no revertir destructivamente: corregir hacia adelante con respaldo previo (DA-003).
+
+## Módulo: proformas (ofertas comerciales y conversión a venta)
+
+Modelo implementado por el cambio `gestionar-proformas-comerciales` (migraciones `proformas.0001`…`0002` y `sales.0008`…`0009`; [ADR-0012](../adr/0012-proformas-y-conversion-comercial-atomica.md)). Pertenece únicamente al RUC comercial. La **proforma** es una raíz distinta de la venta: no guarda condición de venta, pagos, saldos ni reservas. Las FK hacia cliente, catálogo, configuración e identidad usan `PROTECT` y `related_name="+"`.
+
+### Tablas de `proformas`
+| Tabla | Datos y restricciones |
+|---|---|
+| `proformas_proforma` | Cliente y entidad fiscal, `origin` (otra proforma, `PROTECT`), `state` (`DRAFT`, `ISSUED`, `CONVERTED`, `VOIDED`), `version`, `valid_until` (en borrador: fecha elegida o nulo para emisión + 7 días), fecha y momento de emisión, `internal_number` único (serie COM-PRO), asignación de numeración, totales `numeric(24,2)`, `header_snapshot` versionado (emisor, cliente, serie y momento de la observación de disponibilidad), `brand_asset`, huella de la revisión aplicada y metadatos de conversión y anulación. Checks: un borrador no tiene número; emitida o convertida exige número, fechas, totales e instantánea; `valid_until ≥ issue_date`; metadatos de conversión y anulación coherentes con el estado. **Vigente y vencida no se almacenan**: se proyectan de `ISSUED` y `valid_until` con el día local de America/Guayaquil. |
+| `proformas_proformaline` | Proforma, `position` única por documento, producto, `quantity` entera positiva y, al emitir, instantáneas de producto e impuesto, precio final, tarifa, base, impuesto, total y `availability_at_issue` (todas o ninguna). |
+| `proformas_proformabrandasset` | Bytes normalizados del logotipo del emisor al emitir, tipo MIME (PNG, JPEG o WebP), tamaño de 1 byte a 2 MiB y `sha256` único: se deduplica por contenido. |
+| `proformas_proformacommand` | Recibo idempotente: actor, acción, clave, huella, tipo e ID del resultado y estado; único `(actor, action, idempotency_key)`. |
+
+No se duplica la venta en la proforma: la referencia única de `sales_sale` es la fuente del vínculo.
+
+### Origen proforma en `sales`
+`sales_sale` añade el valor `PROFORMA` a `origin_type`, `origin_proforma` (FK `proformas_proforma`, `PROTECT`, sin relación inversa) y `proforma_snapshot` (copia versionada de lo cotizado, sin costos ni bytes del logotipo); el número de la oferta se guarda en `origin_reference`. Checks: `DIRECT` sin orden ni proforma; `MAINTENANCE` con orden y sin proforma; `PROFORMA` con proforma, número e instantánea y sin orden. **Índice único parcial** sobre `origin_proforma`: una oferta origina como máximo una venta. La migración de ventas depende de la inicial de proformas; no existe dependencia inversa.
+
+### Historia inmutable (triggers PostgreSQL)
+- `proformas.0002`: el activo de marca nunca admite `UPDATE` ni `DELETE`; las líneas solo cambian mientras la proforma es `DRAFT`; una proforma emitida solo admite aumentar la versión o transicionar a `CONVERTED` o `VOIDED` tocando únicamente los metadatos de esa transición; `CONVERTED` y `VOIDED` son finales; solo un borrador se elimina.
+- `sales.0009`: el origen proforma de una venta es inmutable también en borrador, y una venta de origen proforma no se elimina aunque quede sin líneas, porque eso liberaría una segunda conversión.
+
+### Orden de bloqueo y concurrencia
+Emisión: recibo → proforma → cliente → productos por ID → lectura informativa de disponibilidad (sin bloquear posiciones) → entidad, bodega e impuestos → identidad de marca → numeración → instantáneas. Conversión: recibo → proforma → raíz de venta nueva o consulta del vínculo → cliente → productos → inserciones. Los bytes del logotipo se leen antes de la transacción; bajo bloqueo solo se comprueba que su identidad sigue siendo la revisada. Confirmar, cobrar o corregir una venta nunca bloquea proformas.
+
+### Conciliación, despliegue y reversión
+- Conciliación de solo lectura: `cd backend && uv run python manage.py reconcile_proformas` compara las ofertas convertidas con los vínculos que devuelve el contrato de ventas y termina con código distinto de cero si difieren; no repara nada.
+- Despliegue (solo con autorización): respaldo probado de PostgreSQL, backend y `make migrate` (migraciones aditivas; ninguna oferta retroactiva sobre ventas previas), comprobaciones y luego frontend. La serie COM-PRO debe estar activa.
+- Antes de emitir o convertir, las migraciones pueden revertirse: las ventas directas y de mantenimiento quedan intactas. **Después de emitir o convertir no se vuelve a un binario que desconozca `PROFORMA` ni se borran tablas**: se deshabilitan las escrituras retirando los permisos `proformas.gestionar`, `proformas.anular` y `proformas.convertir` del mapa de roles (o las rutas de escritura), se conserva la lectura y se corrige hacia adelante.
+- Los logotipos emitidos viven en PostgreSQL y viajan en su respaldo; no dependen del volumen de archivos privados. Una restauración exige ventana controlada y revisar las ventas posteriores al respaldo; nunca se ejecuta automáticamente.

@@ -276,14 +276,15 @@
 **Flujo principal**
 
 1. El actor crea una proforma y selecciona al cliente.
-2. Define vigencia y agrega productos, cantidades y precios finales, sin descuentos.
+2. Define la vigencia (7 días sugeridos, ajustables antes de emitir) y agrega productos y cantidades; el precio final proviene del catálogo y no se edita, sin descuentos.
 3. El sistema calcula valores y muestra existencia solo como referencia.
-4. El actor guarda, edita o emite el comprobante interno.
+4. El actor guarda y edita el borrador; al emitir, la proforma recibe su número y su contenido queda inmutable.
 5. La proforma queda disponible para consulta o conversión.
 
 **Alternativas y excepciones**
 
 - 4a. Se anula: conserva historial y no modifica ventas.
+- 4b. El cliente pide cambios sobre una proforma emitida: se crea una nueva proforma vinculada; la emitida no se edita.
 - 5a. Vence: no se reactiva; si el cliente retoma la oferta se crea una nueva proforma vinculada.
 
 **Garantía de éxito:** existe una oferta trazable sin reserva ni movimiento de stock.
@@ -297,8 +298,8 @@
 
 1. El actor abre la proforma y solicita convertir.
 2. El sistema crea una venta en borrador y copia los datos relevantes.
-3. Recalcula precios, impuestos y disponibilidad vigentes.
-4. El actor revisa diferencias y completa la condición de venta.
+3. Recalcula precios, impuestos y disponibilidad vigentes y muestra las diferencias respecto de lo cotizado; la falta de disponibilidad avisa, pero no impide crear el borrador.
+4. El actor revisa diferencias, puede ajustar productos y cantidades sin alterar la proforma y completa la condición de venta.
 5. Continúa con `CU-012` para confirmar.
 6. El sistema conserva el vínculo entre proforma y venta.
 

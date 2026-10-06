@@ -444,7 +444,7 @@ Venta y Operación artesanal crean importes exigibles independientes. Los pagos 
 | Presentaciones, marcas y kits | DP-009, DP-010 | RN-CAT-001…014; RF-CAT-001…016; RF-INV-016 |
 | Proveedor e ingresos | DP-011, DP-030 | RN-CAT-010…013; RN-INV-003…007; RF-INV-001…005, RF-INV-014 |
 | Existencia, reserva y Kardex | DP-001, DP-002, DP-012 | RN-INV-001…023; RF-INV-006…019 |
-| Proformas y ventas | DP-004, DP-017, DP-021 | RN-PRO-001…009; RN-VEN-001…018; RF-PRO-*; RF-VEN-* |
+| Proformas y ventas | DP-004, DP-017, DP-021 | RN-PRO-001…008; RN-VEN-001…018; RF-PRO-*; RF-VEN-* |
 | Crédito, pagos y devoluciones | DP-003, DP-013, DP-014 | RN-VEN-008…016; RF-PAG-*; RF-VEN-012…018 |
 | Retenciones recibidas | DP-032 | RN-VEN-011, RN-VEN-022…025; RF-PAG-013…015; RF-CLI-014; RF-ACC-017 |
 | Mantenimiento y correcciones | DP-007, DP-015, DP-016, DP-020, DP-021 | RN-TAL-001…023; RF-TAL-001…020 |

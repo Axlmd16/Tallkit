@@ -102,8 +102,8 @@ La operación multibodega queda fuera de V1, pero el modelo no debe impedir su i
 
 ### 3.6 Proformas
 
-- Creación y edición de proformas de repuestos.
-- Selección de cliente, productos, cantidades, precios finales e impuestos aplicables, sin descuentos.
+- Creación de proformas de repuestos y edición de sus borradores; una proforma emitida no se edita: los cambios originan una nueva vinculada.
+- Selección de cliente, productos y cantidades; el precio final y el impuesto provienen del catálogo, sin edición manual ni descuentos.
 - Fecha de emisión y vigencia.
 - Impresión o exportación de un documento interno.
 - Conversión a venta sin duplicar manualmente los datos.
