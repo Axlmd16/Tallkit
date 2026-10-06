@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `openspec/changes/gestionar-proformas-comerciales`; specs `proformas-comerciales` (nueva) y `ventas-comerciales` (delta) |
-| Estado | Implementado y verificado (46 de 46 tareas); pendientes la revisión visual humana del impreso, la sincronización final de specs y el archivo del cambio |
+| Cambio OpenSpec | `openspec/changes/archive/2026-10-06-gestionar-proformas-comerciales`; specs principales en `openspec/specs/proformas-comerciales` y `openspec/specs/ventas-comerciales` |
+| Estado | Cambio verificado, sincronizado con las specs principales y archivado el 2026-10-06; la evidencia local no sustituye la revisión visual humana pendiente del impreso |
 | Fecha | 2026-10-06 |
 | Alcance | **Proformas** de productos del **RUC comercial**: borrador con cliente opcional, emisión numerada, vigencia, anulación, copia vinculada, impresión y conversión única a venta. Excluye servicios, descuentos, reservas, anticipos, PDF en servidor y facturación electrónica |
 
@@ -148,6 +148,6 @@ Las specs aprobadas tenían 76 escenarios; dos ajustes pedidos por el usuario du
 - La aceptación visual humana del impreso sigue pendiente; la evidencia (PDF y capturas) se guardó fuera del repositorio y no se versiona.
 - Sin la leyenda al pie, lo que distingue el impreso de una factura es el título «COTIZACIÓN».
 
-Integrar, sincronizar las specs principales y archivar el cambio son fases posteriores que requieren autorización.
+Las specs principales se sincronizaron y el cambio se archivó el 2026-10-06 a pedido del usuario.
 
 Referencia terminológica: [cobertura-proformas-glossary-reference.md](cobertura-proformas-glossary-reference.md).

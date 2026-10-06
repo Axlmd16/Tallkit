@@ -31,7 +31,7 @@ Complementa ADR-0004/0006/0008/0009; no modifica reservas de mantenimiento ni in
 
 ## Referencias
 
-- [Diseño propuesto](../../openspec/changes/gestionar-proformas-comerciales/design.md).
+- [Diseño propuesto](../../openspec/changes/archive/2026-10-06-gestionar-proformas-comerciales/design.md).
 - [ADR-0004](0004-contrato-transaccional-configuracion-y-numeracion.md).
 - [ADR-0006](0006-coordinacion-transaccional-ventas-comerciales.md).
 - [ADR-0009](0009-reservas-inventario-y-ventas-vinculadas.md).

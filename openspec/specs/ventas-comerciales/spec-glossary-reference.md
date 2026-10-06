@@ -11,3 +11,4 @@
 | Preparación local | Nuevo término de `docs/negocio/producto/glosario.md` | Estado visible desde la venta; no es factura. |
 | Pendiente de emisión | Nuevo término de `docs/negocio/producto/glosario.md` | Situación mostrada junto a la preparación local. |
 | Logotipo de entidad fiscal | `docs/negocio/producto/glosario.md` | Logotipo opcional del emisor, incorporado por `logotipos-por-ruc`. |
+| Proforma | [Glosario del producto](../../../docs/negocio/producto/glosario.md#proforma) | Oferta de origen de una venta creada por conversión. |
