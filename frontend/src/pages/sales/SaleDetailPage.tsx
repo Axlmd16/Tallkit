@@ -18,7 +18,7 @@ import {
   SaleStateBadge,
   usd,
 } from '@/features/sales/format'
-import { useSale } from '@/features/sales/hooks'
+import { useSale, useSaleMutations } from '@/features/sales/hooks'
 import { PaymentDialog } from '@/features/sales/PaymentDialog'
 import { RefundDialog } from '@/features/sales/RefundDialog'
 import { ReturnDialog } from '@/features/sales/ReturnDialog'
@@ -27,8 +27,14 @@ import {
   methodLabels,
   type SalePaymentRow,
   type SaleReturnRow,
+  type Withholding,
 } from '@/features/sales/types'
 import { VoidSaleDialog } from '@/features/sales/VoidSaleDialog'
+import {
+  VoidWithholdingDialog,
+  VoucherDialog,
+  WithholdingList,
+} from '@/features/sales/WithholdingRecords'
 import {
   Button,
   InlineNotice,
@@ -43,6 +49,8 @@ type Dialogs =
   | { kind: 'void' }
   | { kind: 'correction'; payment: SalePaymentRow }
   | { kind: 'refund'; saleReturn: SaleReturnRow }
+  | { kind: 'voucher'; withholding: Withholding; correcting: boolean }
+  | { kind: 'void-withholding'; withholding: Withholding }
   | null
 
 /**
@@ -57,6 +65,7 @@ export function SaleDetailPage() {
   const permissions = new Set(session?.permissions ?? [])
   const scope = session?.username ?? ''
   const query = useSale(Number.isFinite(id) ? id : null)
+  const mutations = useSaleMutations()
   const [dialog, setDialog] = useState<Dialogs>(null)
   const toast = useToast()
   const returnFocus = useRef<HTMLElement | null>(null)
@@ -80,6 +89,13 @@ export function SaleDetailPage() {
   const confirmed = sale.state === 'CONFIRMED'
   const balance = Number(money.balance ?? 0)
   const refundDue = Number(money.refund_due ?? 0)
+  const withheld = Number(money.withheld_total ?? 0)
+  const withheldExcess = Number(money.withheld_excess ?? 0)
+  const withholdings = sale.withholdings ?? []
+  const openFrom = (next: Dialogs, origin: HTMLElement) => {
+    returnFocus.current = origin
+    setDialog(next)
+  }
   const open = (next: Dialogs, event: { currentTarget: HTMLElement }) => {
     returnFocus.current = event.currentTarget
     setDialog(next)
@@ -323,6 +339,43 @@ export function SaleDetailPage() {
             </section>
           )}
 
+          {withholdings.length > 0 && (
+            <section aria-label="Retenciones recibidas" className={panel}>
+              <div className={panelHead}>
+                <h2 className={panelTitle}>Retenciones del cliente</h2>
+                <Link
+                  className="text-[12.5px] font-semibold text-accent hover:underline"
+                  to="/sales/withholdings"
+                >
+                  Ver retenciones por completar
+                </Link>
+              </div>
+              <WithholdingList
+                canAdmin={permissions.has('pagos_comerciales.anular')}
+                canComplete={permissions.has('pagos_comerciales.registrar')}
+                onComplete={(withholding, origin) =>
+                  openFrom(
+                    { kind: 'voucher', withholding, correcting: false },
+                    origin,
+                  )
+                }
+                onCorrect={(withholding, origin) =>
+                  openFrom(
+                    { kind: 'voucher', withholding, correcting: true },
+                    origin,
+                  )
+                }
+                onVoid={(withholding, origin) =>
+                  openFrom({ kind: 'void-withholding', withholding }, origin)
+                }
+                withholdings={withholdings}
+              />
+              <p className="border-t border-line px-4 py-2 text-[12px] text-ink-muted">
+                Lo retenido baja la deuda, pero no es dinero recibido.
+              </p>
+            </section>
+          )}
+
           {sale.returns && sale.returns.length > 0 && (
             <section aria-label="Devoluciones" className={panel}>
               <div className={panelHead}>
@@ -441,7 +494,13 @@ export function SaleDetailPage() {
             <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-4 py-3 text-[13px]">
               <AmountRow label="Total confirmado" value={sale.grand_total} />
               <AmountRow label="Exigible vigente" value={money.exigible} />
-              <AmountRow label="Pagado" value={money.paid_total} />
+              <AmountRow label="Cobrado en dinero" value={money.paid_total} />
+              {withheld > 0 && (
+                <AmountRow
+                  label="Retenido por el cliente"
+                  value={money.withheld_total ?? null}
+                />
+              )}
               <AmountRow label="Reembolsado" value={money.refunded_total} />
               <AmountRow
                 highlight={balance > 0}
@@ -454,6 +513,13 @@ export function SaleDetailPage() {
                 value={money.refund_due}
               />
             </dl>
+            {withheldExcess > 0 && (
+              <p className="border-t border-line px-4 py-2 text-[12.5px] text-warning">
+                Hay USD {money.withheld_excess} retenidos de más tras una
+                devolución. No se reembolsan: el Administrador anula la
+                retención cuando el cliente corrija su comprobante.
+              </p>
+            )}
             {refundDue > 0 && (
               <p className="border-t border-line px-4 py-2 text-[12.5px] text-ink-muted">
                 El exceso por reembolsar no es un saldo a favor ni una deuda del
@@ -501,6 +567,48 @@ export function SaleDetailPage() {
           returnFocusRef={focusRef}
           sale={sale}
           userScope={scope}
+        />
+      )}
+      {dialog?.kind === 'voucher' && (
+        <VoucherDialog
+          correcting={dialog.correcting}
+          onClose={() => setDialog(null)}
+          onDone={(message) => done(message)()}
+          onSubmit={(data, key) =>
+            dialog.correcting
+              ? mutations.correctVoucher.mutateAsync({
+                  ...data,
+                  id: sale.id,
+                  withholdingId: dialog.withholding.id,
+                  key,
+                })
+              : mutations.completeVoucher.mutateAsync({
+                  ...data,
+                  id: sale.id,
+                  withholdingId: dialog.withholding.id,
+                  key,
+                })
+          }
+          returnFocusRef={focusRef}
+          scope="commercial"
+          withholding={dialog.withholding}
+        />
+      )}
+      {dialog?.kind === 'void-withholding' && (
+        <VoidWithholdingDialog
+          onClose={() => setDialog(null)}
+          onDone={(message) => done(message)()}
+          onSubmit={(reason, key) =>
+            mutations.voidWithholding.mutateAsync({
+              id: sale.id,
+              withholdingId: dialog.withholding.id,
+              reason,
+              key,
+            })
+          }
+          returnFocusRef={focusRef}
+          scope="commercial"
+          withholding={dialog.withholding}
         />
       )}
       {dialog?.kind === 'refund' && (

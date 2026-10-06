@@ -1,4 +1,10 @@
-import type { PaymentState, Sale, SaleCondition } from '@/features/sales/types'
+import type {
+  PaymentState,
+  Sale,
+  SaleCondition,
+  Withholding,
+  WithholdingContext,
+} from '@/features/sales/types'
 
 export type OrderState = 'REGISTERED' | 'FINALIZED' | 'REOPENED'
 export type BillingAction =
@@ -249,6 +255,7 @@ export interface CommercialDocument {
   condition: SaleCondition
   grand_total: string | null
   paid: string | null
+  withheld?: string | null
   balance: string | null
   payment_state: PaymentState | null
   lines: Sale['lines']
@@ -290,9 +297,12 @@ export interface ServiceOperationSummary {
   operational_date: string
   customer_snapshot: { name?: string; identification?: string }
   grand_total: string
+  /** Solo dinero cobrado; lo retenido se informa aparte. */
   paid: string
+  withheld?: string
   balance: string
   payment_state: PaymentState
+  withholding_context?: WithholdingContext
   replaces: OperationRef | null
   replaced_by: OperationRef[]
   void_reason: string
@@ -330,6 +340,7 @@ export interface ServiceOperation extends ServiceOperationSummary {
   tax_total: string
   lines: ServiceOperationLine[]
   payments: ArtisanPayment[]
+  withholdings?: Withholding[]
   created_by: UserLabel | null
   created_at: string
   voided_by: UserLabel | null
@@ -431,6 +442,7 @@ export interface ArtisanReceivableRow {
   age_days: number
   grand_total: string
   paid: string
+  withheld?: string
   balance: string
   payment_state: PaymentState
 }
@@ -440,7 +452,12 @@ export interface ArtisanReceivablesPage {
   page: number
   page_size: number
   total_pages: number
-  totals: { grand_total: string; paid: string; balance: string }
+  totals: {
+    grand_total: string
+    paid: string
+    withheld?: string
+    balance: string
+  }
   results: ArtisanReceivableRow[]
 }
 

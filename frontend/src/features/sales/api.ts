@@ -9,6 +9,10 @@ import type {
   OperationStatus,
   Payment,
   PartInput,
+  PendingWithholdingsPage,
+  VoucherInput,
+  Withholding,
+  WithholdingInput,
   ProductOption,
   ReceivablesPage,
   Sale,
@@ -115,22 +119,74 @@ export function createSalesApi(client: ApiClient) {
     },
     paymentPreview(
       id: number,
-      data: { operationId: string; parts: PartInput[] },
+      data: {
+        operationId: string
+        parts: PartInput[]
+        withholding?: WithholdingInput | null
+      },
     ): Promise<MoneyReview> {
-      return post(`/${id}/payments/preview/`, {
-        operation_id: data.operationId,
-        parts: data.parts,
-      })
+      return post(`/${id}/payments/preview/`, settlementBody(data))
     },
+    /** Con dinero devuelve el pago; con solo retención, la retención registrada. */
     registerPayment(
       id: number,
-      data: { operationId: string; parts: PartInput[]; reviewToken: string },
+      data: {
+        operationId: string
+        parts: PartInput[]
+        withholding?: WithholdingInput | null
+        reviewToken: string
+      },
       key: string,
-    ): Promise<Payment> {
+    ): Promise<Payment | Withholding> {
       return post(`/${id}/payments/`, {
-        operation_id: data.operationId,
-        parts: data.parts,
+        ...settlementBody(data),
         review_token: data.reviewToken,
+        idempotency_key: key,
+      })
+    },
+    pendingWithholdings(
+      filters: { customerId?: number; page?: number; pageSize?: number } = {},
+    ): Promise<PendingWithholdingsPage> {
+      return get(
+        `/withholdings/pending/${buildQuery({
+          customer_id: filters.customerId,
+          page: filters.page,
+          page_size: filters.pageSize,
+        })}`,
+      )
+    },
+    completeVoucher(
+      id: number,
+      withholdingId: number,
+      data: VoucherInput,
+      key: string,
+    ): Promise<Withholding> {
+      return post(`/${id}/withholdings/${withholdingId}/voucher/`, {
+        ...voucherBody(data),
+        idempotency_key: key,
+      })
+    },
+    correctVoucher(
+      id: number,
+      withholdingId: number,
+      data: VoucherInput & { operationId: string; reason: string },
+      key: string,
+    ): Promise<Withholding> {
+      return post(`/${id}/withholdings/${withholdingId}/voucher-correction/`, {
+        ...voucherBody(data),
+        operation_id: data.operationId,
+        reason: data.reason,
+        idempotency_key: key,
+      })
+    },
+    voidWithholding(
+      id: number,
+      withholdingId: number,
+      data: { reason: string },
+      key: string,
+    ): Promise<Withholding> {
+      return post(`/${id}/withholdings/${withholdingId}/void/`, {
+        reason: data.reason,
         idempotency_key: key,
       })
     },
@@ -288,6 +344,35 @@ export function createSalesApi(client: ApiClient) {
         `/product-options/${buildQuery({ search, page, page_size: 20 })}`,
       )
     },
+  }
+}
+
+/** Dinero y retención de una misma acción; las partes se omiten si no hay dinero. */
+export function settlementBody(data: {
+  operationId: string
+  parts: PartInput[]
+  withholding?: WithholdingInput | null
+}): object {
+  return {
+    operation_id: data.operationId,
+    ...(data.parts.length > 0 ? { parts: data.parts } : {}),
+    ...(data.withholding ? { withholding: data.withholding } : {}),
+  }
+}
+
+/** El desglose renta/IVA es opcional: se envía completo o no se envía. */
+export function voucherBody(data: VoucherInput): object {
+  const breakdown =
+    data.incomeTaxAmount != null && data.vatAmount != null
+      ? {
+          income_tax_amount: data.incomeTaxAmount,
+          vat_amount: data.vatAmount,
+        }
+      : {}
+  return {
+    voucher_number: data.voucherNumber,
+    voucher_date: data.voucherDate,
+    ...breakdown,
   }
 }
 

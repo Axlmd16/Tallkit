@@ -21,6 +21,7 @@ import {
 } from '@/shared/ui'
 
 import { useElectronicProfile, useFiscalMutations } from '../hooks'
+import { WithholdingSettingsBlock } from './WithholdingSettingsBlock'
 import type {
   ConditionStatus,
   DeclaredCondition,
@@ -247,6 +248,7 @@ export function ProfileConditionsSection({
           </tbody>
         </table>
       </div>
+      <WithholdingSettingsBlock entityId={entityId} />
       <AdvancedInfo hint="sustentos, fechas de fin y revisión">
         <p>Revisión del perfil: {data.revision || 'sin guardar'}.</p>
         {declared.length === 0 ? (

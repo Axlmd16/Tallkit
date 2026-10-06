@@ -407,6 +407,21 @@ export interface PreparationDefaultsWrite {
   default_payment_code?: string
 }
 
+/** Ajustes de retenciones recibidas de una entidad; no cambian el estado del perfil. */
+export interface WithholdingSettings {
+  entity_id: number
+  version: number
+  registration_enabled: boolean
+  /** Nulo cuando la advertencia está desactivada. */
+  warning_percentage: string | null
+}
+
+export interface WithholdingSettingsWrite {
+  expected_version: number
+  registration_enabled?: boolean
+  warning_percentage?: string | null
+}
+
 export type CatalogKind = 'TAX_RATE' | 'PAYMENT_FORM'
 
 export interface CatalogEntry {

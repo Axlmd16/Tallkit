@@ -198,6 +198,59 @@ describe('ServiceOperationDetailPage', () => {
     )
   })
 
+  it('muestra lo retenido aparte del dinero y permite completar el comprobante', async () => {
+    mocks.permissions = ['pagos_artesanales.registrar']
+    mocks.operation.data = operation({
+      grand_total: '250.00',
+      paid: '245.00',
+      withheld: '5.00',
+      balance: '0.00',
+      payment_state: 'PAID',
+      withholdings: [
+        {
+          id: 8,
+          operation_id: 'w',
+          payment_id: 1,
+          amount: '5.00',
+          effective_at: '2026-09-24T10:00:00Z',
+          effective_date: '2026-09-24',
+          state: 'ACTIVE',
+          void_reason: null,
+          voided_at: null,
+          voucher_pending: true,
+          voucher_number: null,
+          voucher_date: null,
+          income_tax_amount: null,
+          vat_amount: null,
+        },
+      ],
+    })
+    renderAt(
+      '/maintenance/service-operations/4',
+      '/maintenance/service-operations/:id',
+      <ServiceOperationDetailPage />,
+    )
+    const balance = screen.getByLabelText('Saldo de la operación')
+    expect(within(balance).getByText('Cobrado en dinero')).toBeInTheDocument()
+    expect(
+      within(balance).getByText('Retenido por el cliente'),
+    ).toBeInTheDocument()
+    const row = screen.getByRole('listitem', { name: 'Retención 8' })
+    expect(within(row).getByText('Comprobante pendiente')).toBeInTheDocument()
+    expect(
+      within(row).queryByRole('button', { name: 'Anular retención' }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Ver retenciones por completar' }),
+    ).toHaveAttribute('href', '/maintenance/withholdings')
+    await userEvent.click(
+      within(row).getByRole('button', { name: 'Completar comprobante' }),
+    )
+    expect(
+      await screen.findByRole('dialog', { name: 'Completar comprobante' }),
+    ).toBeInTheDocument()
+  })
+
   it('una operación anulada explica que sus servicios quedaron pendientes', () => {
     mocks.operation.data = operation({
       state: 'VOIDED',

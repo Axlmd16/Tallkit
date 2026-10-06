@@ -27,6 +27,8 @@ import type {
   PaymentFormOption,
   PreparationDefaults,
   PreparationDefaultsWrite,
+  WithholdingSettings,
+  WithholdingSettingsWrite,
   PreparationResult,
   ReviewResult,
   RestorationEvidenceWrite,
@@ -230,6 +232,19 @@ export function createFiscalApi(client: ApiClient) {
     ) =>
       client.request<PreparationDefaults>(
         `${BASE}/configuration/entities/${entityId}/preparation-defaults/`,
+        { method: 'PUT', headers: attempt(attemptKey), body: data },
+      ),
+    getWithholdingSettings: (entityId: number) =>
+      client.request<WithholdingSettings>(
+        `${BASE}/configuration/entities/${entityId}/withholding-settings/`,
+      ),
+    saveWithholdingSettings: (
+      entityId: number,
+      data: WithholdingSettingsWrite,
+      attemptKey: string,
+    ) =>
+      client.request<WithholdingSettings>(
+        `${BASE}/configuration/entities/${entityId}/withholding-settings/`,
         { method: 'PUT', headers: attempt(attemptKey), body: data },
       ),
     getCatalog: (kind: CatalogKind, selectable = false) =>

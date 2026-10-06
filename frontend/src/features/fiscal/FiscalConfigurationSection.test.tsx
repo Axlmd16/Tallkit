@@ -59,6 +59,7 @@ vi.mock('./hooks', () => ({
   }),
   usePaymentForms: (id: number) => query(mocks.formsByEntity[id]),
   usePreparationDefaults: (id: number) => query(mocks.defaultsByEntity[id]),
+  useWithholdingSettings: () => query(undefined),
   useCatalog: () => query(mocks.catalog),
   useFiscalMutations: () => ({
     saveProfile: mocks.saveProfile,

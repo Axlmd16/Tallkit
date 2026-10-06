@@ -1,5 +1,11 @@
 import { ApiClient } from '@/shared/api/client'
 import { buildQuery, type Page } from '@/shared/api/catalog-resource'
+import { voucherBody } from '@/features/sales/api'
+import type {
+  PendingWithholdingsPage,
+  VoucherInput,
+  WithholdingInput,
+} from '@/features/sales/types'
 import { environment } from '@/shared/config/env'
 
 import type {
@@ -279,11 +285,72 @@ export function createMaintenanceApi(client: ApiClient) {
       parts: PaymentPartInput[],
       factId: string,
       key: string,
+      withholding?: WithholdingInput | null,
     ): Promise<ServiceOperation> {
       return client.request(`${OPERATIONS}/${operationId}/payments/`, {
         method: 'POST',
-        body: { operation_id: factId, parts, idempotency_key: key },
+        body: {
+          operation_id: factId,
+          ...(parts.length > 0 ? { parts } : {}),
+          ...(withholding ? { withholding } : {}),
+          idempotency_key: key,
+        },
       })
+    },
+    pendingArtisanWithholdings(
+      filters: { customerId?: number; page?: number; pageSize?: number } = {},
+    ): Promise<PendingWithholdingsPage> {
+      return client.request(
+        `${OPERATIONS}/withholdings/pending/${buildQuery({
+          customer_id: filters.customerId,
+          page: filters.page,
+          page_size: filters.pageSize,
+        })}`,
+      )
+    },
+    completeArtisanVoucher(
+      operationId: number,
+      withholdingId: number,
+      data: VoucherInput,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(
+        `${OPERATIONS}/${operationId}/withholdings/${withholdingId}/voucher/`,
+        {
+          method: 'POST',
+          body: { ...voucherBody(data), idempotency_key: key },
+        },
+      )
+    },
+    correctArtisanVoucher(
+      operationId: number,
+      withholdingId: number,
+      data: VoucherInput & { operationId: string; reason: string },
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(
+        `${OPERATIONS}/${operationId}/withholdings/${withholdingId}/voucher-correction/`,
+        {
+          method: 'POST',
+          body: {
+            ...voucherBody(data),
+            operation_id: data.operationId,
+            reason: data.reason,
+            idempotency_key: key,
+          },
+        },
+      )
+    },
+    voidArtisanWithholding(
+      operationId: number,
+      withholdingId: number,
+      reason: string,
+      key: string,
+    ): Promise<ServiceOperation> {
+      return client.request(
+        `${OPERATIONS}/${operationId}/withholdings/${withholdingId}/void/`,
+        { method: 'POST', body: { reason, idempotency_key: key } },
+      )
     },
     correctArtisanPayment(
       operationId: number,

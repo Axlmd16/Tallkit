@@ -16,6 +16,8 @@ export const saleKeys = {
   detail: (id: number | null) => ['sales', 'detail', id] as const,
   document: (id: number | null) => ['sales', 'document', id] as const,
   operation: (id: string | null) => ['sales', 'operation', id] as const,
+  pendingWithholdings: (page: number) =>
+    ['sales', 'withholdings', 'pending', page] as const,
   customers: (term: string, page: number) =>
     ['sales', 'customers', term, page] as const,
   products: (term: string, page: number) =>
@@ -56,6 +58,15 @@ export function useReceivables(filters: SaleFilters = {}) {
   return useQuery({
     queryKey: saleKeys.receivables(filters),
     queryFn: () => salesApi.receivables(filters),
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function usePendingWithholdings(page = 1, enabled = true) {
+  return useQuery({
+    queryKey: saleKeys.pendingWithholdings(page),
+    queryFn: () => salesApi.pendingWithholdings({ page }),
+    enabled,
     refetchOnWindowFocus: true,
   })
 }
@@ -163,6 +174,44 @@ export function useSaleMutations() {
           key: string
         },
       ) => salesApi.correctPayment(v.id, v.paymentId, v, v.key),
+    }),
+    completeVoucher: useMutation({
+      retry: false,
+      onSuccess: cash,
+      mutationFn: (
+        v: Parameters<typeof salesApi.completeVoucher>[2] & {
+          id: number
+          withholdingId: number
+          key: string
+        },
+      ) => salesApi.completeVoucher(v.id, v.withholdingId, v, v.key),
+    }),
+    correctVoucher: useMutation({
+      retry: false,
+      onSuccess: cash,
+      mutationFn: (
+        v: Parameters<typeof salesApi.correctVoucher>[2] & {
+          id: number
+          withholdingId: number
+          key: string
+        },
+      ) => salesApi.correctVoucher(v.id, v.withholdingId, v, v.key),
+    }),
+    voidWithholding: useMutation({
+      retry: false,
+      onSuccess: cash,
+      mutationFn: (v: {
+        id: number
+        withholdingId: number
+        reason: string
+        key: string
+      }) =>
+        salesApi.voidWithholding(
+          v.id,
+          v.withholdingId,
+          { reason: v.reason },
+          v.key,
+        ),
     }),
     registerReturn: useMutation({
       retry: false,

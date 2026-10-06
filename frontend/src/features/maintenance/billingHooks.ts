@@ -5,6 +5,7 @@ import {
   type QueryClient,
 } from '@tanstack/react-query'
 
+import type { VoucherInput, WithholdingInput } from '@/features/sales/types'
 import type { ComboboxResults } from '@/shared/ui'
 
 import { maintenanceApi, type PaymentPartInput } from './api'
@@ -30,6 +31,8 @@ export const billingKeys = {
     ['maintenance', 'service-operation-void-preview', id] as const,
   receivables: (filters: ArtisanReceivableFilters) =>
     ['maintenance', 'artisan-receivables', filters] as const,
+  pendingWithholdings: (page: number) =>
+    ['maintenance', 'artisan-withholdings', 'pending', page] as const,
 }
 
 /**
@@ -92,6 +95,15 @@ export function useVoidPreview(id: number, enabled: boolean) {
     queryKey: billingKeys.voidPreview(id),
     queryFn: () => maintenanceApi.voidPreview(id),
     enabled,
+  })
+}
+
+export function usePendingArtisanWithholdings(page = 1, enabled = true) {
+  return useQuery({
+    queryKey: billingKeys.pendingWithholdings(page),
+    queryFn: () => maintenanceApi.pendingArtisanWithholdings({ page }),
+    enabled,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -207,8 +219,53 @@ export function useBillingMutations() {
         parts: PaymentPartInput[]
         factId: string
         key: string
+        withholding?: WithholdingInput | null
       }) =>
-        maintenanceApi.registerArtisanPayment(v.id, v.parts, v.factId, v.key),
+        maintenanceApi.registerArtisanPayment(
+          v.id,
+          v.parts,
+          v.factId,
+          v.key,
+          v.withholding,
+        ),
+    }),
+    completeVoucher: useMutation({
+      retry: false,
+      onSuccess: onOperation,
+      mutationFn: (
+        v: VoucherInput & { id: number; withholdingId: number; key: string },
+      ) =>
+        maintenanceApi.completeArtisanVoucher(v.id, v.withholdingId, v, v.key),
+    }),
+    correctVoucher: useMutation({
+      retry: false,
+      onSuccess: onOperation,
+      mutationFn: (
+        v: VoucherInput & {
+          id: number
+          withholdingId: number
+          operationId: string
+          reason: string
+          key: string
+        },
+      ) =>
+        maintenanceApi.correctArtisanVoucher(v.id, v.withholdingId, v, v.key),
+    }),
+    voidWithholding: useMutation({
+      retry: false,
+      onSuccess: onOperation,
+      mutationFn: (v: {
+        id: number
+        withholdingId: number
+        reason: string
+        key: string
+      }) =>
+        maintenanceApi.voidArtisanWithholding(
+          v.id,
+          v.withholdingId,
+          v.reason,
+          v.key,
+        ),
     }),
     correctPayment: useMutation({
       retry: false,

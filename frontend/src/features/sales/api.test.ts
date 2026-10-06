@@ -268,4 +268,99 @@ describe('salesApi (resto de rutas)', () => {
     await api.voidPreview(4, { reason: 'x', refund: null })
     expect(request.mock.calls.at(-1)?.[1].body).toEqual({ reason: 'x' })
   })
+  it('el cobro con retención omite las partes vacías y envía el importe retenido', async () => {
+    const { client, request } = fakeClient()
+    const api = createSalesApi(client)
+    await api.paymentPreview(7, {
+      operationId: 'op-1',
+      parts: [],
+      withholding: { amount: '5.00', acknowledged: true },
+    })
+    expect(request).toHaveBeenLastCalledWith('/sales/7/payments/preview/', {
+      method: 'POST',
+      body: {
+        operation_id: 'op-1',
+        withholding: { amount: '5.00', acknowledged: true },
+      },
+    })
+    await api.registerPayment(
+      7,
+      {
+        operationId: 'op-1',
+        parts: [{ method: 'TRANSFERENCIA', amount: '245.00' }],
+        withholding: { amount: '5.00' },
+        reviewToken: 'tok',
+      },
+      'pay-key-9',
+    )
+    expect(request).toHaveBeenLastCalledWith('/sales/7/payments/', {
+      method: 'POST',
+      body: {
+        operation_id: 'op-1',
+        parts: [{ method: 'TRANSFERENCIA', amount: '245.00' }],
+        withholding: { amount: '5.00' },
+        review_token: 'tok',
+        idempotency_key: 'pay-key-9',
+      },
+    })
+  })
+
+  it('comprobante, corrección, anulación y pendientes usan las rutas de retenciones', async () => {
+    const { client, request } = fakeClient()
+    const api = createSalesApi(client)
+    await api.pendingWithholdings({ page: 2 })
+    expect(request).toHaveBeenLastCalledWith(
+      '/sales/withholdings/pending/?page=2',
+    )
+    await api.completeVoucher(
+      7,
+      3,
+      { voucherNumber: '001-001-000028564', voucherDate: '2026-10-05' },
+      'k1',
+    )
+    expect(request).toHaveBeenLastCalledWith(
+      '/sales/7/withholdings/3/voucher/',
+      {
+        method: 'POST',
+        body: {
+          voucher_number: '001-001-000028564',
+          voucher_date: '2026-10-05',
+          idempotency_key: 'k1',
+        },
+      },
+    )
+    await api.correctVoucher(
+      7,
+      3,
+      {
+        voucherNumber: '001-001-000000002',
+        voucherDate: '2026-10-05',
+        incomeTaxAmount: '5.00',
+        vatAmount: '0.00',
+        operationId: 'op-2',
+        reason: 'Número mal digitado',
+      },
+      'k2',
+    )
+    expect(request).toHaveBeenLastCalledWith(
+      '/sales/7/withholdings/3/voucher-correction/',
+      {
+        method: 'POST',
+        body: {
+          voucher_number: '001-001-000000002',
+          voucher_date: '2026-10-05',
+          income_tax_amount: '5.00',
+          vat_amount: '0.00',
+          operation_id: 'op-2',
+          reason: 'Número mal digitado',
+          idempotency_key: 'k2',
+        },
+      },
+    )
+    await api.voidWithholding(7, 3, { reason: 'Error' }, 'k3')
+    expect(request).toHaveBeenLastCalledWith('/sales/7/withholdings/3/void/', {
+      method: 'POST',
+      body: { reason: 'Error', idempotency_key: 'k3' },
+    })
+  })
 })

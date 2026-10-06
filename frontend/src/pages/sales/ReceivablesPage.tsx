@@ -41,6 +41,14 @@ export function ReceivablesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        actions={
+          <Link
+            className="text-[13px] font-semibold text-accent hover:underline"
+            to="/sales/withholdings"
+          >
+            Retenciones por completar
+          </Link>
+        }
         description="Deuda cobrable y reembolsos pendientes de las ventas comerciales confirmadas."
         title="Cuentas por cobrar"
       />

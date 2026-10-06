@@ -10,6 +10,8 @@ export interface CustomerSummary {
   phone: string
   email: string | null
   address: string | null
+  /** Declaración manual: orienta el cobro y no se verifica ante el SRI. */
+  is_withholding_agent?: boolean
   is_active: boolean
   version: number
   created_at: string
@@ -34,6 +36,7 @@ export interface CustomerWrite {
   phone: string
   email?: string | undefined
   address?: string | undefined
+  is_withholding_agent?: boolean | undefined
   expected_version?: number | undefined
 }
 

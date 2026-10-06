@@ -334,3 +334,34 @@ it('prevents double submission while a save request is pending', async () => {
     ).not.toBeDisabled()
   })
 })
+
+it('envía la marca de agente de retención solo cuando la persona la cambia', async () => {
+  const existing: CustomerSummary = {
+    id: 15,
+    person_type: 'JURIDICA',
+    identification_type: 'RUC',
+    identification: '1191721175001',
+    name: 'DICOSIL CIA. LTDA.',
+    phone: '0991234567',
+    email: '',
+    address: '',
+    is_withholding_agent: false,
+    is_active: true,
+    version: 2,
+    created_at: '2026-09-13T00:00:00Z',
+    updated_at: '2026-09-13T00:00:00Z',
+  }
+  const save = vi.fn().mockResolvedValue(undefined)
+  const user = userEvent.setup()
+  render(<CustomerForm api={dummyApi} customer={existing} onSubmit={save} />)
+  const flag = screen.getByRole('checkbox', { name: /agente de retención/i })
+  expect(flag).not.toBeChecked()
+  await user.click(flag)
+  await user.click(screen.getByRole('button', { name: /guardar cliente/i }))
+  expect(save).toHaveBeenCalledWith(
+    expect.objectContaining({
+      is_withholding_agent: true,
+      expected_version: 2,
+    }),
+  )
+})

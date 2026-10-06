@@ -7,6 +7,7 @@ import type {
   DraftUpdate,
   FiscalSourceKind,
   PreparationDefaultsWrite,
+  WithholdingSettingsWrite,
   TaxMappingSuccessorWrite,
 } from './types'
 
@@ -28,6 +29,8 @@ export const fiscalKeys = {
     [...fiscalKeys.all, 'configuration', 'status', entityId] as const,
   defaults: (entityId: number) =>
     [...fiscalKeys.all, 'configuration', 'defaults', entityId] as const,
+  withholdingSettings: (entityId: number) =>
+    [...fiscalKeys.all, 'configuration', 'withholding', entityId] as const,
   catalog: (kind: CatalogKind, selectable: boolean) =>
     [...fiscalKeys.all, 'configuration', 'catalog', kind, selectable] as const,
   taxMappings: (entityId: number) =>
@@ -118,6 +121,14 @@ export function usePreparationDefaults(entityId: number) {
   return useQuery({
     queryKey: fiscalKeys.defaults(entityId),
     queryFn: () => fiscalApi.getPreparationDefaults(entityId),
+    enabled: entityId > 0,
+  })
+}
+
+export function useWithholdingSettings(entityId: number) {
+  return useQuery({
+    queryKey: fiscalKeys.withholdingSettings(entityId),
+    queryFn: () => fiscalApi.getWithholdingSettings(entityId),
     enabled: entityId > 0,
   })
 }
@@ -377,6 +388,23 @@ export function useFiscalMutations() {
       }) => fiscalApi.savePreparationDefaults(entityId, data, attemptKey),
       onSuccess: () =>
         queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() }),
+    }),
+    saveWithholdingSettings: useMutation({
+      mutationFn: ({
+        entityId,
+        data,
+        attemptKey,
+      }: {
+        entityId: number
+        data: WithholdingSettingsWrite
+        attemptKey: string
+      }) => fiscalApi.saveWithholdingSettings(entityId, data, attemptKey),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: fiscalKeys.configuration() })
+        // El cobro lee este ajuste desde el detalle de ventas y operaciones.
+        queryClient.invalidateQueries({ queryKey: ['sales'] })
+        queryClient.invalidateQueries({ queryKey: ['maintenance'] })
+      },
     }),
     setPaymentForm: useMutation({
       mutationFn: ({

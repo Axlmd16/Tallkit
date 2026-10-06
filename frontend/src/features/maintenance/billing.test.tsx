@@ -421,4 +421,75 @@ describe('Diálogos de servicios', () => {
       ),
     )
   })
+  it('el cobro de servicios pregunta por la retención y la envía con el dinero', async () => {
+    mocks.mutations.pay.mutateAsync.mockResolvedValue({ balance: '0.00' })
+    const events = userEvent.setup()
+    renderIn(
+      <ArtisanPaymentDialog
+        onClose={vi.fn()}
+        onDone={vi.fn()}
+        operation={
+          {
+            id: 4,
+            internal_number: 'ART-SER-000004',
+            condition: 'CONTADO',
+            balance: '250.00',
+            withholding_context: { enabled: true, customer_is_agent: false },
+          } as never
+        }
+        userScope="u"
+      />,
+    )
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).queryByTestId('artisan-payment-withholding'),
+    ).not.toBeInTheDocument()
+    await events.type(
+      within(dialog).getByLabelText('Transferencia (USD)'),
+      '245.00',
+    )
+    await events.click(
+      within(dialog).getByRole('checkbox', { name: /el cliente retuvo/ }),
+    )
+    expect(within(dialog).getByLabelText('Valor retenido (USD)')).toHaveValue(
+      '5.00',
+    )
+    expect(within(dialog).queryByLabelText(/comprobante/i)).toBeNull()
+    await events.click(
+      within(dialog).getByRole('button', { name: /Registrar cobro/ }),
+    )
+    await waitFor(() =>
+      expect(mocks.mutations.pay.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          parts: [{ method: 'TRANSFERENCIA', amount: '245.00' }],
+          withholding: { amount: '5.00' },
+        }),
+      ),
+    )
+  })
+
+  it('una operación de una entidad sin retenciones no ofrece la pregunta', async () => {
+    const events = userEvent.setup()
+    renderIn(
+      <ArtisanPaymentDialog
+        onClose={vi.fn()}
+        onDone={vi.fn()}
+        operation={
+          {
+            id: 4,
+            internal_number: 'ART-SER-000004',
+            condition: 'CREDITO',
+            balance: '250.00',
+            withholding_context: { enabled: false, customer_is_agent: true },
+          } as never
+        }
+        userScope="u"
+      />,
+    )
+    const dialog = screen.getByRole('dialog')
+    await events.type(within(dialog).getByLabelText('Efectivo (USD)'), '100')
+    expect(
+      within(dialog).queryByTestId('artisan-payment-withholding'),
+    ).not.toBeInTheDocument()
+  })
 })

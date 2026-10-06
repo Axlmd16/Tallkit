@@ -37,6 +37,7 @@ const empty: CustomerWrite = {
   phone: '',
   email: '',
   address: '',
+  is_withholding_agent: false,
 }
 
 const EMAIL_REGEX =
@@ -68,6 +69,7 @@ export function CustomerForm({
             phone: customer.phone,
             email: customer.email ?? '',
             address: customer.address ?? '',
+            is_withholding_agent: customer.is_withholding_agent ?? false,
           }
         : empty,
     [customer],
@@ -164,8 +166,13 @@ export function CustomerForm({
     setPending(true)
 
     try {
+      // La marca de agente de retención solo viaja cuando la persona la cambió.
+      const { is_withholding_agent: marked, ...rest } = draft
       const payload: CustomerWrite = {
-        ...draft,
+        ...rest,
+        ...(Boolean(marked) !== Boolean(initial.is_withholding_agent)
+          ? { is_withholding_agent: Boolean(marked) }
+          : {}),
         name: draft.name.trim(),
         identification: draft.identification.trim(),
         phone: draft.phone.trim(),
@@ -418,6 +425,28 @@ export function CustomerForm({
                 />
               </LeadingIcon>
             </Field>
+
+            <label className="flex items-start gap-2 text-sm text-ink sm:col-span-2">
+              <input
+                checked={Boolean(draft.is_withholding_agent)}
+                className="mt-1"
+                onChange={(event) =>
+                  setDraft({
+                    ...draft,
+                    is_withholding_agent: event.target.checked,
+                  })
+                }
+                type="checkbox"
+              />
+              <span>
+                <span className="font-semibold">Agente de retención</span>
+                <span className="block text-[12.5px] text-ink-muted">
+                  Márquelo si este cliente suele pagar un poco menos porque
+                  retiene impuestos. Puede comprobarlo en la consulta de RUC del
+                  SRI. Solo sirve para sugerir la retención al cobrar.
+                </span>
+              </span>
+            </label>
           </div>
         </SectionPanel>
       </div>

@@ -19,6 +19,11 @@ vi.mock('../hooks', () => ({
     isError: false,
   }),
   useFiscalMutations: () => ({ saveProfile: mocks.saveProfile }),
+  useWithholdingSettings: () => ({
+    data: undefined,
+    isLoading: false,
+    isError: false,
+  }),
 }))
 
 import { ProfileConditionsSection } from './ProfileConditionsSection'

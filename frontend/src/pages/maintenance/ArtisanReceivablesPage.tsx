@@ -33,6 +33,14 @@ export function ArtisanReceivablesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        actions={
+          <Link
+            className="text-[13px] font-semibold text-accent hover:underline"
+            to="/maintenance/withholdings"
+          >
+            Retenciones por completar
+          </Link>
+        }
         description="Saldos de servicios del RUC artesanal; los repuestos se consultan en las cuentas por cobrar comerciales."
         title="Cuentas por cobrar de servicios"
       />

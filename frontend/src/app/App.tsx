@@ -37,6 +37,7 @@ import { ServiceOperationDocumentPage } from '@/pages/maintenance/ServiceOperati
 import { MaintenanceOrderEditorPage } from '@/pages/maintenance/MaintenanceOrderEditorPage'
 import { MaintenanceOrdersPage } from '@/pages/maintenance/MaintenanceOrdersPage'
 import { ReceivablesPage } from '@/pages/sales/ReceivablesPage'
+import { PendingWithholdingsPage } from '@/pages/withholdings/PendingWithholdingsPage'
 import { SaleDetailPage } from '@/pages/sales/SaleDetailPage'
 import { SaleDocumentPage } from '@/pages/sales/SaleDocumentPage'
 import { SaleEditorPage } from '@/pages/sales/SaleEditorPage'
@@ -287,6 +288,14 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/sales/withholdings',
+            element: (
+              <PermissionGuard permission="pagos_comerciales.ver">
+                <PendingWithholdingsPage scope="commercial" />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/sales/:id',
             element: (
               <PermissionGuard permission="ventas.ver">
@@ -323,6 +332,14 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="pagos_artesanales.ver">
                 <ArtisanReceivablesPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/withholdings',
+            element: (
+              <PermissionGuard permission="pagos_artesanales.ver">
+                <PendingWithholdingsPage scope="artesanal" />
               </PermissionGuard>
             ),
           },

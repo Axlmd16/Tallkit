@@ -256,14 +256,19 @@ function Totals({
 function DocumentAmounts({
   total,
   paid,
+  withheld,
   balance,
 }: {
   total: string | null
   paid: string | null
+  withheld?: string | null | undefined
   balance: string | null
 }) {
+  const hasWithheld = Number(withheld ?? 0) > 0
   return (
-    <dl className="grid grid-cols-3 gap-2 text-xs">
+    <dl
+      className={`grid gap-2 text-xs ${hasWithheld ? 'grid-cols-4' : 'grid-cols-3'}`}
+    >
       <div>
         <dt className="text-ink-muted">Total</dt>
         <dd>
@@ -276,6 +281,14 @@ function DocumentAmounts({
           <Money amount={paid} />
         </dd>
       </div>
+      {hasWithheld && (
+        <div>
+          <dt className="text-ink-muted">Retenido</dt>
+          <dd>
+            <Money amount={withheld ?? null} />
+          </dd>
+        </div>
+      )}
       <div>
         <dt className="text-ink-muted">Saldo</dt>
         <dd className="font-semibold">
@@ -320,6 +333,7 @@ function CommercialRow({
       <DocumentAmounts
         balance={doc.balance}
         paid={doc.paid}
+        withheld={doc.withheld}
         total={doc.grand_total}
       />
       {doc.allowed_actions.includes('pay') && (
@@ -370,6 +384,7 @@ function ArtisanRow({
       <DocumentAmounts
         balance={operation.balance}
         paid={operation.paid}
+        withheld={operation.withheld}
         total={operation.grand_total}
       />
       {operation.allowed_actions?.includes('pay') && (

@@ -15,8 +15,17 @@ import {
   ArtisanPaymentDialog,
   VoidServiceOperationDialog,
 } from '@/features/maintenance/BillingDialogs'
-import { useServiceOperation } from '@/features/maintenance/billingHooks'
+import {
+  useBillingMutations,
+  useServiceOperation,
+} from '@/features/maintenance/billingHooks'
 import type { ArtisanPayment } from '@/features/maintenance/types'
+import type { Withholding } from '@/features/sales/types'
+import {
+  VoidWithholdingDialog,
+  VoucherDialog,
+  WithholdingList,
+} from '@/features/sales/WithholdingRecords'
 import {
   Button,
   FiscalScopeBadge,
@@ -34,7 +43,13 @@ const statusLabels = {
   REPLACED: 'Sustituido',
 } as const
 
-type Dialog = 'pay' | 'void' | { correct: ArtisanPayment } | null
+type Dialog =
+  | 'pay'
+  | 'void'
+  | { correct: ArtisanPayment }
+  | { voucher: Withholding; correcting: boolean }
+  | { voidWithholding: Withholding }
+  | null
 
 /**
  * Operación artesanal de servicios (RUC artesanal): líneas congeladas, saldo derivado,
@@ -46,6 +61,7 @@ export function ServiceOperationDetailPage() {
   const session = useSession().data
   const permissions = new Set(session?.permissions ?? [])
   const toast = useToast()
+  const mutations = useBillingMutations()
   const [dialog, setDialog] = useState<Dialog>(null)
   const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -172,7 +188,10 @@ export function ServiceOperationDetailPage() {
       >
         {[
           ['Total', operation.grand_total],
-          ['Pagado', operation.paid],
+          ['Cobrado en dinero', operation.paid],
+          ...(Number(operation.withheld ?? 0) > 0
+            ? [['Retenido por el cliente', operation.withheld ?? null]]
+            : []),
           ['Saldo', operation.balance],
         ].map(([label, amount]) => (
           <div className="bg-surface px-4 py-3" key={label}>
@@ -309,6 +328,84 @@ export function ServiceOperationDetailPage() {
         </div>
       </SectionPanel>
 
+      {(operation.withholdings ?? []).length > 0 && (
+        <SectionPanel
+          icon={<Coins size={17} />}
+          id="operation-withholdings"
+          title="Retenciones del cliente"
+        >
+          <WithholdingList
+            canAdmin={canCorrect}
+            canComplete={permissions.has('pagos_artesanales.registrar')}
+            onComplete={(withholding, origin) => {
+              returnFocus.current = origin
+              setDialog({ voucher: withholding, correcting: false })
+            }}
+            onCorrect={(withholding, origin) => {
+              returnFocus.current = origin
+              setDialog({ voucher: withholding, correcting: true })
+            }}
+            onVoid={(withholding, origin) => {
+              returnFocus.current = origin
+              setDialog({ voidWithholding: withholding })
+            }}
+            withholdings={operation.withholdings ?? []}
+          />
+          <p className="border-t border-line px-4 py-2 text-[12px] text-ink-muted">
+            Lo retenido baja la deuda, pero no es dinero recibido.{' '}
+            <Link
+              className="font-semibold text-accent hover:underline"
+              to="/maintenance/withholdings"
+            >
+              Ver retenciones por completar
+            </Link>
+          </p>
+        </SectionPanel>
+      )}
+
+      {dialog && typeof dialog === 'object' && 'voucher' in dialog && (
+        <VoucherDialog
+          correcting={dialog.correcting}
+          onClose={() => setDialog(null)}
+          onDone={done}
+          onSubmit={(data, key) =>
+            dialog.correcting
+              ? mutations.correctVoucher.mutateAsync({
+                  ...data,
+                  id: operation.id,
+                  withholdingId: dialog.voucher.id,
+                  key,
+                })
+              : mutations.completeVoucher.mutateAsync({
+                  ...data,
+                  id: operation.id,
+                  withholdingId: dialog.voucher.id,
+                  key,
+                })
+          }
+          returnFocusRef={returnFocus}
+          scope="artesanal"
+          withholding={dialog.voucher}
+        />
+      )}
+      {dialog && typeof dialog === 'object' && 'voidWithholding' in dialog && (
+        <VoidWithholdingDialog
+          onClose={() => setDialog(null)}
+          onDone={done}
+          onSubmit={(reason, key) =>
+            mutations.voidWithholding.mutateAsync({
+              id: operation.id,
+              withholdingId: dialog.voidWithholding.id,
+              reason,
+              key,
+            })
+          }
+          returnFocusRef={returnFocus}
+          scope="artesanal"
+          withholding={dialog.voidWithholding}
+        />
+      )}
+
       {dialog === 'pay' && (
         <ArtisanPaymentDialog
           onClose={() => setDialog(null)}
@@ -326,7 +423,7 @@ export function ServiceOperationDetailPage() {
           returnFocusRef={returnFocus}
         />
       )}
-      {dialog && typeof dialog === 'object' && (
+      {dialog && typeof dialog === 'object' && 'correct' in dialog && (
         <ArtisanCorrectionDialog
           onClose={() => setDialog(null)}
           onDone={done}

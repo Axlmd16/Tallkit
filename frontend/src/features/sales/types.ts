@@ -36,7 +36,72 @@ export interface SaleMoney {
   applied: string | null
   balance: string | null
   refund_due: string | null
+  /** Retenciones vigentes: bajan el saldo, pero nunca son dinero cobrado. */
+  withheld_total?: string | null
+  withheld_excess?: string | null
   payment_state: PaymentState | null
+}
+
+/** Orienta la pantalla de cobro; el servidor valida al registrar. */
+export interface WithholdingContext {
+  enabled: boolean
+  customer_is_agent: boolean
+}
+
+export interface WithholdingInput {
+  amount: string
+  acknowledged?: boolean
+}
+
+export interface WithholdingWarning {
+  percentage: string
+  threshold: string
+}
+
+/** Retención recibida: el comprobante se completa después del cobro. */
+export interface Withholding {
+  id: number
+  operation_id: string
+  sale_id?: number
+  service_operation_id?: number
+  payment_id: number | null
+  amount: string
+  effective_at: string
+  effective_date: string
+  state: 'ACTIVE' | 'VOIDED'
+  void_reason: string | null
+  voided_at: string | null
+  voucher_pending: boolean
+  voucher_number: string | null
+  voucher_date: string | null
+  income_tax_amount: string | null
+  vat_amount: string | null
+  money?: SaleMoney
+}
+
+export interface PendingWithholding extends Withholding {
+  sale_number?: string | null
+  operation_number?: string | null
+  order_id?: number
+  order_number?: string | null
+  customer: { id: number; name?: string; identification?: string }
+  age_days: number
+  fiscal_scope: 'COMERCIAL' | 'ARTESANAL'
+}
+
+export interface PendingWithholdingsPage {
+  items: PendingWithholding[]
+  total_count: number
+  page: number
+  page_size: number
+  pending_total: string
+}
+
+export interface VoucherInput {
+  voucherNumber: string
+  voucherDate: string
+  incomeTaxAmount?: string | null
+  vatAmount?: string | null
 }
 
 export interface SaleCustomer {
@@ -123,6 +188,8 @@ export interface Sale {
   money: SaleMoney
   links?: { document: string }
   payments?: SalePaymentRow[]
+  withholdings?: Withholding[]
+  withholding_context?: WithholdingContext
   refunds?: SaleRefundRow[]
   returns?: SaleReturnRow[]
   /** Solo con el permiso de valoración. */
@@ -262,6 +329,8 @@ export interface MoneyReview {
   issues: Issue[]
   review_token: string | null
   expires_in_seconds: number
+  /** Presente cuando la retención supera el umbral y exige confirmación explícita. */
+  warning?: WithholdingWarning | null
   can_register?: boolean
   can_correct?: boolean
   can_return?: boolean
@@ -290,6 +359,7 @@ export interface Payment {
   amount: string
   parts: PartInput[]
   state: 'ACTIVE' | 'CORRECTED'
+  withholding?: Withholding | null
   money: SaleMoney
 }
 
@@ -331,9 +401,9 @@ export interface SaleDocument {
 }
 
 export interface OperationStatus {
-  kind: 'payment' | 'return' | 'refund'
+  kind: 'payment' | 'return' | 'refund' | 'withholding'
   id: number
-  result: Payment | SaleReturn | SaleRefund
+  result: Payment | SaleReturn | SaleRefund | Withholding
 }
 
 export interface CustomerOption {

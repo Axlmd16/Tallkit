@@ -150,25 +150,38 @@ Resultado registrado (2026-10-05): 195 pruebas en verde en los archivos del grup
 
 Dependencias: grupo 8. Diseño 9; requisito «Cobro en lenguaje llano».
 
-- [ ] 9.1 Actualizar tipos y clientes de API en `frontend/src/features/sales`, `features/maintenance` (`billingApi`, `billingHooks`), `features/customers` y `features/workshop-configuration`, con sus pruebas de contrato.
-- [ ] 9.2 Escribir primero pruebas de `features/sales/PaymentDialog.tsx`: dinero menor que el saldo muestra la pregunta con la diferencia calculada; confirmar, ajustar o dejar como saldo; cliente marcado la muestra desde el inicio; entidad desactivada no la ofrece; advertencia del umbral pide confirmación; ausencia de campos de comprobante. Implementar hasta verde.
-- [ ] 9.3 Hacer lo mismo en `features/maintenance/BillingDialogs.tsx` para el cobro artesanal.
-- [ ] 9.4 Mostrar «Cobrado», «Retenido» y «Saldo» separados y las retenciones en el historial en `pages/sales/SaleDetailPage.tsx` y en el resumen económico del mantenimiento, con sus pruebas.
-- [ ] 9.5 Verificar con Vitest de los archivos tocados, `tsc`, ESLint y Prettier sobre ellos.
+- [x] 9.1 Actualizar tipos y clientes de API en `frontend/src/features/sales`, `features/maintenance` (`billingApi`, `billingHooks`), `features/customers` y `features/workshop-configuration`, con sus pruebas de contrato.
+- [x] 9.2 Escribir primero pruebas de `features/sales/PaymentDialog.tsx`: dinero menor que el saldo muestra la pregunta con la diferencia calculada; confirmar, ajustar o dejar como saldo; cliente marcado la muestra desde el inicio; entidad desactivada no la ofrece; advertencia del umbral pide confirmación; ausencia de campos de comprobante. Implementar hasta verde.
+- [x] 9.3 Hacer lo mismo en `features/maintenance/BillingDialogs.tsx` para el cobro artesanal.
+- [x] 9.4 Mostrar «Cobrado», «Retenido» y «Saldo» separados y las retenciones en el historial en `pages/sales/SaleDetailPage.tsx` y en el resumen económico del mantenimiento, con sus pruebas.
+- [x] 9.5 Verificar con Vitest de los archivos tocados, `tsc`, ESLint y Prettier sobre ellos.
 
 Evidencia del grupo: pruebas de Vitest en verde con su salida.
+
+Resultado registrado (2026-10-05): `tsc`, ESLint y Prettier sin hallazgos en lo tocado; Vitest en verde en las áreas afectadas (ventas, mantenimiento, clientes, fiscal, páginas y rutas). Notas:
+- El backend añadió `withholding_context` (entidad que registra retenciones y marca vigente del cliente) al detalle de la venta y al resumen de la operación artesanal, y `withholdings` al detalle de la venta, porque quien cobra no puede leer la configuración administrativa.
+- La pregunta del cobro vive en `features/sales/WithholdingQuestion.tsx` y la usan los dos diálogos; propone la diferencia ya calculada y nunca pide datos del comprobante.
+- En el taller el cobro no tiene revisión previa: la advertencia llega como rechazo `withholding_warning` y el diálogo muestra la confirmación.
+- Pruebas nuevas: `WithholdingQuestion.test.tsx`, casos en `features/sales/api.test.ts`, `features/maintenance/billing.test.tsx`, `pages/sales/SaleDetailPage.test.tsx` y `pages/maintenance/billingPages.test.tsx`.
+- Se actualizaron los mocks de `SaleDetailPage.test.tsx`, `ProfileConditionsSection.test.tsx` y `FiscalConfigurationSection.test.tsx` para incluir los hooks nuevos.
 
 ## 10. Frontend: seguimiento, cliente y configuración
 
 Dependencias: grupo 9. Diseño 9; requisitos de seguimiento, marca del cliente y ajustes.
 
-- [ ] 10.1 Crear la vista «Retenciones por completar» por ámbito, enlazada desde cuentas por cobrar, con modal para completar el comprobante, corrección y anulación solo para Administrador, confirmación por toast y estados vacío, carga y error; pruebas incluidas.
-- [ ] 10.2 Añadir el interruptor «Agente de retención» a `features/customers/CustomerForm.tsx` con ayuda breve y pruebas.
-- [ ] 10.3 Añadir el bloque de retenciones dentro de la subsección «Perfil tributario» de Facturación electrónica (activar o desactivar y porcentaje de advertencia, edición en modal, solo Administrador), sin pestaña nueva; pruebas incluidas.
+- [x] 10.1 Crear la vista «Retenciones por completar» por ámbito, enlazada desde cuentas por cobrar, con modal para completar el comprobante, corrección y anulación solo para Administrador, confirmación por toast y estados vacío, carga y error; pruebas incluidas.
+- [x] 10.2 Añadir el interruptor «Agente de retención» a `features/customers/CustomerForm.tsx` con ayuda breve y pruebas.
+- [x] 10.3 Añadir el bloque de retenciones dentro de la subsección «Perfil tributario» de Facturación electrónica (activar o desactivar y porcentaje de advertencia, edición en modal, solo Administrador), sin pestaña nueva; pruebas incluidas.
 - [ ] 10.4 Revisar accesibilidad y adaptación a ancho reducido de los diálogos y vistas nuevos con los patrones vigentes.
-- [ ] 10.5 Verificar con Vitest de los archivos tocados, `tsc`, ESLint y Prettier.
+- [x] 10.5 Verificar con Vitest de los archivos tocados, `tsc`, ESLint y Prettier.
 
 Evidencia del grupo: pruebas en verde y capturas de las vistas nuevas.
+
+Resultado registrado (2026-10-05): pruebas en verde. Notas:
+- 10.1: `pages/withholdings/PendingWithholdingsPage.tsx`, una sola página con el ámbito como propiedad, en `/sales/withholdings` y `/maintenance/withholdings`, enlazada desde las dos cuentas por cobrar y desde el detalle de cada operación. Los diálogos de comprobante y anulación (`features/sales/WithholdingRecords.tsx`) se comparten entre ámbitos. La corrección de un comprobante ya completado se hace desde el detalle de la operación, donde sigue visible.
+- 10.2: el formulario de cliente envía la marca solo cuando la persona la cambia, para no alterar el contrato de las ediciones que no la tocan.
+- 10.3: `WithholdingSettingsBlock` dentro de `ProfileConditionsSection`, sin pestaña ni sección nueva.
+- 10.4 queda pendiente: no se tomaron capturas ni se hizo la revisión manual de accesibilidad y ancho reducido; las pruebas comprueban roles y nombres accesibles.
 
 ## 11. Recorridos de punta a punta
 

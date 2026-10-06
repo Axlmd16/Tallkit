@@ -2,6 +2,13 @@ import { useEffect, useState, type RefObject } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
 import {
+  emptyWithholding,
+  settlementValid,
+  toWithholding,
+  WithholdingQuestion,
+} from '@/features/sales/WithholdingQuestion'
+import { ProblemError } from '@/shared/api/client'
+import {
   PartsFields,
   partsTotal,
   partsValid,
@@ -233,19 +240,26 @@ export function ArtisanPaymentDialog({
   const tracker = useIntentTracker()
   const [cash, setCash] = useState('')
   const [transfer, setTransfer] = useState('')
+  const [withheld, setWithheld] = useState(emptyWithholding)
+  const [warning, setWarning] = useState<{ percentage: string } | null>(null)
   const key = intentKey(userScope, operation.id, 'artisan-payment')
   const parts = toParts(cash, transfer)
+  const withholding = toWithholding(withheld)
+  const valid = settlementValid(cash, transfer, withheld)
 
   async function save(): Promise<boolean> {
-    if (!partsValid(cash, transfer)) return false
+    if (!valid) return false
     try {
-      const result = await tracker.run({ pay: operation.id, parts }, (idem) =>
-        mutations.pay.mutateAsync({
-          id: operation.id,
-          parts,
-          factId: getOrCreateIntent(key),
-          key: idem,
-        }),
+      const result = await tracker.run(
+        { pay: operation.id, parts, withholding },
+        (idem) =>
+          mutations.pay.mutateAsync({
+            id: operation.id,
+            parts,
+            withholding,
+            factId: getOrCreateIntent(key),
+            key: idem,
+          }),
       )
       clearIntent(key)
       onDone(
@@ -253,6 +267,14 @@ export function ArtisanPaymentDialog({
       )
       return true
     } catch (problem) {
+      // Importe inusual: el servidor pide confirmarlo antes de registrar.
+      if (
+        problem instanceof ProblemError &&
+        problem.code === 'withholding_warning'
+      ) {
+        const percentage = /([\d.]+)\s*%/.exec(problem.message)?.[1] ?? ''
+        setWarning({ percentage })
+      }
       throw new Error(describeProblem(problem).message, { cause: problem })
     }
   }
@@ -260,13 +282,17 @@ export function ArtisanPaymentDialog({
   return (
     <FormModal
       description="Registra un cobro ya recibido. El registro en el sistema no entrega ni recibe dinero."
-      dirty={Boolean(cash || transfer)}
+      dirty={Boolean(cash || transfer || withheld.active)}
       onClose={onClose}
       onSave={save}
       open
       {...(returnFocusRef ? { returnFocusRef } : {})}
-      saveDisabled={!partsValid(cash, transfer)}
-      saveLabel={`Registrar cobro de USD ${partsTotal(cash, transfer)}`}
+      saveDisabled={!valid}
+      saveLabel={
+        parts.length > 0
+          ? `Registrar cobro de USD ${partsTotal(cash, transfer)}`
+          : 'Registrar retención'
+      }
       title={`Cobrar servicios · ${operation.internal_number}`}
     >
       <div className="space-y-4">
@@ -289,6 +315,19 @@ export function ArtisanPaymentDialog({
             setTransfer(next.transfer)
           }}
           transfer={transfer}
+        />
+        <WithholdingQuestion
+          balance={operation.balance}
+          cash={cash}
+          context={operation.withholding_context}
+          idPrefix="artisan-payment"
+          onChange={(next) => {
+            setWithheld(next)
+            if (!next.active) setWarning(null)
+          }}
+          transfer={transfer}
+          value={withheld}
+          warning={warning}
         />
       </div>
     </FormModal>

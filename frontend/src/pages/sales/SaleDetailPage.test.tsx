@@ -16,7 +16,14 @@ vi.mock('@/features/auth/hooks', () => ({
     data: { username: 'vendedor', permissions: mocks.permissions },
   }),
 }))
-vi.mock('@/features/sales/hooks', () => ({ useSale: () => mocks.query }))
+vi.mock('@/features/sales/hooks', () => ({
+  useSale: () => mocks.query,
+  useSaleMutations: () => ({
+    completeVoucher: { mutateAsync: vi.fn() },
+    correctVoucher: { mutateAsync: vi.fn() },
+    voidWithholding: { mutateAsync: vi.fn() },
+  }),
+}))
 vi.mock('@/features/fiscal', () => ({ FiscalPreparationLink: () => null }))
 
 vi.mock('@/features/sales/PaymentDialog', async () => ({
@@ -334,4 +341,78 @@ it('una venta vinculada enlaza a su orden y no ofrece anulación', () => {
   expect(
     screen.getByRole('button', { name: 'Registrar devolución' }),
   ).toBeInTheDocument()
+})
+
+it('muestra lo retenido aparte del dinero cobrado y sus acciones por permiso', async () => {
+  const user = userEvent.setup()
+  mocks.query = {
+    data: {
+      ...sale,
+      money: {
+        ...sale.money,
+        exigible: '250.00',
+        paid_total: '245.00',
+        withheld_total: '5.00',
+        withheld_excess: '0.00',
+        balance: '0.00',
+        refund_due: '0.00',
+      },
+      withholdings: [
+        {
+          id: 3,
+          operation_id: 'w',
+          payment_id: 2,
+          amount: '5.00',
+          effective_at: '2026-09-20T10:00:00Z',
+          effective_date: '2026-09-20',
+          state: 'ACTIVE',
+          void_reason: null,
+          voided_at: null,
+          voucher_pending: true,
+          voucher_number: null,
+          voucher_date: null,
+          income_tax_amount: null,
+          vat_amount: null,
+        },
+      ],
+    },
+    isPending: false,
+    isError: false,
+  }
+  mocks.permissions = [
+    'ventas.ver',
+    'pagos_comerciales.ver',
+    'pagos_comerciales.registrar',
+  ]
+  renderPage()
+  const amounts = screen.getByRole('region', { name: 'Importes' })
+  expect(within(amounts).getByText('Cobrado en dinero')).toBeInTheDocument()
+  expect(
+    within(amounts).getByText('Retenido por el cliente'),
+  ).toBeInTheDocument()
+
+  const section = screen.getByRole('region', { name: 'Retenciones recibidas' })
+  expect(within(section).getByText('Comprobante pendiente')).toBeInTheDocument()
+  expect(
+    within(section).getByRole('link', {
+      name: 'Ver retenciones por completar',
+    }),
+  ).toHaveAttribute('href', '/sales/withholdings')
+  expect(
+    within(section).queryByRole('button', { name: 'Anular retención' }),
+  ).toBeNull()
+  await user.click(
+    within(section).getByRole('button', { name: 'Completar comprobante' }),
+  )
+  expect(
+    screen.getByRole('dialog', { name: 'Completar comprobante' }),
+  ).toBeInTheDocument()
+})
+
+it('sin retenciones no muestra la fila ni la sección', () => {
+  renderPage()
+  expect(screen.queryByText('Retenido por el cliente')).toBeNull()
+  expect(
+    screen.queryByRole('region', { name: 'Retenciones recibidas' }),
+  ).toBeNull()
 })
