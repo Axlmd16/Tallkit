@@ -16,3 +16,5 @@
 | Perfil del emisor | `docs/negocio/producto/glosario.md` | Declaración del perfil de CU-003 y emisor preparado de CU-027. |
 | Calificación artesanal | `docs/negocio/producto/glosario.md` | Alternativas 5f a 5h de CU-003 y regla de tarifa de CU-027. |
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueos de la preparación descritos en CU-027. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Alternativas 3b a 6b de CU-013. |
+| Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro en CU-013. |

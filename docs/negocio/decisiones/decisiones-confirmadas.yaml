@@ -211,6 +211,31 @@ context: |
     ni contribuyente especial, y cuenta con calificación artesanal; el RUC comercial cargado es
     provisional y se sustituirá por el definitivo, a nombre de otra persona, al pasar a producción.
     No certifica obligaciones tributarias reales ni cierra la regla de redondeo del IVA incluido.
+  - DP-032 (retenciones recibidas, aprobada 2026-10-05 en la propuesta de
+    registrar-retenciones-recibidas-en-cobros, D1…D7): algunos clientes son agentes de retención
+    y pagan menos que el total de la factura porque entregan la diferencia al SRI a nombre del
+    emisor. Esa **retención recibida** se registra como un hecho propio sobre una sola venta
+    comercial u operación artesanal confirmada: reduce el saldo pendiente, pero no es un pago ni
+    un medio de pago y nunca se cuenta como dinero cobrado. DP-003 no cambia: los medios siguen
+    siendo EFECTIVO y TRANSFERENCIA. D1: tablas propias por RUC, como ordena DP-029, y reglas de
+    cálculo compartidas. D2: el cobro solo pide el dinero recibido y confirma la diferencia como
+    retención; el número, la fecha y el desglose del comprobante se completan después en una
+    lista de pendientes. D3: registra y completa quien ya puede cobrar en cada ámbito; solo el
+    Administrador anula una retención o corrige un comprobante ya completado. D4: el sistema no
+    calcula ni valida porcentajes de retención; advierte, sin bloquear, cuando la retención
+    acumulada supera un porcentaje del total configurable por entidad (20 % inicial, se puede
+    cambiar o desactivar). D5: la ficha del cliente admite una marca manual «Agente de
+    retención» que solo orienta la pantalla de cobro. D6: el desglose entre renta e IVA es
+    opcional y su suma iguala el importe retenido. D7: cada entidad activa o desactiva el
+    registro de retenciones en su perfil tributario; empieza activado. El saldo pasa a ser
+    exigible menos dinero neto y menos retenciones vigentes; el exceso reembolsable se limita
+    al dinero efectivamente cobrado y una retención nunca se reembolsa ni crea saldo a favor.
+    No se anula una venta ni una operación artesanal con retenciones vigentes. La retención no
+    es una forma de pago del comprobante ni exige que exista una preparación fiscal. Ninguna
+    regla depende del régimen, la tarifa o las condiciones tributarias de la entidad. Datos
+    confirmados por el titular el 2026-10-05: el RUC artesanal recibe comprobantes de retención
+    de varios clientes cada mes y hoy factura en el facturador gratuito del SRI. No calcula
+    obligaciones tributarias ni acredita que el comprobante exista ante el SRI.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

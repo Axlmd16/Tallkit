@@ -373,6 +373,18 @@ Salida de inventario sin cargo al cliente para reemplazar una pieza dañada por 
 
 Asignación temporal de un producto a la venta abierta de un mantenimiento. Reduce disponibilidad, pero no existencia ni Kardex.
 
+### Retención recibida
+
+Parte del total de una venta comercial o de una operación artesanal que el cliente no paga porque está obligado a entregarla al SRI a nombre del emisor. Reduce el saldo pendiente de esa operación, pero no es un pago ni un medio de pago: nunca se suma al dinero cobrado ni a la caja. El sistema registra el valor que el cliente retuvo y no calcula porcentajes. Una retención no se reembolsa ni crea saldo a favor; solo el Administrador la anula, con motivo.
+
+### Comprobante de retención
+
+Documento electrónico que emite el cliente por el valor que retuvo, identificado por un número con el formato `001-001-000000001`. Suele llegar días después del pago, por lo que se completa después del cobro junto con su fecha y, de forma opcional, el desglose entre impuesto a la renta e IVA. El sistema no verifica su existencia ante el SRI.
+
+### Comprobante pendiente
+
+Situación de una retención recibida vigente a la que todavía no se le registró el número de su comprobante de retención. Aparece en la lista de retenciones por completar de su entidad fiscal y no afecta el saldo.
+
 ### RUC artesanal
 
 Entidad fiscal responsable de mantenimientos, reparaciones, mano de obra y demás servicios del taller.

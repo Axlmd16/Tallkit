@@ -156,7 +156,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-VEN-008 | La condición de crédito indica únicamente que puede quedar saldo pendiente; no constituye forma de pago ni contiene vencimiento, cuotas, intereses o cronograma. |
 | RN-VEN-009 | Todo pago o abono debe registrar una forma de pago real, importe, fecha, entidad fiscal y usuario. |
 | RN-VEN-010 | Una operación puede recibir varios pagos y cada pago puede combinar EFECTIVO y TRANSFERENCIA. |
-| RN-VEN-011 | El saldo pendiente debe derivarse del total exigible menos los pagos válidos aplicados. |
+| RN-VEN-011 | El saldo pendiente debe derivarse del total exigible menos los pagos válidos aplicados y menos las retenciones recibidas vigentes; una retención reduce el saldo, pero nunca es dinero cobrado (`DP-032`). |
 | RN-VEN-012 | El estado de pago debe derivarse del saldo: pendiente, parcial o pagado, sin depender del estado de la venta. |
 | RN-VEN-013 | Un pago no debe aplicarse a documentos de entidades fiscales diferentes. |
 | RN-VEN-014 | Un pago o abono pertenece a una sola operación elegida por el usuario y no puede exceder su saldo; el sistema no distribuye automáticamente un importe entre deudas. |
@@ -167,6 +167,10 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-VEN-019 | V1 no admite anticipos, sobrepagos ni saldos a favor; una devolución que produzca exceso pagado requiere un reembolso trazable. |
 | RN-VEN-020 | Un producto devuelto solo reingresa al inventario si el Administrador lo declara apto para reventa; de lo contrario, la devolución económica no aumenta existencia. |
 | RN-VEN-021 | El costo del reingreso apto debe ser el costo histórico de la salida original. |
+| RN-VEN-022 | Una retención recibida pertenece a una sola operación confirmada y a una sola entidad fiscal; no es un medio de pago, no puede exceder el saldo y, en contado, el dinero más la retención de la acción deben cubrirlo completo (`DP-032`). |
+| RN-VEN-023 | El comprobante de una retención se completa después del cobro; el mismo número no se repite para un cliente dentro de una entidad fiscal. Solo el Administrador anula una retención o corrige un comprobante ya completado, con motivo y sin borrar el registro (`DP-032`). |
+| RN-VEN-024 | Una retención nunca se reembolsa ni crea saldo a favor: el exceso reembolsable se limita al dinero efectivamente cobrado. No se anula una venta ni una operación artesanal con retenciones vigentes (`DP-032`). |
+| RN-VEN-025 | El sistema no calcula ni valida porcentajes de retención. Cada entidad fiscal decide si registra retenciones y a partir de qué porcentaje del total se advierte un importe inusual, sin bloquear; ninguna regla depende de su régimen o tarifa (`DP-032`). |
 
 ## 9. Servicios y mantenimientos
 

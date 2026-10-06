@@ -19,3 +19,6 @@
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo con campo y longitudes de RF-FIS-007. |
 | Correspondencia tributaria | `docs/negocio/producto/glosario.md` | Relación de un impuesto interno con su tarifa oficial de RF-ACC-016. |
 | Negocio Popular | `docs/negocio/producto/glosario.md` | Régimen que exige líneas a IVA 0 % en RF-FIS-007. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Hecho de RF-PAG-013 a RF-PAG-015, RF-CLI-014 y RF-ACC-017. |
+| Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro (RF-PAG-014). |
+| Comprobante pendiente | `docs/negocio/producto/glosario.md` | Criterio de la lista de RF-PAG-014. |

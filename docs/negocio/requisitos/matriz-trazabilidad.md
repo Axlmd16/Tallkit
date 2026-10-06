@@ -44,6 +44,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Proformas | DP-004 | RN-PRO-001…008; RN-VEN-017 | RF-PRO-001…011; RF-VEN-014 | CU-010, CU-011 | UI-050…052 | Proforma, LineaProforma |
 | Ventas e historia económica | DP-004, DP-017 | RN-VEN-001…007, RN-VEN-017…018 | RF-VEN-001…010, RF-VEN-014…016 | CU-011, CU-012, CU-015 | UI-053…055, UI-058 | Venta, LineaVenta, ImpuestoAplicado, DocumentoInterno |
 | Crédito, pagos y saldos | DP-003, DP-013 | RN-VEN-008…014, RN-VEN-019 | RF-PAG-001…012 | CU-013, CU-015 | UI-060…063 | ImporteExigible, Pago, PartePago |
+| Retenciones recibidas en cobros | DP-003, DP-029, DP-032 | RN-VEN-011, RN-VEN-022…025 | RF-PAG-013…015; RF-CLI-014; RF-ACC-017 | CU-003, CU-004, CU-013 | UI-019, UI-022, UI-060…064 | ImporteExigible, Pago, RetencionRecibida, Cliente, EntidadFiscal |
 | Devoluciones y reembolsos | DP-014 | RN-INV-012; RN-VEN-015…016, RN-VEN-019…021 | RF-VEN-011…013, RF-VEN-017…018; RF-PAG-008 | CU-014, CU-015 | UI-056…057, UI-063 | DevolucionCliente, LineaDevolucionCliente, Reembolso |
 | Mantenimientos e intervenciones | DP-007, DP-015, DP-020, DP-021 | RN-TAL-001…020 | RF-TAL-001…020 | CU-017…019, CU-024 | UI-070…078 | Mantenimiento, Intervencion, OperacionArtesanal |
 | Consumo interno y repuesto aportado | DP-016 | RN-INV-021; RN-TAL-021 | RF-INV-017; RF-TAL-021 | CU-017, CU-023 | UI-048, UI-071 | ConsumoInterno; observación del mantenimiento |

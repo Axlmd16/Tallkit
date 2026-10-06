@@ -39,6 +39,7 @@
 | RF-ACC-014 | El sistema debe habilitar EFECTIVO y TRANSFERENCIA como formas de pago de V1. | Debe | Solo esas formas pueden utilizarse y combinarse en pagos nuevos. |
 | RF-ACC-015 | El Administrador debe poder declarar el perfil del emisor de cada entidad fiscal con valores cerrados y la calificación artesanal con número y vencimiento. | Debe | Régimen, contabilidad, agente de retención y contribuyente especial solo admiten los valores y formatos del comprobante; un texto libre se rechaza; la calificación exige número, organismo y vencimiento, se avisa 60 días antes de que venza y, vencida, el perfil requiere revisión. Un perfil anterior en texto libre se conserva como historia y debe declararse de nuevo. |
 | RF-ACC-016 | El Administrador debe poder programar a futuro el cambio del código del SRI de una correspondencia tributaria. | Debe | La correspondencia abierta termina el día anterior y la nueva rige desde una fecha futura, con la tarifa interna sucesora ya programada; no altera preparaciones completadas y solo lo hace el Administrador. |
+| RF-ACC-017 | El Administrador debe poder decidir por entidad fiscal si se registran retenciones recibidas y el porcentaje de advertencia. | Debe | Los ajustes viven en el perfil tributario, empiezan activados con 20 %, no cambian el estado del perfil ni retenciones o cobros anteriores, y cada cambio se audita. |
 
 ## 3. Clientes y vehículos
 
@@ -57,6 +58,7 @@
 | RF-CLI-011 | El sistema debe mostrar un historial cronológico del vehículo con mantenimientos y documentos vinculados permitidos. | Debe | La consulta reúne los eventos del vehículo sin mezclar pagos o entidades fiscales. |
 | RF-CLI-012 | El sistema debe advertir posibles duplicados de clientes o vehículos antes de confirmar un registro. | Debería | Ante coincidencias relevantes, el usuario puede revisar la ficha existente antes de continuar. |
 | RF-CLI-013 | El sistema debe ofrecer un catálogo administrable de marcas de vehículo, separado de las marcas de producto: los tres roles lo consultan, Administrador y Encargado del taller crean y editan marcas, y solo el Administrador las desactiva y reactiva. | Debe | Una marca inactiva no se selecciona en nuevos vehículos, pero los vehículos que ya la usan conservan su referencia. |
+| RF-CLI-014 | La ficha del cliente debe admitir una marca opcional de agente de retención. | Debe | Quien edita clientes la activa o desactiva; orienta la pantalla de cobro en ambos RUC y no bloquea, calcula ni se verifica ante el SRI. |
 
 ## 4. Catálogos de productos, servicios y proveedores
 
@@ -166,6 +168,9 @@
 | RF-PAG-010 | Los pagos de una venta vinculada y los de servicios del mismo mantenimiento deben registrarse y mostrarse por separado. | Debe | Cada cobro referencia solo su documento y entidad fiscal. |
 | RF-PAG-011 | Cada pago debe aplicarse a una sola operación elegida por el usuario. | Debe | Un importe para dos ventas se registra como dos pagos y no se distribuye automáticamente. |
 | RF-PAG-012 | El crédito no debe exigir fecha, cuotas, intereses, cronograma ni límite. | Debe | Una operación a crédito puede quedar pendiente o parcial únicamente por su saldo. |
+| RF-PAG-013 | Quien registra pagos en cada entidad fiscal debe poder registrar, junto al cobro o sola, la retención que el cliente aplicó. | Debe | La retención reduce el saldo sin contarse como dinero; el cobro solo pide el dinero recibido y propone la diferencia como retención; contado se cubre con dinero más retención; una retención mayor que el saldo o de una entidad que no las registra se rechaza. |
+| RF-PAG-014 | El sistema debe permitir completar después el comprobante de cada retención y ofrecer la lista de pendientes por entidad fiscal. | Debe | Número con formato `001-001-000000001`, fecha no futura y desglose opcional renta/IVA que suma el importe; el número no se repite para el mismo cliente; la lista no mezcla los dos RUC. |
+| RF-PAG-015 | El Administrador debe poder anular una retención o corregir un comprobante ya completado mediante un registro trazable. | Debe | El importe vuelve al saldo, el registro y su motivo se conservan y la retención anulada no se reactiva; no se anula una operación con retenciones vigentes. |
 
 ## 9. Servicios y mantenimientos
 

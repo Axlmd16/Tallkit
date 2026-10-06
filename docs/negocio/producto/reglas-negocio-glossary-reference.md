@@ -12,3 +12,5 @@
 | Período de propiedad | `glosario.md` | Intervalo de propiedad de un cliente sobre un vehículo. |
 | Entrada de stock | `glosario.md` | Ingreso simple sin borrador ni impuestos (RN-INV-003 a RN-INV-005). |
 | Sin costo registrado | `glosario.md` | Estado de valoración de RN-INV-006A. |
+| Retención recibida | `glosario.md` | Hecho de RN-VEN-011 y RN-VEN-022 a RN-VEN-025. |
+| Comprobante de retención | `glosario.md` | Documento que se completa después del cobro (RN-VEN-023). |

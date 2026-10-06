@@ -93,12 +93,12 @@
 
 ## Retenciones recibidas en cobros artesanales
 
-Cambio `registrar-retenciones-recibidas-en-cobros`: 3 requisitos y 6 escenarios de la spec delta artesanal. Matriz pendiente abierta el 2026-10-05; la capacidad compartida `retenciones-recibidas-en-cobros` se registra en `cobertura-ventas-pagos.md`.
+Cambio `registrar-retenciones-recibidas-en-cobros`: 3 requisitos y 6 escenarios de la spec delta artesanal. Matriz cerrada el 2026-10-05; la capacidad compartida `retenciones-recibidas-en-cobros` se registra en `cobertura-ventas-pagos.md`.
 
 | Capacidad / requisito | Escenarios | Tareas | Prueba o evidencia | Estado |
 |---|---|---|---|---|
-| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Saldo y estado de pago derivados | Saldo reproducible; Estados independientes; Retención que completa el pago artesanal; Retención anulada no descuenta | 2, 7 | Pendiente | Pendiente |
-| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Retenciones en las cuentas por cobrar artesanales | Orden con retención en un solo ámbito | 2, 7 | Pendiente | Pendiente |
-| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Anulación de la operación con retenciones vigentes | Intento de anular con una retención vigente | 2, 7 | Pendiente | Pendiente |
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Saldo y estado de pago derivados | Saldo reproducible; Estados independientes; Retención que completa el pago artesanal; Retención anulada no descuenta | 2, 7 | `tests/workshop/test_artisan_withholdings.py`, `tests/test_shared_money.py`, `pages/maintenance/billingPages.test.tsx` | Cubierto |
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Retenciones en las cuentas por cobrar artesanales | Orden con retención en un solo ámbito | 2, 7 | `tests/workshop/test_artisan_withholdings.py`, `tests/workshop/test_economic_summary.py`, `tests/workshop/test_artisan_receivables.py` | Cubierto |
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Anulación de la operación con retenciones vigentes | Intento de anular con una retención vigente | 2, 7 | `tests/workshop/test_artisan_withholdings.py` | Cubierto |
 
 Referencia terminológica: [cobertura-integracion-mantenimiento-glossary-reference.md](cobertura-integracion-mantenimiento-glossary-reference.md).

@@ -25,7 +25,7 @@
 | CU-001 | Iniciar y cerrar sesión | Administrador / Vendedor / Encargado del taller | RF-ACC-001 a RF-ACC-004 |
 | CU-002 | Administrar usuarios y asignar roles | Administrador | RF-ACC-005 a RF-ACC-009 |
 | CU-003 | Configurar entidades y parámetros | Administrador | RF-ACC-010 a RF-ACC-014 |
-| CU-004 | Gestionar cliente | Administrador / Vendedor / Encargado del taller | RF-CLI-001 a RF-CLI-005, RF-CLI-012 |
+| CU-004 | Gestionar cliente | Administrador / Vendedor / Encargado del taller | RF-CLI-001 a RF-CLI-005, RF-CLI-012, RF-CLI-014 |
 | CU-005 | Gestionar vehículo e historial | Administrador / Encargado del taller | RF-CLI-006 a RF-CLI-011 |
 | CU-006 | Gestionar catálogos | Administrador | RF-CAT-001 a RF-CAT-016 |
 | CU-007 | Registrar entrada de stock | Vendedor / Administrador | RF-INV-001 a RF-INV-005, RF-INV-014 |
@@ -34,7 +34,7 @@
 | CU-010 | Elaborar proforma | Administrador / Vendedor | RF-PRO-001 a RF-PRO-006, RF-PRO-010, RF-PRO-011 |
 | CU-011 | Convertir proforma en venta | Administrador / Vendedor | RF-PRO-007 a RF-PRO-009, RF-VEN-001 a RF-VEN-006 |
 | CU-012 | Registrar y confirmar venta | Administrador / Vendedor | RF-VEN-001 a RF-VEN-010, RF-VEN-014 a RF-VEN-016 |
-| CU-013 | Registrar pago o abono | Administrador / Vendedor / Encargado del taller, según entidad | RF-PAG-001 a RF-PAG-012 |
+| CU-013 | Registrar pago o abono | Administrador / Vendedor / Encargado del taller, según entidad | RF-PAG-001 a RF-PAG-015 |
 | CU-014 | Registrar devolución o reembolso | Administrador | RF-VEN-012, RF-VEN-013, RF-VEN-017, RF-VEN-018, RF-PAG-007, RF-AUD-001 a RF-AUD-004 |
 | CU-015 | Anular operación confirmada | Administrador | RF-INV-006, RF-VEN-011, RF-PAG-008, RF-TAL-014, RF-AUD-001 a RF-AUD-004 |
 | CU-016 | Gestionar catálogo de servicios | Administrador / Encargado del taller | RF-CAT-010, RF-CAT-011 |
@@ -341,7 +341,7 @@
 **Flujo principal**
 
 1. El actor abre el documento o cuenta por cobrar.
-2. El sistema muestra entidad fiscal, total pagado y saldo.
+2. El sistema muestra entidad fiscal, total pagado, lo retenido por el cliente y saldo.
 3. El actor registra importe, fecha y una o varias formas habilitadas.
 4. El sistema valida permisos, importes, entidad y sobrepago.
 5. El actor confirma.
@@ -353,9 +353,15 @@
 - 4a. El pago pertenece a otra entidad: se rechaza.
 - 4b. Excede el saldo o el documento no está confirmado: se rechaza.
 - 4c. El dinero se destina a dos ventas: el usuario registra un pago independiente para cada una.
-- 5a. Falla la operación: no se guarda ninguna parte del pago.
+- 3b. El cliente pagó menos porque retuvo impuestos y la entidad registra retenciones: el sistema pregunta si la diferencia fue retenida y propone ese valor; el actor lo confirma, lo ajusta o lo deja como saldo. La retención baja el saldo sin contarse como dinero y puede registrarse sola si el dinero se cobró antes. No se piden datos del comprobante.
+- 3c. El cliente está marcado como agente de retención: la opción se ofrece desde el inicio.
+- 4d. La retención excede el saldo, o el contado no queda cubierto con dinero más retención: se rechaza toda la acción.
+- 4e. La retención supera el porcentaje de advertencia de la entidad: el sistema pide confirmarla y no bloquea.
+- 5a. Falla la operación: no se guarda ninguna parte del pago ni la retención.
+- 6a. El comprobante de retención llega después: quien cobra o el Administrador lo completa desde la lista de retenciones por completar de esa entidad, con número, fecha y desglose opcional.
+- 6b. La retención se registró por error: el Administrador la anula con motivo y el importe vuelve al saldo.
 
-**Garantía de éxito:** pago, saldo y estado son reproducibles y pertenecen a una sola entidad fiscal.
+**Garantía de éxito:** pago, retención, saldo y estado son reproducibles y pertenecen a una sola entidad fiscal; lo retenido nunca figura como dinero cobrado.
 
 ## 16. CU-014 — Registrar devolución o reembolso
 

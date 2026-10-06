@@ -205,13 +205,44 @@ Resultado registrado (2026-10-05): 12 pruebas pasan en `e2e/sales-payments.spec.
 
 Dependencias: grupos 1 a 11.
 
-- [ ] 12.1 Registrar DP-032 en `docs/negocio/decisiones/decisiones-confirmadas.yaml` con D1…D7 y su referencia de glosario.
-- [ ] 12.2 Actualizar `docs/arquitectura/modelo-dominio.md` (§5.3, §10 y diagrama) y `docs/arquitectura/modelo-datos.md` con las tablas nuevas.
-- [ ] 12.3 Actualizar `docs/negocio/producto/reglas-negocio.md` (RN-VEN-011 y reglas nuevas), `glosario.md` (retención recibida, comprobante de retención, comprobante pendiente), `requisitos-funcionales.md`, `casos-de-uso.md` (CU-013), `interfaz-y-navegacion.md` y `matriz-trazabilidad.md`, con sus referencias de glosario.
-- [ ] 12.4 Completar las matrices de cobertura de 1.4 con los archivos y casos reales de prueba.
-- [ ] 12.5 Ejecutar `openspec validate registrar-retenciones-recibidas-en-cobros --strict`, el chequeo de migraciones y la verificación focalizada final de backend y frontend.
-- [ ] 12.6 Redactar el resumen de cierre con comandos y resultados reales, indicando expresamente qué no se ejecutó (`make check`, `make test`, suites completas y el resto de Playwright) para que el usuario decida si quiere la verificación completa antes de integrar.
+- [x] 12.1 Registrar DP-032 en `docs/negocio/decisiones/decisiones-confirmadas.yaml` con D1…D7 y su referencia de glosario.
+- [x] 12.2 Actualizar `docs/arquitectura/modelo-dominio.md` (§5.3, §10 y diagrama) y `docs/arquitectura/modelo-datos.md` con las tablas nuevas.
+- [x] 12.3 Actualizar `docs/negocio/producto/reglas-negocio.md` (RN-VEN-011 y reglas nuevas), `glosario.md` (retención recibida, comprobante de retención, comprobante pendiente), `requisitos-funcionales.md`, `casos-de-uso.md` (CU-013), `interfaz-y-navegacion.md` y `matriz-trazabilidad.md`, con sus referencias de glosario.
+- [x] 12.4 Completar las matrices de cobertura de 1.4 con los archivos y casos reales de prueba.
+- [x] 12.5 Ejecutar `openspec validate registrar-retenciones-recibidas-en-cobros --strict`, el chequeo de migraciones y la verificación focalizada final de backend y frontend.
+- [x] 12.6 Redactar el resumen de cierre con comandos y resultados reales, indicando expresamente qué no se ejecutó (`make check`, `make test`, suites completas y el resto de Playwright) para que el usuario decida si quiere la verificación completa antes de integrar.
 
 Evidencia del grupo: documentos sincronizados, validación de OpenSpec y resumen con resultados reales.
+
+Resultado registrado (2026-10-05):
+- 12.1: DP-032 en `decisiones-confirmadas.yaml` con D1…D7 y su referencia de glosario.
+- 12.2: `modelo-dominio.md` (operación trazable en §5.3, saldo en §10, extensión §11.7, diagrama y trazabilidad) y `modelo-datos.md` (columna del cliente, tablas de retención de ventas y taller y ajustes por entidad).
+- 12.3: RN-VEN-011 actualizada y RN-VEN-022…025 nuevas; glosario con «Retención recibida», «Comprobante de retención» y «Comprobante pendiente»; RF-PAG-013…015, RF-CLI-014 y RF-ACC-017; alternativas de CU-013; UI-019, UI-022, UI-060…062 y la nueva UI-064; fila de trazabilidad; referencias de glosario de cada documento.
+- 12.4: las 20 filas de las dos matrices de cobertura quedaron con sus pruebas reales y estado «Cubierto».
+- 12.5: `openspec validate --strict` válido; `makemigrations --check` sin cambios; `schema.yml` idéntico a la generación con `spectacular --validate`.
+
+### Resumen de cierre
+
+Qué se ejecutó (2026-10-05), todo en verde:
+
+- Backend: `uv run --frozen pytest --no-cov tests/test_shared_money.py tests/test_shared_withholding.py tests/sales tests/workshop tests/customer_registry tests/workshop_configuration/test_withholding_settings.py tests/fiscal/test_configuration_api.py tests/fiscal/test_openapi.py` → 1200 pruebas pasan en 3 min 7 s. Ruff (`check` y `format --check`) y mypy sobre `src` sin hallazgos.
+- Frontend: Vitest de ventas, mantenimiento, clientes, fiscal, sus páginas, la página de retenciones y las rutas → 54 archivos, 501 pruebas pasan. `tsc`, ESLint y Prettier sin hallazgos en lo tocado.
+- E2E: `e2e/sales-payments.spec.ts` y `e2e/maintenance-billing.spec.ts` → 12 pruebas pasan con una configuración temporal de Playwright (puertos 8011 y 55184, Google Chrome del sistema) que se borró.
+
+Qué no se ejecutó, conforme a la instrucción de pruebas focalizadas: `make check`, `make test`, `make audit`, `npm run build`, el resto de pytest (compras, inventario, catálogo, identidad, el resto de fiscal y de configuración), el resto de Vitest y el resto de Playwright. Falta decidir si se quiere la verificación completa antes de integrar.
+
+Diferencias respecto de los artefactos aprobados, ya anotadas en cada grupo:
+
+- La unicidad del comprobante usa la FK del cliente en la retención, no una copia de su identificación.
+- El permiso de los ajustes es `parametros.gestionar` y sus rutas viven en la API fiscal, junto a las del perfil tributario.
+- El backend añadió `withholding_context` al detalle de la venta y al resumen de la operación artesanal para que la pantalla de cobro sepa qué ofrecer.
+- El recorrido E2E de la entidad sin retenciones está en `sales-payments.spec.ts`.
+- En los grupos 6 y 7 el código se escribió antes que sus pruebas.
+
+Trabajo pendiente real:
+
+- Aceptación visual humana de las pantallas nuevas; no se tomaron capturas.
+- Los recorridos E2E de ventas y taller estaban rotos antes de este cambio por la siembra de existencia con la API de compras anterior; se repararon aquí. No se revisó si otras especificaciones de Playwright tienen el mismo problema.
+- Importar el XML del comprobante de retención y vincular la retención con la factura autorizada quedan para cambios posteriores, como indica la propuesta.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

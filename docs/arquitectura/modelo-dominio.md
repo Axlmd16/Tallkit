@@ -94,7 +94,8 @@ Estos objetos expresan valores del negocio; su forma futura de almacenamiento no
 
 ### 5.3 Documentos y operaciones
 
-- **Ingreso de mercadería**, **Venta**, **Devolución de cliente**, **Devolución a proveedor**, **Ajuste**, **Desarme de kit**, **Consumo interno**, **Reposición por corrección**, **Pago**, **Reembolso**, **Operación artesanal**, **Mantenimiento** y **Cierre diario** son operaciones trazables.
+- **Ingreso de mercadería**, **Venta**, **Devolución de cliente**, **Devolución a proveedor**, **Ajuste**, **Desarme de kit**, **Consumo interno**, **Reposición por corrección**, **Pago**, **Retención recibida**, **Reembolso**, **Operación artesanal**, **Mantenimiento** y **Cierre diario** son operaciones trazables.
+- **Retención recibida** es el valor que un cliente agente de retención no paga porque lo entrega al SRI a nombre del emisor. Reduce el importe pendiente de una sola operación y de una sola entidad fiscal, pero no es un pago ni un medio de pago y nunca forma parte del dinero cobrado ni de un cierre de caja.
 - **Proforma** es un documento comercial previo sin efectos definitivos.
 - **Movimiento de Kardex** registra el efecto físico confirmado; no sustituye a la operación que lo originó.
 - **Documento interno** representa una operación confirmada y recibe numeración de su entidad fiscal y tipo.
@@ -188,7 +189,7 @@ Estos eventos son hechos conceptuales. Este documento no ordena implementar mens
 No deben almacenarse innecesariamente como hechos independientes:
 
 - disponibilidad = existencia − reservas vigentes;
-- saldo pendiente = importe exigible vigente − pagos aplicados netos de sus correcciones; un reembolso liquida un exceso pagado, no crea deuda nueva;
+- saldo pendiente = importe exigible vigente − pagos aplicados netos de sus correcciones − retenciones recibidas vigentes; un reembolso liquida un exceso pagado, no crea deuda nueva, y nunca incluye un valor retenido;
 - estado de pago derivado del saldo;
 - cantidad todavía devolvible = vendida − devoluciones válidas previas;
 - totales de cierre derivados de pagos válidos de la misma fecha, entidad y medio;
@@ -243,6 +244,10 @@ La configuración fiscal es centralizada por entidad: un **punto predeterminado*
 El **perfil del emisor** de cada entidad se declara con valores cerrados: régimen tributario (General, RIMPE Emprendedor o RIMPE Negocio Popular), obligación de llevar contabilidad, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y **calificación artesanal** con número, organismo y vencimiento obligatorio. La leyenda del comprobante se deriva del régimen y nadie la escribe (la de Negocio Popular está por confirmar con la ficha técnica del SRI); RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria, por lo que su preparación exige líneas a IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro (revisión nueva del perfil, tarifa interna sucesora y correspondencia sucesora con el SRI) y no altera lo ya preparado. La preparación conserva el emisor en campos estructurados, bloquea con un impedimento un código de línea de más de 25 caracteres o una descripción de más de 300 sin recortarlos, usa como código de línea de un servicio su **código de servicio** asignado por el sistema y, mientras la calificación artesanal esté vigente, solo admite líneas con IVA 0 %. Todo ello son comprobaciones locales que no acreditan el beneficio legal ante el SRI.
 
 La política del archivo se versiona por entidad fiscal. La evidencia de restauración solo habilita incorporación productiva cuando coincide con la versión del procedimiento y almacenamiento vigentes. Esta extensión no implementa firma, transmisión, consulta de autorización ni emisión productiva.
+
+### 11.7 Retenciones recibidas
+
+DP-032 añade la **retención recibida** al contexto de cobranza. Se registra junto al cobro o sola, sobre una venta comercial o una operación artesanal confirmada, con estructuras separadas por RUC y reglas de cálculo compartidas. Su comprobante se completa después; solo el Administrador la anula o corrige un comprobante ya completado. Cada entidad fiscal decide si las registra y el porcentaje a partir del cual se advierte un importe inusual; el sistema no calcula porcentajes ni depende del régimen o de la tarifa de la entidad. El cliente admite una marca manual de agente de retención que solo orienta el cobro. La retención no es una forma de pago del comprobante y no exige una preparación fiscal.
 
 Estos puntos afectan obligaciones reales y deben validarse con un contador y la normativa ecuatoriana vigente; el modelo no los presenta como asesoría tributaria.
 
@@ -329,6 +334,7 @@ namespace Cobranza {
   class MedioPago { <<enumeration>> EFECTIVO TRANSFERENCIA }
   class EstadoPago { <<enumeration>> PENDIENTE PARCIAL PAGADO }
   class Reembolso { importe motivo estado }
+  class RetencionRecibida { importe comprobante estado }
 }
 
 Usuario "1" --> "1..*" Rol : tiene
@@ -404,6 +410,9 @@ Intervencion "1" --> "0..*" ReposicionCorreccion : justifica
 
 ImporteExigible --> EstadoPago
 ImporteExigible "1" <-- "0..*" Pago : recibe
+ImporteExigible "1" <-- "0..*" RetencionRecibida : descuenta
+RetencionRecibida "1" --> "1" EntidadFiscal : pertenece
+RetencionRecibida "0..1" --> "0..1" Pago : acompaña
 Pago "1" *-- "1..2" PartePago : desglosa
 PartePago --> MedioPago
 Pago "1" --> "1" EntidadFiscal : pertenece
@@ -437,6 +446,7 @@ Venta y Operación artesanal crean importes exigibles independientes. Los pagos 
 | Existencia, reserva y Kardex | DP-001, DP-002, DP-012 | RN-INV-001…023; RF-INV-006…019 |
 | Proformas y ventas | DP-004, DP-017, DP-021 | RN-PRO-001…009; RN-VEN-001…018; RF-PRO-*; RF-VEN-* |
 | Crédito, pagos y devoluciones | DP-003, DP-013, DP-014 | RN-VEN-008…016; RF-PAG-*; RF-VEN-012…018 |
+| Retenciones recibidas | DP-032 | RN-VEN-011, RN-VEN-022…025; RF-PAG-013…015; RF-CLI-014; RF-ACC-017 |
 | Mantenimiento y correcciones | DP-007, DP-015, DP-016, DP-020, DP-021 | RN-TAL-001…023; RF-TAL-001…020 |
 | Documentos, cierres y reportes | DP-018, DP-019 | RN-CON-001…012; RF-REP-001…014; RF-AUD-* |
 

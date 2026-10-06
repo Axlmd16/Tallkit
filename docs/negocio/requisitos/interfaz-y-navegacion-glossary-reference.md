@@ -22,3 +22,5 @@
 | Perfil del emisor | `docs/negocio/producto/glosario.md` | Perfil tributario de UI-019 y emisor preparado de UI-059. |
 | Calificación artesanal | `docs/negocio/producto/glosario.md` | Aviso «Calificación por vencer» de UI-019. |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Dato de solo lectura de UI-034 y UI-035. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Pregunta del cobro (UI-060), historial (UI-061), lista por completar (UI-064) y ajustes (UI-019). |
+| Comprobante pendiente | `docs/negocio/producto/glosario.md` | Criterio de la lista UI-064. |

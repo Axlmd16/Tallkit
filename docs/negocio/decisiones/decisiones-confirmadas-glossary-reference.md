@@ -15,3 +15,6 @@
 | Calificación artesanal | `docs/negocio/producto/glosario.md` | Condición con vencimiento de DP-031. |
 | Agente de retención | `docs/negocio/producto/glosario.md` | Condición del emisor con número de resolución de DP-031. |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Código SRV- de DP-031 (D3). |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Objeto de DP-032: reduce el saldo sin ser dinero cobrado. |
+| Comprobante de retención | `docs/negocio/producto/glosario.md` | Documento del cliente que se completa después del cobro (DP-032, D2). |
+| Comprobante pendiente | `docs/negocio/producto/glosario.md` | Situación de una retención sin número de comprobante (DP-032, D2). |

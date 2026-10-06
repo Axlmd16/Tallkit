@@ -24,3 +24,5 @@
 | Calificación artesanal | `docs/negocio/producto/glosario.md` | Condición con vencimiento y regla de tarifa de la sección 11.6. |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Código de línea de los servicios de la sección 11.6. |
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo de preparación por longitudes o tarifa de la sección 11.6. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Operación trazable de §5.3, término del saldo en §10 y extensión de §11.7. |
+| Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro (§11.7). |

@@ -21,3 +21,4 @@
 | Sin costo registrado | `docs/negocio/producto/glosario.md` | Estado de valoración de RN-INV-006A. |
 | Perfil del emisor | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Fila de trazabilidad de DP-032. |

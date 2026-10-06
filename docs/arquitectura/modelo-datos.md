@@ -39,6 +39,7 @@ Representa a una persona natural o jurídica que interactúa como cliente del ta
 | `phone` | `VARCHAR(64)` / `CharField` | No | — | Teléfono de contacto obligatorio. No vacío (`CHECK (LENGTH(phone) > 0)`). |
 | `email` | `VARCHAR(254)` / `CharField` | No | `""` | Correo electrónico opcional. Formato validado en dominio si está informado. |
 | `address` | `VARCHAR(1024)` / `CharField` | No | `""` | Dirección física opcional. |
+| `is_withholding_agent` | `BOOLEAN` / `BooleanField` | No | `FALSE` | Marca manual de agente de retención (`registrar-retenciones-recibidas-en-cobros`, migración `0004`); orienta el cobro y no se verifica ante el SRI. |
 | `is_active` | `BOOLEAN` / `BooleanField` | No | `TRUE` | Estado de la ficha. Solo Administrador puede alterar. |
 | `version` | `INTEGER` / `PositiveIntegerField`| No | `1` | Versión optimista incrementada en cada mutación. |
 | `created_at` | `TIMESTAMPTZ` / `DateTimeField` | No | `now()` | Fecha y hora UTC de creación. |
@@ -152,6 +153,9 @@ Este módulo almacena la configuración de operaciones y reglas fiscales del tal
 - **workshop_configuration_electronicprofilerevision**: Revisión inmutable del perfil del emisor de una entidad fiscal (`fiscal_entity`, `revision ≥ 1` única por entidad, `conditions` JSON, `certificate` opcional, usuario y fecha).
   - `conditions_format` (entero pequeño, 1 por omisión, restricción `{1, 2}`; `estructurar-perfil-del-emisor-y-codigos-fiscales`, migración `0014`): 1 conserva condiciones escritas como texto libre (historia, solo lectura); 2 conserva valores cerrados. La migración no modifica ninguna fila existente.
   - Formato 2: cinco claves (`tax_regime`, `accounting_obligation`, `withholding_agent`, `special_taxpayer`, `artisan_qualification`) con `status`, `value`, `source`, `starts_on`, `ends_on` y, solo para la calificación, `issuing_body` y `ends_on` obligatorio. La leyenda del régimen no se guarda: se deriva.
+- **workshop_configuration_receivedwithholdingsetting**: Ajustes de retenciones recibidas de una entidad fiscal (`registrar-retenciones-recibidas-en-cobros`, migración `0015`).
+  - Campos: `fiscal_entity` (uno a uno, `PROTECT`), `registration_enabled` (verdadero por omisión), `warning_percentage` `numeric(5,2)` anulable (nulo = advertencia desactivada; restricción `> 0` y `≤ 100`; 20,00 por omisión), `version`, usuario y fecha.
+  - La ausencia de fila equivale a los valores por omisión. No forma parte de las revisiones del perfil del emisor ni de la instantánea fiscal.
 - **workshop_configuration_fiscalentitylogo**: Logotipo vigente de una entidad fiscal (`logotipos-por-ruc`, migración `0013`).
   - Campos: `fiscal_entity` (uno a uno, `PROTECT`), `storage_name` único (UUID), tipo (`image/png`, `image/jpeg` o `image/webp`), extensión, tamaño, dimensiones, SHA-256 del archivo recibido, `revision ≥ 1`, usuario y fecha de carga.
   - La fila existe solo mientras hay logotipo: quitarlo la elimina y la auditoría conserva el hecho.
@@ -267,6 +271,8 @@ Modelo implementado por el cambio `gestionar-ventas-pagos-credito-simple` (migra
 | `sales_salecostallocation` | Línea, movimiento agrupado de inventario (único por par), cantidad entera, costo publicado `numeric(24,6)` y valor realmente aplicado `numeric(38,6)`; suma verificable por movimiento. Inmutable. |
 | `sales_commercialpayment`, `sales_paymentpart` | Pago con `operation_id` UUID único, importe positivo `numeric(24,2)`, fecha efectiva del sistema y actor; partes por medio (`EFECTIVO`/`TRANSFERENCIA`), una por medio, positivas. |
 | `sales_paymentcorrection` | `operation_id` único, pago original (uno a uno: una corrección por pago), reemplazo opcional (uno a uno), motivo no vacío. El original se conserva íntegro. |
+| `sales_commercialwithholding` | Retención recibida (migración `sales/0007`): `operation_id` UUID único (identidad de la acción de cobro, compartida con el pago cuando lo hay), venta, cliente, pago opcional (uno a uno), importe `> 0` `numeric(24,2)`, fecha efectiva del sistema y actor. Comprobante anulable: `voucher_number` (`NNN-NNN-NNNNNNNNN`) y `voucher_date` juntos; desglose opcional `income_tax_amount` y `vat_amount`, ambos o ninguno, no negativos y con suma igual al importe. Anulación en la misma fila (`voided_at`, `voided_by`, `void_reason` no vacío), terminal. Único parcial `(customer, voucher_number)` entre filas vigentes con número. El saldo de la venta descuenta las filas con `voided_at` nulo; nunca se almacena. |
+| `sales_commercialwithholdingvoucherchange` | Corrección administrativa de un comprobante ya completado: `operation_id` único, retención, número, fecha y desglose anteriores, motivo no vacío y actor. |
 | `sales_salereturn`, `sales_salereturnline` | Devolución con UUID único, motivo, fecha, actor y totales; líneas con cantidades aptas y no aptas enteras no negativas de suma positiva, importes históricos y valor de costo asignado a cada tramo (`numeric(38,6)`). Una línea por devolución. |
 | `sales_commercialrefund`, `sales_refundpart` | Desembolso efectivo con UUID único, origen `RETURN` (con devolución) o `VOID` (sin ella), motivo, importe y partes por medio. |
 | `sales_salevoid` | Una anulación por venta (uno a uno), motivo, actor, operación de reversión y reembolso opcional. |
@@ -340,7 +346,9 @@ Cambio OpenSpec `integrar-mantenimiento-ventas-cobros-por-ruc` (ADR-0008 y ADR-0
 | `workshop_serviceoperationline` | Operación, `service_line` (`SET_NULL` para conservar la copia si la línea se retira tras una anulación), posición, servicio, copia del código del servicio (`service_code`; vacío si el servicio ya no existía al migrar), nombre, cantidad, precios referencial y aplicado, definición tributaria, snapshot tributario, tarifa, base, impuesto y total (`total = base + impuesto`), `is_current`. **Índice único parcial** `(service_line)` con `is_current`: una línea no se documenta dos veces mientras su operación esté vigente. |
 | `workshop_artisanpayment` | `operation_id` UUID único (identidad del hecho), operación, importe `> 0`, fecha efectiva, usuario. |
 | `workshop_artisanpaymentpart` | Pago, medio (`EFECTIVO`, `TRANSFERENCIA`) y importe `> 0`; único `(payment, method)`. |
-| `workshop_artisanpaymentcorrection` | `operation_id` UUID único, operación, pago original (único), reemplazo opcional (único) y motivo obligatorio. El saldo se deriva: exigible vigente menos pagos sin corrección; nunca se almacena. |
+| `workshop_artisanpaymentcorrection` | `operation_id` UUID único, operación, pago original (único), reemplazo opcional (único) y motivo obligatorio. El saldo se deriva: exigible vigente menos pagos sin corrección y menos retenciones vigentes; nunca se almacena. |
+| `workshop_artisanwithholding` | Retención recibida del RUC artesanal (migración `workshop/0006`), con la misma forma y restricciones que `sales_commercialwithholding`, referida a la operación artesanal. |
+| `workshop_artisanwithholdingvoucherchange` | Corrección administrativa del comprobante de una retención artesanal, con la misma forma que la comercial. |
 
 ### Orden de bloqueo global
 Recibo → orden de mantenimiento → operación artesanal / líneas de servicio → venta → cliente/vehículo → productos → posiciones (por producto) → configuración → numeración → inserciones. Cada acción toma una subsecuencia ordenada; los cobros artesanales bloquean solo la operación.
