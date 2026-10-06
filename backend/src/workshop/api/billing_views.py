@@ -231,6 +231,7 @@ _RECEIVABLE_PARAMS = [
     OpenApiParameter("customer_id", OpenApiTypes.INT),
     OpenApiParameter("order_id", OpenApiTypes.INT),
     OpenApiParameter("payment_state", OpenApiTypes.STR, enum=["PENDING", "PARTIAL", "PAID"]),
+    OpenApiParameter("condition", OpenApiTypes.STR, enum=["CONTADO", "CREDITO"]),
     *_PAGE_PARAMS,
 ]
 
@@ -253,6 +254,7 @@ class ArtisanReceivablesView(_WorkshopView):
                 customer_id=_int(request, "customer_id"),
                 order_id=_int(request, "order_id"),
                 payment_state=request.query_params.get("payment_state") or None,
+                condition=request.query_params.get("condition") or None,
                 request_id=request_id_from(request),
                 **_page_args(request),
             ),

@@ -262,6 +262,11 @@ def void_withholding(
     )
 
 
+def pending_voucher_rows() -> Any:
+    """Retenciones artesanales vigentes a las que todavía falta el comprobante."""
+    return ArtisanWithholding.objects.filter(voided_at__isnull=True, voucher_number__isnull=True)
+
+
 def pending_vouchers(
     *,
     actor: User,
@@ -285,9 +290,9 @@ def pending_vouchers(
         raise field_error(
             "validation_error", "page_size", f"El tamaño debe estar entre 1 y {PAGE_SIZE_MAX}."
         )
-    queryset = ArtisanWithholding.objects.filter(
-        voided_at__isnull=True, voucher_number__isnull=True
-    ).select_related("service_operation", "service_operation__order", "created_by")
+    queryset = pending_voucher_rows().select_related(
+        "service_operation", "service_operation__order", "created_by"
+    )
     if customer_id:
         queryset = queryset.filter(customer_id=customer_id)
     total = queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")

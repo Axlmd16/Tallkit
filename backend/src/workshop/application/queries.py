@@ -35,7 +35,7 @@ from workshop.application import projection
 from workshop.application.commands import TARGET_TYPE
 from workshop.application.errors import WorkshopError
 from workshop.application.support import business_today
-from workshop.domain.states import OrderState
+from workshop.domain.states import OPEN_STATES, OrderState
 from workshop.models import (
     ArtisanPayment,
     ArtisanWithholding,
@@ -71,6 +71,15 @@ def _page(page: int, page_size: int) -> tuple[int, int]:
     return page, page_size
 
 
+OPEN_FILTER = "OPEN"
+
+
+def open_orders(queryset: Any = None) -> Any:
+    """Órdenes registradas o reabiertas: las que el taller todavía tiene abiertas."""
+    rows = MaintenanceOrder.objects.all() if queryset is None else queryset
+    return rows.filter(state__in=[state.value for state in OPEN_STATES])
+
+
 def list_orders(
     *,
     actor: User,
@@ -95,9 +104,11 @@ def list_orders(
             | Q(customer_snapshot__identification__icontains=term)
             | Q(vehicle_snapshot__plate__icontains=term)
         )
-    if state:
+    if state == OPEN_FILTER:
+        queryset = open_orders(queryset)
+    elif state:
         if state not in OrderState.__members__:
-            raise _bad("state", "Use REGISTERED, FINALIZED o REOPENED.")
+            raise _bad("state", "Use REGISTERED, FINALIZED, REOPENED u OPEN.")
         queryset = queryset.filter(state=state)
     if date_from and date_to and date_from > date_to:
         raise _bad("date_from", "La fecha inicial no puede ser posterior a la final.")
@@ -255,6 +266,7 @@ def service_options(
 # --- Cuentas por cobrar artesanales ---------------------------------------------------------
 
 PAYMENT_STATES = ("PENDING", "PARTIAL", "PAID")
+CONDITIONS = ("CONTADO", "CREDITO")
 _MONEY: "DecimalField[Decimal, Decimal]" = DecimalField(max_digits=24, decimal_places=2)
 
 
@@ -290,12 +302,23 @@ def _receivable_rows() -> Any:
     )
 
 
+def owed_operations() -> Any:
+    """Operaciones artesanales confirmadas con saldo por cobrar."""
+    return _receivable_rows().filter(balance_amount__gt=0)
+
+
+def unpaid_cash_operations() -> Any:
+    """Servicios de contado confirmados que siguen sin cobrarse por completo."""
+    return owed_operations().filter(condition="CONTADO")
+
+
 def artisan_receivables(
     *,
     actor: User,
     customer_id: int | None = None,
     order_id: int | None = None,
     payment_state: str | None = None,
+    condition: str | None = None,
     page: int = 1,
     page_size: int = 20,
     request_id: UUID | None = None,
@@ -317,7 +340,11 @@ def artisan_receivables(
     page, page_size = _page(page, page_size)
     if payment_state is not None and payment_state not in PAYMENT_STATES:
         raise _bad("payment_state", "Use PENDING, PARTIAL o PAID.")
+    if condition is not None and condition not in CONDITIONS:
+        raise _bad("condition", "Use CONTADO o CREDITO.")
     rows = _receivable_rows()
+    if condition is not None:
+        rows = rows.filter(condition=condition)
     if customer_id is not None:
         rows = rows.filter(customer_id=customer_id)
     if order_id is not None:

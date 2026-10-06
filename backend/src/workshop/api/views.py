@@ -43,7 +43,12 @@ _PAGE_PARAMS = [
 _SEARCH = OpenApiParameter("search", OpenApiTypes.STR)
 _LIST_PARAMS = [
     OpenApiParameter("search", OpenApiTypes.STR, description="Número, cliente o placa."),
-    OpenApiParameter("state", OpenApiTypes.STR, enum=["REGISTERED", "FINALIZED", "REOPENED"]),
+    OpenApiParameter(
+        "state",
+        OpenApiTypes.STR,
+        enum=["REGISTERED", "FINALIZED", "REOPENED", "OPEN"],
+        description="OPEN reúne las registradas y las reabiertas.",
+    ),
     OpenApiParameter("date_from", OpenApiTypes.DATE, description="Apertura inclusiva."),
     OpenApiParameter("date_to", OpenApiTypes.DATE, description="Apertura inclusiva."),
     OpenApiParameter("customer_id", OpenApiTypes.INT, description="Historial por cliente."),

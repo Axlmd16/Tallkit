@@ -27,12 +27,12 @@ Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/sales/ -k "home_
 
 Cubre diseño D1, D4, D5 y D6; los mismos requisitos del grupo 2 en su parte artesanal y «Mantenimientos abiertos».
 
-- [ ] 3.1 Probar y añadir a `list_orders` (`backend/src/workshop/application/queries.py` y su vista) el valor `state=OPEN`, que reúne `REGISTERED` y `REOPENED` mediante `OPEN_STATES`. Cierre: los demás valores se comportan igual; el mensaje de estado no válido incluye `OPEN`.
-- [ ] 3.2 Probar y añadir a las cuentas por cobrar artesanales el filtro opcional `condition`, extrayendo el filtro «contado con saldo». Cierre: sin el filtro el resultado es idéntico al actual.
-- [ ] 3.3 Crear `backend/src/workshop/application/home_summary.py` con órdenes abiertas, servicios de contado sin cobrar y retenciones artesanales por completar, compartiendo cada filtro con su lista. Pruebas con el escenario «Mantenimientos abiertos» usando los estados existentes. Cierre: los tres conteos coinciden con sus listas.
-- [ ] 3.4 Añadir el saldo artesanal por cobrar y el número de clientes con deuda. Cierre: el saldo iguala el total de `artisan_receivables` sin filtros.
-- [ ] 3.5 Añadir los cobros artesanales por día de los últimos siete días. Pruebas con «Efectivo y transferencia combinados» y los bordes de fecha. Cierre: mismas garantías que 2.5.
-- [ ] 3.6 Añadir la prueba de fronteras del taller para `home_summary`. Cierre: no importa modelos de ventas ni de proformas.
+- [x] 3.1 Probar y añadir a `list_orders` (`backend/src/workshop/application/queries.py` y su vista) el valor `state=OPEN`, que reúne `REGISTERED` y `REOPENED` mediante `OPEN_STATES`. Cierre: los demás valores se comportan igual; el mensaje de estado no válido incluye `OPEN`.
+- [x] 3.2 Probar y añadir a las cuentas por cobrar artesanales el filtro opcional `condition`, extrayendo el filtro «contado con saldo». Cierre: sin el filtro el resultado es idéntico al actual.
+- [x] 3.3 Crear `backend/src/workshop/application/home_summary.py` con órdenes abiertas, servicios de contado sin cobrar y retenciones artesanales por completar, compartiendo cada filtro con su lista. Pruebas con el escenario «Mantenimientos abiertos» usando los estados existentes. Cierre: los tres conteos coinciden con sus listas.
+- [x] 3.4 Añadir el saldo artesanal por cobrar y el número de clientes con deuda. Cierre: el saldo iguala el total de `artisan_receivables` sin filtros.
+- [x] 3.5 Añadir los cobros artesanales por día de los últimos siete días. Pruebas con «Efectivo y transferencia combinados» y los bordes de fecha. Cierre: mismas garantías que 2.5.
+- [x] 3.6 Añadir la prueba de fronteras del taller para `home_summary`. Cierre: no importa modelos de ventas ni de proformas.
 
 Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/workshop/ -k "home_summary or receivables or list_orders or boundaries"`.
 

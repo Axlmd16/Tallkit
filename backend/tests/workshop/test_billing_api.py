@@ -169,6 +169,9 @@ def test_full_http_flow_keeps_documents_separated(  # type: ignore[no-untyped-de
     assert summary["combined"]["informative"] is True
     receivables = workshop.get(S).json()
     assert [row["balance"] for row in receivables["results"]] == ["40.00"]
+    condition = receivables["results"][0]["condition"]
+    assert workshop.get(f"{S}?condition={condition}").json()["count"] == 1
+    assert workshop.get(f"{S}?condition=FIADO").status_code == 400
     view = sales_api.get(f"{P}{order['id']}/commercial-view/")
     assert view.status_code == 200
     assert "services" not in view.json()
