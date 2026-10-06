@@ -36,6 +36,10 @@ import { ServiceOperationDetailPage } from '@/pages/maintenance/ServiceOperation
 import { ServiceOperationDocumentPage } from '@/pages/maintenance/ServiceOperationDocumentPage'
 import { MaintenanceOrderEditorPage } from '@/pages/maintenance/MaintenanceOrderEditorPage'
 import { MaintenanceOrdersPage } from '@/pages/maintenance/MaintenanceOrdersPage'
+import { ProformaDetailPage } from '@/pages/proformas/ProformaDetailPage'
+import { ProformaDocumentPage } from '@/pages/proformas/ProformaDocumentPage'
+import { ProformaEditorPage } from '@/pages/proformas/ProformaEditorPage'
+import { ProformasPage } from '@/pages/proformas/ProformasPage'
 import { ReceivablesPage } from '@/pages/sales/ReceivablesPage'
 import { PendingWithholdingsPage } from '@/pages/withholdings/PendingWithholdingsPage'
 import { SaleDetailPage } from '@/pages/sales/SaleDetailPage'
@@ -260,6 +264,46 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="ingresos.ver">
                 <PurchaseDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/proformas',
+            element: (
+              <PermissionGuard permission="proformas.ver">
+                <ProformasPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/proformas/new',
+            element: (
+              <PermissionGuard permission="proformas.gestionar">
+                <ProformaEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/proformas/:id',
+            element: (
+              <PermissionGuard permission="proformas.ver">
+                <ProformaDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/proformas/:id/edit',
+            element: (
+              <PermissionGuard permission="proformas.gestionar">
+                <ProformaEditorPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/proformas/:id/document',
+            element: (
+              <PermissionGuard permission="proformas.ver">
+                <ProformaDocumentPage />
               </PermissionGuard>
             ),
           },

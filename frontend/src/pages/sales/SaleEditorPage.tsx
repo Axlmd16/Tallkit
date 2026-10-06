@@ -218,7 +218,22 @@ export function SaleEditorPage() {
       <header className="sale-topbar">
         <div className="sale-topbar-title">
           <h1>{saleId ? 'Editar venta' : 'Nueva venta'}</h1>
-          <p>Prepare una venta directa de repuestos</p>
+          <p>
+            {origin?.type === 'PROFORMA' ? (
+              <>
+                Originada en la proforma{' '}
+                <Link
+                  className="font-mono font-semibold hover:underline"
+                  to={`/proformas/${origin.proforma_id}`}
+                >
+                  {origin.proforma_number}
+                </Link>
+                ; ajustar productos no cambia la oferta
+              </>
+            ) : (
+              'Prepare una venta directa de repuestos'
+            )}
+          </p>
         </div>
         <div className="sale-topbar-status">
           <StatusBadge label="Borrador" tone="neutral" />

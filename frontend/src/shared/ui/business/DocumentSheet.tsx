@@ -34,6 +34,7 @@ export function DocumentSheet({
   number,
   onBrandReady,
   state,
+  title = 'COMPROBANTE INTERNO',
 }: {
   busy?: boolean
   children: ReactNode
@@ -44,6 +45,8 @@ export function DocumentSheet({
   number: string | null
   onBrandReady?: ((ready: boolean) => void) | undefined
   state: string
+  /** Tipo de documento del encabezado; una proforma se rotula «COTIZACIÓN». */
+  title?: string | undefined
 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const logoUrl =
@@ -73,7 +76,7 @@ export function DocumentSheet({
           <span className="sheet-issuer">{issuer.name}</span>
         </div>
         <div className="sheet-kind">
-          <p className="sheet-title">COMPROBANTE INTERNO</p>
+          <p className="sheet-title">{title}</p>
           <p className="sheet-state">{state}</p>
         </div>
       </header>

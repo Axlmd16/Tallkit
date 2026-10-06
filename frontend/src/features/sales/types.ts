@@ -1,3 +1,5 @@
+import type { QuoteComparison } from '@/features/proformas/types'
+
 /** Contratos del backend de ventas. Los decimales viajan siempre como cadenas. */
 
 export type SaleState = 'DRAFT' | 'CONFIRMED' | 'VOIDED'
@@ -157,16 +159,21 @@ export interface SaleRefundRow {
   effective_date: string
 }
 
-export type SaleOriginType = 'DIRECT' | 'MAINTENANCE'
+export type SaleOriginType = 'DIRECT' | 'MAINTENANCE' | 'PROFORMA'
 
 /** Origen inmutable de la venta; las vinculadas conservan el número de su orden. */
 export interface SaleOrigin {
   type: SaleOriginType
   order_id: number | null
   order_number: string | null
+  /** Solo en ventas originadas por una proforma; el origen no se edita. */
+  proforma_id?: number | null
+  proforma_number?: string | null
 }
 
 export interface Sale {
+  /** Comparación del servidor con lo cotizado; solo en origen proforma. */
+  quote_comparison?: QuoteComparison | null
   id: number
   origin: SaleOrigin
   state: SaleState
@@ -301,6 +308,7 @@ export interface SaleReview {
   totals: Totals | null
   effects: ReviewEffect[]
   lines: DocumentLine[]
+  quote_comparison?: QuoteComparison | null
 }
 
 export interface DraftPreview {

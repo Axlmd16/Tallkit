@@ -4,6 +4,7 @@ import {
   paymentStateLabels,
   saleStateLabels,
   type PaymentState,
+  type SaleOrigin,
   type SaleState,
 } from './types'
 
@@ -29,4 +30,27 @@ export function PaymentStateBadge({ state }: { state: PaymentState | null }) {
   return (
     <StatusBadge label={paymentStateLabels[state]} tone={paymentTone[state]} />
   )
+}
+
+/** Origen de la venta en listas: directa, mantenimiento con su orden o proforma con su número. */
+export function SaleOriginLabel({
+  origin,
+}: {
+  origin: SaleOrigin | undefined
+}) {
+  if (origin?.type === 'MAINTENANCE') {
+    return (
+      <span className="text-[13px]">
+        Mantenimiento <span className="font-mono">{origin.order_number}</span>
+      </span>
+    )
+  }
+  if (origin?.type === 'PROFORMA') {
+    return (
+      <span className="text-[13px]">
+        Proforma <span className="font-mono">{origin.proforma_number}</span>
+      </span>
+    )
+  }
+  return <>Directa</>
 }

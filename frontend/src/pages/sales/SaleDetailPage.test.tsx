@@ -416,3 +416,82 @@ it('sin retenciones no muestra la fila ni la sección', () => {
     screen.queryByRole('region', { name: 'Retenciones recibidas' }),
   ).toBeNull()
 })
+
+const quoteComparison = {
+  proforma_id: 4,
+  proforma_number: 'COM-PRO-000004',
+  products: [
+    {
+      product_id: 5,
+      product_code: 'ACE-1',
+      product_name: 'Aceite',
+      status: 'CHANGED',
+      changes: ['unit_price'],
+      quoted: {
+        quantity: '1',
+        unit_price: '10.00',
+        tax_rate: '15',
+        base_amount: '8.70',
+        tax_amount: '1.30',
+        total_amount: '10.00',
+      },
+      current: {
+        quantity: '1',
+        unit_price: '12.00',
+        tax_rate: '15',
+        base_amount: '10.43',
+        tax_amount: '1.57',
+        total_amount: '12.00',
+      },
+    },
+  ],
+  totals: {
+    quoted: { base: '8.70', tax: '1.30', total: '10.00' },
+    current: { base: '10.43', tax: '1.57', total: '12.00' },
+    difference: '2.00',
+  },
+  has_differences: true,
+}
+
+const fromProforma = {
+  type: 'PROFORMA',
+  order_id: null,
+  order_number: null,
+  proforma_id: 4,
+  proforma_number: 'COM-PRO-000004',
+}
+
+it('una venta de origen proforma enlaza la oferta y compara lo cotizado con la venta', () => {
+  mocks.permissions = [...mocks.permissions, 'proformas.ver', 'ventas.anular']
+  mocks.query = {
+    ...mocks.query,
+    data: { ...sale, origin: fromProforma, quote_comparison: quoteComparison },
+  }
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Origen proforma' })
+  expect(
+    within(section).getByRole('link', { name: 'COM-PRO-000004' }),
+  ).toHaveAttribute('href', '/proformas/4')
+  expect(within(section).getByText('Cambió precio')).toBeInTheDocument()
+  expect(within(section).getAllByText('USD 12.00').length).toBeGreaterThan(0)
+  expect(within(section).getByText('USD 2.00')).toBeInTheDocument()
+  expect(within(section).queryByRole('textbox')).toBeNull()
+  // No es una venta vinculada a un mantenimiento: conserva el flujo comercial normal.
+  expect(screen.queryByText(/Venta vinculada a/)).toBeNull()
+})
+
+it('sin permiso de proformas el número de la oferta se muestra sin enlace', () => {
+  mocks.query = {
+    ...mocks.query,
+    data: { ...sale, origin: fromProforma, quote_comparison: quoteComparison },
+  }
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Origen proforma' })
+  expect(within(section).getByText('COM-PRO-000004')).toBeInTheDocument()
+  expect(within(section).queryByRole('link')).toBeNull()
+})
+
+it('una venta directa no muestra origen proforma', () => {
+  renderPage()
+  expect(screen.queryByRole('region', { name: 'Origen proforma' })).toBeNull()
+})

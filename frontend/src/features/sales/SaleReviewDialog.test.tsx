@@ -120,3 +120,61 @@ it('stale_record no sobrescribe: ofrece recargar la venta guardada', async () =>
     screen.getByRole('link', { name: 'Recargar venta guardada' }),
   ).toHaveAttribute('href', '/sales/4/edit')
 })
+
+it('una venta de origen proforma muestra las diferencias con lo cotizado antes de confirmar', async () => {
+  mocks.preview.mockResolvedValue({
+    ...ok,
+    quote_comparison: {
+      proforma_id: 4,
+      proforma_number: 'COM-PRO-000004',
+      products: [
+        {
+          product_id: 5,
+          product_code: 'ACE-1',
+          product_name: 'Aceite',
+          status: 'CHANGED',
+          changes: ['unit_price'],
+          quoted: {
+            quantity: '1',
+            unit_price: '10.00',
+            tax_rate: '15',
+            base_amount: '8.70',
+            tax_amount: '1.30',
+            total_amount: '10.00',
+          },
+          current: {
+            quantity: '1',
+            unit_price: '12.00',
+            tax_rate: '15',
+            base_amount: '10.43',
+            tax_amount: '1.57',
+            total_amount: '12.00',
+          },
+        },
+      ],
+      totals: {
+        quoted: { base: '8.70', tax: '1.30', total: '10.00' },
+        current: { base: '10.43', tax: '1.57', total: '12.00' },
+        difference: '2.00',
+      },
+      has_differences: true,
+    },
+  })
+  renderDialog()
+  const section = await screen.findByRole('region', {
+    name: 'Diferencias con la proforma',
+  })
+  expect(section).toHaveTextContent('COM-PRO-000004')
+  expect(section).toHaveTextContent('Cambió precio')
+  expect(section).toHaveTextContent('USD 10.00')
+  expect(section).toHaveTextContent('USD 12.00')
+  expect(screen.getByRole('button', { name: 'Confirmar venta' })).toBeEnabled()
+})
+
+it('una venta directa no muestra comparación con proformas', async () => {
+  renderDialog()
+  await screen.findByRole('region', { name: 'Importes revisados' })
+  expect(
+    screen.queryByRole('region', { name: 'Diferencias con la proforma' }),
+  ).toBeNull()
+})

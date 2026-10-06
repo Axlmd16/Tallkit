@@ -10,6 +10,8 @@ import { useLatestReview } from '@/shared/api/latest-review'
 import { ProblemError } from '@/shared/api/client'
 import { Button, Dialog, InlineNotice, LoadingState } from '@/shared/ui'
 
+import { QuoteComparison } from '@/features/proformas/QuoteComparison'
+
 import { usd } from './format'
 import { useSaleMutations } from './hooks'
 import type { Sale, SaleReview } from './types'
@@ -151,6 +153,18 @@ export function SaleReviewDialog({
                 {usd(review.totals.total)}
               </dd>
             </dl>
+          </section>
+        )}
+        {review?.quote_comparison && (
+          <section aria-label="Diferencias con la proforma">
+            <h3 className="mb-2 font-semibold text-ink">
+              Cotizado en{' '}
+              <span className="font-mono">
+                {review.quote_comparison.proforma_number}
+              </span>{' '}
+              frente a esta venta
+            </h3>
+            <QuoteComparison comparison={review.quote_comparison} />
           </section>
         )}
         {review && review.effects.length > 0 && (

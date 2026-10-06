@@ -11,6 +11,7 @@ import { Link, useLocation, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { FiscalPreparationLink } from '@/features/fiscal'
+import { QuoteComparison } from '@/features/proformas/QuoteComparison'
 import { CorrectionDialog } from '@/features/sales/CorrectionDialog'
 import {
   documentDate,
@@ -144,6 +145,33 @@ export function SaleDetailPage() {
         <InlineNotice title="Venta anulada" tone="warning">
           Motivo: {sale.void_reason}
         </InlineNotice>
+      )}
+
+      {sale.origin?.type === 'PROFORMA' && (
+        <section
+          aria-label="Origen proforma"
+          className="space-y-3 rounded-panel border border-line bg-surface p-4"
+        >
+          <p className="text-sm text-ink">
+            Originada en la proforma{' '}
+            {permissions.has('proformas.ver') ? (
+              <Link
+                className="font-mono font-semibold text-accent hover:underline"
+                to={`/proformas/${sale.origin.proforma_id}`}
+              >
+                {sale.origin.proforma_number}
+              </Link>
+            ) : (
+              <span className="font-mono font-semibold">
+                {sale.origin.proforma_number}
+              </span>
+            )}
+            . Los precios son los vigentes del catálogo.
+          </p>
+          {sale.quote_comparison && (
+            <QuoteComparison comparison={sale.quote_comparison} />
+          )}
+        </section>
       )}
 
       {linked && (

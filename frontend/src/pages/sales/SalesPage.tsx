@@ -7,6 +7,7 @@ import { ListStates } from '@/features/catalog-common/ListStates'
 import {
   documentDate,
   PaymentStateBadge,
+  SaleOriginLabel,
   SaleStateBadge,
 } from '@/features/sales/format'
 import { useSales } from '@/features/sales/hooks'
@@ -75,7 +76,7 @@ export function SalesPage() {
             </Button>
           )
         }
-        description="Ventas directas de repuestos del RUC comercial. Confirmar descuenta el inventario y no registra ningún cobro."
+        description="Ventas de repuestos del RUC comercial. Confirmar descuenta el inventario y no registra ningún cobro."
         title="Ventas"
       />
       <ListStates
@@ -176,6 +177,7 @@ export function SalesPage() {
                   <option value="">Todos</option>
                   <option value="DIRECT">Venta directa</option>
                   <option value="MAINTENANCE">Mantenimiento</option>
+                  <option value="PROFORMA">Proforma</option>
                 </Select>
               </Field>
               <Field id="sales-date-from" label="Fecha desde">
@@ -266,17 +268,7 @@ export function SalesPage() {
                 header: 'Origen',
                 key: 'origin',
                 priority: 'secondary',
-                render: (row) =>
-                  row.origin?.type === 'MAINTENANCE' ? (
-                    <span className="text-[13px]">
-                      Mantenimiento{' '}
-                      <span className="font-mono">
-                        {row.origin.order_number}
-                      </span>
-                    </span>
-                  ) : (
-                    'Directa'
-                  ),
+                render: (row) => <SaleOriginLabel origin={row.origin} />,
               },
               {
                 header: 'Cliente',

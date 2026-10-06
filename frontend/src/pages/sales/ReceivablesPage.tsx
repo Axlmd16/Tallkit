@@ -159,6 +159,7 @@ export function ReceivablesPage() {
                 <option value="">Todos</option>
                 <option value="DIRECT">Venta directa</option>
                 <option value="MAINTENANCE">Mantenimiento</option>
+                <option value="PROFORMA">Proforma</option>
               </Select>
             </Field>
             <Field id="receivables-age" label="Antigüedad mínima (días)">
@@ -205,7 +206,9 @@ export function ReceivablesPage() {
                 render: (row) =>
                   row.origin?.type === 'MAINTENANCE'
                     ? `Mantenimiento ${row.origin.order_number ?? ''}`
-                    : 'Directa',
+                    : row.origin?.type === 'PROFORMA'
+                      ? `Proforma ${row.origin.proforma_number ?? ''}`
+                      : 'Directa',
               },
               {
                 header: 'Cliente',

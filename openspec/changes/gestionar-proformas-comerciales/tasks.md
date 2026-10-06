@@ -84,11 +84,11 @@ Dependencias: grupo 6; las pruebas transaccionales también retroalimentan grupo
 
 Cubre UI-050…052, RF-PRO-001…011 y diseño D8. Usar sistema visual y componentes existentes; no rediseñar ventas.
 
-- [ ] 8.1 Probar y crear tipos, cliente API y hooks en `frontend/src/features/proformas/` sobre el contrato del grupo 7. Cierre: sin cálculo monetario local, claves estables de intento, invalidación tras conversión y limpieza de caché al cerrar sesión.
-- [ ] 8.2 Probar y crear lista, detalle y guards en `frontend/src/pages/proformas/`, `frontend/src/app/App.tsx` y `navigation.ts`. Cierre: búsqueda/filtros, estados textuales, enlaces a origen/nueva oferta/venta y acceso directo protegido; permisos reflejan el backend.
-- [ ] 8.3 Probar y crear editor con cliente, vigencia, líneas y cantidades, precios no editables y disponibilidad informativa. Cierre: captura persiste tras error, cambios sin guardar se advierten, cotizar sin stock es posible y revisión obsoleta exige actualizar sin emitir.
-- [ ] 8.4 Probar e implementar acciones de emitir, copiar, anular y convertir con confirmaciones y recuperación de respuesta incierta. Cierre: doble clic o retry no genera otra clave ni otro documento; el resultado enlaza la misma venta.
-- [ ] 8.5 Probar y adaptar componentes y páginas existentes de ventas para origen proforma, comparación con cotización, ajuste de líneas y confirmación/cobro normal. Cierre: retiro y adición de productos mantienen intacta la oferta; filtros de mantenimiento y flujo directo conservados.
+- [x] 8.1 Probar y crear tipos, cliente API y hooks en `frontend/src/features/proformas/` sobre el contrato del grupo 7. Cierre: sin cálculo monetario local, claves estables de intento, invalidación tras conversión y limpieza de caché al cerrar sesión.
+- [x] 8.2 Probar y crear lista, detalle y guards en `frontend/src/pages/proformas/`, `frontend/src/app/App.tsx` y `navigation.ts`. Cierre: búsqueda/filtros, estados textuales, enlaces a origen/nueva oferta/venta y acceso directo protegido; permisos reflejan el backend.
+- [x] 8.3 Probar y crear editor con cliente, vigencia, líneas y cantidades, precios no editables y disponibilidad informativa. Cierre: captura persiste tras error, cambios sin guardar se advierten, cotizar sin stock es posible y revisión obsoleta exige actualizar sin emitir.
+- [x] 8.4 Probar e implementar acciones de emitir, copiar, anular y convertir con confirmaciones y recuperación de respuesta incierta. Cierre: doble clic o retry no genera otra clave ni otro documento; el resultado enlaza la misma venta.
+- [x] 8.5 Probar y adaptar componentes y páginas existentes de ventas para origen proforma, comparación con cotización, ajuste de líneas y confirmación/cobro normal. Cierre: retiro y adición de productos mantienen intacta la oferta; filtros de mantenimiento y flujo directo conservados.
 
 Dependencias: grupo 7 cerrado. Evidencia: pruebas Vitest de los archivos creados/editados mediante `npm test -- <rutas>`, más rutas y limpieza de sesión existentes; registrar paths concretos al implementarlos.
 
@@ -96,8 +96,8 @@ Dependencias: grupo 7 cerrado. Evidencia: pruebas Vitest de los archivos creados
 
 Cubre D5 de propuesta, diseño D4/D8 y RNF-USA aplicables.
 
-- [ ] 9.1 Probar e implementar documento de proforma reutilizando `frontend/src/shared/ui/business/DocumentSheet`, con identidad y logo históricos, vigencia, líneas, impuestos, totales, avisos y estado. Cierre: nunca consulta logo vigente para oferta emitida ni incluye condición de cobro, costos o identidad artesanal.
-- [ ] 9.2 Probar logo reemplazado/eliminado después de emitir, ausencia original de logo, imagen ilegible antes de emitir y espera de recursos antes de imprimir. Cierre: historia reproducible, sin huecos artificiales ni omisiones silenciosas; guardar PDF usa el navegador.
+- [x] 9.1 Probar e implementar documento de proforma reutilizando `frontend/src/shared/ui/business/DocumentSheet`, con identidad y logo históricos, vigencia, líneas, impuestos, totales, avisos y estado. Cierre: nunca consulta logo vigente para oferta emitida ni incluye condición de cobro, costos o identidad artesanal.
+- [x] 9.2 Probar logo reemplazado/eliminado después de emitir, ausencia original de logo, imagen ilegible antes de emitir y espera de recursos antes de imprimir. Cierre: historia reproducible, sin huecos artificiales ni omisiones silenciosas; guardar PDF usa el navegador.
 - [ ] 9.3 Añadir E2E en `frontend/e2e/` para crear → revisar → emitir → imprimir → convertir → ajustar líneas → confirmar, incluyendo respuesta perdida, oferta vencida y stock insuficiente. Cierre: vínculos/números/estados coherentes y una sola venta, sin efectos de stock hasta confirmar.
 - [ ] 9.4 Verificar y corregir impresión A4 multipágina, ancho 360 px, teclado, foco, etiquetas, contraste y estados independientes del color. Cierre: evidencia visual y de accesibilidad identificada, guardada fuera del repositorio; sin filas o totales recortados.
 
