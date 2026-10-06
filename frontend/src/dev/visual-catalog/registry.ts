@@ -364,6 +364,28 @@ export const CATALOG: CatalogEntry[] = (
       description:
         'Serie corta de barras de un solo ámbito fiscal con su total. Cada barra se lee como texto con puntero, foco o toque; el cero conserva una línea de base y no hay animación con movimiento reducido.',
     },
+    {
+      id: 'TK-21',
+      name: 'Resumen de inicio',
+      family: 'patrones',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Composición propia de la página de inicio con las piezas del sistema; la maqueta Tallkit no incluye este tablero.',
+      },
+      tokens: ['canvas', 'surface', 'surface-subtle', 'line', 'scope-*'],
+      variants: [
+        'Acciones rápidas',
+        'Pendientes',
+        'Por cobrar',
+        'Cobrado en 7 días',
+        'Aviso de calificación',
+        'Todo al día',
+      ],
+      consumers: ['Inicio'],
+      description:
+        'Acciones secundarias con icono, pendientes en un solo panel, saldos por cobrar y cobros recientes separados por entidad fiscal. Cada bloque carga y falla por separado.',
+    },
   ] satisfies CatalogEntryDefinition[]
 ).map(defineEntry)
 

@@ -19,6 +19,7 @@ class PendingItemSerializer(serializers.Serializer[dict[str, object]]):
 
 
 class QualificationNoticeSerializer(serializers.Serializer[dict[str, object]]):
+    entity_id = serializers.IntegerField(help_text="Entidad fiscal artesanal del aviso.")
     expires_on = serializers.DateField()
     days_left = serializers.IntegerField()
     expired = serializers.BooleanField()

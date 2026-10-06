@@ -50,7 +50,10 @@ def test_notice_inside_the_warning_window_or_expired(
     declare(role_admin, entity, artisan_qualification=qualification(ends_on))
     notice = home_summary.artisan_qualification_notice(role_admin, on=TODAY)
     assert notice == home_summary.QualificationNotice(
-        ends_on=date.fromisoformat(ends_on), days_left=days_left, expired=expired
+        entity_id=entity.pk,
+        ends_on=date.fromisoformat(ends_on),
+        days_left=days_left,
+        expired=expired,
     )
 
 

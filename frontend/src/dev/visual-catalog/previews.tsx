@@ -51,6 +51,11 @@ import {
   type ComboboxOption,
   type ComboboxResults,
 } from '@/shared/ui'
+import { QUICK_ACTIONS } from '@/features/home/quickActions'
+import { CollectionsBlock } from '@/pages/home/CollectionsBlock'
+import { PendingBlock } from '@/pages/home/PendingBlock'
+import { QuickActionsBlock } from '@/pages/home/QuickActionsBlock'
+import { ReceivablesBlock } from '@/pages/home/ReceivablesBlock'
 
 /** Datos de ejemplo fijos: el catálogo no consulta la API ni guarda nada. */
 const SAMPLE_ROWS = [
@@ -754,6 +759,83 @@ function BarsPreview() {
   )
 }
 
+const loaded = <T,>(data: T) => ({
+  isPending: false,
+  isError: false,
+  data,
+  refetch: () => undefined,
+})
+
+function HomePreview() {
+  return (
+    <MemoryRouter>
+      <div className="space-y-4">
+        <QuickActionsBlock actions={QUICK_ACTIONS} />
+        <PendingBlock
+          query={loaded({
+            qualification: {
+              entity_id: 2,
+              expires_on: '2026-11-20',
+              days_left: 45,
+              expired: false,
+            },
+            items: [
+              { key: 'open_orders', scope: null, count: 4 },
+              { key: 'cash_sales_unpaid', scope: 'commercial', count: 3 },
+              { key: 'cash_services_unpaid', scope: 'artisan', count: 1 },
+              { key: 'proformas_expiring', scope: 'commercial', count: 2 },
+              { key: 'withholdings_pending', scope: 'commercial', count: 2 },
+              { key: 'withholdings_pending', scope: 'artisan', count: 0 },
+              { key: 'sale_drafts', scope: 'commercial', count: 1 },
+              { key: 'proforma_drafts', scope: 'commercial', count: 0 },
+            ],
+          })}
+        />
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+          <ReceivablesBlock
+            className="xl:min-w-0 xl:flex-1"
+            query={loaded({
+              items: [
+                { scope: 'commercial', balance: '1300.50', customers: 2 },
+                { scope: 'artisan', balance: '120.00', customers: 1 },
+              ],
+            })}
+          />
+          <CollectionsBlock
+            className="xl:min-w-0 xl:flex-[2]"
+            query={loaded({
+              timezone: 'America/Guayaquil',
+              items: [
+                { scope: 'commercial', total: '1405.75', days: SAMPLE_WEEK },
+                {
+                  scope: 'artisan',
+                  total: '280.00',
+                  days: SAMPLE_WEEK.map((day, index) => ({
+                    ...day,
+                    amount: index % 2 ? '60.00' : '25.00',
+                  })),
+                },
+              ],
+            })}
+          />
+        </div>
+        <PendingBlock
+          id="home-pending-clear"
+          query={loaded({
+            qualification: null,
+            items: [
+              { key: 'cash_sales_unpaid', scope: 'commercial', count: 0 },
+              { key: 'proformas_expiring', scope: 'commercial', count: 0 },
+              { key: 'sale_drafts', scope: 'commercial', count: 0 },
+              { key: 'proforma_drafts', scope: 'commercial', count: 0 },
+            ],
+          })}
+        />
+      </div>
+    </MemoryRouter>
+  )
+}
+
 export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-01': ColorPreview,
   'TK-02': TypePreview,
@@ -775,4 +857,5 @@ export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-18': PatternsPreview,
   'TK-19': StatPreview,
   'TK-20': BarsPreview,
+  'TK-21': HomePreview,
 }

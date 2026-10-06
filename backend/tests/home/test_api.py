@@ -172,6 +172,7 @@ def test_only_the_administrator_receives_the_qualification_notice(
         },
     )
     assert client_for(admin).get(ROUTES[0]).json()["qualification"] == {
+        "entity_id": artisan_entity.pk,
         "expires_on": ends_on.isoformat(),
         "days_left": 45,
         "expired": False,

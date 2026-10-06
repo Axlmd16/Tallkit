@@ -17518,6 +17518,9 @@ components:
     QualificationNotice:
       type: object
       properties:
+        entity_id:
+          type: integer
+          description: Entidad fiscal artesanal del aviso.
         expires_on:
           type: string
           format: date
@@ -17527,6 +17530,7 @@ components:
           type: boolean
       required:
       - days_left
+      - entity_id
       - expired
       - expires_on
     ReceivableItem:

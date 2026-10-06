@@ -14,13 +14,13 @@ export interface StatLinkProps {
   to: string
   label: string
   /** Conteo. Use `amount` cuando el valor sea un importe. */
-  value?: number
+  value?: number | undefined
   /** Importe decimal exacto que entrega el servidor. */
-  amount?: string
-  scope?: ScopeLabelScope
+  amount?: string | undefined
+  scope?: ScopeLabelScope | undefined
   /** Dato secundario breve, por ejemplo «2 clientes». */
-  detail?: string
-  icon?: ReactNode
+  detail?: string | undefined
+  icon?: ReactNode | undefined
 }
 
 /**
@@ -90,17 +90,20 @@ export function StatGrid({
   children,
   label,
   columns = 4,
+  stackOnWide = false,
 }: {
   children: ReactNode
   label: string
   columns?: 2 | 4
+  /** En un panel estrecho de escritorio, apila los indicadores en una columna. */
+  stackOnWide?: boolean
 }) {
   const items = Array.isArray(children) ? children.flat() : [children]
   return (
     <div className="overflow-hidden">
       <ul
         aria-label={label}
-        className={`-mr-px -mb-px grid grid-cols-1 sm:grid-cols-2 ${columns === 4 ? 'xl:grid-cols-4' : ''}`}
+        className={`-mr-px -mb-px grid grid-cols-1 sm:grid-cols-2 ${columns === 4 ? 'xl:grid-cols-4' : ''} ${stackOnWide ? 'xl:grid-cols-1' : ''}`}
       >
         {items.filter(Boolean).map((child, index) => (
           <li className="border-r border-b border-line" key={index}>

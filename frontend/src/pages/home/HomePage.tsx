@@ -1,19 +1,45 @@
-import { ArrowRight } from '@phosphor-icons/react'
-import { Link } from 'react-router'
-
-import { visibleGroups } from '@/app/navigation'
 import { useSession } from '@/features/auth/hooks'
 import { roleLabels } from '@/features/auth/types'
+import {
+  useHomeCollections,
+  useHomePending,
+  useHomeReceivables,
+} from '@/features/home/hooks'
+import { visibleQuickActions } from '@/features/home/quickActions'
 import { EmptyState, PageHeader } from '@/shared/ui'
 
+import { CollectionsBlock } from './CollectionsBlock'
+import { PendingBlock } from './PendingBlock'
+import { QuickActionsBlock } from './QuickActionsBlock'
+import { ReceivablesBlock } from './ReceivablesBlock'
+
+/** Permisos que dan acceso a algún pendiente; el servidor decide cuáles entrega. */
+const PENDING_PERMISSIONS = [
+  'mantenimientos.ver',
+  'pagos_comerciales.ver',
+  'pagos_artesanales.ver',
+  'proformas.ver',
+  'ventas.ver',
+  'parametros.gestionar',
+]
+const MONEY_PERMISSIONS = ['pagos_comerciales.ver', 'pagos_artesanales.ver']
+
 /**
- * Inicio: identidad de la sesión y accesos a las áreas que autorizan sus permisos. No
- * muestra indicadores: ninguno tiene todavía un dato del servidor que lo respalde.
+ * Inicio: resumen de trabajo de la sesión. Accesos a lo más frecuente, pendientes que conducen
+ * a su lista, saldos por cobrar y cobros recientes, siempre separados por entidad fiscal. Los
+ * valores los calcula el servidor; aquí solo se evita pedir lo que la sesión no puede ver.
  */
 export function HomePage() {
   const session = useSession().data
-  const groups = visibleGroups(new Set(session?.permissions ?? []))
+  const permissions = new Set(session?.permissions ?? [])
   const roles = (session?.roles ?? []).map((role) => roleLabels[role])
+  const actions = visibleQuickActions(permissions)
+  const showPending = PENDING_PERMISSIONS.some((name) => permissions.has(name))
+  const showMoney = MONEY_PERMISSIONS.some((name) => permissions.has(name))
+
+  const pending = useHomePending(showPending)
+  const receivables = useHomeReceivables(showMoney)
+  const collections = useHomeCollections(showMoney)
 
   return (
     <div className="space-y-4">
@@ -25,67 +51,28 @@ export function HomePage() {
           : {})}
         title="Inicio"
       />
-      {groups.length === 0 ? (
-        <section className="rounded-panel border border-line bg-surface">
-          <EmptyState
-            description="La navegación se actualizará cuando su cuenta reciba permisos para otras funciones."
-            title="No hay accesos adicionales disponibles."
-          />
-        </section>
+      {actions.length === 0 && !showPending && !showMoney ? (
+        <EmptyState
+          description="Cuando el administrador le asigne un rol, aquí verá sus accesos y pendientes."
+          title="Su cuenta todavía no tiene funciones asignadas."
+        />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {groups.map((group) => {
-            const GroupIcon = group.icon
-            return (
-              <section
-                aria-labelledby={`home-${group.id}`}
-                className="overflow-hidden rounded-panel border border-line bg-surface"
-                key={group.id}
-              >
-                <div className="flex items-center gap-2.5 border-b border-line bg-surface-subtle px-4 py-3">
-                  <GroupIcon
-                    aria-hidden="true"
-                    className="text-ink-muted"
-                    size={18}
-                  />
-                  <h2
-                    className="text-[14.5px] font-semibold text-ink"
-                    id={`home-${group.id}`}
-                  >
-                    {group.label}
-                  </h2>
-                </div>
-                <ul className="divide-y divide-line">
-                  {group.items.map((item) => {
-                    const ItemIcon = item.icon
-                    return (
-                      <li key={item.to}>
-                        <Link
-                          className="group flex min-h-11 items-center gap-3 px-4 py-2.5 text-[13.5px] font-medium text-ink hover:bg-surface-subtle focus-visible:bg-accent-soft"
-                          to={item.to}
-                        >
-                          <ItemIcon
-                            aria-hidden="true"
-                            className="shrink-0 text-ink-muted group-hover:text-accent"
-                            size={18}
-                          />
-                          <span className="min-w-0 flex-1 truncate">
-                            {item.label}
-                          </span>
-                          <ArrowRight
-                            aria-hidden="true"
-                            className="shrink-0 text-ink-muted group-hover:text-accent"
-                            size={16}
-                          />
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
-            )
-          })}
-        </div>
+        <>
+          <QuickActionsBlock actions={actions} />
+          {showPending && <PendingBlock query={pending} />}
+          {showMoney && (
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+              <ReceivablesBlock
+                className="xl:min-w-0 xl:flex-1"
+                query={receivables}
+              />
+              <CollectionsBlock
+                className="xl:min-w-0 xl:flex-[2]"
+                query={collections}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   )

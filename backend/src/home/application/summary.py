@@ -78,6 +78,7 @@ def pending(actor: User) -> dict[str, Any]:
         None
         if notice is None
         else {
+            "entity_id": notice.entity_id,
             "expires_on": notice.ends_on.isoformat(),
             "days_left": notice.days_left,
             "expired": notice.expired,

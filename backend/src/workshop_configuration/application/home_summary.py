@@ -23,6 +23,7 @@ from workshop_configuration.models import ElectronicProfileRevision
 
 @dataclass(frozen=True)
 class QualificationNotice:
+    entity_id: int
     ends_on: date
     days_left: int
     expired: bool
@@ -52,7 +53,10 @@ def artisan_qualification_notice(actor: User, *, on: date) -> QualificationNotic
     if days_left > QUALIFICATION_WARNING_DAYS:
         return None
     return QualificationNotice(
-        ends_on=qualification.ends_on, days_left=days_left, expired=days_left < 0
+        entity_id=profile.fiscal_entity_id,
+        ends_on=qualification.ends_on,
+        days_left=days_left,
+        expired=days_left < 0,
     )
 
 
