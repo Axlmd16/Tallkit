@@ -9,3 +9,5 @@
 | Pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#pago) | Importe aplicado a un solo documento de un solo RUC. |
 | Saldo pendiente | [Glosario del producto](../../../docs/negocio/producto/glosario.md#saldo-pendiente) | Derivado del exigible y los pagos efectivos. |
 | Estado de pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#estado-de-pago) | Pendiente, parcial o pagado, independiente del estado operativo. |
+| Operación artesanal | `docs/arquitectura/modelo-dominio.md` | Su saldo descuenta las retenciones vigentes. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Hecho propio del RUC artesanal, separado del dinero cobrado. |

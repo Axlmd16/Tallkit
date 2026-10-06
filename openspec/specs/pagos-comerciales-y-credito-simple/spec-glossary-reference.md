@@ -8,3 +8,6 @@
 | Saldo pendiente | [Glosario del producto](../../../docs/negocio/producto/glosario.md#saldo-pendiente) | Importe cobrable derivado de exigible y dinero neto. |
 | Estado de pago | [Glosario del producto](../../../docs/negocio/producto/glosario.md#estado-de-pago) | Pendiente, parcial o pagado según saldo. |
 | Cuenta por cobrar | [Glosario del producto](../../../docs/negocio/producto/glosario.md#cuenta-por-cobrar) | Consulta separada de deudas comerciales. |
+| Cuentas por cobrar | `docs/negocio/producto/glosario.md` | Excluyen como deuda lo retenido y lo muestran aparte. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Tercer término del saldo; nunca se suma al dinero cobrado. |
+| Reembolso | `docs/arquitectura/modelo-dominio.md` | El exceso reembolsable no incluye valores retenidos. |

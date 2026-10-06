@@ -25,3 +25,4 @@
 | Correspondencia tributaria | `docs/negocio/producto/glosario.md` | Relación de un impuesto interno con su tarifa oficial; su cambio se programa a futuro. |
 | Negocio Popular | `docs/negocio/producto/glosario.md` | Valor del régimen tributario que no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria. |
 | Tarifa programada | `docs/negocio/producto/glosario.md` | Tarifa interna que rige desde una fecha futura sobre el mismo impuesto. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Hecho cuyo registro se activa y cuya advertencia se configura aquí. |
