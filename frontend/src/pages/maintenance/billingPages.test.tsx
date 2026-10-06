@@ -416,6 +416,57 @@ describe('ArtisanReceivablesPage', () => {
       screen.getAllByRole('link', { name: 'ART-SER-000004' })[0],
     ).toHaveAttribute('href', '/maintenance/service-operations/4')
   })
+  it('separa lo retenido del dinero cobrado en totales y columnas', () => {
+    mocks.receivables.data = {
+      count: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      totals: {
+        grand_total: '250.00',
+        paid: '200.00',
+        withheld: '5.00',
+        balance: '45.00',
+      },
+      results: [
+        {
+          id: 4,
+          internal_number: 'ART-SER-000004',
+          fiscal_entity: 'ARTESANAL',
+          document_type: 'SERVICIO',
+          order_id: 9,
+          order_number: 'ART-OT-000009',
+          customer_id: 3,
+          customer_name: 'Ana Pérez',
+          condition: 'CREDITO',
+          operational_date: '2026-09-14',
+          age_days: 10,
+          grand_total: '250.00',
+          paid: '200.00',
+          withheld: '5.00',
+          balance: '45.00',
+          payment_state: 'PARTIAL',
+        },
+      ],
+    }
+    renderAt(
+      '/maintenance/receivables',
+      '/maintenance/receivables',
+      <ArtisanReceivablesPage />,
+    )
+    const totals = screen.getByRole('region', {
+      name: 'Totales de todas las coincidencias',
+    })
+    expect(within(totals).getByText('Cobrado en dinero')).toBeInTheDocument()
+    expect(
+      within(totals).getByText('Retenido por clientes'),
+    ).toBeInTheDocument()
+    expect(totals).toHaveTextContent('5.00')
+    expect(screen.getAllByText('Retenido').length).toBeGreaterThan(0)
+    expect(
+      screen.getByRole('link', { name: 'Retenciones por completar' }),
+    ).toHaveAttribute('href', '/maintenance/withholdings')
+  })
 })
 
 describe('CommercialOrderViewPage', () => {

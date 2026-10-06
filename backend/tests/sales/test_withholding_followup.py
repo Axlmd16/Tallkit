@@ -316,3 +316,21 @@ def test_withholding_of_another_sale_is_not_found(
     with pytest.raises(SalesApplicationError) as error:
         complete(seller, {"sale_id": other["id"], "id": held["id"]})
     assert error.value.code == "not_found"
+
+
+def test_existing_withholdings_can_be_completed_and_voided_after_disabling_registration(
+    seller: Any, admin: Any, commercial: Any, held: dict[str, Any]
+) -> None:
+    from identity.models import AuditEvent
+
+    from .test_withholdings import configure
+
+    configure(admin, commercial, registration_enabled=False)
+    assert complete(seller, held).body["voucher_number"] == NUMBER
+    assert void(admin, held).body["state"] == "VOIDED"
+    actions = set(
+        AuditEvent.objects.filter(
+            result="SUCCESS", action__startswith="sales.withholding"
+        ).values_list("action", flat=True)
+    )
+    assert actions == {"sales.withholding_voucher_completed", "sales.withholding_voided"}

@@ -82,12 +82,15 @@ export function PendingWithholdingsPage({
   const text = texts[scope]
   const commercial = scope === 'commercial'
   const [page, setPage] = useState(1)
+  const [customer, setCustomer] = useState<{ id: number; name: string } | null>(
+    null,
+  )
   const [dialog, setDialog] = useState<Dialog>(null)
   const returnFocus = useRef<HTMLElement | null>(null)
   const toast = useToast()
   const permissions = new Set(useSession().data?.permissions ?? [])
-  const sales = usePendingWithholdings(page, commercial)
-  const artisan = usePendingArtisanWithholdings(page, !commercial)
+  const sales = usePendingWithholdings(page, commercial, customer?.id)
+  const artisan = usePendingArtisanWithholdings(page, !commercial, customer?.id)
   const query = commercial ? sales : artisan
   const saleMutations = useSaleMutations()
   const billingMutations = useBillingMutations()
@@ -136,6 +139,28 @@ export function PendingWithholdingsPage({
           </p>
         )}
       </div>
+      {customer && (
+        <div
+          aria-label="Filtro por cliente"
+          className="flex flex-wrap items-center gap-3 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]"
+          role="group"
+        >
+          <span>
+            Solo retenciones de{' '}
+            <span className="font-semibold text-ink">{customer.name}</span>
+          </span>
+          <Button
+            onClick={() => {
+              setCustomer(null)
+              setPage(1)
+            }}
+            type="button"
+            variant="quiet"
+          >
+            Ver todos los clientes
+          </Button>
+        </div>
+      )}
       <InlineNotice title="¿Dónde está el comprobante?" tone="info">
         El cliente lo emite de forma electrónica. Búsquelo en SRI en línea, en
         comprobantes electrónicos recibidos, o en el correo registrado.
@@ -158,7 +183,11 @@ export function PendingWithholdingsPage({
       )}
       {data && data.items.length === 0 && (
         <EmptyState
-          description="Todas las retenciones registradas ya tienen su número de comprobante."
+          description={
+            customer
+              ? 'Este cliente no tiene retenciones sin número de comprobante.'
+              : 'Todas las retenciones registradas ya tienen su número de comprobante.'
+          }
           title="Nada por completar"
         />
       )}
@@ -182,6 +211,21 @@ export function PendingWithholdingsPage({
                       <span className="font-normal text-ink-muted">
                         {item.customer.identification}
                       </span>
+                      {!customer && (
+                        <button
+                          className="ml-2 text-[12.5px] font-semibold text-accent hover:underline"
+                          onClick={() => {
+                            setCustomer({
+                              id: item.customer.id,
+                              name: item.customer.name ?? 'este cliente',
+                            })
+                            setPage(1)
+                          }}
+                          type="button"
+                        >
+                          Ver solo este cliente
+                        </button>
+                      )}
                     </p>
                     <p className="text-ink-muted">
                       <Link

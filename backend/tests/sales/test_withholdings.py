@@ -464,3 +464,89 @@ def test_sale_detail_tells_the_charge_screen_what_to_offer(
         "enabled": False,
         "customer_is_agent": True,
     }
+
+
+def test_a_voided_sale_rejects_withholdings(seller: Any, admin: Any, confirmed_sale: Any) -> None:
+    from .test_void import do_void, void_data
+
+    sale = confirmed_sale(price="100.00")
+    do_void(admin, sale["id"], void_data())
+    review = payments.preview_payment(actor=seller, sale_id=sale["id"], payload=body(None, "1.00"))
+    assert review["can_register"] is False
+    assert review["issues"][0]["code"] == "invalid_state"
+    with pytest.raises(SalesApplicationError) as error:
+        payments.register_payment(
+            actor=seller,
+            sale_id=sale["id"],
+            payload={**body(None, "1.00"), "idempotency_key": "wh-voided-000001"},
+        )
+    assert error.value.code == "invalid_state"
+    assert not CommercialWithholding.objects.exists()
+
+
+@pytest.mark.parametrize(
+    ("regime", "tax_key"),
+    [
+        ("GENERAL", "tax"),
+        ("RIMPE_EMPRENDEDOR", "tax"),
+        ("RIMPE_NEGOCIO_POPULAR", "zero"),
+        (None, "zero"),
+    ],
+)
+def test_the_same_rule_applies_with_any_tax_configuration(
+    seller: Any,
+    admin: Any,
+    commercial: Any,
+    confirmed_sale: Any,
+    make_product: Any,
+    stock: Any,
+    regime: str | None,
+    tax_key: str,
+) -> None:
+    """Ni el régimen declarado ni la tarifa del producto cambian el comportamiento."""
+    from decimal import Decimal
+
+    from tests.workshop_configuration.profile_helpers import applicable, profile_conditions
+
+    from workshop_configuration.application.electronic_profiles import save_profile
+
+    if regime is not None:
+        save_profile(
+            actor=admin,
+            entity_id=commercial["entity"].pk,
+            expected_revision=0,
+            idempotency_key=str(uuid.uuid4()),
+            payload={"conditions": profile_conditions(tax_regime=applicable(regime))},
+        )
+    product = make_product(sale_price=Decimal("250.00"), tax_definition=commercial[tax_key])
+    stock(product, 5, "100.00")
+    sale = confirmed_sale(product=product, condition="CONTADO")
+
+    outcome = settle(seller, sale["id"], parts(transfer="245.00"), "5.00")
+
+    assert outcome.body["withholding"]["amount"] == "5.00"
+    money = summary(sale["id"])
+    assert (money["paid_total"], money["withheld_total"], money["balance"]) == (
+        "245.00",
+        "5.00",
+        "0.00",
+    )
+    assert money["payment_state"] == "PAID"
+    # la advertencia usa solo el porcentaje configurado para la entidad
+    other = confirmed_sale(product=product, condition="CREDITO")
+    review = payments.preview_payment(
+        actor=seller, sale_id=other["id"], payload=body(None, "60.00")
+    )
+    assert review["warning"] == {"percentage": "20.00", "threshold": "50.00"}
+
+
+def test_withholding_actions_are_audited(seller: Any, confirmed_sale: Any) -> None:
+    from identity.models import AuditEvent
+
+    sale = confirmed_sale(price="100.00")
+    settle(seller, sale["id"], parts(cash="98.00"), "2.00")
+    event = AuditEvent.objects.filter(action="sales.payment_registered", result="SUCCESS").latest(
+        "id"
+    )
+    assert event.actor_id == seller.pk
+    assert "withholding" in event.metadata["changed_fields"]

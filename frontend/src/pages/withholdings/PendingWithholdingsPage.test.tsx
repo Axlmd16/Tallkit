@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   artisan: {} as Record<string, unknown>,
   salesEnabled: [] as boolean[],
   artisanEnabled: [] as boolean[],
+  customerIds: [] as (number | undefined)[],
   completeSale: vi.fn(),
   voidSale: vi.fn(),
   completeArtisan: vi.fn(),
@@ -23,8 +24,13 @@ vi.mock('@/features/auth/hooks', () => ({
   }),
 }))
 vi.mock('@/features/sales/hooks', () => ({
-  usePendingWithholdings: (_page: number, enabled: boolean) => {
+  usePendingWithholdings: (
+    _page: number,
+    enabled: boolean,
+    customerId?: number,
+  ) => {
     mocks.salesEnabled.push(enabled)
+    mocks.customerIds.push(customerId)
     return mocks.sales
   },
   useSaleMutations: () => ({
@@ -93,6 +99,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.salesEnabled = []
   mocks.artisanEnabled = []
+  mocks.customerIds = []
   mocks.permissions = ['pagos_comerciales.ver', 'pagos_comerciales.registrar']
   mocks.sales = page([
     {
@@ -211,4 +218,23 @@ it('presenta carga, error recuperable y estado vacío', async () => {
   mocks.sales = page([], '0.00')
   show('commercial')
   expect(screen.getByText('Nada por completar')).toBeInTheDocument()
+})
+
+it('filtra por el cliente de una fila y permite volver a ver todos', async () => {
+  const user = userEvent.setup()
+  show('commercial')
+  expect(mocks.customerIds.at(-1)).toBeUndefined()
+  await user.click(
+    screen.getByRole('button', { name: 'Ver solo este cliente' }),
+  )
+  expect(mocks.customerIds.at(-1)).toBe(1)
+  const filter = screen.getByRole('group', { name: 'Filtro por cliente' })
+  expect(within(filter).getByText('DICOSIL CIA. LTDA.')).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Ver solo este cliente' }),
+  ).toBeNull()
+  await user.click(
+    within(filter).getByRole('button', { name: 'Ver todos los clientes' }),
+  )
+  expect(mocks.customerIds.at(-1)).toBeUndefined()
 })

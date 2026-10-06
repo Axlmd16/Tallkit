@@ -245,4 +245,22 @@ Trabajo pendiente real:
 - Los recorridos E2E de ventas y taller estaban rotos antes de este cambio por la siembra de existencia con la API de compras anterior; se repararon aquí. No se revisó si otras especificaciones de Playwright tienen el mismo problema.
 - Importar el XML del comprobante de retención y vincular la retención con la factura autorizada quedan para cambios posteriores, como indica la propuesta.
 
+## 13. Verificación del cambio
+
+Verificación realizada el 2026-10-05 contra specs, diseño y tareas: sin problemas críticos, cinco advertencias y tres sugerencias. Todas se corrigieron por instrucción del titular.
+
+- [x] 13.1 Mostrar lo retenido en las cuentas por cobrar: columna «Retenido» en `ReceivablesPage.tsx` y `ArtisanReceivablesPage.tsx`, y totales del ámbito artesanal con «Cobrado en dinero» y «Retenido por clientes», con sus pruebas.
+- [x] 13.2 Probar que una venta anulada rechaza retenciones (`tests/sales/test_withholdings.py`).
+- [x] 13.3 Probar el escenario «Misma regla con cualquier configuración tributaria»: ventas con régimen General, RIMPE Emprendedor, RIMPE Negocio Popular y sin perfil, con tarifa 15 % y 0 %; operación artesanal con tarifa 0 % y 15 %.
+- [x] 13.4 Filtro por cliente en «Retenciones por completar»: «Ver solo este cliente» en cada fila y «Ver todos los clientes» para salir, en los dos ámbitos, con su prueba.
+- [x] 13.5 Pruebas de los hooks nuevos (`features/sales/withholdingHooks.test.tsx`, `features/maintenance/withholdingHooks.test.tsx`, `features/fiscal/withholdingSettingsHooks.test.tsx`), cobertura y build del frontend.
+- [x] 13.6 Sugerencias: pruebas de auditoría de registrar, completar y anular en ambos ámbitos, y de completar y anular con el registro de la entidad desactivado.
+
+Resultado registrado (2026-10-05):
+- Backend: `uv run --frozen pytest --no-cov tests/sales/test_withholdings.py tests/sales/test_withholding_followup.py tests/workshop/test_artisan_withholdings.py` → 84 pruebas pasan; Ruff sin hallazgos.
+- Frontend: `npm run test:coverage` → 189 archivos y 1302 pruebas pasan; cobertura 87,08 % de sentencias, 80,28 % de ramas, 85,92 % de funciones y 88,52 % de líneas, sobre los umbrales 85/80/85/85. `npm run build` termina bien, con el aviso habitual de tamaño de fragmentos. `tsc`, ESLint y Prettier sin hallazgos en lo tocado.
+- La cobertura de ramas queda a 0,28 puntos del umbral: cualquier cambio posterior del frontend debe llegar con sus pruebas.
+- No se ejecutó: `make check`, `make test`, el resto de pytest ni Playwright después de estas correcciones (los recorridos de los grupos 11 no cubren la columna ni el filtro nuevos).
+- La sugerencia de mostrar en pantalla quién registró cada retención no se aplicó: el dato viaja en la API y queda como mejora.
+
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

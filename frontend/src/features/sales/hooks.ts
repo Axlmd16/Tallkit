@@ -16,8 +16,8 @@ export const saleKeys = {
   detail: (id: number | null) => ['sales', 'detail', id] as const,
   document: (id: number | null) => ['sales', 'document', id] as const,
   operation: (id: string | null) => ['sales', 'operation', id] as const,
-  pendingWithholdings: (page: number) =>
-    ['sales', 'withholdings', 'pending', page] as const,
+  pendingWithholdings: (page: number, customerId?: number) =>
+    ['sales', 'withholdings', 'pending', page, customerId ?? null] as const,
   customers: (term: string, page: number) =>
     ['sales', 'customers', term, page] as const,
   products: (term: string, page: number) =>
@@ -62,10 +62,18 @@ export function useReceivables(filters: SaleFilters = {}) {
   })
 }
 
-export function usePendingWithholdings(page = 1, enabled = true) {
+export function usePendingWithholdings(
+  page = 1,
+  enabled = true,
+  customerId?: number,
+) {
   return useQuery({
-    queryKey: saleKeys.pendingWithholdings(page),
-    queryFn: () => salesApi.pendingWithholdings({ page }),
+    queryKey: saleKeys.pendingWithholdings(page, customerId),
+    queryFn: () =>
+      salesApi.pendingWithholdings({
+        page,
+        ...(customerId ? { customerId } : {}),
+      }),
     enabled,
     refetchOnWindowFocus: true,
   })

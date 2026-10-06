@@ -139,3 +139,19 @@ it('los filtros de estado y antigüedad actualizan la consulta y se pueden limpi
     (mocks.args.at(-1) as { paymentState?: string }).paymentState,
   ).toBeUndefined()
 })
+
+it('muestra lo retenido por el cliente en su propia columna, sin sumarlo a la deuda', () => {
+  const held = row(3, '98.00', '0.00', 2)
+  held.money = { ...held.money, withheld_total: '2.00' } as typeof held.money
+  mocks.data = {
+    ...mocks.data,
+    data: { ...(mocks.data.data as object), results: [held] },
+  }
+  renderPage()
+  expect(screen.getAllByText('Retenido').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('USD 2.00').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('USD 98.00').length).toBeGreaterThan(0)
+  expect(
+    screen.getByRole('link', { name: 'Retenciones por completar' }),
+  ).toHaveAttribute('href', '/sales/withholdings')
+})

@@ -48,11 +48,12 @@ export function ArtisanReceivablesPage() {
       {totals && (
         <section
           aria-label="Totales de todas las coincidencias"
-          className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-3"
+          className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-4"
         >
           {[
             ['Documentado', totals.grand_total],
-            ['Pagado', totals.paid],
+            ['Cobrado en dinero', totals.paid],
+            ['Retenido por clientes', totals.withheld ?? '0.00'],
             ['Saldo por cobrar', totals.balance],
           ].map(([label, amount]) => (
             <div className="bg-surface px-4 py-3" key={label}>
@@ -154,6 +155,13 @@ export function ArtisanReceivablesPage() {
                 render: (row) => (
                   <span className="tabular-nums">{`${row.age_days} días`}</span>
                 ),
+              },
+              {
+                header: 'Retenido',
+                key: 'withheld',
+                priority: 'secondary',
+                align: 'end',
+                render: (row) => <Money amount={row.withheld ?? '0.00'} />,
               },
               {
                 header: 'Saldo',

@@ -31,8 +31,14 @@ export const billingKeys = {
     ['maintenance', 'service-operation-void-preview', id] as const,
   receivables: (filters: ArtisanReceivableFilters) =>
     ['maintenance', 'artisan-receivables', filters] as const,
-  pendingWithholdings: (page: number) =>
-    ['maintenance', 'artisan-withholdings', 'pending', page] as const,
+  pendingWithholdings: (page: number, customerId?: number) =>
+    [
+      'maintenance',
+      'artisan-withholdings',
+      'pending',
+      page,
+      customerId ?? null,
+    ] as const,
 }
 
 /**
@@ -98,10 +104,18 @@ export function useVoidPreview(id: number, enabled: boolean) {
   })
 }
 
-export function usePendingArtisanWithholdings(page = 1, enabled = true) {
+export function usePendingArtisanWithholdings(
+  page = 1,
+  enabled = true,
+  customerId?: number,
+) {
   return useQuery({
-    queryKey: billingKeys.pendingWithholdings(page),
-    queryFn: () => maintenanceApi.pendingArtisanWithholdings({ page }),
+    queryKey: billingKeys.pendingWithholdings(page, customerId),
+    queryFn: () =>
+      maintenanceApi.pendingArtisanWithholdings({
+        page,
+        ...(customerId ? { customerId } : {}),
+      }),
     enabled,
     refetchOnWindowFocus: true,
   })

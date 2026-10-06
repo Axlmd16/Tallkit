@@ -518,3 +518,38 @@ def test_operation_detail_tells_the_charge_screen_what_to_offer(  # type: ignore
     configure(admin, artisan, registration_enabled=False)
     detail = service_operations.get_operation(actor=manager, operation_id=operation["id"])
     assert detail["withholding_context"] == {"enabled": False, "customer_is_agent": True}
+
+
+@pytest.mark.parametrize("rate", ["0", "15"])
+def test_the_same_rule_applies_with_any_artisan_tax_rate(  # type: ignore[no-untyped-def]
+    manager, artisan, make_operation, rate: str
+) -> None:
+    """La tarifa configurada del RUC artesanal no cambia el comportamiento de la retención."""
+    from decimal import Decimal
+
+    from workshop_configuration.models import TaxPeriod
+
+    TaxPeriod.objects.filter(tax_definition=artisan["tax"]).update(rate=Decimal(rate))
+    operation = make_operation("CONTADO")
+    body = settle(manager, operation["id"], ("TRANSFERENCIA", "245.00"), withheld="5.00").body
+    assert (body["paid"], body["withheld"], body["balance"]) == ("245.00", "5.00", "0.00")
+    assert body["payment_state"] == "PAID"
+
+
+def test_existing_withholdings_survive_disabling_and_actions_are_audited(  # type: ignore[no-untyped-def]
+    manager, admin, artisan, held
+) -> None:
+    from identity.models import AuditEvent
+
+    configure(admin, artisan, registration_enabled=False)
+    assert complete(manager, held).body["withholdings"][0]["voucher_number"] == NUMBER
+    assert void(admin, held).body["withholdings"][0]["state"] == "VOIDED"
+    actions = set(
+        AuditEvent.objects.filter(
+            result="SUCCESS", action__startswith="maintenance.artisan_withholding"
+        ).values_list("action", flat=True)
+    )
+    assert actions == {
+        "maintenance.artisan_withholding_voucher_complete",
+        "maintenance.artisan_withholding_void",
+    }

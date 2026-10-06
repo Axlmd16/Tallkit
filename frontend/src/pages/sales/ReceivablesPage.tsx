@@ -238,6 +238,16 @@ export function ReceivablesPage() {
                 ),
               },
               {
+                header: 'Retenido',
+                // La clave solo identifica la celda; el contenido lo define `render`.
+                key: 'version',
+                priority: 'secondary',
+                align: 'end',
+                render: (row) => (
+                  <Money amount={row.money.withheld_total ?? '0.00'} />
+                ),
+              },
+              {
                 header: 'Reembolso pendiente',
                 key: 'grand_total',
                 priority: 'secondary',
