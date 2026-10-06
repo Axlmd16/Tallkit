@@ -93,15 +93,15 @@ Cubre diseño D8 y D9; requisitos «Acciones rápidas hacia las operaciones frec
 - [x] 8.5 Probar e implementar `ReceivablesBlock` con dos mitades identificadas por ámbito. Cierre: escenarios «Administrador con deuda en las dos entidades», «Sin deuda» y ausencia de total conjunto.
 - [x] 8.6 Probar e implementar `CollectionsBlock` con un `MiniBarChart` por entidad. Cierre: escenarios «Dos entidades sin total conjunto» y «Lectura sin el gráfico».
 - [x] 8.7 Reescribir `frontend/src/pages/home/HomePage.tsx` componiendo los cuatro bloques bajo `PageHeader`, con carga, error y «Reintentar» por bloque, sin el listado de áreas y con el estado vacío para quien no tiene funciones. Cierre: escenarios «Falla un solo bloque», «Dato no disponible», «Carga», «Usuario sin funciones» e «Inicio de un Administrador»; `navigation.ts` sin cambios y `App.test.tsx` en verde.
-- [ ] 8.8 Ajustar la disposición adaptable: una columna en teléfono, dos en tableta, hasta cuatro indicadores por fila en escritorio, gráficos lado a lado desde 1024 px, objetivos de 44 px y orden de foco coherente. Cierre: escenarios «Teléfono de 360 px», «Uso con teclado» y «Persona que no distingue el color».
+- [x] 8.8 Ajustar la disposición adaptable: una columna en teléfono, dos en tableta, hasta cuatro indicadores por fila en escritorio, gráficos lado a lado desde 1024 px, objetivos de 44 px y orden de foco coherente. Cierre: escenarios «Teléfono de 360 px», «Uso con teclado» y «Persona que no distingue el color».
 
 Dependencias: grupos 5, 6 y 7. Evidencia: `npm run test -- src/features/home src/pages/home src/app/App.test.tsx`, más `npm run typecheck`, `npm run lint` y `npm run format:check`.
 
 ## 9. Recorrido completo y revisión visual
 
-- [ ] 9.1 Añadir `frontend/e2e/home.spec.ts` con un recorrido por rol (Vendedor, Encargado del taller y Administrador): abrir el inicio, activar un pendiente y comprobar que la lista muestra el mismo número; cobrar una venta de contado y verificar que el indicador baja al volver. Cierre: `npm run test:e2e -- home.spec.ts` en verde.
-- [ ] 9.2 Añadir al recorrido la comprobación de accesibilidad con `e2e/accessibility.ts` y la revisión a 360, 768 y 1280 px sin desplazamiento horizontal de la página. Cierre: sin infracciones nuevas.
-- [ ] 9.3 Comparar la página con una lista existente y con el catálogo visual: paneles, cabeceras, tipografía, acciones, tonos de ámbito y ausencia de sombras y de valores visuales propios. Registrar capturas como evidencia visual. Cierre: escenario «Coherencia con el resto de las pantallas» anotado con su evidencia.
+- [x] 9.1 Añadir `frontend/e2e/home.spec.ts` con un recorrido por rol (Vendedor, Encargado del taller y Administrador): abrir el inicio, activar un pendiente y comprobar que la lista muestra el mismo número; cobrar una venta de contado y verificar que el indicador baja al volver. Cierre: `npm run test:e2e -- home.spec.ts` en verde.
+- [x] 9.2 Añadir al recorrido la comprobación de accesibilidad con `e2e/accessibility.ts` y la revisión a 360, 768 y 1280 px sin desplazamiento horizontal de la página. Cierre: sin infracciones nuevas.
+- [x] 9.3 Comparar la página con una lista existente y con el catálogo visual: paneles, cabeceras, tipografía, acciones, tonos de ámbito y ausencia de sombras y de valores visuales propios. Registrar capturas como evidencia visual. Cierre: escenario «Coherencia con el resto de las pantallas» anotado con su evidencia.
 
 Dependencias: grupo 8. Evidencia: salida de Playwright y capturas referenciadas en la cobertura.
 

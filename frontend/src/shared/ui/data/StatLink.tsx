@@ -103,7 +103,7 @@ export function StatGrid({
     <div className="overflow-hidden">
       <ul
         aria-label={label}
-        className={`-mr-px -mb-px grid grid-cols-1 sm:grid-cols-2 ${columns === 4 ? 'xl:grid-cols-4' : ''} ${stackOnWide ? 'xl:grid-cols-1' : ''}`}
+        className={`-mr-px -mb-px grid grid-cols-2 ${columns === 4 ? 'xl:grid-cols-4' : ''} ${stackOnWide ? 'xl:grid-cols-1' : ''}`}
       >
         {items.filter(Boolean).map((child, index) => (
           <li className="border-r border-b border-line" key={index}>

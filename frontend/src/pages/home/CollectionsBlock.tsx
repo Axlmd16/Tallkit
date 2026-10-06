@@ -39,6 +39,7 @@ export function CollectionsBlock({
             {data.items.map((item) => (
               <MiniBarChart
                 days={item.days}
+                hideTitle
                 key={item.scope}
                 scope={scopeOf(item.scope)}
                 title={TITLE}

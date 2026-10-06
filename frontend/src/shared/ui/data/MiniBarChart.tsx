@@ -15,6 +15,8 @@ export interface MiniBarChartProps {
   days: readonly MiniBarChartDay[]
   /** Total de la serie; `null` cuando no hay dato. */
   total: string | null
+  /** Oculta el título a la vista cuando el panel que lo contiene ya lo muestra. */
+  hideTitle?: boolean | undefined
 }
 
 const scopeNames: Record<ScopeLabelScope, string> = {
@@ -52,7 +54,13 @@ function describeDay(date: Date): string {
  * representa valores ya calculados por el servidor; la altura de cada barra es una proporción
  * visual y cada valor se lee también como texto.
  */
-export function MiniBarChart({ title, scope, days, total }: MiniBarChartProps) {
+export function MiniBarChart({
+  title,
+  scope,
+  days,
+  total,
+  hideTitle = false,
+}: MiniBarChartProps) {
   const heights = days.map((day) => Number(day.amount))
   const highest = Math.max(0, ...heights)
 
@@ -65,7 +73,9 @@ export function MiniBarChart({ title, scope, days, total }: MiniBarChartProps) {
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <div className="flex flex-col gap-1">
           <ScopeLabel scope={scope} />
-          <span className="text-[13px] font-medium text-ink">{title}</span>
+          {!hideTitle && (
+            <span className="text-[13px] font-medium text-ink">{title}</span>
+          )}
         </div>
         {total !== null && (
           <Money
