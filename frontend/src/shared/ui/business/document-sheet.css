@@ -181,15 +181,45 @@
 }
 
 @media print {
+  /* Solo la hoja: sin riel, barra superior (ruta y ámbito fiscal) ni avisos del marco. */
   .no-print,
   nav,
+  header,
   header[role='banner'],
-  aside {
+  aside,
+  .app-topbar,
+  [aria-label='Notificaciones'] {
     display: none !important;
   }
+  /* La hoja conserva su propia cabecera. */
+  .document-sheet header {
+    display: flex !important;
+  }
+  /* El marco deja de reservar la columna del riel y sus márgenes: la hoja ocupa el ancho
+     útil de la página, con los márgenes de página que declara `DocumentSheet`. */
+  .app-shell {
+    display: block !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  .app-main {
+    padding: 0 !important;
+  }
   .document-sheet {
+    width: 100%;
+    max-width: none;
+    margin: 0;
     border: 0;
+    border-radius: 0;
     padding: 0;
+  }
+  .document-sheet thead {
+    display: table-header-group;
+  }
+  .document-sheet tr,
+  .sheet-foot {
+    break-inside: avoid;
   }
   body {
     background: #fff !important;

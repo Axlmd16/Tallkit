@@ -464,6 +464,14 @@ test.describe('Proformas comerciales', () => {
     })
     await page.emulateMedia({ media: 'print' })
     await expect(page.locator('.app-rail')).toBeHidden()
+    // Sin la barra del marco («RUC comercial») y con la hoja alineada al ancho de la página.
+    await expect(page.getByTestId('app-topbar')).toBeHidden()
+    const box = await sheet.evaluate((element) => {
+      const rect = element.getBoundingClientRect()
+      return { left: rect.left, right: window.innerWidth - rect.right }
+    })
+    expect(box.left).toBeLessThan(2)
+    expect(Math.abs(box.left - box.right)).toBeLessThan(2)
     await expect(
       page.getByRole('button', { name: 'Imprimir o guardar PDF' }),
     ).toBeHidden()
@@ -482,7 +490,8 @@ test.describe('Proformas comerciales', () => {
     })
     expect(clipped).toBe(0)
     const pdf = await page.pdf({
-      format: 'A4',
+      // Respeta el tamaño y los márgenes de @page, como la impresión real del navegador.
+      preferCSSPageSize: true,
       path: `${EVIDENCE}/proforma-a4-60-lineas.pdf`,
     })
     const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? [])

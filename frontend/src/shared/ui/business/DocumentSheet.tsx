@@ -60,6 +60,18 @@ export function DocumentSheet({
       onBrandReady?.(true)
   }, [issuer.logoUrl, failedUrl, onBrandReady])
 
+  useEffect(() => {
+    // Márgenes de la hoja impresa. Se declaran mientras la hoja está montada y al final del
+    // documento, porque las etiquetas de productos imprimen con una regla @page sin márgenes
+    // y ambas reglas son globales: gana la última.
+    const style = document.createElement('style')
+    style.media = 'print'
+    style.dataset.documentSheetPage = ''
+    style.textContent = '@page { size: A4; margin: 14mm; }'
+    document.head.append(style)
+    return () => style.remove()
+  }, [])
+
   return (
     <article aria-busy={busy} aria-label={label} className="document-sheet">
       <header className="sheet-head">

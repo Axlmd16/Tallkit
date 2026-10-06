@@ -143,3 +143,27 @@ it('acota el logotipo sin deformarlo', () => {
   expect(css).toMatch(/\.sheet-logo\s*{[^}]*max-height:/)
   expect(css).toMatch(/\.sheet-logo\s*{[^}]*max-width:/)
 })
+
+it('declara los márgenes de la página impresa solo mientras la hoja está montada', () => {
+  const selector = 'style[data-document-sheet-page]'
+  expect(document.head.querySelector(selector)).toBeNull()
+  const view = render(
+    <DocumentSheet
+      issuer={{ name: 'Emisor', logoUrl: null }}
+      label="Proforma"
+      meta={[]}
+      notice="Aviso"
+      number="COM-PRO-000001"
+      state="Vigente"
+      title="COTIZACIÓN"
+    >
+      <p>Contenido</p>
+    </DocumentSheet>,
+  )
+  const style = document.head.querySelector<HTMLStyleElement>(selector)
+  expect(style?.media).toBe('print')
+  expect(style?.textContent).toContain('margin: 14mm')
+  expect(document.head.lastElementChild).toBe(style)
+  view.unmount()
+  expect(document.head.querySelector(selector)).toBeNull()
+})
