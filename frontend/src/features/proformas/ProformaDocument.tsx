@@ -1,5 +1,3 @@
-import { Warning } from '@phosphor-icons/react'
-
 import '@/features/sales/sales.css'
 import { DocumentSheet } from '@/shared/ui/business/DocumentSheet'
 
@@ -12,9 +10,11 @@ import {
 } from './types'
 
 /**
- * Hoja A4 de la cotización emitida. Usa exclusivamente los datos y el logo conservados al
- * emitir: nunca consulta la marca vigente de la configuración. No muestra condición de
- * cobro, costos ni identidad artesanal, y no calcula importes.
+ * Hoja A4 de la cotización que se entrega al cliente. Usa exclusivamente los datos y el logo
+ * conservados al emitir: nunca consulta la marca vigente de la configuración. Muestra solo lo
+ * que el cliente necesita: productos con su código y el del fabricante, cantidades, precios y
+ * totales. No muestra disponibilidad, avisos internos, condición de cobro ni costos, y no
+ * calcula importes.
  */
 export function ProformaDocument({
   id,
@@ -28,7 +28,6 @@ export function ProformaDocument({
 }) {
   const issuer = data.issuer
   const expired = data.state === 'EXPIRED'
-  const insufficient = data.lines.some((line) => !line.availability_sufficient)
   return (
     <DocumentSheet
       issuer={{
@@ -64,7 +63,7 @@ export function ProformaDocument({
             .join(' · '),
         },
       ]}
-      notice={data.notice}
+      notice={null}
       number={data.number}
       onBrandReady={onBrandReady}
       state={proformaStateLabels[data.state]}
@@ -75,9 +74,9 @@ export function ProformaDocument({
           <thead>
             <tr>
               <th>Código</th>
+              <th>Cód. fabricante</th>
               <th>Descripción</th>
               <th className="amount">Cantidad</th>
-              <th className="amount">Disponible al emitir</th>
               <th className="amount">Precio</th>
               <th className="amount">Total</th>
             </tr>
@@ -88,24 +87,12 @@ export function ProformaDocument({
                 <td className="font-mono" data-label="Código">
                   {line.product_code ?? '—'}
                 </td>
+                <td className="font-mono" data-label="Cód. fabricante">
+                  {line.manufacturer_code || '—'}
+                </td>
                 <td data-label="Descripción">{line.product_name ?? '—'}</td>
                 <td className="amount" data-label="Cantidad">
                   {line.quantity}
-                </td>
-                <td className="amount" data-label="Disponible al emitir">
-                  {line.availability_at_issue ?? '—'}
-                  {!line.availability_sufficient && (
-                    <>
-                      {' '}
-                      <Warning
-                        aria-hidden="true"
-                        className="inline"
-                        size={12}
-                        weight="fill"
-                      />
-                      <span className="sheet-flag"> insuficiente</span>
-                    </>
-                  )}
                 </td>
                 <td className="amount" data-label="Precio">
                   {usd(line.unit_price)}
@@ -133,12 +120,6 @@ export function ProformaDocument({
             <span>{usd(data.grand_total)}</span>
           </p>
         </div>
-        {insufficient && (
-          <p className="mt-2 text-sm font-semibold">
-            Hay productos sin disponibilidad suficiente al emitir. Esta
-            cotización no reserva unidades.
-          </p>
-        )}
         {data.state !== 'VALID' && (
           <p className="mt-2 text-sm font-semibold text-warning">
             Proforma {proformaStateLabels[data.state].toLowerCase()}. Se

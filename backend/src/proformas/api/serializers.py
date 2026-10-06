@@ -96,6 +96,9 @@ class ProformaLineSerializer(_Base):
     position = serializers.IntegerField()
     product_id = serializers.IntegerField(required=False)
     product_code = serializers.CharField(allow_null=True)
+    manufacturer_code = serializers.CharField(
+        allow_null=True, allow_blank=True, help_text="Código del fabricante; vacío si no tiene."
+    )
     product_name = serializers.CharField(allow_null=True)
     product_active = serializers.BooleanField(required=False)
     is_kit = serializers.BooleanField()

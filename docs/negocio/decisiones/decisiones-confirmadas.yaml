@@ -247,7 +247,9 @@ context: |
     cambios originan una nueva proforma vinculada. D4: se puede cotizar con disponibilidad
     insuficiente, que se informa sin bloquear; confirmar la venta sigue exigiendo stock. D5:
     vista A4 para imprimir o guardar como PDF desde el navegador, con los datos y el logotipo
-    del emisor conservados al emitir. D6: una proforma vigente se convierte una sola vez en una
+    del emisor conservados al emitir. El impreso se entrega al cliente: muestra código del
+    producto y código del fabricante y omite disponibilidad, avisos internos, leyendas y la
+    mención del sistema (ajuste aprobado 2026-10-06). D6: una proforma vigente se convierte una sola vez en una
     venta en borrador, cuyos productos y cantidades pueden ajustarse sin alterar la oferta ni
     habilitar otra conversión. Se numera con la serie COM-PRO de DP-006; el borrador no consume
     número y anular no lo libera. No es una factura electrónica ni garantiza precios.

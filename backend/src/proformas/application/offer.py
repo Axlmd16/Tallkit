@@ -254,6 +254,7 @@ def project_lines(view: OfferView) -> list[dict[str, Any]]:
                 "position": source.position,
                 "product_id": source.product_id,
                 "product_code": ref.code if ref else None,
+                "manufacturer_code": ref.manufacturer_code if ref else None,
                 "product_name": ref.name if ref else None,
                 "product_active": bool(ref and ref.is_active),
                 "is_kit": bool(ref and ref.is_kit),

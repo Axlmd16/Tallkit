@@ -29,6 +29,7 @@ class SaleProductReference:
     is_kit: bool
     sale_price: Decimal
     tax_definition_id: int
+    manufacturer_code: str = ""
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,7 @@ def _reference(product: Product) -> SaleProductReference:
         is_kit=product.is_kit,
         sale_price=product.sale_price,
         tax_definition_id=product.tax_definition_id,
+        manufacturer_code=product.manufacturer_code,
     )
 
 

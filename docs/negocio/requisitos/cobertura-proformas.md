@@ -127,6 +127,7 @@ No se ejecutó la suite completa (`make check`, `make test`) ni el resto de Play
 
 - La oferta vencida en E2E se presenta interceptando la respuesta, porque la prueba no controla el día del servidor; la regla de fechas y sus rechazos se verifican en backend con reloj controlado.
 - La impresión se verificó generando un PDF A4 de varias páginas y con aserciones de visibilidad; la aceptación visual humana del impreso sigue pendiente. El marco de la aplicación deja visible la franja «RUC comercial» al imprimir, igual que en los comprobantes de venta.
+- A pedido del usuario (2026-10-06) el impreso dejó de mostrar disponibilidad, avisos y leyendas y añadió el código del fabricante; las specs del cambio y DP-033 recogen el ajuste. Evidencia: `frontend/src/features/proformas/ProformaDocument.test.tsx` y `backend/tests/proformas/test_lifecycle_queries.py::test_document_shows_the_manufacturer_code_frozen_at_issue`. El E2E de impresión se actualizó, pero no se volvió a ejecutar tras este ajuste.
 - La evidencia visual (PDF y capturas) se guardó fuera del repositorio, en la carpeta temporal de la sesión; no se versiona.
 - El fallo de frontera del módulo fiscal es anterior y ajeno a este cambio; no se corrigió aquí.
 

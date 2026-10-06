@@ -248,3 +248,43 @@ def test_draft_has_no_document_or_invented_number(
     with pytest.raises(ProformaApplicationError) as error:
         queries.get_proforma(actor=seller, proforma_id=999999)
     assert error.value.code == "not_found"
+
+
+def test_document_shows_the_manufacturer_code_frozen_at_issue(
+    new_draft: Any, issue: Any, seller: Any, make_product: Any, at: Any
+) -> None:
+    at(2026, 10, 6)
+    product = make_product(manufacturer_code="FAB-778")
+    plain = make_product()
+    draft = new_draft((product, 1), (plain, 1))
+    assert [line["manufacturer_code"] for line in draft["lines"]] == ["FAB-778", ""]
+    issued = issue(draft)
+    type(product).objects.filter(pk=product.pk).update(manufacturer_code="OTRO-1")
+    document = queries.document(actor=seller, proforma_id=issued["id"])
+    assert [line["manufacturer_code"] for line in document["lines"]] == ["FAB-778", ""]
+    detail = queries.get_proforma(actor=seller, proforma_id=issued["id"])
+    assert detail["lines"][0]["manufacturer_code"] == "FAB-778"
+
+
+def test_offer_issued_before_the_code_was_frozen_falls_back_to_the_catalog(
+    new_draft: Any,
+    issue: Any,
+    seller: Any,
+    product: Any,
+    at: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Las ofertas emitidas antes de conservar el código lo toman del catálogo vigente."""
+    original = issuing._product_snapshot
+
+    def without_code(ref: Any, *, sufficient: bool) -> dict[str, Any]:
+        snapshot = original(ref, sufficient=sufficient)
+        del snapshot["manufacturer_code"]
+        return snapshot
+
+    monkeypatch.setattr(issuing, "_product_snapshot", without_code)
+    at(2026, 10, 6)
+    issued = issue(new_draft((product, 1)))
+    type(product).objects.filter(pk=product.pk).update(manufacturer_code="CAT-9")
+    document = queries.document(actor=seller, proforma_id=issued["id"])
+    assert document["lines"][0]["manufacturer_code"] == "CAT-9"

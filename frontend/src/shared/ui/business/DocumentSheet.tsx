@@ -41,7 +41,8 @@ export function DocumentSheet({
   issuer: DocumentSheetIssuer
   label: string
   meta: DocumentSheetMeta[]
-  notice: string
+  /** Aviso al pie; `null` lo omite, como en la cotización que se entrega al cliente. */
+  notice: string | null
   number: string | null
   onBrandReady?: ((ready: boolean) => void) | undefined
   state: string
@@ -61,13 +62,13 @@ export function DocumentSheet({
   }, [issuer.logoUrl, failedUrl, onBrandReady])
 
   useEffect(() => {
-    // Márgenes de la hoja impresa. Se declaran mientras la hoja está montada y al final del
-    // documento, porque las etiquetas de productos imprimen con una regla @page sin márgenes
-    // y ambas reglas son globales: gana la última.
+    // Página A4 sin márgenes propios: el margen del impreso lo aporta la hoja con su relleno,
+    // de modo que el resultado no depende del navegador. La regla coincide con la de las
+    // etiquetas de productos (ambas son globales) y solo vive mientras la hoja está montada.
     const style = document.createElement('style')
     style.media = 'print'
     style.dataset.documentSheetPage = ''
-    style.textContent = '@page { size: A4; margin: 14mm; }'
+    style.textContent = '@page { size: A4; margin: 0; }'
     document.head.append(style)
     return () => style.remove()
   }, [])
@@ -111,8 +112,12 @@ export function DocumentSheet({
         ))}
       </dl>
       {children}
-      <p className="sheet-notice">{notice}</p>
-      <p className="sheet-credit">Generado con Tallkit</p>
+      {notice !== null && (
+        <>
+          <p className="sheet-notice">{notice}</p>
+          <p className="sheet-credit">Generado con Tallkit</p>
+        </>
+      )}
     </article>
   )
 }

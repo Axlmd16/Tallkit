@@ -144,7 +144,7 @@ it('acota el logotipo sin deformarlo', () => {
   expect(css).toMatch(/\.sheet-logo\s*{[^}]*max-width:/)
 })
 
-it('declara los márgenes de la página impresa solo mientras la hoja está montada', () => {
+it('declara la página A4 del impreso solo mientras la hoja está montada', () => {
   const selector = 'style[data-document-sheet-page]'
   expect(document.head.querySelector(selector)).toBeNull()
   const view = render(
@@ -162,7 +162,7 @@ it('declara los márgenes de la página impresa solo mientras la hoja está mont
   )
   const style = document.head.querySelector<HTMLStyleElement>(selector)
   expect(style?.media).toBe('print')
-  expect(style?.textContent).toContain('margin: 14mm')
+  expect(style?.textContent).toContain('size: A4')
   expect(document.head.lastElementChild).toBe(style)
   view.unmount()
   expect(document.head.querySelector(selector)).toBeNull()

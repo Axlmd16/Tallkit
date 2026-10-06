@@ -59,6 +59,8 @@ export interface ProformaLine {
   position: number
   product_id?: number
   product_code: string | null
+  /** Código del fabricante; vacío si el producto no lo tiene. */
+  manufacturer_code?: string | null
   product_name: string | null
   product_active?: boolean
   is_kit: boolean

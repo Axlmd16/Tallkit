@@ -190,7 +190,10 @@ test.describe('Proformas comerciales', () => {
     const sheet = page.getByRole('article', { name: 'Proforma' })
     await expect(sheet.getByText('COTIZACIÓN', { exact: true })).toBeVisible()
     await expect(sheet.getByText(number)).toBeVisible()
-    await expect(sheet.getByText(/No reserva unidades/)).toBeVisible()
+    await expect(
+      sheet.getByRole('columnheader', { name: 'Cód. fabricante' }),
+    ).toBeVisible()
+    await expect(sheet).not.toContainText(/Disponible|Generado con Tallkit|SRI/)
     await expect(
       page.getByRole('button', { name: 'Imprimir o guardar PDF' }),
     ).toBeEnabled()
@@ -466,17 +469,24 @@ test.describe('Proformas comerciales', () => {
     await expect(page.locator('.app-rail')).toBeHidden()
     // Sin la barra del marco («RUC comercial») y con la hoja alineada al ancho de la página.
     await expect(page.getByTestId('app-topbar')).toBeHidden()
+    // La hoja ocupa el ancho de la página y su contenido queda centrado con margen propio.
     const box = await sheet.evaluate((element) => {
       const rect = element.getBoundingClientRect()
-      return { left: rect.left, right: window.innerWidth - rect.right }
+      const inner = element
+        .querySelector('.sheet-head')!
+        .getBoundingClientRect()
+      return {
+        left: rect.left,
+        right: window.innerWidth - rect.right,
+        marginLeft: inner.left - rect.left,
+        marginRight: rect.right - inner.right,
+      }
     })
     expect(box.left).toBeLessThan(2)
-    expect(Math.abs(box.left - box.right)).toBeLessThan(2)
-    await expect(
-      page.getByRole('button', { name: 'Imprimir o guardar PDF' }),
-    ).toBeHidden()
+    expect(box.right).toBeLessThan(2)
+    expect(box.marginLeft).toBeGreaterThan(40)
+    expect(Math.abs(box.marginLeft - box.marginRight)).toBeLessThan(2)
     await expect(sheet.getByText('USD 1200.00')).toBeVisible()
-    await expect(sheet.getByText(/No es una factura electrónica/)).toBeVisible()
     const clipped = await sheet.evaluate((element) => {
       const hidden = ['hidden', 'clip', 'scroll', 'auto']
       const nodes = [element, ...element.querySelectorAll('*')]

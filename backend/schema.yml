@@ -16883,6 +16883,10 @@ components:
         product_code:
           type: string
           nullable: true
+        manufacturer_code:
+          type: string
+          nullable: true
+          description: Código del fabricante; vacío si no tiene.
         product_name:
           type: string
           nullable: true
@@ -16923,6 +16927,7 @@ components:
       - availability_sufficient
       - base_amount
       - is_kit
+      - manufacturer_code
       - position
       - product_code
       - product_name

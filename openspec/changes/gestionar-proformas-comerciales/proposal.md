@@ -69,4 +69,6 @@ Proformas de servicios o presupuestos de mantenimiento; mezcla de RUC; precios n
 
 Estado: propuesta aprobada por el usuario el 2026-10-06 mediante «gestionar-proformas-comerciales, haz commit y continua», después de su presentación para revisión. La aprobación comprende D1…D6 y las recomendaciones de alcance. Se autoriza registrar esta propuesta en `master` y continuar con specs; no autoriza implementación ni adelantar design o tasks.
 
+Ajuste posterior (2026-10-06, durante la aplicación, a pedido del usuario): el impreso es el documento que recibe el cliente. Muestra el código del producto y el código del fabricante, y no muestra disponibilidad, avisos de insuficiencia, la leyenda de cotización interna ni la mención del sistema. Esto concreta D4 y D5 y el punto de alcance sobre el texto del impreso; la disponibilidad sigue visible en las pantallas internas.
+
 Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

@@ -147,7 +147,7 @@ Emitir SHALL asignar número comercial conforme a DP-006, inicialmente `COM-PRO-
 
 ### Requirement: Disponibilidad informativa sin reserva
 
-SHALL permitirse cotizar productos activos aun con disponibilidad insuficiente o cero. La captura SHALL mostrar disponibilidad actual, calculada como existencia menos reservas vigentes, y advertir la insuficiencia sin bloquear la oferta. La emisión SHALL conservar esa información y su momento de referencia para la impresión; la consulta actual SHALL distinguirse de la histórica. El documento SHALL aclarar que no reserva unidades y que la venta revalida disponibilidad y valores. Trazabilidad: proposal D4/D5; DP-012; RN-PRO-002/004; RF-PRO-004/010.
+SHALL permitirse cotizar productos activos aun con disponibilidad insuficiente o cero. La captura SHALL mostrar disponibilidad actual, calculada como existencia menos reservas vigentes, y advertir la insuficiencia sin bloquear la oferta. La emisión SHALL conservar esa información y su momento de referencia para la consulta interna; la consulta actual SHALL distinguirse de la histórica. La disponibilidad es información interna del local: el documento que se entrega al cliente SHALL NOT mostrarla (ajuste aprobado el 2026-10-06). Trazabilidad: proposal D4/D5; DP-012; RN-PRO-002/004; RF-PRO-004/010.
 
 #### Scenario: Ofertar por encima de disponibilidad
 - **DADO** existencia 5 y reservas vigentes de 4 unidades de un producto
@@ -157,7 +157,7 @@ SHALL permitirse cotizar productos activos aun con disponibilidad insuficiente o
 #### Scenario: Stock cambia después de emitir
 - **DADO** una proforma emitida cuando había disponibilidad 1 y ahora hay 6
 - **CUANDO** se consulta o imprime
-- **ENTONCES** SHALL conservarse la referencia histórica 1 en el documento y cualquier consulta actual SHALL identificarse separadamente como 6.
+- **ENTONCES** SHALL conservarse la referencia histórica 1 en la consulta interna de la oferta, cualquier consulta actual SHALL identificarse separadamente como 6 y el impreso para el cliente SHALL NOT mostrar ninguna de las dos.
 
 ### Requirement: Nueva oferta vinculada con valores actuales
 
@@ -238,7 +238,7 @@ Crear, copiar, guardar, emitir, anular y convertir SHALL reconocer el intento l�
 
 ### Requirement: Consulta e impresión de cotizaciones
 
-SHALL ofrecerse listado con número cuando exista, cliente, emisión, vigencia, total y estado, búsqueda por número o cliente, filtros de estado y navegación a detalle, ofertas relacionadas y venta generada según permisos. El detalle SHALL mostrar acciones acordes al estado. La proforma emitida SHALL disponer de vista A4 imprimible y guardable como PDF mediante el navegador, con datos y logo comercial cuando exista, cliente, número, vigencia, líneas, cantidades, precios, base, impuestos y total históricos, disponibilidad informativa y avisos de insuficiencia. SHALL identificarse como cotización interna sin reserva ni garantía de precio al comprar y no como factura electrónica. Un borrador SHALL distinguirse de una oferta emitida y no inventar número; las ofertas vencidas, convertidas o anuladas SHALL mostrar su estado. SHALL NOT imprimir costos ni usar la identidad artesanal. Trazabilidad: proposal D5; DP-018; RF-PRO-010; UI-050…052; RNF-USA-006/010/012.
+SHALL ofrecerse listado con número cuando exista, cliente, emisión, vigencia, total y estado, búsqueda por número o cliente, filtros de estado y navegación a detalle, ofertas relacionadas y venta generada según permisos. El detalle SHALL mostrar acciones acordes al estado. La proforma emitida SHALL disponer de vista A4 imprimible y guardable como PDF mediante el navegador, con datos y logo comercial cuando exista, cliente, número, vigencia, líneas con el código del producto y el **código del fabricante**, cantidades, precios, base, impuestos y total históricos. Es el documento que se entrega al cliente: SHALL titularse «Cotización», SHALL NOT presentarse como factura y SHALL NOT incluir disponibilidad, avisos de insuficiencia, leyendas internas ni la mención del sistema (ajuste aprobado por el usuario el 2026-10-06 durante la aplicación, que sustituye la leyenda de cotización interna y la disponibilidad impresa de la versión anterior de este requisito). Un borrador SHALL distinguirse de una oferta emitida y no inventar número; las ofertas vencidas, convertidas o anuladas SHALL mostrar su estado. SHALL NOT imprimir costos ni usar la identidad artesanal. Trazabilidad: proposal D5; DP-018; RF-PRO-010; UI-050…052; RNF-USA-006/010/012.
 
 #### Scenario: Buscar y navegar
 - **DADO** varias ofertas de clientes diferentes, incluida una convertida
@@ -248,7 +248,7 @@ SHALL ofrecerse listado con número cuando exista, cliente, emisión, vigencia, 
 #### Scenario: Impresión comercial completa
 - **DADO** una oferta emitida con logo comercial y una línea sin disponibilidad suficiente
 - **CUANDO** el usuario abre la impresión A4 o guarda como PDF desde el navegador
-- **ENTONCES** SHALL obtener los datos históricos, logo comercial, vigencia, importes y aviso de insuficiencia legibles, sin costos, contenido recortado ni identificación de factura electrónica.
+- **ENTONCES** SHALL obtener los datos históricos, logo comercial, vigencia, códigos de producto y de fabricante e importes legibles, sin disponibilidad, avisos internos, costos, contenido recortado ni identificación de factura.
 
 #### Scenario: Emisor sin logo
 - **DADO** una oferta emitida sin logo comercial

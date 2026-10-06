@@ -49,6 +49,7 @@ const data = (overrides: Partial<DocumentData> = {}): DocumentData => ({
     {
       position: 1,
       product_code: 'FIL-1',
+      manufacturer_code: 'FAB-778',
       product_name: 'Filtro',
       is_kit: false,
       quantity: '3',
@@ -89,21 +90,50 @@ describe('ProformaDocument', () => {
     expect(within(sheet).getByText('USD 30.00')).toBeInTheDocument()
     expect(within(sheet).getByText('USD 4.50')).toBeInTheDocument()
     expect(within(sheet).getAllByText('USD 34.50').length).toBeGreaterThan(0)
-    expect(within(sheet).getByText(/No reserva unidades/)).toBeInTheDocument()
+  })
+
+  it('muestra el código del producto y el del fabricante', () => {
+    render(<ProformaDocument data={data()} id={7} />)
+    const table = screen.getByRole('table')
     expect(
-      within(sheet).getByText(/No es una factura electrónica/),
+      within(table)
+        .getAllByRole('columnheader')
+        .map((cell) => cell.textContent),
+    ).toEqual([
+      'Código',
+      'Cód. fabricante',
+      'Descripción',
+      'Cantidad',
+      'Precio',
+      'Total',
+    ])
+    const row = screen.getByRole('row', { name: /FIL-1/ })
+    expect(within(row).getByText('FAB-778')).toHaveClass('font-mono')
+  })
+
+  it('un producto sin código de fabricante muestra un guion', () => {
+    const base = data()
+    render(
+      <ProformaDocument
+        data={{
+          ...base,
+          lines: [{ ...base.lines[0]!, manufacturer_code: '' }],
+        }}
+        id={7}
+      />,
+    )
+    expect(
+      within(screen.getByRole('row', { name: /FIL-1/ })).getByText('—'),
     ).toBeInTheDocument()
   })
 
-  it('conserva la disponibilidad de la emisión y avisa la insuficiencia con texto', () => {
+  it('es la hoja para el cliente: sin disponibilidad, avisos internos ni pie de sistema', () => {
     render(<ProformaDocument data={data()} id={7} />)
-    const row = screen.getByRole('row', { name: /FIL-1/ })
-    expect(within(row).getByText(/insuficiente/)).toBeInTheDocument()
-    expect(row).toHaveTextContent('1')
-    expect(row).not.toHaveTextContent('6')
-    expect(
-      screen.getByText(/sin disponibilidad suficiente al emitir/),
-    ).toBeInTheDocument()
+    const text = screen.getByRole('article').textContent ?? ''
+    expect(text).not.toMatch(/disponib|insuficiente|reserva/i)
+    expect(text).not.toMatch(/Cotización interna|factura electrónica|SRI/i)
+    expect(text).not.toMatch(/Generado con Tallkit/i)
+    expect(documentSource).not.toMatch(/availability|data\.notice/)
   })
 
   it('usa el logo histórico de la oferta y nunca la marca vigente', () => {

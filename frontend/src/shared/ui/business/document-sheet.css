@@ -196,7 +196,7 @@
     display: flex !important;
   }
   /* El marco deja de reservar la columna del riel y sus márgenes: la hoja ocupa el ancho
-     útil de la página, con los márgenes de página que declara `DocumentSheet`. */
+     útil de la página, y la hoja aporta su propio margen. */
   .app-shell {
     display: block !important;
     min-height: 0 !important;
@@ -206,13 +206,29 @@
   .app-main {
     padding: 0 !important;
   }
+  /* El margen del impreso pertenece a la hoja, no a la página: así no depende de que el
+     navegador aplique @page ni de la opción de márgenes del diálogo de impresión. Se repite
+     en cada página cuando el documento ocupa varias. */
+  html,
+  body,
+  #root {
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
   .document-sheet {
+    box-sizing: border-box;
     width: 100%;
     max-width: none;
     margin: 0;
     border: 0;
     border-radius: 0;
-    padding: 0;
+    padding: 12mm 14mm;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
   .document-sheet thead {
     display: table-header-group;
