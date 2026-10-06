@@ -212,6 +212,11 @@ class ProformaListCreateView(_ProformaView):
             _SEARCH,
             OpenApiParameter("state", OpenApiTypes.STR, enum=sz.STATES),
             OpenApiParameter("customer_id", OpenApiTypes.INT),
+            OpenApiParameter(
+                "expires_within_days",
+                OpenApiTypes.INT,
+                description="Solo vigentes que vencen en esos días, contando hoy.",
+            ),
             *_PAGE_PARAMS,
         ],
         responses={200: sz.ProformaPageSerializer, 400: ProblemSerializer, 403: ProblemSerializer},
@@ -226,6 +231,7 @@ class ProformaListCreateView(_ProformaView):
                     search=request.query_params.get("search", ""),
                     state=request.query_params.get("state"),
                     customer_id=_int(request, "customer_id", minimum=1),
+                    expires_within_days=_int(request, "expires_within_days"),
                     request_id=request_id_from(request),
                     **_page_args(request),
                 )

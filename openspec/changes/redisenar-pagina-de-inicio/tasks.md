@@ -40,10 +40,10 @@ Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/workshop/ -k "ho
 
 Cubre diseño D4 y D7; escenarios de proformas por vencer, borradores, calificación artesanal y entidad que no registra retenciones.
 
-- [ ] 4.1 Probar y añadir a `list_proformas` (`backend/src/proformas/application/queries.py` y su vista) el filtro opcional `expires_within_days`, calculado con `clock.today()`. Cierre: valores negativos o no numéricos rechazados; sin el filtro, resultado idéntico.
-- [ ] 4.2 Crear `backend/src/proformas/application/home_summary.py` con proformas por vencer (hoy o mañana) y borradores, compartiendo los filtros con la lista. Pruebas con «Proformas que vencen hoy o mañana». Cierre: coincidencia con la lista probada.
-- [ ] 4.3 Añadir en `backend/src/workshop_configuration/` una función pública de lectura del aviso de la calificación artesanal que devuelva fecha de fin, días restantes y si está vencida, con la constante existente de 60 días y sin cambiar `qualification_days_left`. Pruebas a 45, 60 y 61 días, el día del vencimiento y ya vencida. Cierre: la advertencia de la configuración conserva su comportamiento y sus pruebas.
-- [ ] 4.4 Exponer como lectura pública si cada entidad registra retenciones, reutilizando `withholding_settings`. Cierre: prueba con entidad activada y desactivada.
+- [x] 4.1 Probar y añadir a `list_proformas` (`backend/src/proformas/application/queries.py` y su vista) el filtro opcional `expires_within_days`, calculado con `clock.today()`. Cierre: valores negativos o no numéricos rechazados; sin el filtro, resultado idéntico.
+- [x] 4.2 Crear `backend/src/proformas/application/home_summary.py` con proformas por vencer (hoy o mañana) y borradores, compartiendo los filtros con la lista. Pruebas con «Proformas que vencen hoy o mañana». Cierre: coincidencia con la lista probada.
+- [x] 4.3 Añadir en `backend/src/workshop_configuration/` una función pública de lectura del aviso de la calificación artesanal que devuelva fecha de fin, días restantes y si está vencida, con la constante existente de 60 días y sin cambiar `qualification_days_left`. Pruebas a 45, 60 y 61 días, el día del vencimiento y ya vencida. Cierre: la advertencia de la configuración conserva su comportamiento y sus pruebas.
+- [x] 4.4 Exponer como lectura pública si cada entidad registra retenciones, reutilizando `withholding_settings`. Cierre: prueba con entidad activada y desactivada.
 
 Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/proformas/ tests/workshop_configuration/ -k "home_summary or expires or qualification or withholding_settings"`.
 

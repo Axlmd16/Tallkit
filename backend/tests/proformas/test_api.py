@@ -289,6 +289,8 @@ def test_effective_state_and_conflicts_are_distinguishable(
     assert voided.json()["code"] == "proforma_converted"
     assert api.get(f"{P}999999/").status_code == 404
     assert api.get(f"{P}?state=VENCIDA").status_code == 400
+    assert api.get(f"{P}?expires_within_days=1").status_code == 200
+    assert api.get(f"{P}?expires_within_days=-1").status_code == 400
     assert api.get(f"{P}?page=0").status_code == 400
     assert api.post(P, [1, 2], format="json").status_code == 400
     assert Sale.objects.count() == 1

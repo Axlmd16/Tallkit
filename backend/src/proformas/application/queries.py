@@ -5,7 +5,7 @@ se escribe al consultar. Una oferta emitida se proyecta desde sus instantáneas;
 desde las referencias vigentes.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Any
 from uuid import UUID
 
@@ -260,12 +260,22 @@ def filter_by_effective_state(
     raise field_error("validation_error", "state", "Estado de proforma no válido.")
 
 
+def expiring(queryset: QuerySet[Proforma], today: date, within_days: int) -> QuerySet[Proforma]:
+    """Ofertas vigentes cuya vigencia termina dentro de los días indicados, contando hoy."""
+    if within_days < 0:
+        raise field_error("validation_error", "expires_within_days", "Use cero o más días.")
+    return filter_by_effective_state(queryset, EffectiveState.VALID, today).filter(
+        valid_until__lte=today + timedelta(days=within_days)
+    )
+
+
 def list_proformas(
     *,
     actor: User,
     search: str = "",
     state: str | None = None,
     customer_id: int | None = None,
+    expires_within_days: int | None = None,
     page: int = 1,
     page_size: int = 20,
     request_id: UUID | None = None,
@@ -281,6 +291,8 @@ def list_proformas(
     queryset = Proforma.objects.select_related("customer", "origin")
     if state:
         queryset = filter_by_effective_state(queryset, state, today)
+    if expires_within_days is not None:
+        queryset = expiring(queryset, today, expires_within_days)
     if customer_id:
         queryset = queryset.filter(customer_id=customer_id)
     term = search.strip()
