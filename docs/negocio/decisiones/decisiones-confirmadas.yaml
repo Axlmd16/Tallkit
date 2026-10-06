@@ -238,7 +238,9 @@ context: |
     obligaciones tributarias ni acredita que el comprobante exista ante el SRI.
   - DP-033 (proformas comerciales, aprobada 2026-10-06 en la propuesta de
     gestionar-proformas-comerciales, D1…D6): la proforma es una oferta de productos del RUC
-    comercial para un cliente registrado, sin descuentos, reservas, deuda ni cobros. D1: usa
+    comercial, sin descuentos, reservas, deuda ni cobros. El cliente es opcional (ajuste
+    aprobado 2026-10-06): puede cotizarse a quien no está registrado, y la venta generada
+    exige un cliente registrado, que se elige al convertir si la oferta no lo tiene. D1: usa
     exclusivamente el precio final de catálogo, sin edición manual; conserva lo cotizado al
     emitir y muestra las diferencias de precio e impuesto al convertir. D2: sugiere 7 días de
     vigencia, ajustables antes de emitir; vale hasta el final del día indicado en

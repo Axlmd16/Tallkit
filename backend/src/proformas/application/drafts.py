@@ -71,7 +71,9 @@ def ensure(action: str, proforma: Proforma) -> None:
         raise transition_error(error) from None
 
 
-def _lock_customer(customer_id: int, *, require_active: bool) -> None:
+def _lock_customer(customer_id: int | None, *, require_active: bool) -> None:
+    if customer_id is None:
+        return
     try:
         lock_customer_reference(customer_id, require_active=require_active)
     except CustomerReferenceError as error:

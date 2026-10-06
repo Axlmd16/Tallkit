@@ -207,3 +207,13 @@ it('distingue vacío, sin coincidencias y error', () => {
     screen.getByText(/No fue posible consultar las proformas/),
   ).toBeInTheDocument()
 })
+
+it('una proforma sin cliente se lista como «Sin cliente»', () => {
+  setRows([row({ customer: null })])
+  renderPage()
+  expect(
+    within(screen.getByRole('table', { name: 'Proformas' })).getByText(
+      'Sin cliente',
+    ),
+  ).toBeInTheDocument()
+})

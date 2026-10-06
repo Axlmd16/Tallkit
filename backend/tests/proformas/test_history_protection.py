@@ -78,7 +78,9 @@ def test_issued_content_rejects_ordinary_bulk_and_direct_writes(
     )
     rejected(lambda: Proforma.objects.filter(pk=issued.pk).update(brand_asset=None))
     rejected(
-        lambda: Proforma.objects.filter(pk=issued.pk).update(customer_id=issued.customer_id + 999)
+        lambda: Proforma.objects.filter(pk=issued.pk).update(
+            customer_id=(issued.customer_id or 0) + 999
+        )
     )
     rejected(lambda: raw("UPDATE proformas_proforma SET tax_total = 0 WHERE id = %s", [issued.pk]))
     rejected(

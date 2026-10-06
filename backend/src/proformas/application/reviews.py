@@ -153,7 +153,7 @@ def preview_draft(
         )
     sources, issues = _lenient_lines(payload)
     customer_id = payload.get("customer_id")
-    if not is_id(customer_id):
+    if customer_id is not None and not is_id(customer_id):
         customer_id = None
         issues.append(Issue("validation_error", "customer_id", "Seleccione un cliente registrado."))
     explicit = None

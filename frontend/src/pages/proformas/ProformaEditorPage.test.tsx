@@ -332,19 +332,42 @@ it('revisar y emitir exige el borrador guardado', async () => {
   expect(screen.getByRole('dialog')).toHaveTextContent('Revisión de emisión')
 })
 
-it('una proforma nueva pide cliente antes de guardar', async () => {
+it('una proforma nueva se puede guardar sin cliente', async () => {
+  const user = userEvent.setup()
   mocks.proforma = undefined
+  mocks.create.mockResolvedValue(saved({ id: 31, customer: null }))
   renderEditor('/proformas/new')
-  expect(
-    await screen.findByText('Seleccione un cliente para guardar.'),
-  ).toBeInTheDocument()
-  expect(
-    screen.getByRole('button', { name: 'Guardar borrador' }),
-  ).toBeDisabled()
+  expect(screen.getByText('Cliente (opcional)')).toBeInTheDocument()
+  expect(screen.queryByText('Cambios sin guardar')).toBeNull()
   expect(
     screen.getByRole('button', { name: 'Revisar y emitir' }),
   ).toBeDisabled()
-  expect(screen.queryByText('Cambios sin guardar')).toBeNull()
+  const save = screen.getByRole('button', { name: 'Guardar borrador' })
+  expect(save).toBeEnabled()
+  await user.click(save)
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1))
+  expect(mocks.create.mock.calls[0]![0].data).toEqual({
+    customer_id: null,
+    valid_until: null,
+    lines: [],
+  })
+})
+
+it('un borrador sin cliente se carga y se emite sin pedirlo', async () => {
+  mocks.proforma = saved({ customer: null })
+  renderEditor()
+  expect(await screen.findByLabelText('Cantidad de la línea 1')).toHaveValue(
+    '2',
+  )
+  expect(screen.getByRole('combobox', { name: 'Cliente' })).toHaveValue('')
+  expect(screen.getByRole('button', { name: 'Revisar y emitir' })).toBeEnabled()
+  await waitFor(() =>
+    expect(mocks.draftPreview).toHaveBeenLastCalledWith({
+      customer_id: null,
+      valid_until: null,
+      lines: [{ product_id: 5, quantity: '2' }],
+    }),
+  )
 })
 
 it('una proforma emitida no se edita y remite a su ficha', () => {

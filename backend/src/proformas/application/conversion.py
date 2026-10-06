@@ -23,7 +23,12 @@ from proformas.application.commands import (
     validated_version,
 )
 from proformas.application.drafts import lock_proforma
-from proformas.application.errors import ProformaApplicationError, not_found, stale_record
+from proformas.application.errors import (
+    ProformaApplicationError,
+    field_error,
+    not_found,
+    stale_record,
+)
 from proformas.domain.validity import TransitionError, ensure_allowed
 from proformas.models import Proforma
 from sales.application.proforma_links import (
@@ -36,12 +41,13 @@ from sales.application.proforma_links import (
 from shared.command_values import canonical_fingerprint
 
 PERMISSIONS = ("proformas.convertir", "ventas.crear")
-CONVERT_FIELDS = frozenset({"idempotency_key", "expected_version", "review_token"})
+CONVERT_FIELDS = frozenset({"idempotency_key", "expected_version", "review_token", "customer_id"})
+CUSTOMER_REQUIRED = "Seleccione un cliente registrado: la venta lo exige."
 REVIEW_CHANGED = "Los valores vigentes cambiaron desde la revisión. Revise nuevamente."
 
 
-def offer_of(proforma: Proforma) -> ProformaOffer:
-    """DTO inmutable de la oferta emitida, con sus valores históricos."""
+def offer_of(proforma: Proforma, customer_id: int) -> ProformaOffer:
+    """DTO inmutable de la oferta emitida, con sus valores históricos y el cliente de la venta."""
     assert proforma.internal_number is not None
     assert proforma.issue_date is not None
     assert proforma.valid_until is not None
@@ -73,7 +79,7 @@ def offer_of(proforma: Proforma) -> ProformaOffer:
     return ProformaOffer(
         proforma_id=proforma.pk,
         number=proforma.internal_number,
-        customer_id=proforma.customer_id,
+        customer_id=customer_id,
         issue_date=proforma.issue_date,
         valid_until=proforma.valid_until,
         lines=tuple(lines),
@@ -105,11 +111,29 @@ def _ensure_convertible(proforma: Proforma) -> None:
         raise transition_error(error) from None
 
 
-def _digest(proforma: Proforma, preview: dict[str, Any]) -> str:
+def sale_customer(proforma: Proforma, requested: Any) -> int | None:
+    """Cliente de la venta: el de la oferta o, si no tiene, el elegido al convertir."""
+    if requested is not None and (
+        isinstance(requested, bool) or not isinstance(requested, int) or requested < 1
+    ):
+        raise field_error("validation_error", "customer_id", CUSTOMER_REQUIRED)
+    if proforma.customer_id is None:
+        return int(requested) if requested is not None else None
+    if requested is not None and requested != proforma.customer_id:
+        raise field_error(
+            "validation_error",
+            "customer_id",
+            "La proforma ya tiene cliente; la venta se crea para ese cliente.",
+        )
+    return proforma.customer_id
+
+
+def _digest(proforma: Proforma, customer_id: int, preview: dict[str, Any]) -> str:
     return canonical_fingerprint(
         {
             "proforma_id": proforma.pk,
             "version": proforma.version,
+            "customer_id": customer_id,
             "comparison": preview["comparison"],
             "issues": preview["issues"],
         }
@@ -117,7 +141,11 @@ def _digest(proforma: Proforma, preview: dict[str, Any]) -> str:
 
 
 def preview_conversion(
-    *, actor: User, proforma_id: int, request_id: UUID | None = None
+    *,
+    actor: User,
+    proforma_id: int,
+    customer_id: int | None = None,
+    request_id: UUID | None = None,
 ) -> dict[str, Any]:
     """Diferencias actuales respecto de lo cotizado y revisión firmada; sin efectos."""
     for permission in PERMISSIONS:
@@ -136,6 +164,7 @@ def preview_conversion(
         "proforma_id": proforma.pk,
         "version": proforma.version,
         "can_convert": False,
+        "requires_customer": proforma.customer_id is None,
         "blocked_by": None,
         "sale": None,
         "issues": [],
@@ -150,16 +179,24 @@ def preview_conversion(
         result["blocked_by"] = {"code": error.code, "message": error.message}
         result["sale"] = (error.conflict or {}).get("sale")
         return result
-    preview = proforma_links.preview_conversion(offer_of(proforma), on=clock.today())
+    chosen = sale_customer(proforma, customer_id)
+    # Sin cliente elegido se compara igualmente; el cliente no altera precios ni impuestos.
+    preview = proforma_links.preview_conversion(
+        offer_of(proforma, chosen if chosen is not None else 0), on=clock.today()
+    )
+    if chosen is None:
+        preview["issues"] = [
+            {"code": "validation_error", "field": "customer_id", "message": CUSTOMER_REQUIRED}
+        ]
     result.update(preview)
-    if not preview["issues"]:
+    if chosen is not None and not preview["issues"]:
         result["can_convert"] = True
         result["review_token"] = reviews.issue_token(
             actor=actor,
             action=reviews.CONVERT_ACTION,
             proforma_id=proforma.pk,
             version=proforma.version,
-            digest=_digest(proforma, preview),
+            digest=_digest(proforma, chosen, preview),
         )
     return result
 
@@ -176,6 +213,9 @@ def convert_proforma(
         _ensure_convertible(proforma)
         if proforma.version != expected:
             raise stale_record()
+        chosen = sale_customer(proforma, payload.get("customer_id"))
+        if chosen is None:
+            raise field_error("validation_error", "customer_id", CUSTOMER_REQUIRED)
         reviewed = reviews.read_token(
             payload.get("review_token"),
             actor=actor,
@@ -183,7 +223,7 @@ def convert_proforma(
             proforma_id=proforma.pk,
             version=proforma.version,
         )
-        offer = offer_of(proforma)
+        offer = offer_of(proforma, chosen)
         try:
             link = proforma_links.create_draft_from_proforma(actor=actor, offer=offer)
         except ProformaAlreadyLinkedError as error:
@@ -197,7 +237,7 @@ def convert_proforma(
         # Vigencia y valores revalidados después de las esperas de bloqueo.
         _ensure_convertible(proforma)
         preview = proforma_links.preview_conversion(offer, on=clock.today())
-        if _digest(proforma, preview) != reviewed:
+        if _digest(proforma, chosen, preview) != reviewed:
             raise ProformaApplicationError("review_required", REVIEW_CHANGED)
         proforma.state = "CONVERTED"
         proforma.converted_at = clock.now()

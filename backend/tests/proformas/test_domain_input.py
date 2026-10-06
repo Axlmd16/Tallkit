@@ -73,8 +73,8 @@ def test_artisan_entity_is_rejected() -> None:
     assert "entity_type" in error.value.errors
 
 
-@pytest.mark.parametrize("customer_id", [None, 0, -1, "7", True])
-def test_registered_customer_is_required(customer_id: Any) -> None:
+@pytest.mark.parametrize("customer_id", [0, -1, "7", True])
+def test_a_given_customer_must_be_a_registered_identifier(customer_id: Any) -> None:
     with pytest.raises(DraftValidationError) as error:
         parse_draft(_payload(customer_id=customer_id))
     assert "customer_id" in error.value.errors

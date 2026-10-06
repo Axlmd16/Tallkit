@@ -7,7 +7,7 @@ import {
 
 import { saleKeys } from '@/features/sales/hooks'
 
-import { proformasApi, type ReviewedCommand } from './api'
+import { proformasApi, type ConvertCommand, type ReviewedCommand } from './api'
 import type { ProformaFilters, ProformaInput } from './types'
 
 export const proformaKeys = {
@@ -17,8 +17,11 @@ export const proformaKeys = {
   document: (id: number | null) => ['proformas', 'document', id] as const,
   issuePreview: (id: number | null, version: number | null) =>
     ['proformas', 'issue-preview', id, version] as const,
-  conversionPreview: (id: number | null, version: number | null) =>
-    ['proformas', 'conversion-preview', id, version] as const,
+  conversionPreview: (
+    id: number | null,
+    version: number | null,
+    customerId: number | null = null,
+  ) => ['proformas', 'conversion-preview', id, version, customerId] as const,
   customers: (term: string, page: number) =>
     ['proformas', 'customers', term, page] as const,
   products: (term: string, page: number) =>
@@ -89,10 +92,12 @@ export function useConversionPreview(
   id: number | null,
   version: number | null,
   enabled: boolean,
+  customerId: number | null = null,
 ) {
   return useQuery({
-    queryKey: proformaKeys.conversionPreview(id, version),
-    queryFn: () => proformasApi.conversionPreview(id as number),
+    queryKey: proformaKeys.conversionPreview(id, version, customerId),
+    queryFn: () =>
+      proformasApi.conversionPreview(id as number, customerId ?? undefined),
     enabled: enabled && positive(id),
     staleTime: 0,
     gcTime: 0,
@@ -161,7 +166,7 @@ export function useProformaMutations() {
     convert: useMutation({
       retry: false,
       onSuccess: conversion,
-      mutationFn: (v: ReviewedCommand & { id: number; key: string }) =>
+      mutationFn: (v: ConvertCommand & { id: number; key: string }) =>
         proformasApi.convert(v.id, v, v.key),
     }),
   }

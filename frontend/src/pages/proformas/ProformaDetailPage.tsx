@@ -5,7 +5,6 @@ import {
   NotePencil,
   Printer,
   Prohibit,
-  Warning,
 } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
@@ -37,7 +36,6 @@ import {
   LoadingState,
   Money,
   Tabs,
-  Tooltip,
   useToast,
 } from '@/shared/ui'
 
@@ -53,8 +51,8 @@ function ReferenceLink({ reference }: { reference: ProformaReference }) {
   )
 }
 
+/** Las mismas columnas que la cotización impresa, para que pantalla e impreso coincidan. */
 function Lines({ proforma }: { proforma: Proforma }) {
-  const issued = Boolean(proforma.internal_number)
   return (
     <div>
       {/* Región desplazable accesible con teclado en pantallas estrechas. */}
@@ -64,21 +62,27 @@ function Lines({ proforma }: { proforma: Proforma }) {
         role="region"
         tabIndex={0}
       >
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <caption className="sr-only">Productos de la proforma</caption>
           <thead>
             <tr className="text-left text-xs text-ink-muted">
               <th className="py-2 pr-3 font-semibold" scope="col">
-                Producto
+                Código
+              </th>
+              <th className="px-2 py-2 font-semibold" scope="col">
+                Cód. fabricante
+              </th>
+              <th className="px-2 py-2 font-semibold" scope="col">
+                Marca
+              </th>
+              <th className="px-2 py-2 font-semibold" scope="col">
+                Descripción
               </th>
               <th className="px-2 py-2 text-right font-semibold" scope="col">
                 Cantidad
               </th>
               <th className="px-2 py-2 text-right font-semibold" scope="col">
-                {issued ? 'Disponible al emitir' : 'Disponible'}
-              </th>
-              <th className="px-2 py-2 text-right font-semibold" scope="col">
-                Precio final
+                Precio
               </th>
               <th className="py-2 pl-2 text-right font-semibold" scope="col">
                 Total
@@ -88,47 +92,41 @@ function Lines({ proforma }: { proforma: Proforma }) {
           <tbody>
             {proforma.lines.length === 0 && (
               <tr>
-                <td className="py-4 text-ink-muted" colSpan={5}>
+                <td className="py-4 text-ink-muted" colSpan={7}>
                   Sin productos.
                 </td>
               </tr>
             )}
             {proforma.lines.map((line) => (
-              <tr className="border-t border-line" key={line.position}>
-                <th className="py-2.5 pr-3 text-left font-normal" scope="row">
-                  <span className="font-mono">{line.product_code}</span>{' '}
+              <tr
+                className="border-t border-line align-top"
+                key={line.position}
+              >
+                <th
+                  className="py-2.5 pr-3 text-left font-mono font-normal"
+                  scope="row"
+                >
+                  {line.product_code}
+                </th>
+                <td className="px-2 py-2.5 font-mono">
+                  {line.manufacturer_code || '—'}
+                </td>
+                <td className="px-2 py-2.5">{line.brand_name || '—'}</td>
+                <td className="px-2 py-2.5">
                   {line.product_name}
                   {line.product_active === false && (
                     <span className="ml-2 text-xs font-semibold text-danger">
                       Inactivo
                     </span>
                   )}
-                </th>
+                </td>
                 <td className="px-2 py-2.5 text-right tabular-nums">
                   {line.quantity}
                 </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
-                  <span className="inline-flex items-center justify-end gap-1">
-                    {!line.availability_sufficient && (
-                      <Tooltip
-                        content="Disponibilidad insuficiente; la proforma no reserva unidades."
-                        position="top"
-                      >
-                        <Warning
-                          aria-label="Disponibilidad insuficiente"
-                          className="text-warning"
-                          size={16}
-                          weight="fill"
-                        />
-                      </Tooltip>
-                    )}
-                    {line.availability_at_issue ?? line.availability ?? '—'}
-                  </span>
-                </td>
-                <td className="px-2 py-2.5 text-right tabular-nums">
+                <td className="px-2 py-2.5 text-right whitespace-nowrap tabular-nums">
                   <Money amount={line.unit_price} />
                 </td>
-                <td className="py-2.5 pl-2 text-right font-semibold tabular-nums">
+                <td className="py-2.5 pl-2 text-right font-semibold whitespace-nowrap tabular-nums">
                   <Money amount={line.total_amount} />
                 </td>
               </tr>
@@ -394,11 +392,19 @@ export function ProformaDetailPage() {
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <dt className="text-xs text-ink-muted">Cliente</dt>
-            <dd className="font-medium text-ink">{proforma.customer.name}</dd>
-            <dd className="text-[13px] text-ink-muted">
-              {proforma.customer.identification_type}{' '}
-              {proforma.customer.identification}
-            </dd>
+            {proforma.customer ? (
+              <>
+                <dd className="font-medium text-ink">
+                  {proforma.customer.name}
+                </dd>
+                <dd className="text-[13px] text-ink-muted">
+                  {proforma.customer.identification_type}{' '}
+                  {proforma.customer.identification}
+                </dd>
+              </>
+            ) : (
+              <dd className="font-medium text-ink-muted">Sin cliente</dd>
+            )}
           </div>
           <div>
             <dt className="text-xs text-ink-muted">Emisión</dt>

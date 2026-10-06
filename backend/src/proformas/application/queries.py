@@ -56,11 +56,14 @@ def sources_of(proforma: Proforma) -> tuple[LineSource, ...]:
     )
 
 
-def _customer(proforma: Proforma) -> dict[str, Any]:
+def _customer(proforma: Proforma) -> dict[str, Any] | None:
+    """Cliente histórico o vigente; ``None`` si la oferta se hizo sin cliente."""
     snapshot = proforma.header_snapshot
     if snapshot is not None:
-        return dict(snapshot["customer"])
+        return dict(snapshot["customer"]) if snapshot["customer"] else None
     customer = proforma.customer
+    if customer is None:
+        return None
     return {
         "id": customer.pk,
         "name": customer.name,
@@ -335,7 +338,7 @@ def document(*, actor: User, proforma_id: int, request_id: UUID | None = None) -
         "valid_until": proforma.valid_until.isoformat() if proforma.valid_until else None,
         "issuer": snapshot.get("issuer"),
         "has_logo": proforma.brand_asset_id is not None,
-        "customer": {k: v for k, v in snapshot.get("customer", {}).items() if k != "is_active"},
+        "customer": _customer(proforma),
         "lines": [{k: v for k, v in line.items() if k != "product_id"} for line in lines],
         "base_total": money(proforma.base_total),
         "tax_total": money(proforma.tax_total),

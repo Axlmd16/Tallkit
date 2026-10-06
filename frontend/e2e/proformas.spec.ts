@@ -454,6 +454,63 @@ test.describe('Proformas comerciales', () => {
     expect(none.status()).toBe(204)
   })
 
+  test('cotizar sin cliente y elegirlo al convertir en venta', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    const world = await seedWorld(page, 5)
+    await page.goto('/proformas/new')
+    await pick(page, 'Producto de la línea 1', world.product.code)
+    await expect(page.getByRole('table').getByText('USD 20.00')).toHaveCount(2)
+    await page.getByRole('button', { name: 'Guardar borrador' }).click()
+    await expect(page).toHaveURL(/\/proformas\/\d+\/edit$/)
+    await page.getByRole('button', { name: 'Revisar y emitir' }).click()
+    await page
+      .getByRole('dialog', { name: 'Revisar y emitir proforma' })
+      .getByRole('button', { name: 'Emitir proforma' })
+      .click()
+    await expect(
+      page.getByRole('heading', { name: /COM-PRO-\d{6}/ }),
+    ).toContainText('Vigente')
+    await expect(page.getByText('Sin cliente')).toBeVisible()
+    const proformaId = Number(page.url().match(/proformas\/(\d+)/)![1])
+
+    // El impreso no lleva bloque de cliente.
+    await page.goto(`/proformas/${proformaId}/document`)
+    const sheet = page.getByRole('article', { name: 'Proforma' })
+    await expect(sheet.getByText('COTIZACIÓN', { exact: true })).toBeVisible()
+    await expect(sheet).not.toContainText('Cliente')
+
+    // Al convertir, la venta exige elegir un cliente registrado.
+    await page.goto(`/proformas/${proformaId}`)
+    await page.getByRole('button', { name: 'Convertir en venta' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Convertir en venta' })
+    const convert = dialog.getByRole('button', { name: 'Convertir en venta' })
+    await expect(convert).toBeDisabled()
+    await dialog
+      .getByRole('combobox', { name: 'Cliente de la venta' })
+      .fill(world.customer.name)
+    await page
+      .getByRole('listbox', { name: 'Resultados de Cliente de la venta' })
+      .getByRole('option', { name: new RegExp(world.customer.name) })
+      .first()
+      .click()
+    await expect(convert).toBeEnabled()
+    await convert.click()
+    await expect(page).toHaveURL(/\/sales\/\d+$/)
+    const saleId = Number(page.url().match(/sales\/(\d+)/)![1])
+    const sale = await (
+      await page.request.get(`${API}/sales/${saleId}/`)
+    ).json()
+    expect(sale.customer.id).toBe(world.customer.id)
+    expect(sale.origin.proforma_id).toBe(proformaId)
+    const proforma = await (
+      await page.request.get(`${API}/proformas/${proformaId}/`)
+    ).json()
+    expect(proforma.state).toBe('CONVERTED')
+    expect(proforma.customer).toBeNull()
+  })
+
   test('una descripción extensa, con marca y código de fabricante, entra en la hoja', async ({
     page,
   }) => {

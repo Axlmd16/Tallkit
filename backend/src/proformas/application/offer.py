@@ -44,6 +44,8 @@ class OfferView:
     """Estado del que depende emitir o convertir, ya calculado."""
 
     customer: CustomerReference | None
+    # ``None``: la oferta no tiene cliente, lo que no impide emitirla.
+    customer_id: int | None
     sources: tuple[LineSource, ...]
     products: Mapping[int, SaleProductReference]
     rates: Mapping[int, Decimal | None]
@@ -66,6 +68,7 @@ class OfferView:
 def build_view(
     *,
     customer: CustomerReference | None,
+    customer_id: int | None,
     sources: Sequence[LineSource],
     products: Mapping[int, SaleProductReference],
     rates: Mapping[int, Decimal | None],
@@ -89,6 +92,7 @@ def build_view(
     ]
     return OfferView(
         customer=customer,
+        customer_id=customer_id,
         sources=tuple(sources),
         products=products,
         rates=rates,
@@ -112,7 +116,9 @@ def needed_by_product(view: OfferView) -> dict[int, Decimal]:
 def collect_issues(view: OfferView) -> list[Issue]:
     """Impedimentos para emitir; la disponibilidad insuficiente nunca figura aquí."""
     issues: list[Issue] = list(view.extra_issues)
-    if view.customer is None:
+    if view.customer_id is None:
+        pass
+    elif view.customer is None:
         issues.append(Issue("inactive_reference", "customer_id", "El cliente no existe."))
     elif not view.customer.is_active:
         issues.append(Issue("inactive_reference", "customer_id", "El cliente está inactivo."))

@@ -26,7 +26,7 @@ El sistema SHALL exigir usuario activo y sesión vigente y SHALL autorizar en el
 
 ### Requirement: Borradores de oferta comercial sin efectos definitivos
 
-Una **proforma** SHALL pertenecer solo al **RUC comercial** y usar un cliente registrado conforme a DP-008 y productos del catálogo en cantidades enteras positivas de presentaciones completas. SHALL permitir editar su borrador; para emitir SHALL exigir cliente válido, al menos una línea, productos activos y vigencia válida. SHALL rechazar servicios, otra entidad fiscal y cantidades cero, negativas o fraccionarias. Ninguna acción sobre la oferta SHALL reservar o descontar existencia, generar Kardex, deuda, pagos o retenciones. Un kit SHALL cotizarse como producto intacto. Trazabilidad: DP-004/008/009/010/012; RN-PRO-001/002/003; RF-PRO-001/002/004; CU-010.
+Una **proforma** SHALL pertenecer solo al **RUC comercial** y usar productos del catálogo en cantidades enteras positivas de presentaciones completas. El cliente SHALL ser opcional: puede cotizarse a quien no está registrado; si se indica, SHALL ser un cliente registrado conforme a DP-008 (ajuste aprobado por el usuario el 2026-10-06 durante la aplicación). SHALL permitir editar su borrador; para emitir SHALL exigir al menos una línea, productos activos, vigencia válida y, si tiene cliente, que esté activo. SHALL rechazar servicios, otra entidad fiscal y cantidades cero, negativas o fraccionarias. Ninguna acción sobre la oferta SHALL reservar o descontar existencia, generar Kardex, deuda, pagos o retenciones. Un kit SHALL cotizarse como producto intacto. Trazabilidad: DP-004/008/009/010/012; RN-PRO-001/002/003; RF-PRO-001/002/004; CU-010.
 
 #### Scenario: Preparar y corregir el borrador
 - **DADO** un cliente registrado y productos activos
@@ -34,9 +34,14 @@ Una **proforma** SHALL pertenecer solo al **RUC comercial** y usar un cliente re
 - **ENTONCES** SHALL conservarse la captura sin número definitivo, reserva, movimiento ni saldo.
 
 #### Scenario: Emitir una oferta incompleta
-- **DADO** un borrador sin cliente válido o sin líneas
+- **DADO** un borrador sin líneas o con un cliente que dejó de ser válido
 - **CUANDO** se solicita emitirlo
 - **ENTONCES** SHALL rechazarse indicando los datos pendientes, sin consumir número.
+
+#### Scenario: Cotizar sin cliente registrado
+- **DADO** una persona que no está registrada como cliente y productos activos
+- **CUANDO** el Vendedor guarda y emite la proforma sin cliente
+- **ENTONCES** SHALL emitirse con su número y sus importes, sin datos de cliente en la oferta ni en el impreso.
 
 #### Scenario: Línea incompatible
 - **DADO** un borrador comercial
@@ -175,12 +180,17 @@ Para cambiar una oferta emitida o retomar una vencida o anulada SHALL crearse un
 
 ### Requirement: Conversión única y atómica a venta
 
-Solo una oferta emitida vigente, no anulada y no convertida SHALL originar una venta nueva en borrador, copiando cliente y líneas y revalidando datos, precios, impuestos y disponibilidad actuales. La disponibilidad insuficiente SHALL advertirse sin impedir crear el borrador; la confirmación de venta SHALL exigir disponibilidad suficiente. Venta creada, vínculo único, estado convertida y auditoría SHALL completarse juntos o ninguno. SHALL NOT confirmarse ni cobrarse automáticamente. Un segundo intento distinto SHALL NOT crear otra venta y SHALL indicar la existente; repetir el mismo intento compatible SHALL recuperar el resultado. Trazabilidad: proposal D6; RN-PRO-004/005/006/007; RF-PRO-007/008/009; CU-011; RNF-INT-001/004/009.
+Solo una oferta emitida vigente, no anulada y no convertida SHALL originar una venta nueva en borrador. La venta SHALL exigir un cliente registrado y activo: el de la oferta o, si la oferta no tiene, el que se elija al convertir, sin modificar la oferta emitida. SHALL copiar cliente y líneas y revalidando datos, precios, impuestos y disponibilidad actuales. La disponibilidad insuficiente SHALL advertirse sin impedir crear el borrador; la confirmación de venta SHALL exigir disponibilidad suficiente. Venta creada, vínculo único, estado convertida y auditoría SHALL completarse juntos o ninguno. SHALL NOT confirmarse ni cobrarse automáticamente. Un segundo intento distinto SHALL NOT crear otra venta y SHALL indicar la existente; repetir el mismo intento compatible SHALL recuperar el resultado. Trazabilidad: proposal D6; RN-PRO-004/005/006/007; RF-PRO-007/008/009; CU-011; RNF-INT-001/004/009.
 
 #### Scenario: Conversión válida
 - **DADO** una proforma vigente con cliente y productos válidos
 - **CUANDO** el usuario solicita convertirla
 - **ENTONCES** SHALL crearse una única venta comercial en borrador con cliente y líneas copiados, vínculo visible y oferta convertida, sin reserva, salida, deuda, cobro ni número de venta.
+
+#### Scenario: Convertir una oferta sin cliente
+- **DADO** una proforma vigente emitida sin cliente
+- **CUANDO** se solicita convertir sin elegir cliente y después eligiendo uno registrado
+- **ENTONCES** el primer intento SHALL rechazarse sin crear venta y el segundo SHALL crear la venta para ese cliente, conservando la oferta sin cliente y enlazada a la venta.
 
 #### Scenario: Oferta no convertible
 - **DADO** una proforma en borrador, vencida, anulada o ya convertida

@@ -8,10 +8,18 @@ import {
 } from '@/features/catalog-common/problem'
 import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { Button, Dialog, InlineNotice, LoadingState } from '@/shared/ui'
+import {
+  Button,
+  Combobox,
+  Dialog,
+  InlineNotice,
+  LoadingState,
+  type ComboboxOption,
+} from '@/shared/ui'
 
 import { useConversionPreview, useProformaMutations } from './hooks'
 import { issueText } from './issueLabel'
+import { useCustomerPickerOptions } from './pickers'
 import { QuoteComparison } from './QuoteComparison'
 import type { LinkedSale, Proforma } from './types'
 
@@ -35,7 +43,15 @@ export function ConvertDialog({
 }) {
   const mutations = useProformaMutations()
   const tracker = useIntentTracker()
-  const preview = useConversionPreview(proforma.id, proforma.version, open)
+  // Sin cliente en la proforma, la venta lo exige: se elige aquí, antes de convertir.
+  const needsCustomer = proforma.customer === null
+  const [customer, setCustomer] = useState<ComboboxOption | null>(null)
+  const preview = useConversionPreview(
+    proforma.id,
+    proforma.version,
+    open,
+    needsCustomer ? (customer?.id ?? null) : null,
+  )
   const [problem, setProblem] = useState<ProblemView | null>(null)
   const [reviewRequired, setReviewRequired] = useState(false)
   const [existing, setExisting] = useState<LinkedSale | null>(null)
@@ -44,6 +60,9 @@ export function ConvertDialog({
   const inFlight = useRef(false)
   const review = preview.data
   const sale = existing ?? review?.sale ?? null
+  const blocking = (review?.issues ?? []).filter(
+    (item) => !(needsCustomer && !customer && item.field === 'customer_id'),
+  )
 
   async function convert() {
     if (!review?.review_token || inFlight.current) return
@@ -52,6 +71,7 @@ export function ConvertDialog({
       id: proforma.id,
       expectedVersion: review.version,
       reviewToken: review.review_token,
+      ...(needsCustomer && customer ? { customerId: customer.id } : {}),
     }
     setPending(true)
     setProblem(null)
@@ -84,6 +104,35 @@ export function ConvertDialog({
       title="Convertir en venta"
     >
       <div className="space-y-4">
+        {needsCustomer && (
+          <div className="ui-field">
+            <label
+              className="block text-xs font-semibold text-ink"
+              htmlFor="convert-customer"
+            >
+              Cliente de la venta
+            </label>
+            <div className="mt-1.5">
+              <Combobox
+                clearable
+                id="convert-customer"
+                inactiveHelp="El cliente está inactivo: elija otro."
+                label="Cliente de la venta"
+                onSelect={(option) => {
+                  setCustomer(option)
+                  setProblem(null)
+                  setReviewRequired(false)
+                }}
+                placeholder="Buscar por nombre o identificación"
+                selected={customer}
+                useOptions={useCustomerPickerOptions}
+              />
+            </div>
+            <p className="mt-1 text-xs text-ink-muted">
+              La proforma no tiene cliente; la venta sí lo necesita.
+            </p>
+          </div>
+        )}
         {preview.isPending && <LoadingState label="Comparando valores…" />}
         {preview.isError && (
           <InlineNotice title="No se pudo revisar la conversión" tone="danger">
@@ -130,10 +179,10 @@ export function ConvertDialog({
             )}
           </InlineNotice>
         )}
-        {review && review.issues.length > 0 && (
+        {review && blocking.length > 0 && (
           <InlineNotice title="Resuelva antes de convertir" tone="danger">
             <ul className="list-disc pl-5">
-              {review.issues.map((item) => (
+              {blocking.map((item) => (
                 <li key={`${item.field}-${item.code}`}>{issueText(item)}</li>
               ))}
             </ul>

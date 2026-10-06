@@ -30,6 +30,14 @@ class ReviewedCommandSerializer(VersionedCommandSerializer):
     review_token = serializers.CharField(help_text="Token de la revisión previa (15 minutos).")
 
 
+class ConvertSerializer(ReviewedCommandSerializer):
+    customer_id = serializers.IntegerField(
+        min_value=1,
+        required=False,
+        help_text="Obligatorio cuando la proforma no tiene cliente: es el cliente de la venta.",
+    )
+
+
 class ProformaLineWriteSerializer(_Base):
     product_id = serializers.IntegerField(min_value=1)
     quantity = serializers.CharField(help_text="Entero positivo de presentaciones, como cadena.")
@@ -44,7 +52,12 @@ class DraftPreviewSerializer(_Base):
 
 
 class ProformaWriteSerializer(CommandFields):
-    customer_id = serializers.IntegerField(min_value=1)
+    customer_id = serializers.IntegerField(
+        min_value=1,
+        required=False,
+        allow_null=True,
+        help_text="Opcional: se puede cotizar sin cliente registrado.",
+    )
     valid_until = serializers.DateField(
         required=False,
         allow_null=True,
@@ -58,7 +71,7 @@ class ProformaWriteSerializer(CommandFields):
 class ProformaPatchSerializer(ProformaWriteSerializer):
     """Omitir un campo lo conserva; ``lines`` reemplaza la colección completa."""
 
-    customer_id = serializers.IntegerField(min_value=1, required=False)
+    customer_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
     expected_version = serializers.IntegerField(min_value=1)
 
 
@@ -142,7 +155,7 @@ class ProformaSummarySerializer(_Base):
     )
     version = serializers.IntegerField()
     internal_number = serializers.CharField(allow_null=True)
-    customer = CustomerSerializer()
+    customer = CustomerSerializer(allow_null=True)
     issue_date = serializers.DateField(allow_null=True)
     valid_until = serializers.DateField(allow_null=True)
     base_total = serializers.CharField(allow_null=True, help_text=_MONEY)
@@ -243,6 +256,9 @@ class ConversionPreviewSerializer(_Base):
     proforma_id = serializers.IntegerField()
     version = serializers.IntegerField()
     can_convert = serializers.BooleanField()
+    requires_customer = serializers.BooleanField(
+        help_text="La proforma no tiene cliente: debe elegirse uno para crear la venta."
+    )
     blocked_by = BlockedSerializer(allow_null=True)
     sale = LinkedSaleSerializer(allow_null=True)
     issues = IssueSerializer(many=True)
@@ -279,7 +295,7 @@ class DocumentSerializer(_Base):
     has_logo = serializers.BooleanField(
         help_text="Si es verdadero, el logo histórico se obtiene en `document/logo/`."
     )
-    customer = CustomerSerializer()
+    customer = CustomerSerializer(allow_null=True)
     lines = ProformaLineSerializer(many=True)
     base_total = serializers.CharField(help_text=_MONEY)
     tax_total = serializers.CharField(help_text=_MONEY)

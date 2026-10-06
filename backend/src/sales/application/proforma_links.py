@@ -240,8 +240,9 @@ def preview_conversion(offer: ProformaOffer, *, on: date) -> dict[str, Any]:
         {pk: review.rate for pk, review in reviews.items()},
     )
     issues: list[dict[str, str]] = []
-    customer = get_customer_reference(offer.customer_id)
-    if customer is None or not customer.is_active:
+    # Identificador 0: el cliente de la venta todavía no se eligió; lo exige quien convierte.
+    customer = get_customer_reference(offer.customer_id) if offer.customer_id else None
+    if offer.customer_id and (customer is None or not customer.is_active):
         issues.append(
             {
                 "code": "inactive_reference",

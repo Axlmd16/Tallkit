@@ -65,6 +65,8 @@ const proforma = (overrides: Record<string, unknown> = {}) => ({
     {
       position: 1,
       product_code: 'FIL-1',
+      manufacturer_code: 'FAB-778',
+      brand_name: 'Eaton',
       product_name: 'Filtro',
       is_kit: false,
       quantity: '2',
@@ -111,13 +113,24 @@ it('muestra número, estado con texto, cliente, vigencia, líneas y total', () =
   expect(screen.getByText('Ana Pérez')).toBeInTheDocument()
   expect(screen.getByText('13/10/2026')).toBeInTheDocument()
   const table = screen.getByRole('table')
+  // Las mismas columnas que la cotización impresa.
+  expect(
+    within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent),
+  ).toEqual([
+    'Código',
+    'Cód. fabricante',
+    'Marca',
+    'Descripción',
+    'Cantidad',
+    'Precio',
+    'Total',
+  ])
   expect(within(table).getByText('FIL-1')).toBeInTheDocument()
-  expect(
-    within(table).getByLabelText('Disponibilidad insuficiente'),
-  ).toBeInTheDocument()
-  expect(
-    within(table).getByRole('columnheader', { name: 'Disponible al emitir' }),
-  ).toBeInTheDocument()
+  expect(within(table).getByText('FAB-778')).toBeInTheDocument()
+  expect(within(table).getByText('Eaton')).toBeInTheDocument()
+  expect(table).not.toHaveTextContent(/disponible|insuficiente/i)
   expect(screen.getAllByText('USD 23.00').length).toBeGreaterThan(0)
 })
 
@@ -286,4 +299,13 @@ it('un error de carga no revela datos y ofrece volver', () => {
   renderPage()
   expect(screen.getByText('No se pudo cargar la proforma')).toBeInTheDocument()
   expect(screen.queryByText('COM-PRO-000007')).toBeNull()
+})
+
+it('una proforma sin cliente lo indica y sigue ofreciendo sus acciones', () => {
+  mocks.query = ready(proforma({ customer: null }))
+  renderPage()
+  expect(screen.getByText('Sin cliente')).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Convertir en venta' }),
+  ).toBeInTheDocument()
 })

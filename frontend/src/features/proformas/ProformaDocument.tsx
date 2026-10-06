@@ -51,17 +51,22 @@ export function ProformaDocument({
             </>
           ),
         },
-        {
-          label: 'Cliente',
-          wide: true,
-          value: [
-            data.customer.name,
-            `${data.customer.identification_type} ${data.customer.identification}`,
-            data.customer.phone,
-          ]
-            .filter(Boolean)
-            .join(' · '),
-        },
+        // Sin cliente registrado la cotización no lleva ese bloque.
+        ...(data.customer
+          ? [
+              {
+                label: 'Cliente',
+                wide: true,
+                value: [
+                  data.customer.name,
+                  `${data.customer.identification_type} ${data.customer.identification}`,
+                  data.customer.phone,
+                ]
+                  .filter(Boolean)
+                  .join(' · '),
+              },
+            ]
+          : []),
       ]}
       notice={null}
       number={data.number}

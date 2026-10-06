@@ -271,11 +271,11 @@
 ## 12. CU-010 — Elaborar proforma
 
 **Actor principal:** Administrador o Vendedor.  
-**Precondiciones:** cliente y productos válidos.
+**Precondiciones:** productos válidos.
 
 **Flujo principal**
 
-1. El actor crea una proforma y selecciona al cliente.
+1. El actor crea una proforma y, si la persona está registrada, selecciona al cliente; el cliente es opcional.
 2. Define la vigencia (7 días sugeridos, ajustables antes de emitir) y agrega productos y cantidades; el precio final proviene del catálogo y no se edita, sin descuentos.
 3. El sistema calcula valores y muestra existencia solo como referencia.
 4. El actor guarda y edita el borrador; al emitir, la proforma recibe su número y su contenido queda inmutable.
@@ -296,7 +296,7 @@
 
 **Flujo principal**
 
-1. El actor abre la proforma y solicita convertir.
+1. El actor abre la proforma y solicita convertir; si la proforma no tiene cliente, elige uno registrado, que la venta exige.
 2. El sistema crea una venta en borrador y copia los datos relevantes.
 3. Recalcula precios, impuestos y disponibilidad vigentes y muestra las diferencias respecto de lo cotizado; la falta de disponibilidad avisa, pero no impide crear el borrador.
 4. El actor revisa diferencias, puede ajustar productos y cantidades sin alterar la proforma y completa la condición de venta.

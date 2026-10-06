@@ -116,4 +116,27 @@ describe('proformasApi', () => {
     expect(proformaLogoUrl(12)).toMatch(/\/proformas\/12\/document\/logo\/$/)
     expect(proformaLogoUrl(12)).not.toContain('entity-logos')
   })
+
+  it('la conversión de una proforma sin cliente envía el cliente elegido', async () => {
+    const { client, request } = fakeClient()
+    const api = createProformasApi(client)
+    await api.conversionPreview(5, 3)
+    expect(request).toHaveBeenLastCalledWith(
+      '/proformas/5/conversion-preview/?customer_id=3',
+    )
+    await api.convert(
+      5,
+      { expectedVersion: 2, reviewToken: 'tok', customerId: 3 },
+      'key-9',
+    )
+    expect(request).toHaveBeenLastCalledWith('/proformas/5/convert/', {
+      method: 'POST',
+      body: {
+        expected_version: 2,
+        review_token: 'tok',
+        idempotency_key: 'key-9',
+        customer_id: 3,
+      },
+    })
+  })
 })

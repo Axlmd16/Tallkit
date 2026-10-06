@@ -414,6 +414,13 @@ class ConversionPreviewView(_ProformaView):
     @extend_schema(
         tags=[_TAG],
         operation_id="proformas_conversion_preview",
+        parameters=[
+            OpenApiParameter(
+                "customer_id",
+                OpenApiTypes.INT,
+                description="Cliente de la venta cuando la proforma no tiene cliente.",
+            )
+        ],
         responses={200: sz.ConversionPreviewSerializer, 403: ProblemSerializer, **_NOT_FOUND},
         description="Diferencias actuales respecto de lo cotizado; no crea venta ni recibo.",
     )
@@ -421,7 +428,10 @@ class ConversionPreviewView(_ProformaView):
         return _respond(
             request,
             lambda: conversion.preview_conversion(
-                actor=_actor(request), proforma_id=pk, request_id=request_id_from(request)
+                actor=_actor(request),
+                proforma_id=pk,
+                customer_id=_int(request, "customer_id", minimum=1),
+                request_id=request_id_from(request),
             ),
         )
 
@@ -432,7 +442,7 @@ class ConvertView(_CommandView):
     @extend_schema(
         tags=[_TAG],
         operation_id="proformas_proforma_convert",
-        request=sz.ReviewedCommandSerializer,
+        request=sz.ConvertSerializer,
         responses={200: sz.ProformaSerializer, **_NOT_FOUND, **_PROBLEMS},
         examples=_CONFLICT_EXAMPLES,
         description=(

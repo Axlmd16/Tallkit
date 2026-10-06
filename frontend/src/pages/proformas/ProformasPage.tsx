@@ -143,7 +143,10 @@ export function ProformasPage() {
                 header: 'Cliente',
                 key: 'customer',
                 priority: 'secondary',
-                render: (row) => row.customer.name,
+                render: (row) =>
+                  row.customer?.name ?? (
+                    <span className="text-ink-muted">Sin cliente</span>
+                  ),
               },
               {
                 header: 'Emisión',

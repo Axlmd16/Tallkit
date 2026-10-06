@@ -1,4 +1,4 @@
-"""Entrada de un borrador de proforma: cliente, vigencia y líneas producto/cantidad.
+"""Entrada de un borrador de proforma: cliente opcional, vigencia y líneas producto/cantidad.
 
 No recibe precio, descuento, impuesto, total, condición de venta ni servicios: el servidor
 obtiene los valores del catálogo y de la configuración. No depende de Django ni de DRF.
@@ -31,7 +31,8 @@ class LineInput:
 
 @dataclass(frozen=True)
 class DraftInput:
-    customer_id: int
+    # ``None``: cotización sin cliente registrado.
+    customer_id: int | None
     valid_until: date | None
     lines: tuple[LineInput, ...]
 
@@ -80,8 +81,8 @@ def parse_draft(payload: dict[str, Any]) -> DraftInput:
     errors: dict[str, list[str]] = {}
     code = "validation_error"
     customer_id = payload.get("customer_id")
-    if not is_id(customer_id):
-        errors["customer_id"] = ["Seleccione un cliente registrado."]
+    if customer_id is not None and not is_id(customer_id):
+        errors["customer_id"] = ["Seleccione un cliente registrado o deje la proforma sin cliente."]
     valid_until: date | None = None
     try:
         valid_until = parse_valid_until(payload.get("valid_until"))
@@ -119,5 +120,5 @@ def parse_draft(payload: dict[str, Any]) -> DraftInput:
         lines.append(LineInput(product_id, quantity))
     if errors:
         raise DraftValidationError(code, errors)
-    assert isinstance(customer_id, int)
+    assert customer_id is None or isinstance(customer_id, int)
     return DraftInput(customer_id, valid_until, tuple(lines))

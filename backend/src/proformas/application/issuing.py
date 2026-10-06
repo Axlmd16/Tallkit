@@ -98,12 +98,12 @@ def lock_references(
 ) -> tuple[CustomerReference | None, dict[int, SaleProductReference]]:
     """Bloquea cliente y productos (ID ascendente) sin exigir que estén activos: la vista
     informa después qué referencia debe corregirse."""
-    try:
-        customer: CustomerReference | None = lock_customer_reference(
-            proforma.customer_id, require_active=False
-        )
-    except CustomerReferenceError:
-        customer = None
+    customer: CustomerReference | None = None
+    if proforma.customer_id is not None:
+        try:
+            customer = lock_customer_reference(proforma.customer_id, require_active=False)
+        except CustomerReferenceError:
+            customer = None
     try:
         products = lock_product_references(
             {line.product_id for line in lines}, require_active=False
@@ -265,6 +265,7 @@ def issue_proforma(
 
         view: OfferView = build_view(
             customer=customer,
+            customer_id=proforma.customer_id,
             sources=queries.sources_of(proforma),
             products=products,
             rates={pk: snap.rate for pk, snap in locked.taxes.items()},
@@ -282,7 +283,6 @@ def issue_proforma(
         valid_until = view.valid_until
         assert totals is not None
         assert valid_until is not None
-        assert customer is not None
 
         consumer_id = str(proforma.pk)
         resolve_configuration(
@@ -343,7 +343,9 @@ def issue_proforma(
                 "phone": identity.phone,
                 "email": identity.email,
             },
-            "customer": {
+            "customer": None
+            if customer is None
+            else {
                 "id": customer.id,
                 "name": customer.name,
                 "identification_type": customer.identification_type,

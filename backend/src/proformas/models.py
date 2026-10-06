@@ -91,8 +91,13 @@ class ProformaBrandAsset(models.Model):
 class Proforma(models.Model):
     """Oferta comercial: borrador → emitida → convertida o anulada."""
 
+    # Opcional: se puede cotizar a quien no está registrado. La venta sí exige cliente.
     customer = models.ForeignKey(
-        "customer_registry.Customer", on_delete=models.PROTECT, related_name="+"
+        "customer_registry.Customer",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
     )
     fiscal_entity = models.ForeignKey(
         "workshop_configuration.FiscalEntity", on_delete=models.PROTECT, related_name="+"

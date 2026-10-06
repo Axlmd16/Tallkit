@@ -22,6 +22,11 @@ export interface ReviewedCommand {
   reviewToken: string
 }
 
+export interface ConvertCommand extends ReviewedCommand {
+  /** Cliente de la venta cuando la proforma no tiene cliente. */
+  customerId?: number | undefined
+}
+
 /**
  * Cliente del contrato de proformas. No calcula importes, estados ni permisos: envía
  * cliente, vigencia, productos y cantidades, y muestra lo que el servidor decide.
@@ -95,11 +100,19 @@ export function createProformasApi(client: ApiClient) {
     copy(id: number, key: string): Promise<Proforma> {
       return post(`/${id}/copy/`, { idempotency_key: key })
     },
-    conversionPreview(id: number): Promise<ConversionPreview> {
-      return get(`/${id}/conversion-preview/`)
+    conversionPreview(
+      id: number,
+      customerId?: number,
+    ): Promise<ConversionPreview> {
+      return get(
+        `/${id}/conversion-preview/${buildQuery({ customer_id: customerId })}`,
+      )
     },
-    convert(id: number, data: ReviewedCommand, key: string): Promise<Proforma> {
-      return post(`/${id}/convert/`, reviewed(data, key))
+    convert(id: number, data: ConvertCommand, key: string): Promise<Proforma> {
+      return post(`/${id}/convert/`, {
+        ...reviewed(data, key),
+        ...(data.customerId ? { customer_id: data.customerId } : {}),
+      })
     },
     document(id: number): Promise<ProformaDocument> {
       return get(`/${id}/document/`)

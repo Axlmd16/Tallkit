@@ -11,13 +11,34 @@ const mocks = vi.hoisted(() => ({
   issue: vi.fn(),
   convert: vi.fn(),
   refetch: vi.fn(),
+  previewCustomers: [] as (number | null)[],
+}))
+
+vi.mock('./pickers', () => ({
+  useCustomerPickerOptions: () => ({
+    isPending: false,
+    isError: false,
+    data: {
+      totalPages: 1,
+      options: [{ id: 3, label: 'Ana Pérez', detail: 'CI 1712345678' }],
+    },
+  }),
 }))
 
 vi.mock('./hooks', () => ({
   useIssuePreview: (_id: number, _version: number, enabled: boolean) =>
     enabled ? mocks.issuePreview : { isPending: false, isError: false },
-  useConversionPreview: (_id: number, _version: number, enabled: boolean) =>
-    enabled ? mocks.conversionPreview : { isPending: false, isError: false },
+  useConversionPreview: (
+    _id: number,
+    _version: number,
+    enabled: boolean,
+    customerId: number | null,
+  ) => {
+    mocks.previewCustomers.push(customerId)
+    return enabled
+      ? mocks.conversionPreview
+      : { isPending: false, isError: false }
+  },
   useProformaMutations: () => ({
     issue: { mutateAsync: mocks.issue },
     convert: { mutateAsync: mocks.convert },
@@ -28,7 +49,7 @@ import { ConvertDialog } from './ConvertDialog'
 import { IssueDialog } from './IssueDialog'
 import type { Proforma } from './types'
 
-const proforma = { id: 5, version: 2 } as Proforma
+const proforma = { id: 5, version: 2, customer: { id: 1 } } as Proforma
 
 const issueReview = (overrides: Record<string, unknown> = {}) => ({
   proforma_id: 5,
@@ -100,6 +121,7 @@ const ready = (data: unknown) => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mocks.previewCustomers.length = 0
   mocks.issuePreview = ready(issueReview())
   mocks.conversionPreview = ready(conversionReview())
 })
@@ -374,5 +396,65 @@ describe('ConvertDialog', () => {
     expect(
       screen.getByRole('list', { name: 'Avisos de disponibilidad' }),
     ).toHaveTextContent('La venta no podrá confirmarse así')
+  })
+
+  it('una proforma sin cliente exige elegirlo y lo envía a la venta', async () => {
+    const user = userEvent.setup()
+    const onConverted = vi.fn()
+    const missing = conversionReview({
+      can_convert: false,
+      requires_customer: true,
+      review_token: null,
+      issues: [
+        {
+          code: 'validation_error',
+          field: 'customer_id',
+          message: 'Seleccione un cliente registrado: la venta lo exige.',
+        },
+      ],
+    })
+    mocks.conversionPreview = ready(missing)
+    mocks.convert.mockResolvedValue({ id: 5, sale: { id: 9 } })
+    render(
+      <MemoryRouter>
+        <ConvertDialog
+          onClose={vi.fn()}
+          onConverted={onConverted}
+          open
+          proforma={{ id: 5, version: 2, customer: null } as Proforma}
+        />
+      </MemoryRouter>,
+    )
+    const button = screen.getByRole('button', { name: 'Convertir en venta' })
+    expect(button).toBeDisabled()
+    expect(screen.queryByText('Resuelva antes de convertir')).toBeNull()
+    expect(mocks.previewCustomers.at(-1)).toBeNull()
+    const picker = screen.getByRole('combobox', { name: 'Cliente de la venta' })
+    await user.click(picker)
+    mocks.conversionPreview = ready(
+      conversionReview({ requires_customer: true }),
+    )
+    await user.click(
+      within(
+        screen.getByRole('listbox', {
+          name: 'Resultados de Cliente de la venta',
+        }),
+      ).getByRole('option', { name: /Ana Pérez/ }),
+    )
+    expect(mocks.previewCustomers.at(-1)).toBe(3)
+    await waitFor(() => expect(button).toBeEnabled())
+    await user.click(button)
+    expect(mocks.convert).toHaveBeenCalledWith(
+      expect.objectContaining({ customerId: 3, reviewToken: 'tok-convert' }),
+    )
+    await waitFor(() => expect(onConverted).toHaveBeenCalled())
+  })
+
+  it('una proforma con cliente no pide elegir otro', () => {
+    open()
+    expect(
+      screen.queryByRole('combobox', { name: 'Cliente de la venta' }),
+    ).toBeNull()
+    expect(mocks.previewCustomers.at(-1)).toBeNull()
   })
 })

@@ -156,6 +156,14 @@ describe('ProformaDocument', () => {
     expect(sheetStyles).toMatch(/overflow-wrap: break-word/)
   })
 
+  it('sin cliente registrado la cotización omite ese bloque', () => {
+    render(<ProformaDocument data={data({ customer: null })} id={7} />)
+    const sheet = screen.getByRole('article', { name: 'Proforma' })
+    expect(within(sheet).queryByText('Cliente')).toBeNull()
+    expect(within(sheet).getByText('COM-PRO-000001')).toBeInTheDocument()
+    expect(within(sheet).getAllByText('USD 34.50').length).toBeGreaterThan(0)
+  })
+
   it('es la hoja para el cliente: sin disponibilidad, avisos internos ni pie de sistema', () => {
     render(<ProformaDocument data={data()} id={7} />)
     const text = screen.getByRole('article').textContent ?? ''

@@ -99,7 +99,8 @@ export interface ProformaSummary {
   state: ProformaState
   version: number
   internal_number: string | null
-  customer: ProformaCustomer
+  /** `null`: cotización sin cliente registrado. */
+  customer: ProformaCustomer | null
   issue_date: string | null
   valid_until: string | null
   base_total: string | null
@@ -128,7 +129,8 @@ export interface ProformaLineInput {
 }
 
 export interface ProformaInput {
-  customer_id: number
+  /** `null`: sin cliente; la venta lo exigirá al convertir. */
+  customer_id: number | null
   /** `null`: vigencia predeterminada de emisión más 7 días. */
   valid_until: string | null
   lines: ProformaLineInput[]
@@ -209,6 +211,8 @@ export interface ConversionPreview {
   proforma_id: number
   version: number
   can_convert: boolean
+  /** La proforma no tiene cliente: hay que elegir uno para crear la venta. */
+  requires_customer?: boolean
   blocked_by: { code: string; message: string } | null
   sale: LinkedSale | null
   issues: ProformaIssue[]
@@ -237,7 +241,7 @@ export interface ProformaDocument {
   valid_until: string
   issuer: ProformaIssuer
   has_logo: boolean
-  customer: ProformaCustomer
+  customer: ProformaCustomer | null
   lines: ProformaLine[]
   base_total: string
   tax_total: string

@@ -6127,6 +6127,11 @@ paths:
       description: Diferencias actuales respecto de lo cotizado; no crea venta ni
         recibo.
       parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+        description: Cliente de la venta cuando la proforma no tiene cliente.
       - in: path
         name: id
         schema:
@@ -6173,13 +6178,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReviewedCommand'
+              $ref: '#/components/schemas/Convert'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ReviewedCommand'
+              $ref: '#/components/schemas/Convert'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ReviewedCommand'
+              $ref: '#/components/schemas/Convert'
         required: true
       security:
       - cookieAuth: []
@@ -12391,6 +12396,10 @@ components:
           type: integer
         can_convert:
           type: boolean
+        requires_customer:
+          type: boolean
+          description: 'La proforma no tiene cliente: debe elegirse uno para crear
+            la venta.'
         blocked_by:
           allOf:
           - $ref: '#/components/schemas/Blocked'
@@ -12423,10 +12432,34 @@ components:
       - expires_in_seconds
       - issues
       - proforma_id
+      - requires_customer
       - review_token
       - sale
       - version
       - warnings
+    Convert:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        review_token:
+          type: string
+          description: Token de la revisión previa (15 minutos).
+        customer_id:
+          type: integer
+          minimum: 1
+          description: 'Obligatorio cuando la proforma no tiene cliente: es el cliente
+            de la venta.'
+      required:
+      - expected_version
+      - idempotency_key
+      - review_token
     CorrectionPreview:
       type: object
       properties:
@@ -12701,7 +12734,9 @@ components:
           type: boolean
           description: Si es verdadero, el logo histórico se obtiene en `document/logo/`.
         customer:
-          $ref: '#/components/schemas/Customer'
+          allOf:
+          - $ref: '#/components/schemas/Customer'
+          nullable: true
         lines:
           type: array
           items:
@@ -16138,6 +16173,7 @@ components:
         customer_id:
           type: integer
           minimum: 1
+          nullable: true
         valid_until:
           type: string
           format: date
@@ -16781,7 +16817,9 @@ components:
           type: string
           nullable: true
         customer:
-          $ref: '#/components/schemas/Customer'
+          allOf:
+          - $ref: '#/components/schemas/Customer'
+          nullable: true
         issue_date:
           type: string
           format: date
@@ -16996,7 +17034,9 @@ components:
           type: string
           nullable: true
         customer:
-          $ref: '#/components/schemas/Customer'
+          allOf:
+          - $ref: '#/components/schemas/Customer'
+          nullable: true
         issue_date:
           type: string
           format: date
@@ -17077,6 +17117,8 @@ components:
         customer_id:
           type: integer
           minimum: 1
+          nullable: true
+          description: 'Opcional: se puede cotizar sin cliente registrado.'
         valid_until:
           type: string
           format: date
@@ -17088,7 +17130,6 @@ components:
             $ref: '#/components/schemas/ProformaLineWrite'
           maxItems: 200
       required:
-      - customer_id
       - idempotency_key
     Purchase:
       type: object

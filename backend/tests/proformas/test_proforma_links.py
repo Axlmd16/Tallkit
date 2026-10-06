@@ -53,7 +53,7 @@ def offer_for(proforma: Proforma, *products: Any, quantity: str = "2") -> Profor
     return ProformaOffer(
         proforma_id=proforma.pk,
         number=proforma.internal_number or "",
-        customer_id=proforma.customer_id,
+        customer_id=proforma.customer_id or 0,
         issue_date=proforma.issue_date,  # type: ignore[arg-type]
         valid_until=proforma.valid_until,  # type: ignore[arg-type]
         lines=lines,

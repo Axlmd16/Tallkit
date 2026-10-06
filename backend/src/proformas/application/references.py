@@ -78,6 +78,7 @@ def read_view(
             )
     return build_view(
         customer=get_customer_reference(customer_id) if customer_id else None,
+        customer_id=customer_id,
         sources=sources,
         products=products,
         rates={pk: review.rate for pk, review in reviews.items()},

@@ -101,14 +101,14 @@ export function ProformaEditorPage() {
     (line) => line.quantity && !WHOLE.test(line.quantity),
   )
   const editable = !saved.data || saved.data.allowed_actions.includes('edit')
-  const canSave = Boolean(draft.customer) && !lineErrors && !saving && editable
+  const canSave = !lineErrors && !saving && editable
 
   async function save() {
     if (!canSave) return
     setSaving(true)
     setProblem(null)
     const data = {
-      customer_id: (draft.customer as { id: number }).id,
+      customer_id: draft.customer?.id ?? null,
       valid_until: draft.validUntil || null,
       lines: toInput(draft).lines ?? [],
     }
@@ -155,13 +155,11 @@ export function ProformaEditorPage() {
   const suggested = preview?.suggested_valid_until
   const actionNote = saving
     ? 'Guardando…'
-    : !draft.customer
-      ? 'Seleccione un cliente para guardar.'
-      : lineErrors
-        ? 'Corrija las cantidades para guardar.'
-        : dirty || !proformaId
-          ? 'Guarde el borrador para revisarlo y emitirlo.'
-          : 'Borrador guardado.'
+    : lineErrors
+      ? 'Corrija las cantidades para guardar.'
+      : dirty || !proformaId
+        ? 'Guarde el borrador para revisarlo y emitirlo.'
+        : 'Borrador guardado.'
 
   if (proformaId && saved.isPending) {
     return <LoadingState label="Cargando proforma…" />
@@ -266,7 +264,7 @@ export function ProformaEditorPage() {
             </div>
             <div className="sale-data-grid">
               <div className="sale-field">
-                <label htmlFor="proforma-customer">Cliente</label>
+                <label htmlFor="proforma-customer">Cliente (opcional)</label>
                 <Combobox
                   clearable
                   error={errors.customer_id}
@@ -274,7 +272,7 @@ export function ProformaEditorPage() {
                   inactiveHelp="El cliente está inactivo: no puede emitirse la proforma."
                   label="Cliente"
                   onSelect={(customer) => setDraft((d) => ({ ...d, customer }))}
-                  placeholder="Buscar por nombre o identificación"
+                  placeholder="Sin cliente; se pedirá al convertir en venta"
                   selected={draft.customer}
                   useOptions={useCustomerPickerOptions}
                 />

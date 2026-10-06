@@ -32,7 +32,7 @@ export const WHOLE = /^[1-9]\d*$/
 /** Solo cliente, vigencia, productos y cantidades viajan al servidor; nunca importes. */
 export function toInput(draft: ProformaDraft): Partial<ProformaInput> {
   return {
-    ...(draft.customer ? { customer_id: draft.customer.id } : {}),
+    customer_id: draft.customer?.id ?? null,
     valid_until: draft.validUntil || null,
     lines: draft.lines
       .filter((line) => line.product)
@@ -54,7 +54,9 @@ export function signature(draft: ProformaDraft): string {
 
 export function fromProforma(proforma: Proforma): ProformaDraft {
   return {
-    customer: { id: proforma.customer.id, label: proforma.customer.name },
+    customer: proforma.customer
+      ? { id: proforma.customer.id, label: proforma.customer.name }
+      : null,
     validUntil: proforma.valid_until ?? '',
     lines: proforma.lines.map((line) => ({
       key: crypto.randomUUID(),
