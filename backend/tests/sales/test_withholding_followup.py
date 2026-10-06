@@ -253,6 +253,11 @@ def test_history_lists_active_and_voided_withholdings(
     assert [row["state"] for row in history] == ["VOIDED", "ACTIVE"]
     assert history[0]["void_reason"] == "Registrada por error"
     assert history[1]["voucher_pending"] is True
+    from sales.application import sales as sales_service
+
+    detail = sales_service.get_sale(actor=seller, sale_id=held["sale_id"])
+    assert [row["state"] for row in detail["withholdings"]] == ["VOIDED", "ACTIVE"]
+    assert detail["money"]["withheld_total"] == "5.00"
 
 
 def test_refund_after_a_full_return_is_limited_to_the_money_collected(

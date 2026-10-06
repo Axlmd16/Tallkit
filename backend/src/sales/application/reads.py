@@ -323,6 +323,12 @@ def sale_detail(*, actor: User, sale_id: int, request_id: UUID | None = None) ->
                 }
                 for p in payments
             ]
+            detail["withholdings"] = [
+                queries.withholding_summary(item)
+                for item in CommercialWithholding.objects.filter(sale=sale).order_by(
+                    "effective_at", "id"
+                )
+            ]
             detail["refunds"] = [
                 {
                     "id": r.pk,
