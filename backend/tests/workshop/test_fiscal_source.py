@@ -120,3 +120,43 @@ def test_artisan_source_line_carries_the_service_code_and_not_the_database_id(
 
     assert line.service_code == "SRV-000042"
     assert line.service_code != str(service.pk)
+
+
+def test_artisan_withholding_is_never_a_payment_form(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from uuid import uuid4
+
+    from tests.workshop.workshop_helpers import key
+
+    from fiscal.domain.payment_suggestion import suggest_payment_forms
+    from fiscal.models import FiscalPreparation
+    from workshop.application import artisan_payments
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service(name="Motor").pk, applied_price="250.00")
+    operation = confirm_services(manager, order["id"], "CONTADO")
+    artisan_payments.register_payment(
+        actor=manager,
+        operation_id=operation["id"],
+        payload={
+            "operation_id": str(uuid4()),
+            "parts": [{"method": "EFECTIVO", "amount": "245.00"}],
+            "withholding": {"amount": "5.00"},
+            "idempotency_key": key(),
+        },
+    )
+    assert not FiscalPreparation.objects.exists()
+
+    source = read_fiscal_source(operation["id"])
+    assert {m: str(a) for m, a in source.collected_by_method.items()} == {"EFECTIVO": "245.00"}
+    suggestion = suggest_payment_forms(
+        total=source.grand_total,
+        collected=source.collected_by_method,
+        enabled_forms={"EFECTIVO": "01", "TRANSFERENCIA": "20"},
+        default_code="20",
+    )
+    assert {form.payment_code: form.amount for form in suggestion.forms} == {
+        "01": "245.00",
+        "20": "5.00",
+    }

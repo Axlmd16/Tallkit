@@ -135,12 +135,16 @@ Resultado registrado (2026-10-05): 327 pruebas en verde en `tests/workshop` (28 
 
 Dependencias: grupos 6 y 7. Diseño 8; spec `retenciones-recibidas-en-cobros`, «Independencia de la preparación fiscal».
 
-- [ ] 8.1 Añadir a `tests/sales/test_fiscal_source.py` y `tests/workshop/test_fiscal_source.py` casos que comprueben que una operación con retención sugiere y declara formas de pago por el total, sin una forma «retención», y que registrar una retención no exige preparación fiscal.
-- [ ] 8.2 Ajustar, solo si las pruebas lo exigen, la sugerencia de formas de pago para que ignore las retenciones.
-- [ ] 8.3 Regenerar `backend/schema.yml` y actualizar `tests/sales/test_openapi.py`, `tests/workshop/test_openapi.py` y el contrato de configuración y clientes.
-- [ ] 8.4 Verificar con pytest focalizado de los archivos de este grupo.
+- [x] 8.1 Añadir a `tests/sales/test_fiscal_source.py` y `tests/workshop/test_fiscal_source.py` casos que comprueben que una operación con retención sugiere y declara formas de pago por el total, sin una forma «retención», y que registrar una retención no exige preparación fiscal.
+- [x] 8.2 Ajustar, solo si las pruebas lo exigen, la sugerencia de formas de pago para que ignore las retenciones.
+- [x] 8.3 Regenerar `backend/schema.yml` y actualizar `tests/sales/test_openapi.py`, `tests/workshop/test_openapi.py` y el contrato de configuración y clientes.
+- [x] 8.4 Verificar con pytest focalizado de los archivos de este grupo.
 
 Evidencia del grupo: diff del contrato revisado y pruebas en verde.
+
+Resultado registrado (2026-10-05): 195 pruebas en verde en los archivos del grupo y en `tests/customer_registry`. Notas:
+- 8.2 no requirió cambios: la sugerencia de formas de pago solo lee partes de pago por medio, así que una retención nunca aparece; lo que el dinero no cubre se asigna a la forma predeterminada y la suma iguala el total del comprobante.
+- `backend/schema.yml` regenerado con `manage.py spectacular --validate`, sin advertencias: rutas nuevas de retenciones en ventas y taller, ajustes por entidad, `withholding` en el cobro y `is_withholding_agent` en clientes.
 
 ## 9. Frontend: cobro con retención y detalle
 

@@ -1390,6 +1390,105 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/fiscal/configuration/entities/{entity_id}/withholding-settings/:
+    get:
+      operationId: fiscal_configuration_entities_withholding_settings_retrieve
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalWithholdingSettings'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    put:
+      operationId: fiscal_configuration_entities_withholding_settings_update
+      parameters:
+      - in: path
+        name: entity_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Fiscal
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FiscalWithholdingSettingsWrite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FiscalWithholdingSettingsWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FiscalWithholdingSettingsWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalWithholdingSettings'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/fiscal/configuration/establishments/{establishment_id}/:
     patch:
       operationId: fiscal_configuration_establishments_partial_update
@@ -7023,6 +7122,227 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/sales/{id}/withholdings/:
+    get:
+      operationId: sales_withholding_list
+      description: Retenciones recibidas de la venta, vigentes y anuladas.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Withholding'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/withholdings/{withholding_id}/void/:
+    post:
+      operationId: sales_withholding_void
+      description: Anula la retención con motivo; su importe vuelve al saldo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoid'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Withholding'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/withholdings/{withholding_id}/voucher/:
+    post:
+      operationId: sales_withholding_voucher_complete
+      description: Completa por primera vez el comprobante; no cambia importe ni saldo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucher'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucher'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucher'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Withholding'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/{id}/withholdings/{withholding_id}/voucher-correction/:
+    post:
+      operationId: sales_withholding_voucher_correct
+      description: Corrige un comprobante ya completado y conserva los valores anteriores.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Sales
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucherCorrection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucherCorrection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WithholdingVoucherCorrection'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Withholding'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/sales/customer-options/:
     get:
       operationId: sales_customer_options
@@ -7233,6 +7553,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReceivablesPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/sales/withholdings/pending/:
+    get:
+      operationId: sales_withholdings_pending
+      description: Retenciones comerciales vigentes cuyo comprobante falta completar.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      tags:
+      - Sales
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PendingWithholdingsPage'
           description: ''
         '400':
           content:
@@ -7745,6 +8107,240 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceOperationVoidPreview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/withholdings/{withholding_id}/void/:
+    post:
+      operationId: artisan_withholding_void
+      description: Anula la retención con motivo; su importe vuelve al saldo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoid'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoid'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoid'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/withholdings/{withholding_id}/voucher/:
+    post:
+      operationId: artisan_withholding_voucher_complete
+      description: Completa por primera vez el comprobante; no cambia importe ni saldo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucher'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucher'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucher'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/{id}/withholdings/{withholding_id}/voucher-correction/:
+    post:
+      operationId: artisan_withholding_voucher_correct
+      description: Corrige un comprobante ya completado y conserva los valores anteriores.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: withholding_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Maintenance billing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucherCorrection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucherCorrection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ArtisanWithholdingVoucherCorrection'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOperation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/service-operations/withholdings/pending/:
+    get:
+      operationId: artisan_withholdings_pending
+      description: Retenciones artesanales vigentes cuyo comprobante falta completar.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      tags:
+      - Maintenance billing
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtisanPendingWithholdingsPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
           description: ''
         '403':
           content:
@@ -10310,15 +10906,21 @@ components:
         operation_id:
           type: string
           format: uuid
-          description: Identidad estable del cobro.
+          description: Identidad estable de la acción de cobro.
         parts:
           type: array
           items:
             $ref: '#/components/schemas/ArtisanPaymentPart'
+          description: Dinero recibido; opcional cuando solo se registra una retención.
+        withholding:
+          allOf:
+          - $ref: '#/components/schemas/ArtisanWithholdingInput'
+          nullable: true
+          description: 'Retención recibida: reduce el saldo sin ser dinero ni medio
+            de pago.'
       required:
       - idempotency_key
       - operation_id
-      - parts
     ArtisanPaymentPart:
       type: object
       properties:
@@ -10343,6 +10945,29 @@ components:
       required:
       - operation_id
       - parts
+    ArtisanPendingWithholdingsPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        total_count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        pending_total:
+          type: string
+          description: Suma de todas las coincidencias.
+      required:
+      - items
+      - page
+      - page_size
+      - pending_total
+      - total_count
     ArtisanReceivablePage:
       type: object
       properties:
@@ -10370,6 +10995,86 @@ components:
       - results
       - total_pages
       - totals
+    ArtisanWithholdingInput:
+      type: object
+      properties:
+        amount:
+          type: string
+          description: USD positivo con hasta dos decimales.
+        acknowledged:
+          type: boolean
+          description: Confirma una retención que supera el umbral de advertencia.
+      required:
+      - amount
+    ArtisanWithholdingVoid:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        reason:
+          type: string
+          maxLength: 500
+      required:
+      - idempotency_key
+      - reason
+    ArtisanWithholdingVoucher:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        voucher_number:
+          type: string
+          description: Formato NNN-NNN-NNNNNNNNN.
+        voucher_date:
+          type: string
+          format: date
+          description: No posterior a la fecha actual.
+        income_tax_amount:
+          type: string
+          nullable: true
+        vat_amount:
+          type: string
+          nullable: true
+      required:
+      - idempotency_key
+      - voucher_date
+      - voucher_number
+    ArtisanWithholdingVoucherCorrection:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        voucher_number:
+          type: string
+          description: Formato NNN-NNN-NNNNNNNNN.
+        voucher_date:
+          type: string
+          format: date
+          description: No posterior a la fecha actual.
+        income_tax_amount:
+          type: string
+          nullable: true
+        vat_amount:
+          type: string
+          nullable: true
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 500
+      required:
+      - idempotency_key
+      - operation_id
+      - reason
+      - voucher_date
+      - voucher_number
     AuditActor:
       type: object
       properties:
@@ -10710,6 +11415,9 @@ components:
         address:
           type: string
           default: ''
+        is_withholding_agent:
+          type: boolean
+          default: false
     CustomerMatchQuery:
       type: object
       properties:
@@ -10762,6 +11470,8 @@ components:
           type: string
         address:
           type: string
+        is_withholding_agent:
+          type: boolean
         is_active:
           type: boolean
         version:
@@ -10780,6 +11490,7 @@ components:
       - identification
       - identification_type
       - is_active
+      - is_withholding_agent
       - name
       - person_type
       - phone
@@ -12621,6 +13332,38 @@ components:
       - definition_id
       - source
       - starts_on
+    FiscalWithholdingSettings:
+      type: object
+      properties:
+        entity_id:
+          type: integer
+        version:
+          type: integer
+        registration_enabled:
+          type: boolean
+        warning_percentage:
+          type: string
+          nullable: true
+      required:
+      - entity_id
+      - registration_enabled
+      - version
+      - warning_percentage
+    FiscalWithholdingSettingsWrite:
+      type: object
+      description: Contrato que denuncia campos desconocidos en vez de descartarlos.
+      properties:
+        expected_version:
+          type: integer
+          minimum: 0
+        registration_enabled:
+          type: boolean
+        warning_percentage:
+          type: string
+          nullable: true
+          maxLength: 8
+      required:
+      - expected_version
     FlowEnum:
       enum:
       - SIMPLE
@@ -13497,6 +14240,12 @@ components:
           nullable: true
         expires_in_seconds:
           type: integer
+        warning:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: Porcentaje y umbral cuando la retención exige confirmación
+            explícita.
       required:
       - expires_in_seconds
       - issues
@@ -13893,6 +14642,8 @@ components:
           type: string
         address:
           type: string
+        is_withholding_agent:
+          type: boolean
     PatchedFiscalActiveUpdate:
       type: object
       description: Contrato que denuncia campos desconocidos en vez de descartarlos.
@@ -14307,6 +15058,11 @@ components:
           type: object
           additionalProperties: {}
           nullable: true
+        withholding:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: Retención registrada en la misma acción, si la hubo.
         money:
           type: object
           additionalProperties: {}
@@ -14321,6 +15077,7 @@ components:
       - parts
       - sale_id
       - state
+      - withholding
     PaymentPreview:
       type: object
       properties:
@@ -14332,11 +15089,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Part'
+          description: Dinero recibido; opcional cuando solo se registra una retención.
           maxItems: 2
-          minItems: 1
+        withholding:
+          allOf:
+          - $ref: '#/components/schemas/WithholdingInput'
+          nullable: true
+          description: 'Retención recibida: reduce el saldo sin ser dinero ni medio
+            de pago.'
       required:
       - operation_id
-      - parts
     PaymentWrite:
       type: object
       properties:
@@ -14352,15 +15114,43 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Part'
+          description: Dinero recibido; opcional cuando solo se registra una retención.
           maxItems: 2
-          minItems: 1
+        withholding:
+          allOf:
+          - $ref: '#/components/schemas/WithholdingInput'
+          nullable: true
+          description: 'Retención recibida: reduce el saldo sin ser dinero ni medio
+            de pago.'
         review_token:
           type: string
       required:
       - idempotency_key
       - operation_id
-      - parts
       - review_token
+    PendingWithholdingsPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        total_count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        pending_total:
+          type: string
+          description: Suma de todas las coincidencias.
+      required:
+      - items
+      - page
+      - page_size
+      - pending_total
+      - total_count
     Problem:
       type: object
       properties:
@@ -16523,6 +17313,153 @@ components:
       - is_active
       - name
       - version
+    Withholding:
+      type: object
+      properties:
+        id:
+          type: integer
+        operation_id:
+          type: string
+          format: uuid
+        sale_id:
+          type: integer
+        payment_id:
+          type: integer
+          nullable: true
+        amount:
+          type: string
+        effective_at:
+          type: string
+          format: date-time
+        effective_date:
+          type: string
+          format: date
+        state:
+          type: string
+          description: 'Valores: ACTIVE, VOIDED.'
+        void_reason:
+          type: string
+          nullable: true
+        voided_at:
+          type: string
+          format: date-time
+          nullable: true
+        voucher_pending:
+          type: boolean
+        voucher_number:
+          type: string
+          nullable: true
+        voucher_date:
+          type: string
+          format: date
+          nullable: true
+        income_tax_amount:
+          type: string
+          nullable: true
+        vat_amount:
+          type: string
+          nullable: true
+        money:
+          type: object
+          additionalProperties: {}
+      required:
+      - amount
+      - effective_at
+      - effective_date
+      - id
+      - income_tax_amount
+      - operation_id
+      - payment_id
+      - sale_id
+      - state
+      - vat_amount
+      - void_reason
+      - voided_at
+      - voucher_date
+      - voucher_number
+      - voucher_pending
+    WithholdingInput:
+      type: object
+      properties:
+        amount:
+          type: string
+          description: USD positivo, hasta 2 decimales, como cadena.
+        acknowledged:
+          type: boolean
+          description: Confirma una retención que supera el umbral de advertencia.
+      required:
+      - amount
+    WithholdingVoid:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - idempotency_key
+      - reason
+    WithholdingVoucher:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        voucher_number:
+          type: string
+          description: Formato NNN-NNN-NNNNNNNNN.
+        voucher_date:
+          type: string
+          format: date
+          description: No posterior a la fecha actual.
+        income_tax_amount:
+          type: string
+          nullable: true
+        vat_amount:
+          type: string
+          nullable: true
+      required:
+      - idempotency_key
+      - voucher_date
+      - voucher_number
+    WithholdingVoucherCorrection:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        voucher_number:
+          type: string
+          description: Formato NNN-NNN-NNNNNNNNN.
+        voucher_date:
+          type: string
+          format: date
+          description: No posterior a la fecha actual.
+        income_tax_amount:
+          type: string
+          nullable: true
+        vat_amount:
+          type: string
+          nullable: true
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+      required:
+      - idempotency_key
+      - operation_id
+      - reason
+      - voucher_date
+      - voucher_number
   securitySchemes:
     cookieAuth:
       type: apiKey

@@ -98,3 +98,32 @@ def test_collected_by_method_counts_only_current_payments(confirmed_sale: Any, s
     }
     with pytest.raises(TypeError):
         collected["EFECTIVO"] = 0  # type: ignore[index]
+
+
+def test_withholding_is_never_a_payment_form_and_needs_no_preparation(
+    confirmed_sale: Any, seller: Any
+) -> None:
+    from fiscal.domain.payment_suggestion import suggest_payment_forms
+    from fiscal.models import FiscalPreparation
+    from sales.application.fiscal_source import read_fiscal_source
+
+    from .test_withholdings import parts, settle
+
+    built = confirmed_sale(price="250.00")
+    settle(seller, built["id"], parts(transfer="245.00"), "5.00")
+    assert not FiscalPreparation.objects.exists()
+
+    source = read_fiscal_source(built["id"])
+    assert {m: str(a) for m, a in source.collected_by_method.items()} == {"TRANSFERENCIA": "245.00"}
+    assert source.grand_total == "250.00"
+    suggestion = suggest_payment_forms(
+        total=source.grand_total,
+        collected=source.collected_by_method,
+        enabled_forms={"EFECTIVO": "01", "TRANSFERENCIA": "20"},
+        default_code="01",
+    )
+    assert {form.payment_code: form.amount for form in suggestion.forms} == {
+        "01": "5.00",
+        "20": "245.00",
+    }
+    assert sum(float(form.amount) for form in suggestion.forms) == 250.0
