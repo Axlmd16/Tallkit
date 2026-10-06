@@ -7,6 +7,11 @@ from sales.api import views as v
 urlpatterns: list[URLPattern | URLResolver] = [
     path("draft-preview/", v.DraftPreviewView.as_view(), name="sale-draft-preview"),
     path("receivables/", v.ReceivablesView.as_view(), name="sale-receivables"),
+    path(
+        "withholdings/pending/",
+        v.PendingWithholdingsView.as_view(),
+        name="sale-withholdings-pending",
+    ),
     path("customer-options/", v.CustomerOptionsView.as_view(), name="sale-customer-options"),
     path("product-options/", v.ProductOptionsView.as_view(), name="sale-product-options"),
     path(
@@ -30,6 +35,22 @@ urlpatterns: list[URLPattern | URLResolver] = [
         "<int:pk>/payments/<int:payment_id>/correct/",
         v.CorrectionView.as_view(),
         name="sale-correct",
+    ),
+    path("<int:pk>/withholdings/", v.WithholdingListView.as_view(), name="sale-withholdings"),
+    path(
+        "<int:pk>/withholdings/<int:withholding_id>/voucher/",
+        v.WithholdingVoucherView.as_view(),
+        name="sale-withholding-voucher",
+    ),
+    path(
+        "<int:pk>/withholdings/<int:withholding_id>/voucher-correction/",
+        v.WithholdingVoucherCorrectionView.as_view(),
+        name="sale-withholding-voucher-correction",
+    ),
+    path(
+        "<int:pk>/withholdings/<int:withholding_id>/void/",
+        v.WithholdingVoidView.as_view(),
+        name="sale-withholding-void",
     ),
     path("<int:pk>/returns/", v.ReturnListCreateView.as_view(), name="sale-returns"),
     path("<int:pk>/returns/preview/", v.ReturnPreviewView.as_view(), name="sale-return-preview"),

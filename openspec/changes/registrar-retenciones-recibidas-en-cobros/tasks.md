@@ -87,17 +87,24 @@ Resultado registrado (2026-10-05): rojo por `ImportError` y por campos inexisten
 
 Dependencias: grupo 5. Diseño 5; specs `retenciones-recibidas-en-cobros` y `correcciones-de-ventas-y-reembolsos`.
 
-- [ ] 6.1 Escribir primero casos rojos en `tests/sales/test_withholdings.py`: completar comprobante válido, desglose que no suma, formato inválido, fecha futura, número repetido para el mismo cliente, completar una retención anulada, corrección posterior solo por Administrador con motivo e historia.
-- [ ] 6.2 Implementar `sales/application/withholdings.py` (completar y corregir comprobante) con `execute_write`, permisos `pagos_comerciales.registrar` y `.anular`, e idempotencia; hacer pasar 6.1.
-- [ ] 6.3 Escribir primero casos rojos de anulación: motivo vacío, denegación a Vendedor, saldo que reaparece, liberación del número y retención anulada que no se reactiva; implementar hasta verde.
-- [ ] 6.4 Escribir primero casos rojos de la lista de pendientes en `tests/sales/test_queries.py`: solo vigentes sin número, solo ámbito comercial, paginación estable, total del conjunto y salida al completarse; implementar la consulta.
-- [ ] 6.5 Añadir a `tests/sales/test_refunds.py` y `test_returns.py` casos rojos: devolución total con retención (reembolso limitado al dinero y retención en exceso visible), intento de reembolsar el total y resolución al anular la retención; ajustar proyecciones hasta verde sin cambiar la regla de `refunds.py`.
-- [ ] 6.6 Añadir a `tests/sales/test_void.py` el bloqueo de la anulación de una venta con retenciones vigentes e implementarlo en `sales/application/voids.py`.
-- [ ] 6.7 Incluir las retenciones en el historial de la venta (`tests/sales/test_history.py`) con vigencia, situación del comprobante y motivo de anulación.
-- [ ] 6.8 Exponer las rutas del diseño 8 en `sales/api` con casos en `tests/sales/test_api.py` y `test_authorization.py`.
-- [ ] 6.9 Verificar con pytest focalizado de `tests/sales`, Ruff y mypy sobre `src/sales`.
+- [x] 6.1 Escribir primero casos rojos en `tests/sales/test_withholdings.py`: completar comprobante válido, desglose que no suma, formato inválido, fecha futura, número repetido para el mismo cliente, completar una retención anulada, corrección posterior solo por Administrador con motivo e historia.
+- [x] 6.2 Implementar `sales/application/withholdings.py` (completar y corregir comprobante) con `execute_write`, permisos `pagos_comerciales.registrar` y `.anular`, e idempotencia; hacer pasar 6.1.
+- [x] 6.3 Escribir primero casos rojos de anulación: motivo vacío, denegación a Vendedor, saldo que reaparece, liberación del número y retención anulada que no se reactiva; implementar hasta verde.
+- [x] 6.4 Escribir primero casos rojos de la lista de pendientes en `tests/sales/test_queries.py`: solo vigentes sin número, solo ámbito comercial, paginación estable, total del conjunto y salida al completarse; implementar la consulta.
+- [x] 6.5 Añadir a `tests/sales/test_refunds.py` y `test_returns.py` casos rojos: devolución total con retención (reembolso limitado al dinero y retención en exceso visible), intento de reembolsar el total y resolución al anular la retención; ajustar proyecciones hasta verde sin cambiar la regla de `refunds.py`.
+- [x] 6.6 Añadir a `tests/sales/test_void.py` el bloqueo de la anulación de una venta con retenciones vigentes e implementarlo en `sales/application/voids.py`.
+- [x] 6.7 Incluir las retenciones en el historial de la venta (`tests/sales/test_history.py`) con vigencia, situación del comprobante y motivo de anulación.
+- [x] 6.8 Exponer las rutas del diseño 8 en `sales/api` con casos en `tests/sales/test_api.py` y `test_authorization.py`.
+- [x] 6.9 Verificar con pytest focalizado de `tests/sales`, Ruff y mypy sobre `src/sales`.
 
 Evidencia del grupo: pruebas en verde con su salida.
+
+Resultado registrado (2026-10-05): 593 pruebas en verde en `tests/sales` (17 nuevas en `test_withholding_followup.py` y 3 de API en `test_api.py`); Ruff y mypy sin hallazgos en `src/sales`. Notas:
+- En este grupo el servicio `sales/application/withholdings.py` se escribió antes que sus pruebas, por lo que no hubo fase roja registrada; las pruebas cubren después cada escenario de las specs.
+- Las pruebas de comprobante, anulación, lista de pendientes, historial, devolución con retención y bloqueo de la anulación de la venta están reunidas en `tests/sales/test_withholding_followup.py`.
+- `refunds.py` no cambió: el exceso reembolsable ya sale limitado del núcleo monetario. `voids.py` rechaza con `dependency_conflict` y nombra cada retención vigente.
+- Rutas nuevas: `GET sales/withholdings/pending/`, `GET sales/{id}/withholdings/` y `POST …/withholdings/{wid}/voucher/`, `…/voucher-correction/` y `…/void/`. La consulta de estado de operación devuelve `withholding` cuando la acción no incluyó dinero.
+- La corrección de un comprobante exige `operation_id` propio; completar y anular se apoyan en la clave de idempotencia del comando.
 
 ## 7. Retenciones artesanales
 

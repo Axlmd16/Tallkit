@@ -46,6 +46,11 @@ def _customer(sale: Sale) -> dict[str, Any]:
     }
 
 
+def customer_of(sale: Sale) -> dict[str, Any]:
+    """Cliente histórico de la venta para listados de otros hechos comerciales."""
+    return _customer(sale)
+
+
 def returned_by_line(sale: Sale) -> dict[int, Decimal]:
     """Cantidad total devuelta (apta y no apta) por línea, en una sola consulta."""
     rows = (

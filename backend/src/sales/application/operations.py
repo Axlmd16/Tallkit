@@ -11,7 +11,13 @@ from identity.application.authorization import require_permission
 from identity.models import User
 from sales.application.errors import not_found
 from sales.application.projection import project
-from sales.models import CommercialPayment, CommercialRefund, PaymentCorrection, SaleReturn
+from sales.models import (
+    CommercialPayment,
+    CommercialRefund,
+    CommercialWithholding,
+    PaymentCorrection,
+    SaleReturn,
+)
 
 
 def operation_status(
@@ -22,6 +28,11 @@ def operation_status(
     if payment is not None:
         _authorize(actor, "pagos_comerciales.ver", str(operation_id), request_id)
         return {"kind": "payment", "id": payment.pk, "result": project("payment", payment.pk)}
+    held = CommercialWithholding.objects.filter(operation_id=operation_id).first()
+    if held is not None:
+        # Retención registrada sin dinero: el hecho de esa identidad es la propia retención.
+        _authorize(actor, "pagos_comerciales.ver", str(operation_id), request_id)
+        return {"kind": "withholding", "id": held.pk, "result": project("withholding", held.pk)}
     correction = PaymentCorrection.objects.filter(operation_id=operation_id).first()
     if correction is not None:
         _authorize(actor, "pagos_comerciales.ver", str(operation_id), request_id)

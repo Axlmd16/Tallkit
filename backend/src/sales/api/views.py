@@ -31,6 +31,7 @@ from sales.application import (
     reviews,
     sales,
     voids,
+    withholdings,
 )
 from sales.application.commands import CommandOutcome, IdempotencyConflictError
 from sales.application.errors import SalesApplicationError
@@ -437,6 +438,123 @@ class CorrectionView(_SalesView):
                 actor=_actor(request),
                 sale_id=pk,
                 payment_id=payment_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class WithholdingListView(_SalesView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "pagos_comerciales.ver"}
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="sales_withholding_list",
+        responses={
+            200: sz.WithholdingSerializer(many=True),
+            403: ProblemSerializer,
+            **_NOT_FOUND,
+        },
+        description="Retenciones recibidas de la venta, vigentes y anuladas.",
+    )
+    def get(self, request: Request, pk: int) -> Response:
+        return _respond(
+            request, lambda: withholdings.withholding_history(actor=_actor(request), sale_id=pk)
+        )
+
+
+class PendingWithholdingsView(_SalesView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "pagos_comerciales.ver"}
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="sales_withholdings_pending",
+        parameters=[OpenApiParameter("customer_id", OpenApiTypes.INT), *_PAGE_PARAMS],
+        responses={
+            200: sz.PendingWithholdingsPageSerializer,
+            400: ProblemSerializer,
+            403: ProblemSerializer,
+        },
+        description="Retenciones comerciales vigentes cuyo comprobante falta completar.",
+    )
+    def get(self, request: Request) -> Response:
+        return _respond(
+            request,
+            lambda: withholdings.pending_vouchers(
+                actor=_actor(request),
+                customer_id=_int(request, "customer_id", minimum=1),
+                request_id=request_id_from(request),
+                **_page_args(request),
+            ),
+        )
+
+
+class WithholdingVoucherView(_SalesView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_comerciales.registrar"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="sales_withholding_voucher_complete",
+        request=sz.WithholdingVoucherSerializer,
+        responses={200: sz.WithholdingSerializer, **_NOT_FOUND, **_PROBLEMS},
+        description="Completa por primera vez el comprobante; no cambia importe ni saldo.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: withholdings.complete_voucher(
+                actor=_actor(request),
+                sale_id=pk,
+                withholding_id=withholding_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class WithholdingVoucherCorrectionView(_SalesView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_comerciales.anular"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="sales_withholding_voucher_correct",
+        request=sz.WithholdingVoucherCorrectionSerializer,
+        responses={200: sz.WithholdingSerializer, **_NOT_FOUND, **_PROBLEMS},
+        description="Corrige un comprobante ya completado y conserva los valores anteriores.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: withholdings.correct_voucher(
+                actor=_actor(request),
+                sale_id=pk,
+                withholding_id=withholding_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class WithholdingVoidView(_SalesView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_comerciales.anular"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="sales_withholding_void",
+        request=sz.WithholdingVoidSerializer,
+        responses={200: sz.WithholdingSerializer, **_NOT_FOUND, **_PROBLEMS},
+        description="Anula la retención con motivo; su importe vuelve al saldo.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: withholdings.void_withholding(
+                actor=_actor(request),
+                sale_id=pk,
+                withholding_id=withholding_id,
                 payload=_body(request),
                 request_id=request_id_from(request),
             ),

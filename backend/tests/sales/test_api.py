@@ -673,3 +673,119 @@ class TestErrors:
         assert Sale.objects.count() == 0
         assert CommercialPayment.objects.count() == 0
         assert InventoryMovement.objects.count() == 0
+
+
+class TestWithholdingRoutes:
+    def test_charge_with_withholding_voucher_void_and_pending_list(
+        self, api: APIClient, seller_api: APIClient, customer: Any, stocked: Any
+    ) -> None:
+        sale = confirmed(seller_api, made(seller_api, customer, stocked, quantity="1"))
+        total = sale["grand_total"]
+        withheld = "2.00"
+        money = f"{float(total) - 2:.2f}"
+        data = {
+            "operation_id": str(uuid.uuid4()),
+            "parts": [{"method": "TRANSFERENCIA", "amount": money}],
+            "withholding": {"amount": withheld},
+        }
+        review = seller_api.post(f"{BASE}{sale['id']}/payments/preview/", data, format="json")
+        assert review.status_code == 200
+        assert review.json()["warning"] is None
+        created = seller_api.post(
+            f"{BASE}{sale['id']}/payments/",
+            {**data, "idempotency_key": key("wh"), "review_token": review.json()["review_token"]},
+            format="json",
+        )
+        assert created.status_code == 201, created.content
+        body = created.json()
+        assert body["withholding"]["amount"] == withheld
+        assert body["money"]["withheld_total"] == withheld
+        assert body["money"]["balance"] == "0.00"
+        withholding_id = body["withholding"]["id"]
+
+        status = seller_api.get(f"{BASE}operations/{data['operation_id']}/")
+        assert status.status_code == 200
+        assert status.json()["kind"] == "payment"
+
+        pending = seller_api.get(f"{BASE}withholdings/pending/")
+        assert pending.status_code == 200
+        assert pending.json()["pending_total"] == withheld
+        assert pending.json()["items"][0]["id"] == withholding_id
+
+        route = f"{BASE}{sale['id']}/withholdings/{withholding_id}/"
+        voucher = {
+            "voucher_number": "001-001-000028564",
+            "voucher_date": reviews.today().isoformat(),
+        }
+        bad = seller_api.post(
+            f"{route}voucher/",
+            {**voucher, "voucher_number": "1-1-1", "idempotency_key": key("wh")},
+            format="json",
+        )
+        assert bad.status_code == 400
+        done = seller_api.post(
+            f"{route}voucher/", {**voucher, "idempotency_key": key("wh")}, format="json"
+        )
+        assert done.status_code == 200
+        assert done.json()["voucher_pending"] is False
+        assert seller_api.get(f"{BASE}withholdings/pending/").json()["total_count"] == 0
+
+        correction = {
+            **voucher,
+            "voucher_number": "001-001-000000002",
+            "operation_id": str(uuid.uuid4()),
+            "reason": "Número mal digitado",
+            "idempotency_key": key("wh"),
+        }
+        denied = seller_api.post(f"{route}voucher-correction/", correction, format="json")
+        assert denied.status_code == 403
+        corrected = api.post(f"{route}voucher-correction/", correction, format="json")
+        assert corrected.status_code == 200
+        assert corrected.json()["voucher_number"] == "001-001-000000002"
+
+        void_body = {"reason": "Registrada por error", "idempotency_key": key("wh")}
+        assert seller_api.post(f"{route}void/", void_body, format="json").status_code == 403
+        voided = api.post(f"{route}void/", void_body, format="json")
+        assert voided.status_code == 200
+        assert voided.json()["state"] == "VOIDED"
+        assert voided.json()["money"]["balance"] == withheld
+
+        history = seller_api.get(f"{BASE}{sale['id']}/withholdings/")
+        assert [row["state"] for row in history.json()] == ["VOIDED"]
+        again = api.post(
+            f"{route}void/", {**void_body, "idempotency_key": key("wh")}, format="json"
+        )
+        assert again.status_code == 409
+
+    def test_withholding_alone_warning_and_operation_status(
+        self, seller_api: APIClient, customer: Any, stocked: Any
+    ) -> None:
+        sale = confirmed(
+            seller_api, made(seller_api, customer, stocked, quantity="1", condition="CREDITO")
+        )
+        amount = f"{float(sale['grand_total']) / 2:.2f}"
+        data = {"operation_id": str(uuid.uuid4()), "withholding": {"amount": amount}}
+        review = seller_api.post(f"{BASE}{sale['id']}/payments/preview/", data, format="json")
+        assert review.json()["can_register"] is False
+        assert review.json()["issues"][0]["code"] == "withholding_warning"
+        assert review.json()["warning"]["percentage"] == "20.00"
+        rejected = seller_api.post(
+            f"{BASE}{sale['id']}/payments/", {**data, "idempotency_key": key("wh")}, format="json"
+        )
+        assert rejected.status_code == 409
+        assert rejected.json()["code"] == "withholding_warning"
+
+        data["withholding"]["acknowledged"] = True
+        review = seller_api.post(f"{BASE}{sale['id']}/payments/preview/", data, format="json")
+        created = seller_api.post(
+            f"{BASE}{sale['id']}/payments/",
+            {**data, "idempotency_key": key("wh"), "review_token": review.json()["review_token"]},
+            format="json",
+        )
+        assert created.status_code == 201, created.content
+        assert created.json()["payment_id"] is None
+        status = seller_api.get(f"{BASE}operations/{data['operation_id']}/")
+        assert status.json()["kind"] == "withholding"
+
+    def test_pending_list_is_denied_without_the_permission(self, actor: Any) -> None:
+        assert client_for(actor).get(f"{BASE}withholdings/pending/").status_code == 403

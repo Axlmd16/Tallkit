@@ -36,7 +36,7 @@ from sales.application.projection import project
 from sales.application.refunds import insert_refund
 from sales.application.sales import lock_sale
 from sales.domain.balances import PaymentMethod
-from sales.models import Sale, SaleReturn, SaleVoid
+from sales.models import CommercialWithholding, Sale, SaleReturn, SaleVoid
 from shared.command_values import canonical_fingerprint
 
 VOID_ACTION = "sale.void"
@@ -106,6 +106,21 @@ def evaluate_void(sale: Sale, ledger: Ledger, refund: RefundInput | None) -> Non
         raise SalesApplicationError("not_editable", "Un borrador no se anula.")
     if sale.state != "CONFIRMED":
         raise SalesApplicationError("invalid_state", "La venta ya está anulada.")
+    held = list(
+        CommercialWithholding.objects.filter(sale=sale, voided_at__isnull=True)
+        .order_by("id")
+        .values_list("pk", flat=True)
+    )
+    if held:
+        guidance = (
+            "La venta tiene retenciones recibidas vigentes; anúlelas con motivo antes de "
+            "anular la venta."
+        )
+        raise SalesApplicationError(
+            "dependency_conflict",
+            guidance,
+            {"withholdings": [f"Retención {pk} vigente." for pk in held]},
+        )
     if SaleReturn.objects.filter(sale=sale).exists():
         guidance = (
             "La venta tiene devoluciones confirmadas; no puede anularse. Limite las "

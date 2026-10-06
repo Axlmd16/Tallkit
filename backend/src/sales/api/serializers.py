@@ -69,8 +69,25 @@ class PartSerializer(_Base):
     amount = serializers.CharField(help_text="USD positivo, hasta 2 decimales, como cadena.")
 
 
+class WithholdingInputSerializer(_Base):
+    amount = serializers.CharField(help_text="USD positivo, hasta 2 decimales, como cadena.")
+    acknowledged = serializers.BooleanField(
+        required=False, help_text="Confirma una retención que supera el umbral de advertencia."
+    )
+
+
 class PaymentPreviewSerializer(OperationFields):
-    parts = serializers.ListField(child=PartSerializer(), min_length=1, max_length=MAX_PARTS)
+    parts = serializers.ListField(
+        child=PartSerializer(),
+        max_length=MAX_PARTS,
+        required=False,
+        help_text="Dinero recibido; opcional cuando solo se registra una retención.",
+    )
+    withholding = WithholdingInputSerializer(
+        required=False,
+        allow_null=True,
+        help_text="Retención recibida: reduce el saldo sin ser dinero ni medio de pago.",
+    )
 
 
 class PaymentWriteSerializer(CommandFields, PaymentPreviewSerializer):
@@ -213,6 +230,11 @@ class MoneyReviewSerializer(_Base):
     issues = serializers.ListField(child=serializers.DictField())
     review_token = serializers.CharField(allow_null=True)
     expires_in_seconds = serializers.IntegerField()
+    warning = serializers.DictField(
+        required=False,
+        allow_null=True,
+        help_text="Porcentaje y umbral cuando la retención exige confirmación explícita.",
+    )
 
 
 class PaymentSerializer(_Base):
@@ -225,7 +247,53 @@ class PaymentSerializer(_Base):
     effective_date = serializers.DateField()
     state = serializers.CharField(help_text="Valores: ACTIVE, CORRECTED.")
     correction = serializers.DictField(allow_null=True)
+    withholding = serializers.DictField(
+        allow_null=True, help_text="Retención registrada en la misma acción, si la hubo."
+    )
     money = serializers.DictField()
+
+
+class WithholdingSerializer(_Base):
+    id = serializers.IntegerField()
+    operation_id = serializers.UUIDField()
+    sale_id = serializers.IntegerField()
+    payment_id = serializers.IntegerField(allow_null=True)
+    amount = serializers.CharField()
+    effective_at = serializers.DateTimeField()
+    effective_date = serializers.DateField()
+    state = serializers.CharField(help_text="Valores: ACTIVE, VOIDED.")
+    void_reason = serializers.CharField(allow_null=True)
+    voided_at = serializers.DateTimeField(allow_null=True)
+    voucher_pending = serializers.BooleanField()
+    voucher_number = serializers.CharField(allow_null=True)
+    voucher_date = serializers.DateField(allow_null=True)
+    income_tax_amount = serializers.CharField(allow_null=True)
+    vat_amount = serializers.CharField(allow_null=True)
+    money = serializers.DictField(required=False)
+
+
+class WithholdingVoucherSerializer(CommandFields):
+    voucher_number = serializers.CharField(help_text="Formato NNN-NNN-NNNNNNNNN.")
+    voucher_date = serializers.DateField(help_text="No posterior a la fecha actual.")
+    income_tax_amount = serializers.CharField(required=False, allow_null=True)
+    vat_amount = serializers.CharField(required=False, allow_null=True)
+
+
+class WithholdingVoucherCorrectionSerializer(WithholdingVoucherSerializer):
+    operation_id = serializers.UUIDField()
+    reason = serializers.CharField(min_length=1, max_length=REASON_MAX)
+
+
+class WithholdingVoidSerializer(CommandFields):
+    reason = serializers.CharField(min_length=1, max_length=REASON_MAX)
+
+
+class PendingWithholdingsPageSerializer(_Base):
+    items = serializers.ListField(child=serializers.DictField())
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    pending_total = serializers.CharField(help_text="Suma de todas las coincidencias.")
 
 
 class ReturnSerializer(_Base):
