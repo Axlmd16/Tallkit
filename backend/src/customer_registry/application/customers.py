@@ -16,6 +16,7 @@ from customer_registry.domain.validation import (
     validate_name,
     validate_person_type,
     validate_phone,
+    validate_withholding_agent,
 )
 from customer_registry.models import Customer
 from identity.application.audit import record_audit_event
@@ -101,6 +102,7 @@ def create_customer(
                 phone=norm.phone,
                 email=norm.email,
                 address=norm.address,
+                is_withholding_agent=norm.is_withholding_agent,
                 is_active=True,
                 version=1,
             )
@@ -174,6 +176,7 @@ def update_customer(
             new_phone = customer.phone
             new_email = customer.email
             new_address = customer.address
+            new_withholding_agent = customer.is_withholding_agent
 
             if "person_type" in data and data["person_type"] is not None:
                 parsed_pt = validate_person_type(data["person_type"])
@@ -219,6 +222,12 @@ def update_customer(
                     new_address = parsed_address
                     changed_fields.append("address")
 
+            if "is_withholding_agent" in data:
+                parsed_flag = validate_withholding_agent(data["is_withholding_agent"])
+                if parsed_flag != customer.is_withholding_agent:
+                    new_withholding_agent = parsed_flag
+                    changed_fields.append("is_withholding_agent")
+
             if not changed_fields:
                 return customer
 
@@ -251,6 +260,7 @@ def update_customer(
             customer.phone = new_phone
             customer.email = new_email
             customer.address = new_address
+            customer.is_withholding_agent = new_withholding_agent
             customer.version += 1
             customer.save()
 

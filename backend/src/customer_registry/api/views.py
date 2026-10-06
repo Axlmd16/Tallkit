@@ -96,6 +96,7 @@ def _serialize_customer(customer: Customer | CustomerSummary) -> dict[str, objec
         "phone": customer.phone,
         "email": customer.email,
         "address": customer.address,
+        "is_withholding_agent": customer.is_withholding_agent,
         "is_active": customer.is_active,
         "version": customer.version,
         "created_at": customer.created_at.isoformat(),

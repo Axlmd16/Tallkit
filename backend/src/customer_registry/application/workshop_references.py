@@ -5,6 +5,7 @@ bloqueo sigue el orden de la transferencia de propiedad (cliente → vehículo �
 y exige la transacción exterior del consumidor.
 """
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 from django.db import transaction
@@ -158,3 +159,10 @@ def get_active_states(
     customers = dict(Customer.objects.filter(pk__in=customer_ids).values_list("pk", "is_active"))
     vehicles = dict(Vehicle.objects.filter(pk__in=vehicle_ids).values_list("pk", "is_active"))
     return customers, vehicles
+
+
+def customer_withholding_flags(customer_ids: Iterable[int]) -> dict[int, bool]:
+    """Marca vigente de agente de retención por cliente; solo orienta la pantalla de cobro."""
+    return dict(
+        Customer.objects.filter(pk__in=set(customer_ids)).values_list("pk", "is_withholding_agent")
+    )

@@ -20,6 +20,7 @@ class CustomerSummary:
     phone: str
     email: str
     address: str
+    is_withholding_agent: bool
     is_active: bool
     version: int
     created_at: datetime
@@ -82,6 +83,7 @@ def search_customers(
             phone=customer.phone,
             email=customer.email,
             address=customer.address,
+            is_withholding_agent=customer.is_withholding_agent,
             is_active=customer.is_active,
             version=customer.version,
             created_at=customer.created_at,

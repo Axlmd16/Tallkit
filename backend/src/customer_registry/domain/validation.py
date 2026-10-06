@@ -31,6 +31,7 @@ class NormalizedCustomerData:
     phone: str
     email: str = ""
     address: str = ""
+    is_withholding_agent: bool = False
 
 
 _EMAIL_REGEX = re.compile(
@@ -151,6 +152,16 @@ def validate_email(email: Any) -> str:
     return stripped
 
 
+def validate_withholding_agent(value: Any) -> bool:
+    """Marca declarada a mano; solo admite verdadero o falso."""
+    if not isinstance(value, bool):
+        raise CustomerValidationError(
+            "La marca de agente de retención no es válida.",
+            errors={"is_withholding_agent": ["Indique sí o no."]},
+        )
+    return value
+
+
 def validate_address(address: Any) -> str:
     if address is None:
         return ""
@@ -236,6 +247,15 @@ def validate_and_normalize_customer(data: Mapping[str, Any]) -> NormalizedCustom
         for field, errs in exc.errors.items():
             errors[field].extend(errs)
 
+    # 8. marca de agente de retención (opcional, falso por defecto)
+    is_withholding_agent = False
+    if "is_withholding_agent" in data:
+        try:
+            is_withholding_agent = validate_withholding_agent(data.get("is_withholding_agent"))
+        except CustomerValidationError as exc:
+            for field, errs in exc.errors.items():
+                errors[field].extend(errs)
+
     if errors:
         raise CustomerValidationError(
             "Datos de cliente inválidos.",
@@ -253,6 +273,7 @@ def validate_and_normalize_customer(data: Mapping[str, Any]) -> NormalizedCustom
         phone=phone,
         email=email,
         address=address,
+        is_withholding_agent=is_withholding_agent,
     )
 
 

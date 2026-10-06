@@ -24,6 +24,7 @@ class CustomerReference:
     email: str
     address: str
     is_active: bool
+    is_withholding_agent: bool = False
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,7 @@ def _reference(customer: Customer) -> CustomerReference:
         email=customer.email,
         address=customer.address,
         is_active=customer.is_active,
+        is_withholding_agent=customer.is_withholding_agent,
     )
 
 

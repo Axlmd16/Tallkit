@@ -19,6 +19,8 @@ class Customer(models.Model):
     phone = models.CharField(max_length=64)
     email = models.CharField(max_length=254, blank=True, default="")
     address = models.CharField(max_length=1024, blank=True, default="")
+    # Declaración manual; orienta el cobro y no se verifica ante el SRI.
+    is_withholding_agent = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     version = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)

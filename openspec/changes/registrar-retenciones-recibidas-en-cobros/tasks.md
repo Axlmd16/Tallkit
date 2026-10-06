@@ -44,18 +44,20 @@ Dependencias: grupo 2. Diseño 4 y 6; spec `configuracion-operativa-y-fiscal`, �
 
 Evidencia del grupo: pruebas en verde, chequeo de migraciones sin pendientes.
 
-Resultado registrado (2026-10-05): rojo por `ImportError` (el servicio y el modelo no existían); verde con 21 pruebas en `test_withholding_settings.py` y 32 en `tests/fiscal/test_configuration_api.py`; `makemigrations --check` sin cambios; Ruff y mypy sin hallazgos. Ajustes respecto del diseño: el permiso es `parametros.gestionar`, el mismo de los demás ajustes fiscales por entidad (solo Administrador), y las rutas `GET`/`PUT` viven en `fiscal/api` (`configuration/entities/{id}/withholding-settings/`), junto a las del perfil tributario, por lo que su prueba de API está en `tests/fiscal/test_configuration_api.py`. La auditoría registra `changed_fields`, porque el registro de auditoría solo admite claves seguras.
+Resultado registrado (2026-10-05): rojo por `ImportError` (el servicio y el modelo no existían); verde con 21 pruebas en `test_withholding_settings.py` y 24 en `tests/fiscal/test_configuration_api.py`; `makemigrations --check` sin cambios; Ruff y mypy sin hallazgos. Ajustes respecto del diseño: el permiso es `parametros.gestionar`, el mismo de los demás ajustes fiscales por entidad (solo Administrador), y las rutas `GET`/`PUT` viven en `fiscal/api` (`configuration/entities/{id}/withholding-settings/`), junto a las del perfil tributario, por lo que su prueba de API está en `tests/fiscal/test_configuration_api.py`. La auditoría registra `changed_fields`, porque el registro de auditoría solo admite claves seguras.
 
 ## 4. Marca de agente de retención en el cliente
 
 Dependencias: grupo 1. Diseño 7; spec `gestion-de-clientes`, «Marca opcional de agente de retención».
 
-- [ ] 4.1 Crear la migración aditiva de `customer_registry` con `Customer.is_withholding_agent` en falso; prueba de migración que confirme que los clientes previos quedan sin marca.
-- [ ] 4.2 Escribir primero casos rojos en `tests/customer_registry/test_customer_services.py` y `test_customer_api.py`: activar y desactivar con permiso de edición por cada rol, auditoría, valor por defecto y ausencia de efecto sobre operaciones.
-- [ ] 4.3 Implementar el campo en servicios, serializador y consultas, y añadirlo a las referencias que `customer_registry` entrega a `sales` y `workshop` (`test_sales_references.py`, `test_workshop_references.py`).
-- [ ] 4.4 Verificar con pytest focalizado de `tests/customer_registry`, chequeo de migraciones, Ruff y mypy sobre `src/customer_registry`.
+- [x] 4.1 Crear la migración aditiva de `customer_registry` con `Customer.is_withholding_agent` en falso; prueba de migración que confirme que los clientes previos quedan sin marca.
+- [x] 4.2 Escribir primero casos rojos en `tests/customer_registry/test_customer_services.py` y `test_customer_api.py`: activar y desactivar con permiso de edición por cada rol, auditoría, valor por defecto y ausencia de efecto sobre operaciones.
+- [x] 4.3 Implementar el campo en servicios, serializador y consultas, y añadirlo a las referencias que `customer_registry` entrega a `sales` y `workshop` (`test_sales_references.py`, `test_workshop_references.py`).
+- [x] 4.4 Verificar con pytest focalizado de `tests/customer_registry`, chequeo de migraciones, Ruff y mypy sobre `src/customer_registry`.
 
 Evidencia del grupo: pruebas en verde; `test_module_boundary.py` sigue pasando.
+
+Resultado registrado (2026-10-05): rojo por `ImportError` y por el campo inexistente; verde con 175 pruebas en `tests/customer_registry`, incluida la de migración. Las pruebas nuevas están en `tests/customer_registry/test_customer_withholding_flag.py` (servicios, API, referencias y migración en un solo archivo). `sales_references.CustomerReference` añade la marca y `workshop_references.customer_withholding_flags` la entrega al taller. Ruff y mypy sin hallazgos; `makemigrations --check` sin cambios.
 
 ## 5. Retenciones comerciales: modelo, saldo y cobro
 

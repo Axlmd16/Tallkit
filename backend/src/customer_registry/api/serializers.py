@@ -9,6 +9,7 @@ class CustomerCreateSerializer(serializers.Serializer[dict[str, object]]):
     phone = serializers.CharField(allow_blank=True, required=False, default="")
     email = serializers.CharField(allow_blank=True, required=False, default="")
     address = serializers.CharField(allow_blank=True, required=False, default="")
+    is_withholding_agent = serializers.BooleanField(required=False, default=False)
 
 
 class CustomerUpdateSerializer(serializers.Serializer[dict[str, object]]):
@@ -20,6 +21,7 @@ class CustomerUpdateSerializer(serializers.Serializer[dict[str, object]]):
     phone = serializers.CharField(allow_blank=True, required=False)
     email = serializers.CharField(allow_blank=True, required=False)
     address = serializers.CharField(allow_blank=True, required=False)
+    is_withholding_agent = serializers.BooleanField(required=False)
 
 
 class CustomerReadSerializer(serializers.Serializer[dict[str, object]]):
@@ -31,6 +33,7 @@ class CustomerReadSerializer(serializers.Serializer[dict[str, object]]):
     phone = serializers.CharField()
     email = serializers.CharField()
     address = serializers.CharField()
+    is_withholding_agent = serializers.BooleanField()
     is_active = serializers.BooleanField()
     version = serializers.IntegerField()
     created_at = serializers.DateTimeField()
