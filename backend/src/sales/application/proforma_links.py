@@ -18,21 +18,28 @@ from typing import Any
 
 from django.db import transaction
 
+import inventory.application.reservations as inventory_reservations
 from catalog.application.sales_references import (
     SaleProductReferenceError,
+    get_sale_product_references,
     lock_product_references,
 )
 from customer_registry.application.sales_references import (
     CustomerReferenceError,
+    get_customer_reference,
     lock_customer_reference,
 )
 from identity.application.authorization import require_permission
 from identity.models import User
+from sales.application.calculation import LineSource, compute_lines
 from sales.application.errors import SalesApplicationError, field_error
+from sales.application.proforma_comparison import computed_lines
+from sales.domain.proforma_comparison import ComparedLine, compare
 from sales.models import Sale, SaleLine, SaleOriginType
 from workshop_configuration.application.operation_context import (
     OperationContextError,
     get_operation_context,
+    review_tax_options,
 )
 
 # Error público del contrato: proformas no importa ``sales.application.errors``.
@@ -211,3 +218,103 @@ def create_draft_from_proforma(*, actor: User, offer: ProformaOffer) -> Proforma
         for index, line in enumerate(offer.lines, start=1)
     )
     return _link(sale)
+
+
+def all_sale_links() -> tuple[ProformaSaleLink, ...]:
+    """Todos los vínculos existentes, para la conciliación de solo lectura de proformas."""
+    sales = Sale.objects.filter(origin_proforma_id__isnull=False).order_by("pk")
+    return tuple(_link(sale) for sale in sales)
+
+
+def preview_conversion(offer: ProformaOffer, *, on: date) -> dict[str, Any]:
+    """Cómo quedaría la venta con los valores vigentes, sin escribir ni bloquear nada.
+
+    Devuelve las diferencias respecto de lo cotizado, las referencias que impiden convertir y
+    los avisos de disponibilidad, que nunca impiden crear el borrador.
+    """
+    products = get_sale_product_references(line.product_id for line in offer.lines)
+    reviews = review_tax_options({p.tax_definition_id for p in products.values()}, on=on)
+    computations = compute_lines(
+        [LineSource(line.position, line.product_id, line.quantity) for line in offer.lines],
+        products,
+        {pk: review.rate for pk, review in reviews.items()},
+    )
+    issues: list[dict[str, str]] = []
+    customer = get_customer_reference(offer.customer_id)
+    if customer is None or not customer.is_active:
+        issues.append(
+            {
+                "code": "inactive_reference",
+                "field": "customer_id",
+                "message": "El cliente no existe."
+                if customer is None
+                else "El cliente está inactivo.",
+            }
+        )
+    for index, line in enumerate(offer.lines):
+        ref = products.get(line.product_id)
+        if ref is None or not ref.is_active:
+            issues.append(
+                {
+                    "code": "inactive_reference",
+                    "field": f"lines.{index}.product_id",
+                    "message": "El producto no existe."
+                    if ref is None
+                    else "El producto está inactivo.",
+                }
+            )
+    warnings: list[dict[str, Any]] = []
+    try:
+        warehouse_id: int | None = get_operation_context().warehouse_id
+    except OperationContextError:
+        warehouse_id = None
+        issues.append(
+            {
+                "code": "configuration_missing",
+                "field": "configuration",
+                "message": "Falta la configuración comercial.",
+            }
+        )
+    if warehouse_id is not None:
+        needed: dict[int, Decimal] = {}
+        for line in offer.lines:
+            needed[line.product_id] = needed.get(line.product_id, Decimal(0)) + line.quantity
+        availability = inventory_reservations.read_availability(
+            sorted(needed), warehouse_id=warehouse_id
+        )
+        for product_id, quantity in needed.items():
+            available = availability[product_id].available
+            if quantity > available:
+                ref = products.get(product_id)
+                warnings.append(
+                    {
+                        "code": "insufficient_availability",
+                        "product_id": product_id,
+                        "product_code": ref.code if ref else None,
+                        "requested": f"{quantity:.0f}",
+                        "available": f"{available:.0f}",
+                        "message": (
+                            f"Disponibilidad insuficiente: hay {available:.0f} y la oferta "
+                            f"incluye {quantity:.0f}. La venta no podrá confirmarse así."
+                        ),
+                    }
+                )
+    quoted = [
+        ComparedLine(
+            line.product_id,
+            line.product_code,
+            line.product_name,
+            line.quantity,
+            line.unit_price,
+            line.tax_rate,
+            line.base_amount,
+            line.tax_amount,
+            line.total_amount,
+        )
+        for line in offer.lines
+    ]
+    return {
+        "comparison": compare(quoted, computed_lines(computations, products)),
+        "issues": issues,
+        "warnings": warnings,
+    }

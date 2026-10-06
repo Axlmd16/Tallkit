@@ -160,6 +160,8 @@ class TestSalesRoutes:
             "type": "MAINTENANCE",
             "order_id": maintenance_order.pk,
             "order_number": maintenance_order.number,
+            "proforma_id": None,
+            "proforma_number": None,
         }
 
         listing = seller_api.get(f"{BASE}?origin=MAINTENANCE")

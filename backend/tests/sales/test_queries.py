@@ -47,7 +47,13 @@ def test_list_shows_number_customer_origin_date_total_and_independent_states(
     row = listing["items"][0]
     assert row["internal_number"] == "COM-VEN-000001"
     assert row["customer"]["name"] == "Cliente Uno"
-    assert row["origin"] == {"type": "DIRECT", "order_id": None, "order_number": None}
+    assert row["origin"] == {
+        "type": "DIRECT",
+        "order_id": None,
+        "order_number": None,
+        "proforma_id": None,
+        "proforma_number": None,
+    }
     assert row["grand_total"] == "100.00"
     assert row["state"] == "CONFIRMED"
     assert row["money"]["payment_state"] == "PARTIAL"
@@ -123,6 +129,8 @@ def test_origin_filter_and_projection_cover_list_detail_document_and_receivables
         "type": "MAINTENANCE",
         "order_id": maintenance_order.pk,
         "order_number": maintenance_order.number,
+        "proforma_id": None,
+        "proforma_number": None,
     }
     assert listed["items"][0]["origin"] == expected
     assert [row["id"] for row in reads.list_sales(actor=seller, origin="DIRECT")["items"]] == [

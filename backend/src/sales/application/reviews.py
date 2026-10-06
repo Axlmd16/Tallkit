@@ -28,7 +28,7 @@ from customer_registry.application.sales_references import (
 )
 from identity.application.authorization import has_permission, require_permission
 from identity.models import User
-from sales.application import queries
+from sales.application import proforma_comparison, queries
 from sales.application.calculation import (
     LineComputation,
     LineSource,
@@ -130,6 +130,7 @@ def confirmation_digest(snapshot: ReviewSnapshot) -> str:
     return canonical_fingerprint(
         {
             "sale_id": sale.pk,
+            "origin": [sale.origin_type, sale.origin_proforma_id, sale.origin_order_id],
             "customer_id": sale.customer_id,
             "customer_active": None if snapshot.customer is None else snapshot.customer.is_active,
             "condition": sale.condition,
@@ -331,6 +332,11 @@ def preview_confirmation(
     include_costs = has_permission(actor, "inventario.ver_valorizacion")
     result.update(_projection(snapshot, include_costs=include_costs))
     result["issues"] = [issue.as_dict() for issue in issues]
+    comparison = proforma_comparison.from_computations(
+        sale, snapshot.computations, snapshot.products
+    )
+    if comparison is not None:
+        result["quote_comparison"] = comparison
     if not issues:
         result["can_confirm"] = True
         result["review_token"] = issue_token(

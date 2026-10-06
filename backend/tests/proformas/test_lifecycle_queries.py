@@ -184,9 +184,9 @@ def test_pagination_is_stable_and_bounded(new_draft: Any, seller: Any, product: 
     seen = [row["id"] for page in (first, second, third) for row in page["items"]]
     assert seen == sorted(created, reverse=True)
     assert first["total_count"] == 5
-    for bad in ({"page": 0}, {"page_size": 0}, {"page_size": 101}):
+    for page, size in ((0, 20), (1, 0), (1, 101)):
         with pytest.raises(ProformaApplicationError):
-            queries.list_proformas(actor=seller, **bad)
+            queries.list_proformas(actor=seller, page=page, page_size=size)
 
 
 def test_document_is_historical_and_separates_current_availability(

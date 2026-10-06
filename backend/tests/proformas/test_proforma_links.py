@@ -101,6 +101,7 @@ def test_creates_an_editable_draft_with_origin_and_historical_copy(
         (second.pk, D(2)),
     ]
     snapshot = sale.proforma_snapshot
+    assert snapshot is not None
     assert snapshot["schema_version"] == 1
     assert snapshot["number"] == "COM-PRO-000001"
     assert snapshot["totals"] == {"base": "34.78", "tax": "5.22", "total": "40.00"}

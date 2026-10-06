@@ -126,4 +126,4 @@ def test_sale_list_and_receivables_publish_origin_filter(admin: Any) -> None:
     schema = client.get("/api/v1/schema/", HTTP_ACCEPT="application/json").json()
     for path in (P, P + "receivables/"):
         params = {p["name"]: p for p in schema["paths"][path]["get"]["parameters"]}
-        assert set(params["origin"]["schema"]["enum"]) == {"DIRECT", "MAINTENANCE"}
+        assert set(params["origin"]["schema"]["enum"]) == {"DIRECT", "MAINTENANCE", "PROFORMA"}

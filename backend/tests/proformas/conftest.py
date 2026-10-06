@@ -215,7 +215,7 @@ def issue(seller: Any):  # type: ignore[no-untyped-def]
         who = actor or seller
         review = reviews.preview_issue(actor=who, proforma_id=body["id"])
         assert review["can_issue"], review["issues"]
-        return issuing.issue_proforma(
+        outcome = issuing.issue_proforma(
             actor=who,
             proforma_id=body["id"],
             payload={
@@ -223,7 +223,9 @@ def issue(seller: Any):  # type: ignore[no-untyped-def]
                 "expected_version": review["version"],
                 "review_token": review["review_token"],
             },
-        ).body
+        )
+        body_out: dict[str, Any] = outcome.body
+        return body_out
 
     return run
 
@@ -232,4 +234,25 @@ def issue(seller: Any):  # type: ignore[no-untyped-def]
 def issued(new_draft: Any, issue: Any, product: Any, at: Any) -> dict[str, Any]:
     """Oferta emitida el 6 de octubre de 2026 con vigencia hasta el 13."""
     at(2026, 10, 6)
-    return issue(new_draft((product, 2)))
+    body: dict[str, Any] = issue(new_draft((product, 2)))
+    return body
+
+
+@pytest.fixture
+def convert(seller: Any):  # type: ignore[no-untyped-def]
+    """Revisa y convierte una oferta emitida; devuelve el resultado del comando."""
+    from proformas.application import conversion
+
+    def run(body: dict[str, Any], actor: Any = None, **extra: Any) -> Any:
+        who = actor or seller
+        review = conversion.preview_conversion(actor=who, proforma_id=body["id"])
+        assert review["can_convert"], review
+        payload = {
+            "idempotency_key": key("convert"),
+            "expected_version": review["version"],
+            "review_token": review["review_token"],
+        }
+        payload.update(extra)
+        return conversion.convert_proforma(actor=who, proforma_id=body["id"], payload=payload)
+
+    return run

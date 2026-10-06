@@ -11,6 +11,7 @@ from uuid import UUID
 
 from django.db.models import Q, QuerySet
 
+import sales.application.proforma_links as proforma_links
 from identity.application.authorization import has_permission, require_permission
 from identity.models import User
 from proformas.application import clock, references
@@ -31,7 +32,6 @@ from proformas.domain.validity import (
     suggested_valid_until,
 )
 from proformas.models import Proforma, ProformaLine
-from sales.application import proforma_links
 
 PAGE_SIZE_MAX = 100
 QUOTE_NOTICE = (

@@ -258,6 +258,7 @@ def test_valid_issue_numbers_and_freezes_the_offer_without_economic_effects(
     assert body["totals"] == {"base": "20.00", "tax": "3.00", "total": "23.00"}
     proforma = Proforma.objects.get(pk=body["id"])
     assert proforma.state == "ISSUED"
+    assert proforma.header_snapshot is not None
     assert proforma.header_snapshot["issuer"]["ruc"] == "1790000000001"
     assert proforma.header_snapshot["customer"]["name"] == "Cliente Proforma"
     assert proforma.header_snapshot["series_code"] == "COM-PRO"
@@ -415,7 +416,7 @@ def test_failure_during_issue_rolls_everything_back(
         raise RuntimeError("fallo inyectado")
 
     if stage == "numbering":
-        original = issuing.allocate_number
+        original = issuing.allocate_number  # type: ignore[attr-defined]
 
         def after_numbering(**kwargs: Any) -> Any:
             original(**kwargs)

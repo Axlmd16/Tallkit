@@ -5872,6 +5872,916 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/proformas/:
+    get:
+      operationId: proformas_proforma_list
+      description: El filtro `state` usa el estado efectivo del mismo día local que
+        el detalle.
+      parameters:
+      - in: query
+        name: customer_id
+        schema:
+          type: integer
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Número de proforma, nombre o identificación.
+      - in: query
+        name: state
+        schema:
+          type: string
+          enum:
+          - CONVERTED
+          - DRAFT
+          - EXPIRED
+          - VALID
+          - VOIDED
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProformaPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    post:
+      operationId: proformas_proforma_create
+      description: 'Crea un borrador sin número, reserva ni saldo. El precio, impuesto
+        y total los determina el servidor: cualquier campo de precio, descuento, impuesto,
+        total, condición de venta o servicio se rechaza con `unknown_field`.'
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProformaWrite'
+            examples:
+              BorradorConVigenciaPredeterminada:
+                value:
+                  idempotency_key: proforma-2026-000001
+                  customer_id: 7
+                  lines:
+                  - product_id: 12
+                    quantity: '2'
+                summary: Borrador con vigencia predeterminada
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProformaWrite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProformaWrite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/:
+    get:
+      operationId: proformas_proforma_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+    patch:
+      operationId: proformas_proforma_update
+      description: Solo un borrador se edita; una oferta emitida responde `proforma_issued`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProformaPatch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProformaPatch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProformaPatch'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                OfertaYaConvertida:
+                  value:
+                    type: about:blank
+                    title: Proforma ya convertida
+                    status: 409
+                    detail: La proforma ya fue convertida en venta.
+                    code: proforma_converted
+                    request_id: null
+                    conflict:
+                      type: sale
+                      id: 42
+                    details:
+                      sale:
+                        id: 42
+                        internal_number: null
+                        state: DRAFT
+                  summary: Oferta ya convertida
+                RevisiónCambiadaOVencida:
+                  value:
+                    type: about:blank
+                    title: Revisión requerida
+                    status: 409
+                    detail: Los valores o datos relevantes cambiaron desde la revisión.
+                    code: review_required
+                    request_id: null
+                  summary: Revisión cambiada o vencida
+                VersiónObsoleta:
+                  value:
+                    type: about:blank
+                    title: Registro desactualizado
+                    status: 409
+                    detail: La proforma cambió desde que la consultó.
+                    code: stale_record
+                    request_id: null
+                    errors:
+                      expected_version:
+                      - La versión esperada no coincide con la vigente.
+                  summary: Versión obsoleta
+                OfertaVencida:
+                  value:
+                    type: about:blank
+                    title: Proforma vencida
+                    status: 409
+                    detail: La proforma está vencida; cree una nueva vinculada con
+                      valores actuales.
+                    code: proforma_expired
+                    request_id: null
+                  summary: Oferta vencida
+          description: ''
+  /api/v1/proformas/{id}/conversion-preview/:
+    get:
+      operationId: proformas_conversion_preview
+      description: Diferencias actuales respecto de lo cotizado; no crea venta ni
+        recibo.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversionPreview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/convert/:
+    post:
+      operationId: proformas_proforma_convert
+      description: Crea una única venta en borrador y marca la oferta convertida,
+        atómicamente. Exige también permiso para crear ventas. Un intento nuevo sobre
+        una oferta convertida responde `proforma_converted` con la venta existente.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                OfertaYaConvertida:
+                  value:
+                    type: about:blank
+                    title: Proforma ya convertida
+                    status: 409
+                    detail: La proforma ya fue convertida en venta.
+                    code: proforma_converted
+                    request_id: null
+                    conflict:
+                      type: sale
+                      id: 42
+                    details:
+                      sale:
+                        id: 42
+                        internal_number: null
+                        state: DRAFT
+                  summary: Oferta ya convertida
+                RevisiónCambiadaOVencida:
+                  value:
+                    type: about:blank
+                    title: Revisión requerida
+                    status: 409
+                    detail: Los valores o datos relevantes cambiaron desde la revisión.
+                    code: review_required
+                    request_id: null
+                  summary: Revisión cambiada o vencida
+                VersiónObsoleta:
+                  value:
+                    type: about:blank
+                    title: Registro desactualizado
+                    status: 409
+                    detail: La proforma cambió desde que la consultó.
+                    code: stale_record
+                    request_id: null
+                    errors:
+                      expected_version:
+                      - La versión esperada no coincide con la vigente.
+                  summary: Versión obsoleta
+                OfertaVencida:
+                  value:
+                    type: about:blank
+                    title: Proforma vencida
+                    status: 409
+                    detail: La proforma está vencida; cree una nueva vinculada con
+                      valores actuales.
+                    code: proforma_expired
+                    request_id: null
+                  summary: Oferta vencida
+          description: ''
+  /api/v1/proformas/{id}/copy/:
+    post:
+      operationId: proformas_proforma_copy
+      description: Crea un borrador nuevo vinculado al original, que no se reactiva.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandFields'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommandFields'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommandFields'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/document/:
+    get:
+      operationId: proformas_document_retrieve
+      description: Datos históricos de la cotización; no genera PDF en el servidor.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/document/logo/:
+    get:
+      operationId: proformas_document_logo
+      description: Bytes del logo conservado al emitir; `204` si la oferta se emitió
+        sin logo. Nunca sirve el logo vigente de la configuración.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '204':
+          description: No response body
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/issue/:
+    post:
+      operationId: proformas_proforma_issue
+      description: Emite con número de la serie comercial de proformas. Repetir la
+        emisión del mismo documento con su revisión original recupera el resultado
+        sin otro número.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewedCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                OfertaYaConvertida:
+                  value:
+                    type: about:blank
+                    title: Proforma ya convertida
+                    status: 409
+                    detail: La proforma ya fue convertida en venta.
+                    code: proforma_converted
+                    request_id: null
+                    conflict:
+                      type: sale
+                      id: 42
+                    details:
+                      sale:
+                        id: 42
+                        internal_number: null
+                        state: DRAFT
+                  summary: Oferta ya convertida
+                RevisiónCambiadaOVencida:
+                  value:
+                    type: about:blank
+                    title: Revisión requerida
+                    status: 409
+                    detail: Los valores o datos relevantes cambiaron desde la revisión.
+                    code: review_required
+                    request_id: null
+                  summary: Revisión cambiada o vencida
+                VersiónObsoleta:
+                  value:
+                    type: about:blank
+                    title: Registro desactualizado
+                    status: 409
+                    detail: La proforma cambió desde que la consultó.
+                    code: stale_record
+                    request_id: null
+                    errors:
+                      expected_version:
+                      - La versión esperada no coincide con la vigente.
+                  summary: Versión obsoleta
+                OfertaVencida:
+                  value:
+                    type: about:blank
+                    title: Proforma vencida
+                    status: 409
+                    detail: La proforma está vencida; cree una nueva vinculada con
+                      valores actuales.
+                    code: proforma_expired
+                    request_id: null
+                  summary: Oferta vencida
+          description: ''
+  /api/v1/proformas/{id}/issue-preview/:
+    get:
+      operationId: proformas_issue_preview
+      description: 'Revisión sin efectos: valores vigentes, impedimentos, avisos de
+        disponibilidad y token firmado de 15 minutos. La disponibilidad insuficiente
+        es un aviso.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuePreview'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/{id}/void/:
+    post:
+      operationId: proformas_proforma_void
+      description: Anula una oferta no convertida; conserva número, contenido e historia.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionedCommand'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VersionedCommand'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VersionedCommand'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proforma'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                OfertaYaConvertida:
+                  value:
+                    type: about:blank
+                    title: Proforma ya convertida
+                    status: 409
+                    detail: La proforma ya fue convertida en venta.
+                    code: proforma_converted
+                    request_id: null
+                    conflict:
+                      type: sale
+                      id: 42
+                    details:
+                      sale:
+                        id: 42
+                        internal_number: null
+                        state: DRAFT
+                  summary: Oferta ya convertida
+                RevisiónCambiadaOVencida:
+                  value:
+                    type: about:blank
+                    title: Revisión requerida
+                    status: 409
+                    detail: Los valores o datos relevantes cambiaron desde la revisión.
+                    code: review_required
+                    request_id: null
+                  summary: Revisión cambiada o vencida
+                VersiónObsoleta:
+                  value:
+                    type: about:blank
+                    title: Registro desactualizado
+                    status: 409
+                    detail: La proforma cambió desde que la consultó.
+                    code: stale_record
+                    request_id: null
+                    errors:
+                      expected_version:
+                      - La versión esperada no coincide con la vigente.
+                  summary: Versión obsoleta
+                OfertaVencida:
+                  value:
+                    type: about:blank
+                    title: Proforma vencida
+                    status: 409
+                    detail: La proforma está vencida; cree una nueva vinculada con
+                      valores actuales.
+                    code: proforma_expired
+                    request_id: null
+                  summary: Oferta vencida
+          description: ''
+  /api/v1/proformas/customer-options/:
+    get:
+      operationId: proformas_customer_options
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Número de proforma, nombre o identificación.
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/draft-preview/:
+    post:
+      operationId: proformas_draft_preview
+      description: 'Cálculo de la captura sin persistir: no guarda borrador, recibo
+        ni número.'
+      tags:
+      - Proformas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DraftPreview'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftPreviewResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/proformas/product-options/:
+    get:
+      operationId: proformas_product_options
+      description: Productos activos con precio final y disponibilidad informativa;
+        sin costos.
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Desde 1; omisión 1.
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Número de proforma, nombre o identificación.
+      tags:
+      - Proformas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductOptionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/purchases/:
     get:
       operationId: purchasing_purchase_list
@@ -6200,6 +7110,7 @@ paths:
           enum:
           - DIRECT
           - MAINTENANCE
+          - PROFORMA
       - in: query
         name: page
         schema:
@@ -7526,6 +8437,7 @@ paths:
           enum:
           - DIRECT
           - MAINTENANCE
+          - PROFORMA
       - in: query
         name: page
         schema:
@@ -10877,6 +11789,22 @@ components:
       - state
       - unit_cost
       - version
+    AllowedActionsEnum:
+      enum:
+      - edit
+      - issue
+      - convert
+      - void
+      - copy
+      - print
+      type: string
+      description: |-
+        * `edit` - edit
+        * `issue` - issue
+        * `convert` - convert
+        * `void` - void
+        * `copy` - copy
+        * `print` - print
     ArtisanPaymentCorrection:
       type: object
       properties:
@@ -11153,6 +12081,16 @@ components:
     BlankEnum:
       enum:
       - ''
+    Blocked:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - message
     Brand:
       type: object
       properties:
@@ -11275,6 +12213,26 @@ components:
       required:
       - idempotency_key
       - name
+    ChangesEnum:
+      enum:
+      - quantity
+      - unit_price
+      - tax_rate
+      type: string
+      description: |-
+        * `quantity` - quantity
+        * `unit_price` - unit_price
+        * `tax_rate` - tax_rate
+    CommandFields:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+      required:
+      - idempotency_key
     CommercialOrderView:
       type: object
       properties:
@@ -11305,6 +12263,99 @@ components:
       - parts
       - state
       - vehicle
+    Comparison:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComparisonProduct'
+        totals:
+          $ref: '#/components/schemas/ComparisonTotals'
+        has_differences:
+          type: boolean
+      required:
+      - has_differences
+      - products
+      - totals
+    ComparisonProduct:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        product_code:
+          type: string
+          nullable: true
+        product_name:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangesEnum'
+        quoted:
+          allOf:
+          - $ref: '#/components/schemas/ComparisonSide'
+          nullable: true
+        current:
+          allOf:
+          - $ref: '#/components/schemas/ComparisonSide'
+          nullable: true
+      required:
+      - changes
+      - current
+      - product_code
+      - product_id
+      - product_name
+      - quoted
+      - status
+    ComparisonSide:
+      type: object
+      properties:
+        quantity:
+          type: string
+        unit_price:
+          type: string
+          nullable: true
+        tax_rate:
+          type: string
+          nullable: true
+        base_amount:
+          type: string
+          nullable: true
+        tax_amount:
+          type: string
+          nullable: true
+        total_amount:
+          type: string
+          nullable: true
+      required:
+      - base_amount
+      - quantity
+      - tax_amount
+      - tax_rate
+      - total_amount
+      - unit_price
+    ComparisonTotals:
+      type: object
+      properties:
+        quoted:
+          allOf:
+          - $ref: '#/components/schemas/Totals'
+          nullable: true
+        current:
+          allOf:
+          - $ref: '#/components/schemas/Totals'
+          nullable: true
+        difference:
+          type: string
+          nullable: true
+      required:
+      - current
+      - difference
+      - quoted
     ConditionEnum:
       enum:
       - CONTADO
@@ -11331,6 +12382,51 @@ components:
       required:
       - id
       - type
+    ConversionPreview:
+      type: object
+      properties:
+        proforma_id:
+          type: integer
+        version:
+          type: integer
+        can_convert:
+          type: boolean
+        blocked_by:
+          allOf:
+          - $ref: '#/components/schemas/Blocked'
+          nullable: true
+        sale:
+          allOf:
+          - $ref: '#/components/schemas/LinkedSale'
+          nullable: true
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+        comparison:
+          allOf:
+          - $ref: '#/components/schemas/Comparison'
+          nullable: true
+        review_token:
+          type: string
+          nullable: true
+        expires_in_seconds:
+          type: integer
+      required:
+      - blocked_by
+      - can_convert
+      - comparison
+      - expires_in_seconds
+      - issues
+      - proforma_id
+      - review_token
+      - sale
+      - version
+      - warnings
     CorrectionPreview:
       type: object
       properties:
@@ -11391,6 +12487,46 @@ components:
       - operation_id
       - reason
       - review_token
+    CurrentAvailability:
+      type: object
+      properties:
+        position:
+          type: integer
+        product_code:
+          type: string
+          nullable: true
+        available:
+          type: string
+          nullable: true
+      required:
+      - available
+      - position
+      - product_code
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - id
+      - identification
+      - identification_type
+      - name
+      - phone
     CustomerCreate:
       type: object
       properties:
@@ -11430,6 +12566,46 @@ components:
         exclude_customer_id:
           type: integer
           nullable: true
+    CustomerOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+      required:
+      - id
+      - identification
+      - identification_type
+      - name
+      - phone
+    CustomerOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     CustomerPage:
       type: object
       properties:
@@ -11509,42 +12685,56 @@ components:
       properties:
         notice:
           type: string
-          description: Documento interno no autorizado por el SRI.
         number:
           type: string
-          nullable: true
         state:
+          $ref: '#/components/schemas/State8d1Enum'
+        issue_date:
           type: string
-        voided:
-          type: boolean
+          format: date
+        valid_until:
+          type: string
+          format: date
         issuer:
-          type: object
-          additionalProperties: {}
-          nullable: true
+          $ref: '#/components/schemas/Issuer'
+        has_logo:
+          type: boolean
+          description: Si es verdadero, el logo histórico se obtiene en `document/logo/`.
         customer:
-          type: object
-          additionalProperties: {}
-        origin:
-          type: object
-          additionalProperties: {}
+          $ref: '#/components/schemas/Customer'
         lines:
           type: array
           items:
-            type: object
-            additionalProperties: {}
+            $ref: '#/components/schemas/ProformaLine'
         base_total:
           type: string
-          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
         tax_total:
           type: string
-          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
         grand_total:
           type: string
+          description: Importe en USD con dos decimales, como cadena.
+        availability_observed_at:
+          type: string
+          format: date-time
+        current_availability:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurrentAvailability'
+          description: Consulta actual, fuera del cuerpo histórico.
+        origin:
+          allOf:
+          - $ref: '#/components/schemas/Reference'
           nullable: true
       required:
+      - availability_observed_at
       - base_total
+      - current_availability
       - customer
       - grand_total
+      - has_logo
+      - issue_date
       - issuer
       - lines
       - notice
@@ -11552,7 +12742,7 @@ components:
       - origin
       - state
       - tax_total
-      - voided
+      - valid_until
     DocumentSeries:
       type: object
       properties:
@@ -11592,72 +12782,63 @@ components:
         customer_id:
           type: integer
           minimum: 1
-        condition:
+        valid_until:
           type: string
-          description: 'Valores: CONTADO, CREDITO.'
-        notes:
-          type: string
-          maxLength: 2000
+          format: date
+          nullable: true
         lines:
           type: array
           items:
-            $ref: '#/components/schemas/SaleLineWrite'
+            $ref: '#/components/schemas/ProformaLineWrite'
           maxItems: 200
     DraftPreviewResult:
       type: object
       properties:
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        issue_date:
+          type: string
+          format: date
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+        suggested_valid_until:
+          type: string
+          format: date
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaLine'
+        totals:
+          allOf:
+          - $ref: '#/components/schemas/Totals'
+          nullable: true
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+        notice:
+          type: string
         status:
           type: string
         internal_number:
           type: string
           nullable: true
-        number_pending:
-          type: boolean
-        notice:
-          type: string
-        condition:
-          type: string
-          nullable: true
         customer:
-          type: object
-          additionalProperties: {}
+          allOf:
+          - $ref: '#/components/schemas/Customer'
           nullable: true
-        fiscal_entity:
-          type: object
-          additionalProperties: {}
-          nullable: true
-        issues:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        can_confirm:
+        can_issue:
           type: boolean
-        lines:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        totals:
-          type: object
-          additionalProperties: {}
-          nullable: true
-        operational_date:
-          type: string
-          format: date
       required:
-      - can_confirm
-      - condition
+      - can_issue
       - customer
-      - fiscal_entity
       - internal_number
       - issues
-      - lines
-      - notice
-      - number_pending
-      - operational_date
       - status
-      - totals
     EconomicSummary:
       type: object
       properties:
@@ -13425,6 +14606,104 @@ components:
           type: integer
       required:
       - installation_id
+    Issue:
+      type: object
+      properties:
+        code:
+          type: string
+        field:
+          type: string
+        message:
+          type: string
+      required:
+      - code
+      - field
+      - message
+    IssuePreview:
+      type: object
+      properties:
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+        issue_date:
+          type: string
+          format: date
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+        suggested_valid_until:
+          type: string
+          format: date
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaLine'
+        totals:
+          allOf:
+          - $ref: '#/components/schemas/Totals'
+          nullable: true
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+        notice:
+          type: string
+        proforma_id:
+          type: integer
+        state:
+          type: string
+        version:
+          type: integer
+        can_issue:
+          type: boolean
+        review_token:
+          type: string
+          nullable: true
+        expires_in_seconds:
+          type: integer
+      required:
+      - can_issue
+      - expires_in_seconds
+      - issues
+      - proforma_id
+      - review_token
+      - state
+      - version
+    Issuer:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          description: Siempre COMERCIAL.
+        ruc:
+          type: string
+        legal_name:
+          type: string
+        trade_name:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+      required:
+      - address
+      - email
+      - id
+      - legal_name
+      - phone
+      - ruc
+      - trade_name
+      - type
     Kardex:
       type: object
       properties:
@@ -14847,6 +16126,31 @@ components:
         expected_version:
           type: integer
           minimum: 1
+    PatchedProformaPatch:
+      type: object
+      description: Omitir un campo lo conserva; ``lines`` reemplaza la colección completa.
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        customer_id:
+          type: integer
+          minimum: 1
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+          description: 'Omitida o nula: vigencia predeterminada de emisión más 7 días.'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaLineWrite'
+          maxItems: 200
+        expected_version:
+          type: integer
+          minimum: 1
     PatchedSalePatch:
       type: object
       description: Omitir un campo lo conserva; enviarlo vacío lo vacía; ``lines``
@@ -15327,6 +16631,61 @@ components:
       required:
       - id
       - name
+    ProductOption:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        unit_name:
+          type: string
+        unit_symbol:
+          type: string
+        content_quantity:
+          type: string
+        unit_price:
+          type: string
+          description: Precio final de catálogo; no editable.
+        is_kit:
+          type: boolean
+        available:
+          type: string
+          nullable: true
+          description: Disponibilidad informativa.
+      required:
+      - available
+      - code
+      - content_quantity
+      - id
+      - is_kit
+      - name
+      - unit_name
+      - unit_price
+      - unit_symbol
+    ProductOptionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductOption'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
     ProductPage:
       type: object
       properties:
@@ -15400,6 +16759,327 @@ components:
       - sale_price
       - tax_definition_id
       - unit_id
+    Proforma:
+      type: object
+      properties:
+        id:
+          type: integer
+        state:
+          allOf:
+          - $ref: '#/components/schemas/State8d1Enum'
+          description: |-
+            Estado efectivo; VALID y EXPIRED se calculan con el día local.
+
+            * `DRAFT` - DRAFT
+            * `VALID` - VALID
+            * `EXPIRED` - EXPIRED
+            * `CONVERTED` - CONVERTED
+            * `VOIDED` - VOIDED
+        version:
+          type: integer
+        internal_number:
+          type: string
+          nullable: true
+        customer:
+          $ref: '#/components/schemas/Customer'
+        issue_date:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+        base_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        tax_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        grand_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        origin:
+          allOf:
+          - $ref: '#/components/schemas/Reference'
+          nullable: true
+        sale:
+          allOf:
+          - $ref: '#/components/schemas/LinkedSale'
+          nullable: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+        created_at:
+          type: string
+          format: date-time
+        issued_at:
+          type: string
+          format: date-time
+          nullable: true
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+        voided_at:
+          type: string
+          format: date-time
+          nullable: true
+        fiscal_scope:
+          type: string
+          description: Siempre COMERCIAL.
+        derived:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaLine'
+        totals:
+          allOf:
+          - $ref: '#/components/schemas/Totals'
+          nullable: true
+        suggested_valid_until:
+          type: string
+          format: date
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - allowed_actions
+      - base_total
+      - converted_at
+      - created_at
+      - customer
+      - derived
+      - fiscal_scope
+      - grand_total
+      - id
+      - internal_number
+      - issue_date
+      - issued_at
+      - lines
+      - origin
+      - sale
+      - state
+      - tax_total
+      - totals
+      - valid_until
+      - version
+      - voided_at
+    ProformaLine:
+      type: object
+      properties:
+        position:
+          type: integer
+        product_id:
+          type: integer
+        product_code:
+          type: string
+          nullable: true
+        product_name:
+          type: string
+          nullable: true
+        product_active:
+          type: boolean
+        is_kit:
+          type: boolean
+        quantity:
+          type: string
+        unit_price:
+          type: string
+          nullable: true
+          description: Precio final de catálogo.
+        tax_rate:
+          type: string
+          nullable: true
+        base_amount:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        tax_amount:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        total_amount:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        availability:
+          type: string
+          description: Disponibilidad actual informativa (borrador).
+        availability_at_issue:
+          type: string
+          description: Disponibilidad informativa observada al emitir.
+        availability_sufficient:
+          type: boolean
+      required:
+      - availability_sufficient
+      - base_amount
+      - is_kit
+      - position
+      - product_code
+      - product_name
+      - quantity
+      - tax_amount
+      - tax_rate
+      - total_amount
+      - unit_price
+    ProformaLineWrite:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: string
+          description: Entero positivo de presentaciones, como cadena.
+      required:
+      - product_id
+      - quantity
+    ProformaPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaSummary'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    ProformaSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        state:
+          allOf:
+          - $ref: '#/components/schemas/State8d1Enum'
+          description: |-
+            Estado efectivo; VALID y EXPIRED se calculan con el día local.
+
+            * `DRAFT` - DRAFT
+            * `VALID` - VALID
+            * `EXPIRED` - EXPIRED
+            * `CONVERTED` - CONVERTED
+            * `VOIDED` - VOIDED
+        version:
+          type: integer
+        internal_number:
+          type: string
+          nullable: true
+        customer:
+          $ref: '#/components/schemas/Customer'
+        issue_date:
+          type: string
+          format: date
+          nullable: true
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+        base_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        tax_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        grand_total:
+          type: string
+          nullable: true
+          description: Importe en USD con dos decimales, como cadena.
+        origin:
+          allOf:
+          - $ref: '#/components/schemas/Reference'
+          nullable: true
+        sale:
+          allOf:
+          - $ref: '#/components/schemas/LinkedSale'
+          nullable: true
+        allowed_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AllowedActionsEnum'
+        created_at:
+          type: string
+          format: date-time
+        issued_at:
+          type: string
+          format: date-time
+          nullable: true
+        converted_at:
+          type: string
+          format: date-time
+          nullable: true
+        voided_at:
+          type: string
+          format: date-time
+          nullable: true
+        fiscal_scope:
+          type: string
+          description: Siempre COMERCIAL.
+      required:
+      - allowed_actions
+      - base_total
+      - converted_at
+      - created_at
+      - customer
+      - fiscal_scope
+      - grand_total
+      - id
+      - internal_number
+      - issue_date
+      - issued_at
+      - origin
+      - sale
+      - state
+      - tax_total
+      - valid_until
+      - version
+      - voided_at
+    ProformaWrite:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        customer_id:
+          type: integer
+          minimum: 1
+        valid_until:
+          type: string
+          format: date
+          nullable: true
+          description: 'Omitida o nula: vigencia predeterminada de emisión más 7 días.'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProformaLineWrite'
+          maxItems: 200
+      required:
+      - customer_id
+      - idempotency_key
     Purchase:
       type: object
       properties:
@@ -15626,6 +17306,20 @@ components:
       - id
       - is_active
       - name
+    Reference:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+          nullable: true
+        state:
+          $ref: '#/components/schemas/State8d1Enum'
+      required:
+      - id
+      - number
+      - state
     Refund:
       type: object
       properties:
@@ -15830,6 +17524,24 @@ components:
       - operation_id
       - reason
       - review_token
+    ReviewedCommand:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+        review_token:
+          type: string
+          description: Token de la revisión previa (15 minutos).
+      required:
+      - expected_version
+      - idempotency_key
+      - review_token
     RoleRead:
       type: object
       properties:
@@ -15860,8 +17572,7 @@ components:
           type: string
           nullable: true
         origin:
-          type: object
-          additionalProperties: {}
+          $ref: '#/components/schemas/SaleOrigin'
         customer:
           type: object
           additionalProperties: {}
@@ -15901,6 +17612,12 @@ components:
         money:
           type: object
           additionalProperties: {}
+        quote_comparison:
+          type: object
+          additionalProperties: {}
+          description: 'Solo en ventas de origen proforma: comparación calculada en
+            el servidor entre lo cotizado y la venta actual, por producto y con totales
+            de ambos documentos.'
       required:
       - base_total
       - condition
@@ -15949,6 +17666,32 @@ components:
       required:
       - product_id
       - quantity
+    SaleOrigin:
+      type: object
+      description: 'Origen de la venta. Solo nace al crearla: ninguna edición lo fija
+        ni lo cambia.'
+      properties:
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        order_id:
+          type: integer
+          nullable: true
+        order_number:
+          type: string
+          nullable: true
+        proforma_id:
+          type: integer
+          nullable: true
+        proforma_number:
+          type: string
+          nullable: true
+          description: Número de la oferta de origen, por ejemplo COM-PRO-000001.
+      required:
+      - order_id
+      - order_number
+      - proforma_id
+      - proforma_number
+      - type
     SalePage:
       type: object
       properties:
@@ -16005,6 +17748,10 @@ components:
           items:
             type: object
             additionalProperties: {}
+        quote_comparison:
+          type: object
+          additionalProperties: {}
+          description: Solo en ventas de origen proforma; ver el detalle de venta.
       required:
       - can_confirm
       - effects
@@ -16030,8 +17777,7 @@ components:
           type: object
           additionalProperties: {}
         origin:
-          type: object
-          additionalProperties: {}
+          $ref: '#/components/schemas/SaleOrigin'
         sale_date:
           type: string
           format: date
@@ -16409,6 +18155,20 @@ components:
       description: |-
         * `COMMERCIAL` - COMMERCIAL
         * `ARTISAN` - ARTISAN
+    State8d1Enum:
+      enum:
+      - DRAFT
+      - VALID
+      - EXPIRED
+      - CONVERTED
+      - VOIDED
+      type: string
+      description: |-
+        * `DRAFT` - DRAFT
+        * `VALID` - VALID
+        * `EXPIRED` - EXPIRED
+        * `CONVERTED` - CONVERTED
+        * `VOIDED` - VOIDED
     StateCommand:
       type: object
       properties:
@@ -16429,6 +18189,18 @@ components:
           type: boolean
       required:
       - is_initialized
+    StatusEnum:
+      enum:
+      - UNCHANGED
+      - CHANGED
+      - REMOVED
+      - ADDED
+      type: string
+      description: |-
+        * `UNCHANGED` - UNCHANGED
+        * `CHANGED` - CHANGED
+        * `REMOVED` - REMOVED
+        * `ADDED` - ADDED
     StockItem:
       type: object
       properties:
@@ -16843,6 +18615,32 @@ components:
           type: string
       required:
       - temporary_password
+    Totals:
+      type: object
+      properties:
+        base:
+          type: string
+          description: Importe en USD con dos decimales, como cadena.
+        tax:
+          type: string
+          description: Importe en USD con dos decimales, como cadena.
+        total:
+          type: string
+          description: Importe en USD con dos decimales, como cadena.
+      required:
+      - base
+      - tax
+      - total
+    TypeEnum:
+      enum:
+      - DIRECT
+      - MAINTENANCE
+      - PROFORMA
+      type: string
+      description: |-
+        * `DIRECT` - DIRECT
+        * `MAINTENANCE` - MAINTENANCE
+        * `PROFORMA` - PROFORMA
     Unit:
       type: object
       properties:
@@ -17186,6 +18984,20 @@ components:
           minimum: 1
       required:
       - expected_version
+    VersionedCommand:
+      type: object
+      properties:
+        idempotency_key:
+          type: string
+          description: Clave del intento, 8 a 128 caracteres ASCII; se conserva al
+            reintentar.
+          pattern: ^[A-Za-z0-9._:-]{8,128}$
+        expected_version:
+          type: integer
+          minimum: 1
+      required:
+      - expected_version
+      - idempotency_key
     Void:
       type: object
       properties:
@@ -17313,6 +19125,29 @@ components:
       - is_active
       - name
       - version
+    Warning:
+      type: object
+      properties:
+        code:
+          type: string
+        product_id:
+          type: integer
+        product_code:
+          type: string
+          nullable: true
+        requested:
+          type: string
+        available:
+          type: string
+        message:
+          type: string
+      required:
+      - available
+      - code
+      - message
+      - product_code
+      - product_id
+      - requested
     Withholding:
       type: object
       properties:

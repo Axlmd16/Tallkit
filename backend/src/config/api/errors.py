@@ -149,6 +149,12 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "payments_block_void": (409, "Pagos vigentes impiden anular"),
     "withholdings_block_void": (409, "Retenciones vigentes impiden anular"),
     "customer_locked_by_documents": (409, "Cliente fijado por documentos vinculados"),
+    "proforma_not_issued": (409, "Proforma sin emitir"),
+    "proforma_issued": (409, "Proforma emitida"),
+    "proforma_expired": (409, "Proforma vencida"),
+    "proforma_converted": (409, "Proforma ya convertida"),
+    "proforma_voided": (409, "Proforma anulada"),
+    "logo_unreadable": (409, "Logotipo ilegible"),
 }
 
 

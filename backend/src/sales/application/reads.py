@@ -32,7 +32,7 @@ from django.db.models.functions import Coalesce, Greatest, Least, TruncDate
 
 from identity.application.authorization import has_permission, require_permission
 from identity.models import User
-from sales.application import queries, reviews
+from sales.application import proforma_comparison, queries, reviews
 from sales.application.errors import SalesApplicationError, field_error, not_found
 from sales.domain.balances import compute_balance
 from sales.models import (
@@ -49,7 +49,7 @@ MONEY: Any = DecimalField(max_digits=38, decimal_places=2)
 PAGE_SIZE_MAX = 100
 PAYMENT_STATES = {"PENDING", "PARTIAL", "PAID"}
 DOCUMENT_STATES = {"DRAFT", "CONFIRMED", "VOIDED"}
-ORIGIN_TYPES = {"DIRECT", "MAINTENANCE"}
+ORIGIN_TYPES = {"DIRECT", "MAINTENANCE", "PROFORMA"}
 
 
 @contextmanager
@@ -294,6 +294,9 @@ def sale_detail(*, actor: User, sale_id: int, request_id: UUID | None = None) ->
             raise not_found()
         detail = queries.sale_detail(sale)
         detail["links"] = {"document": f"/sales/{sale.pk}/document"}
+        if sale.origin_proforma_id is not None:
+            detail["links"]["proforma"] = f"/proformas/{sale.origin_proforma_id}"
+            detail["quote_comparison"] = proforma_comparison.for_sale(sale)
         if has_permission(actor, "inventario.ver_valorizacion"):
             detail["costs"] = _costs(sale)
         if has_permission(actor, "pagos_comerciales.ver"):

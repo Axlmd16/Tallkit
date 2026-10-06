@@ -89,6 +89,18 @@ def line_dict(
     return result
 
 
+def origin_of(sale: Sale) -> dict[str, Any]:
+    """Origen de la venta; las claves de orden se conservan y quedan nulas en origen proforma."""
+    from_proforma = sale.origin_proforma_id is not None
+    return {
+        "type": sale.origin_type,
+        "order_id": sale.origin_order_id,
+        "order_number": None if from_proforma else (sale.origin_reference or None),
+        "proforma_id": sale.origin_proforma_id,
+        "proforma_number": sale.origin_reference if from_proforma else None,
+    }
+
+
 def sale_base(sale: Sale) -> dict[str, Any]:
     """Datos comunes de la venta sin líneas, pagos ni costos."""
     return {
@@ -98,11 +110,7 @@ def sale_base(sale: Sale) -> dict[str, Any]:
         "condition": sale.condition,
         "notes": sale.notes,
         "internal_number": sale.internal_number,
-        "origin": {
-            "type": sale.origin_type,
-            "order_id": sale.origin_order_id,
-            "order_number": sale.origin_reference or None,
-        },
+        "origin": origin_of(sale),
         "customer": _customer(sale),
         "operational_date": sale.operational_date.isoformat() if sale.operational_date else None,
         "base_total": money(sale.base_total),

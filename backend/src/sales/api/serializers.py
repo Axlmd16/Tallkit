@@ -150,6 +150,18 @@ class VoidWriteSerializer(CommandFields, VoidPreviewSerializer):
     review_token = serializers.CharField()
 
 
+class SaleOriginSerializer(_Base):
+    """Origen de la venta. Solo nace al crearla: ninguna edición lo fija ni lo cambia."""
+
+    type = serializers.ChoiceField(choices=["DIRECT", "MAINTENANCE", "PROFORMA"])
+    order_id = serializers.IntegerField(allow_null=True)
+    order_number = serializers.CharField(allow_null=True)
+    proforma_id = serializers.IntegerField(allow_null=True)
+    proforma_number = serializers.CharField(
+        allow_null=True, help_text="Número de la oferta de origen, por ejemplo COM-PRO-000001."
+    )
+
+
 class SaleSerializer(_Base):
     id = serializers.IntegerField()
     state = serializers.CharField(help_text="Valores: DRAFT, CONFIRMED, VOIDED.")
@@ -157,7 +169,7 @@ class SaleSerializer(_Base):
     condition = serializers.CharField()
     notes = serializers.CharField()
     internal_number = serializers.CharField(allow_null=True)
-    origin = serializers.DictField()
+    origin = SaleOriginSerializer()
     customer = serializers.DictField()
     operational_date = serializers.DateField(allow_null=True)
     base_total = serializers.CharField(allow_null=True)
@@ -170,6 +182,13 @@ class SaleSerializer(_Base):
     fiscal_scope = serializers.CharField()
     lines = serializers.ListField(child=serializers.DictField())
     money = serializers.DictField()
+    quote_comparison = serializers.DictField(
+        required=False,
+        help_text=(
+            "Solo en ventas de origen proforma: comparación calculada en el servidor entre lo "
+            "cotizado y la venta actual, por producto y con totales de ambos documentos."
+        ),
+    )
 
 
 class SaleSummarySerializer(_Base):
@@ -177,7 +196,7 @@ class SaleSummarySerializer(_Base):
     state = serializers.CharField()
     internal_number = serializers.CharField(allow_null=True)
     customer = serializers.DictField()
-    origin = serializers.DictField()
+    origin = SaleOriginSerializer()
     sale_date = serializers.DateField()
     grand_total = serializers.CharField(allow_null=True)
     money = serializers.DictField()
@@ -207,6 +226,9 @@ class SaleReviewSerializer(_Base):
     totals = serializers.DictField(allow_null=True)
     effects = serializers.ListField(child=serializers.DictField())
     lines = serializers.ListField(child=serializers.DictField())
+    quote_comparison = serializers.DictField(
+        required=False, help_text="Solo en ventas de origen proforma; ver el detalle de venta."
+    )
 
 
 class DraftPreviewResultSerializer(_Base):
