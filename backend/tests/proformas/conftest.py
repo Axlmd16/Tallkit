@@ -158,3 +158,78 @@ def stock(actor: Any, warehouse: Warehouse):  # type: ignore[no-untyped-def]
         )
 
     return add
+
+
+@pytest.fixture(autouse=True)
+def private_media(tmp_path: Any, settings: Any) -> Any:
+    root = tmp_path / "private-media"
+    settings.PRIVATE_MEDIA_ROOT = root
+    return root
+
+
+@pytest.fixture
+def at(monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-untyped-def]
+    """Fija el reloj de la aplicación en un instante local de America/Guayaquil."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from proformas.application import clock
+
+    def freeze(year: int, month: int, day: int, hour: int = 10, minute: int = 0) -> None:
+        instant = datetime(year, month, day, hour, minute, tzinfo=ZoneInfo("America/Guayaquil"))
+        monkeypatch.setattr(clock, "now", lambda: instant)
+
+    return freeze
+
+
+_keys = count(1)
+
+
+def key(prefix: str = "pro") -> str:
+    return f"{prefix}-key-{next(_keys):06d}"
+
+
+@pytest.fixture
+def new_draft(seller: Any, customer: Customer):  # type: ignore[no-untyped-def]
+    """Crea un borrador con líneas (producto, cantidad) mediante el servicio público."""
+    from proformas.application import drafts
+
+    def build(*lines: tuple[Any, int], actor: Any = None, **extra: Any) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "idempotency_key": key("draft"),
+            "customer_id": customer.pk,
+            "lines": [{"product_id": p.pk, "quantity": str(q)} for p, q in lines],
+        }
+        payload.update(extra)
+        return drafts.create_draft(actor=actor or seller, payload=payload).body
+
+    return build
+
+
+@pytest.fixture
+def issue(seller: Any):  # type: ignore[no-untyped-def]
+    """Revisa y emite un borrador; devuelve el cuerpo emitido."""
+    from proformas.application import issuing, reviews
+
+    def run(body: dict[str, Any], actor: Any = None) -> dict[str, Any]:
+        who = actor or seller
+        review = reviews.preview_issue(actor=who, proforma_id=body["id"])
+        assert review["can_issue"], review["issues"]
+        return issuing.issue_proforma(
+            actor=who,
+            proforma_id=body["id"],
+            payload={
+                "idempotency_key": key("issue"),
+                "expected_version": review["version"],
+                "review_token": review["review_token"],
+            },
+        ).body
+
+    return run
+
+
+@pytest.fixture
+def issued(new_draft: Any, issue: Any, product: Any, at: Any) -> dict[str, Any]:
+    """Oferta emitida el 6 de octubre de 2026 con vigencia hasta el 13."""
+    at(2026, 10, 6)
+    return issue(new_draft((product, 2)))
