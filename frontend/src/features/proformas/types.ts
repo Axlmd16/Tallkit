@@ -61,6 +61,8 @@ export interface ProformaLine {
   product_code: string | null
   /** Código del fabricante; vacío si el producto no lo tiene. */
   manufacturer_code?: string | null
+  /** Marca del producto; vacía si no tiene. */
+  brand_name?: string | null
   product_name: string | null
   product_active?: boolean
   is_kit: boolean

@@ -4,6 +4,8 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import documentSource from './ProformaDocument.tsx?raw'
+// @ts-expect-error Node fs module used in test runner
+import fs from 'node:fs'
 import pageSource from '@/pages/proformas/ProformaDocumentPage.tsx?raw'
 
 const mocks = vi.hoisted(() => ({ query: {} as Record<string, unknown> }))
@@ -50,6 +52,7 @@ const data = (overrides: Partial<DocumentData> = {}): DocumentData => ({
       position: 1,
       product_code: 'FIL-1',
       manufacturer_code: 'FAB-778',
+      brand_name: 'Eaton',
       product_name: 'Filtro',
       is_kit: false,
       quantity: '3',
@@ -92,7 +95,7 @@ describe('ProformaDocument', () => {
     expect(within(sheet).getAllByText('USD 34.50').length).toBeGreaterThan(0)
   })
 
-  it('muestra el código del producto y el del fabricante', () => {
+  it('muestra el código del producto, el del fabricante y la marca', () => {
     render(<ProformaDocument data={data()} id={7} />)
     const table = screen.getByRole('table')
     expect(
@@ -102,6 +105,7 @@ describe('ProformaDocument', () => {
     ).toEqual([
       'Código',
       'Cód. fabricante',
+      'Marca',
       'Descripción',
       'Cantidad',
       'Precio',
@@ -109,22 +113,47 @@ describe('ProformaDocument', () => {
     ])
     const row = screen.getByRole('row', { name: /FIL-1/ })
     expect(within(row).getByText('FAB-778')).toHaveClass('font-mono')
+    expect(within(row).getByText('Eaton')).toBeInTheDocument()
   })
 
-  it('un producto sin código de fabricante muestra un guion', () => {
+  it('un producto sin código de fabricante ni marca muestra guiones', () => {
     const base = data()
     render(
       <ProformaDocument
         data={{
           ...base,
-          lines: [{ ...base.lines[0]!, manufacturer_code: '' }],
+          lines: [{ ...base.lines[0]!, manufacturer_code: '', brand_name: '' }],
         }}
         id={7}
       />,
     )
     expect(
-      within(screen.getByRole('row', { name: /FIL-1/ })).getByText('—'),
-    ).toBeInTheDocument()
+      within(screen.getByRole('row', { name: /FIL-1/ })).getAllByText('—'),
+    ).toHaveLength(2)
+  })
+
+  it('una descripción extensa baja de línea sin deformar la tabla', () => {
+    const base = data()
+    const long =
+      'Kit de embrague reforzado con disco, plato de presión, rodamiento axial y guía de centrado para transmisión de 18 velocidades servicio pesado'
+    render(
+      <ProformaDocument
+        data={{ ...base, lines: [{ ...base.lines[0]!, product_name: long }] }}
+        id={7}
+      />,
+    )
+    const table = screen.getByRole('table')
+    expect(table).toHaveClass('quote-lines')
+    expect(table.querySelectorAll('col')).toHaveLength(7)
+    expect(within(table).getByText(long)).toBeInTheDocument()
+    const sheetStyles: string = fs.readFileSync(
+      'src/shared/ui/business/document-sheet.css',
+      'utf8',
+    )
+    expect(sheetStyles).toMatch(
+      /table\.quote-lines \{[^}]*table-layout: fixed[^}]*font-size: 11\.5px/,
+    )
+    expect(sheetStyles).toMatch(/overflow-wrap: break-word/)
   })
 
   it('es la hoja para el cliente: sin disponibilidad, avisos internos ni pie de sistema', () => {

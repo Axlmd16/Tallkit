@@ -147,6 +147,7 @@ def _product_snapshot(ref: SaleProductReference, *, sufficient: bool) -> dict[st
         "product_id": ref.id,
         "code": ref.code,
         "manufacturer_code": ref.manufacturer_code,
+        "brand_name": ref.brand_name,
         "name": ref.name,
         "content_quantity": str(ref.content_quantity),
         "unit_name": ref.unit_name,

@@ -288,3 +288,20 @@ def test_offer_issued_before_the_code_was_frozen_falls_back_to_the_catalog(
     type(product).objects.filter(pk=product.pk).update(manufacturer_code="CAT-9")
     document = queries.document(actor=seller, proforma_id=issued["id"])
     assert document["lines"][0]["manufacturer_code"] == "CAT-9"
+
+
+def test_document_shows_the_product_brand_frozen_at_issue(
+    new_draft: Any, issue: Any, seller: Any, make_product: Any, at: Any
+) -> None:
+    from catalog.models import ProductBrand
+
+    at(2026, 10, 6)
+    brand = ProductBrand.objects.create(name="Eaton")
+    branded = make_product(product_brand=brand)
+    plain = make_product()
+    draft = new_draft((branded, 1), (plain, 1))
+    assert [line["brand_name"] for line in draft["lines"]] == ["Eaton", ""]
+    issued = issue(draft)
+    ProductBrand.objects.filter(pk=brand.pk).update(name="Otra marca")
+    document = queries.document(actor=seller, proforma_id=issued["id"])
+    assert [line["brand_name"] for line in document["lines"]] == ["Eaton", ""]

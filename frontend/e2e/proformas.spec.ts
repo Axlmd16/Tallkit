@@ -12,6 +12,7 @@ interface World {
   tag: string
   customer: { id: number; name: string }
   product: { id: number; code: string; name: string }
+  catalog: { categoryId: number; unitId: number; taxId: number }
 }
 
 let counter = 0
@@ -96,7 +97,12 @@ async function seedWorld(page: Page, stock: number): Promise<World> {
     )
   }
   await page.reload()
-  return { tag, customer, product }
+  return {
+    tag,
+    customer,
+    product,
+    catalog: { categoryId: category.id, unitId: unit.id, taxId: tax.id },
+  }
 }
 
 /** Disponibilidad informativa vigente según el selector de proformas. */
@@ -192,6 +198,9 @@ test.describe('Proformas comerciales', () => {
     await expect(sheet.getByText(number)).toBeVisible()
     await expect(
       sheet.getByRole('columnheader', { name: 'Cód. fabricante' }),
+    ).toBeVisible()
+    await expect(
+      sheet.getByRole('columnheader', { name: 'Marca' }),
     ).toBeVisible()
     await expect(sheet).not.toContainText(/Disponible|Generado con Tallkit|SRI/)
     await expect(
@@ -443,6 +452,86 @@ test.describe('Proformas comerciales', () => {
       `${API}/proformas/${withoutLogo.id}/document/logo/`,
     )
     expect(none.status()).toBe(204)
+  })
+
+  test('una descripción extensa, con marca y código de fabricante, entra en la hoja', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    const world = await seedWorld(page, 5)
+    const request = page.request
+    const brand = await ok(
+      await send(request, 'post', '/product-brands/', {
+        name: `Marca Larga Internacional ${world.tag}`,
+        idempotency_key: `e2e-brand-${world.tag}`,
+      }),
+    )
+    const longName =
+      'Kit de embrague reforzado con disco de 15 pulgadas, plato de presión, rodamiento axial y guía de centrado para transmisión de 18 velocidades de servicio pesado'
+    const long = await ok(
+      await send(request, 'post', '/products/', {
+        code: `LARGO-${world.tag}`,
+        manufacturer_code: 'FAB-4303420-XL-REFORZADO',
+        name: longName,
+        description: '',
+        category_id: world.catalog.categoryId,
+        unit_id: world.catalog.unitId,
+        product_brand_id: brand.id,
+        vehicle_brand_ids: [],
+        tax_definition_id: world.catalog.taxId,
+        content_quantity: '1',
+        sale_price: '12345.67',
+        is_kit: false,
+        idempotency_key: `e2e-long-${world.tag}`,
+      }),
+    )
+    const draft = await ok(
+      await send(request, 'post', '/proformas/', {
+        idempotency_key: `e2e-longd-${world.tag}`,
+        customer_id: world.customer.id,
+        lines: [
+          { product_id: long.id, quantity: '12' },
+          { product_id: world.product.id, quantity: '1' },
+        ],
+      }),
+    )
+    const review = await (
+      await request.get(`${API}/proformas/${draft.id}/issue-preview/`)
+    ).json()
+    await ok(
+      await send(request, 'post', `/proformas/${draft.id}/issue/`, {
+        idempotency_key: `e2e-longi-${world.tag}`,
+        expected_version: review.version,
+        review_token: review.review_token,
+      }),
+    )
+    await page.goto(`/proformas/${draft.id}/document`)
+    const sheet = page.getByRole('article', { name: 'Proforma' })
+    const row = sheet.getByRole('row', { name: /LARGO-/ })
+    await expect(row.getByText(longName)).toBeVisible()
+    await expect(row.getByText(brand.name)).toBeVisible()
+    await expect(row.getByText('FAB-4303420-XL-REFORZADO')).toBeVisible()
+    await page.emulateMedia({ media: 'print' })
+    // Nada se sale de la hoja: ni la tabla ni la columna del total.
+    const fit = await sheet.evaluate((element) => {
+      const table = element.querySelector('table')!
+      const edge = element.getBoundingClientRect().right
+      const cells = [...table.querySelectorAll('td, th')]
+      return {
+        overflow: table.scrollWidth - table.clientWidth,
+        outside: cells.filter(
+          (cell) => cell.getBoundingClientRect().right > edge + 1,
+        ).length,
+        clipped: cells.filter((cell) => cell.scrollWidth > cell.clientWidth + 1)
+          .length,
+      }
+    })
+    expect(fit).toEqual({ overflow: 0, outside: 0, clipped: 0 })
+    await expect(row.getByText('USD 148148.04')).toBeVisible()
+    await page.pdf({
+      preferCSSPageSize: true,
+      path: `${EVIDENCE}/proforma-descripcion-larga.pdf`,
+    })
   })
 
   test('impresión A4 de varias páginas, 360 px, teclado y accesibilidad', async ({

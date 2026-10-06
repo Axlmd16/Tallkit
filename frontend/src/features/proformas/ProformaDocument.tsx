@@ -12,7 +12,7 @@ import {
 /**
  * Hoja A4 de la cotización que se entrega al cliente. Usa exclusivamente los datos y el logo
  * conservados al emitir: nunca consulta la marca vigente de la configuración. Muestra solo lo
- * que el cliente necesita: productos con su código y el del fabricante, cantidades, precios y
+ * que el cliente necesita: productos con su código, el del fabricante y la marca, cantidades, precios y
  * totales. No muestra disponibilidad, avisos internos, condición de cobro ni costos, y no
  * calcula importes.
  */
@@ -70,11 +70,22 @@ export function ProformaDocument({
       title={QUOTE_TITLE}
     >
       <section aria-label="Líneas" className="sheet-lines">
-        <table>
+        {/* Anchos fijos: una descripción larga baja de línea sin apretar las demás columnas. */}
+        <table className="quote-lines">
+          <colgroup>
+            <col className="quote-col-code" />
+            <col className="quote-col-maker" />
+            <col className="quote-col-brand" />
+            <col />
+            <col className="quote-col-quantity" />
+            <col className="quote-col-money" />
+            <col className="quote-col-money" />
+          </colgroup>
           <thead>
             <tr>
               <th>Código</th>
               <th>Cód. fabricante</th>
+              <th>Marca</th>
               <th>Descripción</th>
               <th className="amount">Cantidad</th>
               <th className="amount">Precio</th>
@@ -90,6 +101,7 @@ export function ProformaDocument({
                 <td className="font-mono" data-label="Cód. fabricante">
                   {line.manufacturer_code || '—'}
                 </td>
+                <td data-label="Marca">{line.brand_name || '—'}</td>
                 <td data-label="Descripción">{line.product_name ?? '—'}</td>
                 <td className="amount" data-label="Cantidad">
                   {line.quantity}

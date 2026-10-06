@@ -30,6 +30,7 @@ class SaleProductReference:
     sale_price: Decimal
     tax_definition_id: int
     manufacturer_code: str = ""
+    brand_name: str = ""
 
 
 @dataclass(frozen=True)
@@ -61,12 +62,17 @@ def _reference(product: Product) -> SaleProductReference:
         sale_price=product.sale_price,
         tax_definition_id=product.tax_definition_id,
         manufacturer_code=product.manufacturer_code,
+        brand_name=product.product_brand.name if product.product_brand else "",
     )
 
 
 def get_sale_product_references(ids: Iterable[int]) -> dict[int, SaleProductReference]:
     """Referencias activas o inactivas por ID en una sola consulta (consulta histórica)."""
-    products = Product.objects.select_related("unit").filter(pk__in=set(ids)).order_by("pk")
+    products = (
+        Product.objects.select_related("unit", "product_brand")
+        .filter(pk__in=set(ids))
+        .order_by("pk")
+    )
     return {p.pk: _reference(p) for p in products}
 
 
@@ -74,7 +80,7 @@ def list_sale_product_options(
     *, search: str = "", page: int = 1, page_size: int = 20
 ) -> SaleProductOptionsPage:
     """Productos activos seleccionables, paginados en servidor con orden estable."""
-    queryset = Product.objects.select_related("unit").filter(is_active=True)
+    queryset = Product.objects.select_related("unit", "product_brand").filter(is_active=True)
     term = search.strip()
     if term:
         queryset = queryset.filter(
@@ -96,7 +102,7 @@ def lock_product_references(
     requested = sorted(set(ids))
     locked = {
         p.pk: p
-        for p in Product.objects.select_related("unit")
+        for p in Product.objects.select_related("unit", "product_brand")
         .select_for_update(of=("self",))
         .filter(pk__in=requested)
         .order_by("pk")

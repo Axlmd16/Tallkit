@@ -110,6 +110,37 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+/* Tabla de la cotización: letra compacta y anchos fijos. La descripción ocupa el espacio
+   restante y parte por palabras; códigos y marca también bajan de línea si son largos. */
+.document-sheet table.quote-lines {
+  table-layout: fixed;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.document-sheet table.quote-lines th {
+  font-size: 10px;
+}
+.document-sheet table.quote-lines th,
+.document-sheet table.quote-lines td {
+  padding: 6px 5px;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.quote-col-code {
+  width: 11%;
+}
+.quote-col-maker {
+  width: 14%;
+}
+.quote-col-brand {
+  width: 12%;
+}
+.quote-col-quantity {
+  width: 9%;
+}
+.quote-col-money {
+  width: 14%;
+}
 .sheet-foot {
   display: flex;
   flex: 1;

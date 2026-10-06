@@ -143,27 +143,30 @@ def base(
 def issued_lines(proforma: Proforma) -> list[dict[str, Any]]:
     """Líneas históricas de una oferta emitida; nunca se recalculan."""
     lines: list[ProformaLine] = list(proforma.lines.order_by("position"))
-    # Ofertas emitidas antes de conservar el código de fabricante: se lee del catálogo vigente.
+    # Ofertas emitidas antes de conservar código de fabricante o marca: se leen del catálogo.
+    frozen = ("manufacturer_code", "brand_name")
     missing = [
         line.product_id
         for line in lines
-        if line.product_snapshot is not None and "manufacturer_code" not in line.product_snapshot
+        if line.product_snapshot is not None
+        and any(key not in line.product_snapshot for key in frozen)
     ]
     current = get_sale_product_references(missing) if missing else {}
 
-    def manufacturer_code(line: ProformaLine) -> str:
+    def catalog_value(line: ProformaLine, key: str) -> str:
         snapshot = line.product_snapshot or {}
-        if "manufacturer_code" in snapshot:
-            return str(snapshot["manufacturer_code"])
+        if key in snapshot:
+            return str(snapshot[key])
         ref = current.get(line.product_id)
-        return ref.manufacturer_code if ref else ""
+        return str(getattr(ref, key)) if ref else ""
 
     return [
         {
             "position": line.position,
             "product_id": line.product_id,
             "product_code": line.product_snapshot["code"],
-            "manufacturer_code": manufacturer_code(line),
+            "manufacturer_code": catalog_value(line, "manufacturer_code"),
+            "brand_name": catalog_value(line, "brand_name"),
             "product_name": line.product_snapshot["name"],
             "is_kit": line.product_snapshot["is_kit"],
             "quantity": f"{line.quantity:.0f}",
