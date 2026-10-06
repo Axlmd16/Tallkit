@@ -6,6 +6,7 @@ cobros simultáneos no producen sobrepago. ``operation_id`` identifica el hecho 
 con otra clave de transporte. No existen pagos de orden, anticipos ni saldos a favor.
 """
 
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -21,7 +22,9 @@ from shared.money import (
     PaymentMethod,
     parse_amount,
     validate_charge,
+    validate_settlement,
 )
+from shared.withholding import exceeds_warning, warning_threshold
 from workshop.application.commands import CommandOutcome, CommandResult, execute_write
 from workshop.application.errors import WorkshopError, field_error
 from workshop.application.service_operations import (
@@ -36,10 +39,14 @@ from workshop.models import (
     ArtisanPayment,
     ArtisanPaymentCorrection,
     ArtisanPaymentPart,
+    ArtisanWithholding,
     ServiceOperation,
 )
+from workshop_configuration.application.workshop_references import artisan_withholding_settings
 
-PAYMENT_FIELDS = frozenset({"operation_id", "parts", "idempotency_key"})
+PAYMENT_FIELDS = frozenset({"operation_id", "parts", "idempotency_key", "withholding"})
+WITHHOLDING_FIELDS = frozenset({"amount", "acknowledged"})
+ZERO = Decimal("0.00")
 CORRECT_FIELDS = frozenset({"operation_id", "reason", "replacement", "idempotency_key"})
 PARTS_MAX = 2
 REASON_MAX = 500
@@ -96,6 +103,113 @@ def parse_parts(raw: Any, prefix: str = "parts") -> Parts:
     return parts
 
 
+@dataclass(frozen=True)
+class WithholdingInput:
+    """Retención de la acción: importe y reconocimiento de la advertencia."""
+
+    amount: Decimal
+    acknowledged: bool = False
+
+
+def parse_withholding(raw: Any) -> WithholdingInput | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or set(raw) - WITHHOLDING_FIELDS:
+        raise field_error(
+            "validation_error", "withholding", "La retención solo admite importe y confirmación."
+        )
+    try:
+        amount = parse_amount(raw.get("amount"), "amount", "La retención")
+    except AmountValidationError as error:
+        raise field_error(
+            "validation_error", "withholding.amount", error.errors["amount"][0]
+        ) from None
+    if amount <= 0:
+        raise field_error(
+            "validation_error", "withholding.amount", "La retención debe ser mayor que cero."
+        )
+    acknowledged = raw.get("acknowledged", False)
+    if not isinstance(acknowledged, bool):
+        raise field_error(
+            "validation_error", "withholding.acknowledged", "La confirmación debe ser sí o no."
+        )
+    return WithholdingInput(amount, acknowledged)
+
+
+def parse_settlement(payload: dict[str, Any]) -> tuple[Parts, WithholdingInput | None]:
+    """Dinero y retención de una misma acción; debe existir al menos uno."""
+    withholding = parse_withholding(payload.get("withholding"))
+    if withholding is not None and payload.get("parts") in (None, []):
+        return [], withholding
+    return parse_parts(payload.get("parts")), withholding
+
+
+def _validate_settlement(
+    operation: ServiceOperation, parts: Parts, withholding: WithholdingInput
+) -> None:
+    """Reglas de una acción con retención: activación, saldo, condición y advertencia."""
+    enabled, percentage = artisan_withholding_settings()
+    if not enabled:
+        raise field_error(
+            "validation_error", "withholding", "Esta entidad no registra retenciones recibidas."
+        )
+    balance = balance_of(operation)
+    try:
+        validate_settlement(
+            PaymentCondition(operation.condition),
+            balance.balance,
+            _total(parts),
+            withholding.amount,
+        )
+    except ChargeRejectedError as error:
+        message = (
+            str(error).replace("la venta", "la operación").replace("Una venta", "Una operación")
+        )
+        field = "withholding" if "withholding" in error.errors else "parts"
+        raise WorkshopError("validation_error", message, {field: [message]}) from None
+    if not withholding.acknowledged and exceeds_warning(
+        balance.exigible, balance.withheld, withholding.amount, percentage
+    ):
+        assert percentage is not None
+        message = f"La retención supera el {percentage:.2f} % del total. Confirme que es correcta."
+        raise WorkshopError(
+            "withholding_warning",
+            message,
+            {
+                "withholding": [message],
+                "threshold": [f"{warning_threshold(balance.exigible, percentage):.2f}"],
+            },
+        )
+
+
+def _existing_settlement(
+    operation: ServiceOperation, fact: UUID, parts: Parts, withholding: WithholdingInput | None
+) -> bool:
+    """Reintento de la misma acción: mismo contenido ya registrado; otro, conflicto."""
+    payment = ArtisanPayment.objects.filter(operation_id=fact).first()
+    held = ArtisanWithholding.objects.filter(operation_id=fact).first()
+    if payment is None and held is None:
+        return False
+    same_payment = (payment is None and not parts) or (
+        payment is not None
+        and payment.service_operation_id == operation.pk
+        and sorted((p.method, p.amount) for p in payment.parts.all())
+        == sorted((m.value, a) for m, a in parts)
+    )
+    same_withholding = (held is None and withholding is None) or (
+        held is not None
+        and withholding is not None
+        and held.service_operation_id == operation.pk
+        and held.amount == withholding.amount
+    )
+    if not (same_payment and same_withholding):
+        raise WorkshopError(
+            "idempotency_conflict",
+            "Este identificador de operación ya se usó con otros datos.",
+        )
+    return True
+
+
 def _total(parts: Parts) -> Decimal:
     return sum((amount for _, amount in parts), Decimal("0.00"))
 
@@ -140,24 +254,34 @@ def register_payment(
     def work() -> CommandResult:
         _reject_unknown(payload, PAYMENT_FIELDS)
         fact = _fact_id(payload.get("operation_id"))
-        parts = parse_parts(payload.get("parts"))
+        parts, withholding = parse_settlement(payload)
         operation = lock_operation(operation_id)
-        existing = ArtisanPayment.objects.filter(operation_id=fact).first()
-        if existing is not None:
-            same = existing.service_operation_id == operation.pk and sorted(
-                (p.method, p.amount) for p in existing.parts.all()
-            ) == sorted((m.value, a) for m, a in parts)
-            if not same:
-                raise WorkshopError(
-                    "idempotency_conflict",
-                    "Este identificador de operación ya se usó con otros datos.",
-                )
+        if _existing_settlement(operation, fact, parts, withholding):
             return CommandResult(200, operation.pk)
         _payable(operation)
-        _validate(operation, balance_of(operation).balance, _total(parts), "parts")
-        _insert(operation, actor, fact, parts)
+        if withholding is None:
+            _validate(operation, balance_of(operation).balance, _total(parts), "parts")
+        else:
+            _validate_settlement(operation, parts, withholding)
+        payment = _insert(operation, actor, fact, parts) if parts else None
+        if withholding is not None:
+            ArtisanWithholding.objects.create(
+                operation_id=fact,
+                service_operation=operation,
+                customer_id=operation.customer_id,
+                payment=payment,
+                amount=withholding.amount,
+                effective_at=timezone.now(),
+                effective_date=business_today(),
+                created_by=actor,
+            )
         _bump(operation)
-        return CommandResult(201, operation.pk, ("payments",))
+        changed = tuple(
+            name
+            for name, present in (("payments", payment), ("withholdings", withholding))
+            if present is not None
+        )
+        return CommandResult(201, operation.pk, changed)
 
     return execute_write(
         actor=actor,

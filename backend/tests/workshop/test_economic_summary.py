@@ -159,3 +159,39 @@ def test_seller_commercial_view_is_restricted(  # type: ignore[no-untyped-def]
     assert len(view["parts"]) == 1
     with pytest.raises(BusinessPermissionDeniedError):
         queries.list_orders(actor=seller)
+
+
+def test_artisan_withholding_never_reduces_the_linked_commercial_sale(  # type: ignore[no-untyped-def]
+    admin, manager, seller, order, make_service, stocked
+) -> None:
+    add_part(manager, order["id"], stocked(5, price="40.00").pk, 1)
+    confirm_linked_sale(seller, order["id"], "CREDITO")
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="250.00")
+    operation = confirm_services(manager, order["id"], "CONTADO")
+    artisan_payments.register_payment(
+        actor=manager,
+        operation_id=operation["id"],
+        payload={
+            "operation_id": str(uuid.uuid4()),
+            "parts": [{"method": "TRANSFERENCIA", "amount": "245.00"}],
+            "withholding": {"amount": "5.00"},
+            "idempotency_key": key(),
+        },
+    )
+
+    body = summary(admin, order["id"])
+
+    [artisan_doc] = body["artisan"]["documents"]
+    assert (artisan_doc["paid"], artisan_doc["withheld"], artisan_doc["balance"]) == (
+        "245.00",
+        "5.00",
+        "0.00",
+    )
+    [commercial_doc] = body["commercial"]["documents"]
+    assert (commercial_doc["paid"], commercial_doc["withheld"], commercial_doc["balance"]) == (
+        "0.00",
+        "0.00",
+        "40.00",
+    )
+    receivables = queries.artisan_receivables(actor=manager)
+    assert receivables["results"] == []

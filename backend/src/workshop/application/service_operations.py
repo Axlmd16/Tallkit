@@ -34,6 +34,7 @@ from workshop.domain.service_operation import (
 from workshop.models import (
     SNAPSHOT_SCHEMA_VERSION,
     ArtisanPayment,
+    ArtisanWithholding,
     MaintenanceOrder,
     ServiceLine,
     ServiceOperation,
@@ -422,9 +423,17 @@ def paid_total(operation: ServiceOperation) -> Decimal:
     return total or ZERO
 
 
+def withheld_total(operation: ServiceOperation) -> Decimal:
+    """Retenciones recibidas vigentes: reducen el saldo y nunca son dinero cobrado."""
+    total = ArtisanWithholding.objects.filter(
+        service_operation=operation, voided_at__isnull=True
+    ).aggregate(total=Sum("amount"))["total"]
+    return total or ZERO
+
+
 def balance_of(operation: ServiceOperation) -> BalanceResult:
     exigible = operation.grand_total if operation.state == "CONFIRMED" else ZERO
-    return compute_balance(exigible, paid_total(operation), ZERO)
+    return compute_balance(exigible, paid_total(operation), ZERO, withheld_total(operation))
 
 
 def _allowed_actions(operation: ServiceOperation, actor: User, balance: BalanceResult) -> list[str]:
@@ -448,7 +457,8 @@ def operation_summary(operation: ServiceOperation, actor: User | None = None) ->
         "operational_date": operation.operational_date.isoformat(),
         "customer_snapshot": operation.customer_snapshot,
         "grand_total": _money(operation.grand_total),
-        "paid": _money(balance.applied),
+        "paid": _money(balance.applied - balance.withheld),
+        "withheld": _money(balance.withheld),
         "balance": _money(balance.balance),
         "payment_state": balance.state.value
         if operation.state == "CONFIRMED"
@@ -505,6 +515,7 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
                 for line in operation.lines.all()
             ],
             "payments": payment_history(operation),
+            "withholdings": withholding_history(operation),
             "created_by": user_label(operation.created_by),
             "created_at": operation.created_at.isoformat(),
             "voided_by": user_label(operation.voided_by),
@@ -514,6 +525,41 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
         }
     )
     return body
+
+
+def withholding_dict(withholding: ArtisanWithholding) -> dict[str, Any]:
+    voided = withholding.voided_at is not None
+    return {
+        "id": withholding.pk,
+        "operation_id": str(withholding.operation_id),
+        "service_operation_id": withholding.service_operation_id,
+        "payment_id": withholding.payment_id,
+        "amount": _money(withholding.amount),
+        "effective_at": withholding.effective_at.isoformat(),
+        "effective_date": withholding.effective_date.isoformat(),
+        "created_by": user_label(withholding.created_by),
+        "state": "VOIDED" if voided else "ACTIVE",
+        "void_reason": withholding.void_reason or None,
+        "voided_at": withholding.voided_at.isoformat() if withholding.voided_at else None,
+        "voucher_pending": not voided and withholding.voucher_number is None,
+        "voucher_number": withholding.voucher_number,
+        "voucher_date": (
+            withholding.voucher_date.isoformat() if withholding.voucher_date else None
+        ),
+        "income_tax_amount": (
+            None if withholding.income_tax_amount is None else _money(withholding.income_tax_amount)
+        ),
+        "vat_amount": None if withholding.vat_amount is None else _money(withholding.vat_amount),
+    }
+
+
+def withholding_history(operation: ServiceOperation) -> list[dict[str, Any]]:
+    return [
+        withholding_dict(item)
+        for item in ArtisanWithholding.objects.filter(service_operation=operation)
+        .select_related("created_by")
+        .order_by("effective_at", "id")
+    ]
 
 
 def _payment_status(payment: ArtisanPayment) -> str:
@@ -629,16 +675,22 @@ def void_preview(*, actor: User, operation_id: int) -> dict[str, Any]:
     blockers: list[str] = []
     if operation.state != "CONFIRMED":
         blockers.append("La operación ya está anulada.")
-    if balance.applied > 0:
+    if balance.applied - balance.withheld > 0:
         blockers.append(
             "Tiene pagos vigentes: corrija primero los pagos registrados por error. El reembolso "
             "de dinero recibido no forma parte de esta entrega."
+        )
+    if balance.withheld > 0:
+        blockers.append(
+            "Tiene retenciones recibidas vigentes: anúlelas con motivo antes de anular la "
+            "operación."
         )
     return {
         "id": operation.pk,
         "internal_number": operation.internal_number,
         "grand_total": _money(operation.grand_total),
-        "paid": _money(balance.applied),
+        "paid": _money(balance.applied - balance.withheld),
+        "withheld": _money(balance.withheld),
         "can_void": not blockers,
         "blockers": blockers,
         "effects": {"affects_inventory": False, "releases_lines": True, "keeps_number": True},
@@ -675,6 +727,21 @@ def void_operation(
                 "payments_block_void",
                 "La operación tiene pagos vigentes: corrija primero los pagos registrados por "
                 "error. El reembolso de dinero recibido no forma parte de esta entrega.",
+            )
+        held = list(
+            ArtisanWithholding.objects.filter(service_operation=operation, voided_at__isnull=True)
+            .order_by("id")
+            .values_list("pk", flat=True)
+        )
+        if held:
+            message = (
+                "La operación tiene retenciones recibidas vigentes: anúlelas con motivo antes "
+                "de anular la operación."
+            )
+            raise WorkshopError(
+                "withholdings_block_void",
+                message,
+                {"withholdings": [f"Retención {pk} vigente." for pk in held]},
             )
         operation.state = "VOIDED"
         operation.void_reason = reason.strip()

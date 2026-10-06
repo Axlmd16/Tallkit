@@ -147,6 +147,7 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "line_documented": (409, "Línea documentada"),
     "nothing_to_document": (409, "Nada por documentar"),
     "payments_block_void": (409, "Pagos vigentes impiden anular"),
+    "withholdings_block_void": (409, "Retenciones vigentes impiden anular"),
     "customer_locked_by_documents": (409, "Cliente fijado por documentos vinculados"),
 }
 

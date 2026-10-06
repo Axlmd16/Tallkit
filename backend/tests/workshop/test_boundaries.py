@@ -26,6 +26,7 @@ ALLOWED_CROSS_MODULE = {
     "sales.application.workshop_links",
     "shared.command_values",
     "shared.money",
+    "shared.withholding",
     "shared.transactions",
     "identity.api.permissions",
     "identity.api.request_context",

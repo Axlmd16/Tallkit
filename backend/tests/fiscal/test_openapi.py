@@ -46,6 +46,7 @@ def test_fiscal_routes_and_local_semantics_are_published(schema: dict[str, Any])
         P + "configuration/tax-mappings/": {"post"},
         P + "configuration/entities/{entity_id}/electronic-status/": {"get"},
         P + "configuration/entities/{entity_id}/preparation-defaults/": {"get", "put"},
+        P + "configuration/entities/{entity_id}/withholding-settings/": {"get", "put"},
         P + "configuration/catalogs/{kind}/": {"get"},
         P + "configuration/entities/{entity_id}/tax-mappings/": {"get"},
         P + "configuration/entities/{entity_id}/payment-forms/": {"get"},

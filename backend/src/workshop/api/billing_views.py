@@ -26,6 +26,7 @@ from workshop.api.views import (
 )
 from workshop.application import (
     artisan_payments,
+    artisan_withholdings,
     economic_summary,
     parts,
     queries,
@@ -381,6 +382,104 @@ class ArtisanPaymentCorrectionView(_WorkshopView):
                 actor=_actor(request),
                 operation_id=pk,
                 payment_id=payment_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class ArtisanPendingWithholdingsView(_WorkshopView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "pagos_artesanales.ver"}
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="artisan_withholdings_pending",
+        parameters=[OpenApiParameter("customer_id", OpenApiTypes.INT), *_PAGE_PARAMS],
+        responses={
+            200: sz.ArtisanPendingWithholdingsPageSerializer,
+            400: ProblemSerializer,
+            **_READ,
+        },
+        description="Retenciones artesanales vigentes cuyo comprobante falta completar.",
+    )
+    def get(self, request: Request) -> Response:
+        return _respond(
+            request,
+            lambda: artisan_withholdings.pending_vouchers(
+                actor=_actor(request),
+                customer_id=_int(request, "customer_id"),
+                request_id=request_id_from(request),
+                **_page_args(request),
+            ),
+        )
+
+
+class ArtisanWithholdingVoucherView(_WorkshopView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_artesanales.registrar"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="artisan_withholding_voucher_complete",
+        request=sz.ArtisanWithholdingVoucherSerializer,
+        responses={200: sz.ServiceOperationSerializer, **_PROBLEMS},
+        description="Completa por primera vez el comprobante; no cambia importe ni saldo.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: artisan_withholdings.complete_voucher(
+                actor=_actor(request),
+                operation_id=pk,
+                withholding_id=withholding_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class ArtisanWithholdingVoucherCorrectionView(_WorkshopView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_artesanales.anular"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="artisan_withholding_voucher_correct",
+        request=sz.ArtisanWithholdingVoucherCorrectionSerializer,
+        responses={200: sz.ServiceOperationSerializer, **_PROBLEMS},
+        description="Corrige un comprobante ya completado y conserva los valores anteriores.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: artisan_withholdings.correct_voucher(
+                actor=_actor(request),
+                operation_id=pk,
+                withholding_id=withholding_id,
+                payload=_body(request),
+                request_id=request_id_from(request),
+            ),
+        )
+
+
+class ArtisanWithholdingVoidView(_WorkshopView):
+    business_permissions: ClassVar[dict[str, str]] = {"POST": "pagos_artesanales.anular"}
+    audited_permission_denial_methods: ClassVar[frozenset[str]] = frozenset({"POST"})
+
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="artisan_withholding_void",
+        request=sz.ArtisanWithholdingVoidSerializer,
+        responses={200: sz.ServiceOperationSerializer, **_PROBLEMS},
+        description="Anula la retención con motivo; su importe vuelve al saldo.",
+    )
+    def post(self, request: Request, pk: int, withholding_id: int) -> Response:
+        return _respond(
+            request,
+            lambda: artisan_withholdings.void_withholding(
+                actor=_actor(request),
+                operation_id=pk,
+                withholding_id=withholding_id,
                 payload=_body(request),
                 request_id=request_id_from(request),
             ),

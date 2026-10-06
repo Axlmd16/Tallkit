@@ -295,6 +295,31 @@ def test_two_full_artisan_payments_do_not_overpay(  # type: ignore[no-untyped-de
     assert ArtisanPayment.objects.count() == 1
 
 
+def test_artisan_payment_and_withholding_racing_for_the_same_balance(  # type: ignore[no-untyped-def]
+    run_parallel, manager, admin, artisan_billing, customer, vehicle, make_service
+) -> None:
+    from workshop.models import ArtisanWithholding
+
+    order = open_order(manager, customer, vehicle)
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="80.00")
+    operation = confirm_services(manager, order["id"], "CREDITO")
+
+    def settle(actor: Any, **body: Any) -> Any:
+        return artisan_payments.register_payment(
+            actor=actor,
+            operation_id=operation["id"],
+            payload={"operation_id": str(uuid.uuid4()), "idempotency_key": key(), **body},
+        )
+
+    settle(manager, parts=[{"method": "EFECTIVO", "amount": "78.00"}])
+    results = run_parallel(
+        lambda: settle(manager, parts=[{"method": "EFECTIVO", "amount": "2.00"}]),
+        lambda: settle(admin, withholding={"amount": "2.00"}),
+    )
+    assert outcome(results) == ["ok", "validation_error"]
+    assert ArtisanPayment.objects.count() + ArtisanWithholding.objects.count() == 2
+
+
 def test_payment_against_voiding_the_operation(  # type: ignore[no-untyped-def]
     run_parallel, manager, admin, artisan_billing, customer, vehicle, make_service
 ) -> None:

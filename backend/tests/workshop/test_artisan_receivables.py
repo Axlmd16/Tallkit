@@ -48,7 +48,12 @@ def test_receivables_list_pending_debts_with_totals(manager, operations) -> None
         operations["a"]["operation"]["internal_number"],
         operations["b"]["operation"]["internal_number"],
     }
-    assert body["totals"] == {"grand_total": "100.00", "paid": "20.00", "balance": "80.00"}
+    assert body["totals"] == {
+        "grand_total": "100.00",
+        "paid": "20.00",
+        "withheld": "0.00",
+        "balance": "80.00",
+    }
     assert (body["count"], body["total_pages"]) == (2, 1)
     assert all(row["fiscal_entity"] == "ARTESANAL" for row in body["results"])
     assert all(row["document_type"] == "SERVICIO" for row in body["results"])

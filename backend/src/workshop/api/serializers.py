@@ -382,9 +382,49 @@ class ArtisanPaymentPartSerializer(_Base):
     amount = serializers.CharField(help_text="USD con hasta dos decimales.")
 
 
+class ArtisanWithholdingInputSerializer(_Base):
+    amount = serializers.CharField(help_text="USD positivo con hasta dos decimales.")
+    acknowledged = serializers.BooleanField(
+        required=False, help_text="Confirma una retención que supera el umbral de advertencia."
+    )
+
+
 class ArtisanPaymentCreateSerializer(MaintenanceCommandFields):
-    operation_id = serializers.UUIDField(help_text="Identidad estable del cobro.")
-    parts = ArtisanPaymentPartSerializer(many=True)
+    operation_id = serializers.UUIDField(help_text="Identidad estable de la acción de cobro.")
+    parts = ArtisanPaymentPartSerializer(
+        many=True,
+        required=False,
+        help_text="Dinero recibido; opcional cuando solo se registra una retención.",
+    )
+    withholding = ArtisanWithholdingInputSerializer(
+        required=False,
+        allow_null=True,
+        help_text="Retención recibida: reduce el saldo sin ser dinero ni medio de pago.",
+    )
+
+
+class ArtisanWithholdingVoucherSerializer(MaintenanceCommandFields):
+    voucher_number = serializers.CharField(help_text="Formato NNN-NNN-NNNNNNNNN.")
+    voucher_date = serializers.DateField(help_text="No posterior a la fecha actual.")
+    income_tax_amount = serializers.CharField(required=False, allow_null=True)
+    vat_amount = serializers.CharField(required=False, allow_null=True)
+
+
+class ArtisanWithholdingVoucherCorrectionSerializer(ArtisanWithholdingVoucherSerializer):
+    operation_id = serializers.UUIDField()
+    reason = serializers.CharField(max_length=500)
+
+
+class ArtisanWithholdingVoidSerializer(MaintenanceCommandFields):
+    reason = serializers.CharField(max_length=500)
+
+
+class ArtisanPendingWithholdingsPageSerializer(_Base):
+    items = serializers.ListField(child=serializers.DictField())
+    total_count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    pending_total = serializers.CharField(help_text="Suma de todas las coincidencias.")
 
 
 class ArtisanPaymentReplacementSerializer(_Base):

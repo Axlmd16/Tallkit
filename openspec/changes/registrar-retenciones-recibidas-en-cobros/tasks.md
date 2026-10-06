@@ -110,17 +110,26 @@ Resultado registrado (2026-10-05): 593 pruebas en verde en `tests/sales` (17 nue
 
 Dependencias: grupos 2, 3 y 4. Diseño 1 a 5; specs `retenciones-recibidas-en-cobros` y `pagos-artesanales-y-credito-simple`.
 
-- [ ] 7.1 Crear la migración aditiva de `workshop` con `ArtisanWithholding` y `ArtisanWithholdingVoucherChange` y las mismas restricciones; pruebas en `tests/workshop/test_models.py`.
-- [ ] 7.2 Escribir primero casos rojos en `tests/workshop/test_artisan_payments.py` y `test_economic_summary.py`: saldo y estado con retención vigente y anulada, cobrado y retenido separados.
-- [ ] 7.3 Implementar la suma de retenciones vigentes en el saldo de `workshop/application/service_operations.py` y en las proyecciones; hacer pasar 7.2.
-- [ ] 7.4 Escribir primero `tests/workshop/test_artisan_withholdings.py` con los mismos casos de cobro del grupo 5 aplicados a la operación artesanal, más completar, corregir, anular y lista de pendientes; implementar en `workshop/application/artisan_payments.py` y un módulo `artisan_withholdings.py` hasta verde.
-- [ ] 7.5 Añadir el bloqueo de la anulación de una operación artesanal con retenciones vigentes y su prueba.
-- [ ] 7.6 Añadir a `tests/workshop/test_artisan_receivables.py` que una operación cerrada con retención no figura como deuda y que la retención no se descuenta de la venta vinculada de la misma orden.
-- [ ] 7.7 Añadir a `tests/workshop/test_concurrency.py`, `test_authorization.py` y `test_boundaries.py` los casos de concurrencia, permisos por rol y ámbito, y frontera de módulo (sin escrituras en tablas de `sales`).
-- [ ] 7.8 Exponer las rutas en `workshop/api/billing_views.py` con casos en `tests/workshop/test_billing_api.py`.
-- [ ] 7.9 Verificar con pytest focalizado de `tests/workshop`, chequeo de migraciones, Ruff y mypy sobre `src/workshop`.
+- [x] 7.1 Crear la migración aditiva de `workshop` con `ArtisanWithholding` y `ArtisanWithholdingVoucherChange` y las mismas restricciones; pruebas en `tests/workshop/test_models.py`.
+- [x] 7.2 Escribir primero casos rojos en `tests/workshop/test_artisan_payments.py` y `test_economic_summary.py`: saldo y estado con retención vigente y anulada, cobrado y retenido separados.
+- [x] 7.3 Implementar la suma de retenciones vigentes en el saldo de `workshop/application/service_operations.py` y en las proyecciones; hacer pasar 7.2.
+- [x] 7.4 Escribir primero `tests/workshop/test_artisan_withholdings.py` con los mismos casos de cobro del grupo 5 aplicados a la operación artesanal, más completar, corregir, anular y lista de pendientes; implementar en `workshop/application/artisan_payments.py` y un módulo `artisan_withholdings.py` hasta verde.
+- [x] 7.5 Añadir el bloqueo de la anulación de una operación artesanal con retenciones vigentes y su prueba.
+- [x] 7.6 Añadir a `tests/workshop/test_artisan_receivables.py` que una operación cerrada con retención no figura como deuda y que la retención no se descuenta de la venta vinculada de la misma orden.
+- [x] 7.7 Añadir a `tests/workshop/test_concurrency.py`, `test_authorization.py` y `test_boundaries.py` los casos de concurrencia, permisos por rol y ámbito, y frontera de módulo (sin escrituras en tablas de `sales`).
+- [x] 7.8 Exponer las rutas en `workshop/api/billing_views.py` con casos en `tests/workshop/test_billing_api.py`.
+- [x] 7.9 Verificar con pytest focalizado de `tests/workshop`, chequeo de migraciones, Ruff y mypy sobre `src/workshop`.
 
 Evidencia del grupo: rojo y verde registrados; `test_boundaries.py` en verde.
+
+Resultado registrado (2026-10-05): 327 pruebas en verde en `tests/workshop` (28 nuevas en `test_artisan_withholdings.py`, una de API, una de concurrencia y una de resumen económico); Ruff, mypy y `makemigrations --check` sin hallazgos. Notas:
+- Como en el grupo 6, el código se escribió antes que sus pruebas y no hubo fase roja registrada, salvo los fallos por la frontera de módulos y por un contrato exacto de totales.
+- Las pruebas de modelo, saldo, cobro, comprobante, anulación, seguimiento, cuentas por cobrar y permisos están reunidas en `tests/workshop/test_artisan_withholdings.py`; la de concurrencia, en `test_integration_concurrency.py`; la de la orden con venta vinculada, en `test_economic_summary.py`.
+- `tests/workshop/test_boundaries.py` admite el módulo puro `shared.withholding`, igual que `shared.money`. El taller lee los ajustes por `workshop_references.artisan_withholding_settings`.
+- Contrato ampliado: la operación artesanal y sus cuentas por cobrar añaden `withheld`; `paid` sigue siendo solo dinero. `tests/workshop/test_artisan_receivables.py` se actualizó porque comparaba el diccionario de totales exacto.
+- Los comandos de retención devuelven el detalle de la operación con su lista `withholdings`, igual que los cobros artesanales.
+- Código de error nuevo `withholdings_block_void` (HTTP 409) al anular una operación con retenciones vigentes.
+- Se adelantó de 8.3 la actualización de rutas esperadas en `tests/workshop/test_openapi.py`, `tests/sales/test_openapi.py` y `tests/fiscal/test_openapi.py`.
 
 ## 8. Independencia de la preparación fiscal y contrato OpenAPI
 

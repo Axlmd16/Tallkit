@@ -42,6 +42,10 @@ EXPECTED_BILLING = {
     S + "{id}/void/": {"post"},
     S + "{id}/payments/": {"get", "post"},
     S + "{id}/payments/{payment_id}/corrections/": {"post"},
+    S + "withholdings/pending/": {"get"},
+    S + "{id}/withholdings/{withholding_id}/voucher/": {"post"},
+    S + "{id}/withholdings/{withholding_id}/voucher-correction/": {"post"},
+    S + "{id}/withholdings/{withholding_id}/void/": {"post"},
 }
 
 

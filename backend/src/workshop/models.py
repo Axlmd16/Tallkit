@@ -531,3 +531,112 @@ class ArtisanPaymentCorrection(models.Model):
 
     def __str__(self) -> str:
         return f"Corrección {self.original_payment_id}"
+
+
+class ArtisanWithholding(models.Model):
+    """Retención recibida del RUC artesanal: reduce el saldo sin ser dinero ni medio de pago.
+
+    ``operation_id`` identifica la acción completa (cobro, retención o ambos). El comprobante
+    se completa después; anular es terminal y conserva el registro.
+    """
+
+    operation_id = models.UUIDField(unique=True)
+    service_operation = models.ForeignKey(
+        ServiceOperation, on_delete=models.PROTECT, related_name="withholdings"
+    )
+    customer = models.ForeignKey(
+        "customer_registry.Customer", on_delete=models.PROTECT, related_name="+"
+    )
+    payment = models.OneToOneField(
+        ArtisanPayment,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="withholding",
+    )
+    amount = models.DecimalField(max_digits=24, decimal_places=2)
+    effective_at = models.DateTimeField()
+    effective_date = models.DateField()
+    voucher_number = models.CharField(max_length=17, null=True, blank=True)  # noqa: DJ001
+    voucher_date = models.DateField(null=True, blank=True)
+    income_tax_amount = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    vat_amount = models.DecimalField(max_digits=24, decimal_places=2, null=True, blank=True)
+    voided_at = models.DateTimeField(null=True, blank=True)
+    voided_by = _user_fk(null=True, blank=True)
+    void_reason = models.CharField(max_length=500, blank=True, default="")
+    created_by = _user_fk()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0), name="wk_withholding_positive"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(voucher_number__isnull=True, voucher_date__isnull=True)
+                | models.Q(
+                    voucher_number__regex=r"^[0-9]{3}-[0-9]{3}-[0-9]{9}$",
+                    voucher_date__isnull=False,
+                ),
+                name="wk_withholding_voucher_complete",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(income_tax_amount__isnull=True, vat_amount__isnull=True)
+                | models.Q(
+                    income_tax_amount__isnull=False,
+                    vat_amount__isnull=False,
+                    income_tax_amount__gte=0,
+                    vat_amount__gte=0,
+                    amount=models.F("income_tax_amount") + models.F("vat_amount"),
+                ),
+                name="wk_withholding_breakdown_coherent",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(voided_at__isnull=True, voided_by__isnull=True, void_reason="")
+                | models.Q(
+                    voided_at__isnull=False, voided_by__isnull=False, void_reason__regex=r"\S"
+                ),
+                name="wk_withholding_void_complete",
+            ),
+            models.UniqueConstraint(
+                fields=["customer", "voucher_number"],
+                condition=models.Q(voided_at__isnull=True, voucher_number__isnull=False),
+                name="wk_withholding_voucher_unique",
+            ),
+        ]
+        indexes: ClassVar[list[models.Index]] = [
+            models.Index(
+                fields=["service_operation", "effective_at", "id"], name="wk_withholding_op_idx"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Retención {self.amount}"
+
+
+class ArtisanWithholdingVoucherChange(models.Model):
+    """Corrección administrativa de un comprobante ya completado; conserva lo anterior."""
+
+    operation_id = models.UUIDField(unique=True)
+    withholding = models.ForeignKey(
+        ArtisanWithholding, on_delete=models.PROTECT, related_name="voucher_changes"
+    )
+    previous_voucher_number = models.CharField(max_length=17)
+    previous_voucher_date = models.DateField()
+    previous_income_tax_amount = models.DecimalField(
+        max_digits=24, decimal_places=2, null=True, blank=True
+    )
+    previous_vat_amount = models.DecimalField(
+        max_digits=24, decimal_places=2, null=True, blank=True
+    )
+    reason = models.CharField(max_length=500)
+    created_by = _user_fk()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints: ClassVar[list[models.BaseConstraint]] = [
+            _not_blank("reason", "wk_withholding_change_reason_present"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Corrección de comprobante {self.withholding_id}"

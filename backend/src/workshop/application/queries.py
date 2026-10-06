@@ -36,7 +36,13 @@ from workshop.application.commands import TARGET_TYPE
 from workshop.application.errors import WorkshopError
 from workshop.application.support import business_today
 from workshop.domain.states import OrderState
-from workshop.models import ArtisanPayment, MaintenanceOrder, ServiceLine, ServiceOperation
+from workshop.models import (
+    ArtisanPayment,
+    ArtisanWithholding,
+    MaintenanceOrder,
+    ServiceLine,
+    ServiceOperation,
+)
 
 MAX_PAGE_SIZE = 100
 SUMMARY_NAMES = 3
@@ -259,14 +265,25 @@ def _receivable_rows() -> Any:
         .annotate(total=Sum("amount"))
         .values("total")
     )
+    withheld = (
+        ArtisanWithholding.objects.filter(service_operation=OuterRef("pk"), voided_at__isnull=True)
+        .values("service_operation")
+        .annotate(total=Sum("amount"))
+        .values("total")
+    )
     return (
         ServiceOperation.objects.filter(state="CONFIRMED")
-        .annotate(paid_amount=Coalesce(Subquery(paid, output_field=_MONEY), Value(Decimal(0))))
         .annotate(
-            balance_amount=ExpressionWrapper(F("grand_total") - F("paid_amount"), _MONEY),
+            paid_amount=Coalesce(Subquery(paid, output_field=_MONEY), Value(Decimal(0))),
+            withheld_amount=Coalesce(Subquery(withheld, output_field=_MONEY), Value(Decimal(0))),
+        )
+        .annotate(
+            balance_amount=ExpressionWrapper(
+                F("grand_total") - F("paid_amount") - F("withheld_amount"), _MONEY
+            ),
             payment_state=Case(
                 When(balance_amount__lte=0, then=Value("PAID")),
-                When(paid_amount__gt=0, then=Value("PARTIAL")),
+                When(Q(paid_amount__gt=0) | Q(withheld_amount__gt=0), then=Value("PARTIAL")),
                 default=Value("PENDING"),
             ),
         )
@@ -312,6 +329,7 @@ def artisan_receivables(
     sums = rows.aggregate(
         grand_total=Coalesce(Sum("grand_total"), Value(Decimal(0)), output_field=_MONEY),
         paid=Coalesce(Sum("paid_amount"), Value(Decimal(0)), output_field=_MONEY),
+        withheld=Coalesce(Sum("withheld_amount"), Value(Decimal(0)), output_field=_MONEY),
         balance=Coalesce(Sum("balance_amount"), Value(Decimal(0)), output_field=_MONEY),
     )
     count = rows.count()
@@ -341,6 +359,7 @@ def artisan_receivables(
                 "age_days": (today - row.operational_date).days,
                 "grand_total": f"{row.grand_total:.2f}",
                 "paid": f"{row.paid_amount:.2f}",
+                "withheld": f"{row.withheld_amount:.2f}",
                 "balance": f"{row.balance_amount:.2f}",
                 "payment_state": row.payment_state,
             }

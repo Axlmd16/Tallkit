@@ -242,3 +242,79 @@ def test_finalized_order_rejects_parts(manager, order, stocked) -> None:  # type
     problem(
         add_part_http(client_for(manager), order["id"], stocked(5).pk), 409, "parts_not_allowed"
     )
+
+
+def test_withholding_routes_for_an_artisan_operation(  # type: ignore[no-untyped-def]
+    manager, admin, seller, order
+) -> None:
+    from tests.workshop.workshop_helpers import confirm_services
+
+    from workshop.application.support import business_today
+
+    operation = confirm_services(manager, order["id"], "CREDITO")
+    workshop, admin_api = client_for(manager), client_for(admin)
+    route = f"{S}{operation['id']}/"
+
+    def charge(body: dict[str, Any]) -> Any:
+        return workshop.post(
+            f"{route}payments/",
+            {"operation_id": str(uuid.uuid4()), "idempotency_key": key(), **body},
+            format="json",
+        )
+
+    warned = charge({"withholding": {"amount": "30.00"}})
+    assert problem(warned, 409, "withholding_warning")["errors"]["threshold"] == ["12.00"]
+
+    created = charge(
+        {
+            "parts": [{"method": "TRANSFERENCIA", "amount": "58.00"}],
+            "withholding": {"amount": "2.00"},
+        }
+    )
+    assert created.status_code == 201, created.content
+    body = created.json()
+    assert (body["paid"], body["withheld"], body["balance"]) == ("58.00", "2.00", "0.00")
+    withholding_id = body["withholdings"][0]["id"]
+
+    pending = workshop.get(f"{S}withholdings/pending/")
+    assert pending.status_code == 200
+    assert pending.json()["pending_total"] == "2.00"
+    assert pending.json()["items"][0]["fiscal_scope"] == "ARTESANAL"
+    assert client_for(seller).get(f"{S}withholdings/pending/").status_code == 403
+
+    voucher = {
+        "voucher_number": "001-001-000028564",
+        "voucher_date": business_today().isoformat(),
+    }
+    target = f"{route}withholdings/{withholding_id}/"
+    bad = workshop.post(
+        f"{target}voucher/",
+        {**voucher, "voucher_number": "1-1-1", "idempotency_key": key()},
+        format="json",
+    )
+    problem(bad, 400, "validation_error")
+    done = workshop.post(f"{target}voucher/", {**voucher, "idempotency_key": key()}, format="json")
+    assert done.status_code == 200
+    assert done.json()["withholdings"][0]["voucher_pending"] is False
+    assert workshop.get(f"{S}withholdings/pending/").json()["total_count"] == 0
+
+    correction = {
+        **voucher,
+        "voucher_number": "001-001-000000002",
+        "operation_id": str(uuid.uuid4()),
+        "reason": "Número mal digitado",
+        "idempotency_key": key(),
+    }
+    assert (
+        workshop.post(f"{target}voucher-correction/", correction, format="json").status_code == 403
+    )
+    corrected = admin_api.post(f"{target}voucher-correction/", correction, format="json")
+    assert corrected.json()["withholdings"][0]["voucher_number"] == "001-001-000000002"
+
+    void_body = {"reason": "Registrada por error", "idempotency_key": key()}
+    assert workshop.post(f"{target}void/", void_body, format="json").status_code == 403
+    voided = admin_api.post(f"{target}void/", void_body, format="json")
+    assert voided.status_code == 200
+    assert (voided.json()["withheld"], voided.json()["balance"]) == ("0.00", "2.00")
+    again = admin_api.post(f"{target}void/", {**void_body, "idempotency_key": key()}, format="json")
+    problem(again, 409, "invalid_state")
