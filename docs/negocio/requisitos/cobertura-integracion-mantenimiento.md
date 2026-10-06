@@ -91,4 +91,14 @@
 - Los pagos artesanales, igual que los comerciales, no registran referencia de transferencia ni efectivo recibido o cambio. Es una posible mejora conjunta fuera de esta entrega.
 - La reposición por corrección (CU-024), la cancelación de órdenes y los reembolsos artesanales siguen pendientes.
 
+## Retenciones recibidas en cobros artesanales
+
+Cambio `registrar-retenciones-recibidas-en-cobros`: 3 requisitos y 6 escenarios de la spec delta artesanal. Matriz pendiente abierta el 2026-10-05; la capacidad compartida `retenciones-recibidas-en-cobros` se registra en `cobertura-ventas-pagos.md`.
+
+| Capacidad / requisito | Escenarios | Tareas | Prueba o evidencia | Estado |
+|---|---|---|---|---|
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Saldo y estado de pago derivados | Saldo reproducible; Estados independientes; Retención que completa el pago artesanal; Retención anulada no descuenta | 2, 7 | Pendiente | Pendiente |
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Retenciones en las cuentas por cobrar artesanales | Orden con retención en un solo ámbito | 2, 7 | Pendiente | Pendiente |
+| [pagos-artesanales-y-credito-simple](../../../openspec/changes/registrar-retenciones-recibidas-en-cobros/specs/pagos-artesanales-y-credito-simple/spec.md) / Anulación de la operación con retenciones vigentes | Intento de anular con una retención vigente | 2, 7 | Pendiente | Pendiente |
+
 Referencia terminológica: [cobertura-integracion-mantenimiento-glossary-reference.md](cobertura-integracion-mantenimiento-glossary-reference.md).

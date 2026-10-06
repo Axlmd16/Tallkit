@@ -6,3 +6,4 @@
 | Disponibilidad | [Glosario del producto](../producto/glosario.md#disponibilidad) | Validada en toda salida. |
 | Documento interno | [Glosario del producto](../producto/glosario.md#documento-interno) | Operación ART-SER y venta vinculada. |
 | Saldo pendiente | [Glosario del producto](../producto/glosario.md#saldo-pendiente) | Derivado por documento y RUC. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Valor retenido por el cliente que reduce el saldo sin ser dinero cobrado; término nuevo del cambio de retenciones. |

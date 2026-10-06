@@ -12,3 +12,4 @@
 | Entidad fiscal | `docs/negocio/producto/glosario.md` | Ámbito comercial de todas las pruebas; nunca mezclado con el artesanal. |
 | Idempotencia | `docs/tecnico/glosario-tecnico.md` | Reintento seguro mediante clave de transporte e identidad estable de operación. |
 | OpenSpec | `docs/tecnico/glosario-tecnico.md` | Marco que gobierna los 105 escenarios cubiertos. |
+| Retención recibida | `docs/negocio/producto/glosario.md` | Valor retenido por el cliente que reduce el saldo sin ser dinero cobrado; término nuevo del cambio de retenciones. |

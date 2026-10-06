@@ -4,25 +4,33 @@ Dependencias: propuesta, specs y diseño aprobados y registrados en `master`, co
 
 Por instrucción del usuario se ejecutan solo pruebas focalizadas. Cada tarea de comportamiento sigue TDD: prueba roja por la razón esperada, implementación mínima, refactorización y prueba verde. No se ejecutan `make check`, `make test`, pytest completo, Vitest completo ni toda la suite de Playwright; el resumen final indica qué se ejecutó y qué no.
 
-- [ ] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
-- [ ] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación (diseño, Migration Plan).
-- [ ] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/test_shared_money.py tests/sales/test_balances.py tests/sales/test_payments.py tests/sales/test_payment_corrections.py tests/sales/test_refunds.py tests/sales/test_void.py tests/sales/test_queries.py tests/workshop/test_artisan_payments.py tests/workshop/test_artisan_receivables.py tests/customer_registry/test_customer_services.py`.
-- [ ] 1.4 Añadir a `docs/negocio/requisitos/cobertura-ventas-pagos.md` y `cobertura-integracion-mantenimiento.md` una matriz pendiente que relacione cada requirement y escenario de las seis specs delta con los grupos y archivos de prueba de este checklist.
+- [x] 1.1 Comprobar `git status --short`, la rama vigente y que este cambio esté en `master` sin modificaciones pendientes. Registrar cambios ajenos en las rutas afectadas; no crear ramas ni merges sin autorización.
+- [x] 1.2 Tomar un respaldo de la base de desarrollo antes de migrar y anotar su ubicación (diseño, Migration Plan).
+- [x] 1.3 Ejecutar y registrar la línea base: `cd backend && uv run --frozen pytest --no-cov tests/test_shared_money.py tests/sales/test_balances.py tests/sales/test_payments.py tests/sales/test_payment_corrections.py tests/sales/test_refunds.py tests/sales/test_void.py tests/sales/test_queries.py tests/workshop/test_artisan_payments.py tests/workshop/test_artisan_receivables.py tests/customer_registry/test_customer_services.py`.
+- [x] 1.4 Añadir a `docs/negocio/requisitos/cobertura-ventas-pagos.md` y `cobertura-integracion-mantenimiento.md` una matriz pendiente que relacione cada requirement y escenario de las seis specs delta con los grupos y archivos de prueba de este checklist.
 
 Evidencia del grupo: estado Git, respaldo anotado, comando de línea base con su resultado real y matriz de cobertura pendiente.
+
+Resultado registrado (2026-10-05):
+- 1.1: rama `develop`, árbol limpio y las cuatro fases del cambio en `master` (commit `0fc7f91`).
+- 1.2: respaldo `pg_dump -Fc` de la base de desarrollo (contenedor `sys-taller-db-1`) en el scratchpad de la sesión, `sys_taller-antes-retenciones.dump` (548 KB); no se versiona.
+- 1.3: 153 pruebas pasan en 29 s con el comando de la tarea.
+- 1.4: matrices pendientes añadidas a `cobertura-ventas-pagos.md` (17 requisitos) y `cobertura-integracion-mantenimiento.md` (3 requisitos).
 
 ## 2. Núcleo monetario y reglas puras del comprobante
 
 Dependencias: grupo 1. Diseño 2, 3 y 5; specs `retenciones-recibidas-en-cobros` («Retención recibida sobre una única operación confirmada», «Cobro acompañado…», «Comprobante de retención completado después») y los requisitos de saldo de ambos ámbitos.
 
-- [ ] 2.1 Escribir primero en `backend/tests/test_shared_money.py` casos rojos de `compute_balance` con `withheld`: retención que completa el saldo, solo retención (estado parcial), exceso con retención tras devolución (`excess` limitado al dinero y `withheld_excess` con el resto) y equivalencia exacta con `withheld = 0` frente a los resultados actuales.
-- [ ] 2.2 Añadir casos rojos de `validate_settlement`: importes no positivos, suma mayor que el saldo, contado cubierto con dinero más retención, contado insuficiente, retención sola en crédito y delegación de `validate_charge`.
-- [ ] 2.3 Implementar en `backend/src/shared/money.py` el argumento `withheld`, los campos `withheld` y `withheld_excess` de `BalanceResult` y `validate_settlement`; hacer pasar 2.1–2.2 sin modificar las pruebas existentes de saldo.
-- [ ] 2.4 Escribir primero `backend/tests/test_shared_withholding.py` con casos rojos de `parse_voucher_number` (formato `NNN-NNN-NNNNNNNNN`, rechazo de `1-1-28564`, espacios y letras), `validate_breakdown` (suma igual al importe, importes no negativos, hasta dos decimales, ambos o ninguno) y la regla del umbral de advertencia con `Decimal`.
-- [ ] 2.5 Implementar `backend/src/shared/withholding.py` como módulo puro, sin Django ni DRF, y hacer pasar 2.4.
-- [ ] 2.6 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/test_shared_money.py tests/test_shared_withholding.py tests/sales/test_balances.py`, Ruff sobre los archivos tocados y mypy sobre `src/shared`.
+- [x] 2.1 Escribir primero en `backend/tests/test_shared_money.py` casos rojos de `compute_balance` con `withheld`: retención que completa el saldo, solo retención (estado parcial), exceso con retención tras devolución (`excess` limitado al dinero y `withheld_excess` con el resto) y equivalencia exacta con `withheld = 0` frente a los resultados actuales.
+- [x] 2.2 Añadir casos rojos de `validate_settlement`: importes no positivos, suma mayor que el saldo, contado cubierto con dinero más retención, contado insuficiente, retención sola en crédito y delegación de `validate_charge`.
+- [x] 2.3 Implementar en `backend/src/shared/money.py` el argumento `withheld`, los campos `withheld` y `withheld_excess` de `BalanceResult` y `validate_settlement`; hacer pasar 2.1–2.2 sin modificar las pruebas existentes de saldo.
+- [x] 2.4 Escribir primero `backend/tests/test_shared_withholding.py` con casos rojos de `parse_voucher_number` (formato `NNN-NNN-NNNNNNNNN`, rechazo de `1-1-28564`, espacios y letras), `validate_breakdown` (suma igual al importe, importes no negativos, hasta dos decimales, ambos o ninguno) y la regla del umbral de advertencia con `Decimal`.
+- [x] 2.5 Implementar `backend/src/shared/withholding.py` como módulo puro, sin Django ni DRF, y hacer pasar 2.4.
+- [x] 2.6 Verificar con `cd backend && uv run --frozen pytest --no-cov tests/test_shared_money.py tests/test_shared_withholding.py tests/sales/test_balances.py`, Ruff sobre los archivos tocados y mypy sobre `src/shared`.
 
 Evidencia del grupo: rojo y verde registrados; las pruebas previas de saldo pasan sin cambios.
+
+Resultado registrado (2026-10-05): rojo por `ImportError` (`validate_settlement` y `shared.withholding` no existían); verde con 110 pruebas en `test_shared_money.py`, `test_shared_withholding.py`, `tests/sales/test_balances.py`, `test_payments.py` y `tests/workshop/test_artisan_payments.py`, estas tres últimas sin modificar. Ruff y mypy sin hallazgos en `src/shared`.
 
 ## 3. Ajustes por entidad en configuración
 

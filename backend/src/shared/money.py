@@ -147,32 +147,56 @@ class BalanceResult:
     balance: Decimal
     excess: Decimal
     state: PaymentState
+    # Retenciones recibidas vigentes: reducen el saldo, pero nunca son dinero cobrado.
+    withheld: Decimal = ZERO
+    withheld_excess: Decimal = ZERO
 
     @property
     def is_settled_without_payment(self) -> bool:
         return self.exigible == 0 and self.applied == 0
 
 
-def compute_balance(exigible: Decimal, paid: Decimal, refunded: Decimal) -> BalanceResult:
-    applied = paid - refunded
+def compute_balance(
+    exigible: Decimal, paid: Decimal, refunded: Decimal, withheld: Decimal = ZERO
+) -> BalanceResult:
+    """Saldo con dinero neto y retenciones; solo el dinero cobrado es reembolsable."""
+    money = paid - refunded
+    applied = money + withheld
     balance = max(exigible - applied, ZERO)
-    excess = max(applied - exigible, ZERO)
+    total_excess = max(applied - exigible, ZERO)
+    excess = min(total_excess, max(money, ZERO))
     if balance == 0:
         state = PaymentState.PAID
     elif applied > 0:
         state = PaymentState.PARTIAL
     else:
         state = PaymentState.PENDING
-    return BalanceResult(exigible, applied, balance, excess, state)
+    return BalanceResult(exigible, applied, balance, excess, state, withheld, total_excess - excess)
+
+
+def validate_settlement(
+    condition: PaymentCondition, balance: Decimal, money: Decimal, withheld: Decimal
+) -> None:
+    """Dinero y retención de una misma acción contra el saldo y la condición."""
+    if money < 0:
+        raise ChargeRejectedError("amount", "El importe del cobro no puede ser negativo.")
+    if withheld < 0:
+        raise ChargeRejectedError("withholding", "La retención no puede ser negativa.")
+    total = money + withheld
+    if total <= 0:
+        raise ChargeRejectedError("amount", "El importe del cobro debe ser mayor que cero.")
+    if balance <= 0:
+        raise ChargeRejectedError("amount", "La venta no tiene saldo pendiente por cobrar.")
+    if withheld > balance:
+        raise ChargeRejectedError("withholding", "La retención excede el saldo pendiente.")
+    if total > balance:
+        raise ChargeRejectedError("amount", "El importe excede el saldo pendiente de la venta.")
+    if condition is PaymentCondition.CONTADO and total != balance:
+        raise ChargeRejectedError("amount", "Una venta de contado exige cobrar el saldo completo.")
 
 
 def validate_charge(condition: PaymentCondition, balance: Decimal, amount: Decimal) -> None:
     """Un cobro es positivo, no supera el saldo y, en contado, lo liquida completo."""
     if amount <= 0:
         raise ChargeRejectedError("amount", "El importe del cobro debe ser mayor que cero.")
-    if balance <= 0:
-        raise ChargeRejectedError("amount", "La venta no tiene saldo pendiente por cobrar.")
-    if amount > balance:
-        raise ChargeRejectedError("amount", "El importe excede el saldo pendiente de la venta.")
-    if condition is PaymentCondition.CONTADO and amount != balance:
-        raise ChargeRejectedError("amount", "Una venta de contado exige cobrar el saldo completo.")
+    validate_settlement(condition, balance, amount, ZERO)
