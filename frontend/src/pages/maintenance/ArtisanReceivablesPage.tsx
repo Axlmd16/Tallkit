@@ -23,10 +23,12 @@ import {
 export function ArtisanReceivablesPage() {
   const filters = useUrlFilters()
   const paymentState = filters.get('payment_state') as PaymentState | ''
+  const condition = filters.get('condition') as 'CONTADO' | 'CREDITO' | ''
   const query = useArtisanReceivables({
     customerId: filters.getNumber('customer_id'),
     orderId: filters.getNumber('order_id'),
     paymentState: (paymentState || undefined) as PaymentState | undefined,
+    condition: condition || undefined,
     page: filters.page,
   })
   const totals = query.data?.totals
@@ -78,6 +80,7 @@ export function ArtisanReceivablesPage() {
                       payment_state: '',
                       customer_id: '',
                       order_id: '',
+                      condition: '',
                     }),
                 }
               : {})}
@@ -94,6 +97,19 @@ export function ArtisanReceivablesPage() {
                 <option value="PENDING">Pendiente</option>
                 <option value="PARTIAL">Parcial</option>
                 <option value="PAID">Pagado</option>
+              </Select>
+            </Field>
+            <Field id="artisan-receivables-condition" label="Condición">
+              <Select
+                id="artisan-receivables-condition"
+                onChange={(event) =>
+                  filters.set({ condition: event.target.value })
+                }
+                value={condition}
+              >
+                <option value="">Contado y crédito</option>
+                <option value="CONTADO">Contado</option>
+                <option value="CREDITO">Crédito</option>
               </Select>
             </Field>
           </FilterPanel>

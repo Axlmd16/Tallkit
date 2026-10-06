@@ -60,6 +60,8 @@ export function createSalesApi(client: ApiClient) {
           origin: filters.origin,
           payment_state: filters.paymentState,
           min_age_days: filters.minAgeDays,
+          condition: filters.condition,
+          only_debt: filters.onlyDebt ? 'true' : undefined,
           page: filters.page,
           page_size: filters.pageSize,
         })}`,

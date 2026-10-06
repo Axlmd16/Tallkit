@@ -378,6 +378,7 @@ export function createMaintenanceApi(client: ApiClient) {
           customer_id: filters.customerId,
           order_id: filters.orderId,
           payment_state: filters.paymentState,
+          condition: filters.condition,
           page: filters.page,
           page_size: filters.pageSize,
         })}`,

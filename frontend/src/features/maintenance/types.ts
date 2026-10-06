@@ -155,9 +155,12 @@ export interface MaintenanceOrder {
   billing_actions?: BillingAction[]
 }
 
+/** `OPEN` reúne las órdenes registradas y las reabiertas. */
+export type OrderStateFilter = OrderState | 'OPEN'
+
 export interface OrderFilters {
   search?: string | undefined
-  state?: OrderState | undefined
+  state?: OrderStateFilter | undefined
   dateFrom?: string | undefined
   dateTo?: string | undefined
   customerId?: number | undefined
@@ -465,6 +468,7 @@ export interface ArtisanReceivableFilters {
   customerId?: number | undefined
   orderId?: number | undefined
   paymentState?: PaymentState | undefined
+  condition?: 'CONTADO' | 'CREDITO' | undefined
   page?: number | undefined
   pageSize?: number | undefined
 }

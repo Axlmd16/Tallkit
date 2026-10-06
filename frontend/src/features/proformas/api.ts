@@ -48,6 +48,7 @@ export function createProformasApi(client: ApiClient) {
           search: filters.search,
           state: filters.state,
           customer_id: filters.customerId,
+          expires_within_days: filters.expiresWithinDays,
           page: filters.page,
           page_size: filters.pageSize,
         })}`,

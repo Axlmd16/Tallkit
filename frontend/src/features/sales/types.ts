@@ -236,6 +236,8 @@ export interface SaleFilters {
   dateFrom?: string | undefined
   dateTo?: string | undefined
   minAgeDays?: number | undefined
+  condition?: SaleCondition | undefined
+  onlyDebt?: boolean | undefined
   page?: number | undefined
   pageSize?: number | undefined
 }

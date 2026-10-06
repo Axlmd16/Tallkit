@@ -75,10 +75,10 @@ Dependencias: grupo 1; puede avanzar en paralelo con los grupos 2 a 5. Evidencia
 
 Cubre diseño D4: que cada enlace del inicio llegue a su lista ya filtrada y con el filtro a la vista.
 
-- [ ] 7.1 Añadir `condition` y `only_debt` a `frontend/src/pages/sales/ReceivablesPage.tsx` y a la API y tipos de `features/sales`, leídos de la URL y visibles en la barra de filtros con el patrón existente. Cierre: «Limpiar filtros» los retira; las pruebas actuales de la página siguen pasando.
-- [ ] 7.2 Añadir `condition` a `frontend/src/pages/maintenance/ArtisanReceivablesPage.tsx` y a `features/maintenance`. Cierre: igual que 7.1.
-- [ ] 7.3 Añadir la opción «Abiertas» al filtro de estado de `frontend/src/pages/maintenance/MaintenanceOrdersPage.tsx`. Cierre: `/maintenance?state=OPEN` muestra registradas y reabiertas.
-- [ ] 7.4 Añadir «Por vencer» a `frontend/src/pages/proformas/ProformasPage.tsx` mediante `expires_within_days`. Cierre: `/proformas?state=VALID&expires_within_days=1` llega filtrada y el filtro puede quitarse.
+- [x] 7.1 Añadir `condition` y `only_debt` a `frontend/src/pages/sales/ReceivablesPage.tsx` y a la API y tipos de `features/sales`, leídos de la URL y visibles en la barra de filtros con el patrón existente. Cierre: «Limpiar filtros» los retira; las pruebas actuales de la página siguen pasando.
+- [x] 7.2 Añadir `condition` a `frontend/src/pages/maintenance/ArtisanReceivablesPage.tsx` y a `features/maintenance`. Cierre: igual que 7.1.
+- [x] 7.3 Añadir la opción «Abiertas» al filtro de estado de `frontend/src/pages/maintenance/MaintenanceOrdersPage.tsx`. Cierre: `/maintenance?state=OPEN` muestra registradas y reabiertas.
+- [x] 7.4 Añadir «Por vencer» a `frontend/src/pages/proformas/ProformasPage.tsx` mediante `expires_within_days`. Cierre: `/proformas?state=VALID&expires_within_days=1` llega filtrada y el filtro puede quitarse.
 
 Dependencias: grupos 2, 3 y 4. Evidencia: `npm run test -- src/pages/sales/ReceivablesPage src/pages/maintenance src/pages/proformas/ProformasPage`.
 

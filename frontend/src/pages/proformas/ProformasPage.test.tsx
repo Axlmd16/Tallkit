@@ -133,6 +133,7 @@ it('busca por número o cliente y filtra por estado conservándolos en la URL', 
   expect(mocks.args.at(-1)).toEqual({
     search: 'ana',
     state: 'CONVERTED',
+    expiresWithinDays: undefined,
     page: 1,
   })
   expect(
@@ -216,4 +217,26 @@ it('una proforma sin cliente se lista como «Sin cliente»', () => {
       'Sin cliente',
     ),
   ).toBeInTheDocument()
+})
+
+it('«Por vencer» llega filtrada desde el inicio y puede quitarse', async () => {
+  const user = userEvent.setup()
+  renderPage('/proformas?state=VALID&expires_within_days=1')
+  expect(mocks.args.at(-1)).toEqual({
+    search: undefined,
+    state: 'VALID',
+    expiresWithinDays: 1,
+    page: 1,
+  })
+  expect(screen.getByRole('radio', { name: 'Por vencer' })).toBeChecked()
+  await user.click(screen.getByRole('radio', { name: 'Todas' }))
+  expect(screen.getByTestId('where')).toHaveTextContent(/^\/proformas$/)
+  expect(mocks.args.at(-1)).toMatchObject({
+    state: undefined,
+    expiresWithinDays: undefined,
+  })
+  await user.click(screen.getByRole('radio', { name: 'Por vencer' }))
+  expect(screen.getByTestId('where')).toHaveTextContent(
+    'state=VALID&expires_within_days=1',
+  )
 })

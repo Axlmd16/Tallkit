@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => {
       { logoUrl: string | null; legalName?: string }
     >,
     scopes: [] as string[],
+    receivableArgs: [] as unknown[],
     mutations: {
       pay: mutation(),
       voidOperation: mutation(),
@@ -51,7 +52,10 @@ vi.mock('@/features/fiscal/FiscalPreparationLink', () => ({
 vi.mock('@/features/maintenance/billingHooks', () => ({
   useServiceOperation: () => mocks.operation,
   useServiceOperationDocument: () => mocks.operation,
-  useArtisanReceivables: () => mocks.receivables,
+  useArtisanReceivables: (filters: unknown) => {
+    mocks.receivableArgs.push(filters)
+    return mocks.receivables
+  },
   useCommercialView: () => mocks.commercial,
   useBillingMutations: () => mocks.mutations,
   useVoidPreview: () => ({ isPending: false, data: undefined }),
@@ -511,5 +515,28 @@ describe('CommercialOrderViewPage', () => {
     expect(
       screen.queryByText(/Diagnóstico|Servicios|Fotografías/),
     ).not.toBeInTheDocument()
+  })
+
+  it('filtra por condición desde la URL y lo muestra en la barra de filtros', () => {
+    mocks.receivables.data = {
+      count: 0,
+      page: 1,
+      page_size: 20,
+      total_pages: 0,
+      totals: {
+        grand_total: '0.00',
+        paid: '0.00',
+        withheld: '0.00',
+        balance: '0.00',
+      },
+      results: [],
+    }
+    renderAt(
+      '/maintenance/receivables?condition=CONTADO',
+      '/maintenance/receivables',
+      <ArtisanReceivablesPage />,
+    )
+    expect(mocks.receivableArgs.at(-1)).toMatchObject({ condition: 'CONTADO' })
+    expect(screen.getByLabelText('Condición')).toHaveValue('CONTADO')
   })
 })

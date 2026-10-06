@@ -10,7 +10,11 @@ import {
   OrderStateBadge,
 } from '@/features/maintenance/format'
 import { useMaintenanceOrders } from '@/features/maintenance/hooks'
-import type { OrderListItem, OrderState } from '@/features/maintenance/types'
+import type {
+  OrderListItem,
+  OrderState,
+  OrderStateFilter,
+} from '@/features/maintenance/types'
 import {
   Button,
   DropdownMenu,
@@ -40,7 +44,7 @@ export function MaintenanceOrdersPage() {
   const canManage = new Set(useSession().data?.permissions ?? []).has(
     'mantenimientos.gestionar',
   )
-  const state = filters.get('state') as OrderState | ''
+  const state = filters.get('state') as OrderStateFilter | ''
   const query = useMaintenanceOrders({
     search: filters.search || undefined,
     state: state || undefined,
@@ -82,6 +86,7 @@ export function MaintenanceOrdersPage() {
                 onChange={(value) => filters.set({ state: value })}
                 options={[
                   { value: '', label: 'Todas' },
+                  { value: 'OPEN', label: 'Abiertas' },
                   ...(Object.keys(SEGMENT_LABELS) as OrderState[]).map(
                     (value) => ({ value, label: SEGMENT_LABELS[value] }),
                   ),

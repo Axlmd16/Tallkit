@@ -155,3 +155,30 @@ it('muestra lo retenido por el cliente en su propia columna, sin sumarlo a la de
     screen.getByRole('link', { name: 'Retenciones por completar' }),
   ).toHaveAttribute('href', '/sales/withholdings')
 })
+
+it('filtra por condición y solo deuda desde la URL, a la vista y con limpieza', async () => {
+  const { default: userEvent } = await import('@testing-library/user-event')
+  const user = userEvent.setup()
+  renderPage('/sales/receivables?condition=CONTADO&only_debt=true')
+  expect(mocks.args.at(-1)).toMatchObject({
+    condition: 'CONTADO',
+    onlyDebt: true,
+  })
+  expect(screen.getByLabelText('Condición')).toHaveValue('CONTADO')
+  expect(screen.getByLabelText('Mostrar')).toHaveValue('true')
+  await user.click(screen.getByRole('button', { name: /limpiar/i }))
+  expect(mocks.args.at(-1)).toMatchObject({
+    condition: undefined,
+    onlyDebt: undefined,
+  })
+})
+
+it('sin los filtros nuevos consulta como antes', () => {
+  renderPage()
+  expect(mocks.args.at(-1)).toMatchObject({
+    condition: undefined,
+    onlyDebt: undefined,
+  })
+  expect(screen.getByLabelText('Condición')).toHaveValue('')
+  expect(screen.getByLabelText('Mostrar')).toHaveValue('')
+})

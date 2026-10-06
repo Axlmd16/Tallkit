@@ -140,6 +140,8 @@ export interface ProformaFilters {
   search?: string | undefined
   state?: ProformaState | undefined
   customerId?: number | undefined
+  /** Solo vigentes que vencen en esos días, contando hoy. */
+  expiresWithinDays?: number | undefined
   page?: number | undefined
   pageSize?: number | undefined
 }

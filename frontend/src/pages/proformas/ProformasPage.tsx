@@ -30,6 +30,10 @@ const SEGMENT_LABELS: Record<ProformaState, string> = {
   VOIDED: 'Anuladas',
 }
 
+/** Vigentes que vencen hoy o mañana: el mismo corte que muestra el inicio. */
+const EXPIRING = 'EXPIRING'
+const EXPIRING_DAYS = 1
+
 /** Lista de proformas con búsqueda y estado en la URL, que se conservan al volver. */
 export function ProformasPage() {
   const filters = useUrlFilters()
@@ -39,9 +43,13 @@ export function ProformasPage() {
     'proformas.gestionar',
   )
   const state = filters.get('state') as ProformaState | ''
+  const expiring = filters.get('expires_within_days') !== ''
   const query = useProformas({
     search: filters.search || undefined,
     state: state || undefined,
+    expiresWithinDays: expiring
+      ? Number(filters.get('expires_within_days')) || 0
+      : undefined,
     page: filters.page,
   })
   const open = (row: ProformaSummary) =>
@@ -73,14 +81,21 @@ export function ProformasPage() {
           <div className="flex flex-wrap items-center gap-3">
             <SegmentedControl
               aria-label="Estado de la proforma"
-              onChange={(value) => filters.set({ state: value })}
+              onChange={(value) =>
+                filters.set(
+                  value === EXPIRING
+                    ? { state: 'VALID', expires_within_days: EXPIRING_DAYS }
+                    : { state: value, expires_within_days: '' },
+                )
+              }
               options={[
                 { value: '', label: 'Todas' },
+                { value: EXPIRING, label: 'Por vencer' },
                 ...(Object.keys(SEGMENT_LABELS) as ProformaState[]).map(
                   (value) => ({ value, label: SEGMENT_LABELS[value] }),
                 ),
               ]}
-              value={state}
+              value={expiring ? EXPIRING : state}
             />
             <div className="min-w-[220px] flex-1">
               <SearchInput

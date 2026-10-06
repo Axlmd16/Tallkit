@@ -164,3 +164,9 @@ it('cambia filtros de fecha y los limpia', async () => {
   await user.click(screen.getByRole('button', { name: /Limpiar/ }))
   expect(screen.getByTestId('where')).toHaveTextContent(/^\/maintenance$/)
 })
+
+it('«Abiertas» reúne registradas y reabiertas y llega filtrada desde el inicio', () => {
+  renderPage('/maintenance?state=OPEN')
+  expect(mocks.args.at(-1)).toMatchObject({ state: 'OPEN' })
+  expect(screen.getByRole('radio', { name: 'Abiertas' })).toBeChecked()
+})

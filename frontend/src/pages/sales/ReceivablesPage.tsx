@@ -5,6 +5,7 @@ import { useReceivables } from '@/features/sales/hooks'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
 import type {
   PaymentState,
+  SaleCondition,
   SaleOriginType,
   SaleSummary,
 } from '@/features/sales/types'
@@ -30,11 +31,15 @@ export function ReceivablesPage() {
   const paymentState = filters.get('payment_state') as PaymentState | ''
   const customerId = filters.getNumber('customer_id')
   const origin = filters.get('origin') as SaleOriginType | ''
+  const condition = filters.get('condition') as SaleCondition | ''
+  const onlyDebt = filters.get('only_debt') === 'true'
   const query = useReceivables({
     customerId,
     origin: origin || undefined,
     paymentState: (paymentState || undefined) as PaymentState | undefined,
     minAgeDays: filters.getNumber('min_age_days'),
+    condition: condition || undefined,
+    onlyDebt: onlyDebt || undefined,
     page: filters.page,
   })
   const totals = query.data
@@ -97,6 +102,8 @@ export function ReceivablesPage() {
                       payment_state: '',
                       origin: '',
                       min_age_days: '',
+                      condition: '',
+                      only_debt: '',
                     }),
                 }
               : {})}
@@ -160,6 +167,31 @@ export function ReceivablesPage() {
                 <option value="DIRECT">Venta directa</option>
                 <option value="MAINTENANCE">Mantenimiento</option>
                 <option value="PROFORMA">Proforma</option>
+              </Select>
+            </Field>
+            <Field id="receivables-condition" label="Condición">
+              <Select
+                id="receivables-condition"
+                onChange={(event) =>
+                  filters.set({ condition: event.target.value })
+                }
+                value={condition}
+              >
+                <option value="">Contado y crédito</option>
+                <option value="CONTADO">Contado</option>
+                <option value="CREDITO">Crédito</option>
+              </Select>
+            </Field>
+            <Field id="receivables-show" label="Mostrar">
+              <Select
+                id="receivables-show"
+                onChange={(event) =>
+                  filters.set({ only_debt: event.target.value })
+                }
+                value={onlyDebt ? 'true' : ''}
+              >
+                <option value="">Deuda y reembolsos</option>
+                <option value="true">Solo deuda</option>
               </Select>
             </Field>
             <Field id="receivables-age" label="Antigüedad mínima (días)">
