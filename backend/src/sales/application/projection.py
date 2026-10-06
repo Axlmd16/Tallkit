@@ -4,7 +4,13 @@ from collections.abc import Callable
 from typing import Any
 
 from sales.application import queries
-from sales.models import CommercialPayment, CommercialRefund, Sale, SaleReturn
+from sales.models import (
+    CommercialPayment,
+    CommercialRefund,
+    CommercialWithholding,
+    Sale,
+    SaleReturn,
+)
 
 
 def project(kind: str, result_id: int) -> dict[str, Any]:
@@ -13,6 +19,10 @@ def project(kind: str, result_id: int) -> dict[str, Any]:
     if kind == "payment":
         return queries.payment_detail(
             CommercialPayment.objects.select_related("sale").get(pk=result_id)
+        )
+    if kind == "withholding":
+        return queries.withholding_detail(
+            CommercialWithholding.objects.select_related("sale").get(pk=result_id)
         )
     if kind == "return":
         return queries.return_detail(SaleReturn.objects.select_related("sale").get(pk=result_id))

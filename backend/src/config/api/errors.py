@@ -121,6 +121,7 @@ _APPLICATION_ERROR_STATUS: dict[str, tuple[int, str]] = {
     "stale_record": (409, "Registro desactualizado"),
     "idempotency_conflict": (409, "Clave de idempotencia reutilizada"),
     "review_required": (409, "Revisión requerida"),
+    "withholding_warning": (409, "Retención inusual por confirmar"),
     "duplicate_supplier_document": (409, "Documento del proveedor duplicado"),
     "possible_duplicate": (409, "Posible entrada duplicada"),
     "configuration_missing": (409, "Configuración ausente"),

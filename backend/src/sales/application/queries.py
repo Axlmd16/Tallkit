@@ -11,6 +11,7 @@ from sales.application.ledger import ledger_for
 from sales.models import (
     CommercialPayment,
     CommercialRefund,
+    CommercialWithholding,
     Sale,
     SaleLine,
     SaleReturn,
@@ -120,6 +121,8 @@ def money_summary(sale: Sale) -> dict[str, Any]:
         "applied": money(ledger.balance.applied),
         "balance": money(ledger.balance.balance),
         "refund_due": money(ledger.balance.excess),
+        "withheld_total": money(ledger.withheld),
+        "withheld_excess": money(ledger.balance.withheld_excess),
         "payment_state": ledger.balance.state.value if sale.state != "DRAFT" else None,
     }
 
@@ -135,8 +138,38 @@ def sale_detail(sale: Sale) -> dict[str, Any]:
     }
 
 
+def withholding_summary(withholding: CommercialWithholding) -> dict[str, Any]:
+    """Retención sin el resumen económico de la venta; se usa anidada y en listados."""
+    voided = withholding.voided_at is not None
+    return {
+        "id": withholding.pk,
+        "operation_id": str(withholding.operation_id),
+        "sale_id": withholding.sale_id,
+        "payment_id": withholding.payment_id,
+        "amount": money(withholding.amount),
+        "effective_at": withholding.effective_at.isoformat(),
+        "effective_date": withholding.effective_date.isoformat(),
+        "created_by": withholding.created_by_id,
+        "state": "VOIDED" if voided else "ACTIVE",
+        "void_reason": withholding.void_reason or None,
+        "voided_at": withholding.voided_at.isoformat() if withholding.voided_at else None,
+        "voucher_pending": not voided and withholding.voucher_number is None,
+        "voucher_number": withholding.voucher_number,
+        "voucher_date": (
+            withholding.voucher_date.isoformat() if withholding.voucher_date else None
+        ),
+        "income_tax_amount": money(withholding.income_tax_amount),
+        "vat_amount": money(withholding.vat_amount),
+    }
+
+
+def withholding_detail(withholding: CommercialWithholding) -> dict[str, Any]:
+    return {**withholding_summary(withholding), "money": money_summary(withholding.sale)}
+
+
 def payment_detail(payment: CommercialPayment) -> dict[str, Any]:
     correction = getattr(payment, "correction", None)
+    withholding = CommercialWithholding.objects.filter(payment=payment).first()
     return {
         "id": payment.pk,
         "operation_id": str(payment.operation_id),
@@ -158,6 +191,7 @@ def payment_detail(payment: CommercialPayment) -> dict[str, Any]:
             "reason": correction.reason,
             "replacement_payment_id": correction.replacement_payment_id,
         },
+        "withholding": None if withholding is None else withholding_summary(withholding),
         "money": money_summary(payment.sale),
     }
 

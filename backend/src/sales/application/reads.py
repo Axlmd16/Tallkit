@@ -28,7 +28,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce, Greatest, TruncDate
+from django.db.models.functions import Coalesce, Greatest, Least, TruncDate
 
 from identity.application.authorization import has_permission, require_permission
 from identity.models import User
@@ -38,6 +38,7 @@ from sales.domain.balances import compute_balance
 from sales.models import (
     CommercialPayment,
     CommercialRefund,
+    CommercialWithholding,
     Sale,
     SaleCostAllocation,
     SaleReturn,
@@ -82,6 +83,7 @@ def annotated_sales() -> QuerySet[Any]:
             returned=_total(SaleReturn, "grand_total"),
             paid=_total(CommercialPayment, "amount", correction__isnull=True),
             refunded=_total(CommercialRefund, "amount"),
+            withheld=_total(CommercialWithholding, "amount", voided_at__isnull=True),
             sale_date=Coalesce("operational_date", TruncDate("created_at")),
         )
         .annotate(
@@ -93,7 +95,10 @@ def annotated_sales() -> QuerySet[Any]:
                 default=ZERO,
                 output_field=MONEY,
             ),
-            applied=ExpressionWrapper(F("paid") - F("refunded"), output_field=MONEY),
+            money_net=ExpressionWrapper(F("paid") - F("refunded"), output_field=MONEY),
+            applied=ExpressionWrapper(
+                F("paid") - F("refunded") + F("withheld"), output_field=MONEY
+            ),
         )
         .annotate(
             balance=Greatest(
@@ -101,9 +106,14 @@ def annotated_sales() -> QuerySet[Any]:
                 ZERO,
                 output_field=MONEY,
             ),
-            excess=Greatest(
-                ExpressionWrapper(F("applied") - F("exigible"), output_field=MONEY),
-                ZERO,
+            # Solo el dinero cobrado es reembolsable; una retención nunca se devuelve.
+            excess=Least(
+                Greatest(
+                    ExpressionWrapper(F("applied") - F("exigible"), output_field=MONEY),
+                    ZERO,
+                    output_field=MONEY,
+                ),
+                Greatest(F("money_net"), ZERO, output_field=MONEY),
                 output_field=MONEY,
             ),
         )
@@ -112,7 +122,7 @@ def annotated_sales() -> QuerySet[Any]:
 
 def _row(sale: Any) -> dict[str, Any]:
     result = queries.sale_base(sale)
-    balance = compute_balance(sale.exigible, sale.paid, sale.refunded)
+    balance = compute_balance(sale.exigible, sale.paid, sale.refunded, sale.withheld)
     result.update(
         sale_date=sale.sale_date.isoformat(),
         money={
@@ -123,6 +133,8 @@ def _row(sale: Any) -> dict[str, Any]:
             "applied": queries.money(balance.applied),
             "balance": queries.money(balance.balance),
             "refund_due": queries.money(balance.excess),
+            "withheld_total": queries.money(balance.withheld),
+            "withheld_excess": queries.money(balance.withheld_excess),
             "payment_state": balance.state.value if sale.state != "DRAFT" else None,
         },
     )

@@ -4,6 +4,7 @@ import hashlib
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 
 from workshop_configuration.application.numbering import (
     AllocateNumberResult,
@@ -103,3 +104,11 @@ def allocate_artisan_number(*, request_key: str) -> AllocateNumberResult:
         request_key=request_key,
         request_fingerprint=fingerprint,
     )
+
+
+def artisan_withholding_settings() -> tuple[bool, Decimal | None]:
+    """Ajustes de retenciones recibidas del RUC artesanal: (activado, % de advertencia)."""
+    from workshop_configuration.application.withholding_settings import withholding_settings
+
+    current = withholding_settings(FiscalEntityType.ARTESANAL)
+    return current.registration_enabled, current.warning_percentage

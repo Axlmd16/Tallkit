@@ -236,3 +236,11 @@ def list_commercial_tax_options(
     return list_catalog_tax_options(
         entity_type=COMMERCIAL, search=search, page=page, page_size=page_size, on=on
     )
+
+
+def received_withholding_settings(entity_type: str) -> tuple[bool, Decimal | None]:
+    """Ajustes de retenciones recibidas de la entidad: (registro activado, % de advertencia)."""
+    from workshop_configuration.application.withholding_settings import withholding_settings
+
+    current = withholding_settings(entity_type)
+    return current.registration_enabled, current.warning_percentage

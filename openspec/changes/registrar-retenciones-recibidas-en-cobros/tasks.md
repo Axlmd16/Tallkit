@@ -63,16 +63,25 @@ Resultado registrado (2026-10-05): rojo por `ImportError` y por el campo inexist
 
 Dependencias: grupos 2, 3 y 4. Diseño 1 a 4; specs `retenciones-recibidas-en-cobros` y `pagos-comerciales-y-credito-simple`.
 
-- [ ] 5.1 Crear la migración aditiva de `sales` con `CommercialWithholding` y `CommercialWithholdingVoucherChange` y sus restricciones (importe positivo, desglose coherente, número y fecha juntos, unicidad parcial del comprobante por cliente entre vigentes). Añadir pruebas en `tests/sales/test_models.py`.
-- [ ] 5.2 Escribir primero casos rojos en `tests/sales/test_balances.py` y `test_queries.py`: el `Ledger` suma solo retenciones vigentes; saldo, estado, `withheld` y `withheld_excess` en detalle y resumen.
-- [ ] 5.3 Implementar la suma de retenciones vigentes en `sales/application/ledger.py` y su proyección en `reads.py`; hacer pasar 5.2.
-- [ ] 5.4 Escribir primero `tests/sales/test_withholdings.py` con casos rojos del cobro: dinero más retención en contado, contado insuficiente, retención sola en crédito, retención mayor que el saldo, precisión excesiva, venta en borrador o anulada, entidad con registro desactivado, advertencia sin y con reconocimiento, advertencia desactivada, fallo que revierte dinero y retención, y revisión previa que incluye la retención.
-- [ ] 5.5 Implementar el campo `withholding` en la revisión y el registro de `sales/application/payments.py` (validación con `validate_settlement`, consulta de ajustes, inserción atómica, `digest` con retención) y hacer pasar 5.4.
-- [ ] 5.6 Añadir a `tests/sales/test_idempotency.py` y `test_concurrency.py` casos rojos: reintento idéntico, reintento con otro importe retenido, pago y retención simultáneos sobre el mismo saldo; implementar hasta verde.
-- [ ] 5.7 Añadir a `tests/sales/test_authorization.py` los casos positivos y negativos por rol (Administrador, Vendedor, Encargado del taller y combinaciones) para registrar con retención.
-- [ ] 5.8 Verificar con pytest focalizado de los archivos de `tests/sales` tocados, chequeo de migraciones, Ruff y mypy sobre `src/sales`.
+- [x] 5.1 Crear la migración aditiva de `sales` con `CommercialWithholding` y `CommercialWithholdingVoucherChange` y sus restricciones (importe positivo, desglose coherente, número y fecha juntos, unicidad parcial del comprobante por cliente entre vigentes). Añadir pruebas en `tests/sales/test_models.py`.
+- [x] 5.2 Escribir primero casos rojos en `tests/sales/test_balances.py` y `test_queries.py`: el `Ledger` suma solo retenciones vigentes; saldo, estado, `withheld` y `withheld_excess` en detalle y resumen.
+- [x] 5.3 Implementar la suma de retenciones vigentes en `sales/application/ledger.py` y su proyección en `reads.py`; hacer pasar 5.2.
+- [x] 5.4 Escribir primero `tests/sales/test_withholdings.py` con casos rojos del cobro: dinero más retención en contado, contado insuficiente, retención sola en crédito, retención mayor que el saldo, precisión excesiva, venta en borrador o anulada, entidad con registro desactivado, advertencia sin y con reconocimiento, advertencia desactivada, fallo que revierte dinero y retención, y revisión previa que incluye la retención.
+- [x] 5.5 Implementar el campo `withholding` en la revisión y el registro de `sales/application/payments.py` (validación con `validate_settlement`, consulta de ajustes, inserción atómica, `digest` con retención) y hacer pasar 5.4.
+- [x] 5.6 Añadir a `tests/sales/test_idempotency.py` y `test_concurrency.py` casos rojos: reintento idéntico, reintento con otro importe retenido, pago y retención simultáneos sobre el mismo saldo; implementar hasta verde.
+- [x] 5.7 Añadir a `tests/sales/test_authorization.py` los casos positivos y negativos por rol (Administrador, Vendedor, Encargado del taller y combinaciones) para registrar con retención.
+- [x] 5.8 Verificar con pytest focalizado de los archivos de `tests/sales` tocados, chequeo de migraciones, Ruff y mypy sobre `src/sales`.
 
 Evidencia del grupo: rojo y verde registrados; `tests/sales/test_payments.py` pasa sin modificarse.
+
+Resultado registrado (2026-10-05): rojo por `ImportError` y por campos inexistentes; verde con 573 pruebas en `tests/sales` (28 nuevas de retenciones y una de concurrencia), `test_payments.py` sin modificar. Ruff, mypy y `makemigrations --check` sin hallazgos. Ajustes respecto del diseño y de las tareas:
+- La unicidad del comprobante usa la FK `customer` de la retención en lugar de copiar la identificación; es exacta y no depende de cambios posteriores en la ficha.
+- Las pruebas de modelo, saldo, listados, idempotencia y permisos de este grupo están reunidas en `tests/sales/test_withholdings.py`; la de concurrencia está en `test_concurrency.py`.
+- La restricción del desglose exige además que renta e IVA no sean nulos, porque en SQL una comparación con nulo no rechaza la fila.
+- Ventas lee los ajustes mediante `operation_context.received_withholding_settings`, la interfaz ya publicada de configuración, para respetar la frontera de módulos.
+- Al sustituir un pago, el saldo disponible descuenta también las retenciones vigentes.
+- Código de error nuevo `withholding_warning` (HTTP 409) para la advertencia reconocible; la revisión previa devuelve además `warning` con porcentaje y umbral.
+- La retención registrada sin dinero devuelve un resultado de tipo `withholding`; con dinero, el pago incluye `withholding`.
 
 ## 6. Retenciones comerciales: comprobante, anulación, seguimiento y correcciones
 

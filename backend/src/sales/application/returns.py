@@ -241,7 +241,7 @@ def _digest(
 
 def _effects(sale: Sale, ledger: Ledger, plans: list[LinePlan]) -> dict[str, Any]:
     this = sum((p.total for p in plans), Decimal("0.00"))
-    after = compute_balance(ledger.exigible - this, ledger.paid, ledger.refunded)
+    after = compute_balance(ledger.exigible - this, ledger.paid, ledger.refunded, ledger.withheld)
     return {
         "return_total": f"{this:.2f}",
         "exigible_after": f"{ledger.exigible - this:.2f}",

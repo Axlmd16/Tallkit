@@ -186,6 +186,42 @@ def test_two_payments_of_70_against_a_balance_of_100_accept_at_most_one(
     )
 
 
+def test_a_payment_and_a_withholding_racing_for_the_same_balance_accept_only_one(
+    run_parallel: Any, seller: Any, customer: Any, make_product: Any
+) -> None:
+    from sales.models import CommercialWithholding
+
+    product = stocked(make_product, 5, "100.00")
+    sale = confirmed(seller, customer, product)
+    first_data = {"operation_id": str(uuid.uuid4()), "parts": parts("95.00")}
+    first_review = payments.preview_payment(actor=seller, sale_id=sale["id"], payload=first_data)
+    payments.register_payment(
+        actor=seller,
+        sale_id=sale["id"],
+        payload={
+            **first_data,
+            "idempotency_key": key("pay"),
+            "review_token": first_review["review_token"],
+        },
+    )
+
+    def attempt(data: dict[str, Any]) -> Any:
+        data = {"operation_id": str(uuid.uuid4()), **data}
+        review = payments.preview_payment(actor=seller, sale_id=sale["id"], payload=data)
+        payload = {**data, "idempotency_key": key("pay"), "review_token": review["review_token"]}
+        return lambda: payments.register_payment(actor=seller, sale_id=sale["id"], payload=payload)
+
+    results = run_parallel(
+        attempt({"parts": parts("5.00")}), attempt({"withholding": {"amount": "5.00"}})
+    )
+    no_deadlocks(results)
+    assert kinds(results).count("ok") == 1
+    assert CommercialPayment.objects.count() + CommercialWithholding.objects.count() == 2
+    money = sales.get_sale(actor=seller, sale_id=sale["id"])["money"]
+    assert money["balance"] == "0.00"
+    assert D(money["paid_total"]) + D(money["withheld_total"]) == D("100.00")
+
+
 def test_a_payment_racing_a_void_leaves_a_coherent_order_without_orphan_payments(
     run_parallel: Any, seller: Any, admin: Any, customer: Any, make_product: Any
 ) -> None:

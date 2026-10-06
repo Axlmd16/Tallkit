@@ -21,6 +21,7 @@ ErrorCode = Literal[
     "dependency_conflict",
     "unsafe_reversal",
     "inventory_inconsistent",
+    "withholding_warning",
 ]
 
 
