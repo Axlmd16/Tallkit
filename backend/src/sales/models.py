@@ -36,6 +36,7 @@ class SaleCondition(models.TextChoices):
 class SaleOriginType(models.TextChoices):
     DIRECT = "DIRECT"
     MAINTENANCE = "MAINTENANCE"
+    PROFORMA = "PROFORMA"
 
 
 class PaymentMethodChoice(models.TextChoices):
@@ -75,7 +76,7 @@ class Record(models.Model):
 
 
 class Sale(models.Model):
-    """Venta directa de repuestos: borrador → confirmada → anulada."""
+    """Venta de repuestos directa, vinculada o de proforma: borrador → confirmada → anulada."""
 
     customer = models.ForeignKey(
         "customer_registry.Customer", on_delete=models.PROTECT, related_name="+"
@@ -96,7 +97,17 @@ class Sale(models.Model):
         blank=True,
         related_name="+",
     )
+    # Referencia de integridad por nombre diferido: ventas no importa el módulo de proformas.
+    origin_proforma = models.ForeignKey(
+        "proformas.Proforma",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     origin_reference = models.CharField(max_length=64, blank=True, default="")
+    # Copia inmutable de lo cotizado; permite comparar sin consultar la oferta.
+    proforma_snapshot = models.JSONField(null=True, blank=True, validators=[validate_snapshot])
     condition = models.CharField(max_length=10, choices=SaleCondition.choices)
     notes = models.CharField(max_length=2000, blank=True, default="")
     state = models.CharField(max_length=10, choices=SaleState.choices, default=SaleState.DRAFT)
@@ -157,11 +168,22 @@ class Sale(models.Model):
                     models.Q(
                         origin_type=SaleOriginType.DIRECT,
                         origin_order__isnull=True,
+                        origin_proforma__isnull=True,
+                        proforma_snapshot__isnull=True,
                         origin_reference="",
                     )
                     | models.Q(
                         origin_type=SaleOriginType.MAINTENANCE,
                         origin_order__isnull=False,
+                        origin_proforma__isnull=True,
+                        proforma_snapshot__isnull=True,
+                        origin_reference__regex=r"\S",
+                    )
+                    | models.Q(
+                        origin_type=SaleOriginType.PROFORMA,
+                        origin_order__isnull=True,
+                        origin_proforma__isnull=False,
+                        proforma_snapshot__isnull=False,
                         origin_reference__regex=r"\S",
                     )
                 ),
@@ -182,6 +204,11 @@ class Sale(models.Model):
                     origin_order__isnull=False,
                 ),
                 name="sal_sale_draft_origin_unique",
+            ),
+            models.UniqueConstraint(
+                fields=["origin_proforma"],
+                condition=models.Q(origin_proforma__isnull=False),
+                name="sal_sale_origin_proforma_unique",
             ),
             models.CheckConstraint(
                 condition=(
@@ -208,6 +235,10 @@ class Sale(models.Model):
             models.CheckConstraint(
                 condition=_snapshot_ok("customer_snapshot") & _snapshot_ok("fiscal_snapshot"),
                 name="sal_sale_snapshot_versioned",
+            ),
+            models.CheckConstraint(
+                condition=_snapshot_ok("proforma_snapshot"),
+                name="sal_sale_proforma_snapshot_versioned",
             ),
         ]
         indexes: ClassVar[list[models.Index]] = [

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "supplier_registry.apps.SupplierRegistryConfig",
     "inventory.apps.InventoryConfig",
     "purchasing.apps.PurchasingConfig",
+    "proformas.apps.ProformasConfig",
     "sales.apps.SalesConfig",
     "workshop.apps.WorkshopConfig",
     "fiscal.apps.FiscalConfig",

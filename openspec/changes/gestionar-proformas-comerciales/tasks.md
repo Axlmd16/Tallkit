@@ -4,9 +4,9 @@ Base: propuesta, specs y diseño aprobados en `master`; ADR-0012 aceptado. Estas
 
 Cada tarea de comportamiento sigue **TDD**: prueba que falla por la razón esperada → implementación mínima → refactorización → repetición de la prueba. No marcar tareas por intención ni sustituir la evidencia con el nombre de una prueba. Los comandos backend se ejecutan desde `backend`, los npm desde `frontend` y `make` desde la raíz. No añadir dependencias ni modificar lockfiles sin necesidad actual aprobada.
 
-- [ ] 1.1 Comprobar Git y que propuesta, specs, diseño y ADR aprobados están registrados en `master`; preservar los cambios ajenos, incluidos los del archivo de retenciones. Evidencia: `git status --short`, revisión del historial y de los artefactos exactos; no comenzar apply si falta el checkpoint.
-- [ ] 1.2 Crear `docs/negocio/requisitos/cobertura-proformas.md` con los 76 escenarios de ambas specs, identificados por capacidad, requisito y nombre, y columnas de tarea, prueba y resultado pendiente. Cierre: ningún escenario omitido o declarado cumplido sin evidencia; conservar la referencia a los escenarios existentes de ventas.
-- [ ] 1.3 Preparar fixtures sintéticas de cliente, productos, tarifa, disponibilidad y serie comercial en el nuevo `backend/tests/proformas/`; confirmar PostgreSQL de pruebas y comandos oficiales sin tocar datos operativos. Evidencia: ejecución de una prueba de fixture y lectura de `README.md`, `Makefile` y configuración vigente de cobertura.
+- [x] 1.1 Comprobar Git y que propuesta, specs, diseño y ADR aprobados están registrados en `master`; preservar los cambios ajenos, incluidos los del archivo de retenciones. Evidencia: `git status --short`, revisión del historial y de los artefactos exactos; no comenzar apply si falta el checkpoint.
+- [x] 1.2 Crear `docs/negocio/requisitos/cobertura-proformas.md` con los 76 escenarios de ambas specs, identificados por capacidad, requisito y nombre, y columnas de tarea, prueba y resultado pendiente. Cierre: ningún escenario omitido o declarado cumplido sin evidencia; conservar la referencia a los escenarios existentes de ventas.
+- [x] 1.3 Preparar fixtures sintéticas de cliente, productos, tarifa, disponibilidad y serie comercial en el nuevo `backend/tests/proformas/`; confirmar PostgreSQL de pruebas y comandos oficiales sin tocar datos operativos. Evidencia: ejecución de una prueba de fixture y lectura de `README.md`, `Makefile` y configuración vigente de cobertura.
 
 Dependencias: grupo inicial. Criterio de grupo: checkpoint comprobado y cobertura pendiente trazable; `openspec validate gestionar-proformas-comerciales --strict` pasa. Estas tareas no autorizan nuevos commits, ramas o merges fuera de los solicitados.
 
@@ -14,10 +14,10 @@ Dependencias: grupo inicial. Criterio de grupo: checkpoint comprobado y cobertur
 
 Cubre diseño D1…D3, vigencia, precios y validaciones; RF-PRO-001…005/011.
 
-- [ ] 2.1 Escribir pruebas de entrada para cliente, productos, cantidades enteras positivas y rechazo de servicios, descuentos, precio e impuesto manuales; crear las validaciones mínimas en `backend/src/proformas/domain/`. Cierre: casos positivos y negativos, kits intactos y ausencia de dependencias de framework.
-- [ ] 2.2 Probar e implementar fechas y transiciones con reloj recibido como dato: emisión +7 días, fecha explícita, final inclusivo del día local, cambio de día, precedencia de convertida/anulada y prohibición de reactivación. Cierre: casos de límite sin esperas temporizadas ni cron.
-- [ ] 2.3 Probar el desglose inclusivo y suma por línea mediante `backend/src/shared/money.py`; implementar la composición de importes de oferta sin duplicar fórmulas ni usar coma flotante. Cierre: ejemplos 23.00 y 0.06 de las specs y ausencia de tarifa como impedimento, no exención.
-- [ ] 2.4 Añadir pruebas de frontera para `proformas` y ampliar `backend/tests/sales/test_boundaries.py`: solo contratos públicos, ningún import de proformas desde ventas, ninguna escritura de modelos ajenos ni dependencia de framework en dominio. Crear únicamente el módulo y las capas con uso real. Cierre: pruebas de imports y propiedad pasan.
+- [x] 2.1 Escribir pruebas de entrada para cliente, productos, cantidades enteras positivas y rechazo de servicios, descuentos, precio e impuesto manuales; crear las validaciones mínimas en `backend/src/proformas/domain/`. Cierre: casos positivos y negativos, kits intactos y ausencia de dependencias de framework.
+- [x] 2.2 Probar e implementar fechas y transiciones con reloj recibido como dato: emisión +7 días, fecha explícita, final inclusivo del día local, cambio de día, precedencia de convertida/anulada y prohibición de reactivación. Cierre: casos de límite sin esperas temporizadas ni cron.
+- [x] 2.3 Probar el desglose inclusivo y suma por línea mediante `backend/src/shared/money.py`; implementar la composición de importes de oferta sin duplicar fórmulas ni usar coma flotante. Cierre: ejemplos 23.00 y 0.06 de las specs y ausencia de tarifa como impedimento, no exención.
+- [x] 2.4 Añadir pruebas de frontera para `proformas` y ampliar `backend/tests/sales/test_boundaries.py`: solo contratos públicos, ningún import de proformas desde ventas, ninguna escritura de modelos ajenos ni dependencia de framework en dominio. Crear únicamente el módulo y las capas con uso real. Cierre: pruebas de imports y propiedad pasan.
 
 Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/proformas/ tests/sales/test_boundaries.py`, inicialmente con alcance a los archivos ya creados; registrar rojo/verde por tarea en la cobertura.
 
@@ -25,10 +25,10 @@ Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/proformas/ tests
 
 Cubre diseño D2 y Migration Plan, historia inmutable y origen único.
 
-- [ ] 3.1 Probar e implementar `Proforma`, `ProformaLine`, `ProformaCommand` y `ProformaBrandAsset` en el nuevo `backend/src/proformas/models.py`, con migración inicial y registro de app. Cierre: restricciones de cantidad, posición, número, versión de instantáneas, referencias protegidas y deduplicación de activo demostradas.
-- [ ] 3.2 Probar y ampliar `backend/src/sales/models.py` con PROFORMA, referencia única nullable e instantánea; crear migración dependiente de la inicial de proformas sin dependencia inversa. Cierre: los tres orígenes son coherentes y se conservan restricciones de mantenimiento, números e historia previos.
-- [ ] 3.3 Probar escrituras ordinarias, directas y bulk contra contenido emitido, marca, origen y eliminación; implementar protecciones siguiendo las migraciones de historia de ventas. Cierre: no se altera oferta emitida ni se libera conversión borrando una venta vacía; transiciones legítimas funcionan.
-- [ ] 3.4 Probar migración sobre ventas directas y de mantenimiento, y reversión sin datos nuevos; documentar recuperación hacia adelante después de emitir o convertir. Cierre: ninguna oferta retroactiva, pérdida de datos ni ciclo de migraciones; no ejecutar restauración sobre datos del usuario.
+- [x] 3.1 Probar e implementar `Proforma`, `ProformaLine`, `ProformaCommand` y `ProformaBrandAsset` en el nuevo `backend/src/proformas/models.py`, con migración inicial y registro de app. Cierre: restricciones de cantidad, posición, número, versión de instantáneas, referencias protegidas y deduplicación de activo demostradas.
+- [x] 3.2 Probar y ampliar `backend/src/sales/models.py` con PROFORMA, referencia única nullable e instantánea; crear migración dependiente de la inicial de proformas sin dependencia inversa. Cierre: los tres orígenes son coherentes y se conservan restricciones de mantenimiento, números e historia previos.
+- [x] 3.3 Probar escrituras ordinarias, directas y bulk contra contenido emitido, marca, origen y eliminación; implementar protecciones siguiendo las migraciones de historia de ventas. Cierre: no se altera oferta emitida ni se libera conversión borrando una venta vacía; transiciones legítimas funcionan.
+- [x] 3.4 Probar migración sobre ventas directas y de mantenimiento, y reversión sin datos nuevos; documentar recuperación hacia adelante después de emitir o convertir. Cierre: ninguna oferta retroactiva, pérdida de datos ni ciclo de migraciones; no ejecutar restauración sobre datos del usuario.
 
 Dependencias: grupo 2. Evidencia: pruebas de modelos/migraciones en `tests/proformas/` y ventas, `uv run --frozen python manage.py makemigrations --check --dry-run`; revisión de plan de migración en base de pruebas. Aplicar a entorno autorizado con el comando oficial `make migrate`, nunca como efecto de redactar tareas.
 

@@ -178,3 +178,23 @@ def test_http_layer_never_handles_locking_interfaces_or_their_dtos() -> None:
                 if names & LOCKING_INTERFACES[node.module]:
                     offenders.append(str(path.relative_to(SRC)))
     assert not offenders, offenders
+
+
+def test_sales_never_imports_proformas() -> None:
+    """La dependencia es proformas → ventas; ventas usa su copia histórica de la oferta."""
+    offenders = [
+        str(path.relative_to(SRC))
+        for path in package_files(PACKAGE)
+        if any(m.split(".")[0] == "proformas" for m in imported_modules(path))
+    ]
+    assert not offenders, offenders
+
+
+def test_proformas_reaches_sales_only_through_its_public_contract() -> None:
+    reached = {
+        module
+        for path in package_files("proformas")
+        for module in imported_modules(path)
+        if module.split(".")[0] == PACKAGE
+    }
+    assert reached <= {"sales.application.proforma_links"}, reached
