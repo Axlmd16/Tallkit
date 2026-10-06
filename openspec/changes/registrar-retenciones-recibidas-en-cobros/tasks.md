@@ -172,7 +172,7 @@ Dependencias: grupo 9. Diseño 9; requisitos de seguimiento, marca del cliente y
 - [x] 10.1 Crear la vista «Retenciones por completar» por ámbito, enlazada desde cuentas por cobrar, con modal para completar el comprobante, corrección y anulación solo para Administrador, confirmación por toast y estados vacío, carga y error; pruebas incluidas.
 - [x] 10.2 Añadir el interruptor «Agente de retención» a `features/customers/CustomerForm.tsx` con ayuda breve y pruebas.
 - [x] 10.3 Añadir el bloque de retenciones dentro de la subsección «Perfil tributario» de Facturación electrónica (activar o desactivar y porcentaje de advertencia, edición en modal, solo Administrador), sin pestaña nueva; pruebas incluidas.
-- [ ] 10.4 Revisar accesibilidad y adaptación a ancho reducido de los diálogos y vistas nuevos con los patrones vigentes.
+- [x] 10.4 Revisar accesibilidad y adaptación a ancho reducido de los diálogos y vistas nuevos con los patrones vigentes.
 - [x] 10.5 Verificar con Vitest de los archivos tocados, `tsc`, ESLint y Prettier.
 
 Evidencia del grupo: pruebas en verde y capturas de las vistas nuevas.
@@ -181,18 +181,25 @@ Resultado registrado (2026-10-05): pruebas en verde. Notas:
 - 10.1: `pages/withholdings/PendingWithholdingsPage.tsx`, una sola página con el ámbito como propiedad, en `/sales/withholdings` y `/maintenance/withholdings`, enlazada desde las dos cuentas por cobrar y desde el detalle de cada operación. Los diálogos de comprobante y anulación (`features/sales/WithholdingRecords.tsx`) se comparten entre ámbitos. La corrección de un comprobante ya completado se hace desde el detalle de la operación, donde sigue visible.
 - 10.2: el formulario de cliente envía la marca solo cuando la persona la cambia, para no alterar el contrato de las ediciones que no la tocan.
 - 10.3: `WithholdingSettingsBlock` dentro de `ProfileConditionsSection`, sin pestaña ni sección nueva.
-- 10.4 queda pendiente: no se tomaron capturas ni se hizo la revisión manual de accesibilidad y ancho reducido; las pruebas comprueban roles y nombres accesibles.
+- 10.4: se comprobó con axe en los recorridos E2E (diálogo de cobro, lista de pendientes y diálogo del comprobante) y a 390 px de ancho sin desplazamiento horizontal. No se tomaron capturas ni hubo revisión visual manual; queda como aceptación humana.
 
 ## 11. Recorridos de punta a punta
 
 Dependencias: grupo 10.
 
-- [ ] 11.1 Añadir a `frontend/e2e/sales-payments.spec.ts` un recorrido: marcar un cliente como agente de retención, cobrar una venta con dinero y retención, verla sin deuda y completar el comprobante desde el seguimiento.
-- [ ] 11.2 Añadir a `frontend/e2e/maintenance-billing.spec.ts` el recorrido equivalente para una operación artesanal, incluida la anulación de la retención por el Administrador.
-- [ ] 11.3 Añadir a `frontend/e2e/workshop-configuration.spec.ts` la desactivación del registro en una entidad y comprobar que su cobro deja de ofrecer la retención.
-- [ ] 11.4 Ejecutar solo esas tres especificaciones y registrar el resultado y las limitaciones del entorno.
+- [x] 11.1 Añadir a `frontend/e2e/sales-payments.spec.ts` un recorrido: marcar un cliente como agente de retención, cobrar una venta con dinero y retención, verla sin deuda y completar el comprobante desde el seguimiento.
+- [x] 11.2 Añadir a `frontend/e2e/maintenance-billing.spec.ts` el recorrido equivalente para una operación artesanal, incluida la anulación de la retención por el Administrador.
+- [x] 11.3 Añadir a `frontend/e2e/workshop-configuration.spec.ts` la desactivación del registro en una entidad y comprobar que su cobro deja de ofrecer la retención.
+- [x] 11.4 Ejecutar solo esas tres especificaciones y registrar el resultado y las limitaciones del entorno.
 
 Evidencia del grupo: recorridos en verde con su salida; no se ejecuta el resto de Playwright.
+
+Resultado registrado (2026-10-05): 12 pruebas pasan en `e2e/sales-payments.spec.ts` y `e2e/maintenance-billing.spec.ts` (9 existentes y 3 nuevas), con el backend real de `testserver`.
+- 11.1: se marca el cliente como agente de retención por la API, el cobro lo sugiere desde el inicio, 98,00 por transferencia y 2,00 retenidos cierran una venta de 100,00, y el comprobante se completa desde «Retenciones por completar», también a 390 px.
+- 11.2: operación artesanal de contado cerrada con dinero y 1,00 retenido; el Administrador anula la retención y el saldo vuelve a 1,00.
+- 11.3: se escribió en `sales-payments.spec.ts` y no en `workshop-configuration.spec.ts`, porque necesita una venta real y aquella especificación simula la configuración con `page.route`. El Administrador desactiva el registro desde el Perfil tributario, el cobro deja de ofrecer la retención y se restablece al final.
+- Reparación ajena necesaria: los dos archivos sembraban existencia con `POST /purchases/`, que dejó de aceptar altas con las entradas de stock (DP-030), por lo que todos sus recorridos fallaban antes de este cambio. Se sustituyó por `POST /purchases/entries/`.
+- Entorno: el puerto 8001 de `playwright.config.ts` está ocupado por otro proyecto local y el navegador de Playwright no está instalado; se ejecutó con una configuración temporal (puertos 8011 y 55184, Google Chrome del sistema) que se borró. No se ejecutó el resto de Playwright.
 
 ## 12. Documentación, trazabilidad y cierre
 

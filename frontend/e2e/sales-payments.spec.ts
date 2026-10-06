@@ -92,6 +92,7 @@ async function seedWorld(page: Page, stock = 10): Promise<World> {
   return world
 }
 
+/** Entrada de stock por la API vigente (DP-030): cantidad y costo, sin documento del proveedor. */
 async function apiPurchase(
   page: Page,
   world: World,
@@ -99,33 +100,18 @@ async function apiPurchase(
   ref: string,
 ) {
   const request = page.request
-  const created = await ok(
-    await send(request, 'post', '/purchases/', {
-      idempotency_key: `e2e-pur-${ref}`,
-      supplier_id: world.supplier.id,
-      document_type: 'FACTURA',
-      supplier_reference: `F-${ref}`,
-      document_date: '2026-09-01',
-      notes: '',
-      lines: [
-        {
-          product_id: world.product.id,
-          quantity: String(quantity),
-          unit_cost: '10.00',
-          tax_definition_id: world.tax.id,
-          tax_recoverability: 'RECOVERABLE',
-        },
-      ],
-    }),
-  )
-  const review = await ok(
-    await send(request, 'post', `/purchases/${created.id}/preview/`, {}),
-  )
+  const lines = [{ product_id: world.product.id, quantity: String(quantity) }]
+  const review = await (
+    await send(request, 'post', '/purchases/entries/review/', { lines })
+  ).json()
   await ok(
-    await send(request, 'post', `/purchases/${created.id}/confirm/`, {
-      idempotency_key: `e2e-pcf-${ref}`,
-      expected_version: created.version,
-      review_token: review.review_token,
+    await send(request, 'post', '/purchases/entries/', {
+      idempotency_key: `e2e-ent-${ref}`,
+      supplier_id: world.supplier.id,
+      lines: lines.map((line) => ({ ...line, unit_cost: '10.00' })),
+      acknowledged_entry_ids: (review.duplicates ?? []).map(
+        (d: { purchase_id: number }) => d.purchase_id,
+      ),
     }),
   )
 }
@@ -546,5 +532,145 @@ test.describe('Ventas, cobros y correcciones', () => {
       })
       await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
     }
+  })
+  test('cobro con retención: se sugiere al cliente marcado, cierra la deuda y el comprobante se completa después', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    const world = await seedWorld(page)
+    const customer = await (
+      await page.request.get(`${API}/customers/${world.customer.id}/`)
+    ).json()
+    await ok(
+      await send(page.request, 'patch', `/customers/${world.customer.id}/`, {
+        expected_version: customer.version,
+        is_withholding_agent: true,
+      }),
+    )
+    const sale = await apiSale(page, world, { quantity: 5, key: 'wh' })
+
+    await page.goto(`/sales/${sale.id}`)
+    await page.getByRole('button', { name: 'Registrar cobro' }).click()
+    const payment = page.getByRole('dialog', { name: 'Registrar cobro' })
+    await expect(
+      payment.getByText(/marcado como agente de retención/),
+    ).toBeVisible()
+    await payment.getByLabel('Transferencia (USD)').fill('98.00')
+    await payment.getByRole('checkbox', { name: /el cliente retuvo/ }).check()
+    await expect(payment.getByLabel('Valor retenido (USD)')).toHaveValue('2.00')
+    // El cobro no pide datos del comprobante.
+    await expect(payment.getByLabel(/comprobante/i)).toHaveCount(0)
+    await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+    await payment.getByRole('button', { name: 'Revisar' }).click()
+    await payment.getByRole('button', { name: 'Registrar cobro' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    const amounts = page.getByRole('region', { name: 'Importes' })
+    await expect(amounts.getByText('Retenido por el cliente')).toBeVisible()
+    await expect(amounts.getByText('Cobrado en dinero')).toBeVisible()
+    const held = page.getByRole('region', { name: 'Retenciones recibidas' })
+    await expect(held.getByText('Comprobante pendiente')).toBeVisible()
+    const detail = await (
+      await page.request.get(`${API}/sales/${sale.id}/`)
+    ).json()
+    expect(detail.money).toMatchObject({
+      paid_total: '98.00',
+      withheld_total: '2.00',
+      balance: '0.00',
+      payment_state: 'PAID',
+    })
+
+    // El comprobante llega después: se completa desde el seguimiento.
+    await held
+      .getByRole('link', { name: 'Ver retenciones por completar' })
+      .click()
+    await expect(
+      page.getByRole('heading', { name: 'Retenciones por completar' }),
+    ).toBeVisible()
+    const row = page.getByRole('listitem', {
+      name: `Retención de ${sale.internal_number}`,
+    })
+    await expect(row).toBeVisible()
+    await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+
+    // En un teléfono la lista y el diálogo caben sin desplazamiento horizontal.
+    await page.setViewportSize({ width: 390, height: 800 })
+    const fits = () =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      )
+    await expect(row).toBeVisible()
+    expect(await fits()).toBe(true)
+    await row.getByRole('button', { name: 'Completar comprobante' }).click()
+    const voucher = page.getByRole('dialog', { name: 'Completar comprobante' })
+    await expect(voucher.getByLabel('Número del comprobante')).toBeVisible()
+    expect(await fits()).toBe(true)
+    await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+    const number = `001-001-${String(Date.now()).slice(-9)}`
+    await voucher.getByLabel('Número del comprobante').fill(number)
+    await voucher.getByRole('button', { name: 'Guardar comprobante' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(row).toHaveCount(0)
+    await page.setViewportSize({ width: 1280, height: 720 })
+
+    await page.goto(`/sales/${sale.id}`)
+    await expect(page.getByText(`Comprobante ${number}`)).toBeVisible()
+  })
+
+  test('una entidad que no registra retenciones deja de ofrecerlas al cobrar', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    const world = await seedWorld(page)
+    const sale = await apiSale(page, world, { quantity: 5, key: 'off' })
+    const entities: Array<{ id: number; entity_type: string }> = await (
+      await page.request.get(`${API}/workshop-configuration/entities/`)
+    ).json()
+    const commercial = entities.find((e) => e.entity_type === 'COMERCIAL')!
+
+    const openPayment = async () => {
+      await page.goto(`/sales/${sale.id}`)
+      await page.getByRole('button', { name: 'Registrar cobro' }).click()
+      const dialog = page.getByRole('dialog', { name: 'Registrar cobro' })
+      await dialog.getByLabel('Efectivo (USD)').fill('98.00')
+      return dialog
+    }
+    const toggle = async () => {
+      await page.goto(`/configuration?tab=facturacion&entidad=${commercial.id}`)
+      const block = page.getByRole('group', {
+        name: 'Retenciones que le hacen sus clientes',
+      })
+      await block.getByRole('button', { name: 'Editar' }).click()
+      const dialog = page.getByRole('dialog', {
+        name: 'Retenciones que le hacen sus clientes',
+      })
+      await dialog
+        .getByRole('checkbox', { name: /Registrar retenciones al cobrar/ })
+        .click()
+      await dialog.getByRole('button', { name: 'Guardar' }).click()
+      await expect(page.getByRole('dialog')).toHaveCount(0)
+      return block
+    }
+
+    await expect(
+      (await openPayment()).getByRole('checkbox', {
+        name: /el cliente retuvo/,
+      }),
+    ).toBeVisible()
+
+    const block = await toggle()
+    await expect(block.getByText('Desactivado', { exact: true })).toBeVisible()
+    await expect(
+      (await openPayment()).getByRole('checkbox', {
+        name: /el cliente retuvo/,
+      }),
+    ).toHaveCount(0)
+
+    // Se restablece para no afectar a los demás recorridos del mismo servidor.
+    await expect(
+      (await toggle()).getByText('Activado', { exact: true }),
+    ).toBeVisible()
   })
 })

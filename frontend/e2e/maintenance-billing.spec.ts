@@ -69,33 +69,13 @@ async function seed(page: Page) {
       idempotency_key: `e2e-bil-sup-${tag}`,
     }),
   )
-  const purchase = await ok(
-    await send(request, 'post', '/purchases/', {
-      idempotency_key: `e2e-bil-pur-${tag}`,
-      supplier_id: supplier.id,
-      document_type: 'FACTURA',
-      supplier_reference: `F-${tag}`,
-      document_date: '2026-09-01',
-      notes: '',
-      lines: [
-        {
-          product_id: product.id,
-          quantity: '5',
-          unit_cost: '10.00',
-          tax_definition_id: taxOf('COMERCIAL').id,
-          tax_recoverability: 'RECOVERABLE',
-        },
-      ],
-    }),
-  )
-  const review = await ok(
-    await send(request, 'post', `/purchases/${purchase.id}/preview/`, {}),
-  )
+  // Entrada de stock por la API vigente (DP-030): sin documento ni impuestos de compra.
   await ok(
-    await send(request, 'post', `/purchases/${purchase.id}/confirm/`, {
-      idempotency_key: `e2e-bil-pcf-${tag}`,
-      expected_version: purchase.version,
-      review_token: review.review_token,
+    await send(request, 'post', '/purchases/entries/', {
+      idempotency_key: `e2e-bil-ent-${tag}`,
+      supplier_id: supplier.id,
+      lines: [{ product_id: product.id, quantity: '5', unit_cost: '10.00' }],
+      acknowledged_entry_ids: [],
     }),
   )
   const service = await ok(
@@ -336,4 +316,98 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
   await expect(
     page.getByRole('heading', { name: 'Cuentas por cobrar de servicios' }),
   ).toBeVisible()
+})
+
+test('cobro de servicios con retención: baja la deuda sin ser dinero y el Administrador puede anularla', async ({
+  page,
+}) => {
+  test.setTimeout(120_000)
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await login(page, 'admin_e2e')
+  const world = await seed(page)
+  const request = page.request
+  const order = await ok(
+    await send(request, 'post', '/maintenance-orders/', {
+      customer_id: world.customer.id,
+      vehicle_id: world.vehicle.id,
+      odometer_km: 51000,
+      diagnosis: 'Revisión de frenos',
+      idempotency_key: `e2e-wh-ord-${world.tag}`,
+    }),
+  )
+  const withLine = await ok(
+    await send(
+      request,
+      'post',
+      `/maintenance-orders/${order.id}/service-lines/`,
+      {
+        service_id: world.service.id,
+        expected_version: order.version,
+        idempotency_key: `e2e-wh-lin-${world.tag}`,
+      },
+    ),
+  )
+  const preview = await ok(
+    await send(
+      request,
+      'post',
+      `/maintenance-orders/${order.id}/service-operations/preview/`,
+      { condition: 'CONTADO' },
+    ),
+  )
+  const operation = await ok(
+    await send(
+      request,
+      'post',
+      `/maintenance-orders/${order.id}/service-operations/`,
+      {
+        condition: 'CONTADO',
+        review_digest: preview.review_digest,
+        expected_version: withLine.version,
+        idempotency_key: `e2e-wh-op-${world.tag}`,
+      },
+    ),
+  )
+  const total = Number(operation.grand_total)
+  const money = (total - 1).toFixed(2)
+
+  await page.goto(`/maintenance/service-operations/${operation.id}`)
+  await page
+    .getByRole('button', { name: 'Cobrar servicios (RUC artesanal)' })
+    .click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByLabel('Transferencia (USD)').fill(money)
+  await dialog.getByRole('checkbox', { name: /el cliente retuvo/ }).check()
+  await expect(dialog.getByLabel('Valor retenido (USD)')).toHaveValue('1.00')
+  await expect(dialog.getByLabel(/comprobante/i)).toHaveCount(0)
+  await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+  await dialog.getByRole('button', { name: /Registrar cobro/ }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  const balance = page.getByLabel('Saldo de la operación')
+  await expect(balance.getByText('Retenido por el cliente')).toBeVisible()
+  const row = page.getByRole('listitem', { name: /^Retención \d+$/ })
+  await expect(row.getByText('Comprobante pendiente')).toBeVisible()
+  let detail = await (
+    await request.get(`${API}/service-operations/${operation.id}/`)
+  ).json()
+  expect(detail).toMatchObject({
+    paid: money,
+    withheld: '1.00',
+    balance: '0.00',
+    payment_state: 'PAID',
+  })
+  await expectNoSeriousAccessibilityViolations(page, RAIL_EXCEPTION)
+
+  // Solo el Administrador anula: el valor vuelve al saldo y el registro se conserva.
+  await row.getByRole('button', { name: 'Anular retención' }).click()
+  const voidDialog = page.getByRole('dialog', { name: 'Anular retención' })
+  await voidDialog.getByLabel('Motivo').fill('Registrada por error')
+  await voidDialog.getByRole('button', { name: 'Anular retención' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(row.getByText('Anulada')).toBeVisible()
+  detail = await (
+    await request.get(`${API}/service-operations/${operation.id}/`)
+  ).json()
+  expect(detail).toMatchObject({ withheld: '0.00', balance: '1.00' })
 })
