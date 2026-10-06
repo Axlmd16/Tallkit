@@ -63,6 +63,12 @@ _RECEIVABLE_PARAMS = [
     OpenApiParameter(
         "min_age_days", OpenApiTypes.INT, description="Días desde la confirmación, fechas locales."
     ),
+    OpenApiParameter("condition", OpenApiTypes.STR, enum=["CONTADO", "CREDITO"]),
+    OpenApiParameter(
+        "only_debt",
+        OpenApiTypes.BOOL,
+        description="Excluye las ventas que solo tienen exceso por reembolsar.",
+    ),
     *_PAGE_PARAMS,
 ]
 _SEARCH = OpenApiParameter("search", OpenApiTypes.STR)
@@ -100,6 +106,15 @@ def _int(
     if value < minimum:
         raise _bad(name, "Valor inválido.")
     return value
+
+
+def _flag(request: Request, name: str) -> bool:
+    raw = request.query_params.get(name)
+    if raw is None or raw == "false":
+        return False
+    if raw == "true":
+        return True
+    raise _bad(name, "Use true o false.")
 
 
 def _date(request: Request, name: str) -> date | None:
@@ -739,6 +754,8 @@ class ReceivablesView(_SalesView):
                     payment_state=request.query_params.get("payment_state"),
                     origin=request.query_params.get("origin"),
                     min_age_days=_int(request, "min_age_days"),
+                    condition=request.query_params.get("condition"),
+                    only_debt=_flag(request, "only_debt"),
                     request_id=request_id_from(request),
                     **_page_args(request),
                 )

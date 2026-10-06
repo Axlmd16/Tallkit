@@ -349,6 +349,11 @@ class TestSalesRoutes:
         receivables = seller_api.get(f"{BASE}receivables/")
         assert receivables.status_code == 200
         assert receivables.json()["receivable_total"] == "6.50"
+        filtered = seller_api.get(f"{BASE}receivables/?condition=CREDITO&only_debt=true")
+        assert (filtered.status_code, filtered.json()["count"]) == (200, 1)
+        assert seller_api.get(f"{BASE}receivables/?condition=CONTADO").json()["count"] == 0
+        assert seller_api.get(f"{BASE}receivables/?condition=FIADO").status_code == 400
+        assert seller_api.get(f"{BASE}receivables/?only_debt=si").status_code == 400
         status_ = seller_api.get(f"{BASE}operations/{payment['operation_id']}/")
         assert (status_.status_code, status_.json()["kind"]) == (200, "payment")
         assert seller_api.get(f"{BASE}operations/{uuid.uuid4()}/").status_code == 404

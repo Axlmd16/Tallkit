@@ -50,6 +50,7 @@ PAGE_SIZE_MAX = 100
 PAYMENT_STATES = {"PENDING", "PARTIAL", "PAID"}
 DOCUMENT_STATES = {"DRAFT", "CONFIRMED", "VOIDED"}
 ORIGIN_TYPES = {"DIRECT", "MAINTENANCE", "PROFORMA"}
+CONDITIONS = {"CONTADO", "CREDITO"}
 
 
 @contextmanager
@@ -188,6 +189,36 @@ def _filters(
     return queryset
 
 
+def with_debt(queryset: QuerySet[Any]) -> QuerySet[Any]:
+    """Ventas confirmadas con saldo por cobrar; el exceso por reembolsar no es deuda."""
+    return queryset.filter(state="CONFIRMED", balance__gt=0)
+
+
+def by_condition(queryset: QuerySet[Any], condition: str | None) -> QuerySet[Any]:
+    if not condition:
+        return queryset
+    if condition not in CONDITIONS:
+        raise field_error("validation_error", "condition", "Condición de venta no válida.")
+    return queryset.filter(condition=condition)
+
+
+def unpaid_cash_sales() -> QuerySet[Any]:
+    """Ventas de contado confirmadas que siguen sin cobrarse por completo."""
+    return with_debt(by_condition(annotated_sales(), "CONTADO"))
+
+
+def draft_sales() -> QuerySet[Any]:
+    return _filters(
+        annotated_sales(),
+        customer_id=None,
+        state="DRAFT",
+        payment_state=None,
+        origin=None,
+        date_from=None,
+        date_to=None,
+    )
+
+
 def list_sales(
     *,
     actor: User,
@@ -233,6 +264,8 @@ def receivables(
     payment_state: str | None = None,
     origin: str | None = None,
     min_age_days: int | None = None,
+    condition: str | None = None,
+    only_debt: bool = False,
     page: int = 1,
     page_size: int = 20,
     request_id: UUID | None = None,
@@ -257,7 +290,12 @@ def receivables(
             origin=origin,
             date_from=None,
             date_to=None,
-        ).filter(Q(balance__gt=0) | Q(excess__gt=0))
+        )
+        queryset = by_condition(queryset, condition)
+        if only_debt:
+            queryset = with_debt(queryset)
+        else:
+            queryset = queryset.filter(Q(balance__gt=0) | Q(excess__gt=0))
         if min_age_days is not None:
             queryset = queryset.filter(sale_date__lte=today - timedelta(days=min_age_days))
         totals = queryset.aggregate(receivable=Sum("balance"), refund=Sum("excess"))

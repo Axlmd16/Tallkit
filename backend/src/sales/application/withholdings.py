@@ -11,7 +11,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from django.db.models import Sum
+from django.db.models import QuerySet, Sum
 from django.utils import timezone
 
 from identity.application.authorization import require_permission
@@ -265,6 +265,11 @@ def withholding_history(*, actor: User, sale_id: int) -> list[dict[str, Any]]:
     ]
 
 
+def pending_voucher_rows() -> QuerySet[CommercialWithholding]:
+    """Retenciones comerciales vigentes a las que todavía falta el comprobante."""
+    return CommercialWithholding.objects.filter(voided_at__isnull=True, voucher_number__isnull=True)
+
+
 def pending_vouchers(
     *,
     actor: User,
@@ -290,9 +295,7 @@ def pending_vouchers(
         )
     today = reviews.today()
     with read_snapshot():
-        queryset = CommercialWithholding.objects.filter(
-            voided_at__isnull=True, voucher_number__isnull=True
-        ).select_related("sale")
+        queryset = pending_voucher_rows().select_related("sale")
         if customer_id:
             queryset = queryset.filter(customer_id=customer_id)
         total = queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
