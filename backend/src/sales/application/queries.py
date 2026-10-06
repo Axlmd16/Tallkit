@@ -17,6 +17,7 @@ from sales.models import (
     SaleReturn,
     SaleReturnLine,
 )
+from workshop_configuration.application.operation_context import received_withholding_settings
 
 
 def money(value: Decimal | None) -> str | None:
@@ -132,6 +133,17 @@ def money_summary(sale: Sale) -> dict[str, Any]:
     }
 
 
+def withholding_context(sale: Sale) -> dict[str, bool]:
+    """Orienta la pantalla de cobro: si la entidad registra retenciones y la marca vigente
+    del cliente. No decide saldos ni límites; el servidor valida al registrar."""
+    enabled, _ = received_withholding_settings("COMERCIAL")
+    reference = get_customer_reference(sale.customer_id)
+    return {
+        "enabled": enabled,
+        "customer_is_agent": bool(reference and reference.is_withholding_agent),
+    }
+
+
 def sale_detail(sale: Sale) -> dict[str, Any]:
     lines = list(sale.lines.order_by("position"))
     products = get_sale_product_references(line.product_id for line in lines)
@@ -140,6 +152,7 @@ def sale_detail(sale: Sale) -> dict[str, Any]:
         **sale_base(sale),
         "lines": [line_dict(line, products, returned) for line in lines],
         "money": money_summary(sale),
+        "withholding_context": withholding_context(sale),
     }
 
 

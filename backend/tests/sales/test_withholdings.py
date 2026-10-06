@@ -447,3 +447,20 @@ def test_database_rejects_incoherent_withholdings(seller: Any, confirmed_sale: A
         voided_by=seller,
         void_reason="Registrada por error",
     )
+
+
+def test_sale_detail_tells_the_charge_screen_what_to_offer(
+    seller: Any, admin: Any, commercial: Any, customer: Any, confirmed_sale: Any
+) -> None:
+    sale = Sale.objects.get(pk=confirmed_sale(price="100.00")["id"])
+    assert queries.sale_detail(sale)["withholding_context"] == {
+        "enabled": True,
+        "customer_is_agent": False,
+    }
+    customer.is_withholding_agent = True
+    customer.save(update_fields=["is_withholding_agent"])
+    configure(admin, commercial, registration_enabled=False)
+    assert queries.sale_detail(sale)["withholding_context"] == {
+        "enabled": False,
+        "customer_is_agent": True,
+    }

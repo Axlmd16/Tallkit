@@ -505,3 +505,16 @@ def test_database_rejects_incoherent_withholdings(manager, make_operation) -> No
     create_row(voucher_number=NUMBER, voucher_date=business_today())
     with pytest.raises(IntegrityError), transaction.atomic():
         create_row(voucher_number=NUMBER, voucher_date=business_today())
+
+
+def test_operation_detail_tells_the_charge_screen_what_to_offer(  # type: ignore[no-untyped-def]
+    manager, admin, artisan, customer, make_operation
+) -> None:
+    operation = make_operation()
+    detail = service_operations.get_operation(actor=manager, operation_id=operation["id"])
+    assert detail["withholding_context"] == {"enabled": True, "customer_is_agent": False}
+    customer.is_withholding_agent = True
+    customer.save(update_fields=["is_withholding_agent"])
+    configure(admin, artisan, registration_enabled=False)
+    detail = service_operations.get_operation(actor=manager, operation_id=operation["id"])
+    assert detail["withholding_context"] == {"enabled": False, "customer_is_agent": True}

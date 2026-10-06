@@ -15,6 +15,7 @@ from django.db import transaction
 from django.db.models import F, Max, Sum
 from django.utils import timezone
 
+from customer_registry.application.workshop_references import customer_withholding_flags
 from identity.application.authorization import has_permission, require_permission
 from identity.models import User
 from shared.money import ZERO, BalanceResult, PaymentCondition, PaymentState, compute_balance
@@ -46,6 +47,7 @@ from workshop_configuration.application.workshop_references import (
     ArtisanNumberingError,
     ArtisanTaxSnapshot,
     allocate_artisan_number,
+    artisan_withholding_settings,
     lock_artisan_operation_context,
     review_artisan_operation_context,
 )
@@ -516,6 +518,12 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
             ],
             "payments": payment_history(operation),
             "withholdings": withholding_history(operation),
+            "withholding_context": {
+                "enabled": artisan_withholding_settings()[0],
+                "customer_is_agent": customer_withholding_flags([operation.customer_id]).get(
+                    operation.customer_id, False
+                ),
+            },
             "created_by": user_label(operation.created_by),
             "created_at": operation.created_at.isoformat(),
             "voided_by": user_label(operation.voided_by),
