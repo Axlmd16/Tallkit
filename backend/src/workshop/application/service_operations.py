@@ -472,6 +472,13 @@ def operation_summary(operation: ServiceOperation, actor: User | None = None) ->
     }
     if actor is not None:
         summary["allowed_actions"] = _allowed_actions(operation, actor, balance)
+        # Orienta la pantalla de cobro; el servidor valida al registrar.
+        summary["withholding_context"] = {
+            "enabled": artisan_withholding_settings()[0],
+            "customer_is_agent": customer_withholding_flags([operation.customer_id]).get(
+                operation.customer_id, False
+            ),
+        }
     return summary
 
 
@@ -518,12 +525,6 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
             ],
             "payments": payment_history(operation),
             "withholdings": withholding_history(operation),
-            "withholding_context": {
-                "enabled": artisan_withholding_settings()[0],
-                "customer_is_agent": customer_withholding_flags([operation.customer_id]).get(
-                    operation.customer_id, False
-                ),
-            },
             "created_by": user_label(operation.created_by),
             "created_at": operation.created_at.isoformat(),
             "voided_by": user_label(operation.voided_by),
