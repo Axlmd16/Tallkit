@@ -100,9 +100,12 @@ def test_no_foreign_sql_is_executed() -> None:
     assert not offenders, offenders
 
 
-# Único consumidor externo del taller: el módulo fiscal lee la fuente fiscal de la operación
-# artesanal mediante la interfaz publicada que le dedica el taller.
-PUBLISHED_TO = {"workshop.application.fiscal_source": {"fiscal"}}
+# Consumidores externos del taller, cada uno mediante la interfaz publicada que se le dedica: el
+# módulo fiscal lee la fuente fiscal de la operación artesanal y el inicio lee sus indicadores.
+PUBLISHED_TO = {
+    "workshop.application.fiscal_source": {"fiscal"},
+    "workshop.application.home_summary": {"home"},
+}
 
 
 def test_no_other_module_imports_workshop() -> None:

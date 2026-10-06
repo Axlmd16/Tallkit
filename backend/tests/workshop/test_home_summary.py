@@ -222,3 +222,36 @@ def test_without_permission_nothing_is_computed_nor_audited(seller, make_operati
     assert home_summary.receivable_balance(seller) is None
     assert home_summary.collections_by_day(seller, today=support.business_today()) is None
     assert AuditEvent.objects.count() == before
+
+
+# --- Recorrido por la API del inicio con datos reales ----------------------------------------
+
+
+def test_home_routes_show_the_same_numbers_as_the_lists(  # type: ignore[no-untyped-def]
+    manager, make_operation, make_order
+) -> None:
+    from rest_framework.test import APIClient
+
+    api = APIClient()
+    api.force_authenticate(user=manager)
+    make_operation("CONTADO", "40.00")
+    partial = make_operation("CREDITO", "60.00")
+    settle(manager, partial["id"], ("EFECTIVO", "25.00"))
+    make_order()
+
+    pending = {
+        (item["key"], item["scope"]): item["count"]
+        for item in api.get("/api/v1/home/pending/").json()["items"]
+    }
+    assert pending[("open_orders", None)] == 3
+    assert api.get("/api/v1/maintenance-orders/?state=OPEN").json()["count"] == 3
+    assert pending[("cash_services_unpaid", "artisan")] == 1
+    assert api.get("/api/v1/service-operations/?condition=CONTADO").json()["count"] == 1
+
+    assert api.get("/api/v1/home/receivables/").json()["items"] == [
+        {"scope": "artisan", "balance": "75.00", "customers": 2}
+    ]
+    assert api.get("/api/v1/service-operations/").json()["totals"]["balance"] == "75.00"
+
+    [collected] = api.get("/api/v1/home/collections/").json()["items"]
+    assert (collected["scope"], collected["total"]) == ("artisan", "25.00")

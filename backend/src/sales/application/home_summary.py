@@ -13,7 +13,7 @@ from django.db.models import Sum
 
 from identity.application.authorization import has_permission
 from identity.models import User
-from sales.application import reads, withholdings
+from sales.application import reads, reviews, withholdings
 from sales.models import CommercialPayment
 
 COLLECTION_DAYS = 7
@@ -64,10 +64,11 @@ def receivable_balance(actor: User) -> Receivable | None:
     return Receivable(balance=balance, customers=customers)
 
 
-def collections_by_day(actor: User, *, today: date) -> list[DayCollection] | None:
+def collections_by_day(actor: User, *, today: date | None = None) -> list[DayCollection] | None:
     """Dinero cobrado por día en los últimos siete días; sin retenciones ni pagos corregidos."""
     if not has_permission(actor, "pagos_comerciales.ver"):
         return None
+    today = today or reviews.today()
     start = today - timedelta(days=COLLECTION_DAYS - 1)
     with reads.read_snapshot():
         rows = (

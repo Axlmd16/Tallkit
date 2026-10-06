@@ -15,6 +15,7 @@ from django.db.models import Sum
 from identity.application.authorization import has_permission
 from identity.models import User
 from workshop.application import artisan_withholdings, queries
+from workshop.application.support import business_today
 from workshop.models import ArtisanPayment
 
 COLLECTION_DAYS = 7
@@ -65,10 +66,11 @@ def receivable_balance(actor: User) -> Receivable | None:
     return Receivable(balance=balance, customers=customers)
 
 
-def collections_by_day(actor: User, *, today: date) -> list[DayCollection] | None:
+def collections_by_day(actor: User, *, today: date | None = None) -> list[DayCollection] | None:
     """Dinero cobrado por día en los últimos siete días; sin retenciones ni pagos corregidos."""
     if not has_permission(actor, "pagos_artesanales.ver"):
         return None
+    today = today or business_today()
     start = today - timedelta(days=COLLECTION_DAYS - 1)
     rows = (
         ArtisanPayment.objects.filter(

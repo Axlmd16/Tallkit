@@ -274,3 +274,40 @@ def test_without_permission_nothing_is_computed_nor_audited(
     assert home_summary.receivable_balance(role_manager) is None
     assert home_summary.collections_by_day(role_manager, today=reviews.today()) is None
     assert AuditEvent.objects.count() == before
+
+
+# --- Recorrido por la API del inicio con datos reales ----------------------------------------
+
+
+def test_home_routes_show_the_same_numbers_as_the_lists(
+    seller: Any, customer: Any, make_product: Any, confirmed_sale: Any
+) -> None:
+    from rest_framework.test import APIClient
+
+    api = APIClient()
+    api.force_authenticate(user=seller)
+    confirmed_sale(price="100.00", condition="CONTADO")
+    credit = confirmed_sale(price="60.00", condition="CREDITO")
+    pay(seller, credit["id"], parts("20.00"))
+    draft(seller, customer, make_product(), "home-api-draft-01")
+
+    pending = {
+        (item["key"], item["scope"]): item["count"]
+        for item in api.get("/api/v1/home/pending/").json()["items"]
+    }
+    assert pending[("cash_sales_unpaid", "commercial")] == 1
+    assert pending[("sale_drafts", "commercial")] == 1
+    listed = api.get("/api/v1/sales/receivables/?condition=CONTADO&only_debt=true").json()
+    assert listed["count"] == pending[("cash_sales_unpaid", "commercial")]
+
+    receivables = api.get("/api/v1/home/receivables/").json()["items"]
+    assert receivables == [{"scope": "commercial", "balance": "140.00", "customers": 1}]
+    assert api.get("/api/v1/sales/receivables/").json()["receivable_total"] == "140.00"
+
+    [collected] = api.get("/api/v1/home/collections/").json()["items"]
+    assert (collected["scope"], collected["total"]) == ("commercial", "20.00")
+    assert collected["days"][-1]["amount"] == "20.00"
+
+    pay(seller, credit["id"], parts("40.00"))
+    after = api.get("/api/v1/home/receivables/").json()["items"]
+    assert after == [{"scope": "commercial", "balance": "100.00", "customers": 1}]

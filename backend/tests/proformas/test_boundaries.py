@@ -97,13 +97,20 @@ def test_no_foreign_sql_is_executed() -> None:
     assert not offenders, offenders
 
 
+# Único consumidor externo: el inicio lee los indicadores que proformas le publica.
+PUBLISHED_TO = {"proformas.application.home_summary": {"home"}}
+
+
 def test_only_proformas_writes_its_persistence() -> None:
     offenders = []
     for path in SRC.rglob("*.py"):
         relative = path.relative_to(SRC)
         if relative.parts[0] == PACKAGE or "migrations" in path.parts:
             continue
-        if any(m.split(".")[0] == PACKAGE for m in imported_modules(path)):
+        if any(
+            m.split(".")[0] == PACKAGE and relative.parts[0] not in PUBLISHED_TO.get(m, set())
+            for m in imported_modules(path)
+        ):
             offenders.append(str(relative))
     assert not offenders, offenders
 

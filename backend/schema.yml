@@ -2726,6 +2726,91 @@ paths:
       responses:
         '200':
           description: Aplicación y PostgreSQL disponibles
+  /api/v1/home/collections/:
+    get:
+      operationId: home_collections
+      description: Dinero cobrado por día en los últimos siete días del negocio, por
+        entidad fiscal. No incluye retenciones ni pagos corregidos, no resta reembolsos
+        y no es un cierre de caja.
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collections'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/home/pending/:
+    get:
+      operationId: home_pending
+      description: Pendientes que el usuario puede consultar. Un indicador sin permiso
+        no se incluye. Cada conteo coincide con su lista de destino filtrada.
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pending'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/home/receivables/:
+    get:
+      operationId: home_receivables
+      description: Saldo por cobrar y clientes con deuda por entidad fiscal; nunca
+        se suman.
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receivables'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/inventory/:
     get:
       operationId: inventory_stock_list
@@ -3328,8 +3413,10 @@ paths:
           type: string
           enum:
           - FINALIZED
+          - OPEN
           - REGISTERED
           - REOPENED
+        description: OPEN reúne las registradas y las reabiertas.
       - in: query
         name: vehicle_id
         schema:
@@ -5883,6 +5970,11 @@ paths:
         schema:
           type: integer
       - in: query
+        name: expires_within_days
+        schema:
+          type: integer
+        description: Solo vigentes que vencen en esos días, contando hoy.
+      - in: query
         name: page
         schema:
           type: integer
@@ -8427,6 +8519,13 @@ paths:
       description: Deuda cobrable y exceso por reembolsar se muestran por separado.
       parameters:
       - in: query
+        name: condition
+        schema:
+          type: string
+          enum:
+          - CONTADO
+          - CREDITO
+      - in: query
         name: customer_id
         schema:
           type: integer
@@ -8435,6 +8534,11 @@ paths:
         schema:
           type: integer
         description: Días desde la confirmación, fechas locales.
+      - in: query
+        name: only_debt
+        schema:
+          type: boolean
+        description: Excluye las ventas que solo tienen exceso por reembolsar.
       - in: query
         name: origin
         schema:
@@ -8675,6 +8779,13 @@ paths:
       operationId: artisan_receivables
       description: Solo RUC artesanal. La antigüedad no expresa mora ni vencimiento.
       parameters:
+      - in: query
+        name: condition
+        schema:
+          type: string
+          enum:
+          - CONTADO
+          - CREDITO
       - in: query
         name: customer_id
         schema:
@@ -12228,6 +12339,46 @@ components:
         * `quantity` - quantity
         * `unit_price` - unit_price
         * `tax_rate` - tax_rate
+    CollectionDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        amount:
+          type: string
+          description: Dinero cobrado ese día, con dos decimales.
+      required:
+      - amount
+      - date
+    CollectionItem:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/ScopeEnum'
+        total:
+          type: string
+          description: Suma de los siete días de esa entidad fiscal.
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionDay'
+      required:
+      - days
+      - scope
+      - total
+    Collections:
+      type: object
+      properties:
+        timezone:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollectionItem'
+      required:
+      - items
+      - timezone
     CommandFields:
       type: object
       properties:
@@ -14789,6 +14940,24 @@ components:
       - period_totals
       - results
       - total_pages
+    KeyEnum:
+      enum:
+      - open_orders
+      - cash_sales_unpaid
+      - cash_services_unpaid
+      - proformas_expiring
+      - withholdings_pending
+      - sale_drafts
+      - proforma_drafts
+      type: string
+      description: |-
+        * `open_orders` - open_orders
+        * `cash_sales_unpaid` - cash_sales_unpaid
+        * `cash_services_unpaid` - cash_services_unpaid
+        * `proformas_expiring` - proformas_expiring
+        * `withholdings_pending` - withholdings_pending
+        * `sale_drafts` - sale_drafts
+        * `proforma_drafts` - proforma_drafts
     LinkedSale:
       type: object
       properties:
@@ -16468,6 +16637,37 @@ components:
       - idempotency_key
       - operation_id
       - review_token
+    Pending:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PendingItem'
+        qualification:
+          allOf:
+          - $ref: '#/components/schemas/QualificationNotice'
+          nullable: true
+      required:
+      - items
+      - qualification
+    PendingItem:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/KeyEnum'
+        scope:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        count:
+          type: integer
+          minimum: 0
+      required:
+      - count
+      - key
+      - scope
     PendingWithholdingsPage:
       type: object
       properties:
@@ -17315,6 +17515,44 @@ components:
       - state
       - supplier
       - unit_count
+    QualificationNotice:
+      type: object
+      properties:
+        expires_on:
+          type: string
+          format: date
+        days_left:
+          type: integer
+        expired:
+          type: boolean
+      required:
+      - days_left
+      - expired
+      - expires_on
+    ReceivableItem:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/ScopeEnum'
+        balance:
+          type: string
+          description: Saldo pendiente con dos decimales.
+        customers:
+          type: integer
+          minimum: 0
+      required:
+      - balance
+      - customers
+      - scope
+    Receivables:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceivableItem'
+      required:
+      - items
     ReceivablesPage:
       type: object
       properties:
@@ -17886,6 +18124,14 @@ components:
       - expected_version
       - new_rate
       - successor_starts_on
+    ScopeEnum:
+      enum:
+      - commercial
+      - artisan
+      type: string
+      description: |-
+        * `commercial` - commercial
+        * `artisan` - artisan
     SeriesReplace:
       type: object
       properties:
