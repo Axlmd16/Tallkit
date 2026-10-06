@@ -240,4 +240,14 @@ No hay migración de datos ni de esquema. El despliegue es el habitual. Para rev
 
 Estado: diseño aprobado por el usuario el 2026-10-06 mediante «está bien, haz commit y continúa», después de su presentación para revisión. Autoriza registrarlo en `master` y redactar las tareas; no autoriza implementación.
 
+### Ajustes durante la aplicación (2026-10-06)
+
+- **Valores de la condición.** El código usa `CONTADO` y `CREDITO`, no `CASH`. Los enlaces reales son `/sales/receivables?condition=CONTADO&only_debt=true` y `/maintenance/receivables?condition=CONTADO`.
+- **Autorización dentro del módulo dueño.** Cada función de `home_summary` recibe al actor y devuelve «nada» si no tiene el permiso, en lugar de que `home` decida. Así el permiso de cada indicador vive junto a su lista.
+- **Interfaces publicadas.** `home` importa cada `home_summary` por su ruta completa, y las pruebas de fronteras de taller y proformas lo registran como único consumidor de esa interfaz.
+- **Aviso de calificación.** La respuesta incluye `entity_id` para enlazar a `/configuration?tab=facturacion&entidad=<id>`, que resuelve la pregunta abierta sobre el destino.
+- **Presupuesto de consultas.** `pending/` hace hasta 22 consultas pequeñas, casi la mitad para comprobar permisos; con 5 000 ventas y cobros el resumen comercial respondió en 0,12 s, así que no se añadió índice.
+- **Pendientes en teléfono.** La rejilla usa dos columnas también en teléfono, no una, para que el panel no resulte demasiado largo.
+- **Título del gráfico.** Dentro del panel «Cobrado en 7 días» el gráfico no repite el título a la vista; lo conserva como nombre accesible.
+
 Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

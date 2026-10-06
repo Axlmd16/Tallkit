@@ -107,11 +107,16 @@ Dependencias: grupo 8. Evidencia: salida de Playwright y capturas referenciadas 
 
 ## 10. Documentación, trazabilidad y cierre
 
-- [ ] 10.1 Actualizar UI-002 en `docs/negocio/requisitos/interfaz-y-navegacion.md` con los cuatro bloques, dejando expreso que stock bajo y estado del respaldo siguen pendientes y que «Cobrar» conduce a las cuentas por cobrar.
-- [ ] 10.2 Actualizar `docs/negocio/requisitos/matriz-trazabilidad.md` y la nota de estado de implementación de RF-REP-006 en `requisitos-funcionales.md`; añadir el módulo `home` y sus tres rutas a `docs/tecnico/arquitectura-inicial.md`.
-- [ ] 10.3 Revisar `docs/negocio/producto/glosario.md` y `docs/tecnico/glosario-tecnico.md`: añadir los términos nuevos que la interfaz muestre y actualizar los archivos de referencia de glosario de cada documento tocado.
-- [ ] 10.4 Corregir el comentario desactualizado de `HomePage.tsx` y completar `cobertura-pagina-de-inicio.md` con la prueba y el resultado real de los 47 escenarios, incluida la nota sobre el estado «cancelado» todavía inexistente.
-- [ ] 10.5 Ejecutar la verificación de cierre: `make check`, las pruebas focalizadas de los grupos 2 a 9, `make audit` y `openspec validate redisenar-pagina-de-inicio --strict`. Cierre: comandos y resultados reales registrados; ninguna comprobación declarada sin haberse ejecutado.
+- [x] 10.1 Actualizar UI-002 en `docs/negocio/requisitos/interfaz-y-navegacion.md` con los cuatro bloques, dejando expreso que stock bajo y estado del respaldo siguen pendientes y que «Cobrar» conduce a las cuentas por cobrar.
+- [x] 10.2 Actualizar `docs/negocio/requisitos/matriz-trazabilidad.md` y la nota de estado de implementación de RF-REP-006 en `requisitos-funcionales.md`; añadir el módulo `home` y sus tres rutas a `docs/tecnico/arquitectura-inicial.md`.
+- [x] 10.3 Revisar `docs/negocio/producto/glosario.md` y `docs/tecnico/glosario-tecnico.md`: añadir los términos nuevos que la interfaz muestre y actualizar los archivos de referencia de glosario de cada documento tocado.
+- [x] 10.4 Corregir el comentario desactualizado de `HomePage.tsx` y completar `cobertura-pagina-de-inicio.md` con la prueba y el resultado real de los 47 escenarios, incluida la nota sobre el estado «cancelado» todavía inexistente.
+- [x] 10.5 Ejecutar la verificación de cierre: `make check`, las pruebas focalizadas de los grupos 2 a 9, `make audit` y `openspec validate redisenar-pagina-de-inicio --strict`. Cierre: comandos y resultados reales registrados; ninguna comprobación declarada sin haberse ejecutado.
+
+Notas de cierre (2026-10-06):
+
+- 10.3: la interfaz no introduce términos de negocio nuevos; usa los ya definidos (saldo pendiente, cuentas por cobrar, retención recibida, proforma, mantenimiento). No se modificaron los glosarios.
+- 10.5: conforme a la preferencia del usuario se ejecutaron las pruebas focalizadas de este cambio y no la suite completa de `make check`. `make audit` termina con error por avisos anteriores a este cambio en `urllib3`, `virtualenv` y dos dependencias de npm; los lockfiles no se modificaron. El detalle está en `docs/negocio/requisitos/cobertura-pagina-de-inicio.md` §3.
 
 Dependencias: grupos 2 a 9. Criterio de grupo: documentación sincronizada, cobertura completa y verificación registrada. Estas tareas no autorizan commits, ramas, merges ni el archivado del cambio fuera de los que el usuario solicite.
 

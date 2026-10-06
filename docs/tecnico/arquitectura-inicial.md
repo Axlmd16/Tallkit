@@ -55,6 +55,16 @@ ni publica), y `workshop_configuration.application.operation_context`, `configur
 `proformas/domain/` no depende de Django ni de DRF y recibe el reloj como dato. La API vive bajo
 `/api/v1/proformas/`. Datos, bloqueos y reversión: [modelo de datos](../arquitectura/modelo-datos.md#módulo-proformas-ofertas-comerciales-y-conversión-a-venta).
 
+### Frontera del módulo de inicio
+
+`home` no tiene modelos ni migraciones: compone el resumen de la página de inicio a partir de las lecturas que
+cada módulo dueño publica en su `application/home_summary.py` (`sales`, `workshop`, `proformas` y
+`workshop_configuration`). No consulta tablas ajenas ni escribe. Ningún otro módulo lo importa. La API vive bajo
+`/api/v1/home/` con tres lecturas, una por bloque: `pending/`, `receivables/` y `collections/`. Basta una sesión
+vigente; cada indicador se entrega solo si el actor tiene el permiso de su lista de destino, decidido con
+`has_permission`, que no audita denegaciones: abrir el inicio no es un intento de acceso. Cada conteo reutiliza el
+mismo filtro que su lista, de modo que ambos números coinciden. Los valores de los dos RUC nunca se suman.
+
 ### Fronteras de compras e inventario
 
 `purchasing` coordina el ingreso y `inventory` es propietario de posiciones, operaciones y

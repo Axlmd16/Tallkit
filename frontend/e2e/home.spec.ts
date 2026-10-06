@@ -237,7 +237,9 @@ test.describe('Página de inicio', () => {
       .getByRole('link', { name: /Mantenimientos abiertos$/ })
       .click()
     await expect(page).toHaveURL(/\/maintenance\?state=OPEN$/)
-    await expect(page.getByRole('radio', { name: 'Abiertas', exact: true })).toBeChecked()
+    await expect(
+      page.getByRole('radio', { name: 'Abiertas', exact: true }),
+    ).toBeChecked()
 
     await page.goto('/')
     await actions.getByRole('link', { name: 'Nueva venta' }).click()

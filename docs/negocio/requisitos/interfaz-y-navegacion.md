@@ -79,15 +79,18 @@ La presentación exacta puede cambiar durante el prototipado, pero debe evitar u
 
 ### UI-002 — Página de inicio
 
-Debe mostrar únicamente información permitida al usuario:
+Es un resumen de trabajo, no un tablero de reportes. Muestra únicamente lo que el servidor entrega según los permisos efectivos del usuario, en cuatro bloques que cargan y fallan por separado:
 
-- Accesos rápidos según rol: nueva venta, nueva proforma, nuevo mantenimiento, nuevo ingreso y registrar pago.
-- Alertas de stock bajo para roles autorizados.
-- Saldos pendientes separados por RUC para quien pueda consultarlos.
-- Mantenimientos registrados pendientes de finalizar.
-- Estado básico del respaldo solo para el Administrador.
+- **Acciones rápidas:** nueva venta, nueva proforma, nuevo mantenimiento, registrar entrada y cobrar. Son accesos secundarios con icono; solo abren su pantalla. «Cobrar» conduce a las cuentas por cobrar de la entidad correspondiente, porque un cobro siempre se aplica a una operación concreta (DP-013); quien cobra en las dos entidades tiene un acceso por entidad.
+- **Pendientes:** un solo panel con conteos que conducen a su lista ya filtrada: mantenimientos abiertos, ventas y servicios de contado sin cobrar, proformas que vencen hoy o mañana, retenciones por completar por entidad y borradores de venta y de proforma. El cero se conserva, atenuado. El Administrador ve además el aviso de la calificación artesanal por vencer o vencida.
+- **Por cobrar:** saldo pendiente y clientes con deuda por entidad fiscal, sin total conjunto.
+- **Cobrado en 7 días:** un gráfico breve por entidad fiscal con el dinero cobrado cada día; no incluye retenciones, no resta reembolsos y no es un cierre de caja.
 
-Los indicadores no deben reemplazar los reportes ni mezclar totales fiscales.
+La página no repite el listado de áreas de la navegación. El número de cada indicador coincide con el de su lista de destino.
+
+**Pendiente de esta pantalla:** las alertas de stock bajo (RF-INV-011, sin umbral por producto decidido) y el estado básico del respaldo (DA-003 abierta) no forman parte todavía del inicio.
+
+Los indicadores no reemplazan los reportes ni mezclan totales fiscales. Evidencia: [cobertura-pagina-de-inicio.md](cobertura-pagina-de-inicio.md).
 
 ## 4. Patrón de listas
 
