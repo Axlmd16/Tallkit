@@ -755,6 +755,14 @@ function BarsPreview() {
           total={null}
         />
       </div>
+      <div className="rounded-panel border border-line bg-surface">
+        <SkeletonRows label="Cargando cobros…" rows={2} />
+      </div>
+      <ErrorState
+        message="El servidor no respondió."
+        onRetry={() => undefined}
+        title="No se pudieron cargar los cobros"
+      />
     </div>
   )
 }

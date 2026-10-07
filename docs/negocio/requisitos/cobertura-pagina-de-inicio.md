@@ -99,6 +99,8 @@ Ejecutado localmente el 2026-10-06, con pruebas focalizadas en lo que toca este 
 | `npx playwright test home.spec.ts` | 4 aprobadas, con `axe` y sin desplazamiento horizontal a 360, 768 y 1280 px |
 | `openspec validate redisenar-pagina-de-inicio --strict` | Válido |
 
+Verificación del cambio (2026-10-06): se corrigieron dos hallazgos. Las consultas del inicio ya no conservan los valores de una visita anterior (`gcTime: 0`), de modo que al volver se muestra la carga y no un dato viejo; y el gráfico breve muestra también sus estados de carga y error en el catálogo visual. Tras esta corrección se repitieron las pruebas de `features/home`, `pages/home`, `dev/visual-catalog` y `app` (52 aprobadas), no el recorrido de Playwright.
+
 No se ejecutó:
 
 - La suite completa de backend (`make check`, unas 1 700 pruebas) ni la suite completa de Playwright; se ejecutaron las pruebas relacionadas con este cambio.

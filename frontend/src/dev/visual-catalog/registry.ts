@@ -359,6 +359,8 @@ export const CATALOG: CatalogEntry[] = (
         'RUC artesanal',
         'Semana en cero',
         'Sin datos',
+        'Carga',
+        'Error',
       ],
       consumers: ['Inicio'],
       description:

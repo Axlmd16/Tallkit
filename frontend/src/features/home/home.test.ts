@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { ApiClient } from '@/shared/api/client'
 
 import { createHomeApi } from './api'
-import { homeKeys } from './hooks'
+import { fresh, homeKeys } from './hooks'
 import {
   pendingTargets,
   qualificationTarget,
@@ -24,6 +24,10 @@ describe('homeApi', () => {
       ['/home/receivables/'],
       ['/home/collections/'],
     ])
+  })
+
+  it('no conserva valores de una visita anterior ni los da por vigentes', () => {
+    expect(fresh).toEqual({ gcTime: 0, staleTime: 0 })
   })
 
   it('cada bloque tiene su propia clave de consulta', () => {

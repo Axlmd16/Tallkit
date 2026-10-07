@@ -11,9 +11,11 @@ export const homeKeys = {
 
 /**
  * Tres consultas independientes, una por bloque: si una falla, las otras siguen. Se consideran
- * viejas de inmediato para que cada visita al inicio las pida de nuevo; no hay sondeo.
+ * viejas de inmediato y no se conservan al salir del inicio: cada visita las pide de nuevo y
+ * muestra la carga, nunca los valores de la visita anterior como si fueran actuales. No hay
+ * sondeo.
  */
-const fresh = { staleTime: 0 } as const
+export const fresh = { gcTime: 0, staleTime: 0 } as const
 
 export function useHomePending(enabled = true) {
   return useQuery({
