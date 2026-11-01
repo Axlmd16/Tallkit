@@ -49,9 +49,9 @@ Dependencias: grupos 1 y 3. Evidencia: `uv run --frozen pytest tests/sales/ test
 
 Cubre diseño 5, 7 y 10.
 
-- [ ] 5.1 Probar y añadir `requires_email` a `FiscalReceiver` en `fiscal/domain/receiver.py`. Cierre: `parse_receiver` sigue aceptando un borrador sin correo, y `07` no lo exige.
-- [ ] 5.2 Crear `fiscal/domain/payment_term.py` con `term_required`, `parse_term_days` y `forms_with_term`, y sus pruebas en `backend/tests/fiscal/test_payment_term.py`. Casos: entero de 1 a 9999; rechazo de 0, −1, 1,5, 10000, booleanos y texto; y formas ya cobradas sin plazo. Cierre: una prueba comprueba que con saldo pendiente siempre queda al menos una forma con plazo.
-- [ ] 5.3 Crear `fiscal/domain/additional_info.py` y `backend/tests/fiscal/test_additional_info.py`: forma `{name, value}`, longitud, una sola línea, máximo 12, nombres únicos y reservados con `casefold`. Cierre: «Nombre reservado», «Más pares de los admitidos», «Nombre repetido» y «Valor excedido» en verde.
+- [x] 5.1 Probar y añadir `requires_email` a `FiscalReceiver` en `fiscal/domain/receiver.py`. Cierre: `parse_receiver` sigue aceptando un borrador sin correo, y `07` no lo exige.
+- [x] 5.2 Crear `fiscal/domain/payment_term.py` con `term_required`, `parse_term_days` y `forms_with_term`, y sus pruebas en `backend/tests/fiscal/test_payment_term.py`. Casos: entero de 1 a 9999; rechazo de 0, −1, 1,5, 10000, booleanos y texto; y formas ya cobradas sin plazo. Cierre: una prueba comprueba que con saldo pendiente siempre queda al menos una forma con plazo.
+- [x] 5.3 Crear `fiscal/domain/additional_info.py` y `backend/tests/fiscal/test_additional_info.py`: forma `{name, value}`, longitud, una sola línea, máximo 12, nombres únicos y reservados con `casefold`. Cierre: «Nombre reservado», «Más pares de los admitidos», «Nombre repetido» y «Valor excedido» en verde.
 
 Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/fiscal/test_receiver.py tests/fiscal/test_payment_term.py tests/fiscal/test_additional_info.py`.
 

@@ -69,6 +69,15 @@ class FiscalReceiver:
     def is_consumer_final(self) -> bool:
         return self.identification_type == CONSUMER_FINAL_TYPE
 
+    @property
+    def requires_email(self) -> bool:
+        """El comprobante se envía al correo del comprador; consumidor final no lo informa.
+
+        Solo se exige al completar la preparación (DP-035, regla 1): guardar un borrador sin
+        correo sigue siendo válido.
+        """
+        return not self.is_consumer_final
+
 
 def _validate_identification(identification_type: str, identification: str) -> None:
     if identification_type == CONSUMER_FINAL_TYPE:

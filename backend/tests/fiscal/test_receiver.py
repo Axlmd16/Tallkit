@@ -219,3 +219,32 @@ def test_unknown_payload_fields_are_rejected() -> None:
                 "customer_id": 42,
             }
         )
+
+
+# --- El correo se exige al preparar, no al guardar el borrador (DP-035, regla 1) ---------------
+
+
+@pytest.mark.parametrize(
+    ("identification_type", "identification", "required"),
+    [
+        ("04", "0991234567001", True),
+        ("05", "0102030405", True),
+        ("06", "AB123456", True),
+        ("08", "EXT-998877", True),
+        ("07", "9999999999999", False),
+    ],
+)
+def test_email_is_required_for_every_identified_receiver_but_not_for_consumer_final(
+    identification_type: str, identification: str, required: bool
+) -> None:
+    from fiscal.domain.receiver import parse_receiver
+
+    receiver = parse_receiver(
+        {
+            "identification_type": identification_type,
+            "identification": identification,
+            "legal_name": "Comprador",
+        }
+    )
+    assert receiver.requires_email is required
+    assert receiver.email is None  # guardar un borrador sin correo sigue siendo válido
