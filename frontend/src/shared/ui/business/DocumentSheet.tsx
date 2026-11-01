@@ -14,6 +14,13 @@ export interface DocumentSheetIssuer {
   name: string
   /** `undefined` mientras se consulta; `null` si la entidad no tiene logotipo. */
   logoUrl: string | null | undefined
+  /**
+   * Membrete: el logotipo ya contiene el nombre del local, así que con logotipo visible el
+   * nombre no se repite; se agranda y el número pasa junto al tipo de documento.
+   */
+  letterhead?: boolean
+  /** Datos del emisor junto al número en el membrete (RUC, dirección…); un dato ausente queda vacío. */
+  contact?: { label: string; value: string | null }[]
 }
 
 /**
@@ -45,13 +52,22 @@ export function DocumentSheet({
   notice: string | null
   number: string | null
   onBrandReady?: ((ready: boolean) => void) | undefined
-  state: string
-  /** Tipo de documento del encabezado; una proforma se rotula «COTIZACIÓN». */
+  /** Estado rotulado bajo el tipo; `null` lo omite, como en la proforma para el cliente. */
+  state: string | null
+  /** Tipo de documento del encabezado; una proforma se rotula «PROFORMA». */
   title?: string | undefined
 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const logoUrl =
     issuer.logoUrl && issuer.logoUrl !== failedUrl ? issuer.logoUrl : null
+  const letterhead = issuer.letterhead === true
+  const contact = issuer.contact ?? []
+  const numberText =
+    number === null ? (
+      'Pendiente de confirmación'
+    ) : (
+      <span className="font-mono">{number}</span>
+    )
 
   useEffect(() => {
     if (
@@ -75,7 +91,7 @@ export function DocumentSheet({
 
   return (
     <article aria-busy={busy} aria-label={label} className="document-sheet">
-      <header className="sheet-head">
+      <header className={letterhead ? 'sheet-head letterhead' : 'sheet-head'}>
         <div aria-label="Emisor" className="sheet-brand" role="group">
           {logoUrl && (
             <img
@@ -86,24 +102,42 @@ export function DocumentSheet({
               src={logoUrl}
             />
           )}
-          <span className="sheet-issuer">{issuer.name}</span>
+          {!(letterhead && logoUrl) && (
+            <span className="sheet-issuer">{issuer.name}</span>
+          )}
         </div>
         <div className="sheet-kind">
-          <p className="sheet-title">{title}</p>
-          <p className="sheet-state">{state}</p>
+          {letterhead ? (
+            <h2 className="sheet-title">
+              {title} N.º {numberText}
+            </h2>
+          ) : (
+            <p className="sheet-title">{title}</p>
+          )}
+          {state !== null && <p className="sheet-state">{state}</p>}
+          {letterhead && contact.length > 0 && (
+            <dl
+              aria-label="Datos del emisor"
+              className="sheet-contact"
+              role="group"
+            >
+              {contact.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}:</dt> <dd>{item.value ?? ''}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </header>
+      {letterhead && <div aria-hidden="true" className="sheet-bar" />}
       <dl className="sheet-meta">
-        <div>
-          <dt>Número</dt>
-          <dd>
-            {number === null ? (
-              'Pendiente de confirmación'
-            ) : (
-              <span className="font-mono">{number}</span>
-            )}
-          </dd>
-        </div>
+        {!letterhead && (
+          <div>
+            <dt>Número</dt>
+            <dd>{numberText}</dd>
+          </div>
+        )}
         {meta.map((item) => (
           <div className={item.wide ? 'wide' : undefined} key={item.label}>
             <dt>{item.label}</dt>

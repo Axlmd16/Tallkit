@@ -194,15 +194,21 @@ test.describe('Proformas comerciales', () => {
     // Imprimir: datos históricos, sin efectos.
     await page.getByRole('button', { name: 'Imprimir' }).click()
     const sheet = page.getByRole('article', { name: 'Proforma' })
-    await expect(sheet.getByText('COTIZACIÓN', { exact: true })).toBeVisible()
-    await expect(sheet.getByText(number)).toBeVisible()
+    await expect(
+      sheet.getByRole('heading', { name: `PROFORMA N.º ${number}` }),
+    ).toBeVisible()
+    await expect(
+      sheet.getByRole('group', { name: 'Datos del emisor' }),
+    ).toContainText('RUC:')
     await expect(
       sheet.getByRole('columnheader', { name: 'Cód. fabricante' }),
     ).toBeVisible()
     await expect(
       sheet.getByRole('columnheader', { name: 'Marca' }),
     ).toBeVisible()
-    await expect(sheet).not.toContainText(/Disponible|Generado con Tallkit|SRI/)
+    await expect(sheet).not.toContainText(
+      /Disponible|Generado con Tallkit|SRI|Vigente\b/,
+    )
     await expect(
       page.getByRole('button', { name: 'Imprimir o guardar PDF' }),
     ).toBeEnabled()

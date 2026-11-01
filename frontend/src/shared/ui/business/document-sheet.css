@@ -10,6 +10,8 @@
   background: var(--color-surface);
   color: var(--color-ink);
   font-size: 13px;
+  /* Rojo del membrete, tomado del logotipo del local. */
+  --sheet-letterhead-accent: #d7262b;
 }
 .sheet-head {
   display: flex;
@@ -57,6 +59,66 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
+}
+/* Membrete de la cotización: el logotipo ya contiene el nombre del local, así que ocupa el
+   lugar del nombre y se agranda; a la derecha van el número y los datos del emisor, y una
+   franja tinta y roja cierra el encabezado. */
+.sheet-head.letterhead {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 0;
+}
+.letterhead .sheet-brand {
+  max-width: 58%;
+}
+.letterhead .sheet-logo {
+  max-height: 96px;
+}
+.letterhead .sheet-kind {
+  flex-shrink: 0;
+}
+/* El número no se parte: el logotipo cede ancho antes que el número. */
+.letterhead .sheet-title {
+  white-space: nowrap;
+  font-size: 17px;
+  letter-spacing: 0.04em;
+  color: var(--sheet-letterhead-accent);
+}
+.sheet-contact {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.sheet-contact div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.sheet-contact dt {
+  font-weight: 700;
+}
+.sheet-contact dd {
+  overflow-wrap: anywhere;
+}
+/* Dato que el emisor aún no tiene: queda el espacio en blanco donde iría. */
+.sheet-contact dd:empty {
+  min-width: 10em;
+}
+.sheet-bar {
+  height: 7px;
+  background: linear-gradient(
+    to right,
+    var(--color-ink) 0 48%,
+    var(--sheet-letterhead-accent) 48% 68%,
+    transparent 68%
+  );
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.letterhead .sheet-title,
+.letterhead .sheet-contact {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .sheet-meta {
   display: grid;

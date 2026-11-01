@@ -34,6 +34,13 @@ export function ProformaDocument({
         name: issuer.trade_name || issuer.legal_name,
         // Sin logo emitido no se reserva un hueco ni se usa otro logo.
         logoUrl: data.has_logo ? proformaLogoUrl(id) : null,
+        letterhead: true,
+        contact: [
+          { label: 'RUC', value: issuer.ruc },
+          { label: 'Dirección', value: issuer.address },
+          { label: 'Teléfono', value: issuer.phone },
+          { label: 'Correo', value: issuer.email },
+        ],
       }}
       label="Proforma"
       meta={[
@@ -41,15 +48,6 @@ export function ProformaDocument({
         {
           label: 'Vigente hasta',
           value: `${documentDate(data.valid_until)}${expired ? ' (vencida)' : ''}`,
-        },
-        {
-          label: 'Emisor',
-          value: (
-            <>
-              {issuer.legal_name} · RUC{' '}
-              <span className="font-mono">{issuer.ruc}</span> (comercial)
-            </>
-          ),
         },
         // Sin cliente registrado la cotización no lleva ese bloque.
         ...(data.customer
@@ -71,7 +69,8 @@ export function ProformaDocument({
       notice={null}
       number={data.number}
       onBrandReady={onBrandReady}
-      state={proformaStateLabels[data.state]}
+      // El estado es información del sistema; si no está vigente lo advierte el pie.
+      state={null}
       title={QUOTE_TITLE}
     >
       <section aria-label="Líneas" className="sheet-lines">

@@ -77,12 +77,19 @@ const data = (overrides: Partial<DocumentData> = {}): DocumentData => ({
 })
 
 describe('ProformaDocument', () => {
-  it('muestra identidad, vigencia, líneas, impuestos, totales, avisos y estado históricos', () => {
+  it('muestra identidad, vigencia, líneas, impuestos y totales históricos', () => {
     render(<ProformaDocument data={data()} id={7} />)
     const sheet = screen.getByRole('article', { name: 'Proforma' })
-    expect(within(sheet).getByText('COTIZACIÓN')).toBeInTheDocument()
-    expect(within(sheet).queryByText('COMPROBANTE INTERNO')).toBeNull()
-    expect(within(sheet).getByText('Vigente')).toBeInTheDocument()
+    expect(
+      within(sheet).getByRole('heading', {
+        name: 'PROFORMA N.º COM-PRO-000001',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      within(sheet).queryByText(/COMPROBANTE INTERNO|COTIZACIÓN/),
+    ).toBeNull()
+    // El estado es información del sistema: el documento no lo rotula.
+    expect(within(sheet).queryByText('Vigente')).toBeNull()
     expect(within(sheet).getByText('COM-PRO-000001')).toHaveClass('font-mono')
     expect(within(sheet).getByText('06/10/2026')).toBeInTheDocument()
     expect(within(sheet).getByText('13/10/2026')).toBeInTheDocument()
@@ -93,6 +100,61 @@ describe('ProformaDocument', () => {
     expect(within(sheet).getByText('USD 30.00')).toBeInTheDocument()
     expect(within(sheet).getByText('USD 4.50')).toBeInTheDocument()
     expect(within(sheet).getAllByText('USD 34.50').length).toBeGreaterThan(0)
+  })
+
+  it('con logo no repite el nombre del local y lleva los datos del emisor junto al número', () => {
+    render(
+      <ProformaDocument
+        data={data({
+          issuer: {
+            ...data().issuer,
+            address: 'Av. Amazonas y Colón',
+            phone: '0991234567',
+            email: 'ventas@andinos.ec',
+          },
+        })}
+        id={7}
+      />,
+    )
+    const brand = screen.getByRole('group', { name: 'Emisor' })
+    expect(
+      within(brand).getByRole('img', { name: 'Logo de Repuestos Andinos' }),
+    ).toHaveClass('sheet-logo')
+    expect(brand).not.toHaveTextContent(/Repuestos Andinos|Comercial SA/)
+    const sheet = screen.getByRole('article', { name: 'Proforma' })
+    expect(sheet).not.toHaveTextContent(/Repuestos Andinos|Comercial SA/)
+    const contact = screen.getByRole('group', { name: 'Datos del emisor' })
+    expect(contact).toHaveTextContent('RUC: 1790000000001')
+    expect(contact).toHaveTextContent('Dirección: Av. Amazonas y Colón')
+    expect(contact).toHaveTextContent('Teléfono: 0991234567')
+    expect(contact).toHaveTextContent('Correo: ventas@andinos.ec')
+    expect(within(sheet).queryByText('Número')).toBeNull()
+    expect(within(sheet).queryByText('Emisor')).toBeNull()
+    expect(sheet.querySelector('.sheet-bar')).not.toBeNull()
+  })
+
+  it('muestra dirección, teléfono y correo vacíos cuando el emisor no los tiene', () => {
+    render(<ProformaDocument data={data()} id={7} />)
+    const contact = screen.getByRole('group', { name: 'Datos del emisor' })
+    expect(
+      within(contact)
+        .getAllByRole('term')
+        .map((term) => term.textContent),
+    ).toEqual(['RUC:', 'Dirección:', 'Teléfono:', 'Correo:'])
+    expect(
+      within(contact)
+        .getAllByRole('definition')
+        .map((value) => value.textContent),
+    ).toEqual(['1790000000001', '', '', ''])
+  })
+
+  it('agranda el logo del membrete y conserva los colores al imprimir', () => {
+    const css: string = fs.readFileSync(
+      'src/shared/ui/business/document-sheet.css',
+      'utf8',
+    )
+    expect(css).toMatch(/\.letterhead \.sheet-logo\s*{[^}]*max-height:\s*96px/)
+    expect(css).toMatch(/\.sheet-bar\s*{[^}]*print-color-adjust:\s*exact/)
   })
 
   it('muestra el código del producto, el del fabricante y la marca', () => {
@@ -216,10 +278,10 @@ describe('ProformaDocument', () => {
     ['VOIDED', 'Anulada', /Proforma anulada/],
     ['CONVERTED', 'Convertida', /Proforma convertida/],
   ] as const)(
-    'en estado %s indica el estado y conserva vigencia y valores',
+    'en estado %s lo advierte al pie y conserva vigencia y valores',
     (state, label, note) => {
       render(<ProformaDocument data={data({ state })} id={7} />)
-      expect(screen.getAllByText(label).length).toBeGreaterThan(0)
+      expect(screen.queryByText(label)).toBeNull()
       expect(screen.getByText(note)).toHaveTextContent(
         'Se conservan el número, la vigencia y los valores originales',
       )
@@ -268,6 +330,9 @@ describe('ProformaDocumentPage', () => {
     renderPage()
     fireEvent.error(screen.getByRole('img', { name: /Logo de/ }))
     expect(screen.queryByRole('img')).toBeNull()
+    expect(screen.getByRole('group', { name: 'Emisor' })).toHaveTextContent(
+      'Repuestos Andinos',
+    )
     expect(
       screen.getByRole('button', { name: 'Imprimir o guardar PDF' }),
     ).toBeEnabled()

@@ -146,7 +146,7 @@ Las specs aprobadas tenían 76 escenarios; dos ajustes pedidos por el usuario du
 
 - La oferta vencida en E2E se presenta interceptando la respuesta, porque la prueba no controla el día del servidor; la regla de fechas y sus rechazos se verifican en backend con reloj controlado.
 - La aceptación visual humana del impreso sigue pendiente; la evidencia (PDF y capturas) se guardó fuera del repositorio y no se versiona.
-- Sin la leyenda al pie, lo que distingue el impreso de una factura es el título «COTIZACIÓN».
+- Sin la leyenda al pie, lo que distingue el impreso de una factura es el título del documento. Desde el 2026-10-15, a pedido del usuario, ese título es «PROFORMA N.º» con el número, y el encabezado ya no rotula el estado vigente; la cotización tampoco es una factura.
 
 Las specs principales se sincronizaron y el cambio se archivó el 2026-10-06 a pedido del usuario.
 

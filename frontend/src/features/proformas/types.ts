@@ -23,7 +23,7 @@ export const proformaStateLabels: Record<ProformaState, string> = {
   VOIDED: 'Anulada',
 }
 
-export const QUOTE_TITLE = 'COTIZACIÓN'
+export const QUOTE_TITLE = 'PROFORMA'
 
 export interface ProformaCustomer {
   id: number
