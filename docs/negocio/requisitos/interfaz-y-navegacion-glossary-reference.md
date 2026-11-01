@@ -24,3 +24,5 @@
 | Código de servicio | `docs/negocio/producto/glosario.md` | Dato de solo lectura de UI-034 y UI-035. |
 | Retención recibida | `docs/negocio/producto/glosario.md` | Pregunta del cobro (UI-060), historial (UI-061), lista por completar (UI-064) y ajustes (UI-019). |
 | Comprobante pendiente | `docs/negocio/producto/glosario.md` | Criterio de la lista UI-064. |
+| RIDE | `docs/negocio/producto/glosario.md` | Su convivencia con el documento interno la decide el cambio 5 (sección 11). |
+| Estado de facturación | `docs/negocio/producto/glosario.md` | Dimensión propia que añade el cambio 3 (sección 9). |

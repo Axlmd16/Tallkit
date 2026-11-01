@@ -328,7 +328,7 @@ Información, advertencias y errores nunca se comunican solo con una notificaci�
 | Mantenimiento | Reabierto | Añadir intervención correctiva sin cargo, solicitar reposición y volver a finalizar. |
 | Mantenimiento | Cancelado | Consultar historial; no generar nuevos cobros. |
 
-Los secuenciales internos permanecen separados de la identidad fiscal de ensayo. Un futuro ciclo oficial se añadirá sin alterar estos estados de negocio.
+Los secuenciales internos permanecen separados de la identidad fiscal. El estado de facturación de cada operación es una dimensión propia que añade el cambio 3 sin alterar estos estados de negocio.
 
 ## 10. Comportamiento adaptable
 
@@ -363,6 +363,7 @@ Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como m
 - Cada documento debe mostrar la entidad fiscal correcta y no mezclar conceptos de la otra.
 - Debe indicar estado (`BORRADOR`, `ANULADO`, etc.) cuando corresponda.
 - Mientras no exista emisión electrónica productiva, debe aclarar que el documento interno y la preparación local no constituyen una factura electrónica autorizada.
+- Una vez habilitada la emisión, el documento interno sigue aclarando que no es la factura autorizada. La convivencia del documento interno con el RIDE la decide el cambio 5.
 
 - Las exportaciones tabulares deben incluir los filtros y fecha de generación o mantenerlos en metadatos visibles.
 - Las hojas de **etiquetas de producto** se imprimen desde el navegador en A4 vertical, a escala 100 % y sin encabezados ni pies; la vista de impresión contiene solo las hojas, sin interfaz (PPF-10).

@@ -26,3 +26,9 @@
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueo de preparación por longitudes o tarifa de la sección 11.6. |
 | Retención recibida | `docs/negocio/producto/glosario.md` | Operación trazable de §5.3, término del saldo en §10 y extensión de §11.7. |
 | Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro (§11.7). |
+| Referencia fiscal | `docs/negocio/producto/glosario.md` | Sustituye a «referencia fiscal futura» en §3, §5.3, §7 y §13. |
+| Proveedor de emisión | `docs/negocio/producto/glosario.md` | Realiza la emisión descrita en §11.8. |
+| Activación por RUC | `docs/negocio/producto/glosario.md` | Cada entidad fiscal se activa por separado (§11.8). |
+| Matriz de normas | `docs/negocio/producto/glosario.md` | Respalda las normas pendientes de §11.5. |
+| RIDE | `docs/negocio/producto/glosario.md` | Archivo que el proveedor de emisión genera (§11.8). |
+| Firma electrónica | `docs/negocio/producto/glosario.md` | La conserva el proveedor de emisión, no Tallkit (§11.8). |

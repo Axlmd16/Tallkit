@@ -40,9 +40,13 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-FIS-009 | Todo documento, pantalla de cobro y reporte económico debe identificar claramente su entidad fiscal. |
 | RN-FIS-010 | Los parámetros tributarios deben configurarse por entidad fiscal y período de vigencia; no deben quedar fijados permanentemente en el código. |
 | RN-FIS-011 | Una preparación fiscal local debe pertenecer a exactamente una operación confirmada y conservar un snapshot histórico; no cobra, mueve inventario ni equivale a emisión. |
-| RN-FIS-012 | La numeración fiscal propia solo se asigna en ambiente de pruebas y es independiente de COM-VEN y ART-SER. |
+| RN-FIS-012 | La numeración fiscal propia solo se asigna en ambiente de pruebas y es independiente de COM-VEN y ART-SER. Rige hasta habilitar la emisión real, es decir, hasta archivar los cambios 3 y 4 de `docs/cambios-pendientes.md` (`DP-034`, regla 8). |
 | RN-FIS-013 | Un XML externo debe conservarse con bytes, hash, identidad, procedencia y vínculo, sin presentarlo como verificado ante el SRI. |
-| RN-FIS-014 | La incorporación productiva debe permanecer bloqueada sin política por entidad y restauración aplicable documentadas. |
+| RN-FIS-014 | La incorporación productiva debe permanecer bloqueada sin política por entidad y restauración aplicable documentadas. La única excepción es la prueba real supervisada de `RN-FIS-018`, que no sustituye la política ni la restauración. |
+| RN-FIS-015 | V1 debe emitir facturas y notas de crédito electrónicas autorizadas por el SRI y registrar anulaciones, mediante un proveedor de emisión. Los demás comprobantes electrónicos quedan fuera. Pendiente de implementar: cambios 3 y 7 (`DP-034`, regla 1). |
+| RN-FIS-016 | Tallkit no debe firmar comprobantes ni custodiar la firma electrónica, y cambiar de proveedor de emisión no debe exigir cambios en ventas, taller, cobros ni pantallas. Pendiente de implementar: cambios 3 y 4 (`DP-034`, reglas 2 y 3). |
+| RN-FIS-017 | Cada entidad fiscal debe activarse por separado para la facturación diaria y exigir firma vigente, autorización real comprobada, numeración conciliada, política de conservación y restauración aplicable, y las condiciones que fije la matriz de normas. La comercial exige además RUC definitivo y redondeo del IVA validado. Pendiente de implementar: cambios 3 y 4 (`DP-034`, regla 4). |
+| RN-FIS-018 | Antes de la facturación diaria se permite una prueba real supervisada de pocas facturas reales, cada una de una operación real con un comprador que lo acepte; su XML se guarda en el archivo fiscal y la cantidad y los casos se fijan antes de emitir. Pendiente de implementar: cambio 4 (`DP-034`, regla 9). |
 
 ## 3. Usuarios, roles y auditoría
 
@@ -211,7 +215,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-CON-007 | Las operaciones transaccionales no deben eliminarse físicamente; se utilizarán estados y registros compensatorios. |
 | RN-CON-008 | Las fechas y horas almacenadas deben mantener un criterio uniforme definido por la arquitectura, mostrando al usuario la zona horaria del negocio. |
 | RN-CON-009 | El documento interno confirmado conserva su secuencia y no constituye una factura electrónica autorizada por el SRI. |
-| RN-CON-010 | Una futura referencia fiscal electrónica tendrá identidad y estado independientes y no controlará inventario, pagos o mantenimiento. |
+| RN-CON-010 | La referencia fiscal electrónica tiene identidad y estado independientes y no controla inventario, pagos o mantenimiento; un fallo de emisión no deshace la venta ni el cobro (`DP-034`, regla 5). |
 | RN-CON-011 | Cada entidad fiscal debe tener un cierre diario lógico separado, desglosado por EFECTIVO y TRANSFERENCIA, aunque una persona maneje físicamente ambos cobros. |
 | RN-CON-012 | Una diferencia de caja debe registrar explicación sin alterar pagos o documentos originales. |
 | RN-CON-013 | El margen bruto histórico se calcula con precio y costo históricos y no debe presentarse como ganancia neta. |
@@ -240,4 +244,5 @@ Estas condiciones nunca deben romperse:
 - Límites y conservación definitiva de fotografías.
 - Tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre RUC.
 - Tarifas, clasificaciones tributarias y reglas de redondeo aplicables.
-- Firma, transmisión, autorización, entrega y consulta oficial de comprobantes electrónicos.
+- Normas de la facturación electrónica por verificar con su texto oficial en la matriz de normas, incluidos la fecha y el plazo del comprobante que espera sin Internet y el registro del desarrollador ante el SRI.
+- Convivencia del comprobante interno con el RIDE (cambio 5) y permisos de emisión y corrección (cambios 3 y 7).

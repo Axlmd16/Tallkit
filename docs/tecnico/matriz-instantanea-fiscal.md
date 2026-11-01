@@ -203,4 +203,5 @@ derivación determinista o identidad posterior explícita. Los bloques condicion
 no pueden activarse por omisión o por valores ficticios. La incorporación de `item_code` y
 `description` en cada línea cierra la brecha encontrada al contrastar la implementación con el
 XSD: ambos son necesarios para representar `codigoPrincipal` y `descripcion` sin consultar
-maestros actuales. Firma, transmisión, consulta al SRI y autorización continúan fuera de alcance.
+maestros actuales. Firma, transmisión, consulta al SRI y autorización quedan fuera del alcance de esta
+matriz, que solo compara campos del comprobante; `DP-034` las incorpora a V1 mediante otros cambios.

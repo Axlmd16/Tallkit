@@ -30,6 +30,10 @@ La incorporación de un XML con ambiente `2` queda bloqueada hasta que la entida
 
 Una política nueva invalida la evidencia anterior cuando cambia el procedimiento o el almacenamiento. El registro es una declaración administrativa respaldada por un informe; el sistema no inspecciona el destino externo. Los XML sintéticos de ambiente de pruebas continúan disponibles para ejercicios.
 
+### Prueba real supervisada (aprobada, todavía no opera)
+
+`DP-034` (regla 9) permite, antes de la facturación diaria, una prueba real supervisada con pocas facturas reales aunque no se cumplan las condiciones anteriores (`RN-FIS-018`). Esa excepción todavía no existe en el sistema: la incorporación de un XML con ambiente `2` sigue bloqueada por `backend/src/fiscal/application/xml_archive.py:174`. El cambio 3 o el 4 debe programarla y fijar antes la cantidad y los casos de la prueba. La excepción no sustituye la política ni la restauración probada, que siguen siendo condición de la facturación diaria.
+
 ## Respaldo y restauración
 
 1. Detener o coordinar escrituras y producir un `pg_dump` consistente en formato custom.

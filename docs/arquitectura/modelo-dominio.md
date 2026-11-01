@@ -13,7 +13,7 @@ Este documento define el lenguaje y las responsabilidades del **modelo de domini
 
 No propone tablas, claves foráneas, modelos Django, migraciones, endpoints ni componentes. Tampoco crea `modelo-datos.md`. Las clasificaciones técnicas aquí usadas orientan el análisis futuro, pero no obligan a convertir cada concepto en una tabla.
 
-V1 abarca clientes, vehículos, catálogos, ingresos, una bodega, inventario y Kardex, proformas, ventas, crédito simple, pagos, devoluciones, mantenimientos, consumos internos, correcciones, documentos internos, reportes y cierres. Quedan fuera la contabilidad general, cuentas por pagar, facturación electrónica real, conciliación bancaria, planes de pago, garantías completas, kits armados con piezas sueltas y multibodega operativa.
+V1 abarca clientes, vehículos, catálogos, ingresos, una bodega, inventario y Kardex, proformas, ventas, crédito simple, pagos, devoluciones, mantenimientos, consumos internos, correcciones, documentos internos, facturación electrónica mediante un proveedor de emisión (`DP-034`), reportes y cierres. Quedan fuera la contabilidad general, cuentas por pagar, otros comprobantes electrónicos distintos de la factura y la nota de crédito, conciliación bancaria, planes de pago, garantías completas, kits armados con piezas sueltas y multibodega operativa.
 
 ## 2. Fuentes consultadas y precedencia
 
@@ -41,7 +41,7 @@ Este modelo concreta además el cambio OpenSpec `consolidar-modelo-dominio-talle
 | Comercial | Proformas, ventas de repuestos, devoluciones de cliente e importes exigibles del RUC comercial. |
 | Taller | Mantenimientos, intervenciones y servicios del RUC artesanal. |
 | Cobranza | Pagos, abonos, reembolsos y saldos, siempre dentro de una entidad fiscal. |
-| Documentos y control | Numeración interna, futura referencia SRI, auditoría, reportes y cierres diarios. |
+| Documentos y control | Numeración interna, referencia fiscal electrónica, auditoría, reportes y cierres diarios. |
 
 Los contextos colaboran mediante referencias explícitas. En particular, un mantenimiento artesanal puede referenciar ventas comerciales, pero no las contiene ni mezcla sus valores.
 
@@ -99,7 +99,7 @@ Estos objetos expresan valores del negocio; su forma futura de almacenamiento no
 - **Proforma** es un documento comercial previo sin efectos definitivos.
 - **Movimiento de Kardex** registra el efecto físico confirmado; no sustituye a la operación que lo originó.
 - **Documento interno** representa una operación confirmada y recibe numeración de su entidad fiscal y tipo.
-- **Referencia fiscal futura** representa el eventual proceso del SRI con estados propios; no gobierna inventario, pago ni mantenimiento.
+- **Referencia fiscal** representa el proceso de emisión ante el SRI con estados propios, realizado por un proveedor de emisión reemplazable (`DP-034`); no gobierna inventario, pago ni mantenimiento. Sustituye al concepto anterior «referencia fiscal futura».
 
 ## 6. Agregados y responsabilidades
 
@@ -133,7 +133,7 @@ Los límites exactos de transacción, bloqueo e idempotencia se decidirán en el
 | Mantenimiento | registrado, finalizado, reabierto, cancelado | registrado → finalizado o cancelado; finalizado → reabierto por corrección; reabierto → finalizado. |
 | Intervención | inicial, correctiva | La inicial no se reemplaza; cada reapertura atribuible añade una correctiva. |
 | Documento interno | borrador, confirmado, anulado | La confirmación asigna número; la anulación conserva original. |
-| Referencia fiscal futura | no emitida, en proceso, autorizada, rechazada, anulada | Ciclo independiente, fuera de V1. |
+| Referencia fiscal | no emitida, en proceso, autorizada, rechazada, anulada | Ciclo independiente de la operación. La lista de estados es provisional: la define el cambio 3. |
 
 Cancelar un mantenimiento se limita a duplicados, errores o casos sin trabajo cobrable. Un trabajo parcial que ya debe cobrarse se finaliza. Reabrir no es editar libremente el estado.
 
@@ -180,6 +180,7 @@ Cancelar un mantenimiento se limita a duplicados, errores o casos sin trabajo co
 - Mantenimiento registrado, finalizado, reabierto o cancelado.
 - Intervención correctiva registrada y reposición por corrección confirmada.
 - Documento interno numerado.
+- Comprobante electrónico en espera, autorizado o rechazado.
 - Cierre diario confirmado o corregido.
 
 Estos eventos son hechos conceptuales. Este documento no ordena implementar mensajería ni una arquitectura orientada a eventos.
@@ -202,7 +203,7 @@ La existencia actual puede mantenerse como saldo operativo por concurrencia y re
 
 ### 11.1 Decisiones adoptadas
 
-Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `DP-030` (que sustituye el proveedor obligatorio de `DP-011` y los importes tributarios de compra de `DP-022` a `DP-024`), `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, numeración interna con series y formato definidos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
+Se adoptaron las decisiones `DP-001` a `DP-004`, `DP-006` a `DP-021`, `DP-030` (que sustituye el proveedor obligatorio de `DP-011` y los importes tributarios de compra de `DP-022` a `DP-024`), `DP-034` (que sustituye en parte a `DP-018`), `CT-001` y la interpretación V1 de `DM-003` registradas en la fuente prioritaria. Entre ellas destacan una bodega, stock no negativo, efectivo y transferencia, ausencia de descuentos, numeración interna con series y formato definidos, reapertura controlada, presentaciones completas, kits comprados, proveedor mínimo, reserva exclusiva de mantenimiento, crédito y pagos simples, devolución con inspección, correcciones sin cargo, documentos internos y cierres separados.
 
 ### 11.2 Recomendaciones todavía no aprobadas
 
@@ -233,7 +234,7 @@ Estas recomendaciones no autorizan implementación.
 
 - Tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos contribuyentes.
 - Tarifas y clasificación tributaria reales de productos y servicios.
-- Reglas de redondeo, consumidor final y futuros requisitos de facturación electrónica en Ecuador.
+- Reglas de redondeo, consumidor final y verificación de las normas de facturación electrónica en Ecuador, que lleva la [matriz de normas](../negocio/requisitos/matriz-normas-facturacion-electronica.md).
 
 ### 11.6 Extensión fiscal local aprobada
 
@@ -250,6 +251,14 @@ La política del archivo se versiona por entidad fiscal. La evidencia de restaur
 DP-032 añade la **retención recibida** al contexto de cobranza. Se registra junto al cobro o sola, sobre una venta comercial o una operación artesanal confirmada, con estructuras separadas por RUC y reglas de cálculo compartidas. Su comprobante se completa después; solo el Administrador la anula o corrige un comprobante ya completado. Cada entidad fiscal decide si las registra y el porcentaje a partir del cual se advierte un importe inusual; el sistema no calcula porcentajes ni depende del régimen o de la tarifa de la entidad. El cliente admite una marca manual de agente de retención que solo orienta el cobro. La retención no es una forma de pago del comprobante y no exige una preparación fiscal.
 
 Estos puntos afectan obligaciones reales y deben validarse con un contador y la normativa ecuatoriana vigente; el modelo no los presenta como asesoría tributaria.
+
+### 11.8 Facturación electrónica en V1
+
+`DP-034` incluye en V1 la emisión de facturas y notas de crédito autorizadas por el SRI y el registro de anulaciones. La realiza un **proveedor de emisión**, que genera el XML, lo firma, lo envía al SRI y genera el RIDE. Tallkit reúne los datos, solicita la emisión, guarda el resultado y conserva su propia copia, sin firmar ni custodiar la firma electrónica. El proveedor es reemplazable y sus códigos no forman parte del dominio.
+
+Cada entidad fiscal se activa por separado. La **referencia fiscal** conserva identidad y estado independientes de la operación, de modo que un fallo de emisión no deshace la venta ni el cobro. Solo la emisión necesita Internet, y únicamente de salida. Hasta que se archiven los cambios 3 y 4 de `docs/cambios-pendientes.md`, el sistema sigue operando solo en pruebas.
+
+La fecha y el plazo de un comprobante que espera sin Internet no están definidos y dependen de la fila `NOR-008` de la matriz de normas. Esta sección no define estados, clases ni persistencia: eso corresponde al cambio 3.
 
 ## 12. Diagrama único de clases del dominio
 
@@ -272,7 +281,7 @@ namespace Fiscal {
   class ImpuestoAplicado { <<value object>> base tarifa impuesto total }
   class DocumentoInterno { numero estado }
   class EstadoDocumento { <<enumeration>> BORRADOR CONFIRMADO ANULADO }
-  class ReferenciaFiscalFutura { claveAcceso estadoAutorizacion }
+  class ReferenciaFiscal { claveAcceso estadoAutorizacion }
   class CierreDiario { fecha medio importeCalculado importeVerificado diferencia }
 }
 
@@ -352,7 +361,7 @@ Vehiculo "0..*" --> "1" MarcaVehiculo : pertenece
 
 EntidadFiscal "1" <-- "0..*" DocumentoInterno : numera dentro de
 DocumentoInterno --> EstadoDocumento
-DocumentoInterno "1" --> "0..1" ReferenciaFiscalFutura : podrá referenciar
+DocumentoInterno "1" --> "0..1" ReferenciaFiscal : se asocia a
 EntidadFiscal "1" <-- "0..*" CierreDiario : separa
 CierreDiario --> MedioPago
 
@@ -433,7 +442,7 @@ Producto describe qué se vende; Posición de inventario dice cuánto hay; Reser
 
 Mantenimiento agrupa la historia del trabajo mediante intervenciones. Puede enlazar varias ventas comerciales confirmadas a medida que aparecen repuestos adicionales, pero solo una venta puede quedar abierta y reservar a la vez. Una corrección atribuible reabre el mismo mantenimiento, agrega una intervención y puede justificar una salida sin cargo.
 
-Venta y Operación artesanal crean importes exigibles independientes. Los pagos reducen un solo importe y un solo RUC. El documento interno da representación y número a la operación; una futura autorización del SRI sería otra referencia con su propio ciclo.
+Venta y Operación artesanal crean importes exigibles independientes. Los pagos reducen un solo importe y un solo RUC. El documento interno da representación y número a la operación; la autorización del SRI es otra referencia, la referencia fiscal, con su propio ciclo.
 
 ## 14. Trazabilidad
 
@@ -449,5 +458,6 @@ Venta y Operación artesanal crean importes exigibles independientes. Los pagos 
 | Retenciones recibidas | DP-032 | RN-VEN-011, RN-VEN-022…025; RF-PAG-013…015; RF-CLI-014; RF-ACC-017 |
 | Mantenimiento y correcciones | DP-007, DP-015, DP-016, DP-020, DP-021 | RN-TAL-001…023; RF-TAL-001…020 |
 | Documentos, cierres y reportes | DP-018, DP-019 | RN-CON-001…012; RF-REP-001…014; RF-AUD-* |
+| Facturación electrónica | DP-018, DP-034 | RN-FIS-011…018; RN-CON-009…010; RF-FIS-001…013; RF-REP-014; RNF-DIS-009; RNF-COM-007 (los posteriores a RF-FIS-007 están pendientes de implementar) |
 
 La trazabilidad detallada entre reglas, requisitos, casos de uso e interfaz se encuentra en `../negocio/requisitos/matriz-trazabilidad.md` y la especificación de aceptación documental en `../../openspec/changes/consolidar-modelo-dominio-taller/specs/modelo-dominio-taller/spec.md`.

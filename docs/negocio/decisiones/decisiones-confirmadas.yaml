@@ -108,8 +108,11 @@ context: |
   - DP-017: los precios editados y mostrados en catálogo son valores finales para el
     cliente, con impuesto incluido cuando aplique. Cada operación confirmada conserva
     precio final, base, tarifa, impuesto y total históricos.
-  - DP-018: V1 emite documentos internos, no facturas electrónicas autorizadas por el SRI.
-    La futura referencia fiscal tendrá identidad y estado independientes de la operación.
+  - DP-018 (sustituida en parte por DP-034 en lo relativo a no emitir facturas electrónicas;
+    siguen vigentes los documentos internos, que no son facturas, y la identidad y el estado
+    independientes de la referencia fiscal): V1 emite documentos internos, no facturas
+    electrónicas autorizadas por el SRI. La futura referencia fiscal tendrá identidad y estado
+    independientes de la operación.
   - DP-019: existen cierres diarios y cajas lógicas separados por entidad fiscal, aun si
     una misma persona maneja físicamente el dinero. Se desglosan efectivo y transferencia.
   - DP-020: el precio del catálogo de servicios es referencial. El Encargado del taller
@@ -255,6 +258,36 @@ context: |
     venta en borrador, cuyos productos y cantidades pueden ajustarse sin alterar la oferta ni
     habilitar otra conversión. Se numera con la serie COM-PRO de DP-006; el borrador no consume
     número y anular no lo libera. No es una factura electrónica ni garantiza precios.
+  - DP-034 (facturación electrónica en V1, aprobada 2026-11-01 en la propuesta de
+    incorporar-facturacion-electronica-en-v1, reglas 1…9): sustituye en parte a DP-018 y
+    reemplaza el límite de V1 que excluía la facturación electrónica y la conexión con el SRI.
+    Regla 1: V1 emite facturas y notas de crédito autorizadas por el SRI y registra anulaciones;
+    guía de remisión, nota de débito, liquidación de compra y retención emitida quedan fuera.
+    Regla 2: la emisión pasa por un proveedor de emisión, que genera el XML, lo firma, lo envía
+    al SRI y genera el RIDE; Tallkit reúne los datos, solicita la emisión, guarda el resultado y
+    conserva su propia copia, y no firma ni custodia la firma electrónica. Regla 3: el proveedor
+    es reemplazable; cambiarlo significa agregar un adaptador y cambiar una configuración, sin
+    tocar ventas, taller, cobros ni pantallas. El proveedor inicial es Factuplan (elegido el
+    2026-11-01), sujeto a obtener una autorización real del SRI. Regla 4: V1 incluye los dos RUC
+    y cada uno se activa por separado para la facturación diaria; el artesanal no espera al
+    comercial, que además necesita su RUC definitivo, su firma vigente y la validación del
+    redondeo del IVA. Regla 5: la emisión no gobierna inventario, cobros ni mantenimientos, y
+    un fallo de emisión no deshace la venta ni el cobro. Regla 6: solo la emisión necesita
+    Internet, y únicamente de salida; sin conexión la operación queda registrada y el
+    comprobante espera en Tallkit; el acceso público desde Internet sigue fuera de V1. Regla 7:
+    los documentos internos siguen existiendo, no son facturas, y su numeración (DP-006) sigue
+    separada de la fiscal. Regla 8: registrar esta decisión no habilita la emisión real; hasta
+    habilitarla, el sistema opera solo en pruebas y rechaza producción. Regla 9: antes de la
+    facturación diaria se permite una prueba real supervisada, con pocas facturas reales de
+    operaciones reales cuyo comprador lo acepte, aunque falten la política de conservación y la
+    restauración probada; la facturación diaria sigue bloqueada hasta tenerlas, y la cantidad y
+    los casos se fijan antes de emitir. Choques resueltos: reemplazan DP-018 en parte, el límite
+    de V1, alcance-v1 (secciones 1, 2.2 y 6, y FUT-001), RF-REP-014 y la exclusión final de
+    requisitos; se ajustan RF-FIS-003, RN-FIS-012, RN-FIS-014, RF-FIS-006, RNF-DIS-001 y
+    ADR-0010; se mantienen DP-006 y las reglas que separan el documento interno de la factura;
+    se aplazan la convivencia del comprobante interno con el RIDE y los permisos de emisión.
+    No certifica el cumplimiento tributario ni verifica ninguna norma: eso corresponde a la
+    matriz de normas.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
@@ -292,7 +325,10 @@ context: |
     una ayuda de interfaz y nunca sustituye la validación del servidor.
 
   Límites de V1:
-  - No incluir facturación electrónica real ni conexión con el SRI.
+  - No incluir otros comprobantes electrónicos (guía de remisión, nota de débito,
+    liquidación de compra ni retención emitida). La factura, la nota de crédito y la
+    anulación, con conexión de salida al SRI mediante un proveedor de emisión, forman parte
+    de V1 por DP-034.
   - No migrar automáticamente los pocos registros de la aplicación Flutter anterior.
   - No asignar trabajos a mecánicos.
   - No incluir presupuestos ni aprobación previa del cliente para mantenimientos.
@@ -307,8 +343,10 @@ context: |
     futura requiere una nueva decisión.
   - Validación contable y tributaria de consumos internos y reposiciones sin cargo entre
     las dos entidades fiscales.
-  - Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos futuros
-    de consumidor final y facturación electrónica.
+  - Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos de
+    consumidor final.
+  - Fecha y plazo del comprobante que espera sin Internet, y si el desarrollador debe
+    registrarse como proveedor ante el SRI, hasta verificarlos en la norma oficial (DP-034).
   Cuando un cambio dependa de una decisión abierta, su proposal debe recomendar la opción
   más sencilla y segura para V1, explicar impactos y alternativas, y detenerse para obtener
   aprobación. No convertir una decisión abierta en migración, spec o código silenciosamente.

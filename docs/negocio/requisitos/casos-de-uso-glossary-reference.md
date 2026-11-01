@@ -18,3 +18,7 @@
 | Impedimento | `docs/negocio/producto/glosario.md` | Bloqueos de la preparación descritos en CU-027. |
 | Retención recibida | `docs/negocio/producto/glosario.md` | Alternativas 3b a 6b de CU-013. |
 | Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro en CU-013. |
+| Proveedor de emisión | `docs/negocio/producto/glosario.md` | Medio de emisión de CU-031. |
+| Activación por RUC | `docs/negocio/producto/glosario.md` | Precondición de CU-031. |
+| RIDE | `docs/negocio/producto/glosario.md` | Archivo que CU-031 conserva. |
+| Estado de facturación | `docs/negocio/producto/glosario.md` | Estado que muestra CU-031. |

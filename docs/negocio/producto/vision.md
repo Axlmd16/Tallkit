@@ -65,6 +65,7 @@ Desarrollar una aplicación web segura y trazable que integre la gestión de inv
 7. Proteger las operaciones críticas mediante permisos, transacciones, control de concurrencia y auditoría.
 8. Facilitar la consulta de información operativa y la generación de comprobantes internos y reportes.
 9. Permitir una instalación inicial en la red local y preparar el sistema para un despliegue futuro en Internet.
+10. Emitir facturas y notas de crédito electrónicas autorizadas por el SRI mediante un proveedor de emisión reemplazable, activando cada RUC por separado (`DP-034`).
 
 ## 7. Usuarios y partes interesadas
 
@@ -138,7 +139,7 @@ Los indicadores cuantitativos y sus valores objetivo se establecerán durante el
 - La instalación inicial operará en la red local del taller y admitirá varios usuarios concurrentes.
 - El diseño debe permitir un despliegue futuro mediante Internet, sin comprometer la seguridad de la instalación local.
 - No se migrarán los registros de la aplicación Flutter anterior.
-- La facturación electrónica se integrará en una fase posterior.
+- La facturación electrónica forma parte de V1 (`DP-034`): se emite mediante un proveedor de emisión reemplazable, cada RUC se activa por separado y solo la emisión necesita Internet, únicamente de salida. El acceso público desde Internet sigue fuera de V1.
 - El sistema no sustituye las obligaciones contables o tributarias ni decide por sí mismo qué tarifa legal aplicar; utiliza la configuración autorizada del negocio.
 - Las decisiones funcionales aprobadas tendrán prioridad sobre el comportamiento heredado del código actual.
 
@@ -150,7 +151,8 @@ Los indicadores cuantitativos y sus valores objetivo se establecerán durante el
 - Generar secuenciales duplicados, sobreasignar reservas o vender la misma disponibilidad en operaciones concurrentes.
 - Perder fotografías o datos si no se respaldan conjuntamente.
 - Confundir la corrección simple de un trabajo atribuible al taller con un módulo completo de garantías.
-- Ampliar la primera versión con facturación electrónica u otros procesos antes de estabilizar el núcleo operativo.
+- Emitir facturas reales antes de verificar las normas aplicables, comprobar una autorización real del SRI y tener conservación y restauración probadas.
+- Depender de un proveedor de emisión de forma que cambiarlo obligue a rehacer ventas, taller, cobros o pantallas.
 
 ## 14. Decisiones pendientes de validación
 
@@ -158,8 +160,8 @@ Las decisiones operativas principales ya fueron confirmadas. Permanecen pendient
 
 1. Los límites y la conservación definitiva de fotografías.
 2. El tratamiento fiscal y contable de consumos internos y reposiciones sin cargo entre los dos RUC.
-3. Las tarifas y clasificaciones tributarias reales, las reglas de redondeo y los requisitos futuros de consumidor final.
-4. El diseño de la futura facturación electrónica, que no forma parte de V1.
+3. Las tarifas y clasificaciones tributarias reales, las reglas de redondeo y los requisitos de consumidor final.
+4. La verificación de las normas de facturación electrónica en la matriz de normas, en particular la fecha y el plazo del comprobante que espera sin Internet y si el desarrollador debe registrarse como proveedor ante el SRI.
 
 ## 15. Documentos relacionados
 

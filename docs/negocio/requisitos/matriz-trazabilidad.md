@@ -18,6 +18,7 @@
 | `DP-*`, `CT-*`, `DM-*`, `DA-*` | Decisión confirmada o pendiente, según la fuente prioritaria. |
 | `RF-*` | Requisito funcional. |
 | `RNF-*` | Requisito no funcional. |
+| `NOR-*` | Fila de la [matriz de normas de la facturación electrónica](matriz-normas-facturacion-electronica.md). |
 | `CU-*` | Caso de uso. |
 | `UI-*` | Pantalla o elemento conceptual de interfaz. |
 | `CP-*` | Caso de prueba futuro. |
@@ -51,8 +52,10 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Consumo interno y repuesto aportado | DP-016 | RN-INV-021; RN-TAL-021 | RF-INV-017; RF-TAL-021 | CU-017, CU-023 | UI-048, UI-071 | ConsumoInterno; observación del mantenimiento |
 | Reposición por corrección | DP-015 | RN-INV-022; RN-TAL-017…020 | RF-INV-018; RF-TAL-016, RF-TAL-020 | CU-019, CU-024 | UI-048, UI-075, UI-078 | ReposicionCorreccion, Intervencion correctiva |
 | Devolución a proveedor | DP-011 | RN-INV-023 | RF-INV-019 | CU-025 | UI-049 | DevolucionProveedor |
-| Perfil del emisor y códigos del comprobante | DP-018, DP-029, DP-031 | RN-FIS-008, RN-FIS-010; RN-CAT-001 | RF-ACC-015…016; RF-CAT-001, RF-CAT-010…011; RF-FIS-007 | CU-003, CU-006, CU-016, CU-027 | UI-019, UI-030…035, UI-059 | EntidadFiscal, Servicio, Producto, ReferenciaFiscalFutura |
-| Documentos internos y futura referencia SRI | DP-006, DP-018 | RN-CON-001…003, RN-CON-009…010 | RF-PRO-010; RF-VEN-015; RF-REP-014 | CU-003, CU-010, CU-012, CU-017 | UI-016, UI-058, UI-077 | DocumentoInterno, ReferenciaFiscalFutura |
+| Perfil del emisor y códigos del comprobante | DP-018, DP-029, DP-031 | RN-FIS-008, RN-FIS-010; RN-CAT-001 | RF-ACC-015…016; RF-CAT-001, RF-CAT-010…011; RF-FIS-007 | CU-003, CU-006, CU-016, CU-027 | UI-019, UI-030…035, UI-059 | EntidadFiscal, Servicio, Producto, ReferenciaFiscal |
+| Documentos internos y referencia fiscal | DP-006, DP-018, DP-034 | RN-CON-001…003, RN-CON-009…010 | RF-PRO-010; RF-VEN-015; RF-REP-014 | CU-003, CU-010, CU-012, CU-017 | UI-016, UI-058, UI-077 | DocumentoInterno, ReferenciaFiscal |
+| Facturación electrónica en V1 (`DP-034`; **pendiente de implementar**, cambios 3, 4, 5 y 7) | DP-018, DP-034 | RN-FIS-015…018; RN-FIS-012 y RN-FIS-014 ajustadas | RF-FIS-008…013 (cambios 3 y 4: 008, 009, 010, 013; cambio 5: 011; cambio 7: 012); RNF-DIS-009 y RNF-COM-007 (cambio 3) | CU-031 | Sin pantalla definida: la fijan los cambios 3, 5 y 7 | ReferenciaFiscal |
+| Matriz de normas de la facturación electrónica | DP-034 | RN-FIS-015…018 | NOR-001…018 | CU-031 | Sin interfaz | Documento [matriz-normas-facturacion-electronica.md](matriz-normas-facturacion-electronica.md) |
 | Auditoría, cierres y reportes | DP-019 | RN-CON-004…008, RN-CON-011…013 | RF-REP-001…013; RF-AUD-001…006 | CU-020, CU-026 | UI-018, UI-080…084 | CierreDiario y eventos de negocio |
 
 ## 3. Requisitos no funcionales
@@ -62,9 +65,9 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | RNF-SEG-001…012 | Autenticación, permisos, archivos, configuración y despliegue | Pruebas de seguridad y autorización. |
 | RNF-INT-001…010 | Ingresos, reservas, kits, ventas, pagos, devoluciones, secuencias y correcciones | Pruebas transaccionales, de idempotencia y concurrencia. |
 | RNF-REN-001…007 | Consultas, reportes y archivos | Pruebas con datos representativos. |
-| RNF-DIS-001…008 | Servidor local, base de datos, archivos y actualizaciones | Evidencia de respaldo, restauración y recuperación. |
+| RNF-DIS-001…009 | Servidor local, base de datos, archivos, actualizaciones y comprobante en espera sin Internet (RNF-DIS-009, pendiente de implementar: cambio 3) | Evidencia de respaldo, restauración y recuperación. |
 | RNF-USA-001…012 | Pantallas y documentos internos | Validación de usabilidad y accesibilidad. |
-| RNF-COM-001…006 | Navegadores, API y configuración | Matriz de compatibilidad. |
+| RNF-COM-001…007 | Navegadores, API, configuración y emisión sin depender de un proveedor (RNF-COM-007, pendiente de implementar: cambios 3 y 4) | Matriz de compatibilidad. |
 | RNF-MAN-001…010 | Código, documentación, API, pruebas y ADR | Revisión, análisis estático y cobertura futura. |
 | RNF-AUD-001…006 | Auditoría funcional y registros técnicos | Pruebas de trazabilidad y retención. |
 | RNF-DAT-001…005 | Datos personales, exportaciones y pruebas | Revisión de minimización, permisos y anonimización. |
@@ -73,9 +76,9 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 
 | Clasificación | Elementos | Consecuencia documental |
 |---|---|---|
-| Confirmadas | DP-001…004, DP-006…021, CT-001 y DM-003 V1 | Se aplican como línea base; no deben figurar como preguntas abiertas. |
+| Confirmadas | DP-001…004, DP-006…021, DP-034 (sustituye en parte a DP-018), CT-001 y DM-003 V1 | Se aplican como línea base; no deben figurar como preguntas abiertas. |
 | Pendientes | DA-002, DA-003, DM-001 | Se conservan sin inventar una solución técnica. |
-| Validación externa | tratamiento fiscal de consumos y reposiciones; tarifas, clasificación, redondeo y facturación futura | Debe resolverlo un contador o la normativa ecuatoriana aplicable antes de especificar el comportamiento fiscal. |
+| Validación externa | tratamiento fiscal de consumos y reposiciones; tarifas, clasificación, redondeo y verificación de las normas de facturación electrónica (matriz de normas) | Debe resolverlo un contador o la normativa ecuatoriana aplicable antes de especificar el comportamiento fiscal. |
 
 ## 5. Capacidades OpenSpec
 
@@ -93,6 +96,8 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | SPEC-REPORTES | Reportes, documentos y cierres | RF-REP-001…014 |
 | SPEC-AUDITORIA | Auditoría y correcciones | RF-AUD-001…006 |
 | SPEC-FISCAL | Preparación local, identidad de ensayo, archivo XML, correcciones fiscales y readiness operativo (implementación del cambio activo `establecer-modulo-fiscal-independiente`); flujo simplificado, configuración centralizada por entidad (punto y forma de pago predeterminados, catálogos oficiales de la ficha 2.34, ambiente único de pruebas) y configuración en pestañas (`simplificar-flujo-fiscal-y-configuracion-centralizada`, UI-013, UI-019, UI-059) | DP-018/027/029; RN-CON-001/002/007/009/010; RF-AUD-001…006; RNF-INT-001/003/004/006/008/009; RNF-DIS-002…006; RNF-DAT-001…005 |
+
+El cambio `incorporar-facturacion-electronica-en-v1` (activo; solo documentación) registra `DP-034`, añade la capacidad `normativa-de-facturacion-electronica` (la matriz de normas, con filas `NOR-*`) y modifica `modelo-dominio-taller`. Traza DP-006, DP-018, DP-025, DP-031, DP-034; RN-FIS-011…018, RN-CON-003/009/010; RF-FIS-001…013, RF-REP-014, RF-VEN-009; RNF-DIS-001, 009 y RNF-COM-007; CU-003 y CU-031. No implementa nada: los requisitos posteriores a RF-FIS-007 los cubren los cambios 3 a 7 de `docs/cambios-pendientes.md`.
 
 El cambio `imprimir-etiquetas-de-productos` añade la capacidad `impresion-de-etiquetas-de-productos` (6 requisitos: contenido de la etiqueta, copias y orden, tamaño fijo A4, posición inicial, vista previa y marca, Code 128 e impresión por navegador) y modifica `catalogo-de-productos-y-categorias` (selección para imprimir y proyección completa del filtro, `GET /api/v1/products/label-data/`) y `patrones-de-pantalla-frontend` (PPF-10). Traza DP-009; CT-001; RN-CAT-001/003/011; RN-SEG-001/007; RF-CAT-001/004; CU-006 (alternativa 6a); UI-030/031; RNF-REN-005; RNF-USA-001/004/006/007/008/009/011/012 y RNF-COM-001/005. Sin modelos, migraciones, dependencias ni ADR. Evidencia requirement por requirement, con tareas y pruebas reales, en [cobertura-catalogos.md](cobertura-catalogos.md).
 

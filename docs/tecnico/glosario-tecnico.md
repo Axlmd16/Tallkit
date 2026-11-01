@@ -6,6 +6,10 @@ Este glosario complementa, sin sustituir, el glosario del negocio.
 
 Registro de una decisión arquitectónica duradera, su contexto, alternativas y consecuencias.
 
+## Adaptador de emisión
+
+Pieza de código que conecta Tallkit con un proveedor de emisión concreto y traduce sus estados y códigos a los de Tallkit. Cada proveedor tiene el suyo, aislado en su propia carpeta; cambiar de proveedor significa agregar un adaptador y cambiar una configuración. Un adaptador simulado, que no llama a nadie ni consume cupo, sirve para desarrollo y pruebas. Lo define el cambio 3 de `docs/cambios-pendientes.md`.
+
 ## Atomicidad
 
 Propiedad por la que una operación compuesta se completa totalmente o no produce ningún efecto.

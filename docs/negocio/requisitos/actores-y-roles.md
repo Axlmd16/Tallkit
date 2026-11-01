@@ -207,7 +207,7 @@ La denegación debe mostrar un mensaje comprensible sin revelar datos sensibles 
 | Decisión | Efecto sobre permisos |
 |---|---|
 | Tratamiento fiscal de reposiciones sin cargo | Puede exigir controles adicionales después de validación contable; en V1 la confirmación queda reservada al Administrador. |
-| Facturación electrónica futura | Sus autorizaciones y correcciones requerirán permisos propios en un cambio posterior. |
+| Facturación electrónica | Los permisos para emitir los fija el cambio 3 y los de corregir con notas de crédito y anulaciones, el cambio 7 (`DP-034`). Hasta entonces ningún rol tiene permiso de emisión. |
 
 ## 8. Trazabilidad principal
 

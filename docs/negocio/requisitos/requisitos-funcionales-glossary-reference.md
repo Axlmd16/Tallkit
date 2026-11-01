@@ -22,3 +22,9 @@
 | Retención recibida | `docs/negocio/producto/glosario.md` | Hecho de RF-PAG-013 a RF-PAG-015, RF-CLI-014 y RF-ACC-017. |
 | Comprobante de retención | `docs/negocio/producto/glosario.md` | Dato que se completa después del cobro (RF-PAG-014). |
 | Comprobante pendiente | `docs/negocio/producto/glosario.md` | Criterio de la lista de RF-PAG-014. |
+| Proveedor de emisión | `docs/negocio/producto/glosario.md` | Medio de emisión de RF-FIS-008 a RF-FIS-010. |
+| Activación por RUC | `docs/negocio/producto/glosario.md` | Condición de RF-FIS-008 y RF-FIS-013. |
+| RIDE | `docs/negocio/producto/glosario.md` | Archivo de RF-FIS-010 y RF-FIS-011. |
+| Referencia fiscal | `docs/negocio/producto/glosario.md` | Estado propio de RF-VEN-009 y RF-REP-014. |
+| Prueba real supervisada | `docs/negocio/producto/glosario.md` | Excepción de RF-FIS-006. |
+| Matriz de normas | `docs/negocio/producto/glosario.md` | Respaldo de RF-FIS-008 a RF-FIS-013. |

@@ -122,7 +122,7 @@
 - 5a. Una vigencia se solapa de forma ambigua: se rechaza y se muestran los períodos en conflicto.
 - 5b. Una serie o secuencial produciría duplicados: se rechaza.
 - 5c. Se edita una configuración usada históricamente: se crea una nueva vigencia en lugar de alterar documentos.
-- 5d. Se intenta habilitar una forma de pago distinta de 01 o 20, configurar producción o designar un punto de otra entidad: se rechaza sin cambios.
+- 5d. Se intenta habilitar una forma de pago distinta de 01 o 20, configurar producción o designar un punto de otra entidad: se rechaza sin cambios. Configurar producción se rechaza mientras no se habilite la emisión real, es decir, hasta archivar los cambios 3 y 4 de `docs/cambios-pendientes.md` (`DP-034`, regla 8).
 - 5e. Se cambia la configuración fiscal después de preparar datos fiscales: las preparaciones locales completadas conservan la configuración que usaron.
 - 5f. Un valor queda fuera de las opciones o su formato no es el del comprobante, o la calificación artesanal no trae vencimiento: se rechaza el campo sin guardar una revisión parcial.
 - 5g. La calificación artesanal vence en 60 días o menos: se muestra un aviso con la fecha y los días restantes; vencida, el perfil requiere revisión y no se preparan facturas de esa entidad.
@@ -641,3 +641,7 @@
 ### CU-030 — Registrar readiness del archivo
 
 **Actor:** Administrador. Registra política versionada por entidad y evidencia de restauración. El sistema vincula la evidencia a procedimiento y almacenamiento; una versión incompatible bloquea nuevas cargas productivas.
+
+### CU-031 — Emitir un comprobante electrónico (aprobado, pendiente de implementar: cambio 3)
+
+**Actores:** Administrador o Vendedor para una venta comercial; Administrador o Encargado para una operación artesanal. Los permisos definitivos los fija el cambio 3. **Precondición:** operación confirmada y vigente de una entidad fiscal activada (`DP-034`). El actor solicita la factura; el sistema arma los datos desde la preparación local, pide la emisión al proveedor configurado y muestra el estado de emisión. Mientras el proveedor procesa, no se reenvía. Si falla la emisión o no hay Internet, la venta y el cobro permanecen y el comprobante espera o muestra el error. Al autorizarse, el sistema conserva el XML y el RIDE en el archivo fiscal propio. Este caso no define la fecha ni el plazo de un comprobante en espera (`NOR-008`). Relacionado con `RF-FIS-008` a `RF-FIS-010`, `RF-FIS-013` y `RNF-DIS-009`.

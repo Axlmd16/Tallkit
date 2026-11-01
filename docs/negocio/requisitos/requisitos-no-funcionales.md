@@ -62,7 +62,7 @@ Los siguientes valores son objetivos provisionales para una instalación local d
 
 | ID | Requisito verificable | Prioridad |
 |---|---|---|
-| RNF-DIS-001 | La aplicación debe poder operar durante la jornada del taller mientras estén disponibles la computadora principal y la red local; no se exige servicio 24/7 en V1. | Debe |
+| RNF-DIS-001 | La aplicación debe poder operar durante la jornada del taller mientras estén disponibles la computadora principal y la red local; no se exige servicio 24/7 en V1. Solo la emisión de comprobantes electrónicos necesita Internet, únicamente de salida (`DP-034`). | Debe |
 | RNF-DIS-002 | Debe existir un procedimiento automatizable para respaldar la base de datos y las fotografías como un conjunto coherente. | Debe |
 | RNF-DIS-003 | Debe generarse al menos un respaldo diario y conservarse más de una copia según la política operativa aprobada. | Debe |
 | RNF-DIS-004 | El objetivo provisional de punto de recuperación (RPO) es 24 horas y el objetivo de tiempo de recuperación (RTO) es 4 horas. | Debería |
@@ -70,6 +70,7 @@ Los siguientes valores son objetivos provisionales para una instalación local d
 | RNF-DIS-006 | El resultado de cada respaldo y prueba de restauración debe registrarse con fecha, responsable y estado. | Debe |
 | RNF-DIS-007 | Una actualización debe requerir respaldo previo, validación de versión y un procedimiento documentado de reversión o recuperación. | Debe |
 | RNF-DIS-008 | El sistema debe mostrar un error controlado y no confirmar parcialmente una operación cuando la base de datos o el almacenamiento de archivos no estén disponibles. | Debe |
+| RNF-DIS-009 | Sin Internet, la venta y el cobro deben confirmarse con normalidad y el comprobante electrónico debe quedar en espera en Tallkit, sin presentarse como autorizado. La fecha y el plazo del comprobante en espera dependen de `NOR-008`. Aprobado y todavía no implementado: cambio 3. | Debe |
 
 ## 5. Usabilidad y accesibilidad
 
@@ -98,6 +99,7 @@ Los siguientes valores son objetivos provisionales para una instalación local d
 | RNF-COM-004 | La configuración específica del entorno debe mantenerse separada del código para permitir pasar de red local a Internet sin reescribir la lógica del negocio. | Debe |
 | RNF-COM-005 | Las rutas, nombres de archivos y procesos no deben depender innecesariamente de una única estación cliente. | Debería |
 | RNF-COM-006 | La API debe intercambiar texto en UTF-8 y conservar correctamente caracteres del español. | Debe |
+| RNF-COM-007 | La emisión electrónica no debe depender de un proveedor específico: cambiar de proveedor debe requerir agregar un adaptador y cambiar una configuración, sin tocar ventas, taller, cobros ni pantallas. Aprobado y todavía no implementado: cambios 3 y 4. | Debe |
 
 ## 7. Mantenibilidad, arquitectura y calidad
 

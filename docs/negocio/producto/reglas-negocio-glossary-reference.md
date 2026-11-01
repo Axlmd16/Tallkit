@@ -14,3 +14,9 @@
 | Sin costo registrado | `glosario.md` | Estado de valoración de RN-INV-006A. |
 | Retención recibida | `glosario.md` | Hecho de RN-VEN-011 y RN-VEN-022 a RN-VEN-025. |
 | Comprobante de retención | `glosario.md` | Documento que se completa después del cobro (RN-VEN-023). |
+| Proveedor de emisión | `glosario.md` | Objeto de RN-FIS-015 y RN-FIS-016. |
+| Firma electrónica | `glosario.md` | Tallkit no la custodia (RN-FIS-016). |
+| Activación por RUC | `glosario.md` | Condiciones de RN-FIS-017. |
+| Prueba real supervisada | `glosario.md` | Excepción de RN-FIS-018 y RN-FIS-014. |
+| Referencia fiscal | `glosario.md` | Identidad y estado independientes (RN-CON-010). |
+| Matriz de normas | `glosario.md` | Asuntos abiertos de la sección 12. |

@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Fecha | 2026-11-01 |
-| Cambios activos en OpenSpec | Ninguno |
+| Cambios activos en OpenSpec | `incorporar-facturacion-electronica-en-v1` (cambio 1) |
 | Cambios pendientes | 15, más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
@@ -73,12 +73,13 @@ agregar un adaptador y cambiar una configuración, sin tocar ventas, taller, cob
 
 ## Antes de empezar
 
-- [ ] Registrar en Git el archivo de `redisenar-pagina-de-inicio`, los ajustes de proformas y este plan
+- [x] Registrar en Git el archivo de `redisenar-pagina-de-inicio`, los ajustes de proformas y este plan
 - [x] Elegir el proveedor: Factuplan
 - [x] Confirmar el correo: se usará el de Factuplan por ahora
 - [ ] Confirmar las reglas de venta a consumidor final del cambio 6
 - [ ] Confirmar si el dueño usará la tablet solo dentro del taller
-- [ ] Confirmar si el desarrollador de Tallkit debe registrarse como proveedor ante el SRI
+- [ ] Confirmar si el desarrollador de Tallkit debe registrarse como proveedor ante el SRI (validación V-2 de la [matriz de normas](negocio/requisitos/matriz-normas-facturacion-electronica.md))
+- [ ] Preguntar al contador o al SRI qué se hace si no hay Internet al facturar y qué fecha lleva ese comprobante (V-1); el cambio 3 no puede diseñarse sin la respuesta
 - [ ] Volumen mensual de facturas de cada RUC
 - [ ] Último secuencial del Facturador del SRI y su establecimiento y punto de emisión
 - [ ] RUC comercial definitivo y firma electrónica vigente de ese RUC
@@ -141,20 +142,22 @@ normas con el texto oficial. No toca código.
 
 **Choques por decidir**
 
-- [ ] `DP-018`: V1 emite documentos internos, no facturas autorizadas
-- [ ] Límites de V1: sin facturación electrónica real ni conexión con el SRI
-- [ ] `alcance-v1.md`: secciones 2.2 y 6, y `FUT-001`
-- [ ] `RF-FIS-003` y `RF-REP-014`: numeración solo de pruebas y referencia fiscal futura
-- [ ] `ADR-0010`: producción reservada a una integración futura
-- [ ] `RNF-DIS-001`: la operación solo dependía de la red local; emitir necesita Internet
+- [x] `DP-018`: V1 emite documentos internos, no facturas autorizadas. Reemplaza en parte (`DP-034`)
+- [x] Límites de V1: sin facturación electrónica real ni conexión con el SRI. Reemplaza
+- [x] `alcance-v1.md`: secciones 2.2 y 6, y `FUT-001`. Reemplaza
+- [x] `RF-FIS-003` y `RF-REP-014`: numeración solo de pruebas y referencia fiscal futura. `RF-FIS-003` se ajusta; `RF-REP-014` se reemplaza
+- [x] `ADR-0010`: producción reservada a una integración futura. Se ajusta con una sección «Actualización»
+- [x] `RNF-DIS-001`: la operación solo dependía de la red local; emitir necesita Internet. Se ajusta
+- [x] `RN-FIS-012`, `RN-FIS-014`, `RF-FIS-006` y la exclusión final de requisitos (no listados al inicio). Se ajustan y se reemplaza la exclusión
+- [x] Convivencia del comprobante interno con el RIDE y permisos de emisión. Se aplazan a los cambios 5, 3 y 7
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
 
@@ -171,12 +174,14 @@ del cambio 1.
 - Plazo y unidad de tiempo para ventas a crédito.
 - Pantalla para el detalle adicional: la API lo admite, pero la preparación no lo muestra.
 - Detalle por servicio: hoy las líneas de servicio no tienen ese campo.
+- Redondeo del IVA incluido en el precio (`DP-025`, `EXT-002`, fila `NOR-018`): la ficha técnica no define redondeo y el SRI valida que los cálculos cuadren. Afecta al RUC comercial; el artesanal factura a 0 %. Un cambio archivado lo delegó a `alinear-calculo-de-iva-con-el-sri`, que nunca se creó.
 
 **Choques por decidir**
 
 - [ ] `DP-008` Cliente: correo opcional al registrar; la decisión ya preveía exigirlo al facturar
 - [ ] `DP-003`, `DP-027` y `RF-PAG-012`: crédito sin plazo frente a `plazo` y `unidadTiempo` del XML
-- [ ] `DP-031`: la leyenda de Negocio Popular estaba por confirmar
+- [ ] `DP-025`: regla de redondeo del IVA incluido frente a la validación del SRI (validación V-5)
+- [ ] `DP-031`: la leyenda de Negocio Popular estaba por confirmar; la ficha 2.34 la confirma (`NOR-002`)
 - [ ] `matriz-instantanea-fiscal.md`: campos marcados como no aplicables
 - [ ] Spec `identidad-y-numeracion-fiscal`: ambiente único de pruebas
 
@@ -202,9 +207,14 @@ Depende del cambio 2.
 - Un fallo de emisión no deshace la venta ni el cobro.
 - Botón «Facturar» en ventas y operaciones artesanales, usando el simulado.
 - Archivo automático del XML autorizado y del RIDE.
+- Antes del diseño: resolver con el titular la fecha, el plazo y la fuerza mayor del comprobante que espera sin Internet. El art. 7 de la `NAC-DGERCGC18-00000233` exige transmitir en el momento de la transacción (fila `NOR-008`, validación V-1).
+- Decidir los permisos de emisión por rol y la lista de estados de la referencia fiscal, que el modelo de dominio y la regla de independencia plantean distinta.
+- Actualizar `docs/architecture/c4-containers.md` con el adaptador y la conexión de salida.
 
 **Choques por decidir**
 
+- [ ] `NOR-007`: punto de emisión exclusivo para la modalidad electrónica, frente al Facturador del SRI
+- [ ] `NOR-008`: transmisión en el momento de la transacción frente a «el comprobante espera en Tallkit» de `DP-034`
 - [ ] `RF-FIS-002` y `RF-FIS-003`: estados locales y producción rechazada
 - [ ] `ADR-0010`: la emisión debe ocurrir fuera de las transacciones comerciales
 - [ ] `DP-006`: los números internos siguen separados de la numeración fiscal
@@ -227,8 +237,13 @@ Agrega el adaptador de Factuplan y pasa las pruebas de contrato, sin cambiar el 
 credenciales, fija la numeración del Facturador del SRI y empieza por el RUC artesanal. Depende del
 cambio 3.
 
+- Prueba real supervisada (`RN-FIS-018`): fijar antes la cantidad y los casos, usar operaciones reales con un comprador que lo acepte y programar la excepción de `xml_archive.py:174`, que hoy bloquea los XML de producción.
+- Condiciones de activación por RUC: solicitud de autorización de emisión ante el SRI (`NOR-007`), `RUC Proveedor` en cada comprobante (`NOR-004` y `NOR-005`, con plazo ya vencido), punto de emisión exclusivo y certificado vigente.
+- Registro del desarrollador ante el SRI, si corresponde (V-2).
+
 **Choques por decidir**
 
+- [ ] `RN-FIS-014` y `RF-FIS-006`: excepción de la prueba real, aprobada en `DP-034` y todavía sin programar
 - [ ] Spec `configuracion-operativa-y-fiscal`: metadatos del certificado sin custodia de la firma
 - [ ] `RNF-SEG-008`: guardar las credenciales fuera del repositorio
 - [ ] Protección de datos: el proveedor trata datos de clientes fuera del Ecuador
@@ -241,8 +256,9 @@ cambio 3.
 - [ ] Diseño aprobado
 - [ ] Tareas aprobadas
 - [ ] Aplicado
+- [ ] Cantidad y casos de la prueba real definidos
 - [ ] Pruebas con clave de pruebas, cuidando el cupo
-- [ ] Primera factura real autorizada y confirmada en el SRI
+- [ ] Primera factura real autorizada y confirmada en el SRI (prueba real supervisada)
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
 
@@ -253,7 +269,7 @@ lo envía Factuplan; la capacidad queda declarada para poder cambiar. Depende de
 
 **Choques por decidir**
 
-- [ ] `DP-018`: decidir cómo convive el comprobante interno con el RIDE
+- [ ] `DP-018`: decidir cómo convive el comprobante interno con el RIDE (aplazado a este cambio por `DP-034`)
 - [ ] Logotipo: los comprobantes internos ya llevan el de la empresa
 
 **Pasos**
@@ -300,7 +316,7 @@ Reglas propuestas:
 
 Convierte las solicitudes locales en efectos reales: nota de crédito por la interfaz neutral y registro
 de anulaciones hasta el día 7 del mes siguiente. Las facturas emitidas antes en el SRI se corrigen en el
-portal del SRI si el proveedor no las admite. Depende de los cambios 3 y 4.
+portal del SRI si el proveedor no las admite. Depende de los cambios 3 y 4. Decide los permisos para corregir por rol. Las filas `NOR-010` y `NOR-011` de la matriz de normas ya verifican el plazo del día 7 y que una factura a consumidor final no admite anulación ni nota de crédito.
 
 **Choques por decidir**
 

@@ -22,3 +22,6 @@
 | Perfil del emisor | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |
 | Código de servicio | `docs/negocio/producto/glosario.md` | Fila «Perfil del emisor y códigos del comprobante». |
 | Retención recibida | `docs/negocio/producto/glosario.md` | Fila de trazabilidad de DP-032. |
+| Matriz de normas | `docs/negocio/producto/glosario.md` | Origen del prefijo NOR-* y de la fila de la matriz de normas. |
+| Referencia fiscal | `docs/negocio/producto/glosario.md` | Modelo de las filas de facturación electrónica. |
+| Proveedor de emisión | `docs/negocio/producto/glosario.md` | Medio de emisión de DP-034. |

@@ -65,7 +65,7 @@ Salida de una presentación completa entregada para uso operativo del taller, si
 
 ### Documento interno
 
-Documento generado por el sistema para respaldar o comunicar una operación. No equivale necesariamente a una factura electrónica autorizada por el SRI.
+Documento generado por el sistema para respaldar o comunicar una operación. No es una factura electrónica autorizada por el SRI: la factura autorizada es un comprobante distinto, con numeración fiscal propia.
 
 ### Condición de venta
 
@@ -111,9 +111,9 @@ Identificación impresa que acompaña a un producto físico y muestra su código
 
 Rol responsable de clientes, vehículos, mantenimientos, servicios, fotografías, pagos artesanales y preparación de los repuestos utilizados. No confirma ni cobra la venta comercial vinculada.
 
-### Estado de facturación futura
+### Estado de facturación
 
-Situación del futuro proceso de emisión o anulación del comprobante fiscal autorizado. Está fuera de V1 y es independiente del estado de la venta, del documento interno y del pago.
+Situación del proceso de emisión o anulación del comprobante fiscal autorizado de una operación. Es independiente del estado de la venta, del documento interno y del pago. Sus valores concretos los define el cambio 3 de `docs/cambios-pendientes.md`.
 
 ### Estado de mantenimiento
 
@@ -137,11 +137,39 @@ Imagen asociada a un mantenimiento para documentar el estado del vehículo, un d
 
 ### Facturación electrónica
 
-Proceso de generación, firma, autorización y entrega de comprobantes electrónicos conforme a las disposiciones del SRI. El sistema implementa preparación local, identidad de ensayo y archivo; la firma, transmisión y autorización productiva continúan fuera de esta entrega.
+Proceso de generación, firma, autorización y entrega de comprobantes electrónicos conforme a las disposiciones del SRI. Forma parte de V1 (`DP-034`): un proveedor de emisión lo realiza y Tallkit solicita la emisión, guarda el resultado y conserva su propia copia. Hoy el sistema implementa preparación local, identidad de ensayo y archivo; la firma, transmisión y autorización productiva las incorporan los cambios 3 a 7 de `docs/cambios-pendientes.md`.
+
+### Proveedor de emisión
+
+Empresa externa que genera el XML del comprobante, lo firma, lo envía al SRI, sigue su autorización y genera el RIDE. Tallkit reúne los datos, solicita la emisión y conserva su propia copia del resultado. Es reemplazable: cambiarlo significa agregar un adaptador y cambiar una configuración. No es el proveedor que suministra mercadería.
+
+### Referencia fiscal
+
+Registro de la emisión electrónica de una operación, con identidad (número y clave de acceso) y estado propios, independiente del documento interno, del pago y del estado de la operación. No controla inventario, cobros ni mantenimiento. Sustituye en el modelo de dominio a la «referencia fiscal futura»; sus estados concretos los define el cambio 3.
+
+### Activación por RUC
+
+Habilitación separada de cada entidad fiscal para facturar en la operación diaria. Exige firma vigente, autorización real comprobada, numeración conciliada, política de conservación y restauración aplicable, y las condiciones de la matriz de normas; la entidad comercial exige además su RUC definitivo y el redondeo del IVA validado. Hasta habilitarla, el sistema rechaza producción.
+
+### Prueba real supervisada
+
+Pocas facturas reales, emitidas antes de la facturación diaria para comprobar que el SRI autoriza de verdad. Cada una corresponde a una operación real con un comprador que lo acepte, y su XML se guarda en el archivo fiscal. Puede hacerse sin política de conservación ni restauración probada; la facturación diaria no.
+
+### RIDE
+
+Representación impresa del documento electrónico: la versión legible, en PDF o impresa, del comprobante autorizado. Acompaña al XML, que es el documento oficial, y no sustituye al documento interno.
+
+### Firma electrónica
+
+Certificado que identifica legalmente al emisor y con el que se firma cada comprobante. Cada RUC tiene la suya y vence. La conserva el proveedor de emisión; Tallkit solo registra sus metadatos y no la custodia.
+
+### Matriz de normas
+
+Documento que relaciona cada norma de la facturación electrónica con su fuente oficial, lo que exige, el cambio responsable y su estado de verificación (Verificada, Pendiente o Requiere validación externa). Orienta el trabajo y no certifica el cumplimiento legal ni tributario.
 
 ### Preparación fiscal
 
-Expediente local versionado que conserva emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales históricos antes de una futura emisión. Sus estados no son estados del SRI y no alteran cobros ni operaciones comerciales.
+Expediente local versionado que conserva emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales históricos antes de la emisión. Sus estados no son estados del SRI y no alteran cobros ni operaciones comerciales.
 
 ### Borrador fiscal
 
@@ -431,7 +459,7 @@ Identificador visible, único e inmutable de un servicio del catálogo, asignado
 
 ### SRI
 
-Servicio de Rentas Internas del Ecuador. La integración electrónica con esta institución está fuera de V1.
+Servicio de Rentas Internas del Ecuador. Tallkit se conecta con esta institución mediante un proveedor de emisión (`DP-034`), solo con conexión de salida.
 
 ### Stock
 
@@ -477,9 +505,11 @@ Operación económica del RUC comercial que contiene productos vendidos. Puede s
 | Anulación / Eliminación | La anulación conserva el historial; la eliminación lo borra y no se permite en operaciones transaccionales. |
 | Existencia / Movimiento | La existencia es el resultado acumulado; el movimiento explica cada variación. |
 | Existencia / Reserva / Disponibilidad | La existencia es física; la reserva asigna temporalmente; la disponibilidad resta las reservas activas. |
-| Estado de venta / Estado de pago / Documento interno / Facturación futura | Son dimensiones independientes y no deben representarse con un único estado. |
+| Estado de venta / Estado de pago / Documento interno / Estado de facturación | Son dimensiones independientes y no deben representarse con un único estado. |
 | Precio referencial / Precio aplicado | El referencial proviene del catálogo; el aplicado queda registrado en la operación. |
-| Documento interno / Factura electrónica | El documento interno respalda la operación en V1; la factura electrónica futura requiere autorización del SRI. |
+| Documento interno / Factura electrónica | El documento interno respalda la operación y no es una factura; la factura electrónica es un comprobante distinto que requiere autorización del SRI. |
+| Proveedor / Proveedor de emisión | El proveedor suministra mercadería al RUC comercial; el proveedor de emisión genera, firma y envía los comprobantes al SRI. |
+| RIDE / Documento interno | El RIDE es la versión legible del comprobante electrónico autorizado; el documento interno es un documento propio del sistema sin valor ante el SRI. |
 | Venta / Pago | La venta crea el importe exigible; el pago registra cómo se cubre una operación confirmada. |
 | Mantenimiento / Intervención | El mantenimiento es el caso completo; cada intervención representa una atención inicial o correctiva. |
 

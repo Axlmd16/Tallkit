@@ -139,7 +139,7 @@
 | RF-VEN-006 | Al confirmar una venta, el sistema debe asignar secuencial, generar salidas de Kardex y crear el valor exigible en una sola transacción. | Debe | La operación queda completamente confirmada o sin efectos. |
 | RF-VEN-007 | El sistema debe impedir que la confirmación repetida produzca dos salidas de inventario. | Debe | Una solicitud repetida devuelve el estado existente sin duplicar movimientos. |
 | RF-VEN-008 | La confirmación concurrente debe evitar secuenciales duplicados y resultados de existencia contrarios a `DP-002`. | Debe | Las pruebas simultáneas conservan unicidad y consistencia. |
-| RF-VEN-009 | El sistema debe manejar de forma independiente el estado de venta, pago y documento interno; una futura referencia fiscal también tendrá estado propio. | Debe | Cambiar o derivar un estado no sobrescribe los demás ni presenta el documento interno como autorización del SRI. |
+| RF-VEN-009 | El sistema debe manejar de forma independiente el estado de venta, pago y documento interno; la referencia fiscal también tiene estado propio. | Debe | Cambiar o derivar un estado no sobrescribe los demás ni presenta el documento interno como autorización del SRI. |
 | RF-VEN-010 | Una venta confirmada no debe permitir edición destructiva de sus valores económicos. | Debe | La interfaz y la API exigen anulación, devolución o corrección trazable. |
 | RF-VEN-011 | El Administrador debe poder anular una venta confirmada indicando motivo y resolviendo sus pagos. | Debe | Se generan efectos compensatorios, se conserva el original y no quedan pagos huérfanos. |
 | RF-VEN-012 | El Administrador debe poder registrar una devolución total o parcial relacionada con la venta original e inspeccionar cada producto. | Debe | Solo lo declarado apto para reventa regresa a existencia; la corrección económica conserva trazabilidad. |
@@ -217,7 +217,7 @@
 | RF-REP-011 | El Administrador debe poder confirmar un cierre diario separado por entidad fiscal y medio de pago. | Debe | Efectivo esperado, efectivo contado, transferencias y diferencias no mezclan RUC. |
 | RF-REP-012 | El sistema debe registrar la explicación de una diferencia de caja sin modificar pagos originales. | Debe | La auditoría relaciona cierre, diferencia y responsable. |
 | RF-REP-013 | El sistema debe reportar consumo interno, reposiciones por corrección y margen bruto histórico. | Debe | El margen usa precios y costos históricos y no se etiqueta como ganancia neta. |
-| RF-REP-014 | V1 debe emitir documentos internos y mantener separada una futura referencia fiscal electrónica. | Debe | El documento aclara que no está autorizado por el SRI y su estado no sustituye venta o pago. |
+| RF-REP-014 | V1 debe emitir documentos internos, que no son facturas, y mantener separada la referencia fiscal electrónica de cada operación (`DP-034`). | Debe | El documento interno aclara que no es una factura autorizada por el SRI, y el estado de la referencia fiscal no sustituye venta o pago. |
 
 **Estado de implementación (cambio `openspec/changes/archive/2026-10-07-redisenar-pagina-de-inicio`).** La página de inicio resume, sin sustituir los reportes, parte de RF-REP-006 y RF-REP-008: saldo por cobrar y dinero cobrado en los últimos siete días, por entidad fiscal y sin total conjunto, con acceso a las cuentas por cobrar. No cubre RF-REP-001 (stock bajo, pendiente de RF-INV-011), RF-REP-011 (cierre diario) ni la exportación. La evidencia por escenario está en [cobertura-pagina-de-inicio.md](cobertura-pagina-de-inicio.md).
 
@@ -237,6 +237,7 @@
 | Decisión | Requisitos afectados | Regla provisional |
 |---|---|---|
 | Validación fiscal externa | RF-CAT-015, RF-INV-017, RF-INV-018, RF-REP-014 | Un contador debe confirmar tratamiento, tarifas, clasificación y redondeo antes de la operación real. |
+| Normas de la facturación electrónica | RF-FIS-008…013 | La [matriz de normas](matriz-normas-facturacion-electronica.md) indica qué está verificado. Una exigencia no verificada no se convierte en requisito, diseño o código como si estuviera confirmada (`DP-034`). |
 | Validación contable de entradas sin documento ni costo | RF-INV-001…006, RF-REP-013 | Un contador debe confirmar el efecto de dejar de registrar el IVA y el documento de las compras, y de mantener existencias sin valor, antes de operar con datos reales (DP-030). El sistema no reemplaza la contabilidad ni el crédito tributario del cliente. |
 
 ## 13. Exclusiones funcionales expresas
@@ -247,10 +248,23 @@
 |---|---|---|---|
 | RF-FIS-001 | El sistema debe preparar una factura local desde una venta comercial o una operación artesanal confirmada. | Debe | Conserva origen, emisor, receptor declarado, líneas, impuestos, pagos fiscales declarados y totales sin mutar la operación. |
 | RF-FIS-002 | El sistema debe separar estado local, cobro, evidencia externa y resultado oficial. | Debe | Preparada nunca se presenta como enviada o autorizada. |
-| RF-FIS-003 | El sistema debe permitir identidad y numeración únicamente en ambiente de pruebas. | Debe | Producción se rechaza y no consume secuencia. |
+| RF-FIS-003 | El sistema debe permitir identidad y numeración únicamente en ambiente de pruebas. Rige hasta habilitar la emisión real, es decir, hasta archivar los cambios 3 y 4 de `docs/cambios-pendientes.md` (`DP-034`, regla 8). | Debe | Producción se rechaza y no consume secuencia. |
 | RF-FIS-004 | El Administrador debe poder archivar, consultar, descargar y exportar XML externos. | Debe | Se preservan bytes y SHA-256 y se etiqueta su procedencia como no verificada. |
 | RF-FIS-005 | El Administrador debe preparar solicitudes locales de anulación y nota de crédito. | Debe | Impedimentos y remanentes se muestran sin ejecutar efecto oficial. |
-| RF-FIS-006 | El archivo productivo debe exigir política y restauración aplicables. | Debe | El cambio de procedimiento o almacenamiento vuelve a bloquearlo hasta nueva evidencia. |
+| RF-FIS-006 | El archivo productivo debe exigir política y restauración aplicables. La única excepción es la prueba real supervisada de `RN-FIS-018`. | Debe | El cambio de procedimiento o almacenamiento vuelve a bloquearlo hasta nueva evidencia. |
 | RF-FIS-007 | La preparación debe conservar el emisor estructurado y comprobar los límites de código y descripción del comprobante. | Debe | La instantánea guarda régimen, leyenda derivada, contabilidad, números de resolución y calificación solo cuando aplican; un código de más de 25 caracteres o una descripción de más de 300 bloquea con un impedimento sin recortar el valor; con calificación artesanal vigente, o en régimen RIMPE Negocio Popular, solo se preparan líneas con IVA 0 %. |
 
-No se derivarán requisitos V1 para firma, transmisión, autorización o entrega electrónica ante el SRI, migración desde Flutter, funcionamiento sin conexión, portal de clientes, asignación a mecánicos, agenda, módulo completo de garantías, presupuesto y aprobación previa del mantenimiento, contabilidad general, conciliación bancaria, cuentas por pagar, armado de kits con piezas sueltas ni múltiples sucursales avanzadas.
+### 14.1 Emisión de comprobantes electrónicos (`DP-034`)
+
+Requisitos aprobados y todavía **no implementados**. Cada uno indica el cambio de `docs/cambios-pendientes.md` que lo cubrirá.
+
+| ID | Requisito | Prioridad | Criterio verificable |
+|---|---|---|---|
+| RF-FIS-008 | El sistema debe emitir una factura electrónica autorizada por el SRI desde una venta comercial o una operación artesanal confirmada, de una entidad activada, mediante el proveedor de emisión configurado. Cambios 3 y 4. | Debe | La factura queda con número y clave de acceso propios, y la operación no cambia de estado. Una entidad no activada no emite. |
+| RF-FIS-009 | El sistema debe mostrar el estado de emisión de cada operación y reintentar sin duplicar. Cambio 3. | Debe | Un comprobante en procesamiento no se reenvía. Un fallo de emisión no deshace la venta ni el cobro. Un reintento no crea un segundo comprobante. |
+| RF-FIS-010 | El sistema debe conservar en el archivo fiscal propio el XML autorizado y el RIDE de cada comprobante emitido. Cambio 3. | Debe | Ambos archivos siguen disponibles aunque se cambie de proveedor. |
+| RF-FIS-011 | El sistema debe mostrar y permitir descargar el RIDE y mostrar el estado de entrega del comprobante al comprador. Cambio 5. | Debe | La entrega no se presenta como hecha sin confirmación. Se aplica `NOR-009`. |
+| RF-FIS-012 | El sistema debe emitir notas de crédito y registrar anulaciones de comprobantes electrónicos dentro de los plazos de la norma. Cambio 7. | Debe | Una factura a consumidor final ya emitida y transmitida no admite anulación ni nota de crédito. La anulación en línea rige hasta el día 7 del mes siguiente (`NOR-010`, `NOR-011`). |
+| RF-FIS-013 | El sistema debe permitir activar la facturación de cada entidad fiscal por separado cuando cumpla sus condiciones. Cambios 3 y 4. | Debe | Activar una entidad no activa la otra, y una entidad sin activar mantiene ventas y cobros con normalidad. |
+
+No se derivarán requisitos V1 para otros comprobantes electrónicos (guía de remisión, nota de débito, liquidación de compra y retención emitida), migración desde Flutter, funcionamiento sin conexión de la aplicación (la espera de un comprobante sin Internet no es un modo sin conexión), portal de clientes, asignación a mecánicos, agenda, módulo completo de garantías, presupuesto y aprobación previa del mantenimiento, contabilidad general, conciliación bancaria, cuentas por pagar, armado de kits con piezas sueltas ni múltiples sucursales avanzadas.

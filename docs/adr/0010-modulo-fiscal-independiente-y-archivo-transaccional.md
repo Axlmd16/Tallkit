@@ -28,6 +28,10 @@ El sistema necesita preparar información fiscal para dos contribuyentes y conse
 
 La preparación y consulta funcionan sin proveedor, los snapshots son reproducibles y el archivo se respalda con la base. A cambio, PostgreSQL crece, el proyecto mantiene XSD oficiales y debe ensayar restauraciones. La preparación no equivale a factura emitida y una evidencia externa permanece no verificada salvo una futura consulta oficial.
 
+## Actualización
+
+`DP-034` (2026-11-01) incluye la facturación electrónica en V1 mediante un proveedor de emisión reemplazable. Las decisiones de este ADR siguen vigentes: la integración se conecta fuera de las transacciones comerciales y no redefine el modelo fiscal según los códigos de un proveedor; la numeración fiscal propia sigue limitada a pruebas y producción sigue rechazada hasta archivar los cambios 3 y 4 de `docs/cambios-pendientes.md`; y la incorporación productiva sigue exigiendo política y restauración, salvo la prueba real supervisada de `RN-FIS-018`. La estructura técnica de la emisión (interfaz neutral, adaptadores, cola y estados) la decide el cambio 3 y queda en `ADR-0013`. Esta actualización complementa este ADR sin reemplazarlo.
+
 ## Referencias
 
 - [Diseño D1–D13](../../openspec/changes/establecer-modulo-fiscal-independiente/design.md).

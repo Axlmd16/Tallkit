@@ -14,7 +14,7 @@
 
 Entregar una aplicación web operativa para la red local del taller que cubra los procesos esenciales de repuestos y mantenimientos, comparta clientes, vehículos y usuarios, y mantenga una separación estricta entre las operaciones del RUC comercial y las del RUC artesanal.
 
-La versión 1 prioriza control, trazabilidad y consistencia. Incorpora preparación fiscal local y archivo de evidencia, pero no resuelve todavía firma, transmisión, autorización ni entrega electrónica ante el SRI, ni todos los procesos administrativos posibles de un taller.
+La versión 1 prioriza control, trazabilidad y consistencia. Incorpora preparación fiscal local, archivo de evidencia y la emisión de facturas electrónicas autorizadas por el SRI mediante un proveedor de emisión reemplazable, activada por separado en cada RUC (`DP-034`). No resuelve todos los procesos administrativos posibles de un taller.
 
 ## 2. Límites del producto
 
@@ -28,13 +28,14 @@ La versión 1 prioriza control, trazabilidad y consistencia. Incorpora preparaci
 - Documentos, pagos, saldos, anulaciones, secuenciales y reportes independientes por entidad fiscal.
 - Acceso concurrente desde dispositivos conectados a la red local.
 - Configuración fiscal declarada, preparación local, numeración de ensayo, archivo XML externo y solicitudes locales de corrección, independientes de un proveedor.
+- Emisión de facturas y notas de crédito electrónicas autorizadas por el SRI y registro de anulaciones, mediante un proveedor de emisión reemplazable; cada RUC se activa por separado (`DP-034`). Hasta que se archiven los cambios 3 y 4 de `docs/cambios-pendientes.md`, el sistema opera solo en pruebas y rechaza producción.
 
 ### 2.2 No incluido
 
 - Fusión de las dos actividades en una única operación fiscal.
 - Migración automática de datos desde la aplicación Flutter.
 - Sustitución de un sistema contable completo.
-- Emisión electrónica real ante el SRI en esta versión.
+- Otros comprobantes electrónicos distintos de la factura y la nota de crédito: guía de remisión, nota de débito, liquidación de compra y retención emitida.
 - Descuentos, anticipos, sobrepagos, planes de pago y saldos a favor.
 
 ## 3. Módulos incluidos
@@ -175,6 +176,16 @@ La operación multibodega queda fuera de V1, pero el modelo no debe impedir su i
 - Registro de errores y de operaciones críticas.
 - Procedimiento de actualización del sistema.
 
+### 3.12 Facturación electrónica
+
+- Emisión de facturas y notas de crédito autorizadas por el SRI y registro de anulaciones, por medio de un proveedor de emisión que genera el XML, lo firma, lo envía al SRI y genera el RIDE.
+- Tallkit reúne los datos, solicita la emisión, guarda el resultado y conserva su propia copia del XML y del RIDE; no firma ni custodia la firma electrónica.
+- Cambiar de proveedor significa agregar un adaptador y cambiar una configuración, sin tocar ventas, taller, cobros ni pantallas.
+- Activación separada por entidad fiscal. La artesanal no espera a la comercial, que además necesita su RUC definitivo, su firma vigente y la validación del redondeo del IVA.
+- Un fallo de emisión no deshace la venta ni el cobro. Sin Internet, la operación queda registrada y el comprobante espera en Tallkit.
+- Prueba real supervisada con pocas facturas reales antes de la facturación diaria, que sigue bloqueada hasta tener política de conservación y restauración probada.
+- Matriz de normas que relaciona cada obligación con su fuente oficial y su estado de verificación.
+
 ## 4. Actores previstos
 
 | Actor | Responsabilidad general en V1 |
@@ -238,7 +249,8 @@ Cada usuario tendrá al menos uno de estos tres roles y podrá reunir varios cua
 
 Las siguientes capacidades no forman parte del compromiso de la versión 1:
 
-- Facturación electrónica y conexión directa con el SRI.
+- Otros comprobantes electrónicos distintos de la factura y la nota de crédito (guía de remisión, nota de débito, liquidación de compra y retención emitida).
+- Acceso público a Tallkit desde Internet; la emisión solo usa conexión de salida.
 - Migración de registros desde la aplicación Flutter.
 - Aplicación móvil nativa o funcionamiento sin conexión.
 - Comercio electrónico, catálogo público o ventas en línea.
@@ -265,6 +277,7 @@ Estas funciones requerirán una propuesta y especificación independientes antes
 - Los archivos fotográficos deben respaldarse junto con la base de datos.
 - No se modificará el código basándose solo en este alcance; primero se completarán requisitos, arquitectura y especificaciones OpenSpec.
 - Las decisiones fiscales deberán ser confirmadas por el responsable del negocio o su asesor contable.
+- La emisión real de cada entidad depende de sus condiciones de activación y de la matriz de normas; registrar `DP-034` no la habilita ni certifica el cumplimiento tributario.
 
 ## 8. Supuestos
 
@@ -272,6 +285,7 @@ Estas funciones requerirán una propuesta y especificación independientes antes
 - Los dispositivos de los usuarios acceden mediante una red local razonablemente estable.
 - Los usuarios recibirán capacitación básica.
 - El negocio proporcionará la información oficial de ambos contribuyentes.
+- La computadora principal dispone de Internet para emitir; sin ella la operación diaria continúa y el comprobante espera en Tallkit.
 - Los impuestos, precios y formas de pago se configurarán antes de iniciar la operación real.
 - Los datos iniciales se cargarán manualmente o mediante una plantilla específica; no provendrán de una migración automática de Flutter.
 
@@ -288,6 +302,7 @@ La versión 1 podrá considerarse funcionalmente completa cuando:
 7. Los respaldos de datos y fotografías puedan restaurarse en un entorno de prueba.
 8. Los reportes distingan claramente la entidad fiscal y el período consultado.
 9. Las exclusiones permanezcan fuera de la implementación o estén aisladas como trabajos futuros.
+10. La emisión funcione para las dos entidades fiscales con el adaptador simulado y cada entidad activada obtenga una factura real autorizada por el SRI.
 
 ## 10. Decisiones pendientes de configuración o validación externa
 
@@ -295,7 +310,7 @@ La versión 1 podrá considerarse funcionalmente completa cuando:
 |---|---|---|
 | EXT-001 | Validar tratamiento fiscal y contable de consumos internos y reposiciones sin cargo. | Contabilidad y obligaciones de ambos RUC. |
 | EXT-002 | Confirmar tarifas, clasificaciones tributarias y redondeo aplicables. | Configuración de impuestos y documentos. |
-| FUT-001 | Especificar facturación electrónica y reglas de consumidor final. | Integración futura con el SRI, fuera de V1. |
+| FUT-001 | Especificar las reglas de consumidor final. La facturación electrónica se incorporó a V1 por `DP-034`. | Cambio 6 de `docs/cambios-pendientes.md`. |
 
 ## 11. Control de cambios de alcance
 
@@ -308,4 +323,4 @@ Toda adición o exclusión posterior debe:
 5. Ser aprobada antes de modificar el código de producción.
 # Extensión fiscal local aprobada
 
-El alcance incorpora configuración tributaria declarada, preparación local de facturas, numeración exclusiva de ensayo, archivo de XML externos y solicitudes administrativas de corrección. No incorpora firma electrónica, transmisión, autorización, entrega de comprobantes ni integración con un proveedor; esos resultados futuros permanecen separados de ventas, servicios y cobros.
+El alcance incorpora configuración tributaria declarada, preparación local de facturas, numeración exclusiva de ensayo, archivo de XML externos y solicitudes administrativas de corrección. Todavía no incorpora firma electrónica, transmisión, autorización, entrega de comprobantes ni integración con un proveedor: `DP-034` los incluye en V1 y los incorporarán los cambios 3 a 7 de `docs/cambios-pendientes.md`. Esos resultados permanecen separados de ventas, servicios y cobros.
