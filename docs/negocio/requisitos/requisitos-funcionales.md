@@ -219,7 +219,7 @@
 | RF-REP-013 | El sistema debe reportar consumo interno, reposiciones por corrección y margen bruto histórico. | Debe | El margen usa precios y costos históricos y no se etiqueta como ganancia neta. |
 | RF-REP-014 | V1 debe emitir documentos internos y mantener separada una futura referencia fiscal electrónica. | Debe | El documento aclara que no está autorizado por el SRI y su estado no sustituye venta o pago. |
 
-**Estado de implementación (cambio `openspec/changes/redisenar-pagina-de-inicio`).** La página de inicio resume, sin sustituir los reportes, parte de RF-REP-006 y RF-REP-008: saldo por cobrar y dinero cobrado en los últimos siete días, por entidad fiscal y sin total conjunto, con acceso a las cuentas por cobrar. No cubre RF-REP-001 (stock bajo, pendiente de RF-INV-011), RF-REP-011 (cierre diario) ni la exportación. La evidencia por escenario está en [cobertura-pagina-de-inicio.md](cobertura-pagina-de-inicio.md).
+**Estado de implementación (cambio `openspec/changes/archive/2026-10-07-redisenar-pagina-de-inicio`).** La página de inicio resume, sin sustituir los reportes, parte de RF-REP-006 y RF-REP-008: saldo por cobrar y dinero cobrado en los últimos siete días, por entidad fiscal y sin total conjunto, con acceso a las cuentas por cobrar. No cubre RF-REP-001 (stock bajo, pendiente de RF-INV-011), RF-REP-011 (cierre diario) ni la exportación. La evidencia por escenario está en [cobertura-pagina-de-inicio.md](cobertura-pagina-de-inicio.md).
 
 ## 11. Auditoría y correcciones
 

@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `openspec/changes/redisenar-pagina-de-inicio`; specs `pagina-de-inicio` (nueva) y `sistema-visual-frontend` (delta) |
-| Estado | Aplicado; pendiente de verificación con `/opsx:verify` y de archivado |
+| Cambio OpenSpec | `openspec/changes/archive/2026-10-07-redisenar-pagina-de-inicio`; specs `pagina-de-inicio` (nueva) y `sistema-visual-frontend` (delta) |
+| Estado | Cambio verificado, sincronizado con las specs principales (`openspec/specs/pagina-de-inicio` y `openspec/specs/sistema-visual-frontend`) y archivado; la aceptación visual final corresponde al usuario |
 | Fecha | 2026-10-06 |
 | Alcance | Resumen de trabajo del inicio: acciones rápidas, pendientes, saldos por cobrar separados por **entidad fiscal** y cobros de los últimos siete días, limitado por **permisos efectivos**. Excluye stock bajo, estado del respaldo, cierre de caja, márgenes y reportes |
 
