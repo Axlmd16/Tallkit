@@ -120,12 +120,14 @@ TAX_REGIME = "tax_regime"
 ACCOUNTING_OBLIGATION = "accounting_obligation"
 WITHHOLDING_AGENT = "withholding_agent"
 SPECIAL_TAXPAYER = "special_taxpayer"
+LARGE_TAXPAYER = "large_taxpayer"
 ARTISAN_QUALIFICATION = "artisan_qualification"
 CONDITION_KEYS = (
     TAX_REGIME,
     ACCOUNTING_OBLIGATION,
     WITHHOLDING_AGENT,
     SPECIAL_TAXPAYER,
+    LARGE_TAXPAYER,
     ARTISAN_QUALIFICATION,
 )
 # Siempre tienen un valor: «no aplica» no es una respuesta posible.
@@ -139,14 +141,23 @@ REGIME_LABELS = {
     REGIME_RIMPE_EMPRENDEDOR: "RIMPE Emprendedor",
     REGIME_RIMPE_NEGOCIO_POPULAR: "RIMPE Negocio Popular",
 }
-# Elemento `contribuyenteRimpe` del XSD de factura 2.1.0: su único valor admitido.
+# Leyendas de `contribuyenteRimpe` según el Anexo 22 de la ficha técnica 2.34. El XSD 2.1.0
+# solo admite la primera; la contradicción consta en `NOR-020` (DP-035, regla 4).
 RIMPE_LEGEND = "CONTRIBUYENTE RÉGIMEN RIMPE"
+POPULAR_BUSINESS_LEGEND = "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
+REGIME_LEGENDS = {
+    REGIME_RIMPE_EMPRENDEDOR: RIMPE_LEGEND,
+    REGIME_RIMPE_NEGOCIO_POPULAR: POPULAR_BUSINESS_LEGEND,
+}
 ACCOUNTING_VALUES = ("SI", "NO")
 ACCOUNTING_LABELS = {"SI": "Sí", "NO": "No"}
 
-# `agenteRetencion`: hasta 8 dígitos; `contribuyenteEspecial`: alfanumérico de hasta 13.
-_WITHHOLDING_RE = re.compile(r"[0-9]{1,8}")
-_SPECIAL_TAXPAYER_RE = re.compile(r"[A-Za-z0-9]{1,13}")
+# `agenteRetencion`: hasta 8 dígitos y sin ceros a la izquierda (Anexo 21 de la ficha 2.34);
+# `contribuyenteEspecial`: alfanumérico de 3 a 13 (XSD 2.1.0).
+_WITHHOLDING_RE = re.compile(r"[1-9][0-9]{0,7}")
+_SPECIAL_TAXPAYER_RE = re.compile(r"[A-Za-z0-9]{3,13}")
+# Número de resolución de gran contribuyente: va en un campo adicional de hasta 300 caracteres.
+LARGE_TAXPAYER_MAX = 300
 QUALIFICATION_NUMBER_MAX = 50
 ISSUING_BODY_MAX = 200
 
@@ -158,7 +169,7 @@ _FORMAT2_FIELDS = frozenset({"status", "value", "source", "starts_on", "ends_on"
 
 def regime_legend(regime: str | None) -> str | None:
     """Leyenda oficial derivada del régimen; nunca se escribe ni se declara aparte."""
-    return RIMPE_LEGEND if regime == REGIME_RIMPE_EMPRENDEDOR else None
+    return REGIME_LEGENDS.get(regime) if regime is not None else None
 
 
 def closed_options() -> dict[str, list[dict[str, str]]]:
@@ -185,6 +196,7 @@ def build_tax_profile(conditions: Mapping[str, DeclaredCondition]) -> dict[str, 
     for key, field in (
         (WITHHOLDING_AGENT, "withholding_agent_resolution"),
         (SPECIAL_TAXPAYER, "special_taxpayer_resolution"),
+        (LARGE_TAXPAYER, "large_taxpayer_resolution"),
     ):
         condition = conditions.get(key)
         if condition is not None and condition.status == "APPLICABLE" and condition.value:
@@ -233,12 +245,17 @@ def _closed_value(key: str, raw: Any) -> str:
         return str(raw)
     if key == WITHHOLDING_AGENT:
         if not isinstance(raw, str) or _WITHHOLDING_RE.fullmatch(raw) is None:
-            _reject("value", "El número de resolución admite de 1 a 8 dígitos.")
+            _reject(
+                "value",
+                "El número de resolución admite de 1 a 8 dígitos, sin ceros a la izquierda.",
+            )
         return raw
     if key == SPECIAL_TAXPAYER:
         if not isinstance(raw, str) or _SPECIAL_TAXPAYER_RE.fullmatch(raw) is None:
-            _reject("value", "El número de resolución admite de 1 a 13 letras o dígitos.")
+            _reject("value", "El número de resolución admite de 3 a 13 letras o dígitos.")
         return raw
+    if key == LARGE_TAXPAYER:
+        return _bounded_text({"value": raw}, "value", LARGE_TAXPAYER_MAX, "El número")
     return _bounded_text({"value": raw}, "value", QUALIFICATION_NUMBER_MAX, "El número")
 
 
@@ -302,6 +319,33 @@ def parse_profile_conditions(payload: Any) -> dict[str, DeclaredCondition]:
     if errors:
         raise ConfigurationValidationError("Hay condiciones tributarias inválidas.", errors=errors)
     return parsed
+
+
+@dataclass(frozen=True)
+class StoredConditions:
+    """Lectura de una revisión ya guardada: condiciones utilizables y claves que no cumplen."""
+
+    conditions: dict[str, DeclaredCondition]
+    invalid: tuple[str, ...]
+
+
+def read_stored_conditions(payload: Any) -> StoredConditions:
+    """Lee un perfil guardado sin lanzar excepciones (diseño 2 de DP-035).
+
+    Guardar sigue siendo estricto (``parse_profile_conditions``). Al leer, un valor que ya no
+    cumple su formato no rompe la consulta: se trata como no declarado y se informa su clave
+    para que el estado pida declararlo de nuevo. El valor guardado nunca se modifica.
+    """
+    source = payload if isinstance(payload, dict) else {}
+    conditions: dict[str, DeclaredCondition] = {}
+    invalid: list[str] = []
+    for key in CONDITION_KEYS:
+        try:
+            conditions[key] = parse_closed_condition(key, source.get(key, {"status": "UNKNOWN"}))
+        except ConfigurationValidationError:
+            conditions[key] = DeclaredCondition("UNKNOWN")
+            invalid.append(key)
+    return StoredConditions(conditions, tuple(invalid))
 
 
 def condition_payload(condition: DeclaredCondition) -> dict[str, str]:

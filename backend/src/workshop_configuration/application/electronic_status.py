@@ -29,8 +29,8 @@ from workshop_configuration.domain.electronic_profile import (
     DeclaredCertificate,
     DeclaredCondition,
     parse_certificate_metadata,
-    parse_profile_conditions,
     qualification_days_left,
+    read_stored_conditions,
 )
 from workshop_configuration.models import (
     ElectronicProfileRevision,
@@ -55,6 +55,7 @@ CONDITION_LABELS = {
     "accounting_obligation": "Obligación de llevar contabilidad",
     "special_taxpayer": "Contribuyente especial",
     "withholding_agent": "Agente de retención",
+    "large_taxpayer": "Gran contribuyente",
     "artisan_qualification": "Calificación artesanal",
 }
 
@@ -78,6 +79,15 @@ class ElectronicStatus:
     certificate: DeclaredCertificate | None
     defaults: EffectiveDefaults
     tax_mapping_ids: tuple[int, ...]
+
+
+def _invalid_format_cause(key: str) -> StatusCause:
+    label = CONDITION_LABELS.get(key, key)
+    return StatusCause(
+        f"conditions.{key}.invalid_format",
+        MISSING,
+        f"{label}: el valor guardado ya no cumple el formato vigente; declárelo de nuevo.",
+    )
 
 
 def _condition_causes(key: str, condition: DeclaredCondition, on: date) -> list[StatusCause]:
@@ -279,10 +289,13 @@ def evaluate_electronic_status(*, entity_id: int, on: date) -> ElectronicStatus:
                 )
             )
         else:
-            parsed = parse_profile_conditions(profile.conditions)
-            conditions = tuple((key, parsed[key]) for key in sorted(CONDITION_KEYS))
+            stored = read_stored_conditions(profile.conditions)
+            conditions = tuple((key, stored.conditions[key]) for key in sorted(CONDITION_KEYS))
             for key, condition in conditions:
-                causes.extend(_condition_causes(key, condition, on))
+                if key in stored.invalid:
+                    causes.append(_invalid_format_cause(key))
+                else:
+                    causes.extend(_condition_causes(key, condition, on))
         if profile.certificate is not None:
             certificate = parse_certificate_metadata(profile.certificate)
     causes.extend(_point_causes(entity, defaults))

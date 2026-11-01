@@ -32,12 +32,13 @@ def qualification(
 
 
 def profile_conditions(**overrides: dict[str, str]) -> dict[str, Any]:
-    """Régimen General, contabilidad NO y ninguna otra condición aplicable."""
+    """Régimen General, contabilidad NO y ninguna otra condición aplicable (DP-035, regla 5)."""
     conditions: dict[str, Any] = {
         "tax_regime": applicable("GENERAL"),
         "accounting_obligation": applicable("NO"),
         "withholding_agent": not_applicable(),
         "special_taxpayer": not_applicable(),
+        "large_taxpayer": not_applicable(),
         "artisan_qualification": not_applicable(),
     }
     conditions.update(overrides)

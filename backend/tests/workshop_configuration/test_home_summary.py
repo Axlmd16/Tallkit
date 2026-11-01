@@ -97,3 +97,24 @@ def test_registers_withholdings_follows_the_entity_setting(
         registration_enabled=False,
     )
     assert home_summary.registers_withholdings("ARTESANAL") is False
+
+
+def test_notice_survives_a_stored_value_that_no_longer_meets_its_format(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    from tests.workshop_configuration.profile_helpers import applicable
+
+    from workshop_configuration.models import ElectronicProfileRevision
+
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=2,
+        conditions=profile_conditions(
+            special_taxpayer=applicable("A1"), artisan_qualification=qualification("2026-10-20")
+        ),
+        created_by=role_admin,
+    )
+    notice = home_summary.artisan_qualification_notice(role_admin, on=TODAY)
+    assert notice is not None
+    assert notice.days_left == 24

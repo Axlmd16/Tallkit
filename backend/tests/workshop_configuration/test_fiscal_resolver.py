@@ -229,7 +229,7 @@ def _save(entity: FiscalEntity, role_admin: User, **overrides: dict[str, str]) -
     )
 
 
-def test_popular_business_regime_prepares_without_a_regime_legend_yet(
+def test_popular_business_regime_prepares_with_its_derived_regime_legend(
     entity: FiscalEntity, role_admin: User
 ) -> None:
     _prepare_location(entity, role_admin)
@@ -239,8 +239,8 @@ def test_popular_business_regime_prepares_without_a_regime_legend_yet(
     )
     assert result.ready_for_preparation
     assert result.tax_profile["regime"] == "RIMPE_NEGOCIO_POPULAR"
-    # La leyenda de Negocio Popular está por confirmar con la ficha técnica del SRI.
-    assert "regime_legend" not in result.tax_profile
+    # Anexo 22 de la ficha 2.34 (NOR-002): la leyenda se deriva del régimen.
+    assert result.tax_profile["regime_legend"] == "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
 
 
 def test_legacy_format_profile_is_a_preparation_issue(

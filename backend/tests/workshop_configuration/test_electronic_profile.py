@@ -143,6 +143,7 @@ def workshop_profile(**override: dict[str, str]) -> dict[str, dict[str, str]]:
         "accounting_obligation": declared("NO"),
         "withholding_agent": NOT_APPLICABLE,
         "special_taxpayer": NOT_APPLICABLE,
+        "large_taxpayer": NOT_APPLICABLE,
         "artisan_qualification": QUALIFICATION,
         **override,
     }
@@ -161,6 +162,7 @@ def test_real_workshop_profile_is_accepted() -> None:
         "accounting_obligation",
         "withholding_agent",
         "special_taxpayer",
+        "large_taxpayer",
         "artisan_qualification",
     }
     assert parsed["tax_regime"].value == "GENERAL"
@@ -175,7 +177,7 @@ def test_real_workshop_profile_is_accepted() -> None:
 def test_missing_conditions_default_to_unknown() -> None:
     parsed = profile_api().parse_profile_conditions({})
     assert {condition.status for condition in parsed.values()} == {"UNKNOWN"}
-    assert len(parsed) == 5
+    assert len(parsed) == 6
 
 
 @pytest.mark.parametrize("regime", ["GENERAL", "RIMPE_EMPRENDEDOR", "RIMPE_NEGOCIO_POPULAR"])
@@ -210,7 +212,7 @@ def test_accounting_rejects_free_text(value: str) -> None:
     assert "accounting_obligation.value" in errors
 
 
-@pytest.mark.parametrize("resolution", ["1", "12345678", "00000001"])
+@pytest.mark.parametrize("resolution", ["1", "12345678", "10000001"])
 def test_withholding_agent_accepts_one_to_eight_digits(resolution: str) -> None:
     parsed = profile_api().parse_profile_conditions(
         workshop_profile(withholding_agent=declared(resolution))
@@ -218,7 +220,9 @@ def test_withholding_agent_accepts_one_to_eight_digits(resolution: str) -> None:
     assert parsed["withholding_agent"].value == resolution
 
 
-@pytest.mark.parametrize("resolution", ["NAC-0012", "123456789", "12 34", "١٢٣", "12.5", ""])
+@pytest.mark.parametrize(
+    "resolution", ["NAC-0012", "123456789", "12 34", "١٢٣", "12.5", "", "00012", "0", "00000001"]
+)
 def test_withholding_agent_rejects_non_ascii_digit_formats(resolution: str) -> None:
     errors = rejected_fields(workshop_profile(withholding_agent=declared(resolution)))
     assert "withholding_agent.value" in errors
@@ -229,15 +233,17 @@ def test_withholding_agent_applicable_requires_the_resolution_number() -> None:
     assert "withholding_agent.value" in errors
 
 
-@pytest.mark.parametrize("resolution", ["A", "ABC123", "1234567890123", "abc12"])
-def test_special_taxpayer_accepts_alphanumeric_up_to_thirteen(resolution: str) -> None:
+@pytest.mark.parametrize("resolution", ["ABC", "ABC123", "1234567890123", "abc12", "123"])
+def test_special_taxpayer_accepts_alphanumeric_from_three_to_thirteen(resolution: str) -> None:
     parsed = profile_api().parse_profile_conditions(
         workshop_profile(special_taxpayer=declared(resolution))
     )
     assert parsed["special_taxpayer"].value == resolution
 
 
-@pytest.mark.parametrize("resolution", ["12345678901234", "AB-12", "ÁBC1", "12 3", ""])
+@pytest.mark.parametrize(
+    "resolution", ["12345678901234", "AB-12", "ÁBC1", "12 3", "", "A", "A1", "12"]
+)
 def test_special_taxpayer_rejects_other_formats(resolution: str) -> None:
     errors = rejected_fields(workshop_profile(special_taxpayer=declared(resolution)))
     assert "special_taxpayer.value" in errors
@@ -330,7 +336,9 @@ def test_regime_legend_is_derived_from_the_closed_value() -> None:
     api = profile_api()
     assert api.regime_legend("RIMPE_EMPRENDEDOR") == "CONTRIBUYENTE RÉGIMEN RIMPE"
     assert api.regime_legend("GENERAL") is None
-    assert api.regime_legend("RIMPE_NEGOCIO_POPULAR") is None
+    assert api.regime_legend("RIMPE_NEGOCIO_POPULAR") == (
+        "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
+    )
     assert api.regime_legend(None) is None
 
 
@@ -428,3 +436,100 @@ def test_tax_profile_keeps_the_designation_numbers_only_when_they_apply() -> Non
 def test_tax_profile_leaves_out_undeclared_conditions() -> None:
     api = profile_api()
     assert api.build_tax_profile(api.parse_profile_conditions({})) == {}
+
+
+# --- Gran contribuyente (DP-035, regla 5) ----------------------------------------------------
+
+
+def test_large_taxpayer_applicable_keeps_its_resolution_number() -> None:
+    parsed = profile_api().parse_profile_conditions(
+        workshop_profile(large_taxpayer=declared("NAC-GCFOIOC21-00000868-E"))
+    )
+    assert parsed["large_taxpayer"].status == "APPLICABLE"
+    assert parsed["large_taxpayer"].value == "NAC-GCFOIOC21-00000868-E"
+
+
+def test_large_taxpayer_applicable_requires_the_resolution_number() -> None:
+    errors = rejected_fields(workshop_profile(large_taxpayer=declared()))
+    assert "large_taxpayer.value" in errors
+
+
+@pytest.mark.parametrize("resolution", ["x" * 301, "NAC-1\nNAC-2", "NAC-1\rNAC-2", "   "])
+def test_large_taxpayer_rejects_empty_multiline_or_too_long_numbers(resolution: str) -> None:
+    errors = rejected_fields(workshop_profile(large_taxpayer=declared(resolution)))
+    assert "large_taxpayer.value" in errors
+
+
+def test_large_taxpayer_accepts_the_longest_allowed_number() -> None:
+    parsed = profile_api().parse_profile_conditions(
+        workshop_profile(large_taxpayer=declared("N" * 300))
+    )
+    assert parsed["large_taxpayer"].value == "N" * 300
+
+
+def test_large_taxpayer_not_applicable_does_not_admit_a_value() -> None:
+    errors = rejected_fields(workshop_profile(large_taxpayer={**NOT_APPLICABLE, "value": "NAC-1"}))
+    assert "large_taxpayer.value" in errors
+
+
+def test_tax_profile_keeps_the_large_taxpayer_number_only_when_it_applies() -> None:
+    api = profile_api()
+    applies = api.parse_profile_conditions(
+        workshop_profile(large_taxpayer=declared("NAC-GCFOIOC21-00000868-E"))
+    )
+    absent = api.parse_profile_conditions(workshop_profile())
+    assert api.build_tax_profile(applies)["large_taxpayer_resolution"] == (
+        "NAC-GCFOIOC21-00000868-E"
+    )
+    assert "large_taxpayer_resolution" not in api.build_tax_profile(absent)
+
+
+def test_tax_profile_derives_the_popular_business_legend() -> None:
+    api = profile_api()
+    parsed = api.parse_profile_conditions(
+        workshop_profile(tax_regime=declared("RIMPE_NEGOCIO_POPULAR"))
+    )
+    assert api.build_tax_profile(parsed)["regime_legend"] == (
+        "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
+    )
+    general = api.parse_profile_conditions(workshop_profile())
+    assert "regime_legend" not in api.build_tax_profile(general)
+
+
+# --- Lectura tolerante de lo ya guardado (diseño 2) -------------------------------------------
+
+
+def test_read_stored_conditions_reports_invalid_values_instead_of_raising() -> None:
+    api = profile_api()
+    stored = api.read_stored_conditions(
+        workshop_profile(
+            special_taxpayer=declared("A1"),
+            withholding_agent=declared("00012"),
+            large_taxpayer=declared("NAC-1"),
+        )
+    )
+    assert stored.invalid == ("withholding_agent", "special_taxpayer")
+    assert stored.conditions["special_taxpayer"].status == "UNKNOWN"
+    assert stored.conditions["withholding_agent"].status == "UNKNOWN"
+    assert stored.conditions["tax_regime"].value == "GENERAL"
+    assert stored.conditions["large_taxpayer"].value == "NAC-1"
+    assert set(stored.conditions) == set(api.CONDITION_KEYS)
+
+
+def test_read_stored_conditions_treats_missing_keys_as_not_declared() -> None:
+    stored = profile_api().read_stored_conditions({"tax_regime": declared("GENERAL")})
+    assert stored.invalid == ()
+    assert stored.conditions["large_taxpayer"].status == "UNKNOWN"
+    assert stored.conditions["tax_regime"].value == "GENERAL"
+
+
+def test_read_stored_conditions_ignores_keys_it_does_not_know() -> None:
+    stored = profile_api().read_stored_conditions({**workshop_profile(), "rimpe": declared("X")})
+    assert stored.invalid == ()
+    assert "rimpe" not in stored.conditions
+
+
+def test_read_stored_conditions_tolerates_a_payload_that_is_not_an_object() -> None:
+    stored = profile_api().read_stored_conditions(["tax_regime"])
+    assert stored.invalid == ()
+    assert {c.status for c in stored.conditions.values()} == {"UNKNOWN"}

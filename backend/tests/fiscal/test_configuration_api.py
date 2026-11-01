@@ -453,3 +453,81 @@ def test_withholding_settings_default_change_and_validation(
     denied = _write(seller, "put", path, {"expected_version": 1, "registration_enabled": True})
     assert denied.status_code == 403
     assert client.get(path).json()["registration_enabled"] is False
+
+
+# --- Gran contribuyente y leyenda de Negocio Popular (DP-035, reglas 4 y 5) ---------------------
+
+
+def test_administrator_declares_and_reads_the_large_taxpayer_resolution(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    client = _client(role_admin)
+    saved = _put_profile(client, entity, 0, large_taxpayer=applicable("NAC-GCFOIOC21-00000868-E"))
+    assert saved.status_code == 200
+    assert saved.json()["conditions"]["large_taxpayer"]["value"] == "NAC-GCFOIOC21-00000868-E"
+    read = client.get(PROFILE % entity.pk).json()
+    assert read["conditions"]["large_taxpayer"]["status"] == "APPLICABLE"
+
+
+def test_large_taxpayer_that_applies_needs_its_resolution_number(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    response = _put_profile(
+        _client(role_admin), entity, 0, large_taxpayer={**applicable("x"), "value": None}
+    )
+    assert response.status_code == 400
+    assert ElectronicProfileRevision.objects.count() == 0
+
+
+def test_special_taxpayer_with_two_characters_is_rejected_by_the_api(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    response = _put_profile(_client(role_admin), entity, 0, special_taxpayer=applicable("A1"))
+    assert response.status_code == 400
+    assert "special_taxpayer.value" in str(response.json())
+
+
+def test_popular_business_legend_is_derived_and_exposed(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    client = _client(role_admin)
+    saved = _put_profile(client, entity, 0, tax_regime=applicable("RIMPE_NEGOCIO_POPULAR"))
+    assert saved.json()["regime_legend"] == "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
+    assert client.get(PROFILE % entity.pk).json()["regime_legend"] == (
+        "CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE"
+    )
+
+
+def test_status_reports_the_stored_value_that_no_longer_meets_its_format(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=2,
+        conditions=profile_conditions(special_taxpayer=applicable("A1")),
+        created_by=role_admin,
+    )
+    response = _client(role_admin).get(f"{BASE}/entities/{entity.pk}/electronic-status/")
+    assert response.status_code == 200
+    codes = {cause["code"] for cause in response.json()["causes"]}
+    assert "conditions.special_taxpayer.invalid_format" in codes
+    assert _client(role_admin).get(PROFILE % entity.pk).status_code == 200
+
+
+@pytest.mark.parametrize("role", ["role_seller", "role_manager"])
+def test_operational_roles_cannot_read_or_write_the_large_taxpayer_number(
+    entity: FiscalEntity, role_admin: User, request: pytest.FixtureRequest, role: str
+) -> None:
+    secret = "NAC-GCFOIOC21-00000868-E"
+    assert (
+        _put_profile(_client(role_admin), entity, 0, large_taxpayer=applicable(secret)).status_code
+        == 200
+    )
+    operational = _client(request.getfixturevalue(role))
+    read = operational.get(PROFILE % entity.pk)
+    write = _put_profile(operational, entity, 1, large_taxpayer=applicable("NAC-OTRA-1"))
+    assert read.status_code == 403
+    assert write.status_code == 403
+    assert secret not in read.content.decode() + write.content.decode()
+    assert ElectronicProfileRevision.objects.count() == 1

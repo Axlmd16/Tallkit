@@ -7,6 +7,8 @@ Administrador. Ningún mensaje ofrece al usuario operativo corregir datos técni
 
 from typing import Any
 
+from workshop_configuration.application.electronic_status import CONDITION_LABELS
+
 OPERATOR = "OPERATOR"
 ADMINISTRATOR = "ADMINISTRATOR"
 
@@ -26,11 +28,29 @@ _CONFIGURATION_MESSAGES = {
 _SUFFIX = " Debe resolverlo el Administrador en Configuración, pestaña Facturación electrónica."
 
 
+_CONDITION_PROBLEMS = {
+    "unknown": "la entidad no la ha declarado.",
+    "invalid_format": "el valor guardado ya no cumple el formato vigente; declárelo de nuevo.",
+    "future": "su vigencia declarada todavía no ha iniciado.",
+    "expired": "su vigencia declarada ya terminó.",
+}
+
+
+def _condition_message(code: str) -> str:
+    """Nombra la condición tributaria afectada y qué le pasa, según el código del estado."""
+    parts = code.split(".")
+    label = CONDITION_LABELS.get(parts[1]) if len(parts) == 3 else None
+    problem = _CONDITION_PROBLEMS.get(parts[2]) if len(parts) == 3 else None
+    if label is None or problem is None:
+        return "Una condición tributaria de la entidad falta o está fuera de vigencia."
+    return f"{label}: {problem}"
+
+
 def _configuration_message(code: str, fallback: str) -> str:
     if code in _CONFIGURATION_MESSAGES:
         return _CONFIGURATION_MESSAGES[code] + _SUFFIX
     if code.startswith("conditions."):
-        return "Una condición tributaria de la entidad falta o está fuera de vigencia." + _SUFFIX
+        return _condition_message(code) + _SUFFIX
     if code.startswith("tax_mapping."):
         return "Un impuesto de la entidad no tiene correspondencia vigente con el SRI." + _SUFFIX
     return (fallback or "La configuración fiscal no está lista.") + _SUFFIX

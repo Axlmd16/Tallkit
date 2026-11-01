@@ -221,6 +221,7 @@ def test_current_format_conditions_are_exposed_in_order(
     assert [key for key, _ in status.conditions] == [
         "accounting_obligation",
         "artisan_qualification",
+        "large_taxpayer",
         "special_taxpayer",
         "tax_regime",
         "withholding_agent",
@@ -300,3 +301,88 @@ def test_qualification_expired_yesterday_requires_review(
     expired = next(c for c in status.causes if c.code == "conditions.artisan_qualification.expired")
     assert "2026-09-25" in expired.message
     assert "artisan_qualification_expiring" not in [w.code for w in status.warnings]
+
+
+# --- Gran contribuyente y valores guardados (DP-035, regla 5; diseño 1 y 2) -----------------------
+
+
+def _stored_revision(entity: FiscalEntity, actor: User, conditions: dict[str, Any]) -> None:
+    ElectronicProfileRevision.objects.create(
+        fiscal_entity=entity,
+        revision=1,
+        conditions_format=2,
+        conditions=conditions,
+        created_by=actor,
+    )
+
+
+def test_revision_saved_before_large_taxpayer_asks_only_for_that_condition(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    previous = {k: v for k, v in profile_conditions().items() if k != "large_taxpayer"}
+    _stored_revision(entity, role_admin, previous)
+    _point(entity)
+    _tax(entity, mapped=True)
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == INCOMPLETE
+    assert [c.code for c in status.causes] == ["conditions.large_taxpayer.unknown"]
+    assert "Gran contribuyente" in status.causes[0].message
+    declared_keys = {k for k, c in status.conditions if c.is_resolved}
+    assert declared_keys == {
+        "tax_regime",
+        "accounting_obligation",
+        "withholding_agent",
+        "special_taxpayer",
+        "artisan_qualification",
+    }
+
+
+def test_large_taxpayer_declared_keeps_the_profile_ready(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    _ready_entity(entity, role_admin, large_taxpayer=applicable("NAC-GCFOIOC21-00000868-E"))
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == READY
+    assert dict(status.conditions)["large_taxpayer"].value == "NAC-GCFOIOC21-00000868-E"
+
+
+def test_stored_value_that_no_longer_meets_its_format_asks_to_declare_it_again(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    conditions = profile_conditions(special_taxpayer=applicable("A1"))
+    _stored_revision(entity, role_admin, conditions)
+    _point(entity)
+    _tax(entity, mapped=True)
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert status.state == INCOMPLETE
+    assert [c.code for c in status.causes] == ["conditions.special_taxpayer.invalid_format"]
+    assert "Contribuyente especial" in status.causes[0].message
+    stored = ElectronicProfileRevision.objects.get(fiscal_entity=entity, revision=1)
+    assert stored.conditions["special_taxpayer"]["value"] == "A1"
+
+
+def test_several_invalid_stored_values_are_reported_each_one(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    conditions = profile_conditions(
+        special_taxpayer=applicable("A1"), withholding_agent=applicable("00012")
+    )
+    _stored_revision(entity, role_admin, conditions)
+    _point(entity)
+    _tax(entity, mapped=True)
+    codes = {c.code for c in evaluate_electronic_status(entity_id=entity.pk, on=TODAY).causes}
+    assert codes == {
+        "conditions.special_taxpayer.invalid_format",
+        "conditions.withholding_agent.invalid_format",
+    }
+
+
+def test_stored_invalid_values_do_not_break_the_qualification_warning(
+    entity: FiscalEntity, role_admin: User
+) -> None:
+    conditions = profile_conditions(
+        special_taxpayer=applicable("A1"), artisan_qualification=qualification("2026-10-20")
+    )
+    _stored_revision(entity, role_admin, conditions)
+    status = evaluate_electronic_status(entity_id=entity.pk, on=TODAY)
+    assert "artisan_qualification_expiring" in [w.code for w in status.warnings]

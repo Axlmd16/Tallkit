@@ -15,7 +15,7 @@ from workshop_configuration.application.withholding_settings import withholding_
 from workshop_configuration.domain.electronic_profile import (
     ARTISAN_QUALIFICATION,
     QUALIFICATION_WARNING_DAYS,
-    parse_profile_conditions,
+    read_stored_conditions,
 )
 from workshop_configuration.domain.validation import FiscalEntityType
 from workshop_configuration.models import ElectronicProfileRevision
@@ -42,7 +42,7 @@ def artisan_qualification_notice(actor: User, *, on: date) -> QualificationNotic
     )
     if profile is None or profile.conditions_format != CURRENT_CONDITIONS_FORMAT:
         return None
-    qualification = parse_profile_conditions(profile.conditions).get(ARTISAN_QUALIFICATION)
+    qualification = read_stored_conditions(profile.conditions).conditions.get(ARTISAN_QUALIFICATION)
     if (
         qualification is None
         or qualification.status != "APPLICABLE"
