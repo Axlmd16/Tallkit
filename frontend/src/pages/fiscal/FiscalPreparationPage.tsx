@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   CheckCircle,
+  NotePencil,
   Plus,
   Trash,
   WarningCircle,
@@ -10,18 +11,24 @@ import { Link, useParams } from 'react-router'
 
 import { useFiscalMutations, usePreparation } from '@/features/fiscal/hooks'
 import type {
+  AdditionalInfoPair,
   DeclaredPaymentForm,
   FiscalPreparationDetail,
   FiscalReceiverValues,
   ReviewImpediment,
+  ServiceDetail,
   WorkingDraft,
 } from '@/features/fiscal/types'
 import { ProblemError } from '@/shared/api/client'
 import {
   Button,
   ErrorState,
+  Field,
+  FormModal,
   getControlClasses,
+  IconButton,
   InlineNotice,
+  Input,
   LoadingState,
   StatusBadge,
   Surface,
@@ -78,6 +85,9 @@ function text(value: unknown): string {
     ? String(value)
     : ''
 }
+
+/** El comprobante admite hasta 12 datos adicionales escritos por el usuario (DP-035). */
+const MAX_ADDITIONAL_INFO = 12
 
 function cents(value: string): number {
   const parsed = Number(value)
@@ -243,7 +253,25 @@ function DraftEditor({
           },
         ],
   )
+  const [termDays, setTermDays] = useState(
+    working.payments.term_days != null
+      ? String(working.payments.term_days)
+      : '',
+  )
+  const [extra, setExtra] = useState<AdditionalInfoPair[]>(
+    working.additional_info,
+  )
+  const [pairDialog, setPairDialog] = useState<{ index: number | null } | null>(
+    null,
+  )
+  const [serviceDetails, setServiceDetails] = useState<ServiceDetail[]>(
+    working.service_details,
+  )
   const missing = new Set(detail.missing_fields)
+  const serverErrors: Record<string, string[]> =
+    mutations.updateDraft.error instanceof ProblemError
+      ? (mutations.updateDraft.error.errors ?? {})
+      : {}
   const review = mutations.review.data
   const difference =
     cents(total) - forms.reduce((sum, f) => sum + cents(f.amount), 0)
@@ -251,10 +279,17 @@ function DraftEditor({
     mutations.prepare.error instanceof ProblemError &&
     mutations.prepare.error.code === 'review_stale'
 
+  // El servidor decide si corresponde el plazo; un valor guardado que ya no aplica no se reenvía.
+  const term = termDays.trim()
   const payload = () => ({
     expected_version: detail.version,
     receiver: consumerFinal ? CONSUMER_FINAL : receiver,
-    payments: { forms },
+    payments: {
+      forms,
+      ...(working.term_required && term ? { term_days: Number(term) } : {}),
+    },
+    additional_info: extra,
+    ...(serviceDetails.length ? { service_details: serviceDetails } : {}),
   })
 
   const save = () =>
@@ -295,12 +330,14 @@ function DraftEditor({
     field: keyof FiscalReceiverValues,
     label: string,
     type = 'text',
+    required = false,
   ) => (
     <label className="ui-field block text-sm font-semibold text-ink">
       {label}
       <input
         className={`mt-1.5 ${getControlClasses()}`}
         name={field}
+        required={required}
         onChange={(event) =>
           setReceiver((prev) => ({ ...prev, [field]: event.target.value }))
         }
@@ -381,7 +418,7 @@ function DraftEditor({
               {!original.address &&
                 receiverField('address', 'Dirección (opcional)')}
               {!original.email &&
-                receiverField('email', 'Correo (opcional)', 'email')}
+                receiverField('email', 'Correo', 'email', true)}
             </div>
           )}
         {cents(total) <= 5000 && (
@@ -471,6 +508,32 @@ function DraftEditor({
             </div>
           ))}
         </div>
+        {working.term_required && (
+          <div className="mt-4">
+            <label className="ui-field block text-sm font-semibold text-ink">
+              Plazo en días
+              <input
+                className={`mt-1.5 ${getControlClasses()}`}
+                inputMode="numeric"
+                max={9999}
+                min={1}
+                onChange={(event) => setTermDays(event.target.value)}
+                required
+                type="number"
+                value={termDays}
+              />
+            </label>
+            <p className="mt-1 text-xs text-ink-muted">
+              Solo se declara en la factura; no crea vencimiento ni cambia el
+              cobro.
+            </p>
+            {serverErrors['payments.term_days']?.[0] && (
+              <p className="mt-1 text-xs font-semibold text-danger">
+                {serverErrors['payments.term_days'][0]}
+              </p>
+            )}
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <Button
             onClick={() =>
@@ -496,6 +559,134 @@ function DraftEditor({
           </p>
         </div>
       </Surface>
+
+      {serviceDetails.length > 0 && (
+        <Surface aria-label="Detalle por servicio">
+          <h2 className="font-bold text-ink">Detalle por servicio</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Opcional. Viene de la operación; ajustarlo aquí no la modifica.
+          </p>
+          <div className="mt-4 space-y-3">
+            {serviceDetails.map((entry, index) => {
+              const description =
+                detail.summary?.lines.find(
+                  (line) => line.position === entry.position,
+                )?.description ?? `línea ${entry.position}`
+              const error =
+                serverErrors[`service_details[${index + 1}].detail`]?.[0]
+              return (
+                <div key={entry.position}>
+                  <label className="ui-field block text-sm font-semibold text-ink">
+                    Detalle de {description}
+                    <input
+                      className={`mt-1.5 ${getControlClasses()}`}
+                      maxLength={300}
+                      onChange={(event) =>
+                        setServiceDetails((prev) =>
+                          prev.map((item) =>
+                            item.position === entry.position
+                              ? { ...item, detail: event.target.value }
+                              : item,
+                          ),
+                        )
+                      }
+                      value={entry.detail}
+                    />
+                  </label>
+                  {error && (
+                    <p className="mt-1 text-xs font-semibold text-danger">
+                      {error}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </Surface>
+      )}
+
+      <Surface aria-label="Detalle adicional">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-ink">Detalle adicional</h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Opcional. Incluya solo lo necesario para el comprobante; hasta{' '}
+              {MAX_ADDITIONAL_INFO} datos.
+            </p>
+          </div>
+          <Button
+            disabled={extra.length >= MAX_ADDITIONAL_INFO}
+            onClick={() => setPairDialog({ index: null })}
+            type="button"
+            variant="soft"
+          >
+            <Plus aria-hidden="true" /> Añadir dato adicional
+          </Button>
+        </div>
+        {serverErrors.additional_info?.[0] && (
+          <p className="mt-2 text-xs font-semibold text-danger">
+            {serverErrors.additional_info[0]}
+          </p>
+        )}
+        {extra.length > 0 && (
+          <ul className="mt-3 divide-y divide-line">
+            {extra.map((pair, index) => {
+              const errors = [
+                serverErrors[`additional_info[${index + 1}]`]?.[0],
+                serverErrors[`additional_info[${index + 1}].name`]?.[0],
+                serverErrors[`additional_info[${index + 1}].value`]?.[0],
+              ].filter(Boolean)
+              return (
+                <li
+                  className="flex items-start justify-between gap-3 py-2"
+                  key={`${pair.name}-${index}`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs text-ink-muted">{pair.name}</p>
+                    <p className="font-medium break-words">{pair.value}</p>
+                    {errors.map((message) => (
+                      <p
+                        className="mt-1 text-xs font-semibold text-danger"
+                        key={message}
+                      >
+                        {message}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="flex shrink-0">
+                    <IconButton
+                      icon={<NotePencil size={16} />}
+                      label={`Editar ${pair.name}`}
+                      onClick={() => setPairDialog({ index })}
+                    />
+                    <IconButton
+                      icon={<Trash size={16} />}
+                      label={`Quitar ${pair.name}`}
+                      onClick={() =>
+                        setExtra((prev) => prev.filter((_, i) => i !== index))
+                      }
+                    />
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </Surface>
+      {pairDialog && (
+        <AdditionalInfoDialog
+          initial={pairDialog.index === null ? null : extra[pairDialog.index]!}
+          onClose={() => setPairDialog(null)}
+          onSave={(pair) => {
+            setExtra((prev) =>
+              pairDialog.index === null
+                ? [...prev, pair]
+                : prev.map((item, i) => (i === pairDialog.index ? pair : item)),
+            )
+            setPairDialog(null)
+          }}
+        />
+      )}
 
       <div className="flex flex-wrap justify-end gap-3">
         <Button
@@ -542,6 +733,62 @@ function DraftEditor({
         />
       )}
     </div>
+  )
+}
+
+function AdditionalInfoDialog({
+  initial,
+  onClose,
+  onSave,
+}: {
+  initial: AdditionalInfoPair | null
+  onClose: () => void
+  onSave: (pair: AdditionalInfoPair) => void
+}) {
+  const [name, setName] = useState(initial?.name ?? '')
+  const [value, setValue] = useState(initial?.value ?? '')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const dirty =
+    name !== (initial?.name ?? '') || value !== (initial?.value ?? '')
+
+  function save(): boolean {
+    const next: Record<string, string> = {}
+    if (!name.trim()) next.name = 'Escriba el nombre del dato.'
+    if (!value.trim()) next.value = 'Escriba el valor del dato.'
+    setErrors(next)
+    if (Object.keys(next).length) return false
+    onSave({ name: name.trim(), value: value.trim() })
+    return true
+  }
+
+  return (
+    <FormModal
+      dirty={dirty}
+      onClose={onClose}
+      onSave={save}
+      open
+      saveLabel={initial ? 'Guardar dato' : 'Agregar dato'}
+      title={initial ? 'Editar dato adicional' : 'Añadir dato adicional'}
+    >
+      <div className="space-y-4">
+        <Field error={errors.name} id="extra-name" label="Nombre" required>
+          <Input
+            id="extra-name"
+            maxLength={300}
+            onChange={(event) => setName(event.target.value)}
+            value={name}
+          />
+        </Field>
+        <Field error={errors.value} id="extra-value" label="Valor" required>
+          <Input
+            id="extra-value"
+            maxLength={300}
+            onChange={(event) => setValue(event.target.value)}
+            value={value}
+          />
+        </Field>
+      </div>
+    </FormModal>
   )
 }
 
@@ -597,7 +844,11 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
     ? snapshot.payments.map(record)
     : []
   const lines = Array.isArray(snapshot.lines) ? snapshot.lines.map(record) : []
-  const profile = record(record(snapshot.issuer).tax_profile)
+  const extra = Array.isArray(snapshot.additional_info)
+    ? snapshot.additional_info.map(record).filter((pair) => text(pair.name))
+    : []
+  const issuer = record(snapshot.issuer)
+  const profile = record(issuer.tax_profile)
   // Las preparaciones anteriores guardaban las condiciones como leyendas de texto.
   const legends = Array.isArray(snapshot.legends)
     ? snapshot.legends.map(text).filter(Boolean)
@@ -617,11 +868,14 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             mono
             value={text(receiver.identification)}
           />
+          {text(receiver.email) && (
+            <Datum label="Correo" value={text(receiver.email)} />
+          )}
           <Datum label="Impuestos" value={money(totals.tax)} />
           <Datum label="Total" value={money(totals.grand)} />
         </dl>
       </Surface>
-      <IssuerSummary legends={legends} profile={profile} />
+      <IssuerSummary issuer={issuer} legends={legends} profile={profile} />
       <Surface className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-left text-sm">
@@ -640,7 +894,14 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
                   <td className="px-4 py-3 font-mono text-xs">
                     {text(line.item_code)}
                   </td>
-                  <td className="px-4 py-3">{text(line.description)}</td>
+                  <td className="px-4 py-3">
+                    {text(line.description)}
+                    {text(line.service_detail) && (
+                      <span className="block text-xs break-words text-ink-muted">
+                        {text(line.service_detail)}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     {text(line.display_name) || `${text(line.tax_rate)} %`}
                   </td>
@@ -663,10 +924,26 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             <li key={index}>
               {text(payment.display_name) || text(payment.payment_code)} ·{' '}
               {money(payment.amount)}
+              {text(payment.term_days) &&
+                ` · plazo ${text(payment.term_days)} días`}
             </li>
           ))}
         </ul>
       </Surface>
+      {extra.length > 0 && (
+        <Surface aria-label="Detalle adicional preparado">
+          <h2 className="font-bold text-ink">Detalle adicional</h2>
+          <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-2">
+            {extra.map((pair, index) => (
+              <Datum
+                key={`${text(pair.name)}-${index}`}
+                label={text(pair.name)}
+                value={text(pair.value)}
+              />
+            ))}
+          </dl>
+        </Surface>
+      )}
       {detail.technical && (
         <details className="rounded-panel border border-line p-4 text-sm">
           <summary className="cursor-pointer font-semibold text-ink">
@@ -683,9 +960,11 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
 
 /** Datos tributarios del emisor tal como se conservaron al preparar. */
 function IssuerSummary({
+  issuer,
   profile,
   legends,
 }: {
+  issuer: Record<string, unknown>
   profile: Record<string, unknown>
   legends: string[]
 }) {
@@ -698,6 +977,15 @@ function IssuerSummary({
       <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
         {hasProfile ? (
           <>
+            {text(issuer.trade_name) && (
+              <Datum label="Nombre comercial" value={text(issuer.trade_name)} />
+            )}
+            {text(issuer.establishment_address) && (
+              <Datum
+                label="Dirección del establecimiento"
+                value={text(issuer.establishment_address)}
+              />
+            )}
             {regime && (
               <Datum label="Régimen" value={REGIME_LABELS[regime] ?? regime} />
             )}
@@ -725,6 +1013,13 @@ function IssuerSummary({
                 label="Contribuyente especial"
                 mono
                 value={text(profile.special_taxpayer_resolution)}
+              />
+            )}
+            {text(profile.large_taxpayer_resolution) && (
+              <Datum
+                label="Gran contribuyente"
+                mono
+                value={text(profile.large_taxpayer_resolution)}
               />
             )}
             {text(qualification.number) && (

@@ -92,11 +92,11 @@ Dependencias: grupo 6. Evidencia: `npm run test -- src/features/maintenance src/
 
 Cubre diseño 12; UI-059.
 
-- [ ] 9.1 Probar en `frontend/src/pages/fiscal/FiscalPreparationPage.tsx` que el correo deja de ser opcional para un receptor identificado y sigue sin exigirse a consumidor final. Cierre: el impedimento se muestra en su campo.
-- [ ] 9.2 Probar y añadir el campo de plazo, visible solo con `term_required`, junto a las formas de pago y con el error del servidor en el campo. Cierre: contado y crédito saldado no lo muestran.
-- [ ] 9.3 Probar y añadir la sección de detalle adicional con filas y modal, y un recordatorio breve de incluir solo lo necesario para el comprobante. Cierre: agregar, editar y quitar pares, y un nombre reservado muestra el rechazo del servidor.
-- [ ] 9.4 Probar y añadir el ajuste del detalle por línea en preparaciones artesanales. Cierre: la preparación comercial no lo ofrece.
-- [ ] 9.5 Mostrar en una preparación completada el plazo, los pares, los detalles, el nombre comercial, la dirección del establecimiento y el gran contribuyente, solo cuando existan. Cierre: una instantánea de formato 3 se muestra sin campos vacíos, y `terminology.test-utils.ts` sigue en verde.
+- [x] 9.1 Probar en `frontend/src/pages/fiscal/FiscalPreparationPage.tsx` que el correo deja de ser opcional para un receptor identificado y sigue sin exigirse a consumidor final. Cierre: el impedimento se muestra en su campo.
+- [x] 9.2 Probar y añadir el campo de plazo, visible solo con `term_required`, junto a las formas de pago y con el error del servidor en el campo. Cierre: contado y crédito saldado no lo muestran.
+- [x] 9.3 Probar y añadir la sección de detalle adicional con filas y modal, y un recordatorio breve de incluir solo lo necesario para el comprobante. Cierre: agregar, editar y quitar pares, y un nombre reservado muestra el rechazo del servidor.
+- [x] 9.4 Probar y añadir el ajuste del detalle por línea en preparaciones artesanales. Cierre: la preparación comercial no lo ofrece.
+- [x] 9.5 Mostrar en una preparación completada el plazo, los pares, los detalles, el nombre comercial, la dirección del establecimiento y el gran contribuyente, solo cuando existan. Cierre: una instantánea de formato 3 se muestra sin campos vacíos, y `terminology.test-utils.ts` sigue en verde.
 
 Dependencias: grupo 6. Evidencia: `npm run test -- src/pages/fiscal src/features/fiscal`, más `npm run typecheck`, `npm run lint` y `npm run format:check`.
 

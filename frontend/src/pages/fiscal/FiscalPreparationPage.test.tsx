@@ -120,7 +120,7 @@ function detail(
         internal_method: 'TRANSFERENCIA',
       },
     ],
-    missing_fields: ['address'],
+    missing_fields: ['address', 'email'],
     technical: null,
     ...overrides,
   }
@@ -180,6 +180,8 @@ it('asks only for missing receiver data and hides technical fields', () => {
   const receiver = screen.getByRole('region', { name: 'Receptor' })
   expect(within(receiver).getByText('Cliente Fiscal S.A.')).toBeVisible()
   expect(within(receiver).getByLabelText('Dirección (opcional)')).toBeVisible()
+  expect(within(receiver).getByLabelText('Correo')).toBeRequired()
+  expect(within(receiver).queryByLabelText(/Correo \(opcional\)/)).toBeNull()
   expect(within(receiver).queryByLabelText('Identificación')).toBeNull()
   for (const technical of [
     /ambiente/i,
@@ -231,6 +233,7 @@ it('saves only receiver and payment forms, then reviews', async () => {
   mocks.updateDraft.mutateAsync.mockResolvedValue({})
   renderPage()
   await user.type(screen.getByLabelText('Dirección (opcional)'), 'Calle 10')
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
   await user.click(
     screen.getByRole('button', { name: 'Revisar datos para facturación' }),
   )
@@ -243,6 +246,7 @@ it('saves only receiver and payment forms, then reviews', async () => {
         identification: '0999999999001',
         legal_name: 'Cliente Fiscal S.A.',
         address: 'Calle 10',
+        email: 'cliente@example.com',
       },
       payments: {
         forms: [
@@ -250,6 +254,7 @@ it('saves only receiver and payment forms, then reviews', async () => {
           { payment_code: '20', amount: '60.00' },
         ],
       },
+      additional_info: [],
     },
   })
   expect(mocks.review.mutate).toHaveBeenCalledWith({
@@ -573,4 +578,405 @@ it('explains the new line limits and rate rule with the text of the server', () 
   expect(
     screen.queryByRole('list', { name: 'Puede completarlo aquí' }),
   ).toBeNull()
+})
+
+// --- Datos del comprobante (DP-035) --------------------------------------------------------------
+
+function withWorking(
+  working: Partial<NonNullable<FiscalPreparationDetail['working']>>,
+  overrides: Partial<FiscalPreparationDetail> = {},
+) {
+  const base = detail()
+  mocks.preparation.data = {
+    ...base,
+    ...overrides,
+    working: { ...base.working!, ...working },
+  }
+}
+
+async function review(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(
+    screen.getByRole('button', { name: 'Revisar datos para facturación' }),
+  )
+}
+
+function sentData() {
+  return mocks.updateDraft.mutateAsync.mock.calls[0]![0].data
+}
+
+it('pide el correo del receptor y lo envía junto con el resto, sin tocar la ficha del cliente', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  renderPage()
+  expect(
+    within(screen.getByRole('region', { name: 'Receptor' })).getByLabelText(
+      'Correo',
+    ),
+  ).toBeRequired()
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect(sentData().receiver.email).toBe('cliente@example.com')
+})
+
+it('muestra el correo que ya tiene el receptor sin pedirlo de nuevo', () => {
+  withWorking(
+    {
+      receiver: {
+        identification_type: '04',
+        identification: '0999999999001',
+        legal_name: 'Cliente Fiscal S.A.',
+        email: 'ya@example.com',
+      },
+    },
+    { missing_fields: ['address'] },
+  )
+  renderPage()
+  const receiver = screen.getByRole('region', { name: 'Receptor' })
+  expect(within(receiver).getByText('ya@example.com')).toBeVisible()
+  expect(within(receiver).queryByLabelText('Correo')).toBeNull()
+})
+
+it('consumidor final no muestra ni pide el correo', async () => {
+  const user = userEvent.setup()
+  const base = detail()
+  mocks.preparation.data = {
+    ...base,
+    summary: { ...base.summary!, grand_total: '30.00' },
+  }
+  renderPage()
+  await user.click(
+    screen.getByRole('checkbox', {
+      name: /Preparar a nombre de consumidor final/,
+    }),
+  )
+  const receiver = screen.getByRole('region', { name: 'Receptor' })
+  expect(within(receiver).queryByLabelText('Correo')).toBeNull()
+})
+
+it('no ofrece el plazo cuando el servidor no lo pide', () => {
+  renderPage()
+  expect(screen.queryByLabelText('Plazo en días')).toBeNull()
+})
+
+it('pide el plazo en días cuando la operación es a crédito con saldo pendiente y lo envía como número', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  withWorking(
+    { term_required: true },
+    { missing_fields: ['address', 'email', 'term_days'] },
+  )
+  renderPage()
+  const payments = screen.getByRole('region', { name: 'Formas de pago' })
+  const term = within(payments).getByLabelText('Plazo en días')
+  expect(term).toBeRequired()
+  await user.type(term, '30')
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect(sentData().payments).toEqual({
+    forms: [
+      { payment_code: '01', amount: '40.00' },
+      { payment_code: '20', amount: '60.00' },
+    ],
+    term_days: 30,
+  })
+})
+
+it('precarga el plazo guardado y no lo envía si el servidor ya no lo pide', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  withWorking({
+    term_required: false,
+    payments: {
+      forms: [{ payment_code: '01', amount: '100.00' }],
+      suggested: false,
+      term_days: 15,
+    },
+  })
+  renderPage()
+  expect(screen.queryByLabelText('Plazo en días')).toBeNull()
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect(sentData().payments).toEqual({
+    forms: [{ payment_code: '01', amount: '100.00' }],
+  })
+})
+
+it('muestra junto al plazo el error del servidor', () => {
+  withWorking({ term_required: true })
+  mocks.updateDraft.isError = true
+  mocks.updateDraft.error = new ProblemError(
+    'El borrador contiene datos inválidos.',
+    400,
+    'validation_error',
+    undefined,
+    { 'payments.term_days': ['El plazo debe estar entre 1 y 9999 días.'] },
+  )
+  renderPage()
+  const payments = screen.getByRole('region', { name: 'Formas de pago' })
+  expect(
+    within(payments).getByText('El plazo debe estar entre 1 y 9999 días.'),
+  ).toBeVisible()
+})
+
+it('agrega, edita y quita datos adicionales con un modal y los envía como pares', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Detalle adicional' })
+  await user.click(
+    within(section).getByRole('button', { name: 'Añadir dato adicional' }),
+  )
+  const dialog = screen.getByRole('dialog')
+  await user.type(within(dialog).getByLabelText('Nombre'), 'Vehículo')
+  await user.type(within(dialog).getByLabelText('Valor'), 'Placa PCM4567')
+  await user.click(within(dialog).getByRole('button', { name: 'Agregar dato' }))
+  expect(within(section).getByText('Vehículo')).toBeVisible()
+  expect(within(section).getByText('Placa PCM4567')).toBeVisible()
+
+  await user.click(
+    within(section).getByRole('button', { name: 'Editar Vehículo' }),
+  )
+  const editing = screen.getByRole('dialog')
+  const value = within(editing).getByLabelText('Valor')
+  await user.clear(value)
+  await user.type(value, 'Placa ABC1234')
+  await user.click(
+    within(editing).getByRole('button', { name: 'Guardar dato' }),
+  )
+  expect(within(section).getByText('Placa ABC1234')).toBeVisible()
+
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect(sentData().additional_info).toEqual([
+    { name: 'Vehículo', value: 'Placa ABC1234' },
+  ])
+
+  await user.click(
+    within(section).getByRole('button', { name: 'Quitar Vehículo' }),
+  )
+  expect(within(section).queryByText('Vehículo')).toBeNull()
+})
+
+it('precarga los datos adicionales guardados y deja de ofrecer agregar al llegar a 12', () => {
+  withWorking({
+    additional_info: Array.from({ length: 12 }, (_, index) => ({
+      name: `Dato ${index + 1}`,
+      value: 'x',
+    })),
+  })
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Detalle adicional' })
+  expect(within(section).getByText('Dato 12')).toBeVisible()
+  expect(
+    within(section).getByRole('button', { name: 'Añadir dato adicional' }),
+  ).toBeDisabled()
+})
+
+it('recuerda incluir solo lo necesario y muestra el error de un nombre reservado', () => {
+  withWorking({
+    additional_info: [{ name: 'RUC Proveedor', value: '123' }],
+  })
+  mocks.updateDraft.isError = true
+  mocks.updateDraft.error = new ProblemError(
+    'El borrador contiene datos inválidos.',
+    400,
+    'validation_error',
+    undefined,
+    {
+      'additional_info[1].name': [
+        '«RUC Proveedor» está reservado: el sistema lo agrega y no lo escribe el usuario.',
+      ],
+    },
+  )
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Detalle adicional' })
+  expect(section).toHaveTextContent('solo lo necesario')
+  expect(within(section).getByText(/está reservado/)).toBeVisible()
+})
+
+const ARTISAN_SUMMARY = {
+  kind: 'ARTISAN' as const,
+  internal_number: 'ART-SER-000004',
+  operational_date: '2026-09-25',
+  condition: 'CONTADO' as const,
+  state: 'CONFIRMED',
+  base_total: '25.00',
+  tax_total: '0.00',
+  grand_total: '25.00',
+  lines: [
+    { position: 1, description: 'Alineación', quantity: '1', total: '15.00' },
+    { position: 2, description: 'Balanceo', quantity: '1', total: '10.00' },
+  ],
+}
+
+it('una operación artesanal precarga el detalle de cada servicio y lo envía ajustado', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  withWorking(
+    {
+      service_details: [
+        { position: 1, detail: 'eje delantero' },
+        { position: 2, detail: '' },
+      ],
+    },
+    {
+      summary: ARTISAN_SUMMARY,
+      source: { kind: 'ARTISAN', id: 4, version: 1 },
+    },
+  )
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Detalle por servicio' })
+  const first = within(section).getByLabelText('Detalle de Alineación')
+  expect(first).toHaveValue('eje delantero')
+  expect(first).toHaveAttribute('maxlength', '300')
+  expect(within(section).getByLabelText('Detalle de Balanceo')).toHaveValue('')
+  await user.clear(first)
+  await user.type(first, 'eje delantero y trasero')
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect(sentData().service_details).toEqual([
+    { position: 1, detail: 'eje delantero y trasero' },
+    { position: 2, detail: '' },
+  ])
+})
+
+it('una venta comercial no ofrece detalle por servicio ni lo envía', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
+  renderPage()
+  expect(
+    screen.queryByRole('region', { name: 'Detalle por servicio' }),
+  ).toBeNull()
+  await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
+  await review(user)
+  expect('service_details' in sentData()).toBe(false)
+})
+
+it('muestra junto al servicio el error del detalle que devuelve el servidor', () => {
+  withWorking(
+    { service_details: [{ position: 1, detail: 'x' }] },
+    { summary: ARTISAN_SUMMARY },
+  )
+  mocks.updateDraft.isError = true
+  mocks.updateDraft.error = new ProblemError(
+    'El borrador contiene datos inválidos.',
+    400,
+    'validation_error',
+    undefined,
+    {
+      'service_details[1].detail': [
+        'El detalle admite hasta 300 caracteres; tiene 301.',
+      ],
+    },
+  )
+  renderPage()
+  const section = screen.getByRole('region', { name: 'Detalle por servicio' })
+  expect(within(section).getByText(/tiene 301/)).toBeVisible()
+})
+
+it('una preparación completada muestra correo, plazo, datos adicionales y detalle de servicio solo si existen', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    summary: ARTISAN_SUMMARY,
+    snapshot: {
+      snapshot_format: 4,
+      reference_date: '2026-11-01',
+      issuer: {
+        ruc: '1104018559001',
+        legal_name: 'Jiménez Juan Alberto',
+        trade_name: 'Taller Ana',
+        address: 'Matriz del taller',
+        establishment_address: 'Local del taller',
+        tax_profile: {
+          regime: 'RIMPE_NEGOCIO_POPULAR',
+          regime_legend: 'CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE',
+          accounting_obligation: 'NO',
+          large_taxpayer_resolution: 'NAC-GCFOIOC21-00000868-E',
+        },
+      },
+      receiver: {
+        legal_name: 'Cliente',
+        identification: '0999999999001',
+        email: 'cliente@example.com',
+      },
+      totals: { tax: '0.00', grand: '25.00' },
+      lines: [
+        {
+          position: 1,
+          item_code: 'SRV-000012',
+          description: 'Alineación',
+          quantity: '1',
+          total_amount: '15.00',
+          display_name: 'IVA 0 %',
+          service_detail: 'eje delantero',
+        },
+        {
+          position: 2,
+          item_code: 'SRV-000013',
+          description: 'Balanceo',
+          quantity: '1',
+          total_amount: '10.00',
+          display_name: 'IVA 0 %',
+        },
+      ],
+      payments: [
+        { payment_code: '01', amount: '5.00' },
+        {
+          payment_code: '20',
+          amount: '20.00',
+          term_days: 30,
+          time_unit: 'dias',
+        },
+      ],
+      additional_info: [{ name: 'Vehículo', value: 'Placa PCM4567' }],
+      legends: [],
+    },
+  })
+  const { container } = renderPage()
+  expect(screen.getByText('cliente@example.com')).toBeVisible()
+  const issuer = screen.getByLabelText('Emisor preparado')
+  expect(issuer).toHaveTextContent('Taller Ana')
+  expect(issuer).toHaveTextContent('Local del taller')
+  expect(issuer).toHaveTextContent('NAC-GCFOIOC21-00000868-E')
+  expect(issuer).toHaveTextContent(
+    'CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE',
+  )
+  expect(screen.getByText('eje delantero')).toBeVisible()
+  const payments = screen.getByLabelText('Formas de pago preparadas')
+  expect(payments).toHaveTextContent('plazo 30 días')
+  expect(payments.textContent?.match(/plazo/g)).toHaveLength(1)
+  const extra = screen.getByLabelText('Detalle adicional preparado')
+  expect(extra).toHaveTextContent('Vehículo')
+  expect(extra).toHaveTextContent('Placa PCM4567')
+  expectNoForbiddenFiscalTerms(container)
+})
+
+it('una preparación del formato 3 no muestra campos nuevos vacíos', () => {
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      snapshot_format: 3,
+      reference_date: '2026-10-05',
+      issuer: {
+        ruc: '1104018559001',
+        legal_name: 'Jiménez Juan Alberto',
+        tax_profile: { regime: 'GENERAL', accounting_obligation: 'NO' },
+      },
+      receiver: { legal_name: 'Cliente', identification: '0999999999001' },
+      totals: { tax: '0.00', grand: '25.00' },
+      lines: [FORMAT_THREE_LINE],
+      payments: [{ payment_code: '01', amount: '25.00' }],
+      legends: [],
+    },
+  })
+  renderPage()
+  expect(screen.queryByLabelText('Detalle adicional preparado')).toBeNull()
+  expect(screen.queryByText(/plazo/)).toBeNull()
+  expect(screen.queryByText('Nombre comercial')).toBeNull()
+  expect(screen.queryByText('Gran contribuyente')).toBeNull()
+  expect(screen.queryByText('Correo')).toBeNull()
 })
