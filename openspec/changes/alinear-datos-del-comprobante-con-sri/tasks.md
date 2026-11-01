@@ -39,9 +39,9 @@ Dependencias: grupo 1. Evidencia: `uv run --frozen pytest tests/workshop/ -k "li
 
 Cubre diseño 6 y la parte de fuente del diseño 8.
 
-- [ ] 4.1 Probar y añadir `pending_balance` a `CommercialFiscalSource` en `sales/application/fiscal_source.py`, desde `ledger_for`. Pruebas: sin cobros, con abono, con retención y con devolución. Cierre: coincide con el saldo de la venta.
-- [ ] 4.2 Probar y añadir `pending_balance` y `detail` de línea a `workshop/application/fiscal_source.py`, desde `balance_of`. Cierre: `backend/tests/workshop/test_fiscal_source.py` en verde.
-- [ ] 4.3 Comprobar que `fiscal` sigue sin importar modelos de ventas ni de taller. Cierre: `backend/tests/fiscal/test_boundaries.py` en verde.
+- [x] 4.1 Probar y añadir `pending_balance` a `CommercialFiscalSource` en `sales/application/fiscal_source.py`, desde `ledger_for`. Pruebas: sin cobros, con abono, con retención y con devolución. Cierre: coincide con el saldo de la venta.
+- [x] 4.2 Probar y añadir `pending_balance` y `detail` de línea a `workshop/application/fiscal_source.py`, desde `balance_of`. Cierre: `backend/tests/workshop/test_fiscal_source.py` en verde.
+- [x] 4.3 Comprobar que `fiscal` sigue sin importar modelos de ventas ni de taller. Cierre: `backend/tests/fiscal/test_boundaries.py` en verde.
 
 Dependencias: grupos 1 y 3. Evidencia: `uv run --frozen pytest tests/sales/ tests/workshop/test_fiscal_source.py tests/fiscal/test_boundaries.py -k "fiscal or boundaries"`.
 

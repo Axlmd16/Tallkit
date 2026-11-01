@@ -127,3 +127,55 @@ def test_withholding_is_never_a_payment_form_and_needs_no_preparation(
         "20": "245.00",
     }
     assert sum(float(form.amount) for form in suggestion.forms) == 250.0
+
+
+# --- Saldo pendiente expuesto por el módulo dueño (DP-035, diseño 6) -----------------------------
+
+
+def test_pending_balance_without_collections_is_the_whole_total(confirmed_sale: Any) -> None:
+    from sales.application.fiscal_source import read_fiscal_source
+
+    built = confirmed_sale(price="50.00", condition="CREDITO")
+    source = read_fiscal_source(built["id"])
+    assert (source.grand_total, source.pending_balance) == ("50.00", "50.00")
+
+
+def test_pending_balance_subtracts_current_payments(confirmed_sale: Any, seller: Any) -> None:
+    from sales.application.fiscal_source import read_fiscal_source
+
+    built = confirmed_sale(price="100.00", condition="CREDITO")
+    _payment(Sale.objects.get(pk=built["id"]), seller, {"EFECTIVO": "40.00"})
+    assert read_fiscal_source(built["id"]).pending_balance == "60.00"
+
+
+def test_pending_balance_is_zero_when_a_withholding_covers_the_rest(
+    confirmed_sale: Any, seller: Any
+) -> None:
+    from sales.application.fiscal_source import read_fiscal_source
+
+    from .test_withholdings import parts, settle
+
+    built = confirmed_sale(price="250.00", condition="CREDITO")
+    settle(seller, built["id"], parts(transfer="245.00"), "5.00")
+    assert read_fiscal_source(built["id"]).pending_balance == "0.00"
+
+
+def test_pending_balance_follows_the_amount_still_due_after_a_return(
+    confirmed_sale: Any, admin: Any
+) -> None:
+    from sales.application.fiscal_source import read_fiscal_source
+
+    from .test_returns import do_return, item, line_id, request
+
+    built = confirmed_sale(price="10.00", quantity=5, condition="CREDITO")
+    do_return(admin, built["id"], request([item(line_id(built["id"]), fit=2)]))
+    source = read_fiscal_source(built["id"])
+    assert (source.grand_total, source.pending_balance) == ("50.00", "30.00")
+
+
+def test_pending_balance_never_goes_negative(confirmed_sale: Any, seller: Any) -> None:
+    from sales.application.fiscal_source import read_fiscal_source
+
+    built = confirmed_sale(price="30.00", condition="CONTADO")
+    _payment(Sale.objects.get(pk=built["id"]), seller, {"EFECTIVO": "30.00"})
+    assert read_fiscal_source(built["id"]).pending_balance == "0.00"

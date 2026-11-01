@@ -6,6 +6,7 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Any
 
+from workshop.application.service_operations import balance_of
 from workshop.models import ArtisanPaymentPart, ServiceOperation
 
 
@@ -46,6 +47,8 @@ class ArtisanFiscalLine:
     base_amount: str
     tax_amount: str
     total_amount: str
+    # Nota opcional de la línea, copiada al confirmar la operación (DP-035, regla 3).
+    detail: str = ""
 
 
 @dataclass(frozen=True)
@@ -71,6 +74,8 @@ class ArtisanFiscalSource:
     replaces_id: int | None
     void_reason: str
     collected_by_method: Mapping[str, Decimal]
+    # Saldo que sigue pendiente de cobro: descuenta cobros y retenciones recibidas.
+    pending_balance: str
 
 
 def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
@@ -88,6 +93,7 @@ def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
             base_amount=str(line.base_amount),
             tax_amount=str(line.tax_amount),
             total_amount=str(line.total_amount),
+            detail=line.detail,
         )
         for line in operation.lines.order_by("position", "id")
     )
@@ -113,6 +119,7 @@ def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
         replaces_id=operation.replaces_id,
         void_reason=operation.void_reason,
         collected_by_method=_collected_by_method(operation.pk),
+        pending_balance=format(balance_of(operation).balance.quantize(Decimal("0.01")), "f"),
     )
 
 

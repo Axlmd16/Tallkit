@@ -160,3 +160,77 @@ def test_artisan_withholding_is_never_a_payment_form(
         "01": "245.00",
         "20": "5.00",
     }
+
+
+# --- Saldo pendiente y detalle de servicio (DP-035, diseño 6 y 8) --------------------------------
+
+
+def _pay(manager: Any, operation_id: int, cash: str, withheld: str | None = None) -> None:
+    from uuid import uuid4
+
+    from tests.workshop.workshop_helpers import key
+
+    from workshop.application import artisan_payments
+
+    payload: dict[str, Any] = {
+        "operation_id": str(uuid4()),
+        "parts": [{"method": "EFECTIVO", "amount": cash}],
+        "idempotency_key": key(),
+    }
+    if withheld is not None:
+        payload["withholding"] = {"amount": withheld}
+    artisan_payments.register_payment(actor=manager, operation_id=operation_id, payload=payload)
+
+
+def test_artisan_pending_balance_without_collections_is_the_whole_total(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="25.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    source = read_fiscal_source(operation_id)
+    assert (source.grand_total, source.pending_balance) == ("25.00", "25.00")
+
+
+def test_artisan_pending_balance_subtracts_payments_and_withholdings(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="250.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    _pay(manager, operation_id, "100.00")
+    assert read_fiscal_source(operation_id).pending_balance == "150.00"
+    _pay(manager, operation_id, "145.00", withheld="5.00")
+    assert read_fiscal_source(operation_id).pending_balance == "0.00"
+
+
+def test_artisan_pending_balance_of_a_voided_operation_is_zero(
+    manager: Any, admin: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from tests.workshop.workshop_helpers import key
+
+    from workshop.application import service_operations
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="25.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    service_operations.void_operation(
+        actor=admin,
+        operation_id=operation_id,
+        payload={"reason": "Error", "expected_version": 1, "idempotency_key": key()},
+    )
+    assert read_fiscal_source(operation_id).pending_balance == "0.00"
+
+
+def test_artisan_source_line_carries_the_detail_of_the_operation(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service().pk, detail="frenos delanteros")
+    add_line(manager, order["id"], service_id=make_service().pk)
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    lines = read_fiscal_source(operation_id).lines
+    assert [line.detail for line in lines] == ["frenos delanteros", ""]

@@ -6,6 +6,7 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Any
 
+from sales.application.ledger import ledger_for
 from sales.models import PaymentPart, Sale, SaleVoid
 
 
@@ -74,6 +75,8 @@ class CommercialFiscalSource:
     return_ids: tuple[int, ...]
     has_void: bool
     collected_by_method: Mapping[str, Decimal]
+    # Saldo que sigue pendiente de cobro: descuenta cobros, devoluciones y retenciones recibidas.
+    pending_balance: str
 
 
 def _project(sale: Sale) -> CommercialFiscalSource:
@@ -111,6 +114,7 @@ def _project(sale: Sale) -> CommercialFiscalSource:
         return_ids=tuple(sale.returns.order_by("id").values_list("id", flat=True)),
         has_void=SaleVoid.objects.filter(sale_id=sale.pk).exists(),
         collected_by_method=_collected_by_method(sale.pk),
+        pending_balance=format(ledger_for(sale).balance.balance.quantize(Decimal("0.01")), "f"),
     )
 
 
