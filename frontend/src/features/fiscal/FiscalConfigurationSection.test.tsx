@@ -509,7 +509,7 @@ it('presenta el perfil como tabla de consulta y declara una condición en su mod
 
   const table = within(panel('Perfil tributario')).getByRole('table')
   const rows = within(table).getAllByRole('row').slice(1)
-  expect(rows).toHaveLength(5)
+  expect(rows).toHaveLength(6)
   expect(rows[0]).toHaveTextContent('Régimen tributarioAplicaGeneral2026-01-01')
   expect(rows[2]).toHaveTextContent('Agente de retenciónSin declarar')
   expect(within(table).queryByRole('textbox')).not.toBeInTheDocument()

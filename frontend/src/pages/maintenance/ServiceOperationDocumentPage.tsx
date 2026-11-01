@@ -117,6 +117,11 @@ export function ServiceOperationDocumentPage() {
                         {line.service_code}
                       </span>
                     )}
+                    {line.detail && (
+                      <span className="block text-xs break-words text-ink-muted">
+                        {line.detail}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 pr-2 text-right">{line.quantity}</td>
                   <td className="py-1 pr-2 text-right">

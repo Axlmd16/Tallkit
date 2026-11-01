@@ -88,7 +88,7 @@ function detail(
     },
     issuer: { ruc: '1150696977001', legal_name: 'Repuestos VVH' },
     working: {
-      draft_format: 2,
+      draft_format: 3,
       receiver: {
         identification_type: '04',
         identification: '0999999999001',
@@ -103,6 +103,8 @@ function detail(
         suggestion_origin: 'COLLECTED',
       },
       additional_info: [],
+      service_details: [],
+      term_required: false,
     },
     payment_options: [
       {

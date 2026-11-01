@@ -40,11 +40,12 @@ const OPTIONS = {
   ],
 }
 
-const FIVE_KEYS = [
+const SIX_KEYS = [
   'tax_regime',
   'accounting_obligation',
   'withholding_agent',
   'special_taxpayer',
+  'large_taxpayer',
   'artisan_qualification',
 ]
 
@@ -101,7 +102,7 @@ function savedConditions() {
   return call.data
 }
 
-it('lista las cinco condiciones y no ofrece el régimen RIMPE como condición aparte', () => {
+it('lista las seis condiciones y no ofrece el régimen RIMPE como condición aparte', () => {
   renderSection()
   const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1)
   expect(
@@ -111,6 +112,7 @@ it('lista las cinco condiciones y no ofrece el régimen RIMPE como condición ap
     'Obligado a llevar contabilidad',
     'Agente de retención',
     'Contribuyente especial',
+    'Gran contribuyente',
     'Calificación artesanal',
   ])
   expect(screen.queryByRole('button', { name: /RIMPE$/ })).toBeNull()
@@ -145,7 +147,7 @@ it('declara el régimen con una lista cerrada y sin texto libre', async () => {
 
   const { conditions, expected_revision } = savedConditions()
   expect(expected_revision).toBe(1)
-  expect(Object.keys(conditions)).toEqual(FIVE_KEYS)
+  expect(Object.keys(conditions)).toEqual(SIX_KEYS)
   expect(conditions).not.toHaveProperty('rimpe')
   expect(conditions.tax_regime).toEqual({
     status: 'APPLICABLE',
@@ -296,7 +298,7 @@ it('muestra la calificación con su número y vencimiento y avisa si está por v
     },
   ])
   const rows = within(screen.getByRole('table')).getAllByRole('row')
-  expect(rows[5]).toHaveTextContent('JNDA-12345 · vence 2026-11-10')
+  expect(rows[6]).toHaveTextContent('JNDA-12345 · vence 2026-11-10')
 
   const notice = screen.getByRole('button', { name: 'Calificación por vencer' })
   await user.hover(notice)
@@ -366,7 +368,7 @@ it('trata un perfil anterior como pendiente de declarar de nuevo y no reenvía s
   renderSection()
 
   const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1)
-  expect(rows).toHaveLength(5)
+  expect(rows).toHaveLength(6)
   for (const row of rows) expect(row).toHaveTextContent('Sin declarar')
 
   const notice = screen.getByRole('button', { name: 'Perfil anterior' })
@@ -387,7 +389,126 @@ it('trata un perfil anterior como pendiente de declarar de nuevo y no reenvía s
 
   const { conditions, expected_revision } = savedConditions()
   expect(expected_revision).toBe(3)
-  expect(Object.keys(conditions)).toEqual(FIVE_KEYS)
+  expect(Object.keys(conditions)).toEqual(SIX_KEYS)
   expect(JSON.stringify(conditions)).not.toContain('no obligado')
   expect(conditions.tax_regime).toEqual({ status: 'UNKNOWN' })
+})
+
+it('declara gran contribuyente con su número de resolución y conserva las demás condiciones', async () => {
+  const user = userEvent.setup()
+  mocks.profile = profile({
+    conditions: {
+      tax_regime: {
+        status: 'APPLICABLE',
+        value: 'GENERAL',
+        source: 'Certificado',
+        starts_on: '2026-01-01',
+      },
+    },
+  })
+  renderSection()
+  const dialog = await openDialog(user, 'Declarar Gran contribuyente')
+  await user.click(within(dialog).getByRole('radio', { name: 'Aplica' }))
+  await user.type(
+    within(dialog).getByLabelText(/Número de resolución/),
+    'NAC-GCFOIOC21-00000868-E',
+  )
+  await fillSource(user, dialog)
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar condición' }),
+  )
+  const saved = savedConditions().conditions
+  expect(saved.large_taxpayer).toEqual({
+    status: 'APPLICABLE',
+    value: 'NAC-GCFOIOC21-00000868-E',
+    source: 'Certificado de RUC',
+    starts_on: '2026-01-01',
+  })
+  expect((saved.tax_regime as { value: string }).value).toBe('GENERAL')
+  expect(Object.keys(saved)).toEqual(SIX_KEYS)
+})
+
+it('declara gran contribuyente como no aplica sin pedir número', async () => {
+  const user = userEvent.setup()
+  renderSection()
+  const dialog = await openDialog(user, 'Declarar Gran contribuyente')
+  await user.click(within(dialog).getByRole('radio', { name: 'No aplica' }))
+  expect(within(dialog).queryByLabelText(/Número de resolución/)).toBeNull()
+  await fillSource(user, dialog)
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar condición' }),
+  )
+  expect(savedConditions().conditions.large_taxpayer).toMatchObject({
+    status: 'NOT_APPLICABLE',
+  })
+})
+
+it('una revisión anterior sin gran contribuyente la muestra sin declarar y pide declararla', () => {
+  mocks.profile = profile({
+    conditions: {
+      tax_regime: {
+        status: 'APPLICABLE',
+        value: 'GENERAL',
+        source: 'Certificado',
+        starts_on: '2026-01-01',
+      },
+    },
+  })
+  renderSection()
+  const row = within(screen.getByRole('table'))
+    .getAllByRole('row')
+    .find((candidate) => candidate.textContent?.includes('Gran contribuyente'))!
+  expect(row).toHaveTextContent('Sin declarar')
+  expect(
+    screen.getByRole('button', { name: 'Declarar Gran contribuyente' }),
+  ).toBeInTheDocument()
+})
+
+it('muestra la leyenda derivada de Negocio Popular como dato de solo lectura', () => {
+  mocks.profile = profile({
+    regime_legend: 'CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE',
+    conditions: {
+      tax_regime: {
+        status: 'APPLICABLE',
+        value: 'RIMPE_NEGOCIO_POPULAR',
+        source: 'Certificado',
+        starts_on: '2026-01-01',
+      },
+    },
+  })
+  renderSection()
+  const row = within(screen.getByRole('table')).getAllByRole('row')[1]!
+  expect(row).toHaveTextContent('RIMPE Negocio Popular')
+  expect(row).toHaveTextContent('CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE')
+})
+
+it('muestra junto al campo el error del servidor del número de resolución', async () => {
+  const user = userEvent.setup()
+  mocks.saveProfile.mutateAsync.mockRejectedValue(
+    new ProblemError(
+      'Hay condiciones tributarias inválidas.',
+      400,
+      'validation_error',
+      undefined,
+      {
+        'withholding_agent.value': [
+          'El número de resolución admite de 1 a 8 dígitos, sin ceros a la izquierda.',
+        ],
+      },
+    ),
+  )
+  renderSection()
+  const dialog = await openDialog(user, 'Declarar Agente de retención')
+  await user.click(within(dialog).getByRole('radio', { name: 'Aplica' }))
+  await user.type(
+    within(dialog).getByLabelText(/Número de resolución/),
+    '00012',
+  )
+  await fillSource(user, dialog)
+  await user.click(
+    within(dialog).getByRole('button', { name: 'Guardar condición' }),
+  )
+  expect(
+    await within(dialog).findByText(/sin ceros a la izquierda/),
+  ).toBeVisible()
 })

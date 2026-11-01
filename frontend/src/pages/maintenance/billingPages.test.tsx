@@ -107,6 +107,7 @@ function operation(overrides: Record<string, unknown> = {}) {
         service_code: 'SRV-000012',
         service_name: 'Alineación',
         quantity: 1,
+        detail: '',
         reference_price: '60.00',
         applied_price: '60.00',
         tax_name: 'IVA servicios',
@@ -538,5 +539,51 @@ describe('CommercialOrderViewPage', () => {
     )
     expect(mocks.receivableArgs.at(-1)).toMatchObject({ condition: 'CONTADO' })
     expect(screen.getByLabelText('Condición')).toHaveValue('CONTADO')
+  })
+})
+
+describe('detalle de servicio en la operación artesanal', () => {
+  function withDetail(detail: string) {
+    const base = operation()
+    return { ...base, lines: [{ ...base.lines[0]!, detail }] }
+  }
+
+  it('el detalle de la operación muestra la nota de cada línea y nada si no la tiene', () => {
+    mocks.operation.data = withDetail('frenos delanteros')
+    const { unmount } = renderAt(
+      '/maintenance/service-operations/4',
+      '/maintenance/service-operations/:id',
+      <ServiceOperationDetailPage />,
+    )
+    expect(screen.getByText('frenos delanteros')).toBeInTheDocument()
+    unmount()
+    mocks.operation.data = withDetail('')
+    renderAt(
+      '/maintenance/service-operations/4',
+      '/maintenance/service-operations/:id',
+      <ServiceOperationDetailPage />,
+    )
+    expect(screen.queryByText('frenos delanteros')).not.toBeInTheDocument()
+  })
+
+  it('el comprobante interno muestra la nota junto a su línea y no deja espacio vacío', () => {
+    mocks.brands = { ARTESANAL: { logoUrl: null, legalName: 'Taller' } }
+    mocks.operation.data = withDetail('frenos delanteros')
+    const { unmount } = renderAt(
+      '/maintenance/service-operations/4/document',
+      '/maintenance/service-operations/:id/document',
+      <ServiceOperationDocumentPage />,
+    )
+    const cell = screen.getByText('frenos delanteros').closest('td')!
+    expect(cell).toHaveTextContent('Alineación')
+    unmount()
+    mocks.operation.data = withDetail('')
+    renderAt(
+      '/maintenance/service-operations/4/document',
+      '/maintenance/service-operations/:id/document',
+      <ServiceOperationDocumentPage />,
+    )
+    const empty = screen.getByText('Alineación').closest('td')!
+    expect(empty.querySelectorAll('span')).toHaveLength(1)
   })
 })

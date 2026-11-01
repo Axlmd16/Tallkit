@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => {
     uploadPhoto: mutation(),
     removePhoto: mutation(),
     updateIntervention: mutation(),
+    pickerOptions: [] as Array<{ id: number; label: string; detail: string }>,
   }
 })
 vi.mock('./hooks', () => ({
@@ -29,7 +30,7 @@ vi.mock('./hooks', () => ({
   useServicePickerOptions: () => ({
     isPending: false,
     isError: false,
-    data: { totalPages: 1, options: [] },
+    data: { totalPages: 1, options: mocks.pickerOptions },
   }),
 }))
 
@@ -52,6 +53,7 @@ const line = {
   subtotal: '0.00',
   tax_name: 'IVA',
   no_charge: true,
+  detail: '',
 }
 
 function reopened(): MaintenanceOrder {
@@ -465,5 +467,208 @@ describe('resumen de la orden', () => {
       screen.queryByRole('list', { name: 'Requisitos para finalizar' }),
     ).not.toBeInTheDocument()
     expect(screen.getByText(/Finalizada por Encargado/)).toBeInTheDocument()
+  })
+})
+
+describe('detalle de servicio de una línea', () => {
+  function withDetail(detail: string): MaintenanceOrder {
+    const order = reopened()
+    const corrective = order.interventions.find((i) => i.kind === 'CORRECTIVE')!
+    corrective.lines = [{ ...line, detail }]
+    return order
+  }
+
+  it('muestra el detalle bajo el nombre del servicio y nada si no lo tiene', () => {
+    const { unmount } = wrap(
+      <ServiceLinesSection
+        onDone={onDone}
+        order={withDetail('frenos delanteros')}
+      />,
+    )
+    expect(screen.getByText('frenos delanteros')).toBeInTheDocument()
+    unmount()
+    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('')} />)
+    expect(screen.queryByText('frenos delanteros')).not.toBeInTheDocument()
+  })
+
+  it('precarga el detalle al editar y lo envía solo si cambió', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
+    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
+    await u.click(
+      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    const detail = within(dialog).getByLabelText('Detalle del servicio')
+    expect(detail).toHaveValue('frenos')
+    await u.clear(detail)
+    await u.type(detail, 'frenos y discos')
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
+    )
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lineId: 11,
+          data: { quantity: 1, detail: 'frenos y discos' },
+        }),
+      ),
+    )
+  })
+
+  it('no envía el detalle cuando solo cambia la cantidad', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
+    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
+    await u.click(
+      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    const quantity = within(dialog).getByLabelText('Cantidad')
+    await u.clear(quantity)
+    await u.type(quantity, '2')
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
+    )
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { quantity: 2 } }),
+      ),
+    )
+  })
+
+  it('quita el detalle enviándolo vacío', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
+    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
+    await u.click(
+      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await u.clear(within(dialog).getByLabelText('Detalle del servicio'))
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
+    )
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { quantity: 1, detail: '' } }),
+      ),
+    )
+  })
+
+  it('limita el detalle a 300 caracteres y muestra el error del servidor junto al campo', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockRejectedValue(
+      new ProblemError(
+        'La solicitud contiene datos inválidos.',
+        400,
+        'validation_error',
+        undefined,
+        { detail: ['El detalle admite una sola línea.'] },
+      ),
+    )
+    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('')} />)
+    await u.click(
+      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    const detail = within(dialog).getByLabelText('Detalle del servicio')
+    expect(detail).toHaveAttribute('maxlength', '300')
+    await u.type(detail, 'texto')
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
+    )
+    expect(
+      await within(dialog).findByText('El detalle admite una sola línea.'),
+    ).toBeVisible()
+  })
+
+  it('agrega un servicio con su detalle', async () => {
+    const u = userEvent.setup()
+    mocks.pickerOptions = [
+      { id: 2, label: 'Alineación', detail: 'Precio referencial USD 25.00' },
+    ]
+    mocks.addLine.mutateAsync.mockResolvedValue(reopened())
+    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
+    await u.click(
+      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await u.click(
+      within(dialog).getByRole('combobox', { name: 'Servicio del catálogo' }),
+    )
+    await u.click(await screen.findByRole('option', { name: /Alineación/ }))
+    await u.type(
+      within(dialog).getByLabelText('Detalle del servicio'),
+      'eje delantero',
+    )
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Agregar servicio' }),
+    )
+    await waitFor(() =>
+      expect(mocks.addLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { service_id: 2, quantity: 1, detail: 'eje delantero' },
+        }),
+      ),
+    )
+    mocks.pickerOptions = []
+  })
+
+  it('agrega un servicio sin detalle sin enviar el campo', async () => {
+    const u = userEvent.setup()
+    mocks.pickerOptions = [
+      { id: 2, label: 'Alineación', detail: 'Precio referencial USD 25.00' },
+    ]
+    mocks.addLine.mutateAsync.mockResolvedValue(reopened())
+    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
+    await u.click(
+      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await u.click(
+      within(dialog).getByRole('combobox', { name: 'Servicio del catálogo' }),
+    )
+    await u.click(await screen.findByRole('option', { name: /Alineación/ }))
+    await u.click(
+      within(dialog).getByRole('button', { name: 'Agregar servicio' }),
+    )
+    await waitFor(() =>
+      expect(mocks.addLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { service_id: 2, quantity: 1 },
+        }),
+      ),
+    )
+    mocks.pickerOptions = []
+  })
+
+  it('una línea documentada muestra su detalle y no ofrece editarlo', () => {
+    const order = reopened()
+    const initial = order.interventions.find((i) => i.kind === 'INITIAL')!
+    const documented = {
+      ...order,
+      interventions: [
+        {
+          ...initial,
+          is_open: true,
+          lines: [
+            {
+              ...line,
+              id: 20,
+              service_name: 'Alineación',
+              no_charge: false,
+              detail: 'eje delantero',
+              documented_by: { id: 4, number: 'ART-SER-000004' },
+            },
+          ],
+        },
+      ],
+    }
+    wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
+    expect(screen.getByText('eje delantero')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Editar Alineación' }),
+    ).not.toBeInTheDocument()
   })
 })

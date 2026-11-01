@@ -244,6 +244,11 @@ export function ServiceOperationDetailPage() {
                         {line.service_code}
                       </span>
                     )}
+                    {line.detail && (
+                      <span className="block text-xs break-words text-ink-muted">
+                        {line.detail}
+                      </span>
+                    )}
                     <span className="block text-xs text-ink-muted">
                       {line.tax_name} · {line.tax_rate} %
                     </span>

@@ -186,6 +186,11 @@ export function ServiceOperationDialog({
                           {line.service_code}
                         </span>
                       )}
+                      {line.detail && (
+                        <span className="block text-xs break-words text-ink-muted">
+                          {line.detail}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2 pr-3 text-right">{line.quantity}</td>
                     <td className="py-2 pr-3 text-right">

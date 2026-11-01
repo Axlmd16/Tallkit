@@ -81,6 +81,17 @@ export interface DeclaredPaymentForm {
   amount: string
 }
 
+export interface AdditionalInfoPair {
+  name: string
+  value: string
+}
+
+/** Detalle de una línea de servicio, por su posición en la operación artesanal. */
+export interface ServiceDetail {
+  position: number
+  detail: string
+}
+
 export interface WorkingDraft {
   draft_format: number
   receiver: FiscalReceiverValues
@@ -88,8 +99,13 @@ export interface WorkingDraft {
     forms: DeclaredPaymentForm[]
     suggested: boolean
     suggestion_origin?: 'COLLECTED' | 'MIXED' | 'DEFAULT' | 'NONE' | null
+    /** Plazo del comprobante en días; solo si la operación es a crédito con saldo pendiente. */
+    term_days?: number | null
   }
-  additional_info: Array<Record<string, string>>
+  additional_info: AdditionalInfoPair[]
+  service_details: ServiceDetail[]
+  /** El servidor decide si corresponde pedir el plazo; la pantalla no lo deduce. */
+  term_required: boolean
 }
 
 export interface PaymentChoice {
@@ -102,14 +118,18 @@ export interface PaymentChoice {
 export interface DraftValues {
   receiver?: Record<string, unknown>
   payments?: Record<string, unknown>
-  additional_info?: Array<Record<string, string>>
+  additional_info?: AdditionalInfoPair[]
+  service_details?: ServiceDetail[]
 }
 
 export interface DraftUpdate {
   expected_version: number
   receiver: FiscalReceiverValues
-  payments: { forms: DeclaredPaymentForm[] }
-  additional_info?: Array<Record<string, string>>
+  payments: { forms: DeclaredPaymentForm[]; term_days?: number }
+  /** Ausente conserva lo guardado. */
+  additional_info?: AdditionalInfoPair[]
+  /** Ausente conserva lo guardado; una venta comercial no lo admite. */
+  service_details?: ServiceDetail[]
 }
 
 export type ImpedimentAudience = 'OPERATOR' | 'ADMINISTRATOR'

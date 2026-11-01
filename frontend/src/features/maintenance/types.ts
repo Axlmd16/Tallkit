@@ -74,6 +74,8 @@ export interface ServiceLine {
   reference_price: string
   applied_price: string
   quantity: number
+  /** Nota opcional del trabajo de esta línea; vacía si no la tiene. */
+  detail: string
   subtotal: string
   tax_name: string
   no_charge: boolean
@@ -323,6 +325,8 @@ export interface ServiceOperationLine {
   service_code: string
   service_name: string
   quantity: number
+  /** Copia de la nota de la línea al confirmar la operación; vacía en las anteriores. */
+  detail: string
   reference_price: string
   applied_price: string
   tax_name: string | null
@@ -360,6 +364,8 @@ export interface ServiceOperationPreview {
     service_line_id: number
     service_code: string
     service_name: string
+    /** Nota de la línea que se copiará a la operación al confirmar. */
+    detail: string
     quantity: number
     applied_price: string
     tax_rate: string | null

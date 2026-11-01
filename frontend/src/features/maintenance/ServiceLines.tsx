@@ -208,6 +208,11 @@ function InterventionLines({
                         {line.service_code}
                       </span>
                     )}
+                    {line.detail && (
+                      <span className="block text-xs break-words text-ink-muted">
+                        {line.detail}
+                      </span>
+                    )}
                     {!line.service_is_active && (
                       <StatusBadge
                         className="ml-2"
@@ -300,6 +305,7 @@ function ServiceLineDialog({
   const [reference, setReference] = useState(line?.reference_price ?? '')
   const [quantity, setQuantity] = useState(String(line?.quantity ?? 1))
   const [price, setPrice] = useState(line?.applied_price ?? '')
+  const [detail, setDetail] = useState(line?.detail ?? '')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const priceEditable = canChangePrice && !corrective
 
@@ -317,9 +323,16 @@ function ServiceLineDialog({
       next.applied_price = 'Ingrese un importe en USD con hasta dos decimales.'
     setErrors(next)
     if (Object.keys(next).length) return false
+    // El detalle viaja solo si cambió (al editar) o si se escribió (al agregar): ausente no
+    // modifica lo guardado y un texto vacío lo quita.
+    const cleanDetail = detail.trim()
+    const detailChanged = line
+      ? cleanDetail !== (line.detail ?? '')
+      : cleanDetail !== ''
     const data = {
       quantity: Number(quantity),
       ...(priceEditable && price !== '' ? { applied_price: price } : {}),
+      ...(detailChanged ? { detail: cleanDetail } : {}),
     }
     try {
       if (line) {
@@ -360,7 +373,11 @@ function ServiceLineDialog({
           ? 'Intervención correctiva: el servicio se registra sin cargo al cliente.'
           : 'El precio referencial del catálogo es el valor inicial; el aplicado vale solo para esta orden.'
       }
-      dirty={Boolean(service) || quantity !== String(line?.quantity ?? 1)}
+      dirty={
+        Boolean(service) ||
+        quantity !== String(line?.quantity ?? 1) ||
+        detail.trim() !== (line?.detail ?? '')
+      }
       onClose={onClose}
       onSave={save}
       open
@@ -447,6 +464,19 @@ function ServiceLineDialog({
             />
           </Field>
         </div>
+        <Field
+          error={errors.detail}
+          hint="Opcional. Precisa el trabajo y se copia a la factura."
+          id="line-detail"
+          label="Detalle del servicio"
+        >
+          <Input
+            id="line-detail"
+            maxLength={300}
+            onChange={(event) => setDetail(event.target.value)}
+            value={detail}
+          />
+        </Field>
       </div>
     </FormModal>
   )

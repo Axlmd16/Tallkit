@@ -42,7 +42,7 @@ export interface ConditionItem {
 }
 
 /**
- * Las cinco condiciones del perfil. El régimen RIMPE ya no es una condición aparte: la
+ * Las seis condiciones del perfil. El régimen RIMPE ya no es una condición aparte: la
  * leyenda del comprobante se deriva del régimen y la pone el sistema.
  */
 export const CONDITIONS: readonly ConditionItem[] = [
@@ -76,6 +76,14 @@ export const CONDITIONS: readonly ConditionItem[] = [
     help: 'Solo si el SRI lo designó mediante resolución; registre su número.',
     valueLabel: 'Número de resolución',
     maxLength: 13,
+  },
+  {
+    key: 'large_taxpayer',
+    kind: 'designation',
+    label: 'Gran contribuyente',
+    help: 'Solo si el SRI lo calificó mediante resolución; registre su número tal como figura. Aparece en la información adicional de la factura.',
+    valueLabel: 'Número de resolución',
+    maxLength: 300,
   },
   {
     key: 'artisan_qualification',

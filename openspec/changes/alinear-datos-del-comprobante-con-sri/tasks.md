@@ -74,8 +74,8 @@ Dependencias: grupos 2, 4 y 5. Evidencia: `uv run --frozen pytest tests/fiscal/ 
 
 Cubre diseño 12; UI-019.
 
-- [ ] 7.1 Actualizar los tipos de `frontend/src/features/fiscal/types.ts` desde el contrato nuevo. Cierre: `npm run typecheck` en verde.
-- [ ] 7.2 Probar y añadir gran contribuyente a `frontend/src/features/fiscal/configuration/ProfileConditionsSection.tsx`, con ayuda contextual, y mostrar la leyenda de Negocio Popular como dato de solo lectura. Cierre: `ProfileConditionsSection.test.tsx` cubre *Aplica*, *No aplica* y el estado *Falta completar*.
+- [x] 7.1 Actualizar los tipos de `frontend/src/features/fiscal/types.ts` desde el contrato nuevo. Cierre: `npm run typecheck` en verde.
+- [x] 7.2 Probar y añadir gran contribuyente a `frontend/src/features/fiscal/configuration/ProfileConditionsSection.tsx`, con ayuda contextual, y mostrar la leyenda de Negocio Popular como dato de solo lectura. Cierre: `ProfileConditionsSection.test.tsx` cubre *Aplica*, *No aplica* y el estado *Falta completar*.
 
 Dependencias: grupo 6. Evidencia: `npm run test -- src/features/fiscal`.
 
@@ -83,8 +83,8 @@ Dependencias: grupo 6. Evidencia: `npm run test -- src/features/fiscal`.
 
 Cubre diseño 12; UI-072 y UI-077.
 
-- [ ] 8.1 Probar y añadir el detalle al modal y a la lista de `frontend/src/features/maintenance/ServiceLines.tsx`, con el error del servidor mostrado en el campo. Cierre: una línea documentada no ofrece editarlo.
-- [ ] 8.2 Mostrar el detalle en `BillingDialogs.tsx`, `ServiceOperationDetailPage.tsx` y `ServiceOperationDocumentPage.tsx`, sin espacio vacío si no hay. Cierre: «Comprobante interno con detalle» en verde.
+- [x] 8.1 Probar y añadir el detalle al modal y a la lista de `frontend/src/features/maintenance/ServiceLines.tsx`, con el error del servidor mostrado en el campo. Cierre: una línea documentada no ofrece editarlo.
+- [x] 8.2 Mostrar el detalle en `BillingDialogs.tsx`, `ServiceOperationDetailPage.tsx` y `ServiceOperationDocumentPage.tsx`, sin espacio vacío si no hay. Cierre: «Comprobante interno con detalle» en verde.
 
 Dependencias: grupo 6. Evidencia: `npm run test -- src/features/maintenance src/pages/maintenance`.
 

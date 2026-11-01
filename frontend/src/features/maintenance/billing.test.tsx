@@ -493,3 +493,60 @@ describe('Diálogos de servicios', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('detalle de servicio en la vista previa de la operación', () => {
+  it('muestra la nota de cada línea para revisarla antes de confirmar', async () => {
+    mocks.preview.mockResolvedValue({
+      order_id: 9,
+      order_number: 'ART-OT-000009',
+      condition: 'CONTADO',
+      operational_date: '2026-09-24',
+      lines: [
+        {
+          service_line_id: 1,
+          service_code: 'SRV-000012',
+          service_name: 'Alineación',
+          detail: 'eje delantero',
+          quantity: 1,
+          applied_price: '23.00',
+          tax_rate: '15',
+          base_amount: '20.00',
+          tax_amount: '3.00',
+          total_amount: '23.00',
+        },
+        {
+          service_line_id: 2,
+          service_code: 'SRV-000013',
+          service_name: 'Balanceo',
+          detail: '',
+          quantity: 1,
+          applied_price: '10.00',
+          tax_rate: '15',
+          base_amount: '8.70',
+          tax_amount: '1.30',
+          total_amount: '10.00',
+        },
+      ],
+      totals: { base: '28.70', tax: '4.30', total: '33.00' },
+      effects: {
+        series: 'ART-SER',
+        creates_balance: true,
+        affects_inventory: false,
+        registers_payment: false,
+      },
+      issues: [],
+      warnings: [],
+      review_digest: 'digest-1',
+    })
+    renderIn(
+      <ServiceOperationDialog
+        onClose={vi.fn()}
+        onDone={vi.fn()}
+        order={order()}
+      />,
+    )
+    expect(await screen.findByText('eje delantero')).toBeInTheDocument()
+    const balanceo = screen.getByText('Balanceo').closest('td')!
+    expect(balanceo.querySelectorAll('span')).toHaveLength(1)
+  })
+})
