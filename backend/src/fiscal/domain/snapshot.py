@@ -14,16 +14,18 @@ from datetime import date
 from typing import Any
 
 from fiscal.domain.payment_declaration import PaymentDeclaration
+from fiscal.domain.payment_term import TERM_UNIT
 from fiscal.domain.receiver import FiscalReceiver
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError, build_amounts
 
 SCHEMA_VERSION = "factura-2.1.0"
-SNAPSHOT_FORMAT = 3
+SNAPSHOT_FORMAT = 4
 CURRENCY = "USD"
 REQUIRED_ISSUER_FIELDS = (
     "ruc",
     "legal_name",
     "address",
+    "establishment_address",
     "establishment_code",
     "emission_point_code",
     "environment",
@@ -59,6 +61,8 @@ def build_snapshot(
     configuration: dict[str, Any] | None = None,
     payment_details: dict[str, dict[str, str]] | None = None,
     line_details: dict[int, dict[str, Any]] | None = None,
+    term_days: int | None = None,
+    term_form_indexes: tuple[int, ...] = (),
 ) -> dict[str, Any]:
     impediments: list[dict[str, str]] = []
 
@@ -140,7 +144,18 @@ def build_snapshot(
             "grand": amounts.grand_total,
         },
         "payments": [
-            {**asdict(form), **details.get(form.payment_code, {})} for form in payments.forms
+            {
+                **asdict(form),
+                **details.get(form.payment_code, {}),
+                # El plazo es solo un dato del comprobante (DP-035, regla 2): lo llevan las
+                # formas que cubren el saldo pendiente y nunca crea un vencimiento.
+                **(
+                    {"term_days": term_days, "time_unit": TERM_UNIT}
+                    if term_days is not None and index in term_form_indexes
+                    else {}
+                ),
+            }
+            for index, form in enumerate(payments.forms)
         ],
         # Las condiciones del emisor viven en `issuer.tax_profile`; no hay leyendas de texto.
         "legends": [],

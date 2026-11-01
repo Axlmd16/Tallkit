@@ -15159,6 +15159,9 @@ components:
           type: string
         quantity:
           type: integer
+        detail:
+          type: string
+          description: Nota opcional de la línea.
         subtotal:
           type: string
         tax_name:
@@ -15172,6 +15175,7 @@ components:
           description: Operación ART-SER vigente que documenta la línea.
       required:
       - applied_price
+      - detail
       - documented_by
       - id
       - no_charge
@@ -15203,6 +15207,10 @@ components:
         applied_price:
           type: string
           description: USD con hasta dos decimales; por omisión el referencial.
+        detail:
+          type: string
+          description: Nota opcional de esta línea, en una sola línea; vacío la quita.
+          maxLength: 300
       required:
       - expected_version
       - idempotency_key
@@ -16154,9 +16162,15 @@ components:
           type: array
           items:
             type: object
-            additionalProperties:
-              type: string
-          maxItems: 15
+            additionalProperties: {}
+          description: Hasta 12 pares nombre y valor; ausente conserva los guardados.
+        service_details:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Detalle por posición de línea artesanal; ausente conserva los
+            guardados.
     PatchedFiscalEntityUpdate:
       type: object
       properties:
@@ -16221,6 +16235,11 @@ components:
           minimum: 1
         applied_price:
           type: string
+        detail:
+          type: string
+          description: Nota opcional de esta línea; vacío la quita. Ausente no la
+            cambia.
+          maxLength: 300
     PatchedMaintenanceOrderUpdate:
       type: object
       properties:

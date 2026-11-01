@@ -10,6 +10,7 @@ from tests.workshop_configuration.profile_helpers import (
     qualification,
 )
 
+from customer_registry.models import Customer
 from workshop_configuration.application.electronic_profiles import save_profile
 from workshop_configuration.application.fiscal_tax_mapping import create_mapping
 from workshop_configuration.models import (
@@ -18,6 +19,19 @@ from workshop_configuration.models import (
     FiscalEstablishment,
     TaxDefinition,
 )
+
+
+@pytest.fixture
+def customer(db: None) -> Customer:
+    """El cliente de la suite, ahora con correo: la preparación lo exige (DP-035, regla 1)."""
+    return Customer.objects.create(
+        person_type="NATURAL",
+        name="Cliente Uno",
+        identification_type="CI",
+        identification="1712345678",
+        phone="0999999999",
+        email="cliente@example.com",
+    )
 
 
 def _setup_commercial_config(admin: Any) -> int:
@@ -92,6 +106,7 @@ def _fill_draft(seller: Any, preparation_id: Any, point_id: int, **overrides: An
             "identification": "0999999999001",
             "legal_name": "Cliente Fiscal S.A.",
             "address": "Calle 10",
+            "email": "cliente@example.com",
         },
         "payments": {"forms": [{"payment_code": "01", "amount": "100.00"}]},
     }
@@ -140,6 +155,7 @@ def test_review_without_config_returns_impediments(
             "identification_type": "04",
             "identification": "0999999999001",
             "legal_name": "Cliente",
+            "email": "cliente@example.com",
         },
         payments={"forms": [{"payment_code": "01", "amount": "100.00"}]},
     )
@@ -235,6 +251,7 @@ def test_concurrent_draft_edit_invalidates_review(
             "identification_type": "04",
             "identification": "0999999999001",
             "legal_name": "Otro Cliente",
+            "email": "otro@example.com",
         },
         payments={"forms": [{"payment_code": "20", "amount": "100.00"}]},
     )
@@ -455,7 +472,7 @@ def test_created_draft_is_prefilled_from_sale_and_configuration(
 ) -> None:
 
     draft = _draft(prepared_context["preparation_id"])
-    assert draft["draft_format"] == 2
+    assert draft["draft_format"] == 3
     assert draft["receiver"]["identification_type"] in {"04", "05"}
     assert draft["receiver"]["legal_name"]
     assert draft["payments"]["forms"] == [{"payment_code": "01", "amount": "100.00"}]
@@ -621,6 +638,7 @@ def test_legacy_draft_ignores_technical_fields(
                 "identification_type": "04",
                 "identification": "0999999999001",
                 "legal_name": "Cliente legado",
+                "email": "cliente@example.com",
             },
             "payments": {
                 "forms": [
@@ -910,11 +928,11 @@ def _prepared_snapshot(seller: Any, context: dict[str, Any], key: str) -> dict[s
     return dict(snapshot)
 
 
-def test_prepared_snapshot_is_format_three_with_the_structured_issuer(
+def test_prepared_snapshot_is_format_four_with_the_structured_issuer(
     prepared_context: dict[str, Any], seller: Any
 ) -> None:
     snapshot = _prepared_snapshot(seller, prepared_context, "fiscal:prepare:format3")
-    assert snapshot["snapshot_format"] == 3
+    assert snapshot["snapshot_format"] == 4
     assert snapshot["issuer"]["tax_profile"] == {
         "regime": "GENERAL",
         "accounting_obligation": "NO",

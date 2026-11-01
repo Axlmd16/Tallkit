@@ -149,6 +149,7 @@ def _configure_artisan(
     *,
     rate_code: str,
     qualification_payload: dict[str, str] | None = None,
+    **conditions: dict[str, str],
 ) -> None:
     from datetime import date
 
@@ -174,7 +175,10 @@ def _configure_artisan(
         idempotency_key=f"artisan:profile:{key()}",
         payload={
             "conditions": profile_conditions(
-                artisan_qualification=qualification_payload or not_applicable()
+                **{
+                    "artisan_qualification": qualification_payload or not_applicable(),
+                    **conditions,
+                }
             )
         },
     )
@@ -195,6 +199,25 @@ def _configure_artisan(
     )
 
 
+def _with_email(actor: Any, preparation_id: Any) -> None:
+    """Completa el correo del receptor: la operación artesanal no conserva el del cliente.
+
+    La instantánea del cliente de una orden de taller solo guarda nombre, identificación y
+    teléfono, así que quien prepara siempre lo escribe (DP-035, regla 1).
+    """
+    from fiscal.application.preparations import get_preparation, update_draft
+
+    detail = get_preparation(actor=actor, preparation_id=preparation_id)
+    assert detail.working is not None
+    update_draft(
+        actor=actor,
+        preparation_id=preparation_id,
+        expected_version=detail.version,
+        receiver={**detail.working["receiver"], "email": "ana@example.com"},
+        payments={"forms": detail.working["payments"]["forms"]},
+    )
+
+
 def _artisan_review(manager: Any, order: dict[str, Any], make_service: Any, **service: Any) -> Any:
     from fiscal.application.preparations import create_draft, review
 
@@ -206,6 +229,7 @@ def _artisan_review(manager: Any, order: dict[str, Any], make_service: Any, **se
         source_id=operation_id,
         idempotency_key=f"fiscal:artisan:{key()}",
     )
+    _with_email(manager, draft.preparation_id)
     return draft, review(actor=manager, preparation_id=draft.preparation_id)
 
 
@@ -281,6 +305,7 @@ def test_operation_line_without_a_preserved_service_code_blocks_without_using_th
         source_id=operation_id,
         idempotency_key="fiscal:artisan:nocode",
     )
+    _with_email(manager, draft.preparation_id)
     result = review(actor=manager, preparation_id=draft.preparation_id)
     assert result.token is None
     [impediment] = [i for i in result.impediments if i["field"] == "line[1].item_code"]

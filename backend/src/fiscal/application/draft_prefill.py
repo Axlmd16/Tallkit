@@ -16,7 +16,7 @@ from workshop_configuration.application.preparation_settings import (
     effective_defaults,
 )
 
-DRAFT_FORMAT = 2
+DRAFT_FORMAT = 3
 _IDENTIFICATION_TYPES = {"RUC": "04", "CI": "05"}
 _RECEIVER_FIELDS = ("identification_type", "identification", "legal_name", "address", "email")
 
@@ -36,6 +36,15 @@ def receiver_from_customer(customer: Any) -> dict[str, Any]:
         if isinstance(value, str) and value.strip():
             receiver[field] = value.strip()
     return receiver
+
+
+def service_details_from_source(source: Any) -> list[dict[str, Any]]:
+    """Detalle de cada línea artesanal tal como lo conserva la operación; vacío en comerciales."""
+    return [
+        {"position": line.position, "detail": str(line.detail)}
+        for line in source.lines
+        if hasattr(line, "detail")
+    ]
 
 
 def _enabled_by_method(enabled_codes: tuple[str, ...]) -> dict[str, str]:
@@ -67,6 +76,7 @@ def initial_draft(*, source: Any, entity_id: int, on: date) -> dict[str, Any]:
         "receiver": receiver_from_customer(source.customer_snapshot),
         "payments": suggested_payments(source=source, entity_id=entity_id, on=on),
         "additional_info": [],
+        "service_details": service_details_from_source(source),
     }
 
 
@@ -95,10 +105,20 @@ def normalized_draft(
             "suggested": bool(stored_payments.get("suggested", False)),
             "suggestion_origin": stored_payments.get("suggestion_origin"),
         }
+    # El plazo del comprobante se conserva solo como dato único del borrador; el que traían las
+    # formas de pago en borradores anteriores no se reutiliza y se vuelve a pedir.
+    if stored_payments.get("term_days") is not None:
+        payments["term_days"] = stored_payments["term_days"]
     additional = current.get("additional_info")
+    stored_details = current.get("service_details")
     return {
         "draft_format": DRAFT_FORMAT,
         "receiver": receiver,
         "payments": payments,
         "additional_info": additional if isinstance(additional, list) else [],
+        "service_details": (
+            stored_details
+            if isinstance(stored_details, list)
+            else service_details_from_source(source)
+        ),
     }

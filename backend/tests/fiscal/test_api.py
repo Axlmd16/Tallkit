@@ -581,3 +581,96 @@ def test_active_preparation_lookup_reports_state_without_emission(
         _client(role_seller).get(f"{BASE}/preparations/?source_kind=OTRO&source_id=7").status_code
         == 400
     )
+
+
+# --- Datos del comprobante (DP-035): errores por campo y nuevos campos del borrador -----------
+
+
+def test_draft_patch_translates_a_validation_error_into_field_errors(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from fiscal.application.preparations import DraftValidationError
+
+    def invalid(**_: object) -> object:
+        raise DraftValidationError(
+            {"payments.term_days": ["El plazo debe estar entre 1 y 9999 días."]}
+        )
+
+    monkeypatch.setattr("fiscal.api.views.preparations.update_draft", invalid)
+    response = _client(role_seller).patch(
+        f"{BASE}/preparations/{uuid4()}/",
+        {"expected_version": 1, "receiver": {}, "payments": {"term_days": 0}},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "validation_error"
+    assert response.json()["errors"] == {
+        "payments.term_days": ["El plazo debe estar entre 1 y 9999 días."]
+    }
+
+
+def test_draft_patch_translates_a_disallowed_field_into_a_stable_problem(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from fiscal.application.preparations import DraftFieldNotAllowedError
+
+    def refuse(**_: object) -> object:
+        raise DraftFieldNotAllowedError("field_not_allowed: el plazo no corresponde.")
+
+    monkeypatch.setattr("fiscal.api.views.preparations.update_draft", refuse)
+    response = _client(role_seller).patch(
+        f"{BASE}/preparations/{uuid4()}/",
+        {"expected_version": 1, "receiver": {}, "payments": {"term_days": 30}},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "fiscal_invalid_request"
+
+
+def test_draft_patch_passes_additional_info_and_service_details_to_the_command(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    received: dict[str, object] = {}
+
+    def capture(**kwargs: object) -> object:
+        received.update(kwargs)
+        return SimpleNamespace(pk=uuid4(), state="DRAFT", version=2, draft={})
+
+    monkeypatch.setattr("fiscal.api.views.preparations.update_draft", capture)
+    pairs = [{"name": f"Dato {n}", "value": "x"} for n in range(13)]
+    details = [{"position": 1, "detail": "frenos"}]
+    response = _client(role_seller).patch(
+        f"{BASE}/preparations/{uuid4()}/",
+        {
+            "expected_version": 1,
+            "receiver": {},
+            "payments": {"term_days": 30},
+            "additional_info": pairs,
+            "service_details": details,
+        },
+        format="json",
+    )
+    assert response.status_code == 200
+    # El límite de 12 lo decide el dominio con su propio mensaje, no el serializador.
+    assert received["additional_info"] == pairs
+    assert received["service_details"] == details
+    assert received["payments"] == {"term_days": 30}
+
+
+def test_draft_patch_without_the_optional_fields_does_not_send_them(
+    role_seller: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    received: dict[str, object] = {}
+
+    def capture(**kwargs: object) -> object:
+        received.update(kwargs)
+        return SimpleNamespace(pk=uuid4(), state="DRAFT", version=2, draft={})
+
+    monkeypatch.setattr("fiscal.api.views.preparations.update_draft", capture)
+    _client(role_seller).patch(
+        f"{BASE}/preparations/{uuid4()}/",
+        {"expected_version": 1, "receiver": {}, "payments": {}},
+        format="json",
+    )
+    assert "additional_info" not in received
+    assert "service_details" not in received

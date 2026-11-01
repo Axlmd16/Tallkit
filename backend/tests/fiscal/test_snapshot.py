@@ -1,5 +1,7 @@
 """Ensamble del snapshot fiscal versionado e independiente de datos maestros."""
 
+from typing import Any, cast
+
 import pytest
 
 from fiscal.domain.payment_declaration import PaymentDeclaration, validate_payment_declaration
@@ -12,6 +14,7 @@ def _issuer(**overrides: object) -> dict[str, object]:
         "legal_name": "Comercial Andina S.A.",
         "trade_name": "Andina",
         "address": "Av. Siempre Viva 123",
+        "establishment_address": "Sucursal Centro 45",
         "establishment_code": "001",
         "emission_point_code": "001",
         "environment": "1",
@@ -261,7 +264,7 @@ def _build(**overrides: object) -> dict[str, object]:
     return build_snapshot(**arguments)  # type: ignore[arg-type]
 
 
-def test_snapshot_format_three_keeps_the_issuer_tax_profile_and_no_text_legends() -> None:
+def test_snapshot_format_four_keeps_the_issuer_tax_profile_and_no_text_legends() -> None:
     from fiscal.domain.snapshot import SNAPSHOT_FORMAT
 
     profile = _tax_profile(
@@ -274,8 +277,8 @@ def test_snapshot_format_three_keeps_the_issuer_tax_profile_and_no_text_legends(
         },
     )
     snapshot = _build(tax_profile=profile)
-    assert SNAPSHOT_FORMAT == 3
-    assert snapshot["snapshot_format"] == 3
+    assert SNAPSHOT_FORMAT == 4
+    assert snapshot["snapshot_format"] == 4
     assert snapshot["issuer"]["tax_profile"] == profile  # type: ignore[index]
     assert snapshot["legends"] == []
     assert snapshot["issuer"]["ruc"] == "0991234567001"  # type: ignore[index]
@@ -299,3 +302,73 @@ def test_tax_profile_without_regime_or_accounting_blocks_with_an_impediment(
     with pytest.raises(SnapshotImpedimentError) as exc:
         _build(tax_profile=profile)
     assert f"issuer.tax_profile.{missing}" in {imp["field"] for imp in exc.value.impediments}
+
+
+# --- Formato 4: emisor completo, plazo y detalle (DP-035) ---------------------------------------
+
+
+def test_the_issuer_keeps_the_trade_name_and_both_addresses() -> None:
+    snapshot = _build()
+    issuer = snapshot["issuer"]
+    assert issuer["trade_name"] == "Andina"  # type: ignore[index]
+    assert issuer["address"] == "Av. Siempre Viva 123"  # type: ignore[index]
+    assert issuer["establishment_address"] == "Sucursal Centro 45"  # type: ignore[index]
+
+
+def test_an_issuer_without_trade_name_omits_it_instead_of_using_the_legal_name() -> None:
+    issuer = _issuer()
+    del issuer["trade_name"]
+    snapshot = _build(issuer=issuer)
+    assert "trade_name" not in snapshot["issuer"]  # type: ignore[operator]
+
+
+def test_a_missing_establishment_address_blocks_without_inventing_one() -> None:
+    from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
+
+    with pytest.raises(SnapshotImpedimentError) as exc:
+        _build(issuer=_issuer(establishment_address=""))
+    assert "issuer.establishment_address" in {i["field"] for i in exc.value.impediments}
+
+
+def test_the_large_taxpayer_resolution_and_the_popular_business_legend_are_kept() -> None:
+    profile = _tax_profile(
+        regime="RIMPE_NEGOCIO_POPULAR",
+        regime_legend="CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE",
+        large_taxpayer_resolution="NAC-GCFOIOC21-00000868-E",
+    )
+    stored = _build(tax_profile=profile)["issuer"]["tax_profile"]  # type: ignore[index]
+    assert stored == profile
+
+
+def _credit(*forms: tuple[str, str]) -> PaymentDeclaration:
+    total = sum(float(amount) for _, amount in forms)
+    return validate_payment_declaration(
+        condition="CREDITO",
+        forms=[{"payment_code": code, "amount": amount} for code, amount in forms],
+        total=f"{total:.2f}",
+        enabled_codes=("01", "20"),
+    )
+
+
+def test_only_the_forms_flagged_carry_the_term_and_its_unit() -> None:
+    declaration = _credit(("01", "5.00"), ("20", "6.50"))
+    snapshot = _build(payments=declaration, term_days=30, term_form_indexes=(1,))
+    first, second = cast(list[dict[str, Any]], snapshot["payments"])
+    assert "term_days" not in first
+    assert "time_unit" not in first
+    assert (second["term_days"], second["time_unit"]) == (30, "dias")
+
+
+def test_without_a_term_no_form_carries_one() -> None:
+    snapshot = _build(payments=_credit(("20", "11.50")), term_days=None, term_form_indexes=())
+    assert all("term_days" not in form for form in snapshot["payments"])  # type: ignore[attr-defined]
+
+
+def test_a_term_without_forms_to_carry_it_is_not_kept_anywhere() -> None:
+    snapshot = _build(payments=_credit(("20", "11.50")), term_days=30, term_form_indexes=())
+    assert all("term_days" not in form for form in snapshot["payments"])  # type: ignore[attr-defined]
+
+
+def test_additional_info_is_kept_as_validated_pairs() -> None:
+    pairs = [{"name": "Vehículo", "value": "Placa PCM4567"}]
+    assert _build(additional_info=pairs)["additional_info"] == pairs

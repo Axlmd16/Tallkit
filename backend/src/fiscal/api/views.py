@@ -31,6 +31,7 @@ from fiscal.application.corrections import (
 from fiscal.application.identity import IdentityError, assign_test_identity
 from fiscal.application.preparations import (
     ActivePreparationConflictError,
+    DraftValidationError,
     FiscalPreparationError,
     FiscalPreparationNotFoundError,
     IdempotencyConflictError,
@@ -164,6 +165,9 @@ def _problem(request: Request, exc: Exception) -> Response:
         code = exc.code
         if exc.code == "xml_too_large":
             response_status, title = 413, "Contenido demasiado grande"
+    elif isinstance(exc, DraftValidationError):
+        code = "validation_error"
+        errors = exc.errors
     elif isinstance(exc, StaleReviewError):
         code, response_status, title = "review_stale", 409, "Revisión desactualizada"
     elif isinstance(exc, PreparationImpedimentError):

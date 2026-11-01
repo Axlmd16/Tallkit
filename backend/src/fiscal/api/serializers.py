@@ -43,9 +43,14 @@ class FiscalDraftUpdate(StrictSerializer):
     receiver = serializers.DictField()
     payments = serializers.DictField()
     additional_info = serializers.ListField(
-        child=serializers.DictField(child=serializers.CharField()),
-        max_length=15,
+        child=serializers.DictField(),
         required=False,
+        help_text="Hasta 12 pares nombre y valor; ausente conserva los guardados.",
+    )
+    service_details = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        help_text="Detalle por posición de línea artesanal; ausente conserva los guardados.",
     )
 
 

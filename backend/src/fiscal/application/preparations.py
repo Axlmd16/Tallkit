@@ -11,10 +11,18 @@ from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.utils import timezone
 
-from fiscal.application.draft_prefill import initial_draft, normalized_draft
+from fiscal.application.draft_prefill import (
+    DRAFT_FORMAT,
+    initial_draft,
+    normalized_draft,
+    service_details_from_source,
+)
 from fiscal.application.impediment_messages import classify_all
 from fiscal.application.snapshot_builder import assemble_snapshot
+from fiscal.domain.additional_info import AdditionalInfoError, validate_additional_info
+from fiscal.domain.payment_term import PaymentTermError, parse_term_days, term_required
 from fiscal.domain.receiver import FiscalReceiverError, parse_receiver
+from fiscal.domain.service_details import ServiceDetailError, parse_service_details
 from fiscal.domain.snapshot_amounts import SnapshotImpedimentError
 from fiscal.domain.states import PreparationState
 from fiscal.models import (
@@ -105,6 +113,14 @@ class LinkedExternalEvidenceError(FiscalPreparationError):
 
 class DraftFieldNotAllowedError(FiscalPreparationError):
     """Campo técnico o no admitido enviado desde la interfaz operativa."""
+
+
+class DraftValidationError(FiscalPreparationError):
+    """Dato del borrador fuera de regla; ``errors`` asocia campo → mensajes."""
+
+    def __init__(self, errors: dict[str, list[str]]) -> None:
+        super().__init__("El borrador contiene datos inválidos.")
+        self.errors = errors
 
 
 @dataclass(frozen=True)
@@ -358,7 +374,11 @@ def get_preparation(*, actor: User, preparation_id: UUID) -> PreparationDetail:
         working = normalized_draft(
             preparation.draft, source=source, entity_id=preparation.fiscal_entity_id, on=today
         )
+        needs_term = term_required(source.condition, source.pending_balance)
+        working = {**working, "term_required": needs_term}
         missing = _missing_receiver_fields(working["receiver"])
+        if needs_term and working["payments"].get("term_days") is None:
+            missing = (*missing, "term_days")
         options = tuple(
             {
                 "code": option.code,
@@ -429,10 +449,13 @@ def _summary(source_kind: str, source: Any) -> dict[str, Any]:
 
 def _missing_receiver_fields(receiver: dict[str, Any]) -> tuple[str, ...]:
     try:
-        parse_receiver(receiver)
+        parsed = parse_receiver(receiver)
     except FiscalReceiverError as error:
         return tuple(sorted(error.errors))
     missing = [] if receiver.get("address") else ["address"]
+    # El correo se exige al completar la preparación, no al guardar el borrador (DP-035).
+    if parsed.requires_email and not parsed.email:
+        missing.append("email")
     return tuple(missing)
 
 
@@ -473,8 +496,13 @@ def update_draft(
     receiver: dict[str, Any],
     payments: dict[str, Any],
     additional_info: list[dict[str, str]] | None = None,
+    service_details: list[dict[str, Any]] | None = None,
 ) -> FiscalPreparation:
-    """Guarda solo lo que el usuario completa; los datos técnicos los resuelve el sistema."""
+    """Guarda solo lo que el usuario completa; los datos técnicos los resuelve el sistema.
+
+    ``additional_info`` y ``service_details`` ausentes conservan lo ya guardado; ``receiver`` y
+    ``payments`` se reemplazan completos, incluido el plazo.
+    """
     with transaction.atomic():
         preparation = _lock_preparation(preparation_id)
         if preparation is None:
@@ -486,11 +514,28 @@ def update_draft(
             raise PreparationVersionConflictError("El borrador cambió; vuelva a consultarlo.")
         forms = payments.get("forms") if isinstance(payments, dict) else None
         _check_draft_fields(receiver, payments, forms)
+        source = _read_source(preparation)
+        stored = normalized_draft(
+            preparation.draft,
+            source=source,
+            entity_id=preparation.fiscal_entity_id,
+            on=date.fromisoformat(_today_guayaquil()),
+        )
+        term_days = _checked_term(payments, source)
+        pairs = _checked_additional_info(additional_info, stored)
+        details = _checked_service_details(service_details, stored, source, _kind_of(preparation))
+        saved_payments: dict[str, Any] = {
+            "forms": forms if isinstance(forms, list) else [],
+            "suggested": False,
+        }
+        if term_days is not None:
+            saved_payments["term_days"] = term_days
         preparation.draft = {
-            "draft_format": 2,
+            "draft_format": DRAFT_FORMAT,
             "receiver": receiver,
-            "payments": {"forms": forms if isinstance(forms, list) else [], "suggested": False},
-            "additional_info": additional_info or [],
+            "payments": saved_payments,
+            "additional_info": pairs,
+            "service_details": details,
         }
         preparation.version += 1
         preparation.save(update_fields=["draft", "version", "updated_at"])
@@ -503,10 +548,68 @@ _RECEIVER_FIELDS = frozenset(
 _FORM_FIELDS = frozenset({"payment_code", "amount"})
 
 
+def _read_source(preparation: FiscalPreparation) -> Any:
+    source_id = preparation.commercial_sale_id or preparation.artisan_operation_id
+    assert source_id is not None
+    if preparation.commercial_sale_id is not None:
+        return read_commercial_source(source_id)
+    return read_artisan_source(source_id)
+
+
+def _checked_term(payments: dict[str, Any], source: Any) -> int | None:
+    """Plazo del borrador: entero de días y solo en crédito con saldo pendiente."""
+    raw = payments.get("term_days")
+    if raw is None:
+        return None
+    try:
+        days = parse_term_days(raw)
+    except PaymentTermError as error:
+        raise DraftValidationError({"payments.term_days": error.errors["term_days"]}) from None
+    if not term_required(source.condition, source.pending_balance):
+        raise DraftFieldNotAllowedError(
+            "field_not_allowed: el plazo solo se declara en una operación a crédito con saldo "
+            "pendiente."
+        )
+    return days
+
+
+def _checked_additional_info(
+    additional_info: list[dict[str, str]] | None, stored: dict[str, Any]
+) -> list[dict[str, str]]:
+    if additional_info is None:
+        return list(stored["additional_info"])
+    try:
+        return validate_additional_info(additional_info)
+    except AdditionalInfoError as error:
+        raise DraftValidationError(error.errors) from None
+
+
+def _checked_service_details(
+    service_details: list[dict[str, Any]] | None,
+    stored: dict[str, Any],
+    source: Any,
+    source_kind: str,
+) -> list[dict[str, Any]]:
+    if service_details is None:
+        return list(stored["service_details"])
+    if source_kind == "COMMERCIAL":
+        if service_details:
+            raise DraftFieldNotAllowedError(
+                "field_not_allowed: una venta comercial no admite detalle de servicio."
+            )
+        return []
+    try:
+        return parse_service_details(
+            service_details, valid_positions=[line.position for line in source.lines]
+        )
+    except ServiceDetailError as error:
+        raise DraftValidationError(error.errors) from None
+
+
 def _check_draft_fields(receiver: Any, payments: Any, forms: Any) -> None:
     if not isinstance(receiver, dict) or receiver.keys() - _RECEIVER_FIELDS:
         raise DraftFieldNotAllowedError("field_not_allowed: el receptor tiene campos no admitidos.")
-    if not isinstance(payments, dict) or payments.keys() - {"forms"}:
+    if not isinstance(payments, dict) or payments.keys() - {"forms", "term_days"}:
         raise DraftFieldNotAllowedError(
             "field_not_allowed: las formas de pago no admiten ese dato."
         )
@@ -515,7 +618,7 @@ def _check_draft_fields(receiver: Any, payments: Any, forms: Any) -> None:
     ):
         raise DraftFieldNotAllowedError(
             "field_not_allowed: cada forma de pago admite solo código e importe; "
-            "el plazo no se registra en la preparación local."
+            "el plazo del comprobante se declara una sola vez, no por forma."
         )
 
 
@@ -781,12 +884,19 @@ def replace(
                 metadata={"reason": reason.strip(), "superseded": True},
             )
         source = _lock_source(old)
+        # El reemplazo conserva el trabajo del usuario, pero el detalle de servicio vuelve a
+        # precargarse con el de la operación: los ajustes de la preparación anterior no pasan.
+        draft = (
+            {**old.draft, "service_details": service_details_from_source(source)}
+            if isinstance(old.draft, dict)
+            else old.draft
+        )
         replacement = FiscalPreparation.objects.create(
             fiscal_entity_id=old.fiscal_entity_id,
             commercial_sale_id=old.commercial_sale_id,
             artisan_operation_id=old.artisan_operation_id,
             source_version=source.version,
-            draft=old.draft,
+            draft=draft,
             replaces=old,
             created_by=actor,
         )

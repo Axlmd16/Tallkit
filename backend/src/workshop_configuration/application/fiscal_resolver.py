@@ -56,6 +56,8 @@ class FiscalConfiguration:
     tax_mapping_ids: tuple[int, ...] = ()
     # Resumen estructurado del emisor para el comprobante; se congela en la instantánea.
     tax_profile: Mapping[str, Any] = field(default_factory=lambda: MappingProxyType({}), hash=False)
+    # Nombre comercial declarado; ausente si la entidad no lo tiene (DP-035, formato 4).
+    trade_name: str | None = None
 
     @property
     def ready_for_preparation(self) -> bool:
@@ -137,4 +139,5 @@ def resolve_fiscal_configuration(*, actor: User, entity_id: int, on: date) -> Fi
             default_payment_code=status.defaults.payment_code,
             tax_mapping_ids=status.tax_mapping_ids,
             tax_profile=MappingProxyType(build_tax_profile(dict(status.conditions))),
+            trade_name=(entity.trade_name or "").strip() or None,
         )
