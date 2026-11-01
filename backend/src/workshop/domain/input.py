@@ -11,6 +11,7 @@ from workshop.domain.odometer import OdometerError, parse_odometer
 TEXT_MAX = 5000
 REASON_MAX = 1000
 DESCRIPTION_MAX = 200
+DETAIL_MAX = 300
 CONTROL = frozenset({"idempotency_key", "expected_version"})
 
 
@@ -202,16 +203,35 @@ def _quantity(payload: dict[str, Any], errors: dict[str, list[str]]) -> int | No
         return None
 
 
+def _detail(payload: dict[str, Any], errors: dict[str, list[str]]) -> str | None:
+    """Detalle de servicio: ausente no cambia, vacío lo quita; una línea, sin recortar."""
+    if "detail" not in payload or payload["detail"] is None:
+        return None
+    value = payload["detail"]
+    if not isinstance(value, str):
+        errors["detail"] = ["Ingrese un texto."]
+        return None
+    text = value.strip()
+    if "\n" in text or "\r" in text:
+        errors["detail"] = ["El detalle admite una sola línea."]
+        return None
+    if len(text) > DETAIL_MAX:
+        errors["detail"] = [f"El detalle admite hasta {DETAIL_MAX} caracteres; tiene {len(text)}."]
+        return None
+    return text
+
+
 @dataclass(frozen=True)
 class LineCreateInput:
     expected_version: int
     service_id: int
     quantity: int
     applied_price: Decimal | None
+    detail: str | None = None
 
 
 def parse_line_create(payload: dict[str, Any]) -> LineCreateInput:
-    _reject_unknown(payload, frozenset({"service_id", "quantity", "applied_price"}))
+    _reject_unknown(payload, frozenset({"service_id", "quantity", "applied_price", "detail"}))
     errors: dict[str, list[str]] = {}
     version = _version(payload, errors)
     service_id = _positive_id(payload.get("service_id"))
@@ -219,10 +239,11 @@ def parse_line_create(payload: dict[str, Any]) -> LineCreateInput:
         errors["service_id"] = ["Seleccione un servicio del catálogo."]
     quantity = _quantity(payload, errors)
     price = _price(payload, errors)
+    detail = _detail(payload, errors)
     if errors:
         raise InputError("validation_error", errors)
     assert service_id is not None
-    return LineCreateInput(version, service_id, quantity or 1, price)
+    return LineCreateInput(version, service_id, quantity or 1, price, detail)
 
 
 @dataclass(frozen=True)
@@ -230,17 +251,19 @@ class LineUpdateInput:
     expected_version: int
     quantity: int | None
     applied_price: Decimal | None
+    detail: str | None = None
 
 
 def parse_line_update(payload: dict[str, Any]) -> LineUpdateInput:
-    _reject_unknown(payload, frozenset({"quantity", "applied_price"}))
+    _reject_unknown(payload, frozenset({"quantity", "applied_price", "detail"}))
     errors: dict[str, list[str]] = {}
     version = _version(payload, errors)
     quantity = _quantity(payload, errors)
     price = _price(payload, errors)
+    detail = _detail(payload, errors)
     if errors:
         raise InputError("validation_error", errors)
-    return LineUpdateInput(version, quantity, price)
+    return LineUpdateInput(version, quantity, price, detail)
 
 
 def parse_version_only(payload: dict[str, Any]) -> int:

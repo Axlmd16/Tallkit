@@ -45,6 +45,7 @@ def _line(
         "reference_price": money(line.reference_price),
         "applied_price": money(line.applied_price),
         "quantity": line.quantity,
+        "detail": line.detail,
         "subtotal": money(line_subtotal(line.quantity, line.applied_price)),
         "tax_name": line.tax_name,
         "no_charge": corrective,

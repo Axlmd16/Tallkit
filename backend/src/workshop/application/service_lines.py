@@ -112,6 +112,7 @@ def add_line(
             reference_price=service.reference_price,
             applied_price=applied,
             quantity=data.quantity,
+            detail=data.detail or "",
             tax_definition_id=service.tax_definition_id,
             tax_name=service.tax_name,
             position=position,
@@ -159,6 +160,9 @@ def update_line(
         if data.quantity is not None and data.quantity != line.quantity:
             line.quantity = data.quantity
             changed.append("quantity")
+        if data.detail is not None and data.detail != line.detail:
+            line.detail = data.detail
+            changed.append("detail")
         if changed:
             line.updated_by = actor
             line.save()

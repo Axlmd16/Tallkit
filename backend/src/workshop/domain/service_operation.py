@@ -39,6 +39,7 @@ class DocumentableLine:
     reference_price: Decimal
     applied_price: Decimal
     tax_definition_id: int
+    detail: str = ""
 
 
 @dataclass(frozen=True)
@@ -104,6 +105,7 @@ def review_digest(
                 "quantity": c.line.quantity,
                 "reference_price": format(c.line.reference_price, "f"),
                 "applied_price": format(c.line.applied_price, "f"),
+                "detail": c.line.detail,
                 "tax_definition": c.line.tax_definition_id,
                 "period": c.rate.period_id if c.rate else None,
                 "rate": format(c.rate.rate, "f") if c.rate else None,

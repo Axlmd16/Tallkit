@@ -115,6 +115,7 @@ def _documentable(lines: list[ServiceLine]) -> list[DocumentableLine]:
             reference_price=line.reference_price,
             applied_price=line.applied_price,
             tax_definition_id=line.tax_definition_id,
+            detail=line.detail,
         )
         for line in lines
     ]
@@ -172,6 +173,7 @@ def _line_view(computation: LineComputation) -> dict[str, Any]:
         "service_code": line.service_code,
         "service_name": line.service_name,
         "quantity": line.quantity,
+        "detail": line.detail,
         "reference_price": _money(line.reference_price),
         "applied_price": _money(line.applied_price),
         "tax_definition_id": line.tax_definition_id,
@@ -372,6 +374,7 @@ def confirm_operation(
                 service_id=c.line.service_id,
                 service_code=c.line.service_code,
                 service_name=c.line.service_name,
+                detail=c.line.detail,
                 quantity=c.line.quantity,
                 reference_price=c.line.reference_price,
                 applied_price=c.line.applied_price,
@@ -512,6 +515,7 @@ def operation_detail(operation_id: int, actor: User) -> dict[str, Any]:
                     "service_id": line.service_id,
                     "service_code": line.service_code,
                     "service_name": line.service_name,
+                    "detail": line.detail,
                     "quantity": line.quantity,
                     "reference_price": _money(line.reference_price),
                     "applied_price": _money(line.applied_price),

@@ -55,11 +55,23 @@ class MaintenanceLineCreateSerializer(MaintenanceVersionedCommandFields):
     applied_price = serializers.CharField(
         required=False, help_text="USD con hasta dos decimales; por omisión el referencial."
     )
+    detail = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=300,
+        help_text="Nota opcional de esta línea, en una sola línea; vacío la quita.",
+    )
 
 
 class MaintenanceLineUpdateSerializer(MaintenanceVersionedCommandFields):
     quantity = serializers.IntegerField(min_value=1, max_value=9999, required=False)
     applied_price = serializers.CharField(required=False)
+    detail = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=300,
+        help_text="Nota opcional de esta línea; vacío la quita. Ausente no la cambia.",
+    )
 
 
 class MaintenanceReopenSerializer(MaintenanceVersionedCommandFields):
@@ -101,6 +113,7 @@ class MaintenanceLineSerializer(_Base):
     reference_price = serializers.CharField()
     applied_price = serializers.CharField()
     quantity = serializers.IntegerField()
+    detail = serializers.CharField(allow_blank=True, help_text="Nota opcional de la línea.")
     subtotal = serializers.CharField()
     tax_name = serializers.CharField()
     no_charge = serializers.BooleanField()
