@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Fecha | 2026-11-01 |
-| Cambios activos en OpenSpec | `incorporar-facturacion-electronica-en-v1` (cambio 1) |
+| Cambios activos en OpenSpec | Ninguno |
 | Cambios pendientes | 15, más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
@@ -158,8 +158,8 @@ normas con el texto oficial. No toca código.
 - [x] Diseño aprobado
 - [x] Tareas aprobadas
 - [x] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Verificado
+- [x] Archivado (`openspec/changes/archive/2026-11-01-incorporar-facturacion-electronica-en-v1`); falta registrarlo en `master`
 
 ### 2. `alinear-datos-del-comprobante-con-sri`
 

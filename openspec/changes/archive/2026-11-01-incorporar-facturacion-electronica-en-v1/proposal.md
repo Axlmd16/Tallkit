@@ -2,7 +2,7 @@
 
 La documentación vigente dice que V1 no factura: `DP-018` limita V1 a documentos internos y los límites de la versión excluyen la conexión con el **SRI**. El cliente pidió facturar desde Tallkit porque el Facturador del SRI le resulta tedioso, y el titular decidió incluir la **facturación electrónica** en V1 mediante un proveedor reemplazable.
 
-Mientras esa decisión no quede registrada, cualquier cambio de emisión contradiría una fuente de mayor precedencia. Este cambio ordena primero la decisión, los documentos y las normas. No toca código: habilita los cambios 2 a 7 del [plan](../../../docs/cambios-pendientes.md), pero no habilita la emisión por sí mismo.
+Mientras esa decisión no quede registrada, cualquier cambio de emisión contradiría una fuente de mayor precedencia. Este cambio ordena primero la decisión, los documentos y las normas. No toca código: habilita los cambios 2 a 7 del [plan](../../../../docs/cambios-pendientes.md), pero no habilita la emisión por sí mismo.
 
 ## What Changes
 
