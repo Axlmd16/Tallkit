@@ -11,11 +11,11 @@
 
 | Capacidad | Requisitos | Escenarios | De ellos, regresión | Cumplidos | Pendientes |
 |---|---|---|---|---|---|
-| `preparacion-y-seguimiento-fiscal` | 7 | 57 | 18 | 57 | 0 |
+| `preparacion-y-seguimiento-fiscal` | 9 | 66 | 22 | 66 | 0 |
 | `configuracion-operativa-y-fiscal` | 2 | 26 | 18 | 26 | 0 |
 | `servicios-aplicados-al-mantenimiento` | 1 | 10 | 0 | 10 | 0 |
 | `operacion-artesanal-de-servicios` | 1 | 6 | 0 | 6 | 0 |
-| **Total** | **11** | **99** | **36** | **99** | **0** |
+| **Total** | **13** | **108** | **40** | **108** | **0** |
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el escenario. «Regresión» marca un escenario que ya existía en la spec principal y que la delta conserva dentro de un requisito modificado: su prueba actual debe seguir en verde, o actualizarse si la regla cambió. Las rutas de backend son relativas a `backend/` y las de frontend, a `frontend/`.
 
@@ -106,6 +106,15 @@ Las pruebas de `tests/workshop` que preparan operaciones artesanales y las de `t
 | P-55 | Detalle de servicio en la preparación | Detalle excedido | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_an_invalid_detail_is_rejected_without_changing_the_draft`; `backend/tests/fiscal/test_service_details.py::test_three_hundred_and_one_characters_are_rejected_with_both_lengths` | Cumplido |
 | P-56 | Detalle de servicio en la preparación | Línea de venta comercial | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_commercial_line_does_not_accept_a_service_detail`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::una venta comercial no ofrece detalle por servicio ni lo envía` | Cumplido |
 | P-57 | Detalle de servicio en la preparación | Reemplazo de una preparación cancelada | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_a_replacement_preloads_the_operation_detail_and_the_old_snapshot_keeps_its_own` | Cumplido |
+| P-58 | Terminología de preparación local | Preparación completada | Modificado | `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::shows the confirmed data as ready, without wording that suggests it was sent or approved`; `frontend/src/features/fiscal/FiscalPreparationLink.test.tsx::muestra una preparación completada como datos listos` | Cumplido |
+| P-59 | Terminología de preparación local | Confirmación tras completar | Modificado | `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::confirms the data after a clean review and says they are ready` | Cumplido |
+| P-60 | Terminología de preparación local | Texto sin jerga | Nuevo | `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::no usa jerga en el borrador ni en los datos listos` | Cumplido |
+| P-61 | Precarga automática desde la operación y la configuración | Venta con cliente completo | Regresión | `backend/tests/sales/test_fiscal_prepare_flow.py::test_prefilled_draft_is_reviewable_without_user_input` | Cumplido (regresión) |
+| P-62 | Precarga automática desde la operación y la configuración | Cliente con cédula | Regresión | `backend/tests/workshop/test_fiscal_preparation.py::test_manager_draft_is_prefilled_with_cedula_and_services_only` | Cumplido (regresión) |
+| P-63 | Precarga automática desde la operación y la configuración | Entidad determinada por la operación | Regresión | `backend/tests/sales/test_fiscal_prepare_flow.py::test_update_draft_errors` | Cumplido (regresión) |
+| P-64 | Precarga automática desde la operación y la configuración | Cambio del cliente después de preparar | Regresión | `backend/tests/sales/test_fiscal_prepare_flow.py::test_customer_change_after_prepare_keeps_frozen_receiver` | Cumplido (regresión) |
+| P-65 | Precarga automática desde la operación y la configuración | Correo de la ficha en una operación artesanal | Nuevo | `backend/tests/workshop/test_fiscal_alignment.py::test_the_draft_is_prefilled_with_the_email_and_address_of_the_customer_card`; `backend/tests/workshop/test_fiscal_alignment.py::test_the_prefilled_email_prepares_without_typing_and_keeps_the_card_untouched`; `backend/tests/workshop/test_fiscal_source.py::test_artisan_source_reads_the_email_and_address_of_the_current_customer_card` | Cumplido |
+| P-66 | Precarga automática desde la operación y la configuración | Correo escrito en la preparación | Nuevo | `backend/tests/workshop/test_fiscal_alignment.py::test_an_email_typed_in_the_preparation_wins_over_the_card_and_does_not_change_it`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::precarga el correo que ya tiene el cliente y deja corregirlo` | Cumplido |
 
 ### `configuracion-operativa-y-fiscal`
 
@@ -166,27 +175,29 @@ Las pruebas de `tests/workshop` que preparan operaciones artesanales y las de `t
 
 ## 4. Notas
 
-Verificación de cierre (2026-11-01). Solo se ejecutaron las pruebas de este cambio, por indicación del usuario.
+Verificación de cierre (2026-11-01). Solo se ejecutaron las pruebas de este cambio, por indicación del titular.
 
 | Comprobación | Resultado |
 |---|---|
 | `pytest` de `tests/fiscal`, los archivos `test_fiscal_*` de ventas y taller, `test_service_detail*`, `test_service_lines`, `test_service_operations`, `test_api` y `test_openapi` del taller, las fronteras de ventas y taller, y `tests/workshop_configuration` | 1112 pruebas en verde |
+| Ajuste posterior (correo de la ficha y lenguaje simple): fuentes y preparación del taller, fronteras, declaración de pagos, API fiscal y preparación comercial | 165 pruebas en verde |
 | `ruff format --check .` y `ruff check .` | En verde |
 | `mypy src tests` | 11 errores que ya existían, en 4 archivos que este cambio no toca (`test_withholdings`, `test_withholding_settings`, `test_artisan_withholdings`, `sales/test_api`); ninguno nuevo |
 | `manage.py makemigrations --check --dry-run` y `manage.py check` | Sin cambios pendientes ni avisos |
 | `manage.py spectacular --validate` | 0 errores; `schema.yml` coincide con lo generado |
 | `npm run format:check`, `lint`, `typecheck` y `build` | En verde (el aviso de tamaño de paquete ya existía) |
-| `vitest` de `pages/fiscal`, `features/fiscal`, `features/maintenance` y `pages/maintenance` | 270 pruebas en verde |
-| Playwright: los 2 tests nuevos de `fiscal.spec.ts`, más los 9 de ese archivo en una ejecución previa | En verde |
-| Playwright: `maintenance-billing.spec.ts` y `workshop-configuration.spec.ts`, ejecutados juntos | 15 en verde |
+| `vitest` de `pages/fiscal`, `features/fiscal`, `features/maintenance` y `pages/maintenance` | En verde |
+| Playwright, solo los tests que tocan estas pantallas: preparación comercial y artesanal, datos completados, emisor y código, código excedido, navegación de configuración | En verde |
+| Playwright: `maintenance-billing.spec.ts` y `workshop-configuration.spec.ts`, ejecutados juntos (antes del ajuste de lenguaje) | 15 en verde |
 | `openspec validate alinear-datos-del-comprobante-con-sri --strict` | Válido |
 
-No se ejecutó: la suite completa del backend (`make check`), la del frontend ni todo Playwright, ni `make audit`.
+No se ejecutó: la suite completa del backend (`make check`), la del frontend ni todo Playwright, ni `make audit`. Este cambio no toma capturas de pantalla.
 
-- **Revisión visual humana pendiente.** Hay capturas del borrador a 1440 px y de la preparación a 390 px y a 1440 px en `frontend/test-results/alinear-datos-del-comprobante-evidence/` (carpeta que Git ignora y Playwright limpia en cada ejecución). La prueba comprueba además que a 390 px no hay desplazamiento horizontal y que no hay violaciones graves de accesibilidad.
-- **Correo en operaciones artesanales.** La instantánea del cliente de una orden de taller solo conserva nombre, identificación y teléfono, así que el Encargado siempre escribe el correo en la preparación; en ventas comerciales llega precargado si la ficha del cliente lo tiene.
-- **Reemplazo de una preparación.** El reemplazo conserva el borrador anterior y solo vuelve a precargar el detalle de servicio desde la operación; el diseño decía que pasaba por la precarga completa, pero el código ya copiaba el borrador anterior y se respetó para no perder el trabajo del usuario.
-- **Claves de error.** Los errores del plazo se devuelven como `payments.term_days`, los del detalle adicional como `additional_info[n].name` o `.value` y los del detalle de servicio como `service_details[n].detail`.
+- **Revisión visual humana pendiente.** Se puede ver la pantalla en vivo con `make dev`; la prueba E2E comprueba además que en un teléfono (390 px) no hay desplazamiento horizontal y que no hay violaciones graves de accesibilidad.
+- **Lenguaje simple.** Por pedido del titular, la pantalla ya no dice «preparación local», «pendiente de emisión», «borrador fiscal» ni «datos fiscales»; ver `UI-059` y la spec delta.
+- **Correo en operaciones artesanales.** La copia del cliente de una orden de taller solo conserva nombre, identificación y teléfono; el correo y la dirección se leen de la ficha vigente solo para precargar la factura y la ficha no se modifica.
+- **Reemplazo de una preparación.** El reemplazo conserva el borrador anterior y solo vuelve a precargar el detalle de servicio desde la operación.
+- **Claves de error.** Los errores del plazo se devuelven como `payments.term_days`, los de las notas como `additional_info[n].name` o `.value` y los del detalle de servicio como `service_details[n].detail`.
 - **Pruebas que cambiaron de reglas.** Ver la sección 2: los receptores de las suites de preparación llevan ahora correo y el perfil base de las pruebas declara gran contribuyente.
 - **Dependencia entre specs E2E.** Los tests «la configuración es adaptable y accesible» de `workshop-configuration.spec.ts` necesitan los impuestos que siembra `maintenance-billing.spec.ts`, así que no pasan si se ejecutan solos. Es anterior a este cambio.
 

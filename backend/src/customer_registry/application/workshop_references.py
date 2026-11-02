@@ -25,6 +25,14 @@ class WorkshopCustomer:
 
 
 @dataclass(frozen=True)
+class CustomerContact:
+    """Correo y dirección vigentes de la ficha; vacíos si el cliente no los tiene."""
+
+    email: str
+    address: str
+
+
+@dataclass(frozen=True)
 class WorkshopVehicle:
     id: int
     plate: str
@@ -69,6 +77,17 @@ def _customer(customer: Customer) -> WorkshopCustomer:
         phone=customer.phone,
         is_active=customer.is_active,
     )
+
+
+def read_customer_contact(customer_id: int) -> CustomerContact:
+    """Lectura sin bloqueo del contacto vigente, para precargar la factura de un servicio.
+
+    La orden conserva una copia histórica sin correo ni dirección; la ficha no se modifica.
+    """
+    row = Customer.objects.filter(pk=customer_id).values("email", "address").first()
+    if row is None:
+        return CustomerContact(email="", address="")
+    return CustomerContact(email=row["email"] or "", address=row["address"] or "")
 
 
 def _vehicle(vehicle: Vehicle, owner_id: int | None) -> WorkshopVehicle:

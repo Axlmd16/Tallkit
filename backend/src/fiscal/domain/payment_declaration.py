@@ -76,7 +76,7 @@ def validate_payment_declaration(
             if form.keys() & _TERM_FIELDS:
                 _reject(
                     f"forms[{index}].term_days",
-                    "El plazo y su unidad no se registran en la preparación local.",
+                    "El plazo se indica una sola vez para toda la factura, no por forma de pago.",
                 )
             if form.keys() - _ALLOWED_FORM_FIELDS:
                 _reject(f"forms[{index}]", "Forma de pago con campos no admitidos.")

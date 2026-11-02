@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -153,19 +153,17 @@ beforeEach(() => {
   }
 })
 
-it('shows a simple summary and the mandatory local-preparation notice', () => {
+it('shows a simple summary and the short notice that nothing was sent to the SRI', () => {
   const { container } = renderPage()
-  expect(screen.getByRole('heading', { name: 'Borrador fiscal' })).toBeVisible()
   expect(
-    screen.getByText(
-      'Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.',
-    ),
+    screen.getByRole('heading', { name: 'Datos de la factura' }),
   ).toBeVisible()
+  expect(screen.getByText('Todavía no se ha enviado al SRI')).toBeVisible()
   const summary = screen.getByRole('region', {
-    name: 'Resumen de la operación',
+    name: 'Operación',
   })
   expect(
-    within(summary).getByText('Venta comercial COM-VEN-000012'),
+    within(summary).getByText('Venta de repuestos COM-VEN-000012'),
   ).toBeVisible()
   expect(
     within(summary).getByText('Repuestos VVH · RUC 1150696977001'),
@@ -177,7 +175,7 @@ it('shows a simple summary and the mandatory local-preparation notice', () => {
 
 it('asks only for missing receiver data and hides technical fields', () => {
   renderPage()
-  const receiver = screen.getByRole('region', { name: 'Receptor' })
+  const receiver = screen.getByRole('region', { name: 'Cliente' })
   expect(within(receiver).getByText('Cliente Fiscal S.A.')).toBeVisible()
   expect(within(receiver).getByLabelText('Dirección (opcional)')).toBeVisible()
   expect(within(receiver).getByLabelText('Correo')).toBeRequired()
@@ -199,13 +197,13 @@ it('asks only for missing receiver data and hides technical fields', () => {
 it('presents the payment suggestion from collections and lets it be changed', async () => {
   const user = userEvent.setup()
   renderPage()
-  const payments = screen.getByRole('region', { name: 'Formas de pago' })
-  expect(
-    within(payments).getByText(/Sugerido desde los cobros registrados/),
-  ).toBeVisible()
-  expect(
-    within(payments).getByText(/no registra ni modifica cobros/),
-  ).toBeVisible()
+  const payments = screen.getByRole('region', { name: 'Cómo se paga' })
+  await user.hover(
+    within(payments).getByRole('button', { name: 'Cómo se sugirió' }),
+  )
+  const hint = screen.getByRole('note')
+  expect(hint).toHaveTextContent(/según los cobros registrados/)
+  expect(hint).toHaveTextContent(/no registra ni cambia cobros/)
   const selects = within(payments).getAllByLabelText('Forma de pago')
   expect(selects).toHaveLength(2)
   expect(
@@ -234,9 +232,7 @@ it('saves only receiver and payment forms, then reviews', async () => {
   renderPage()
   await user.type(screen.getByLabelText('Dirección (opcional)'), 'Calle 10')
   await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
-  await user.click(
-    screen.getByRole('button', { name: 'Revisar datos para facturación' }),
-  )
+  await user.click(screen.getByRole('button', { name: 'Revisar datos' }))
   expect(mocks.updateDraft.mutateAsync).toHaveBeenCalledWith({
     preparationId: '11111111-1111-1111-1111-111111111111',
     data: {
@@ -292,22 +288,52 @@ it('groups impediments by who must resolve them', () => {
       screen.getByRole('list', { name: 'Debe resolverlo el Administrador' }),
     ).getByText(/varios puntos activos/),
   ).toBeVisible()
-  expect(
-    screen.queryByRole('button', { name: 'Guardar preparación local' }),
-  ).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Confirmar datos' })).toBeNull()
 })
 
-it('completes the local preparation after a clean review', async () => {
+it('confirms the data after a clean review and says they are ready', async () => {
   const user = userEvent.setup()
   mocks.review.data = { review_token: 'token-1', impediments: [] }
   renderPage()
-  await user.click(
-    screen.getByRole('button', { name: 'Guardar preparación local' }),
-  )
+  await user.click(screen.getByRole('button', { name: 'Confirmar datos' }))
   expect(mocks.prepare.mutate).toHaveBeenCalledWith(
     expect.objectContaining({ reviewToken: 'token-1' }),
     expect.anything(),
   )
+  const options = mocks.prepare.mutate.mock.calls[0]![1] as {
+    onSuccess: () => void
+  }
+  await act(async () => options.onSuccess())
+  expect(await screen.findByText('Datos de la factura listos.')).toBeVisible()
+})
+
+const JARGON =
+  /preparación local|pendiente de emisión|borrador fiscal|datos fiscales|para facturación/i
+
+it('no usa jerga en el borrador ni en los datos listos', () => {
+  const draft = renderPage()
+  expect(draft.container.textContent).not.toMatch(JARGON)
+  draft.unmount()
+  mocks.preparation.data = detail({
+    state: 'PREPARED',
+    working: null,
+    payment_options: [],
+    snapshot: {
+      reference_date: '2026-09-25',
+      issuer: {
+        ruc: '1',
+        tax_profile: { regime: 'GENERAL', accounting_obligation: 'NO' },
+      },
+      receiver: { legal_name: 'Cliente', identification: '0999999999001' },
+      totals: { tax: '0.00', grand: '25.00' },
+      lines: [],
+      payments: [{ payment_code: '01', amount: '25.00' }],
+    },
+  })
+  const prepared = renderPage()
+  expect(prepared.container.textContent).not.toMatch(JARGON)
+  // Los datos técnicos del emisor quedan plegados detrás de un título corto.
+  expect(screen.getByText('Datos del emisor')).toBeInTheDocument()
 })
 
 it('explains a stale review without inventing an official state', () => {
@@ -315,14 +341,10 @@ it('explains a stale review without inventing an official state', () => {
   mocks.prepare.isError = true
   mocks.prepare.error = new ProblemError('stale', 409, 'review_stale')
   renderPage()
-  expect(
-    screen.getByText(
-      /La configuración o la fecha cambiaron después de revisar/,
-    ),
-  ).toBeVisible()
+  expect(screen.getByText(/Algo cambió desde la revisión/)).toBeVisible()
 })
 
-it('shows the prepared data as a pending-emission local preparation', () => {
+it('shows the confirmed data as ready, without wording that suggests it was sent or approved', () => {
   mocks.preparation.data = detail({
     state: 'PREPARED',
     working: null,
@@ -354,11 +376,11 @@ it('shows the prepared data as a pending-emission local preparation', () => {
   })
   const { container } = renderPage()
   expect(
-    screen.getByRole('heading', { name: 'Preparación local' }),
+    screen.getByRole('heading', { name: 'Datos de la factura' }),
   ).toBeVisible()
   expect(
     screen.getByRole('status', {
-      name: 'Estado: Preparación local · Pendiente de emisión',
+      name: 'Estado: Datos listos',
     }),
   ).toBeVisible()
   expect(screen.getByText('IVA 15 %')).toBeVisible()
@@ -389,7 +411,7 @@ it('keeps the cancelled state as a local cancellation', () => {
   const { container } = renderPage()
   expect(screen.getByText('Dato incorrecto')).toBeVisible()
   expect(
-    screen.getByRole('status', { name: 'Estado: Cancelada localmente' }),
+    screen.getByRole('status', { name: 'Estado: Cancelados' }),
   ).toBeVisible()
   expectNoForbiddenFiscalTerms(container)
 })
@@ -595,9 +617,7 @@ function withWorking(
 }
 
 async function review(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    screen.getByRole('button', { name: 'Revisar datos para facturación' }),
-  )
+  await user.click(screen.getByRole('button', { name: 'Revisar datos' }))
 }
 
 function sentData() {
@@ -609,7 +629,7 @@ it('pide el correo del receptor y lo envía junto con el resto, sin tocar la fic
   mocks.updateDraft.mutateAsync.mockResolvedValue({})
   renderPage()
   expect(
-    within(screen.getByRole('region', { name: 'Receptor' })).getByLabelText(
+    within(screen.getByRole('region', { name: 'Cliente' })).getByLabelText(
       'Correo',
     ),
   ).toBeRequired()
@@ -618,7 +638,9 @@ it('pide el correo del receptor y lo envía junto con el resto, sin tocar la fic
   expect(sentData().receiver.email).toBe('cliente@example.com')
 })
 
-it('muestra el correo que ya tiene el receptor sin pedirlo de nuevo', () => {
+it('precarga el correo que ya tiene el cliente y deja corregirlo', async () => {
+  const user = userEvent.setup()
+  mocks.updateDraft.mutateAsync.mockResolvedValue({})
   withWorking(
     {
       receiver: {
@@ -631,9 +653,14 @@ it('muestra el correo que ya tiene el receptor sin pedirlo de nuevo', () => {
     { missing_fields: ['address'] },
   )
   renderPage()
-  const receiver = screen.getByRole('region', { name: 'Receptor' })
-  expect(within(receiver).getByText('ya@example.com')).toBeVisible()
-  expect(within(receiver).queryByLabelText('Correo')).toBeNull()
+  const email = within(
+    screen.getByRole('region', { name: 'Cliente' }),
+  ).getByLabelText('Correo')
+  expect(email).toHaveValue('ya@example.com')
+  await user.clear(email)
+  await user.type(email, 'otro@example.com')
+  await review(user)
+  expect(sentData().receiver.email).toBe('otro@example.com')
 })
 
 it('consumidor final no muestra ni pide el correo', async () => {
@@ -646,10 +673,10 @@ it('consumidor final no muestra ni pide el correo', async () => {
   renderPage()
   await user.click(
     screen.getByRole('checkbox', {
-      name: /Preparar a nombre de consumidor final/,
+      name: 'Factura a consumidor final',
     }),
   )
-  const receiver = screen.getByRole('region', { name: 'Receptor' })
+  const receiver = screen.getByRole('region', { name: 'Cliente' })
   expect(within(receiver).queryByLabelText('Correo')).toBeNull()
 })
 
@@ -666,7 +693,7 @@ it('pide el plazo en días cuando la operación es a crédito con saldo pendient
     { missing_fields: ['address', 'email', 'term_days'] },
   )
   renderPage()
-  const payments = screen.getByRole('region', { name: 'Formas de pago' })
+  const payments = screen.getByRole('region', { name: 'Cómo se paga' })
   const term = within(payments).getByLabelText('Plazo en días')
   expect(term).toBeRequired()
   await user.type(term, '30')
@@ -712,7 +739,7 @@ it('muestra junto al plazo el error del servidor', () => {
     { 'payments.term_days': ['El plazo debe estar entre 1 y 9999 días.'] },
   )
   renderPage()
-  const payments = screen.getByRole('region', { name: 'Formas de pago' })
+  const payments = screen.getByRole('region', { name: 'Cómo se paga' })
   expect(
     within(payments).getByText('El plazo debe estar entre 1 y 9999 días.'),
   ).toBeVisible()
@@ -722,14 +749,12 @@ it('agrega, edita y quita datos adicionales con un modal y los envía como pares
   const user = userEvent.setup()
   mocks.updateDraft.mutateAsync.mockResolvedValue({})
   renderPage()
-  const section = screen.getByRole('region', { name: 'Detalle adicional' })
-  await user.click(
-    within(section).getByRole('button', { name: 'Añadir dato adicional' }),
-  )
+  const section = screen.getByRole('region', { name: 'Notas de la factura' })
+  await user.click(within(section).getByRole('button', { name: 'Añadir nota' }))
   const dialog = screen.getByRole('dialog')
-  await user.type(within(dialog).getByLabelText('Nombre'), 'Vehículo')
-  await user.type(within(dialog).getByLabelText('Valor'), 'Placa PCM4567')
-  await user.click(within(dialog).getByRole('button', { name: 'Agregar dato' }))
+  await user.type(within(dialog).getByLabelText('Título'), 'Vehículo')
+  await user.type(within(dialog).getByLabelText('Texto'), 'Placa PCM4567')
+  await user.click(within(dialog).getByRole('button', { name: 'Agregar nota' }))
   expect(within(section).getByText('Vehículo')).toBeVisible()
   expect(within(section).getByText('Placa PCM4567')).toBeVisible()
 
@@ -737,11 +762,11 @@ it('agrega, edita y quita datos adicionales con un modal y los envía como pares
     within(section).getByRole('button', { name: 'Editar Vehículo' }),
   )
   const editing = screen.getByRole('dialog')
-  const value = within(editing).getByLabelText('Valor')
+  const value = within(editing).getByLabelText('Texto')
   await user.clear(value)
   await user.type(value, 'Placa ABC1234')
   await user.click(
-    within(editing).getByRole('button', { name: 'Guardar dato' }),
+    within(editing).getByRole('button', { name: 'Guardar nota' }),
   )
   expect(within(section).getByText('Placa ABC1234')).toBeVisible()
 
@@ -765,10 +790,10 @@ it('precarga los datos adicionales guardados y deja de ofrecer agregar al llegar
     })),
   })
   renderPage()
-  const section = screen.getByRole('region', { name: 'Detalle adicional' })
+  const section = screen.getByRole('region', { name: 'Notas de la factura' })
   expect(within(section).getByText('Dato 12')).toBeVisible()
   expect(
-    within(section).getByRole('button', { name: 'Añadir dato adicional' }),
+    within(section).getByRole('button', { name: 'Añadir nota' }),
   ).toBeDisabled()
 })
 
@@ -789,7 +814,7 @@ it('recuerda incluir solo lo necesario y muestra el error de un nombre reservado
     },
   )
   renderPage()
-  const section = screen.getByRole('region', { name: 'Detalle adicional' })
+  const section = screen.getByRole('region', { name: 'Notas de la factura' })
   expect(section).toHaveTextContent('solo lo necesario')
   expect(within(section).getByText(/está reservado/)).toBeVisible()
 })
@@ -825,7 +850,9 @@ it('una operación artesanal precarga el detalle de cada servicio y lo envía aj
     },
   )
   renderPage()
-  const section = screen.getByRole('region', { name: 'Detalle por servicio' })
+  const section = screen.getByRole('region', {
+    name: 'Detalle de cada servicio',
+  })
   const first = within(section).getByLabelText('Detalle de Alineación')
   expect(first).toHaveValue('eje delantero')
   expect(first).toHaveAttribute('maxlength', '300')
@@ -845,7 +872,7 @@ it('una venta comercial no ofrece detalle por servicio ni lo envía', async () =
   mocks.updateDraft.mutateAsync.mockResolvedValue({})
   renderPage()
   expect(
-    screen.queryByRole('region', { name: 'Detalle por servicio' }),
+    screen.queryByRole('region', { name: 'Detalle de cada servicio' }),
   ).toBeNull()
   await user.type(screen.getByLabelText('Correo'), 'cliente@example.com')
   await review(user)
@@ -870,7 +897,9 @@ it('muestra junto al servicio el error del detalle que devuelve el servidor', ()
     },
   )
   renderPage()
-  const section = screen.getByRole('region', { name: 'Detalle por servicio' })
+  const section = screen.getByRole('region', {
+    name: 'Detalle de cada servicio',
+  })
   expect(within(section).getByText(/tiene 301/)).toBeVisible()
 })
 
@@ -947,7 +976,7 @@ it('una preparación completada muestra correo, plazo, datos adicionales y detal
   const payments = screen.getByLabelText('Formas de pago preparadas')
   expect(payments).toHaveTextContent('plazo 30 días')
   expect(payments.textContent?.match(/plazo/g)).toHaveLength(1)
-  const extra = screen.getByLabelText('Detalle adicional preparado')
+  const extra = screen.getByRole('region', { name: 'Notas de la factura' })
   expect(extra).toHaveTextContent('Vehículo')
   expect(extra).toHaveTextContent('Placa PCM4567')
   expectNoForbiddenFiscalTerms(container)
@@ -974,7 +1003,9 @@ it('una preparación del formato 3 no muestra campos nuevos vacíos', () => {
     },
   })
   renderPage()
-  expect(screen.queryByLabelText('Detalle adicional preparado')).toBeNull()
+  expect(
+    screen.queryByRole('region', { name: 'Notas de la factura' }),
+  ).toBeNull()
   expect(screen.queryByText(/plazo/)).toBeNull()
   expect(screen.queryByText('Nombre comercial')).toBeNull()
   expect(screen.queryByText('Gran contribuyente')).toBeNull()

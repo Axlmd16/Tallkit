@@ -24,7 +24,7 @@ import { TaxMappingsSection } from './configuration/TaxMappingsSection'
 import type { StatusCause } from './types'
 
 export const PREPARATION_NOTICE =
-  'Configuración para preparación local. La emisión electrónica todavía no está habilitada.'
+  'Por ahora nada se envía al SRI: la factura electrónica todavía no está habilitada.'
 
 export function FiscalConfigurationSection({
   entities,
@@ -198,7 +198,7 @@ function SectionHints({ pending }: { pending: StatusCause[] }) {
       <HintPopover
         align="end"
         description={PREPARATION_NOTICE}
-        label="Preparación local"
+        label="Estado de la factura electrónica"
         trigger={
           <Info
             aria-hidden="true"
@@ -210,7 +210,9 @@ function SectionHints({ pending }: { pending: StatusCause[] }) {
         triggerClassName="px-2.5"
         variant="button"
       >
-        <p className="font-semibold text-ink">Preparación local</p>
+        <p className="font-semibold text-ink">
+          Estado de la factura electrónica
+        </p>
         <p className="mt-1 text-ink-muted">{PREPARATION_NOTICE}</p>
         <p className="mt-1 text-ink-muted">
           Ambiente disponible: Pruebas. La configuración la declara el

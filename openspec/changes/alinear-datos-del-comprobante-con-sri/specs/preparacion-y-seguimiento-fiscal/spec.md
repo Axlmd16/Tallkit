@@ -215,6 +215,70 @@ Trazabilidad: propuesta §A.6 y D1; propuesta `alinear-datos-del-comprobante-con
 - **CUANDO** se completa una preparación
 - **ENTONCES** el emisor SHALL omitirlo, sin usar la razón social en su lugar.
 
+### Requirement: Terminología de preparación local
+
+La interfaz SHALL hablar en lenguaje simple, sin términos contables ni técnicos que la persona usuaria no necesita. SHALL llamar «Datos de la factura» a la pantalla, «Preparar factura» a la acción que la inicia, «Completar datos» a la que retoma un borrador y «Ver datos» a la que consulta los ya confirmados; «Por completar», «Datos listos» y «Cancelados» a los estados; «Revisar datos» a la revisión, «Confirmar datos» a la acción que deja los datos listos y «Guardar para después» a la que conserva un borrador. Toda vista de estos datos SHALL mostrar de forma visible y breve «Todavía no se ha enviado al SRI». Ninguna vista, estado, botón, notificación o mensaje SHALL presentar los datos como factura emitida, factura autorizada, comprobante enviado o comprobante aprobado por el SRI. Las explicaciones largas SHALL ofrecerse como ayuda breve desplegable y los datos técnicos del emisor SHALL quedar plegados.
+
+Trazabilidad: propuesta A6; solicitud del titular de lenguaje simple (2026-11-01); DP-018; invariante 25 del modelo de dominio; RN-CON-009/010.
+
+#### Scenario: Preparación completada
+- **DADO** una preparación completada localmente
+- **CUANDO** el usuario la consulta
+- **ENTONCES** SHALL verse «Datos listos» junto con el aviso «Todavía no se ha enviado al SRI», y SHALL NOT aparecer «factura emitida», «autorizada», «enviada» ni «aprobada».
+
+#### Scenario: Confirmación tras completar
+- **DADO** un borrador sin impedimentos
+- **CUANDO** el usuario completa la preparación
+- **ENTONCES** la notificación SHALL indicar «Datos de la factura listos.», sin afirmar emisión ni envío.
+
+#### Scenario: Texto sin jerga
+- **DADO** cualquier vista de los datos de la factura
+- **CUANDO** el usuario la lee
+- **ENTONCES** SHALL NOT aparecer «preparación local», «pendiente de emisión» ni «borrador fiscal», y los datos del emisor SHALL quedar plegados.
+
+### Requirement: Precarga automática desde la operación y la configuración
+
+Al solicitar «Preparar datos fiscales», el sistema SHALL crear el borrador fiscal con los datos ya disponibles, sin pedirlos al usuario:
+
+- la **entidad fiscal** y el RUC emisor de la operación;
+- el receptor, tomado de la instantánea histórica del cliente: CI se traduce a cédula `05` y RUC a `04`, junto con nombre o razón social, dirección y correo; si la instantánea no conserva la dirección o el correo, como ocurre en una operación artesanal, se toman de la ficha vigente del cliente solo para precargar, sin modificar la ficha ni la instantánea;
+- las líneas, cantidades, precios finales, bases, impuestos, totales y la condición de contado o crédito, tomados de la operación confirmada;
+- el establecimiento, el **punto predeterminado**, el ambiente de pruebas, las correspondencias tributarias y las formas de pago habilitadas, tomados de la configuración vigente de esa entidad.
+
+El usuario SHALL NOT poder elegir otra entidad, otro RUC ni otra operación para la preparación. Completar datos en la preparación SHALL NOT modificar la ficha del cliente, la instantánea comercial ni el documento interno.
+
+Trazabilidad: propuesta A1/A3, R1/R2; DP-035 regla 1; DP-008/017/018/029; RN-FIS-001…009; RN-CLI-003; CU-012.
+
+#### Scenario: Venta con cliente completo
+- **DADO** una venta comercial confirmada cuyo cliente conserva RUC, razón social, dirección y correo en su instantánea
+- **CUANDO** un Vendedor pulsa «Preparar datos fiscales»
+- **ENTONCES** SHALL crearse un borrador fiscal con receptor tipo `04`, las líneas y totales históricos y el punto predeterminado de la entidad comercial, sin solicitar ningún dato adicional.
+
+#### Scenario: Cliente con cédula
+- **DADO** una operación artesanal confirmada cuyo cliente tiene identificación CI de 10 dígitos
+- **CUANDO** el Encargado del taller prepara sus datos fiscales
+- **ENTONCES** SHALL precargarse el receptor con tipo `05` y la misma identificación, sin cambiar el tipo registrado en la ficha del cliente.
+
+#### Scenario: Entidad determinada por la operación
+- **DADO** una operación artesanal confirmada
+- **CUANDO** se intenta crear o editar su borrador indicando la entidad comercial o un punto de ella
+- **ENTONCES** SHALL rechazarse o ignorarse esa indicación y conservarse la entidad artesanal de la operación.
+
+#### Scenario: Cambio del cliente después de preparar
+- **DADO** una preparación completada con el receptor precargado
+- **CUANDO** se actualiza la dirección en la ficha del cliente
+- **ENTONCES** la preparación SHALL conservar la dirección congelada y una nueva preparación de otra operación SHALL usar la instantánea de esa operación.
+
+#### Scenario: Correo de la ficha en una operación artesanal
+- **DADO** una operación artesanal cuyo cliente tiene correo en su ficha, aunque la orden no lo conserva
+- **CUANDO** el Encargado inicia los datos de la factura
+- **ENTONCES** el correo SHALL llegar precargado y la ficha y la instantánea de la orden SHALL permanecer sin cambios.
+
+#### Scenario: Correo escrito en la preparación
+- **DADO** un borrador precargado con el correo de la ficha
+- **CUANDO** el usuario lo reemplaza por otro
+- **ENTONCES** la factura SHALL usar el escrito y la ficha SHALL conservar el suyo.
+
 ## ADDED Requirements
 
 ### Requirement: Plazo del comprobante en operaciones a crédito

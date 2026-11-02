@@ -5,7 +5,7 @@ Base: propuesta, specs y diseño aprobados y registrados en `master` (`4712ce6`,
 Cada tarea de comportamiento sigue **TDD**: prueba que falla por la razón esperada, implementación mínima, refactorización y repetir la prueba. Las pruebas se ejecutan focalizadas en lo que toca cada grupo, no la suite completa.
 
 - [x] 1.1 Comprobar Git y que los tres artefactos aprobados están en `master`; preservar cambios ajenos. Evidencia: `git status --short` y revisión del historial; no empezar si falta el registro.
-- [x] 1.2 Crear `docs/negocio/requisitos/cobertura-datos-del-comprobante.md` y su referencia de glosario con los 99 escenarios de las deltas (57 de `preparacion-y-seguimiento-fiscal`, 26 de `configuracion-operativa-y-fiscal`, 10 de `servicios-aplicados-al-mantenimiento` y 6 de `operacion-artesanal-de-servicios`), con columnas para prueba y resultado, y marcar los que se copiaron sin cambios como regresión. Cierre: los cuatro conteos coinciden con `grep -c "^#### Scenario"`.
+- [x] 1.2 Crear `docs/negocio/requisitos/cobertura-datos-del-comprobante.md` y su referencia de glosario con los 108 escenarios (99 al aprobar las specs y 9 tras los ajustes del grupo 12) de las deltas (57 de `preparacion-y-seguimiento-fiscal`, 26 de `configuracion-operativa-y-fiscal`, 10 de `servicios-aplicados-al-mantenimiento` y 6 de `operacion-artesanal-de-servicios`), con columnas para prueba y resultado, y marcar los que se copiaron sin cambios como regresión. Cierre: los cuatro conteos coinciden con `grep -c "^#### Scenario"`.
 - [x] 1.3 Identificar las fixtures reutilizables de `backend/tests/fiscal`, `tests/workshop_configuration` y `tests/workshop`, y anotar qué pruebas existentes afirman lo contrario de las specs nuevas (por ejemplo, rechazo del plazo, correo opcional, leyenda de Negocio Popular ausente). Cierre: lista anotada en la cobertura, para actualizar esas pruebas en su grupo sin borrarlas a ciegas.
 
 Criterio de grupo: registro comprobado y cobertura pendiente trazable; `openspec validate alinear-datos-del-comprobante-con-sri --strict` pasa.
@@ -115,9 +115,19 @@ Dependencias: grupos 7, 8 y 9. Evidencia: `npx playwright test e2e/fiscal.spec.t
 - [x] 11.4 Agregar a `matriz-normas-facturacion-electronica.md` las filas `NOR-019` (plazo, Requiere validación externa), `NOR-020` (contradicción de la ficha con el XSD, Pendiente) y `NOR-021` (límites de campos, Verificada), la validación `V-6` y el cambio responsable de `NOR-018`.
 - [x] 11.5 Actualizar `docs/cambios-pendientes.md`: salida de cada choque, ambiente al cambio 3, `RUC Proveedor` al cambio 4, redondeo a validaciones externas, preparaciones anteriores en el cambio 3, nota corregida del cambio 1 y casillas de este cambio.
 - [x] 11.6 Incorporar a `docs/negocio/producto/glosario.md` plazo del comprobante, gran contribuyente, detalle adicional y detalle de servicio, y actualizar las referencias de glosario de cada documento tocado.
-- [x] 11.7 Actualizar `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md`, y completar `cobertura-datos-del-comprobante.md` con la prueba y el resultado real de los 99 escenarios.
+- [x] 11.7 Actualizar `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md`, y completar `cobertura-datos-del-comprobante.md` con la prueba y el resultado real de los 108 escenarios.
 - [x] 11.8 Ejecutar la verificación de cierre: pruebas focalizadas de los grupos 2 a 10, `uv run --frozen ruff format --check .`, `uv run --frozen ruff check .`, `uv run --frozen mypy src tests`, `uv run --frozen python manage.py makemigrations --check --dry-run`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build` y `openspec validate alinear-datos-del-comprobante-con-sri --strict`. Cierre: comandos y resultados reales registrados, indicando lo que no se ejecutó.
 
 Dependencias: grupos 2 a 10. Criterio de grupo: documentación sincronizada, cobertura completa y verificación registrada. Estas tareas no autorizan commits, ramas, merges ni el archivado del cambio fuera de los que el usuario solicite.
+
+
+## 12. Ajustes pedidos por el titular al revisar (2026-11-01)
+
+Cambios surgidos de la revisión del cambio ya aplicado. La spec delta de `preparacion-y-seguimiento-fiscal` se actualizó antes de implementarlos.
+
+- [x] 12.1 Precargar el correo y la dirección de la **ficha vigente** del cliente en operaciones artesanales, porque la copia de la orden no los conserva: `read_customer_contact` en `customer_registry/application/workshop_references.py`, `customer_contact` en la fuente fiscal artesanal y fallback en `draft_prefill.receiver_from_customer`. Evidencia: `tests/workshop/test_fiscal_source.py` y `tests/workshop/test_fiscal_alignment.py` (4 pruebas nuevas), fronteras en verde.
+- [x] 12.2 Reescribir la pantalla de preparación en lenguaje simple y con los componentes compartidos (`SectionPanel`, `FactList`, `Field`, `Input`, `Select`, `Checkbox`, `HintPopover`, `AdvancedInfo`), con textos cortos y los datos técnicos del emisor plegados. Cubre la pantalla, el acceso desde la operación y el aviso de configuración. Evidencia: `npm run test -- src/pages/fiscal src/features/fiscal`.
+- [x] 12.3 Quitar las capturas de pantalla de las pruebas E2E que este cambio añadió; no se toman capturas.
+- [x] 12.4 Actualizar las pruebas, los E2E afectados, la decisión de interfaz `UI-059`, el glosario y la cobertura.
 
 Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

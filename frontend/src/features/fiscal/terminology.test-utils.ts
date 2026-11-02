@@ -13,8 +13,9 @@ export const FORBIDDEN_FISCAL_TERMS = [
 
 /** Falla si el contenedor presenta la preparación como factura emitida o autorizada. */
 export function expectNoForbiddenFiscalTerms(container: HTMLElement) {
+  // Las frases que niegan el envío («todavía no se ha enviado») son justamente las permitidas.
   const content = (container.textContent ?? '').replace(
-    /No ha sido firmada ni enviada al SRI\.?/g,
+    /(?:No ha sido firmada ni enviada|Todavía no se ha enviado) al SRI\.?/g,
     '',
   )
   for (const pattern of FORBIDDEN_FISCAL_TERMS) {

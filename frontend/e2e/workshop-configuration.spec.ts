@@ -273,9 +273,9 @@ test('la configuración se recorre como una hoja con navegación de secciones', 
     sections.getByRole('link', { name: /Puntos de emisión/ }),
   ).toHaveAttribute('aria-current', 'page')
   await expect(
-    page.getByRole('button', { name: 'Preparación local' }),
+    page.getByRole('button', { name: 'Estado de la factura electrónica' }),
   ).toHaveAccessibleDescription(
-    'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
+    'Por ahora nada se envía al SRI: la factura electrónica todavía no está habilitada.',
   )
 })
 

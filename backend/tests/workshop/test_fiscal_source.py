@@ -234,3 +234,35 @@ def test_artisan_source_line_carries_the_detail_of_the_operation(
     operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
     lines = read_fiscal_source(operation_id).lines
     assert [line.detail for line in lines] == ["frenos delanteros", ""]
+
+
+# --- Contacto del cliente: correo y dirección de la ficha vigente (DP-035, regla 1) ---------------
+
+
+def test_artisan_source_reads_the_email_and_address_of_the_current_customer_card(
+    manager: Any, order: dict[str, Any], make_service: Any, customer: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    customer.email = "ana@example.com"
+    customer.address = "Av. Principal 1"
+    customer.save(update_fields=["email", "address"])
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="25.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    source = read_fiscal_source(operation_id)
+    assert dict(source.customer_contact) == {
+        "email": "ana@example.com",
+        "address": "Av. Principal 1",
+    }
+    # La copia histórica de la orden no se toca: sigue sin correo ni dirección.
+    assert "email" not in source.customer_snapshot
+
+
+def test_artisan_source_contact_is_empty_when_the_card_has_neither(
+    manager: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    from workshop.application.fiscal_source import read_fiscal_source
+
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="25.00")
+    operation_id = confirm_services(manager, order["id"], "CREDITO")["id"]
+    assert dict(read_fiscal_source(operation_id).customer_contact) == {"email": "", "address": ""}

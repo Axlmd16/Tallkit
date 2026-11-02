@@ -21,9 +21,16 @@ _IDENTIFICATION_TYPES = {"RUC": "04", "CI": "05"}
 _RECEIVER_FIELDS = ("identification_type", "identification", "legal_name", "address", "email")
 
 
-def receiver_from_customer(customer: Any) -> dict[str, Any]:
-    """Traduce la instantánea del cliente sin corregir ni completar sus datos."""
+def receiver_from_customer(customer: Any, contact: Any = None) -> dict[str, Any]:
+    """Traduce la instantánea del cliente sin corregir ni completar sus datos.
+
+    El correo y la dirección que la copia no conserva (la orden de taller solo guarda nombre,
+    identificación y teléfono) se toman de la ficha vigente, solo para precargar el borrador.
+    """
     snapshot = dict(customer or {})
+    for field in ("address", "email"):
+        if not str(snapshot.get(field) or "").strip():
+            snapshot[field] = dict(contact or {}).get(field, "")
     receiver: dict[str, Any] = {
         "identification_type": _IDENTIFICATION_TYPES.get(
             str(snapshot.get("identification_type") or ""), ""
@@ -73,7 +80,9 @@ def suggested_payments(*, source: Any, entity_id: int, on: date) -> dict[str, An
 def initial_draft(*, source: Any, entity_id: int, on: date) -> dict[str, Any]:
     return {
         "draft_format": DRAFT_FORMAT,
-        "receiver": receiver_from_customer(source.customer_snapshot),
+        "receiver": receiver_from_customer(
+            source.customer_snapshot, getattr(source, "customer_contact", None)
+        ),
         "payments": suggested_payments(source=source, entity_id=entity_id, on=on),
         "additional_info": [],
         "service_details": service_details_from_source(source),
@@ -87,7 +96,9 @@ def normalized_draft(
     current = dict(draft or {})
     receiver = current.get("receiver")
     if not isinstance(receiver, dict) or not receiver:
-        receiver = receiver_from_customer(source.customer_snapshot)
+        receiver = receiver_from_customer(
+            source.customer_snapshot, getattr(source, "customer_contact", None)
+        )
     else:
         receiver = {key: receiver[key] for key in _RECEIVER_FIELDS if key in receiver}
     stored = current.get("payments")

@@ -1,10 +1,16 @@
 import {
   ArrowLeft,
   CheckCircle,
+  Info,
+  ListChecks,
   NotePencil,
   Plus,
+  Receipt,
   Trash,
+  User,
   WarningCircle,
+  Wallet,
+  Wrench,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
@@ -21,33 +27,39 @@ import type {
 } from '@/features/fiscal/types'
 import { ProblemError } from '@/shared/api/client'
 import {
+  AdvancedInfo,
   Button,
+  Checkbox,
   ErrorState,
+  FactList,
+  FactRow,
   Field,
   FormModal,
-  getControlClasses,
+  HintPopover,
   IconButton,
   InlineNotice,
   Input,
   LoadingState,
+  SectionPanel,
+  Select,
   StatusBadge,
   Surface,
   useToast,
 } from '@/shared/ui'
 
-export const LOCAL_PREPARATION_NOTICE =
-  'Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.'
+/** Aviso corto y permanente: hoy ninguna factura se envía al SRI desde esta pantalla. */
+export const NOT_SENT_NOTICE = 'Todavía no se ha enviado al SRI'
 
 const STATE_LABELS = {
-  DRAFT: 'Borrador fiscal',
-  PREPARED: 'Preparación local · Pendiente de emisión',
-  CANCELLED: 'Cancelada localmente',
+  DRAFT: 'Por completar',
+  PREPARED: 'Datos listos',
+  CANCELLED: 'Cancelados',
 } as const
 
 const TITLES = {
-  DRAFT: 'Borrador fiscal',
-  PREPARED: 'Preparación local',
-  CANCELLED: 'Preparación cancelada',
+  DRAFT: 'Datos de la factura',
+  PREPARED: 'Datos de la factura',
+  CANCELLED: 'Datos cancelados',
 } as const
 
 const REGIME_LABELS: Record<string, string> = {
@@ -70,6 +82,9 @@ const CONSUMER_FINAL: FiscalReceiverValues = {
   legal_name: 'CONSUMIDOR FINAL',
 }
 
+/** La factura admite hasta 12 notas escritas por el usuario. */
+const MAX_NOTES = 12
+
 function money(value: unknown): string {
   return `USD ${typeof value === 'string' || typeof value === 'number' ? value : '—'}`
 }
@@ -86,9 +101,6 @@ function text(value: unknown): string {
     : ''
 }
 
-/** El comprobante admite hasta 12 datos adicionales escritos por el usuario (DP-035). */
-const MAX_ADDITIONAL_INFO = 12
-
 function cents(value: string): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? Math.round(parsed * 100) : 0
@@ -97,11 +109,11 @@ function cents(value: string): number {
 export function FiscalPreparationPage() {
   const preparationId = useParams().id
   const query = usePreparation(preparationId)
-  if (query.isPending) return <LoadingState label="Cargando datos fiscales…" />
+  if (query.isPending) return <LoadingState label="Cargando…" />
   if (query.isError || !query.data) {
     return (
       <ErrorState
-        message="No se pudo cargar la preparación fiscal."
+        message="No se pudieron cargar los datos de la factura."
         onRetry={() => void query.refetch()}
       />
     )
@@ -124,7 +136,7 @@ export function FiscalPreparationPage() {
             <ArrowLeft aria-hidden="true" />
           </Link>
           <div>
-            <p className="text-xs text-ink-muted">Datos fiscales</p>
+            <p className="text-xs text-ink-muted">Factura</p>
             <h1 className="text-xl font-semibold text-ink">
               {TITLES[detail.state]}
             </h1>
@@ -133,28 +145,32 @@ export function FiscalPreparationPage() {
         <StatusBadge
           label={STATE_LABELS[detail.state]}
           shape="pill"
-          tone={detail.state === 'CANCELLED' ? 'neutral' : 'info'}
+          tone={
+            detail.state === 'CANCELLED'
+              ? 'neutral'
+              : detail.state === 'PREPARED'
+                ? 'success'
+                : 'info'
+          }
         />
       </div>
 
-      <InlineNotice title="Preparación local" tone="warning">
-        {LOCAL_PREPARATION_NOTICE}
-      </InlineNotice>
+      <InlineNotice title={NOT_SENT_NOTICE} tone="info" />
 
       <OperationSummary detail={detail} />
 
       {detail.discrepancy.source_changed && (
         <InlineNotice
-          title="La operación cambió después de iniciar esta preparación"
+          title="La operación cambió después de empezar"
           tone="warning"
         >
-          Los datos fiscales ya preparados se conservan tal como se revisaron.
+          Estos datos se conservan como estaban.
           {detail.discrepancy.corrections_changed &&
-            ' La operación registra correcciones posteriores.'}
+            ' La operación tiene correcciones posteriores.'}
         </InlineNotice>
       )}
       {detail.state === 'CANCELLED' && (
-        <InlineNotice title="Preparación cancelada localmente" tone="warning">
+        <InlineNotice title="Datos cancelados" tone="warning">
           {detail.cancellation_reason}
         </InlineNotice>
       )}
@@ -165,9 +181,7 @@ export function FiscalPreparationPage() {
         <PreparedView detail={detail} />
       ) : (
         detail.state !== 'DRAFT' && (
-          <InlineNotice title="Sin datos preparados" tone="warning">
-            Esta preparación no conserva datos fiscales para mostrar.
-          </InlineNotice>
+          <InlineNotice title="Sin datos para mostrar" tone="warning" />
         )
       )}
     </div>
@@ -178,51 +192,48 @@ function OperationSummary({ detail }: { detail: FiscalPreparationDetail }) {
   const summary = detail.summary
   if (!summary) return null
   const kind =
-    summary.kind === 'COMMERCIAL' ? 'Venta comercial' : 'Operación artesanal'
+    summary.kind === 'COMMERCIAL'
+      ? 'Venta de repuestos'
+      : 'Servicios del taller'
   return (
-    <Surface aria-label="Resumen de la operación">
-      <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-        <Datum
-          label="Operación"
-          value={`${kind} ${summary.internal_number ?? ''}`.trim()}
-        />
-        <Datum
-          label="Entidad emisora"
-          value={
-            detail.issuer
-              ? `${detail.issuer.legal_name} · RUC ${detail.issuer.ruc}`
-              : ''
-          }
-        />
-        <Datum
-          label="Condición"
-          value={summary.condition === 'CREDITO' ? 'Crédito' : 'Contado'}
-        />
-        <Datum label="Total" value={money(summary.grand_total)} />
-      </dl>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[520px] text-left text-sm">
-          <thead className="bg-surface-subtle text-xs text-ink-muted">
+    <SectionPanel icon={<Receipt size={17} />} id="op-title" title="Operación">
+      <FactList className="px-4">
+        <FactRow label="Operación">
+          {`${kind} ${summary.internal_number ?? ''}`.trim()}
+        </FactRow>
+        <FactRow label="Emite">
+          {detail.issuer
+            ? `${detail.issuer.legal_name} · RUC ${detail.issuer.ruc}`
+            : '—'}
+        </FactRow>
+        <FactRow label="Pago">
+          {summary.condition === 'CREDITO' ? 'Crédito' : 'Contado'}
+        </FactRow>
+        <FactRow label="Total">{money(summary.grand_total)}</FactRow>
+      </FactList>
+      <div className="overflow-x-auto px-4 pb-4">
+        <table className="w-full min-w-[420px] text-left text-sm">
+          <thead className="text-xs text-ink-muted">
             <tr>
-              <th className="px-3 py-2">Producto o servicio</th>
-              <th className="px-3 py-2 text-right">Cantidad</th>
-              <th className="px-3 py-2 text-right">Total</th>
+              <th className="py-2">Detalle</th>
+              <th className="py-2 text-right">Cantidad</th>
+              <th className="py-2 text-right">Total</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {summary.lines.map((line) => (
               <tr key={line.position}>
-                <td className="px-3 py-2">{line.description}</td>
-                <td className="px-3 py-2 text-right tabular-nums">
+                <td className="py-2">{line.description}</td>
+                <td className="py-2 text-right tabular-nums">
                   {line.quantity}
                 </td>
-                <td className="px-3 py-2 text-right">{money(line.total)}</td>
+                <td className="py-2 text-right">{money(line.total)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </Surface>
+    </SectionPanel>
   )
 }
 
@@ -258,10 +269,10 @@ function DraftEditor({
       ? String(working.payments.term_days)
       : '',
   )
-  const [extra, setExtra] = useState<AdditionalInfoPair[]>(
+  const [notes, setNotes] = useState<AdditionalInfoPair[]>(
     working.additional_info,
   )
-  const [pairDialog, setPairDialog] = useState<{ index: number | null } | null>(
+  const [noteDialog, setNoteDialog] = useState<{ index: number | null } | null>(
     null,
   )
   const [serviceDetails, setServiceDetails] = useState<ServiceDetail[]>(
@@ -288,14 +299,14 @@ function DraftEditor({
       forms,
       ...(working.term_required && term ? { term_days: Number(term) } : {}),
     },
-    additional_info: extra,
+    additional_info: notes,
     ...(serviceDetails.length ? { service_details: serviceDetails } : {}),
   })
 
   const save = () =>
     mutations.updateDraft.mutate(
       { preparationId: detail.preparation_id, data: payload() },
-      { onSuccess: () => toast.success('Borrador fiscal guardado.') },
+      { onSuccess: () => toast.success('Cambios guardados.') },
     )
 
   const saveAndReview = async () => {
@@ -318,34 +329,11 @@ function DraftEditor({
         reviewToken: token,
         attemptKey: crypto.randomUUID(),
       },
-      {
-        onSuccess: () =>
-          toast.success(
-            'Datos fiscales preparados localmente. Pendiente de emisión.',
-          ),
-      },
+      { onSuccess: () => toast.success('Datos de la factura listos.') },
     )
 
-  const receiverField = (
-    field: keyof FiscalReceiverValues,
-    label: string,
-    type = 'text',
-    required = false,
-  ) => (
-    <label className="ui-field block text-sm font-semibold text-ink">
-      {label}
-      <input
-        className={`mt-1.5 ${getControlClasses()}`}
-        name={field}
-        required={required}
-        onChange={(event) =>
-          setReceiver((prev) => ({ ...prev, [field]: event.target.value }))
-        }
-        type={type}
-        value={text(receiver[field])}
-      />
-    </label>
-  )
+  const setField = (field: keyof FiscalReceiverValues) => (value: string) =>
+    setReceiver((prev) => ({ ...prev, [field]: value }))
 
   const showIdentity =
     missing.has('identification') ||
@@ -363,44 +351,34 @@ function DraftEditor({
         />
       )}
 
-      <Surface aria-label="Receptor">
-        <h2 className="font-bold text-ink">Receptor</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Datos copiados del cliente de la operación. Completar datos aquí no
-          modifica la ficha del cliente.
-        </p>
-        {consumerFinal ? (
-          <p className="mt-3 text-sm text-ink">
-            Consumidor final · 9999999999999
-          </p>
-        ) : (
-          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-            <Datum
-              label={ID_TYPES[original.identification_type] ?? 'Identificación'}
-              value={original.identification}
-              mono
-            />
-            <Datum label="Nombre o razón social" value={original.legal_name} />
-            {original.email && <Datum label="Correo" value={original.email} />}
-            {original.address && (
-              <Datum label="Dirección" value={original.address} />
-            )}
-          </dl>
-        )}
-        {!consumerFinal &&
-          (showIdentity || !original.address || !original.email) && (
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <SectionPanel
+        icon={<User size={17} />}
+        id="receiver-title"
+        title="Cliente"
+      >
+        <div className="space-y-4 p-4">
+          {consumerFinal ? (
+            <p className="text-sm text-ink">Consumidor final</p>
+          ) : (
+            <FactList>
+              <FactRow
+                label={
+                  ID_TYPES[original.identification_type] ?? 'Identificación'
+                }
+              >
+                <span className="font-mono">{original.identification}</span>
+              </FactRow>
+              <FactRow label="Nombre">{original.legal_name}</FactRow>
+            </FactList>
+          )}
+          {!consumerFinal && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {showIdentity && (
                 <>
-                  <label className="ui-field block text-sm font-semibold text-ink">
-                    Tipo de identificación
-                    <select
-                      className={`mt-1.5 ${getControlClasses()}`}
+                  <Field label="Tipo de identificación">
+                    <Select
                       onChange={(event) =>
-                        setReceiver((prev) => ({
-                          ...prev,
-                          identification_type: event.target.value,
-                        }))
+                        setField('identification_type')(event.target.value)
                       }
                       value={receiver.identification_type}
                     >
@@ -409,56 +387,86 @@ function DraftEditor({
                       <option value="05">Cédula</option>
                       <option value="06">Pasaporte</option>
                       <option value="08">Identificación del exterior</option>
-                    </select>
-                  </label>
-                  {receiverField('identification', 'Identificación')}
-                  {receiverField('legal_name', 'Nombre o razón social')}
+                    </Select>
+                  </Field>
+                  <Field label="Identificación">
+                    <Input
+                      onChange={(event) =>
+                        setField('identification')(event.target.value)
+                      }
+                      value={text(receiver.identification)}
+                    />
+                  </Field>
+                  <Field label="Nombre o razón social">
+                    <Input
+                      onChange={(event) =>
+                        setField('legal_name')(event.target.value)
+                      }
+                      value={text(receiver.legal_name)}
+                    />
+                  </Field>
                 </>
               )}
-              {!original.address &&
-                receiverField('address', 'Dirección (opcional)')}
-              {!original.email &&
-                receiverField('email', 'Correo', 'email', true)}
+              <Field label="Dirección (opcional)">
+                <Input
+                  onChange={(event) => setField('address')(event.target.value)}
+                  value={text(receiver.address)}
+                />
+              </Field>
+              <Field hint="La factura se envía a este correo." label="Correo">
+                <Input
+                  onChange={(event) => setField('email')(event.target.value)}
+                  required
+                  type="email"
+                  value={text(receiver.email)}
+                />
+              </Field>
             </div>
           )}
-        {cents(total) <= 5000 && (
-          <label className="mt-4 flex items-start gap-2 text-sm text-ink">
-            <input
-              checked={consumerFinal}
-              onChange={(event) => setConsumerFinal(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              Preparar a nombre de consumidor final
-              <span className="block text-xs text-ink-muted">
-                Solo para totales de hasta USD 50. Una vez emitida, esa factura
-                no admite anulación ni nota de crédito.
-              </span>
-            </span>
-          </label>
-        )}
-      </Surface>
+          {cents(total) <= 5000 && (
+            <div>
+              <Checkbox
+                checked={consumerFinal}
+                label="Factura a consumidor final"
+                onChange={(event) => setConsumerFinal(event.target.checked)}
+              />
+              <p className="mt-1 text-xs text-ink-muted">
+                Solo hasta USD 50. Luego no se puede anular ni corregir.
+              </p>
+            </div>
+          )}
+        </div>
+      </SectionPanel>
 
-      <Surface aria-label="Formas de pago">
-        <h2 className="font-bold text-ink">Formas de pago</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          {working.payments.suggested
-            ? working.payments.suggestion_origin === 'DEFAULT'
-              ? 'Sugerido con la forma de pago predeterminada; puede cambiarlo.'
-              : 'Sugerido desde los cobros registrados; puede cambiarlo.'
-            : 'Indique cómo se paga el comprobante.'}{' '}
-          Guardar esta información no registra ni modifica cobros.
-        </p>
-        <div className="mt-4 space-y-3">
+      <SectionPanel
+        actions={
+          <HintPopover
+            align="end"
+            label="Cómo se sugirió"
+            trigger={<Info aria-hidden="true" size={16} weight="bold" />}
+          >
+            <p className="text-ink-muted">
+              {working.payments.suggested
+                ? working.payments.suggestion_origin === 'DEFAULT'
+                  ? 'Se sugirió la forma de pago habitual; puede cambiarla.'
+                  : 'Se sugirió según los cobros registrados; puede cambiarla.'
+                : 'Indique cómo se paga.'}{' '}
+              Guardar esto no registra ni cambia cobros.
+            </p>
+          </HintPopover>
+        }
+        icon={<Wallet size={17} />}
+        id="payments-title"
+        title="Cómo se paga"
+      >
+        <div className="space-y-3 p-4">
           {forms.map((form, index) => (
             <div
               className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1fr_12rem_auto]"
               key={index}
             >
-              <label className="ui-field block text-sm font-semibold text-ink">
-                Forma de pago
-                <select
-                  className={`mt-1.5 ${getControlClasses()}`}
+              <Field label="Forma de pago">
+                <Select
                   onChange={(event) =>
                     setForms((prev) =>
                       prev.map((item, i) =>
@@ -475,12 +483,10 @@ function DraftEditor({
                       {option.display_name}
                     </option>
                   ))}
-                </select>
-              </label>
-              <label className="ui-field block text-sm font-semibold text-ink">
-                Importe
-                <input
-                  className={`mt-1.5 ${getControlClasses()}`}
+                </Select>
+              </Field>
+              <Field label="Importe">
+                <Input
                   inputMode="decimal"
                   onChange={(event) =>
                     setForms((prev) =>
@@ -493,27 +499,24 @@ function DraftEditor({
                   }
                   value={form.amount}
                 />
-              </label>
-              <Button
-                aria-label={`Quitar forma de pago ${index + 1}`}
+              </Field>
+              <IconButton
                 disabled={forms.length === 1}
+                icon={<Trash size={16} />}
+                label={`Quitar forma de pago ${index + 1}`}
                 onClick={() =>
                   setForms((prev) => prev.filter((_, i) => i !== index))
                 }
-                type="button"
-                variant="quiet"
-              >
-                <Trash aria-hidden="true" />
-              </Button>
+              />
             </div>
           ))}
-        </div>
-        {working.term_required && (
-          <div className="mt-4">
-            <label className="ui-field block text-sm font-semibold text-ink">
-              Plazo en días
-              <input
-                className={`mt-1.5 ${getControlClasses()}`}
+          {working.term_required && (
+            <Field
+              error={serverErrors['payments.term_days']?.[0]}
+              hint="Días para pagar. Solo aparece en la factura."
+              label="Plazo en días"
+            >
+              <Input
                 inputMode="numeric"
                 max={9999}
                 min={1}
@@ -522,168 +525,167 @@ function DraftEditor({
                 type="number"
                 value={termDays}
               />
-            </label>
-            <p className="mt-1 text-xs text-ink-muted">
-              Solo se declara en la factura; no crea vencimiento ni cambia el
-              cobro.
+            </Field>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Button
+              onClick={() =>
+                setForms((prev) => [
+                  ...prev,
+                  {
+                    payment_code: detail.payment_options[0]?.code ?? '',
+                    amount: '',
+                  },
+                ])
+              }
+              type="button"
+              variant="quiet"
+            >
+              <Plus aria-hidden="true" /> Añadir forma de pago
+            </Button>
+            <p
+              className={`text-sm ${difference === 0 ? 'text-ink-muted' : 'text-warning'}`}
+            >
+              {difference === 0
+                ? `Cubre el total de ${money(total)}.`
+                : `Diferencia con el total: USD ${(difference / 100).toFixed(2)}`}
             </p>
-            {serverErrors['payments.term_days']?.[0] && (
-              <p className="mt-1 text-xs font-semibold text-danger">
-                {serverErrors['payments.term_days'][0]}
-              </p>
-            )}
           </div>
-        )}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <Button
-            onClick={() =>
-              setForms((prev) => [
-                ...prev,
-                {
-                  payment_code: detail.payment_options[0]?.code ?? '',
-                  amount: '',
-                },
-              ])
-            }
-            type="button"
-            variant="quiet"
-          >
-            <Plus aria-hidden="true" /> Añadir forma de pago
-          </Button>
-          <p
-            className={`text-sm ${difference === 0 ? 'text-ink-muted' : 'text-warning'}`}
-          >
-            {difference === 0
-              ? `Cubre el total de ${money(total)}.`
-              : `Diferencia con el total: USD ${(difference / 100).toFixed(2)}`}
-          </p>
         </div>
-      </Surface>
+      </SectionPanel>
 
       {serviceDetails.length > 0 && (
-        <Surface aria-label="Detalle por servicio">
-          <h2 className="font-bold text-ink">Detalle por servicio</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Opcional. Viene de la operación; ajustarlo aquí no la modifica.
-          </p>
-          <div className="mt-4 space-y-3">
+        <SectionPanel
+          actions={
+            <HintPopover
+              align="end"
+              label="Sobre el detalle"
+              trigger={<Info aria-hidden="true" size={16} weight="bold" />}
+            >
+              <p className="text-ink-muted">
+                Viene de la orden del taller. Cambiarlo aquí no cambia la orden.
+              </p>
+            </HintPopover>
+          }
+          icon={<Wrench size={17} />}
+          id="service-details-title"
+          title="Detalle de cada servicio"
+        >
+          <div className="space-y-3 p-4">
             {serviceDetails.map((entry, index) => {
               const description =
                 detail.summary?.lines.find(
                   (line) => line.position === entry.position,
                 )?.description ?? `línea ${entry.position}`
-              const error =
-                serverErrors[`service_details[${index + 1}].detail`]?.[0]
               return (
-                <div key={entry.position}>
-                  <label className="ui-field block text-sm font-semibold text-ink">
-                    Detalle de {description}
-                    <input
-                      className={`mt-1.5 ${getControlClasses()}`}
-                      maxLength={300}
-                      onChange={(event) =>
-                        setServiceDetails((prev) =>
-                          prev.map((item) =>
-                            item.position === entry.position
-                              ? { ...item, detail: event.target.value }
-                              : item,
-                          ),
-                        )
-                      }
-                      value={entry.detail}
-                    />
-                  </label>
-                  {error && (
-                    <p className="mt-1 text-xs font-semibold text-danger">
-                      {error}
-                    </p>
-                  )}
-                </div>
+                <Field
+                  error={
+                    serverErrors[`service_details[${index + 1}].detail`]?.[0]
+                  }
+                  key={entry.position}
+                  label={`Detalle de ${description}`}
+                >
+                  <Input
+                    maxLength={300}
+                    onChange={(event) =>
+                      setServiceDetails((prev) =>
+                        prev.map((item) =>
+                          item.position === entry.position
+                            ? { ...item, detail: event.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                    value={entry.detail}
+                  />
+                </Field>
               )
             })}
           </div>
-        </Surface>
+        </SectionPanel>
       )}
 
-      <Surface aria-label="Detalle adicional">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-bold text-ink">Detalle adicional</h2>
-            <p className="mt-1 text-sm text-ink-muted">
-              Opcional. Incluya solo lo necesario para el comprobante; hasta{' '}
-              {MAX_ADDITIONAL_INFO} datos.
-            </p>
-          </div>
+      <SectionPanel
+        actions={
           <Button
-            disabled={extra.length >= MAX_ADDITIONAL_INFO}
-            onClick={() => setPairDialog({ index: null })}
+            disabled={notes.length >= MAX_NOTES}
+            onClick={() => setNoteDialog({ index: null })}
             type="button"
             variant="soft"
           >
-            <Plus aria-hidden="true" /> Añadir dato adicional
+            <Plus aria-hidden="true" /> Añadir nota
           </Button>
-        </div>
-        {serverErrors.additional_info?.[0] && (
-          <p className="mt-2 text-xs font-semibold text-danger">
-            {serverErrors.additional_info[0]}
-          </p>
-        )}
-        {extra.length > 0 && (
-          <ul className="mt-3 divide-y divide-line">
-            {extra.map((pair, index) => {
-              const errors = [
-                serverErrors[`additional_info[${index + 1}]`]?.[0],
-                serverErrors[`additional_info[${index + 1}].name`]?.[0],
-                serverErrors[`additional_info[${index + 1}].value`]?.[0],
-              ].filter(Boolean)
-              return (
-                <li
-                  className="flex items-start justify-between gap-3 py-2"
-                  key={`${pair.name}-${index}`}
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs text-ink-muted">{pair.name}</p>
-                    <p className="font-medium break-words">{pair.value}</p>
-                    {errors.map((message) => (
-                      <p
-                        className="mt-1 text-xs font-semibold text-danger"
-                        key={message}
-                      >
-                        {message}
+        }
+        description="Opcional. Escriba solo lo necesario."
+        icon={<NotePencil size={17} />}
+        id="notes-title"
+        title="Notas de la factura"
+      >
+        {(serverErrors.additional_info?.[0] || notes.length > 0) && (
+          <div className="p-4">
+            {serverErrors.additional_info?.[0] && (
+              <p className="mb-2 text-xs font-semibold text-danger">
+                {serverErrors.additional_info[0]}
+              </p>
+            )}
+            <ul className="divide-y divide-line">
+              {notes.map((note, index) => {
+                const errors = [
+                  serverErrors[`additional_info[${index + 1}]`]?.[0],
+                  serverErrors[`additional_info[${index + 1}].name`]?.[0],
+                  serverErrors[`additional_info[${index + 1}].value`]?.[0],
+                ].filter(Boolean)
+                return (
+                  <li
+                    className="flex items-start justify-between gap-3 py-2"
+                    key={`${note.name}-${index}`}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs text-ink-muted">{note.name}</p>
+                      <p className="text-sm font-medium break-words text-ink">
+                        {note.value}
                       </p>
-                    ))}
-                  </div>
-                  <div className="flex shrink-0">
-                    <IconButton
-                      icon={<NotePencil size={16} />}
-                      label={`Editar ${pair.name}`}
-                      onClick={() => setPairDialog({ index })}
-                    />
-                    <IconButton
-                      icon={<Trash size={16} />}
-                      label={`Quitar ${pair.name}`}
-                      onClick={() =>
-                        setExtra((prev) => prev.filter((_, i) => i !== index))
-                      }
-                    />
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
+                      {errors.map((message) => (
+                        <p
+                          className="mt-1 text-xs font-semibold text-danger"
+                          key={message}
+                        >
+                          {message}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="flex shrink-0">
+                      <IconButton
+                        icon={<NotePencil size={16} />}
+                        label={`Editar ${note.name}`}
+                        onClick={() => setNoteDialog({ index })}
+                      />
+                      <IconButton
+                        icon={<Trash size={16} />}
+                        label={`Quitar ${note.name}`}
+                        onClick={() =>
+                          setNotes((prev) => prev.filter((_, i) => i !== index))
+                        }
+                      />
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         )}
-      </Surface>
-      {pairDialog && (
-        <AdditionalInfoDialog
-          initial={pairDialog.index === null ? null : extra[pairDialog.index]!}
-          onClose={() => setPairDialog(null)}
-          onSave={(pair) => {
-            setExtra((prev) =>
-              pairDialog.index === null
-                ? [...prev, pair]
-                : prev.map((item, i) => (i === pairDialog.index ? pair : item)),
+      </SectionPanel>
+      {noteDialog && (
+        <NoteDialog
+          initial={noteDialog.index === null ? null : notes[noteDialog.index]!}
+          onClose={() => setNoteDialog(null)}
+          onSave={(note) => {
+            setNotes((prev) =>
+              noteDialog.index === null
+                ? [...prev, note]
+                : prev.map((item, i) => (i === noteDialog.index ? note : item)),
             )
-            setPairDialog(null)
+            setNoteDialog(null)
           }}
         />
       )}
@@ -695,14 +697,14 @@ function DraftEditor({
           type="button"
           variant="secondary"
         >
-          Guardar borrador
+          Guardar para después
         </Button>
         <Button
           onClick={() => void saveAndReview()}
           pending={mutations.review.isPending}
           type="button"
         >
-          Revisar datos para facturación
+          Revisar datos
         </Button>
       </div>
 
@@ -711,14 +713,13 @@ function DraftEditor({
         <Surface>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="flex items-center gap-2 text-sm text-success">
-              <CheckCircle aria-hidden="true" /> Los datos están completos para
-              la preparación local.
+              <CheckCircle aria-hidden="true" /> Todo está en orden.
             </p>
             <Button
               onClick={() => complete(review.review_token!)}
               pending={mutations.prepare.isPending}
             >
-              Guardar preparación local
+              Confirmar datos
             </Button>
           </div>
         </Surface>
@@ -727,7 +728,7 @@ function DraftEditor({
         <ErrorState
           message={
             staleReview
-              ? 'La configuración o la fecha cambiaron después de revisar. Revise nuevamente los datos.'
+              ? 'Algo cambió desde la revisión. Revise los datos de nuevo.'
               : mutations.prepare.error.message
           }
         />
@@ -736,14 +737,14 @@ function DraftEditor({
   )
 }
 
-function AdditionalInfoDialog({
+function NoteDialog({
   initial,
   onClose,
   onSave,
 }: {
   initial: AdditionalInfoPair | null
   onClose: () => void
-  onSave: (pair: AdditionalInfoPair) => void
+  onSave: (note: AdditionalInfoPair) => void
 }) {
   const [name, setName] = useState(initial?.name ?? '')
   const [value, setValue] = useState(initial?.value ?? '')
@@ -753,8 +754,8 @@ function AdditionalInfoDialog({
 
   function save(): boolean {
     const next: Record<string, string> = {}
-    if (!name.trim()) next.name = 'Escriba el nombre del dato.'
-    if (!value.trim()) next.value = 'Escriba el valor del dato.'
+    if (!name.trim()) next.name = 'Escriba el título.'
+    if (!value.trim()) next.value = 'Escriba el texto.'
     setErrors(next)
     if (Object.keys(next).length) return false
     onSave({ name: name.trim(), value: value.trim() })
@@ -767,21 +768,21 @@ function AdditionalInfoDialog({
       onClose={onClose}
       onSave={save}
       open
-      saveLabel={initial ? 'Guardar dato' : 'Agregar dato'}
-      title={initial ? 'Editar dato adicional' : 'Añadir dato adicional'}
+      saveLabel={initial ? 'Guardar nota' : 'Agregar nota'}
+      title={initial ? 'Editar nota' : 'Añadir nota'}
     >
       <div className="space-y-4">
-        <Field error={errors.name} id="extra-name" label="Nombre" required>
+        <Field error={errors.name} id="note-name" label="Título" required>
           <Input
-            id="extra-name"
+            id="note-name"
             maxLength={300}
             onChange={(event) => setName(event.target.value)}
             value={name}
           />
         </Field>
-        <Field error={errors.value} id="extra-value" label="Valor" required>
+        <Field error={errors.value} id="note-value" label="Texto" required>
           <Input
-            id="extra-value"
+            id="note-value"
             maxLength={300}
             onChange={(event) => setValue(event.target.value)}
             value={value}
@@ -844,7 +845,7 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
     ? snapshot.payments.map(record)
     : []
   const lines = Array.isArray(snapshot.lines) ? snapshot.lines.map(record) : []
-  const extra = Array.isArray(snapshot.additional_info)
+  const notes = Array.isArray(snapshot.additional_info)
     ? snapshot.additional_info.map(record).filter((pair) => text(pair.name))
     : []
   const issuer = record(snapshot.issuer)
@@ -854,47 +855,54 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
     ? snapshot.legends.map(text).filter(Boolean)
     : []
   return (
-    <div className="space-y-4">
-      <Surface aria-label="Datos preparados">
-        <p className="text-sm text-ink-muted">
-          Datos conservados tal como se prepararon el{' '}
-          {text(snapshot.reference_date)}. Cambios posteriores de la
-          configuración no los modifican.
-        </p>
-        <dl className="mt-3 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          <Datum label="Receptor" value={text(receiver.legal_name)} />
-          <Datum
-            label="Identificación"
-            mono
-            value={text(receiver.identification)}
-          />
+    <div className="space-y-5">
+      <SectionPanel
+        icon={<User size={17} />}
+        id="prepared-title"
+        title="Cliente"
+      >
+        <FactList className="px-4">
+          <FactRow label="Nombre">{text(receiver.legal_name) || '—'}</FactRow>
+          <FactRow label="Identificación">
+            <span className="font-mono">
+              {text(receiver.identification) || '—'}
+            </span>
+          </FactRow>
           {text(receiver.email) && (
-            <Datum label="Correo" value={text(receiver.email)} />
+            <FactRow label="Correo">{text(receiver.email)}</FactRow>
           )}
-          <Datum label="Impuestos" value={money(totals.tax)} />
-          <Datum label="Total" value={money(totals.grand)} />
-        </dl>
-      </Surface>
-      <IssuerSummary issuer={issuer} legends={legends} profile={profile} />
-      <Surface className="overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="bg-surface-subtle text-xs text-ink-muted">
+          <FactRow label="Impuestos">{money(totals.tax)}</FactRow>
+          <FactRow label="Total">{money(totals.grand)}</FactRow>
+        </FactList>
+        <p className="px-4 py-3 text-xs text-ink-muted">
+          Guardados el {text(snapshot.reference_date)}. Los cambios posteriores
+          de configuración no los modifican.
+        </p>
+      </SectionPanel>
+
+      <SectionPanel
+        icon={<ListChecks size={17} />}
+        id="lines-title"
+        title="Detalle"
+      >
+        <div className="overflow-x-auto px-4 pb-4">
+          <table className="w-full min-w-[520px] text-left text-sm">
+            <thead className="text-xs text-ink-muted">
               <tr>
-                <th className="px-4 py-2">Código</th>
-                <th className="px-4 py-2">Descripción</th>
-                <th className="px-4 py-2">Impuesto</th>
-                <th className="px-4 py-2 text-right">Cantidad</th>
-                <th className="px-4 py-2 text-right">Total</th>
+                <th className="py-2">Código</th>
+                <th className="py-2">Descripción</th>
+                <th className="py-2">Impuesto</th>
+                <th className="py-2 text-right">Cantidad</th>
+                <th className="py-2 text-right">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {lines.map((line, index) => (
                 <tr key={`${text(line.position)}-${index}`}>
-                  <td className="px-4 py-3 font-mono text-xs">
+                  <td className="py-3 font-mono text-xs">
                     {text(line.item_code)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="py-3">
                     {text(line.description)}
                     {text(line.service_detail) && (
                       <span className="block text-xs break-words text-ink-muted">
@@ -902,13 +910,13 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="py-3">
                     {text(line.display_name) || `${text(line.tax_rate)} %`}
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  <td className="py-3 text-right tabular-nums">
                     {text(line.quantity)}
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold">
+                  <td className="py-3 text-right font-semibold">
                     {money(line.total_amount)}
                   </td>
                 </tr>
@@ -916,10 +924,17 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             </tbody>
           </table>
         </div>
-      </Surface>
-      <Surface aria-label="Formas de pago preparadas">
-        <h2 className="font-bold text-ink">Formas de pago</h2>
-        <ul className="mt-2 space-y-1 text-sm">
+      </SectionPanel>
+
+      <SectionPanel
+        icon={<Wallet size={17} />}
+        id="prepared-payments-title"
+        title="Cómo se paga"
+      >
+        <ul
+          aria-label="Formas de pago preparadas"
+          className="space-y-1 p-4 text-sm"
+        >
           {payments.map((payment, index) => (
             <li key={index}>
               {text(payment.display_name) || text(payment.payment_code)} ·{' '}
@@ -929,36 +944,41 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             </li>
           ))}
         </ul>
-      </Surface>
-      {extra.length > 0 && (
-        <Surface aria-label="Detalle adicional preparado">
-          <h2 className="font-bold text-ink">Detalle adicional</h2>
-          <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-2">
-            {extra.map((pair, index) => (
-              <Datum
-                key={`${text(pair.name)}-${index}`}
-                label={text(pair.name)}
-                value={text(pair.value)}
-              />
+      </SectionPanel>
+
+      {notes.length > 0 && (
+        <SectionPanel
+          icon={<NotePencil size={17} />}
+          id="prepared-notes-title"
+          title="Notas de la factura"
+        >
+          <FactList className="px-4">
+            {notes.map((note, index) => (
+              <FactRow
+                key={`${text(note.name)}-${index}`}
+                label={text(note.name)}
+              >
+                {text(note.value)}
+              </FactRow>
             ))}
-          </dl>
-        </Surface>
+          </FactList>
+        </SectionPanel>
       )}
+
+      <IssuerSummary issuer={issuer} legends={legends} profile={profile} />
+
       {detail.technical && (
-        <details className="rounded-panel border border-line p-4 text-sm">
-          <summary className="cursor-pointer font-semibold text-ink">
-            Información avanzada
-          </summary>
-          <pre className="mt-3 overflow-x-auto text-xs text-ink-muted">
+        <AdvancedInfo hint="para el Administrador">
+          <pre className="overflow-x-auto text-xs text-ink-muted">
             {JSON.stringify(detail.technical, null, 2)}
           </pre>
-        </details>
+        </AdvancedInfo>
       )}
     </div>
   )
 }
 
-/** Datos tributarios del emisor tal como se conservaron al preparar. */
+/** Datos tributarios del emisor tal como se conservaron; plegados porque casi nadie los consulta. */
 function IssuerSummary({
   issuer,
   profile,
@@ -974,93 +994,76 @@ function IssuerSummary({
   const qualification = record(profile.artisan_qualification)
   return (
     <Surface aria-label="Emisor preparado">
-      <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-        {hasProfile ? (
-          <>
-            {text(issuer.trade_name) && (
-              <Datum label="Nombre comercial" value={text(issuer.trade_name)} />
-            )}
-            {text(issuer.establishment_address) && (
-              <Datum
-                label="Dirección del establecimiento"
-                value={text(issuer.establishment_address)}
-              />
-            )}
-            {regime && (
-              <Datum label="Régimen" value={REGIME_LABELS[regime] ?? regime} />
-            )}
-            {text(profile.regime_legend) && (
-              <Datum
-                label="Leyenda en el comprobante"
-                value={text(profile.regime_legend)}
-              />
-            )}
-            {text(profile.accounting_obligation) && (
-              <Datum
-                label="Obligado a llevar contabilidad"
-                value={profile.accounting_obligation === 'SI' ? 'Sí' : 'No'}
-              />
-            )}
-            {text(profile.withholding_agent_resolution) && (
-              <Datum
-                label="Agente de retención"
-                mono
-                value={text(profile.withholding_agent_resolution)}
-              />
-            )}
-            {text(profile.special_taxpayer_resolution) && (
-              <Datum
-                label="Contribuyente especial"
-                mono
-                value={text(profile.special_taxpayer_resolution)}
-              />
-            )}
-            {text(profile.large_taxpayer_resolution) && (
-              <Datum
-                label="Gran contribuyente"
-                mono
-                value={text(profile.large_taxpayer_resolution)}
-              />
-            )}
-            {text(qualification.number) && (
-              <Datum
-                label="Calificación artesanal"
-                value={`${text(qualification.number)} · vence ${text(qualification.ends_on)}`}
-              />
-            )}
-          </>
-        ) : (
-          <div className="sm:col-span-2 lg:col-span-4">
-            <dt className="text-xs text-ink-muted">Condiciones declaradas</dt>
-            <dd className="mt-1 font-medium">
+      <details className="group text-sm">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+          Datos del emisor
+        </summary>
+        <FactList className="mt-1">
+          {hasProfile ? (
+            <>
+              {text(issuer.trade_name) && (
+                <FactRow label="Nombre comercial">
+                  {text(issuer.trade_name)}
+                </FactRow>
+              )}
+              {text(issuer.establishment_address) && (
+                <FactRow label="Dirección del establecimiento">
+                  {text(issuer.establishment_address)}
+                </FactRow>
+              )}
+              {regime && (
+                <FactRow label="Régimen">
+                  {REGIME_LABELS[regime] ?? regime}
+                </FactRow>
+              )}
+              {text(profile.regime_legend) && (
+                <FactRow label="Leyenda en la factura">
+                  {text(profile.regime_legend)}
+                </FactRow>
+              )}
+              {text(profile.accounting_obligation) && (
+                <FactRow label="Obligado a llevar contabilidad">
+                  {profile.accounting_obligation === 'SI' ? 'Sí' : 'No'}
+                </FactRow>
+              )}
+              {text(profile.withholding_agent_resolution) && (
+                <FactRow label="Agente de retención">
+                  <span className="font-mono">
+                    {text(profile.withholding_agent_resolution)}
+                  </span>
+                </FactRow>
+              )}
+              {text(profile.special_taxpayer_resolution) && (
+                <FactRow label="Contribuyente especial">
+                  <span className="font-mono">
+                    {text(profile.special_taxpayer_resolution)}
+                  </span>
+                </FactRow>
+              )}
+              {text(profile.large_taxpayer_resolution) && (
+                <FactRow label="Gran contribuyente">
+                  <span className="font-mono">
+                    {text(profile.large_taxpayer_resolution)}
+                  </span>
+                </FactRow>
+              )}
+              {text(qualification.number) && (
+                <FactRow label="Calificación artesanal">
+                  {`${text(qualification.number)} · vence ${text(qualification.ends_on)}`}
+                </FactRow>
+              )}
+            </>
+          ) : (
+            <FactRow label="Condiciones declaradas">
               <ul className="list-none space-y-0.5 p-0">
                 {legends.map((legend) => (
                   <li key={legend}>{legend}</li>
                 ))}
               </ul>
-            </dd>
-          </div>
-        )}
-      </dl>
+            </FactRow>
+          )}
+        </FactList>
+      </details>
     </Surface>
-  )
-}
-
-function Datum({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string
-  value: string
-  mono?: boolean
-}) {
-  return (
-    <div>
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className={`mt-1 font-medium ${mono ? 'font-mono' : ''}`}>
-        {value || '—'}
-      </dd>
-    </div>
   )
 }

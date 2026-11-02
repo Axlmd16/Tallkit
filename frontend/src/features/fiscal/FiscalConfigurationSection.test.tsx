@@ -391,9 +391,11 @@ it('titula con la subsección, ofrece el aviso de preparación local y el select
   expect(
     screen.queryByRole('heading', { name: 'Facturación electrónica' }),
   ).toBeNull()
-  const notice = screen.getByRole('button', { name: 'Preparación local' })
+  const notice = screen.getByRole('button', {
+    name: 'Estado de la factura electrónica',
+  })
   expect(notice).toHaveAccessibleDescription(
-    'Configuración para preparación local. La emisión electrónica todavía no está habilitada.',
+    'Por ahora nada se envía al SRI: la factura electrónica todavía no está habilitada.',
   )
   await user.hover(notice)
   expect(screen.getByRole('note')).toHaveTextContent(

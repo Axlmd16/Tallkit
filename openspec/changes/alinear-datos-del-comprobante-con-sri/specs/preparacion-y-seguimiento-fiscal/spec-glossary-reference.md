@@ -13,3 +13,4 @@
 | Gran contribuyente | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Condición del emisor con número de resolución; su nombre queda reservado. |
 | Detalle adicional | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Pares de nombre y valor de toda la factura. |
 | Detalle de servicio | Nuevo; se incorporará a `docs/negocio/producto/glosario.md` | Nota opcional de una línea de servicio; se precarga y se puede ajustar en la preparación. |
+| Datos de la factura | `docs/negocio/producto/glosario.md` | Nombre en pantalla de la preparación fiscal; estados «Por completar», «Datos listos» y «Cancelados». |

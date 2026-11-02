@@ -6,6 +6,7 @@ from decimal import Decimal
 from types import MappingProxyType
 from typing import Any
 
+from customer_registry.application.workshop_references import read_customer_contact
 from workshop.application.service_operations import balance_of
 from workshop.models import ArtisanPaymentPart, ServiceOperation
 
@@ -31,6 +32,11 @@ def _collected_by_method(source_id: int) -> Mapping[str, Decimal]:
     for method, amount in parts:
         totals[method] = totals.get(method, Decimal("0")) + amount
     return MappingProxyType(dict(sorted(totals.items())))
+
+
+def _contact(customer_id: int) -> Mapping[str, str]:
+    contact = read_customer_contact(customer_id)
+    return MappingProxyType({"email": contact.email, "address": contact.address})
 
 
 @dataclass(frozen=True)
@@ -76,6 +82,8 @@ class ArtisanFiscalSource:
     collected_by_method: Mapping[str, Decimal]
     # Saldo que sigue pendiente de cobro: descuenta cobros y retenciones recibidas.
     pending_balance: str
+    # Correo y dirección de la ficha vigente del cliente; la copia de la orden no los conserva.
+    customer_contact: Mapping[str, str]
 
 
 def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
@@ -120,6 +128,7 @@ def _project(operation: ServiceOperation) -> ArtisanFiscalSource:
         void_reason=operation.void_reason,
         collected_by_method=_collected_by_method(operation.pk),
         pending_balance=format(balance_of(operation).balance.quantize(Decimal("0.01")), "f"),
+        customer_contact=_contact(operation.customer_id),
     )
 
 

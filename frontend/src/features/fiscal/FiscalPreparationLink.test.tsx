@@ -33,18 +33,16 @@ beforeEach(() => {
   mocks.createPreparation.mutate.mockReset()
 })
 
-it('ofrece «Preparar datos fiscales» a quien prepara ventas comerciales', async () => {
+it('ofrece «Preparar factura» a quien prepara ventas comerciales', async () => {
   const user = userEvent.setup()
   mocks.permissions = ['fiscal.comercial.preparar']
   const { container } = render(
     <FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />,
   )
   expect(
-    screen.getByText(/No ha sido firmada ni enviada al SRI/),
+    screen.getByText(/Todavía no se ha enviado al SRI/),
   ).toBeInTheDocument()
-  await user.click(
-    screen.getByRole('button', { name: 'Preparar datos fiscales' }),
-  )
+  await user.click(screen.getByRole('button', { name: 'Preparar factura' }))
   expect(mocks.createPreparation.mutate).toHaveBeenCalledWith(
     expect.objectContaining({ sourceKind: 'COMMERCIAL', sourceId: 7 }),
     expect.anything(),
@@ -52,7 +50,7 @@ it('ofrece «Preparar datos fiscales» a quien prepara ventas comerciales', asyn
   expectNoForbiddenFiscalTerms(container)
 })
 
-it('muestra una preparación completada como pendiente de emisión', async () => {
+it('muestra una preparación completada como datos listos', async () => {
   const user = userEvent.setup()
   mocks.permissions = ['fiscal.comercial.preparar']
   mocks.active.data = { preparation_id: 'p-1', state: 'PREPARED' }
@@ -61,28 +59,24 @@ it('muestra una preparación completada como pendiente de emisión', async () =>
   )
   expect(
     screen.getByRole('status', {
-      name: 'Estado: Preparación local · Pendiente de emisión',
+      name: 'Estado: Datos listos',
     }),
   ).toBeInTheDocument()
-  expect(
-    screen.queryByRole('button', { name: 'Preparar datos fiscales' }),
-  ).toBeNull()
-  await user.click(
-    screen.getByRole('button', { name: 'Ver preparación local' }),
-  )
+  expect(screen.queryByRole('button', { name: 'Preparar factura' })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Ver datos' }))
   expect(mocks.navigate).toHaveBeenCalledWith('/fiscal/preparations/p-1')
   expectNoForbiddenFiscalTerms(container)
 })
 
-it('lleva un borrador existente a «Revisar datos para facturación»', () => {
+it('lleva un borrador existente a «Completar datos»', () => {
   mocks.permissions = ['fiscal.artesanal.preparar']
   mocks.active.data = { preparation_id: 'p-2', state: 'DRAFT' }
   render(<FiscalPreparationLink sourceKind="ARTISAN" sourceId={9} />)
   expect(
-    screen.getByRole('status', { name: 'Estado: Borrador fiscal' }),
+    screen.getByRole('status', { name: 'Estado: Por completar' }),
   ).toBeInTheDocument()
   expect(
-    screen.getByRole('button', { name: 'Revisar datos para facturación' }),
+    screen.getByRole('button', { name: 'Completar datos' }),
   ).toBeInTheDocument()
 })
 
@@ -106,6 +100,6 @@ it('la unión de roles habilita el ámbito comercial', () => {
   mocks.permissions = ['fiscal.comercial.preparar', 'fiscal.artesanal.preparar']
   render(<FiscalPreparationLink sourceKind="COMMERCIAL" sourceId={7} />)
   expect(
-    screen.getByRole('button', { name: 'Preparar datos fiscales' }),
+    screen.getByRole('button', { name: 'Preparar factura' }),
   ).toBeInTheDocument()
 })

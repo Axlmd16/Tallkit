@@ -12,8 +12,8 @@ const scopePermission: Record<FiscalSourceKind, string> = {
 }
 
 const STATE_LABELS = {
-  DRAFT: 'Borrador fiscal',
-  PREPARED: 'Preparación local · Pendiente de emisión',
+  DRAFT: 'Por completar',
+  PREPARED: 'Datos listos',
 } as const
 
 /**
@@ -40,25 +40,24 @@ export function FiscalPreparationLink({
   const current = active.data?.preparation_id ? active.data : null
 
   return (
-    <Surface aria-label="Datos fiscales">
+    <Surface aria-label="Factura">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-bold text-ink">Datos fiscales</h2>
+        <h2 className="font-bold text-ink">Factura</h2>
         {current?.state && (
           <StatusBadge
             label={STATE_LABELS[current.state]}
             shape="pill"
-            tone="info"
+            tone={current.state === 'PREPARED' ? 'success' : 'info'}
           />
         )}
       </div>
       <p className="mt-1 text-sm text-ink-muted">
-        Esta preparación todavía no es una factura electrónica. No ha sido
-        firmada ni enviada al SRI. El cobro real se gestiona por separado.
+        Todavía no se ha enviado al SRI.
       </p>
       {createPreparation.isError && (
         <div className="mt-3">
           <InlineNotice
-            title="No se pudieron preparar los datos fiscales"
+            title="No se pudieron preparar los datos de la factura"
             tone="warning"
           >
             {createPreparation.error.message}
@@ -73,9 +72,7 @@ export function FiscalPreparationLink({
             }
             variant="secondary"
           >
-            {current.state === 'DRAFT'
-              ? 'Revisar datos para facturación'
-              : 'Ver preparación local'}
+            {current.state === 'DRAFT' ? 'Completar datos' : 'Ver datos'}
           </Button>
         ) : (
           <Button
@@ -90,7 +87,7 @@ export function FiscalPreparationLink({
               )
             }
           >
-            Preparar datos fiscales
+            Preparar factura
           </Button>
         )}
       </div>

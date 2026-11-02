@@ -359,3 +359,71 @@ def test_the_artisan_issuer_keeps_both_addresses_and_the_trade_name_when_declare
     assert issuer["trade_name"] == "Taller Ana"
     assert issuer["address"] == "Matriz del taller"
     assert issuer["establishment_address"] == "Local del taller"
+
+
+# --- El correo de la ficha del cliente llega a la preparación artesanal ---------------------------
+
+
+def test_the_draft_is_prefilled_with_the_email_and_address_of_the_customer_card(
+    manager: Any, configured: Any, order: dict[str, Any], make_service: Any, customer: Any
+) -> None:
+    from fiscal.application.preparations import get_preparation, review
+
+    customer.email = "ficha@example.com"
+    customer.address = "Av. Principal 1"
+    customer.save(update_fields=["email", "address"])
+    prep = _draft(manager, _operation(manager, order, make_service))
+    working = _working(manager, prep)
+    assert working["receiver"]["email"] == "ficha@example.com"
+    assert working["receiver"]["address"] == "Av. Principal 1"
+    assert get_preparation(actor=manager, preparation_id=prep).missing_fields == ()
+    assert review(actor=manager, preparation_id=prep).impediments == ()
+
+
+def test_the_prefilled_email_prepares_without_typing_and_keeps_the_card_untouched(
+    manager: Any, configured: Any, order: dict[str, Any], make_service: Any, customer: Any
+) -> None:
+    from fiscal.application.preparations import prepare, review
+    from fiscal.models import FiscalPreparation
+
+    customer.email = "ficha@example.com"
+    customer.save(update_fields=["email"])
+    prep = _draft(manager, _operation(manager, order, make_service))
+    result = review(actor=manager, preparation_id=prep)
+    assert result.token is not None
+    prepare(
+        actor=manager,
+        preparation_id=prep,
+        review_token=result.token,
+        idempotency_key=f"fiscal:prepare:{key()}",
+    )
+    snapshot = FiscalPreparation.objects.get(pk=prep).snapshot
+    assert snapshot is not None
+    assert snapshot["receiver"]["email"] == "ficha@example.com"
+    customer.refresh_from_db()
+    assert customer.email == "ficha@example.com"
+
+
+def test_an_email_typed_in_the_preparation_wins_over_the_card_and_does_not_change_it(
+    manager: Any, configured: Any, order: dict[str, Any], make_service: Any, customer: Any
+) -> None:
+    customer.email = "ficha@example.com"
+    customer.save(update_fields=["email"])
+    prep = _draft(manager, _operation(manager, order, make_service))
+    forms = _working(manager, prep)["payments"]["forms"]
+    _save(
+        manager,
+        prep,
+        receiver={**_working(manager, prep)["receiver"], "email": "otro@example.com"},
+        payments={"forms": forms},
+    )
+    assert _prepare(manager, prep)["receiver"]["email"] == "otro@example.com"
+    customer.refresh_from_db()
+    assert customer.email == "ficha@example.com"
+
+
+def test_a_card_without_email_still_asks_for_it(
+    manager: Any, configured: Any, order: dict[str, Any], make_service: Any
+) -> None:
+    prep = _draft(manager, _operation(manager, order, make_service))
+    assert _working(manager, prep)["receiver"].get("email") is None

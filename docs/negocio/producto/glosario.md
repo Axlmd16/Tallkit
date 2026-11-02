@@ -173,11 +173,11 @@ Expediente local versionado que conserva emisor, receptor declarado, líneas, im
 
 ### Borrador fiscal
 
-Preparación fiscal todavía editable. Se crea con los datos de la operación y de la configuración centralizada ya precargados; el usuario solo completa lo que falta y, al revisarlo, el sistema vuelve a resolver la configuración vigente.
+Preparación fiscal todavía editable; en pantalla se llama «Por completar». Se crea con los datos de la operación y de la configuración centralizada ya precargados; el usuario solo completa lo que falta y, al revisarlo, el sistema vuelve a resolver la configuración vigente.
 
 ### Preparación local
 
-Preparación fiscal completada y congelada en el sistema. No es una factura electrónica: no ha sido firmada ni enviada al SRI. Conserva los datos revisados y las referencias de configuración usadas, que no cambian si después se modifica la configuración.
+Preparación fiscal completada y congelada en el sistema; en pantalla se llama «Datos listos». No es una factura electrónica: no ha sido firmada ni enviada al SRI. Conserva los datos revisados y las referencias de configuración usadas, que no cambian si después se modifica la configuración.
 
 ### Impedimento
 
@@ -185,7 +185,7 @@ Causa identificada, con el campo afectado y los valores esperado y observado cua
 
 ### Pendiente de emisión
 
-Situación de una preparación local para la que todavía no existe emisión electrónica. No indica que se haya solicitado ni obtenido una autorización.
+Situación de una preparación local para la que todavía no existe emisión electrónica; en pantalla se dice «Todavía no se ha enviado al SRI». No indica que se haya solicitado ni obtenido una autorización.
 
 ### Perfil del emisor
 

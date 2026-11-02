@@ -11,8 +11,7 @@ const EMPTY_ARCHIVE_PAGE = {
   results: [],
 }
 
-const NOTICE =
-  'Esta preparación todavía no es una factura electrónica. No ha sido firmada ni enviada al SRI.'
+const NOTICE = 'Todavía no se ha enviado al SRI'
 
 const PAYMENT_OPTIONS = [
   {
@@ -191,23 +190,24 @@ test('el Vendedor revisa datos precargados y guarda una preparación local', asy
   await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
 
   await expect(
-    page.getByRole('heading', { name: 'Borrador fiscal' }),
+    page.getByRole('heading', { name: 'Datos de la factura' }),
   ).toBeVisible()
   await expect(page.getByText(NOTICE)).toBeVisible()
-  await expect(page.getByText('Venta comercial COM-VEN-000007')).toBeVisible()
+  await expect(
+    page.getByText('Venta de repuestos COM-VEN-000007'),
+  ).toBeVisible()
   await expect(page.getByText('Cliente E2E S.A.')).toBeVisible()
   await expect(page.getByLabel(/ambiente/i)).toHaveCount(0)
   await expect(page.getByLabel(/punto de emisión/i)).toHaveCount(0)
   await expect(page.getByLabel(/plazo/i)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Cómo se sugirió' }).hover()
   await expect(
-    page.getByText(/Sugerido con la forma de pago predeterminada/),
+    page.getByText(/Se sugirió la forma de pago habitual/),
   ).toBeVisible()
 
   await page.getByLabel('Dirección (opcional)').fill('Av. Principal 1')
   await page.getByLabel('Correo', { exact: true }).fill('cliente@example.com')
-  await page
-    .getByRole('button', { name: 'Revisar datos para facturación' })
-    .click()
+  await page.getByRole('button', { name: 'Revisar datos' }).click()
   await expect.poll(() => patches.length).toBe(1)
   expect(patches[0]).toEqual({
     expected_version: 1,
@@ -222,10 +222,10 @@ test('el Vendedor revisa datos precargados y guarda una preparación local', asy
     additional_info: [],
   })
 
-  await page.getByRole('button', { name: 'Guardar preparación local' }).click()
+  await page.getByRole('button', { name: 'Confirmar datos' }).click()
   await expect(
     page.getByRole('status', {
-      name: 'Estado: Preparación local · Pendiente de emisión',
+      name: 'Estado: Datos listos',
     }),
   ).toBeVisible()
   await expect(page.getByText(NOTICE)).toBeVisible()
@@ -239,7 +239,7 @@ test('el Encargado prepara la operación artesanal con cédula precargada', asyn
   await mockPreparationFlow(page, 'ARTISAN', 9)
   await page.goto('/fiscal/preparations/22222222-1111-4111-8111-111111111111')
   await expect(
-    page.getByText('Operación artesanal ART-SER-000009'),
+    page.getByText('Servicios del taller ART-SER-000009'),
   ).toBeVisible()
   await expect(page.getByText('Cédula')).toBeVisible()
   await expect(page.getByText('Taller E2E · RUC 1790000000002')).toBeVisible()
@@ -251,7 +251,6 @@ test('el Encargado prepara la operación artesanal con cédula precargada', asyn
 test('el Encargado completa correo, plazo, datos adicionales y detalle por servicio de una operación a crédito', async ({
   page,
 }) => {
-  const EVIDENCE = 'test-results/alinear-datos-del-comprobante-evidence'
   await login(page, 'taller_e2e')
   const patches = await mockPreparationFlow(page, 'ARTISAN', 9, {
     termRequired: true,
@@ -265,25 +264,19 @@ test('el Encargado completa correo, plazo, datos adicionales y detalle por servi
   await expect(page.getByLabel('Plazo en días')).toBeVisible()
   await expect(page.getByLabel('Correo', { exact: true })).toBeVisible()
   await expect(page.getByLabel(/ambiente/i)).toHaveCount(0)
-  await page.screenshot({
-    path: `${EVIDENCE}/01-borrador-1440.png`,
-    fullPage: true,
-  })
 
   await detail.fill('eje delantero y trasero')
   await page.getByLabel('Plazo en días').fill('30')
   await page.getByLabel('Correo', { exact: true }).fill('ana@example.com')
-  await page.getByRole('button', { name: 'Añadir dato adicional' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Añadir dato adicional' })
-  await dialog.getByLabel('Nombre').fill('Vehículo')
-  await dialog.getByLabel('Valor').fill('Placa PCM4567')
-  await dialog.getByRole('button', { name: 'Agregar dato' }).click()
+  await page.getByRole('button', { name: 'Añadir nota' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir nota' })
+  await dialog.getByLabel('Título').fill('Vehículo')
+  await dialog.getByLabel('Texto').fill('Placa PCM4567')
+  await dialog.getByRole('button', { name: 'Agregar nota' }).click()
   await expect(page.getByText('Placa PCM4567')).toBeVisible()
   await expectNoSeriousAccessibilityViolations(page, { exclude: ['.app-rail'] })
 
-  await page
-    .getByRole('button', { name: 'Revisar datos para facturación' })
-    .click()
+  await page.getByRole('button', { name: 'Revisar datos' }).click()
   await expect.poll(() => patches.length).toBe(1)
   expect(patches[0]).toMatchObject({
     receiver: { email: 'ana@example.com' },
@@ -295,27 +288,19 @@ test('el Encargado completa correo, plazo, datos adicionales y detalle por servi
     service_details: [{ position: 1, detail: 'eje delantero y trasero' }],
   })
 
-  await page.getByRole('button', { name: 'Guardar preparación local' }).click()
+  await page.getByRole('button', { name: 'Confirmar datos' }).click()
   await expect(
     page.getByRole('status', {
-      name: 'Estado: Preparación local · Pendiente de emisión',
+      name: 'Estado: Datos listos',
     }),
   ).toBeVisible()
   await expect(page.getByText('plazo 30 días')).toBeVisible()
   await expect(page.getByText('Placa PCM4567')).toBeVisible()
   await expect(page.getByText('eje delantero', { exact: true })).toBeVisible()
   await expect(page.getByText(/factura emitida|autorizada/i)).toHaveCount(0)
-  await page.screenshot({
-    path: `${EVIDENCE}/02-preparada-1440.png`,
-    fullPage: true,
-  })
 
   // En un teléfono la página se adapta sin desplazamiento horizontal.
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.screenshot({
-    path: `${EVIDENCE}/03-preparada-390.png`,
-    fullPage: true,
-  })
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   )
@@ -331,7 +316,7 @@ test('una venta comercial no ofrece detalle por servicio ni plazo cuando el serv
   await expect(page.getByLabel('Plazo en días')).toHaveCount(0)
   await expect(page.getByLabel(/Detalle de /)).toHaveCount(0)
   await expect(
-    page.getByRole('region', { name: 'Detalle adicional' }),
+    page.getByRole('region', { name: 'Notas de la factura' }),
   ).toBeVisible()
 })
 
@@ -349,10 +334,10 @@ test('una preparación completada conserva su punto después de cambiar la confi
   )
   await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
   await expect(
-    page.getByRole('heading', { name: 'Preparación local' }),
+    page.getByRole('heading', { name: 'Datos de la factura' }),
   ).toBeVisible()
   await expect(
-    page.getByText(/Cambios posteriores de la configuración no los modifican/),
+    page.getByText(/Los cambios posteriores de configuración no los modifican/),
   ).toBeVisible()
   await page.getByText('Información avanzada').click()
   await expect(page.getByText(/"code": "001"/)).toBeVisible()
@@ -512,9 +497,7 @@ test('un código de producto excedido bloquea la preparación y se explica al Ad
   )
   await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
   await page.getByLabel('Dirección (opcional)').fill('Av. Principal 1')
-  await page
-    .getByRole('button', { name: 'Revisar datos para facturación' })
-    .click()
+  await page.getByRole('button', { name: 'Revisar datos' }).click()
 
   const admin = page.getByRole('list', {
     name: 'Debe resolverlo el Administrador',
@@ -522,6 +505,6 @@ test('un código de producto excedido bloquea la preparación y se explica al Ad
   await expect(admin).toContainText('tiene 31 caracteres')
   await expect(admin).toContainText('admite hasta 25')
   await expect(
-    page.getByRole('button', { name: 'Guardar preparación local' }),
+    page.getByRole('button', { name: 'Confirmar datos' }),
   ).toHaveCount(0)
 })

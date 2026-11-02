@@ -269,7 +269,7 @@ Limitación: la comprobación de tarifa con calificación vigente es local y no 
 
 ## Datos del comprobante (`alinear-datos-del-comprobante-con-sri`)
 
-La cobertura de los 99 escenarios de este cambio, con su prueba y su resultado, está en [cobertura-datos-del-comprobante.md](cobertura-datos-del-comprobante.md). Cambia el formato de la instantánea a 4 (ver [matriz-instantanea-fiscal.md](../../tecnico/matriz-instantanea-fiscal.md)), exige el correo del comprador identificado y el plazo de una operación a crédito con saldo pendiente, y agrega gran contribuyente, detalle adicional y detalle de servicio.
+La cobertura de los 108 escenarios de este cambio, con su prueba y su resultado, está en [cobertura-datos-del-comprobante.md](cobertura-datos-del-comprobante.md). Cambia el formato de la instantánea a 4 (ver [matriz-instantanea-fiscal.md](../../tecnico/matriz-instantanea-fiscal.md)), exige el correo del comprador identificado y el plazo de una operación a crédito con saldo pendiente, y agrega gran contribuyente, detalle adicional y detalle de servicio.
 
 Limitaciones: el plazo no define cuándo corresponde (`NOR-019`, `V-6`); la leyenda de Negocio Popular contradice al XSD local (`NOR-020`); el redondeo del IVA incluido sigue abierto (`V-5`); y los enlaces de las filas anteriores a rutas de cambios ya archivados se corrigen en el cambio 15.
 
