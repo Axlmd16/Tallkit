@@ -340,7 +340,7 @@ test('el perfil tributario se declara con opciones cerradas y la calificación c
   await page.goto('/configuration?tab=facturacion&entidad=2')
 
   const profile = page.getByRole('region', { name: 'Perfil tributario' })
-  await expect(profile.getByRole('row')).toHaveCount(6)
+  await expect(profile.getByRole('row')).toHaveCount(7)
   await expect(profile.getByText('RIMPE', { exact: true })).toHaveCount(0)
 
   await profile
@@ -360,6 +360,7 @@ test('el perfil tributario se declara con opciones cerradas y la calificación c
     'accounting_obligation',
     'withholding_agent',
     'special_taxpayer',
+    'large_taxpayer',
     'artisan_qualification',
   ])
   expect(profileWrites[0]).toMatchObject({

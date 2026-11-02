@@ -32,3 +32,6 @@
 | Matriz de normas | `docs/negocio/producto/glosario.md` | Respalda las normas pendientes de §11.5. |
 | RIDE | `docs/negocio/producto/glosario.md` | Archivo que el proveedor de emisión genera (§11.8). |
 | Firma electrónica | `docs/negocio/producto/glosario.md` | La conserva el proveedor de emisión, no Tallkit (§11.8). |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | Sección 4 y 11.6. |
+| Gran contribuyente | `docs/negocio/producto/glosario.md` | Sección 11.6. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | Sección 5.3 y 11.6. |

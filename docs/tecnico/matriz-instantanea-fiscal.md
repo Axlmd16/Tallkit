@@ -34,7 +34,7 @@ Leyenda:
 | `infoTributaria/ambiente` | Obligatorio | `issuer.environment`, resuelto por el sistema (siempre pruebas, `1`) y conservado; también en `configuration.environment` | C |
 | `infoTributaria/tipoEmision` | Obligatorio | Solo emisión normal `1`; cualquier otro caso se rechaza | D |
 | `infoTributaria/razonSocial` | Obligatorio | `issuer.legal_name` | C |
-| `infoTributaria/nombreComercial` | Condicional | `issuer.trade_name`, solo cuando fue declarado | C |
+| `infoTributaria/nombreComercial` | Condicional | `issuer.trade_name`, solo cuando fue declarado; se conserva desde el formato 4 y nunca se sustituye por la razón social | C |
 | `infoTributaria/ruc` | Obligatorio | `issuer.ruc` | C |
 | `infoTributaria/claveAcceso` | Obligatorio al construir el comprobante | Identidad fiscal inmutable asignada después de preparar | I |
 | `infoTributaria/codDoc` | Obligatorio | Constante oficial de factura `01` | D |
@@ -42,8 +42,8 @@ Leyenda:
 | `infoTributaria/ptoEmi` | Obligatorio | `issuer.emission_point_code`, del punto predeterminado efectivo; su id y versión en `configuration.point` | C |
 | `infoTributaria/secuencial` | Obligatorio | Identidad fiscal inmutable, nueve dígitos | I |
 | `infoTributaria/dirMatriz` | Obligatorio | `issuer.address` | C |
-| `infoTributaria/agenteRetencion` | Condicional | `issuer.tax_profile.withholding_agent_resolution`, de 1 a 8 dígitos; se omite si no aplica | C/NA |
-| `infoTributaria/contribuyenteRimpe` | Condicional | `issuer.tax_profile.regime_legend`, derivada del régimen (`CONTRIBUYENTE RÉGIMEN RIMPE` solo para RIMPE Emprendedor); se omite en los demás | C/NA |
+| `infoTributaria/agenteRetencion` | Condicional | `issuer.tax_profile.withholding_agent_resolution`, de 1 a 8 dígitos y sin ceros a la izquierda (Anexo 21, `NOR-003`); se omite si no aplica | C/NA |
+| `infoTributaria/contribuyenteRimpe` | Condicional | `issuer.tax_profile.regime_legend`, derivada del régimen: `CONTRIBUYENTE RÉGIMEN RIMPE` para RIMPE Emprendedor y `CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE` para Negocio Popular (Anexo 22, `NOR-002`); se omite en General. **El XSD 2.1.0 solo admite la primera** (`NOR-020`) | C/NA |
 
 La clave, el secuencial y la fecha usada por la clave pertenecen a la identidad posterior. Su
 ausencia en una preparación no vuelve incompleta la instantánea; sí impide construir un XML. La
@@ -54,8 +54,8 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 | Campo XSD 2.1.0 | Condición | Fuente o regla | Estado |
 |---|---|---|---|
 | `fechaEmision` | Obligatorio | Fecha local de identidad; debe concordar con `reference_date` o exigir nueva revisión | I/D |
-| `dirEstablecimiento` | Condicional | Dirección del establecimiento de la revisión fiscal; si difiere de matriz debe conservarse antes de preparar | C |
-| `contribuyenteEspecial` | Condicional | `issuer.tax_profile.special_taxpayer_resolution`, alfanumérico de 1 a 13; se omite si no aplica | C/NA |
+| `dirEstablecimiento` | Condicional | `issuer.establishment_address`, dirección del establecimiento de la revisión fiscal; obligatoria desde el formato 4 y conservada aunque coincida con la matriz | C |
+| `contribuyenteEspecial` | Condicional | `issuer.tax_profile.special_taxpayer_resolution`, alfanumérico de 3 a 13 (XSD 2.1.0 y ficha 2.34); se omite si no aplica | C/NA |
 | `obligadoContabilidad` | Condicional | `issuer.tax_profile.accounting_obligation`, `SI` o `NO` | C |
 | `comercioExterior` | Condicional | Operaciones de comercio exterior fuera del alcance | NA |
 | `incoTermFactura` | Condicional | Comercio exterior fuera del alcance | NA |
@@ -94,12 +94,12 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 | `gastosTransporteOtros` | Condicional | Comercio exterior fuera del alcance | NA |
 | `importeTotal` | Obligatorio | `totals.grand` | C |
 | `moneda` | Condicional en XSD | `currency = USD`, representado como la denominación SRI aplicable | C/D |
-| `placa` | Condicional | `additional_info` solo si fue pertinente y revisada; no se toma del maestro vigente | C/NA |
+| `placa` | Condicional | No aplica a un taller: el Anexo 25 la exige solo a operadoras de transporte comercial. Cualquier placa que el usuario quiera consignar va como dato de `additional_info` | NA |
 | `pagos/pago[*]` | Condicional en XSD; requerido por la regla local | Un registro por `payments[*]` | C |
 | `…/formaPago` | Obligatorio por pago | `payment_code` oficial habilitado para la entidad, con `description`, `display_name` y `catalog_version` del catálogo de la Tabla 24 | C |
 | `…/total` | Obligatorio por pago | `amount`; la suma debe cubrir `totals.grand` | C |
-| `…/plazo` | Condicional | No se captura en la preparación local (formato 2); su representación para la emisión queda pendiente de una spec futura | NA |
-| `…/unidadTiempo` | Condicional | No se captura junto con el plazo (formato 2) | NA |
+| `…/plazo` | Condicional | `payments[*].term_days`, entero de 1 a 9999 días; solo en las formas que cubren el saldo pendiente de una operación a crédito (`DP-035`, regla 2; `NOR-019`). **La ficha dice «cuando corresponda» y no define cuándo** (validación `V-6`) | C/NA |
+| `…/unidadTiempo` | Condicional | `payments[*].time_unit`, siempre `dias` y fijado por el sistema; es el único valor que usan los ejemplos de la ficha | D/NA |
 | `valorRetIva` | Condicional | Retenciones recibidas fuera del alcance de preparación | NA |
 | `valorRetRenta` | Condicional | Retenciones recibidas fuera del alcance de preparación | NA |
 
@@ -117,7 +117,7 @@ asignación se valida aparte y nunca se deriva de la numeración comercial.
 | `precioSinSubsidio` | Condicional | No se gestionan subsidios | NA |
 | `descuento` | Obligatorio | `0.00`; no se crean descuentos | D |
 | `precioTotalSinImpuesto` | Obligatorio | `lines[*].base_amount` | C |
-| `detallesAdicionales/detAdicional` | Condicional | Solo datos fiscales pertinentes conservados en `additional_info` | C/NA |
+| `detallesAdicionales/detAdicional` | Condicional | `lines[*].service_detail`, una nota de hasta 300 caracteres en una sola línea que nace en el mantenimiento y puede ajustarse en la preparación (`DP-035`, regla 3); el XSD admite hasta tres por línea y Tallkit usa uno | C/NA |
 | `impuestos/impuesto[*]/codigo` | Obligatorio | `lines[*].tax_code` | C |
 | `…/codigoPorcentaje` | Obligatorio | `lines[*].percentage_code` | C |
 | `…/tarifa` | Obligatorio | `lines[*].tax_rate` | C |
@@ -138,7 +138,9 @@ coinciden. Una diferencia no genera una línea de ajuste.
 | `otrosRubrosTerceros/rubro` | No se gestionan rubros de terceros | NA |
 | `tipoNegociable/correo` | Factura negociable fuera del alcance | NA |
 | `maquinaFiscal` | No se usa máquina fiscal | NA |
-| `infoAdicional/campoAdicional[*]` | `additional_info` y leyendas pertinentes, con nombre/valor conservados | C |
+| `infoAdicional/campoAdicional[*]` | `additional_info`: hasta 12 pares de nombre y valor de 1 a 300 caracteres, validados y sin repetir; el XSD admite 15 y los 3 restantes quedan para los que agrega el sistema (`NOR-021`) | C |
+| `infoAdicional/campoAdicional[@nombre="Gran Contribuyente"]` | `issuer.tax_profile.large_taxpayer_resolution`, solo si la entidad lo declara (Anexo 24, `NOR-003`); el nombre está reservado y la emisión lo escribe | C/NA |
+| `infoAdicional/campoAdicional[@nombre="RUC Proveedor"]` | No se conserva en la instantánea: lo agrega la emisión con el RUC del proveedor (Anexo 26, `NOR-004`); su nombre está reservado. La comprobación pasa al cambio 4 | NA |
 | `ds:Signature` | Firma XAdES/XMLDSig | F; no se almacena certificado privado ni se firma en esta fase |
 | Envoltorio `autorizacion` | Respuesta externa posterior | F; el archivo solo conserva su declaración como evidencia no verificada |
 
@@ -196,6 +198,33 @@ Con régimen `RIMPE_NEGOCIO_POPULAR` toda línea debe resolver a IVA 0 % (impedi
 
 Si el emisor declara una calificación artesanal vigente en la fecha de referencia, toda línea debe resolver a la entrada IVA 0 % del catálogo (tratamiento `ZERO`; no objeto y exento no cuentan). Es una comprobación local que no acredita el beneficio legal.
 
+## Formato 4 de la instantánea
+
+Desde `alinear-datos-del-comprobante-con-sri`, las preparaciones nuevas conservan `snapshot_format: 4`. Respecto del formato 3:
+
+| Clave | Contenido |
+|---|---|
+| `issuer.trade_name` | Nombre comercial, solo si fue declarado |
+| `issuer.establishment_address` | Dirección del establecimiento de la emisión. Obligatoria |
+| `issuer.tax_profile.regime_legend` | También para RIMPE Negocio Popular |
+| `issuer.tax_profile.large_taxpayer_resolution` | Solo si la entidad es gran contribuyente |
+| `payments[*].term_days`, `payments[*].time_unit` | Solo en las formas que cubren el saldo pendiente de una operación a crédito; la unidad es `dias` |
+| `lines[*].service_detail` | Nota de la línea de servicio, solo si hay texto |
+| `additional_info[*]` | Pares `{name, value}` validados |
+
+Un dato que no aplica se omite; nunca se representa con un texto, un cero ni un valor vacío. El correo del receptor ya existía en `receiver.email`: lo que cambia es que se exige al completar la preparación de un receptor identificado. Las preparaciones de los formatos 1 a 3 no se migran y se leen tal como se conservaron.
+
+### Nuevos límites verificados
+
+| Campo XSD | Límite | Origen del dato |
+|---|---|---|
+| `plazo` | Entero de 1 a 9999 días | Plazo declarado al preparar |
+| `unidadTiempo` | `dias` | Fijado por el sistema |
+| `campoAdicional` (nombre y valor) | De 1 a 300 caracteres en una sola línea, hasta 12 pares | Detalle adicional |
+| `detAdicional` (valor) | Hasta 300 caracteres en una sola línea | Nota de la línea de servicio |
+| `contribuyenteEspecial` | De 3 a 13 caracteres alfanuméricos | Perfil |
+| `agenteRetencion` | Hasta 8 dígitos sin ceros a la izquierda | Perfil |
+
 ## Resultado de suficiencia
 
 La instantánea cubre los campos obligatorios de una factura ordinaria 2.1.0 mediante conservación,
@@ -205,3 +234,5 @@ no pueden activarse por omisión o por valores ficticios. La incorporación de `
 XSD: ambos son necesarios para representar `codigoPrincipal` y `descripcion` sin consultar
 maestros actuales. Firma, transmisión, consulta al SRI y autorización quedan fuera del alcance de esta
 matriz, que solo compara campos del comprobante; `DP-034` las incorpora a V1 mediante otros cambios.
+
+Referencia terminológica: [matriz-instantanea-fiscal-glossary-reference.md](matriz-instantanea-fiscal-glossary-reference.md).

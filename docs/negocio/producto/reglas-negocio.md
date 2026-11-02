@@ -47,6 +47,10 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-FIS-016 | Tallkit no debe firmar comprobantes ni custodiar la firma electrónica, y cambiar de proveedor de emisión no debe exigir cambios en ventas, taller, cobros ni pantallas. Pendiente de implementar: cambios 3 y 4 (`DP-034`, reglas 2 y 3). |
 | RN-FIS-017 | Cada entidad fiscal debe activarse por separado para la facturación diaria y exigir firma vigente, autorización real comprobada, numeración conciliada, política de conservación y restauración aplicable, y las condiciones que fije la matriz de normas. La comercial exige además RUC definitivo y redondeo del IVA validado. Pendiente de implementar: cambios 3 y 4 (`DP-034`, regla 4). |
 | RN-FIS-018 | Antes de la facturación diaria se permite una prueba real supervisada de pocas facturas reales, cada una de una operación real con un comprador que lo acepte; su XML se guarda en el archivo fiscal y la cantidad y los casos se fijan antes de emitir. Pendiente de implementar: cambio 4 (`DP-034`, regla 9). |
+| RN-FIS-019 | El correo del comprador es obligatorio al completar la preparación de una factura a un comprador identificado; guardar un borrador sin correo es válido y consumidor final no lo informa. No cambia el registro del cliente ni exige nada al confirmar o cobrar (`DP-035`, regla 1; `NOR-001`). |
+| RN-FIS-020 | Una operación a crédito con saldo pendiente declara al preparar su factura un plazo en días (1 a 9999, unidad «días»). Solo lo llevan las formas de pago que cubren lo pendiente; contado, o crédito ya saldado, no lo piden. No crea vencimiento, mora ni alertas ni cambia saldos o cobros (`DP-035`, regla 2; `NOR-019`). |
+| RN-FIS-021 | La nota de una línea de servicio nace en el mantenimiento, se copia a la operación artesanal al confirmarla y puede ajustarse en la preparación sin modificar la operación (`DP-035`, regla 3). |
+| RN-FIS-022 | Las leyendas del emisor las deriva el sistema del perfil; gran contribuyente es una condición del perfil con su número de resolución, y «RUC Proveedor» y «Gran Contribuyente» no los escribe el usuario (`DP-035`, reglas 4 y 5; `NOR-002`, `NOR-003`, `NOR-004`). |
 
 ## 3. Usuarios, roles y auditoría
 
@@ -66,7 +70,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 |---|---|
 | RN-CLI-001 | Un cliente puede ser persona natural o jurídica y puede relacionarse con ambas entidades fiscales. |
 | RN-CLI-002 | Cuando se registre un número de identificación, la combinación de tipo y número normalizado no debe repetirse. |
-| RN-CLI-003 | V1 no registra clientes sin identificación (`DP-008`, Cliente): son obligatorios nombre o razón social, tipo de identificación (CI de 10 caracteres o RUC de 13), identificación y teléfono. Email y dirección son opcionales durante el registro; una futura facturación podrá exigir completar los datos fiscales antes de emitir un comprobante. |
+| RN-CLI-003 | V1 no registra clientes sin identificación (`DP-008`, Cliente): son obligatorios nombre o razón social, tipo de identificación (CI de 10 caracteres o RUC de 13), identificación y teléfono. Email y dirección son opcionales durante el registro; el correo se exige al preparar la factura de un comprador identificado y se completa en la preparación sin cambiar la ficha del cliente (`DP-035`, regla 1). |
 | RN-CLI-004 | Un cliente puede tener uno o varios vehículos. |
 | RN-CLI-005 | Un vehículo debe tener un único propietario vigente, que referencia a un Cliente; V1 no distingue responsable ni copropietarios. |
 | RN-CLI-006 | La placa es obligatoria y, junto con el VIN cuando se informe, debe normalizarse y no duplicarse entre vehículos activos o inactivos (`DP-008`, Vehículo). Marca, modelo y propietario son obligatorios; color, año y VIN son opcionales. La marca proviene de un catálogo administrable: los tres roles la consultan, Administrador y Encargado del taller la crean y editan, y solo el Administrador la desactiva o reactiva (`DP-008`, Marcas). |
@@ -157,7 +161,7 @@ Las reglas alineadas con `../decisiones/decisiones-confirmadas.yaml` y con el mo
 | RN-VEN-005 | La confirmación debe asignar el secuencial y afectar inventario en una sola transacción. |
 | RN-VEN-006 | Una venta confirmada no debe modificar directamente sus datos económicos; se corrige mediante anulación, devolución u otro documento relacionado. |
 | RN-VEN-007 | El estado de la venta, el estado del pago, el estado del documento interno y la eventual referencia fiscal deben evolucionar de forma independiente. |
-| RN-VEN-008 | La condición de crédito indica únicamente que puede quedar saldo pendiente; no constituye forma de pago ni contiene vencimiento, cuotas, intereses o cronograma. |
+| RN-VEN-008 | La condición de crédito indica únicamente que puede quedar saldo pendiente; no constituye forma de pago ni contiene vencimiento, cuotas, intereses o cronograma. El plazo en días que exige la factura se declara solo al preparar el comprobante y nunca crea un vencimiento (`DP-035`, regla 2). |
 | RN-VEN-009 | Todo pago o abono debe registrar una forma de pago real, importe, fecha, entidad fiscal y usuario. |
 | RN-VEN-010 | Una operación puede recibir varios pagos y cada pago puede combinar EFECTIVO y TRANSFERENCIA. |
 | RN-VEN-011 | El saldo pendiente debe derivarse del total exigible menos los pagos válidos aplicados y menos las retenciones recibidas vigentes; una retención reduce el saldo, pero nunca es dinero cobrado (`DP-032`). |

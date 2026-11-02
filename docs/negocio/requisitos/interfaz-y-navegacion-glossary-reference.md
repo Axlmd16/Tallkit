@@ -26,3 +26,7 @@
 | Comprobante pendiente | `docs/negocio/producto/glosario.md` | Criterio de la lista UI-064. |
 | RIDE | `docs/negocio/producto/glosario.md` | Su convivencia con el documento interno la decide el cambio 5 (sección 11). |
 | Estado de facturación | `docs/negocio/producto/glosario.md` | Dimensión propia que añade el cambio 3 (sección 9). |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | UI-059. |
+| Gran contribuyente | `docs/negocio/producto/glosario.md` | UI-019. |
+| Detalle adicional | `docs/negocio/producto/glosario.md` | UI-059. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | UI-059, UI-072 y UI-077. |

@@ -20,3 +20,6 @@
 | Prueba real supervisada | `glosario.md` | Excepción de RN-FIS-018 y RN-FIS-014. |
 | Referencia fiscal | `glosario.md` | Identidad y estado independientes (RN-CON-010). |
 | Matriz de normas | `glosario.md` | Asuntos abiertos de la sección 12. |
+| Plazo del comprobante | `glosario.md` | RN-VEN-008 y RN-FIS-020. |
+| Gran contribuyente | `glosario.md` | RN-FIS-022. |
+| Detalle de servicio | `glosario.md` | RN-FIS-021. |

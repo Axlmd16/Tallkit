@@ -25,3 +25,5 @@
 | Matriz de normas | `docs/negocio/producto/glosario.md` | Origen del prefijo NOR-* y de la fila de la matriz de normas. |
 | Referencia fiscal | `docs/negocio/producto/glosario.md` | Modelo de las filas de facturación electrónica. |
 | Proveedor de emisión | `docs/negocio/producto/glosario.md` | Medio de emisión de DP-034. |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | Filas de preparación fiscal. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | Filas de taller y preparación fiscal. |

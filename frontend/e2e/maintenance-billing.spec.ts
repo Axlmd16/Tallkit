@@ -137,6 +137,7 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
       `/maintenance-orders/${order.id}/service-lines/`,
       {
         service_id: world.service.id,
+        detail: 'frenos delanteros',
         expected_version: order.version,
         idempotency_key: `e2e-bil-lin-${world.tag}`,
       },
@@ -239,6 +240,8 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
       'Comprobante interno: no es una factura electrónica autorizada por el SRI.',
     ),
   ).toBeVisible()
+  // La nota que escribió el Encargado llega a la vista previa para revisarla (DP-035).
+  await expect(serviceDialog.getByText('frenos delanteros')).toBeVisible()
   await page.screenshot({ path: `${EVIDENCE}/03-documentar-servicios.png` })
   await serviceDialog
     .getByRole('button', { name: 'Generar comprobante' })
@@ -252,6 +255,7 @@ test('repuestos, venta vinculada, servicios y cobros separados por RUC', async (
   const operationId = operationHref?.match(/service-operations\/(\d+)/)?.[1]
   expect(operationId).toBeTruthy()
   await page.goto(`/maintenance/service-operations/${operationId}/document`)
+  await expect(page.getByText('frenos delanteros')).toBeVisible()
   const issuer = page.getByRole('group', { name: 'Emisor' })
   await expect(
     issuer.getByRole('img', { name: `Logo de ${artisan.legal_name}` }),

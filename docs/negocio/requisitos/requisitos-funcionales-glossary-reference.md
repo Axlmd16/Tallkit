@@ -28,3 +28,7 @@
 | Referencia fiscal | `docs/negocio/producto/glosario.md` | Estado propio de RF-VEN-009 y RF-REP-014. |
 | Prueba real supervisada | `docs/negocio/producto/glosario.md` | Excepción de RF-FIS-006. |
 | Matriz de normas | `docs/negocio/producto/glosario.md` | Respaldo de RF-FIS-008 a RF-FIS-013. |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | RF-FIS-014 y RF-PAG-012. |
+| Gran contribuyente | `docs/negocio/producto/glosario.md` | RF-ACC-018. |
+| Detalle adicional | `docs/negocio/producto/glosario.md` | RF-FIS-015. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | RF-FIS-015 y RF-FIS-016. |

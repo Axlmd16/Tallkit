@@ -113,7 +113,7 @@
 2. Registra o actualiza sus datos permitidos.
 3. Configura impuestos o tarifas con fecha de vigencia.
 4. Configura series, secuenciales, umbrales y formas de pago habilitadas según decisiones aprobadas.
-4a. En la pestaña *Facturación electrónica* declara el perfil tributario (régimen y contabilidad con listas cerradas, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y la calificación artesanal con número, organismo y vencimiento), los establecimientos y el punto predeterminado, las correspondencias con el catálogo oficial del SRI, las formas de pago SRI habilitadas (en V1 solo 01 y 20) y, de forma opcional, los metadatos del certificado. El sistema muestra el estado del perfil con sus causas y mantiene producción bloqueada.
+4a. En la pestaña *Facturación electrónica* declara el perfil tributario (régimen y contabilidad con listas cerradas, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y la calificación artesanal con número, organismo y vencimiento), los establecimientos y el punto predeterminado, las correspondencias con el catálogo oficial del SRI, las formas de pago SRI habilitadas (en V1 solo 01 y 20) y, de forma opcional, los metadatos del certificado. El sistema muestra el estado del perfil con sus causas y mantiene producción bloqueada. Declara también si la entidad es gran contribuyente, con su número de resolución (`DP-035`, regla 5); un perfil anterior queda en «Falta completar» hasta hacerlo.
 5. El sistema valida solapamientos, unicidad y permisos.
 6. El administrador confirma y el sistema registra la auditoría.
 
@@ -321,7 +321,7 @@
 6. En una transacción, asigna secuencial, congela valores históricos, genera salidas de Kardex y crea el importe exigible.
 7. El sistema muestra la venta confirmada.
 8. El actor registra el cobro mediante `CU-013` o deja saldo si es crédito.
-9. Opcionalmente, pulsa «Preparar datos fiscales»: el sistema precarga receptor, líneas, impuestos, totales y la configuración centralizada de la entidad; el actor completa solo lo faltante, revisa los datos para facturación y guarda una preparación local, que no es una factura electrónica ni se envía al SRI.
+9. Opcionalmente, pulsa «Preparar datos fiscales»: el sistema precarga receptor, líneas, impuestos, totales y la configuración centralizada de la entidad; el actor completa solo lo faltante, revisa los datos para facturación y guarda una preparación local, que no es una factura electrónica ni se envía al SRI. Completa además el correo del comprador identificado (`DP-035`, regla 1) y, si la venta es a crédito con saldo pendiente, el plazo en días (regla 2); puede añadir un detalle adicional de hasta 12 datos.
 
 **Alternativas y excepciones**
 
@@ -433,7 +433,7 @@
 1. El actor crea un mantenimiento para el cliente y vehículo.
 2. Registra fecha, kilometraje, diagnóstico y observaciones.
 3. Adjunta fotografías válidas cuando corresponda.
-4. Agrega servicios del catálogo; el sistema copia sus precios referenciales.
+4. Agrega servicios del catálogo; el sistema copia sus precios referenciales. Puede escribir una nota opcional por servicio (`DP-035`, regla 3), que viaja a la operación artesanal y a la preparación fiscal.
 5. El Encargado del taller o el Administrador modifica libremente el precio aplicado antes de confirmar, sin que se exija un motivo.
 6. El sistema calcula la operación económica artesanal.
 7. El actor guarda el mantenimiento en estado `registrado`.

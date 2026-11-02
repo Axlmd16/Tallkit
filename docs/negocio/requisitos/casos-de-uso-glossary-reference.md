@@ -22,3 +22,6 @@
 | Activación por RUC | `docs/negocio/producto/glosario.md` | Precondición de CU-031. |
 | RIDE | `docs/negocio/producto/glosario.md` | Archivo que CU-031 conserva. |
 | Estado de facturación | `docs/negocio/producto/glosario.md` | Estado que muestra CU-031. |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | Paso 9 de CU-012. |
+| Gran contribuyente | `docs/negocio/producto/glosario.md` | Paso 4a de CU-003. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | Paso 4 de CU-017. |

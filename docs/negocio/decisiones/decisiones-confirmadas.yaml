@@ -41,9 +41,11 @@ context: |
   - DP-001: V1 opera con una sola bodega. No incluir transferencias ni gestión multibodega.
   - DP-002: no se permite stock negativo. La confirmación debe fallar de forma atómica
     cuando la existencia sea insuficiente.
-  - DP-003: los medios de pago iniciales son EFECTIVO y TRANSFERENCIA, combinables en
-    una misma operación. CREDITO es una condición de venta, no un medio de pago; se
-    maneja de forma sencilla, sin fecha de vencimiento, cuotas ni cronograma.
+  - DP-003 (ajustada por DP-035, regla 2, solo en el comprobante): los medios de pago
+    iniciales son EFECTIVO y TRANSFERENCIA, combinables en una misma operación. CREDITO es
+    una condición de venta, no un medio de pago; se maneja de forma sencilla, sin fecha de
+    vencimiento, cuotas ni cronograma. El plazo en días que pide la factura se declara al
+    preparar el comprobante y nunca crea un vencimiento.
   - DP-004: V1 no permite descuentos. No mostrar ni aceptar descuentos en proformas,
     ventas, servicios ni mantenimientos.
   - DP-006 (revisión aprobada 2026-09-14): los números internos usan el formato
@@ -150,7 +152,8 @@ context: |
     catálogo; ningún rol lo edita en la venta y no existen descuentos, ni siquiera de valor
     cero. Un cambio de precio corresponde al catálogo y a su permiso administrativo; si cambia
     antes de confirmar, la confirmación exige una nueva revisión con los valores actuales.
-  - DP-027 (contado y cobro, aprobada 2026-09-20): confirmar y cobrar son acciones
+  - DP-027 (contado y cobro, aprobada 2026-09-20; ajustada por DP-035, regla 2: el crédito sigue
+    sin vencimiento y solo la factura declara un plazo): confirmar y cobrar son acciones
     independientes. Una venta de contado solicita después un cobro completo; si se interrumpe,
     permanece confirmada y pendiente, sin convertirse en crédito ni marcarse pagada. El crédito
     admite abonos parciales sin vencimiento, cuotas ni intereses. La fecha de cobro es la del
@@ -199,8 +202,9 @@ context: |
     Popular no cobra IVA y puede emitir facturas electrónicas de forma voluntaria (confirmado
     por el titular el 2026-10-05, que usará facturas electrónicas): su preparación exige líneas a
     IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro, incluida la correspondencia
-    con el SRI, y no altera lo ya preparado. La leyenda de Negocio Popular y el tope de
-    consumidor final para ese régimen están por confirmar con la ficha técnica del SRI. D1: un perfil guardado en texto
+    con el SRI, y no altera lo ya preparado. La leyenda de Negocio Popular quedó confirmada
+    por DP-035 con el Anexo 22 de la ficha técnica 2.34 (NOR-002); el tope de consumidor final
+    para ese régimen sigue por confirmar. D1: un perfil guardado en texto
     libre se conserva como historia, no se convierte y debe declararse de nuevo. D2: el código de
     producto admite hasta 25 caracteres al crearlo o cambiarlo; los anteriores más largos se
     conservan, se localizan con un filtro y bloquean la preparación fiscal de sus operaciones
@@ -288,6 +292,37 @@ context: |
     se aplazan la convivencia del comprobante interno con el RIDE y los permisos de emisión.
     No certifica el cumplimiento tributario ni verifica ninguna norma: eso corresponde a la
     matriz de normas.
+  - DP-035 (datos del comprobante, aprobada 2026-11-01 en la propuesta de
+    alinear-datos-del-comprobante-con-sri, reglas 1…5): no sustituye a ninguna decisión; ajusta
+    DP-003, DP-027 y DP-031 con excepciones escritas y aplica lo que DP-008 ya preveía. Regla 1:
+    el correo del comprador es obligatorio al preparar la factura de un comprador identificado
+    (cédula, RUC, pasaporte o identificación del exterior) porque la ficha técnica 2.34 obliga a
+    enviarle cada comprobante (NOR-001); se completa en la preparación sin cambiar la ficha del
+    cliente, el registro del cliente sigue sin exigirlo, consumidor final queda como estaba hasta
+    el cambio 6 y confirmar o cobrar nunca lo piden. Regla 2: al preparar una operación a crédito
+    con saldo pendiente se declara un único plazo en días (1 a 9999) con unidad fija «dias»; es solo
+    un dato del comprobante: no crea vencimiento, cuotas, mora ni alertas y no cambia saldos ni
+    cobros. Se aplica a las formas de pago que cubren lo todavía pendiente. Lo que la ficha deja
+    indefinido, si una venta a crédito sin fecha acordada debe llevarlo, consta en NOR-019 y en la
+    validación V-6. Regla 3: cada línea de servicio admite una nota opcional de hasta 300
+    caracteres que el Encargado escribe en el mantenimiento; se conserva al confirmar la operación
+    artesanal, aparece en su comprobante interno y llega precargada a la preparación, donde puede
+    ajustarse sin tocar la operación. Regla 4: las leyendas del emisor se derivan del perfil y
+    nadie las escribe; RIMPE Negocio Popular lleva «CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE»
+    según el Anexo 22, aunque el XSD 2.1.0 solo admite la leyenda de RIMPE Emprendedor (NOR-020,
+    por resolver antes de activar un RUC en ese régimen); el contribuyente especial admite de 3 a
+    13 caracteres y el agente de retención no admite ceros a la izquierda. Regla 5: gran
+    contribuyente es una condición nueva del perfil con su número de resolución, que el Anexo 24
+    pide en la información adicional; un perfil existente queda en «Falta completar» hasta
+    declararla. Además, el detalle adicional admite hasta 12 datos de nombre y valor, y los nombres
+    «RUC Proveedor» y «Gran Contribuyente» los pone el sistema. Choques resueltos: se mantienen
+    DP-008 (el correo se exige al facturar, como ya preveía) y DP-006; se ajustan DP-003, DP-027,
+    DP-031, RN-VEN-008, RF-PAG-012 y las specs de preparación y de configuración fiscal; se
+    aplazan el redondeo del IVA incluido de DP-025 (V-5, condiciona la activación del RUC
+    comercial), el ambiente por RUC (cambio 3) y la comprobación del RUC Proveedor (cambio 4).
+    Una factura a un cliente sin correo no puede prepararse con sus datos hasta que se lo
+    completa; el cambio 5 revisa la entrega impresa. No certifica el cumplimiento tributario ni
+    verifica ninguna norma: eso corresponde a la matriz de normas.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
@@ -347,6 +382,9 @@ context: |
     consumidor final.
   - Fecha y plazo del comprobante que espera sin Internet, y si el desarrollador debe
     registrarse como proveedor ante el SRI, hasta verificarlos en la norma oficial (DP-034).
+  - Si una venta a crédito sin fecha acordada debe llevar plazo en la factura y con qué número
+    (DP-035, NOR-019, V-6); y cuál manda entre la ficha técnica y el XSD 2.1.0 para la leyenda
+    de RIMPE Negocio Popular (NOR-020).
   Cuando un cambio dependa de una decisión abierta, su proposal debe recomendar la opción
   más sencilla y segura para V1, explicar impactos y alternativas, y detenerse para obtener
   aprobación. No convertir una decisión abierta en migración, spec o código silenciosamente.

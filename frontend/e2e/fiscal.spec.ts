@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
+import { expectNoSeriousAccessibilityViolations } from './accessibility'
 import { login } from './helpers'
 
 const EMPTY_ARCHIVE_PAGE = {
@@ -28,10 +29,16 @@ const PAYMENT_OPTIONS = [
   },
 ]
 
+interface PreparationOptions {
+  /** Operación a crédito con saldo pendiente: el servidor pide el plazo. */
+  termRequired?: boolean
+}
+
 const preparation = (
   kind: 'COMMERCIAL' | 'ARTISAN',
   sourceId: number,
   state: 'DRAFT' | 'PREPARED' = 'DRAFT',
+  options: PreparationOptions = {},
 ) => ({
   preparation_id: `${kind === 'COMMERCIAL' ? '11111111' : '22222222'}-1111-4111-8111-111111111111`,
   fiscal_entity_id: kind === 'COMMERCIAL' ? 1 : 2,
@@ -55,6 +62,9 @@ const preparation = (
               quantity: '2',
               total_amount: '100.00',
               display_name: 'IVA 15 %',
+              ...(kind === 'ARTISAN'
+                ? { service_detail: 'eje delantero' }
+                : {}),
             },
           ],
           payments: [
@@ -62,8 +72,15 @@ const preparation = (
               payment_code: '01',
               amount: '100.00',
               display_name: 'Efectivo o sin sistema financiero',
+              ...(kind === 'ARTISAN'
+                ? { term_days: 30, time_unit: 'dias' }
+                : {}),
             },
           ],
+          additional_info:
+            kind === 'ARTISAN'
+              ? [{ name: 'Vehículo', value: 'Placa PCM4567' }]
+              : [],
           configuration: { point: { code: '001' } },
         }
       : null,
@@ -108,7 +125,7 @@ const preparation = (
   working:
     state === 'DRAFT'
       ? {
-          draft_format: 2,
+          draft_format: 3,
           receiver: {
             identification_type: kind === 'COMMERCIAL' ? '04' : '05',
             identification:
@@ -121,10 +138,18 @@ const preparation = (
             suggestion_origin: 'DEFAULT',
           },
           additional_info: [],
+          service_details:
+            kind === 'ARTISAN'
+              ? [{ position: 1, detail: 'eje delantero' }]
+              : [],
+          term_required: options.termRequired ?? false,
         }
       : null,
   payment_options: state === 'DRAFT' ? PAYMENT_OPTIONS : [],
-  missing_fields: state === 'DRAFT' ? ['address'] : [],
+  missing_fields:
+    state === 'DRAFT'
+      ? ['address', 'email', ...(options.termRequired ? ['term_days'] : [])]
+      : [],
   technical: null,
 })
 
@@ -132,6 +157,7 @@ async function mockPreparationFlow(
   page: Page,
   kind: 'COMMERCIAL' | 'ARTISAN',
   sourceId: number,
+  options: PreparationOptions = {},
 ) {
   let state: 'DRAFT' | 'PREPARED' = 'DRAFT'
   const patches: unknown[] = []
@@ -143,7 +169,7 @@ async function mockPreparationFlow(
         json: { preparation_id: 'x', state: 'DRAFT', version: 2, draft: {} },
       })
     }
-    return route.fulfill({ json: preparation(kind, sourceId, state) })
+    return route.fulfill({ json: preparation(kind, sourceId, state, options) })
   })
   await page.route('**/api/v1/fiscal/preparations/*/review/', (route) =>
     route.fulfill({ json: { impediments: [], review_token: 'token-e2e' } }),
@@ -178,6 +204,7 @@ test('el Vendedor revisa datos precargados y guarda una preparación local', asy
   ).toBeVisible()
 
   await page.getByLabel('Dirección (opcional)').fill('Av. Principal 1')
+  await page.getByLabel('Correo', { exact: true }).fill('cliente@example.com')
   await page
     .getByRole('button', { name: 'Revisar datos para facturación' })
     .click()
@@ -189,8 +216,10 @@ test('el Vendedor revisa datos precargados y guarda una preparación local', asy
       identification: '0999999999001',
       legal_name: 'Cliente E2E S.A.',
       address: 'Av. Principal 1',
+      email: 'cliente@example.com',
     },
     payments: { forms: [{ payment_code: '01', amount: '100.00' }] },
+    additional_info: [],
   })
 
   await page.getByRole('button', { name: 'Guardar preparación local' }).click()
@@ -217,6 +246,93 @@ test('el Encargado prepara la operación artesanal con cédula precargada', asyn
   await expect(
     page.getByRole('link', { name: 'Volver a la operación' }),
   ).toHaveAttribute('href', '/maintenance/service-operations/9')
+})
+
+test('el Encargado completa correo, plazo, datos adicionales y detalle por servicio de una operación a crédito', async ({
+  page,
+}) => {
+  const EVIDENCE = 'test-results/alinear-datos-del-comprobante-evidence'
+  await login(page, 'taller_e2e')
+  const patches = await mockPreparationFlow(page, 'ARTISAN', 9, {
+    termRequired: true,
+  })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('/fiscal/preparations/22222222-1111-4111-8111-111111111111')
+
+  // La operación conserva la nota del servicio, el servidor pide el plazo y el correo.
+  const detail = page.getByLabel('Detalle de Alineación')
+  await expect(detail).toHaveValue('eje delantero')
+  await expect(page.getByLabel('Plazo en días')).toBeVisible()
+  await expect(page.getByLabel('Correo', { exact: true })).toBeVisible()
+  await expect(page.getByLabel(/ambiente/i)).toHaveCount(0)
+  await page.screenshot({
+    path: `${EVIDENCE}/01-borrador-1440.png`,
+    fullPage: true,
+  })
+
+  await detail.fill('eje delantero y trasero')
+  await page.getByLabel('Plazo en días').fill('30')
+  await page.getByLabel('Correo', { exact: true }).fill('ana@example.com')
+  await page.getByRole('button', { name: 'Añadir dato adicional' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir dato adicional' })
+  await dialog.getByLabel('Nombre').fill('Vehículo')
+  await dialog.getByLabel('Valor').fill('Placa PCM4567')
+  await dialog.getByRole('button', { name: 'Agregar dato' }).click()
+  await expect(page.getByText('Placa PCM4567')).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page, { exclude: ['.app-rail'] })
+
+  await page
+    .getByRole('button', { name: 'Revisar datos para facturación' })
+    .click()
+  await expect.poll(() => patches.length).toBe(1)
+  expect(patches[0]).toMatchObject({
+    receiver: { email: 'ana@example.com' },
+    payments: {
+      forms: [{ payment_code: '01', amount: '100.00' }],
+      term_days: 30,
+    },
+    additional_info: [{ name: 'Vehículo', value: 'Placa PCM4567' }],
+    service_details: [{ position: 1, detail: 'eje delantero y trasero' }],
+  })
+
+  await page.getByRole('button', { name: 'Guardar preparación local' }).click()
+  await expect(
+    page.getByRole('status', {
+      name: 'Estado: Preparación local · Pendiente de emisión',
+    }),
+  ).toBeVisible()
+  await expect(page.getByText('plazo 30 días')).toBeVisible()
+  await expect(page.getByText('Placa PCM4567')).toBeVisible()
+  await expect(page.getByText('eje delantero', { exact: true })).toBeVisible()
+  await expect(page.getByText(/factura emitida|autorizada/i)).toHaveCount(0)
+  await page.screenshot({
+    path: `${EVIDENCE}/02-preparada-1440.png`,
+    fullPage: true,
+  })
+
+  // En un teléfono la página se adapta sin desplazamiento horizontal.
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({
+    path: `${EVIDENCE}/03-preparada-390.png`,
+    fullPage: true,
+  })
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  )
+  expect(overflow).toBe(false)
+})
+
+test('una venta comercial no ofrece detalle por servicio ni plazo cuando el servidor no lo pide', async ({
+  page,
+}) => {
+  await login(page, 'vendedor_e2e')
+  await mockPreparationFlow(page, 'COMMERCIAL', 7)
+  await page.goto('/fiscal/preparations/11111111-1111-4111-8111-111111111111')
+  await expect(page.getByLabel('Plazo en días')).toHaveCount(0)
+  await expect(page.getByLabel(/Detalle de /)).toHaveCount(0)
+  await expect(
+    page.getByRole('region', { name: 'Detalle adicional' }),
+  ).toBeVisible()
 })
 
 test('una preparación completada conserva su punto después de cambiar la configuración', async ({

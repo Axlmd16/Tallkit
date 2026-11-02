@@ -189,11 +189,11 @@ Situación de una preparación local para la que todavía no existe emisión ele
 
 ### Perfil del emisor
 
-Conjunto de condiciones tributarias que el Administrador declara para cada entidad fiscal con valores cerrados, fuente y vigencia: régimen tributario, obligación de llevar contabilidad, agente de retención, contribuyente especial y calificación artesanal. Se declara con base en el certificado de RUC y la documentación vigente; el sistema no lo deduce ni lo valida ante el SRI.
+Conjunto de condiciones tributarias que el Administrador declara para cada entidad fiscal con valores cerrados, fuente y vigencia: régimen tributario, obligación de llevar contabilidad, agente de retención, contribuyente especial, gran contribuyente y calificación artesanal. Se declara con base en el certificado de RUC y la documentación vigente; el sistema no lo deduce ni lo valida ante el SRI.
 
 ### Régimen tributario
 
-Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE Negocio Popular. La leyenda del comprobante se deriva del régimen y no se escribe (la de Negocio Popular está por confirmar con la ficha técnica del SRI). RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria; el sistema solo prepara sus facturas con líneas a IVA 0 %. Al pasar de Negocio Popular a Emprendedor el Administrador declara el nuevo régimen y programa la tarifa y su correspondencia con el SRI.
+Clasificación del contribuyente ante el SRI: General, RIMPE Emprendedor o RIMPE Negocio Popular. La leyenda del comprobante se deriva del régimen y no se escribe: «CONTRIBUYENTE RÉGIMEN RIMPE» para Emprendedor y «CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE» para Negocio Popular (Anexo 22 de la ficha técnica 2.34; el XSD 2.1.0 solo admite la primera). RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria; el sistema solo prepara sus facturas con líneas a IVA 0 %. Al pasar de Negocio Popular a Emprendedor el Administrador declara el nuevo régimen y programa la tarifa y su correspondencia con el SRI.
 
 ### Calificación artesanal
 
@@ -205,7 +205,23 @@ Valor del régimen tributario RIMPE para contribuyentes pequeños: no cobra IVA 
 
 ### Agente de retención
 
-Contribuyente que el SRI obliga a retener impuestos cuando paga a un proveedor. El perfil lo declara con el número de su resolución (hasta 8 dígitos) cuando aplica. Es una condición del emisor; las retenciones que los clientes aplican al taller al pagar son un asunto distinto.
+Contribuyente que el SRI obliga a retener impuestos cuando paga a un proveedor. El perfil lo declara con el número de su resolución (hasta 8 dígitos y sin ceros a la izquierda) cuando aplica. Es una condición del emisor; las retenciones que los clientes aplican al taller al pagar son un asunto distinto.
+
+### Gran contribuyente
+
+Condición que el SRI asigna mediante resolución a ciertos contribuyentes. El perfil del emisor la declara con el número de la resolución, que la factura lleva en su información adicional con el nombre «Gran Contribuyente»; ese nombre lo pone el sistema y el usuario no puede escribirlo. Una entidad que no lo es declara «No aplica».
+
+### Plazo del comprobante
+
+Número de días (de 1 a 9999) que la factura de una operación a crédito con saldo pendiente declara en las formas de pago que cubren ese saldo. Es solo un dato del comprobante: no crea vencimiento, cuotas, mora ni alertas y no cambia el saldo ni los cobros. La unidad siempre es «días». Contado y crédito ya saldado no lo piden.
+
+### Detalle adicional
+
+Pares de nombre y valor (hasta 12) que el usuario añade a toda la factura, por ejemplo el vehículo y su placa. Los nombres «RUC Proveedor» y «Gran Contribuyente» los pone el sistema. Conviene incluir solo lo necesario para el comprobante. No es el detalle de servicio.
+
+### Detalle de servicio
+
+Nota opcional de una línea de servicio (hasta 300 caracteres, una sola línea) que precisa el trabajo realizado. La escribe el Encargado en el mantenimiento, se copia a la operación artesanal al confirmarla, aparece en su comprobante interno y llega a la factura; en la preparación puede ajustarse sin modificar la operación. No pertenece al catálogo.
 
 ### Punto predeterminado
 

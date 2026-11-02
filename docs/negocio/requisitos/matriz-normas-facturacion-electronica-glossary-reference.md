@@ -10,3 +10,6 @@
 | Firma electrónica | `../producto/glosario.md` | Certificado del emisor (NOR-007). |
 | Entidad fiscal | `../producto/glosario.md` | Cada RUC solicita su propia autorización (NOR-007). |
 | SRI | `../producto/glosario.md` | Autoridad que publica las normas. |
+| Plazo del comprobante | `../producto/glosario.md` | NOR-019 y V-6. |
+| Gran contribuyente | `../producto/glosario.md` | NOR-003. |
+| Detalle adicional | `../producto/glosario.md` | NOR-021. |

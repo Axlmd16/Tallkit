@@ -102,21 +102,21 @@ Dependencias: grupo 6. Evidencia: `npm run test -- src/pages/fiscal src/features
 
 ## 10. Recorrido completo
 
-- [ ] 10.1 Ampliar `frontend/e2e/fiscal.spec.ts`: el Encargado escribe un detalle en el mantenimiento, confirma a crédito, prepara con plazo y correo, y comprueba la instantánea. Cierre: Playwright en verde.
-- [ ] 10.2 Revisar la preparación a 390 px y a pantalla completa con el sistema visual Tallkit. Cierre: capturas referenciadas en la cobertura; la revisión humana queda anotada como pendiente.
+- [x] 10.1 Ampliar `frontend/e2e/fiscal.spec.ts`: el Encargado escribe un detalle en el mantenimiento, confirma a crédito, prepara con plazo y correo, y comprueba la instantánea. Cierre: Playwright en verde.
+- [x] 10.2 Revisar la preparación a 390 px y a pantalla completa con el sistema visual Tallkit. Cierre: capturas referenciadas en la cobertura; la revisión humana queda anotada como pendiente.
 
 Dependencias: grupos 7, 8 y 9. Evidencia: `npx playwright test e2e/fiscal.spec.ts e2e/maintenance-billing.spec.ts`.
 
 ## 11. Documentación, trazabilidad y cierre
 
-- [ ] 11.1 Registrar `DP-035` en `docs/negocio/decisiones/decisiones-confirmadas.yaml`, con sus cinco reglas y las notas de ajuste en `DP-003`, `DP-027` y `DP-031`.
-- [ ] 11.2 Actualizar `reglas-negocio.md` (`RN-VEN-008`, `RN-CLI-003` y reglas nuevas), `requisitos-funcionales.md` (`RF-FIS-007`, `RF-PAG-012` y requisitos nuevos), `casos-de-uso.md`, `interfaz-y-navegacion.md` (UI-019, UI-059, UI-072, UI-077) y `docs/arquitectura/modelo-dominio.md`.
-- [ ] 11.3 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md`: formato 4, `nombreComercial`, `dirEstablecimiento`, `plazo`, `unidadTiempo`, `detAdicional`, leyenda de Negocio Popular y `placa` como no aplicable, con el Anexo 25 como respaldo.
-- [ ] 11.4 Agregar a `matriz-normas-facturacion-electronica.md` las filas `NOR-019` (plazo, Requiere validación externa), `NOR-020` (contradicción de la ficha con el XSD, Pendiente) y `NOR-021` (límites de campos, Verificada), la validación `V-6` y el cambio responsable de `NOR-018`.
-- [ ] 11.5 Actualizar `docs/cambios-pendientes.md`: salida de cada choque, ambiente al cambio 3, `RUC Proveedor` al cambio 4, redondeo a validaciones externas, preparaciones anteriores en el cambio 3, nota corregida del cambio 1 y casillas de este cambio.
-- [ ] 11.6 Incorporar a `docs/negocio/producto/glosario.md` plazo del comprobante, gran contribuyente, detalle adicional y detalle de servicio, y actualizar las referencias de glosario de cada documento tocado.
-- [ ] 11.7 Actualizar `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md`, y completar `cobertura-datos-del-comprobante.md` con la prueba y el resultado real de los 99 escenarios.
-- [ ] 11.8 Ejecutar la verificación de cierre: pruebas focalizadas de los grupos 2 a 10, `uv run --frozen ruff format --check .`, `uv run --frozen ruff check .`, `uv run --frozen mypy src tests`, `uv run --frozen python manage.py makemigrations --check --dry-run`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build` y `openspec validate alinear-datos-del-comprobante-con-sri --strict`. Cierre: comandos y resultados reales registrados, indicando lo que no se ejecutó.
+- [x] 11.1 Registrar `DP-035` en `docs/negocio/decisiones/decisiones-confirmadas.yaml`, con sus cinco reglas y las notas de ajuste en `DP-003`, `DP-027` y `DP-031`.
+- [x] 11.2 Actualizar `reglas-negocio.md` (`RN-VEN-008`, `RN-CLI-003` y reglas nuevas), `requisitos-funcionales.md` (`RF-FIS-007`, `RF-PAG-012` y requisitos nuevos), `casos-de-uso.md`, `interfaz-y-navegacion.md` (UI-019, UI-059, UI-072, UI-077) y `docs/arquitectura/modelo-dominio.md`.
+- [x] 11.3 Actualizar `docs/tecnico/matriz-instantanea-fiscal.md`: formato 4, `nombreComercial`, `dirEstablecimiento`, `plazo`, `unidadTiempo`, `detAdicional`, leyenda de Negocio Popular y `placa` como no aplicable, con el Anexo 25 como respaldo.
+- [x] 11.4 Agregar a `matriz-normas-facturacion-electronica.md` las filas `NOR-019` (plazo, Requiere validación externa), `NOR-020` (contradicción de la ficha con el XSD, Pendiente) y `NOR-021` (límites de campos, Verificada), la validación `V-6` y el cambio responsable de `NOR-018`.
+- [x] 11.5 Actualizar `docs/cambios-pendientes.md`: salida de cada choque, ambiente al cambio 3, `RUC Proveedor` al cambio 4, redondeo a validaciones externas, preparaciones anteriores en el cambio 3, nota corregida del cambio 1 y casillas de este cambio.
+- [x] 11.6 Incorporar a `docs/negocio/producto/glosario.md` plazo del comprobante, gran contribuyente, detalle adicional y detalle de servicio, y actualizar las referencias de glosario de cada documento tocado.
+- [x] 11.7 Actualizar `matriz-trazabilidad.md` y `cobertura-modulo-fiscal.md`, y completar `cobertura-datos-del-comprobante.md` con la prueba y el resultado real de los 99 escenarios.
+- [x] 11.8 Ejecutar la verificación de cierre: pruebas focalizadas de los grupos 2 a 10, `uv run --frozen ruff format --check .`, `uv run --frozen ruff check .`, `uv run --frozen mypy src tests`, `uv run --frozen python manage.py makemigrations --check --dry-run`, `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build` y `openspec validate alinear-datos-del-comprobante-con-sri --strict`. Cierre: comandos y resultados reales registrados, indicando lo que no se ejecutó.
 
 Dependencias: grupos 2 a 10. Criterio de grupo: documentación sincronizada, cobertura completa y verificación registrada. Estas tareas no autorizan commits, ramas, merges ni el archivado del cambio fuera de los que el usuario solicite.
 

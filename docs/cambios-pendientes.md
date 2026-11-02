@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Fecha | 2026-11-01 |
-| Cambios activos en OpenSpec | Ninguno |
+| Cambios activos en OpenSpec | `alinear-datos-del-comprobante-con-sri` (cambio 2) |
 | Cambios pendientes | 15, más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
@@ -81,6 +81,7 @@ agregar un adaptador y cambiar una configuración, sin tocar ventas, taller, cob
 - [ ] Confirmar si el desarrollador de Tallkit debe registrarse como proveedor ante el SRI (validación V-2 de la [matriz de normas](negocio/requisitos/matriz-normas-facturacion-electronica.md))
 - [ ] Preguntar al contador o al SRI qué se hace si no hay Internet al facturar y qué fecha lleva ese comprobante (V-1); el cambio 3 no puede diseñarse sin la respuesta
 - [ ] Volumen mensual de facturas de cada RUC
+- [ ] Régimen del RUC comercial definitivo: si fuera RIMPE Negocio Popular, antes de activarlo hay que resolver la contradicción entre la ficha y el XSD (`NOR-020`)
 - [ ] Último secuencial del Facturador del SRI y su establecimiento y punto de emisión
 - [ ] RUC comercial definitivo y firma electrónica vigente de ese RUC
 
@@ -159,39 +160,45 @@ normas con el texto oficial. No toca código.
 - [x] Tareas aprobadas
 - [x] Aplicado
 - [x] Verificado
-- [x] Archivado (`openspec/changes/archive/2026-11-01-incorporar-facturacion-electronica-en-v1`); falta registrarlo en `master`
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-01-incorporar-facturacion-electronica-en-v1`)
 
 ### 2. `alinear-datos-del-comprobante-con-sri`
 
 Ajusta los datos propios de Tallkit a la ficha técnica 2.34, sin depender de ningún proveedor. Depende
-del cambio 1.
+del cambio 1. Registra la decisión `DP-035`.
 
-- Comprobación de `RUC Proveedor` en el XML autorizado; lo envía Tallkit solo si el adaptador lo exige.
-- Correo del receptor al facturar, porque el envío por correo es obligatorio.
-- Leyenda «CONTRIBUYENTE NEGOCIO POPULAR - RÉGIMEN RIMPE», que la ficha ya define.
-- Leyendas de agente de retención y gran contribuyente, según la configuración de cada entidad.
-- Ambiente de pruebas o producción por entidad fiscal.
-- Plazo y unidad de tiempo para ventas a crédito.
-- Pantalla para el detalle adicional: la API lo admite, pero la preparación no lo muestra.
-- Detalle por servicio: hoy las líneas de servicio no tienen ese campo.
-- Redondeo del IVA incluido en el precio (`DP-025`, `EXT-002`, fila `NOR-018`): la ficha técnica no define redondeo y el SRI valida que los cálculos cuadren. Afecta al RUC comercial; el artesanal factura a 0 %. Un cambio archivado lo delegó a `alinear-calculo-de-iva-con-el-sri`, que nunca se creó.
+- Correo del receptor al facturar, porque el envío por correo es obligatorio (`NOR-001`): se exige al preparar la factura de un comprador identificado, sin tocar el registro del cliente.
+- Plazo en días para las ventas a crédito con saldo pendiente: solo un dato del comprobante, sin vencimiento ni mora.
+- Leyenda de Negocio Popular y condición de gran contribuyente, derivadas del perfil del emisor.
+- Formatos del contribuyente especial (3 a 13) y del agente de retención (sin ceros a la izquierda).
+- Pantalla para el detalle adicional (hasta 12 datos) y nota por servicio, escrita en el mantenimiento.
+- Instantánea de formato 4: nombre comercial, dirección del establecimiento, plazo, detalle y gran contribuyente.
 
-**Choques por decidir**
+**Pasa a otros cambios**
 
-- [ ] `DP-008` Cliente: correo opcional al registrar; la decisión ya preveía exigirlo al facturar
-- [ ] `DP-003`, `DP-027` y `RF-PAG-012`: crédito sin plazo frente a `plazo` y `unidadTiempo` del XML
-- [ ] `DP-025`: regla de redondeo del IVA incluido frente a la validación del SRI (validación V-5)
-- [ ] `DP-031`: la leyenda de Negocio Popular estaba por confirmar; la ficha 2.34 la confirma (`NOR-002`)
-- [ ] `matriz-instantanea-fiscal.md`: campos marcados como no aplicables
-- [ ] Spec `identidad-y-numeracion-fiscal`: ambiente único de pruebas
+- Ambiente de pruebas o producción por entidad fiscal: cambio 3, junto con la activación por RUC, porque aquí solo habría una opción posible.
+- Comprobación de `RUC Proveedor` en el XML autorizado: cambio 4; aquí solo se reserva su nombre.
+- Redondeo del IVA incluido en el precio (`DP-025`, `EXT-002`, `NOR-018`, `V-5`): validación externa. Sigue siendo condición de activación del RUC comercial (`RN-FIS-017`); el artesanal factura a 0 %. Un cambio archivado lo delegó a `alinear-calculo-de-iva-con-el-sri`, que nunca se creó y ya no se creará.
+- Preparaciones completadas antes de este cambio, sin correo ni plazo: se conservan; el cambio 3 decide si hay que reemplazarlas antes de emitir.
+- Un cliente sin correo no puede recibir factura con sus datos hasta que se lo completa: el cambio 5 revisa la entrega impresa.
+
+**Choques resueltos**
+
+- [x] `DP-008` Cliente: correo opcional al registrar. Se mantiene: ya preveía exigirlo al facturar
+- [x] `DP-003`, `DP-027`, `RF-PAG-012` y `RN-VEN-008`: crédito sin plazo frente al `plazo` y `unidadTiempo` del XML. Se ajusta: el plazo existe solo en el comprobante
+- [x] `DP-025`: regla de redondeo del IVA incluido frente a la validación del SRI (V-5). Se aplaza
+- [x] `DP-031`: la leyenda de Negocio Popular estaba por confirmar; la ficha 2.34 la confirma (`NOR-002`). Se ajusta, y consta la contradicción con el XSD (`NOR-020`)
+- [x] `matriz-instantanea-fiscal.md`: campos marcados como no aplicables. Se corrige
+- [x] Spec `identidad-y-numeracion-fiscal`: ambiente único de pruebas. Se aplaza al cambio 3
+- [x] `DP-031`: contribuyente especial de 1 a 13 y agente de retención con ceros iniciales, frente a la ficha y el XSD. Se ajusta
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
 
@@ -210,6 +217,8 @@ Depende del cambio 2.
 - Antes del diseño: resolver con el titular la fecha, el plazo y la fuerza mayor del comprobante que espera sin Internet. El art. 7 de la `NAC-DGERCGC18-00000233` exige transmitir en el momento de la transacción (fila `NOR-008`, validación V-1).
 - Decidir los permisos de emisión por rol y la lista de estados de la referencia fiscal, que el modelo de dominio y la regla de independencia plantean distinta.
 - Actualizar `docs/architecture/c4-containers.md` con el adaptador y la conexión de salida.
+- Ambiente de pruebas o producción por entidad fiscal, que el cambio 2 dejó aquí.
+- Decidir qué pasa con las preparaciones completadas sin correo ni plazo antes del cambio 2.
 
 **Choques por decidir**
 
@@ -240,6 +249,8 @@ cambio 3.
 - Prueba real supervisada (`RN-FIS-018`): fijar antes la cantidad y los casos, usar operaciones reales con un comprador que lo acepte y programar la excepción de `xml_archive.py:174`, que hoy bloquea los XML de producción.
 - Condiciones de activación por RUC: solicitud de autorización de emisión ante el SRI (`NOR-007`), `RUC Proveedor` en cada comprobante (`NOR-004` y `NOR-005`, con plazo ya vencido), punto de emisión exclusivo y certificado vigente.
 - Registro del desarrollador ante el SRI, si corresponde (V-2).
+- Comprobación de `RUC Proveedor` en el XML autorizado (`NOR-004`, `NOR-005`); el cambio 2 solo reservó su nombre.
+- Confirmar con el proveedor que acepta plazo y detalle por línea.
 
 **Choques por decidir**
 
@@ -271,6 +282,7 @@ lo envía Factuplan; la capacidad queda declarada para poder cambiar. Depende de
 
 - [ ] `DP-018`: decidir cómo convive el comprobante interno con el RIDE (aplazado a este cambio por `DP-034`)
 - [ ] Logotipo: los comprobantes internos ya llevan el de la empresa
+- [ ] Cliente sin correo: cómo se le entrega el RIDE impreso, que `NOR-009` permite solo si no se puede enviar (`DP-035`, regla 1)
 
 **Pasos**
 
@@ -517,7 +529,9 @@ correos. No afecta a la facturación.
 
 ## Validaciones externas
 
-- [ ] Contador: tarifas, clasificación tributaria y redondeo (`EXT-002`)
+- [ ] Contador: tarifas, clasificación tributaria y redondeo (`EXT-002`, `V-5`)
+- [ ] Contador: si una venta a crédito sin fecha acordada debe llevar plazo en la factura y qué número (`V-6`)
+- [ ] SRI o proveedor de emisión: leyenda de RIMPE Negocio Popular frente al XSD 2.1.0 (`NOR-020`)
 - [ ] Contador: consumos internos y reposiciones sin cargo (`EXT-001`)
 - [ ] Contador: dejar de registrar el IVA de compras y existencias sin valor (`DP-030`)
 - [ ] Contador: calificación artesanal e IVA 0 %

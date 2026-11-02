@@ -25,3 +25,7 @@
 | RIDE | `docs/negocio/producto/glosario.md` | Representación impresa o en PDF del comprobante autorizado (DP-034, regla 2). |
 | Firma electrónica | `docs/negocio/producto/glosario.md` | La conserva el proveedor de emisión, no Tallkit (DP-034, regla 2). |
 | Matriz de normas | `docs/negocio/producto/glosario.md` | Verifica las normas que DP-034 no certifica. |
+| Plazo del comprobante | `docs/negocio/producto/glosario.md` | Dato de la factura a crédito que declara DP-035, regla 2. |
+| Gran contribuyente | `docs/negocio/producto/glosario.md` | Condición del perfil que declara DP-035, regla 5. |
+| Detalle de servicio | `docs/negocio/producto/glosario.md` | Nota por línea que describe DP-035, regla 3. |
+| Detalle adicional | `docs/negocio/producto/glosario.md` | Hasta 12 datos de toda la factura (DP-035). |

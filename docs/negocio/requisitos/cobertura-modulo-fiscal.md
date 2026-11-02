@@ -266,3 +266,10 @@ Cambio `estructurar-perfil-del-emisor-y-codigos-fiscales`: 8 requisitos y 45 esc
 | [configuracion-operativa-y-fiscal](../../../openspec/changes/archive/2026-10-05-estructurar-perfil-del-emisor-y-codigos-fiscales/specs/configuracion-operativa-y-fiscal/spec.md) / Programar una tarifa interna desde la configuración de Impuestos | Programar IVA 0 % sobre un impuesto de 15 %; Impuesto sin tarifa abierta; Fecha no válida | 13.5 | `frontend/src/pages/workshop-configuration/WorkshopConfigurationPage.test.tsx`; la sucesión del servidor ya la cubren `backend/tests/workshop_configuration` | Cumplido |
 
 Limitación: la comprobación de tarifa con calificación vigente es local y no acredita el beneficio ante el SRI; la regla de redondeo del IVA incluido sigue abierta y corresponde a otro cambio.
+
+## Datos del comprobante (`alinear-datos-del-comprobante-con-sri`)
+
+La cobertura de los 99 escenarios de este cambio, con su prueba y su resultado, está en [cobertura-datos-del-comprobante.md](cobertura-datos-del-comprobante.md). Cambia el formato de la instantánea a 4 (ver [matriz-instantanea-fiscal.md](../../tecnico/matriz-instantanea-fiscal.md)), exige el correo del comprador identificado y el plazo de una operación a crédito con saldo pendiente, y agrega gran contribuyente, detalle adicional y detalle de servicio.
+
+Limitaciones: el plazo no define cuándo corresponde (`NOR-019`, `V-6`); la leyenda de Negocio Popular contradice al XSD local (`NOR-020`); el redondeo del IVA incluido sigue abierto (`V-5`); y los enlaces de las filas anteriores a rutas de cambios ya archivados se corrigen en el cambio 15.
+

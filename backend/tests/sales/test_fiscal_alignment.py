@@ -4,6 +4,7 @@ Cubre los escenarios de `preparacion-y-seguimiento-fiscal` que se prueban sobre 
 comercial. Los de operación artesanal están en `tests/workshop/test_fiscal_alignment.py`.
 """
 
+from datetime import date
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -564,3 +565,37 @@ def test_a_format_three_snapshot_is_still_read_as_it_was_kept(
     _mark_prepared(prep, format_three, seller)
     detail = get_preparation(actor=seller, preparation_id=prep)
     assert detail.snapshot == format_three
+
+
+# --- Perfil por completar: solo bloquea la preparación fiscal ------------------------------------
+
+
+def test_a_profile_waiting_for_large_taxpayer_blocks_only_the_fiscal_preparation(
+    configured: int, seller: Any, confirmed_sale: Any
+) -> None:
+    from workshop_configuration.application.electronic_status import (
+        INCOMPLETE,
+        evaluate_electronic_status,
+    )
+    from workshop_configuration.models import ElectronicProfileRevision, FiscalEntity
+
+    entity = FiscalEntity.objects.get(entity_type="COMERCIAL")
+    current = ElectronicProfileRevision.objects.get(fiscal_entity=entity)
+    # Revisión anterior a la condición: conserva las demás y omite gran contribuyente.
+    previous = {k: v for k, v in current.conditions.items() if k != "large_taxpayer"}
+    ElectronicProfileRevision.objects.filter(pk=current.pk).update(conditions=previous)
+    assert evaluate_electronic_status(entity_id=entity.pk, on=date.today()).state == INCOMPLETE
+
+    # Las operaciones internas siguen igual: se confirma y se cobra con normalidad.
+    built = confirmed_sale(price="100.00", condition="CREDITO")
+    settle(seller, built["id"], parts(cash="100.00"), None)
+    assert Sale.objects.get(pk=built["id"]).state == "CONFIRMED"
+    assert ledger_for(Sale.objects.get(pk=built["id"])).balance.balance == Decimal("0")
+
+    # Solo la preparación fiscal queda bloqueada, con un impedimento dirigido al Administrador.
+    prep = _draft(seller, built["id"], "al:profile:1")
+    _save(seller, prep)
+    impediments = _impediments(seller, prep)
+    config = [i for i in impediments.values() if i["field"].startswith("config.")]
+    assert {i["audience"] for i in config} == {"ADMINISTRATOR"}
+    assert any("Gran contribuyente" in i["message"] for i in config)

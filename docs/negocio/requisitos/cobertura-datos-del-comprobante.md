@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Cambio OpenSpec | `openspec/changes/alinear-datos-del-comprobante-con-sri`; deltas de `preparacion-y-seguimiento-fiscal`, `configuracion-operativa-y-fiscal`, `servicios-aplicados-al-mantenimiento` y `operacion-artesanal-de-servicios` |
-| Estado | En aplicación: ningún escenario verificado todavía |
+| Estado | Aplicado y verificado con pruebas focalizadas; falta la revisión visual humana y la verificación completa antes de integrar |
 | Fecha | 2026-11-01 |
 | Alcance | Correo del comprador, plazo del comprobante, detalle adicional, detalle de servicio, emisor completo y condición de gran contribuyente. No emite comprobantes ni cambia dinero, inventario o secuencias. |
 
@@ -11,17 +11,17 @@
 
 | Capacidad | Requisitos | Escenarios | De ellos, regresión | Cumplidos | Pendientes |
 |---|---|---|---|---|---|
-| `preparacion-y-seguimiento-fiscal` | 7 | 57 | 18 | 0 | 57 |
-| `configuracion-operativa-y-fiscal` | 2 | 26 | 18 | 0 | 26 |
-| `servicios-aplicados-al-mantenimiento` | 1 | 10 | 0 | 0 | 10 |
-| `operacion-artesanal-de-servicios` | 1 | 6 | 0 | 0 | 6 |
-| **Total** | **11** | **99** | **36** | **0** | **99** |
+| `preparacion-y-seguimiento-fiscal` | 7 | 57 | 18 | 57 | 0 |
+| `configuracion-operativa-y-fiscal` | 2 | 26 | 18 | 26 | 0 |
+| `servicios-aplicados-al-mantenimiento` | 1 | 10 | 0 | 10 | 0 |
+| `operacion-artesanal-de-servicios` | 1 | 6 | 0 | 6 | 0 |
+| **Total** | **11** | **99** | **36** | **99** | **0** |
 
 «Cumplido» significa que una prueba automatizada ejecutada localmente verifica el escenario. «Regresión» marca un escenario que ya existía en la spec principal y que la delta conserva dentro de un requisito modificado: su prueba actual debe seguir en verde, o actualizarse si la regla cambió. Las rutas de backend son relativas a `backend/` y las de frontend, a `frontend/`.
 
 ## 2. Pruebas actuales que afirman lo contrario de las specs nuevas
 
-Revisión hecha en la tarea 1.3 (2026-11-01). Cada fila nombra la prueba actual, la regla nueva que la contradice y qué se hace con ella. Ninguna se borra a ciegas: se actualiza en el grupo indicado.
+Revisión hecha en la tarea 1.3 (2026-11-01). Cada fila nombra la prueba actual, la regla nueva que la contradice y qué se hace con ella. Ninguna se borró a ciegas: todas se actualizaron en el grupo indicado y están en verde.
 
 | Prueba actual | Afirma hoy | Cambia por | Grupo |
 |---|---|---|---|
@@ -49,123 +49,145 @@ Las pruebas de `tests/workshop` que preparan operaciones artesanales y las de `t
 
 | Id | Requisito | Escenario | Origen | Prueba | Resultado |
 |---|---|---|---|---|---|
-| P-01 | Receptor fiscal sin mutación del cliente histórico | Completar dirección fiscal faltante | Regresión | Pendiente | Pendiente |
-| P-02 | Receptor fiscal sin mutación del cliente histórico | RUC sin algoritmo general aplicable | Regresión | Pendiente | Pendiente |
-| P-03 | Receptor fiscal sin mutación del cliente histórico | Cliente interno de longitud correcta pero no numérico | Regresión | Pendiente | Pendiente |
-| P-04 | Receptor fiscal sin mutación del cliente histórico | Receptor identificado sin correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-05 | Receptor fiscal sin mutación del cliente histórico | Correo completado en la preparación | Nuevo o ajustado | Pendiente | Pendiente |
-| P-06 | Receptor fiscal sin mutación del cliente histórico | Guardar un borrador sin correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-07 | Receptor fiscal sin mutación del cliente histórico | Consumidor final sin correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-08 | Receptor fiscal sin mutación del cliente histórico | Correo con formato inválido | Nuevo o ajustado | Pendiente | Pendiente |
-| P-09 | Receptor fiscal sin mutación del cliente histórico | Operación de un cliente sin correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-10 | Receptor fiscal sin mutación del cliente histórico | Preparación completada antes de exigir el correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-11 | Solicitud limitada a los datos faltantes | Receptor sin dirección | Regresión | Pendiente | Pendiente |
-| P-12 | Solicitud limitada a los datos faltantes | Configuración incompleta | Regresión | Pendiente | Pendiente |
-| P-13 | Solicitud limitada a los datos faltantes | Receptor sin correo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-14 | Formas de pago habilitadas y combinables | Pago combinado | Regresión | Pendiente | Pendiente |
-| P-15 | Formas de pago habilitadas y combinables | Venta a crédito con saldo pendiente | Nuevo o ajustado | Pendiente | Pendiente |
-| P-16 | Formas de pago habilitadas y combinables | Intento de enviar plazo | Regresión | Pendiente | Pendiente |
-| P-17 | Formas de pago habilitadas y combinables | Sugerencia desde cobros registrados | Regresión | Pendiente | Pendiente |
-| P-18 | Formas de pago habilitadas y combinables | Sugerencia con saldo pendiente | Regresión | Pendiente | Pendiente |
-| P-19 | Formas de pago habilitadas y combinables | Operación pendiente de pago | Regresión | Pendiente | Pendiente |
-| P-20 | Formas de pago habilitadas y combinables | Cobro posterior a la preparación | Regresión | Pendiente | Pendiente |
-| P-21 | Formas de pago habilitadas y combinables | Suma distinta del total | Regresión | Pendiente | Pendiente |
-| P-22 | Formas de pago habilitadas y combinables | Forma no habilitada | Regresión | Pendiente | Pendiente |
-| P-23 | Emisor estructurado en la instantánea | Taller en régimen general | Regresión | Pendiente | Pendiente |
-| P-24 | Emisor estructurado en la instantánea | Emisor RIMPE Emprendedor | Regresión | Pendiente | Pendiente |
-| P-25 | Emisor estructurado en la instantánea | Cambio posterior del perfil | Regresión | Pendiente | Pendiente |
-| P-26 | Emisor estructurado en la instantánea | Preparación anterior al formato estructurado | Regresión | Pendiente | Pendiente |
-| P-27 | Emisor estructurado en la instantánea | Perfil pendiente de declarar de nuevo | Regresión | Pendiente | Pendiente |
-| P-28 | Emisor estructurado en la instantánea | Emisor RIMPE Negocio Popular | Nuevo o ajustado | Pendiente | Pendiente |
-| P-29 | Emisor estructurado en la instantánea | Emisor gran contribuyente | Nuevo o ajustado | Pendiente | Pendiente |
-| P-30 | Emisor estructurado en la instantánea | Nombre comercial y dirección del establecimiento | Nuevo o ajustado | Pendiente | Pendiente |
-| P-31 | Emisor estructurado en la instantánea | Entidad sin nombre comercial | Nuevo o ajustado | Pendiente | Pendiente |
-| P-32 | Plazo del comprobante en operaciones a crédito | Crédito sin cobros | Nuevo o ajustado | Pendiente | Pendiente |
-| P-33 | Plazo del comprobante en operaciones a crédito | Crédito sin plazo declarado | Nuevo o ajustado | Pendiente | Pendiente |
-| P-34 | Plazo del comprobante en operaciones a crédito | Abono parcial | Nuevo o ajustado | Pendiente | Pendiente |
-| P-35 | Plazo del comprobante en operaciones a crédito | Crédito ya saldado | Nuevo o ajustado | Pendiente | Pendiente |
-| P-36 | Plazo del comprobante en operaciones a crédito | Crédito saldado con una retención recibida | Nuevo o ajustado | Pendiente | Pendiente |
-| P-37 | Plazo del comprobante en operaciones a crédito | Contado pendiente de cobro | Nuevo o ajustado | Pendiente | Pendiente |
-| P-38 | Plazo del comprobante en operaciones a crédito | Plazo inválido | Nuevo o ajustado | Pendiente | Pendiente |
-| P-39 | Plazo del comprobante en operaciones a crédito | Unidad enviada por el usuario | Nuevo o ajustado | Pendiente | Pendiente |
-| P-40 | Plazo del comprobante en operaciones a crédito | Cobro que salda antes de completar | Nuevo o ajustado | Pendiente | Pendiente |
-| P-41 | Plazo del comprobante en operaciones a crédito | Sin efecto en la cobranza | Nuevo o ajustado | Pendiente | Pendiente |
-| P-42 | Plazo del comprobante en operaciones a crédito | Cobro posterior a completar | Nuevo o ajustado | Pendiente | Pendiente |
-| P-43 | Plazo del comprobante en operaciones a crédito | Borrador anterior con plazo antiguo | Nuevo o ajustado | Pendiente | Pendiente |
-| P-44 | Detalle adicional del comprobante | Agregar detalle adicional | Nuevo o ajustado | Pendiente | Pendiente |
-| P-45 | Detalle adicional del comprobante | Preparación sin detalle adicional | Nuevo o ajustado | Pendiente | Pendiente |
-| P-46 | Detalle adicional del comprobante | Nombre reservado | Nuevo o ajustado | Pendiente | Pendiente |
-| P-47 | Detalle adicional del comprobante | Más pares de los admitidos | Nuevo o ajustado | Pendiente | Pendiente |
-| P-48 | Detalle adicional del comprobante | Nombre repetido | Nuevo o ajustado | Pendiente | Pendiente |
-| P-49 | Detalle adicional del comprobante | Valor excedido | Nuevo o ajustado | Pendiente | Pendiente |
-| P-50 | Detalle adicional del comprobante | Preparación completada | Nuevo o ajustado | Pendiente | Pendiente |
-| P-51 | Detalle adicional del comprobante | Borrador anterior fuera de las reglas | Nuevo o ajustado | Pendiente | Pendiente |
-| P-52 | Detalle de servicio en la preparación | Detalle precargado | Nuevo o ajustado | Pendiente | Pendiente |
-| P-53 | Detalle de servicio en la preparación | Ajuste sin efecto en la operación | Nuevo o ajustado | Pendiente | Pendiente |
-| P-54 | Detalle de servicio en la preparación | Línea sin detalle | Nuevo o ajustado | Pendiente | Pendiente |
-| P-55 | Detalle de servicio en la preparación | Detalle excedido | Nuevo o ajustado | Pendiente | Pendiente |
-| P-56 | Detalle de servicio en la preparación | Línea de venta comercial | Nuevo o ajustado | Pendiente | Pendiente |
-| P-57 | Detalle de servicio en la preparación | Reemplazo de una preparación cancelada | Nuevo o ajustado | Pendiente | Pendiente |
+| P-01 | Receptor fiscal sin mutación del cliente histórico | Completar dirección fiscal faltante | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-02 | Receptor fiscal sin mutación del cliente histórico | RUC sin algoritmo general aplicable | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-03 | Receptor fiscal sin mutación del cliente histórico | Cliente interno de longitud correcta pero no numérico | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-04 | Receptor fiscal sin mutación del cliente histórico | Receptor identificado sin correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_review_blocks_an_identified_receiver_without_email`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::asks only for missing receiver data and hides technical fields` | Cumplido |
+| P-05 | Receptor fiscal sin mutación del cliente histórico | Correo completado en la preparación | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_the_email_completed_in_the_preparation_is_kept_and_the_customer_is_untouched`; `backend/tests/workshop/test_fiscal_alignment.py::test_the_email_typed_in_the_preparation_is_kept_without_touching_the_customer_or_operation` | Cumplido |
+| P-06 | Receptor fiscal sin mutación del cliente histórico | Guardar un borrador sin correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_draft_without_email_can_be_saved` | Cumplido |
+| P-07 | Receptor fiscal sin mutación del cliente histórico | Consumidor final sin correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_consumer_final_prepares_without_an_email`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::consumidor final no muestra ni pide el correo` | Cumplido |
+| P-08 | Receptor fiscal sin mutación del cliente histórico | Correo con formato inválido | Nuevo o ajustado | `backend/tests/fiscal/test_receiver.py::test_email_optional_but_validated_when_present` | Cumplido |
+| P-09 | Receptor fiscal sin mutación del cliente histórico | Operación de un cliente sin correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_confirming_and_collecting_never_ask_for_the_customer_email` | Cumplido |
+| P-10 | Receptor fiscal sin mutación del cliente histórico | Preparación completada antes de exigir el correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_preparation_completed_before_the_email_rule_is_shown_unchanged` | Cumplido |
+| P-11 | Solicitud limitada a los datos faltantes | Receptor sin dirección | Regresión | `backend/tests/sales/test_fiscal_alignment.py::test_the_screen_is_asked_for_only_the_email_when_the_rest_is_complete`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::asks only for missing receiver data and hides technical fields` | Cumplido |
+| P-12 | Solicitud limitada a los datos faltantes | Configuración incompleta | Regresión | `backend/tests/sales/test_fiscal_prepare_flow.py::test_review_without_config_returns_impediments` | Cumplido |
+| P-13 | Solicitud limitada a los datos faltantes | Receptor sin correo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_the_screen_is_asked_for_only_the_email_when_the_rest_is_complete` | Cumplido |
+| P-14 | Formas de pago habilitadas y combinables | Pago combinado | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-15 | Formas de pago habilitadas y combinables | Venta a crédito con saldo pendiente | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_with_nothing_collected_carries_the_term_on_its_form` | Cumplido |
+| P-16 | Formas de pago habilitadas y combinables | Intento de enviar plazo | Regresión | `backend/tests/sales/test_fiscal_alignment.py::test_a_cash_sale_still_pending_collection_does_not_ask_for_a_term`; `backend/tests/sales/test_fiscal_alignment.py::test_the_unit_cannot_be_chosen_by_the_user` | Cumplido |
+| P-17 | Formas de pago habilitadas y combinables | Sugerencia desde cobros registrados | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-18 | Formas de pago habilitadas y combinables | Sugerencia con saldo pendiente | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-19 | Formas de pago habilitadas y combinables | Operación pendiente de pago | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-20 | Formas de pago habilitadas y combinables | Cobro posterior a la preparación | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-21 | Formas de pago habilitadas y combinables | Suma distinta del total | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-22 | Formas de pago habilitadas y combinables | Forma no habilitada | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-23 | Emisor estructurado en la instantánea | Taller en régimen general | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-24 | Emisor estructurado en la instantánea | Emisor RIMPE Emprendedor | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-25 | Emisor estructurado en la instantánea | Cambio posterior del perfil | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-26 | Emisor estructurado en la instantánea | Preparación anterior al formato estructurado | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-27 | Emisor estructurado en la instantánea | Perfil pendiente de declarar de nuevo | Regresión | Sin cambio de comportamiento: `backend/tests/sales/test_fiscal_prepare_flow.py`, `backend/tests/workshop/test_fiscal_preparation.py` y `backend/tests/fiscal/` en verde | Cumplido (regresión) |
+| P-28 | Emisor estructurado en la instantánea | Emisor RIMPE Negocio Popular | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_a_popular_business_snapshot_carries_its_derived_legend` | Cumplido |
+| P-29 | Emisor estructurado en la instantánea | Emisor gran contribuyente | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_a_large_taxpayer_snapshot_carries_its_resolution_number`; `backend/tests/fiscal/test_snapshot.py::test_the_large_taxpayer_resolution_and_the_popular_business_legend_are_kept` | Cumplido |
+| P-30 | Emisor estructurado en la instantánea | Nombre comercial y dirección del establecimiento | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_the_prepared_snapshot_is_format_four_with_both_issuer_addresses`; `backend/tests/workshop/test_fiscal_alignment.py::test_the_artisan_issuer_keeps_both_addresses_and_the_trade_name_when_declared`; `backend/tests/fiscal/test_snapshot.py::test_the_issuer_keeps_the_trade_name_and_both_addresses` | Cumplido |
+| P-31 | Emisor estructurado en la instantánea | Entidad sin nombre comercial | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_an_entity_without_a_trade_name_omits_it_from_the_issuer`; `backend/tests/fiscal/test_snapshot.py::test_an_issuer_without_trade_name_omits_it_instead_of_using_the_legal_name` | Cumplido |
+| P-32 | Plazo del comprobante en operaciones a crédito | Crédito sin cobros | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_with_nothing_collected_carries_the_term_on_its_form`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::pide el plazo en días cuando la operación es a crédito con saldo pendiente y lo envía como número` | Cumplido |
+| P-33 | Plazo del comprobante en operaciones a crédito | Crédito sin plazo declarado | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_without_a_declared_term_is_blocked_with_an_operator_impediment` | Cumplido |
+| P-34 | Plazo del comprobante en operaciones a crédito | Abono parcial | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_only_the_form_that_covers_the_pending_balance_carries_the_term`; `backend/tests/workshop/test_fiscal_alignment.py::test_an_artisan_credit_with_a_partial_collection_puts_the_term_on_the_pending_form`; `backend/tests/fiscal/test_payment_term.py::test_a_form_already_collected_in_full_carries_no_term` | Cumplido |
+| P-35 | Plazo del comprobante en operaciones a crédito | Crédito ya saldado | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_already_collected_in_full_does_not_ask_for_a_term` | Cumplido |
+| P-36 | Plazo del comprobante en operaciones a crédito | Crédito saldado con una retención recibida | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_settled_with_a_withholding_does_not_ask_for_a_term`; `backend/tests/workshop/test_fiscal_alignment.py::test_an_artisan_credit_settled_with_a_withholding_does_not_ask_for_a_term` | Cumplido |
+| P-37 | Plazo del comprobante en operaciones a crédito | Contado pendiente de cobro | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_cash_sale_still_pending_collection_does_not_ask_for_a_term`; `backend/tests/workshop/test_fiscal_alignment.py::test_an_artisan_cash_operation_does_not_ask_for_a_term` | Cumplido |
+| P-38 | Plazo del comprobante en operaciones a crédito | Plazo inválido | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_an_invalid_term_is_rejected_without_changing_the_draft`; `backend/tests/fiscal/test_payment_term.py::test_other_values_are_rejected_without_converting_them`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::muestra junto al plazo el error del servidor` | Cumplido |
+| P-39 | Plazo del comprobante en operaciones a crédito | Unidad enviada por el usuario | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_the_unit_cannot_be_chosen_by_the_user`; `backend/tests/sales/test_fiscal_alignment.py::test_a_term_inside_a_form_is_still_rejected` | Cumplido |
+| P-40 | Plazo del comprobante en operaciones a crédito | Cobro que salda antes de completar | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_collection_that_settles_the_sale_before_completing_drops_the_term` | Cumplido |
+| P-41 | Plazo del comprobante en operaciones a crédito | Sin efecto en la cobranza | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_term_that_expires_does_not_change_the_balance_or_the_payment_state`; `backend/tests/workshop/test_fiscal_alignment.py::test_the_term_does_not_change_the_operation_balance_or_payment_state` | Cumplido |
+| P-42 | Plazo del comprobante en operaciones a crédito | Cobro posterior a completar | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_collection_after_completing_does_not_change_the_snapshot` | Cumplido |
+| P-43 | Plazo del comprobante en operaciones a crédito | Borrador anterior con plazo antiguo | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_draft_saved_with_the_old_per_form_term_asks_for_the_term_again` | Cumplido |
+| P-44 | Detalle adicional del comprobante | Agregar detalle adicional | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_additional_info_is_kept_in_the_snapshot_without_touching_the_sale`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::agrega, edita y quita datos adicionales con un modal y los envía como pares` | Cumplido |
+| P-45 | Detalle adicional del comprobante | Preparación sin detalle adicional | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_preparation_without_additional_info_has_an_empty_list` | Cumplido |
+| P-46 | Detalle adicional del comprobante | Nombre reservado | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_reserved_name_is_rejected_when_saving_the_draft`; `backend/tests/fiscal/test_additional_info.py::test_reserved_names_are_rejected_whatever_their_case_or_spacing`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::recuerda incluir solo lo necesario y muestra el error de un nombre reservado` | Cumplido |
+| P-47 | Detalle adicional del comprobante | Más pares de los admitidos | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_more_than_twelve_pairs_are_rejected_when_saving_the_draft`; `backend/tests/fiscal/test_additional_info.py::test_a_thirteenth_pair_is_rejected_stating_the_maximum`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::precarga los datos adicionales guardados y deja de ofrecer agregar al llegar a 12` | Cumplido |
+| P-48 | Detalle adicional del comprobante | Nombre repetido | Nuevo o ajustado | `backend/tests/fiscal/test_additional_info.py::test_repeated_names_are_rejected_ignoring_case` | Cumplido |
+| P-49 | Detalle adicional del comprobante | Valor excedido | Nuevo o ajustado | `backend/tests/fiscal/test_additional_info.py::test_three_hundred_characters_are_admitted_and_three_hundred_and_one_are_not` | Cumplido |
+| P-50 | Detalle adicional del comprobante | Preparación completada | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_completed_preparation_cannot_change_its_additional_info` | Cumplido |
+| P-51 | Detalle adicional del comprobante | Borrador anterior fuera de las reglas | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_draft_that_already_holds_too_many_pairs_gets_an_impediment_and_loses_none` | Cumplido |
+| P-52 | Detalle de servicio en la preparación | Detalle precargado | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_the_draft_is_preloaded_with_the_detail_kept_by_the_operation`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::una operación artesanal precarga el detalle de cada servicio y lo envía ajustado` | Cumplido |
+| P-53 | Detalle de servicio en la preparación | Ajuste sin efecto en la operación | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_the_adjusted_detail_goes_to_the_snapshot_and_the_operation_keeps_the_original` | Cumplido |
+| P-54 | Detalle de servicio en la preparación | Línea sin detalle | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_a_line_without_detail_is_listed_with_an_empty_detail_and_prepares_without_one` | Cumplido |
+| P-55 | Detalle de servicio en la preparación | Detalle excedido | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_an_invalid_detail_is_rejected_without_changing_the_draft`; `backend/tests/fiscal/test_service_details.py::test_three_hundred_and_one_characters_are_rejected_with_both_lengths` | Cumplido |
+| P-56 | Detalle de servicio en la preparación | Línea de venta comercial | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_commercial_line_does_not_accept_a_service_detail`; `frontend/src/pages/fiscal/FiscalPreparationPage.test.tsx::una venta comercial no ofrece detalle por servicio ni lo envía` | Cumplido |
+| P-57 | Detalle de servicio en la preparación | Reemplazo de una preparación cancelada | Nuevo o ajustado | `backend/tests/workshop/test_fiscal_alignment.py::test_a_replacement_preloads_the_operation_detail_and_the_old_snapshot_keeps_its_own` | Cumplido |
 
 ### `configuracion-operativa-y-fiscal`
 
 | Id | Requisito | Escenario | Origen | Prueba | Resultado |
 |---|---|---|---|---|---|
-| C-01 | Perfil fiscal adicional sin alterar la configuración operativa | Nuevo contribuyente aún no definido | Regresión | Pendiente | Pendiente |
-| C-02 | Perfil fiscal adicional sin alterar la configuración operativa | Entidad sin perfil guardado | Regresión | Pendiente | Pendiente |
-| C-03 | Perfil fiscal adicional sin alterar la configuración operativa | Perfil listo sin certificado | Regresión | Pendiente | Pendiente |
-| C-04 | Perfil fiscal adicional sin alterar la configuración operativa | Condición vencida | Regresión | Pendiente | Pendiente |
-| C-05 | Perfil fiscal adicional sin alterar la configuración operativa | Artesanal no equivale a beneficio comprobado | Regresión | Pendiente | Pendiente |
-| C-06 | Perfil fiscal adicional sin alterar la configuración operativa | Usuario operativo intenta configurar otro emisor | Regresión | Pendiente | Pendiente |
-| C-07 | Perfil fiscal adicional sin alterar la configuración operativa | Perfil real del taller | Regresión | Pendiente | Pendiente |
-| C-08 | Perfil fiscal adicional sin alterar la configuración operativa | Leyenda derivada del régimen | Regresión | Pendiente | Pendiente |
-| C-09 | Perfil fiscal adicional sin alterar la configuración operativa | Contabilidad con texto libre | Regresión | Pendiente | Pendiente |
-| C-10 | Perfil fiscal adicional sin alterar la configuración operativa | Resolución de agente de retención con formato inválido | Regresión | Pendiente | Pendiente |
-| C-11 | Perfil fiscal adicional sin alterar la configuración operativa | Agente de retención sin número | Regresión | Pendiente | Pendiente |
-| C-12 | Perfil fiscal adicional sin alterar la configuración operativa | Revisión anterior en texto libre | Regresión | Pendiente | Pendiente |
-| C-13 | Perfil fiscal adicional sin alterar la configuración operativa | Régimen de negocio popular | Regresión | Pendiente | Pendiente |
-| C-14 | Perfil fiscal adicional sin alterar la configuración operativa | Leyenda derivada de Negocio Popular | Nuevo o ajustado | Pendiente | Pendiente |
-| C-15 | Perfil fiscal adicional sin alterar la configuración operativa | Contribuyente especial demasiado corto | Nuevo o ajustado | Pendiente | Pendiente |
-| C-16 | Perfil fiscal adicional sin alterar la configuración operativa | Gran contribuyente declarado | Nuevo o ajustado | Pendiente | Pendiente |
-| C-17 | Perfil fiscal adicional sin alterar la configuración operativa | Gran contribuyente sin número | Nuevo o ajustado | Pendiente | Pendiente |
-| C-18 | Perfil fiscal adicional sin alterar la configuración operativa | Revisión anterior sin gran contribuyente | Nuevo o ajustado | Pendiente | Pendiente |
-| C-19 | Perfil fiscal adicional sin alterar la configuración operativa | Ventas durante el perfil por completar | Nuevo o ajustado | Pendiente | Pendiente |
-| C-20 | Perfil fiscal adicional sin alterar la configuración operativa | Valor guardado que ya no cumple el formato | Nuevo o ajustado | Pendiente | Pendiente |
-| C-21 | Correspondencia fiscal de las formas de pago | Pago combinado declarado | Regresión | Pendiente | Pendiente |
-| C-22 | Correspondencia fiscal de las formas de pago | Crédito con plazo declarado | Nuevo o ajustado | Pendiente | Pendiente |
-| C-23 | Correspondencia fiscal de las formas de pago | Catálogo completo visible | Regresión | Pendiente | Pendiente |
-| C-24 | Correspondencia fiscal de las formas de pago | Catálogo sin fuente | Regresión | Pendiente | Pendiente |
-| C-25 | Correspondencia fiscal de las formas de pago | Intento de habilitar tarjeta de crédito | Regresión | Pendiente | Pendiente |
-| C-26 | Correspondencia fiscal de las formas de pago | Deshabilitar la forma predeterminada | Regresión | Pendiente | Pendiente |
+| C-01 | Perfil fiscal adicional sin alterar la configuración operativa | Nuevo contribuyente aún no definido | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-02 | Perfil fiscal adicional sin alterar la configuración operativa | Entidad sin perfil guardado | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-03 | Perfil fiscal adicional sin alterar la configuración operativa | Perfil listo sin certificado | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-04 | Perfil fiscal adicional sin alterar la configuración operativa | Condición vencida | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-05 | Perfil fiscal adicional sin alterar la configuración operativa | Artesanal no equivale a beneficio comprobado | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-06 | Perfil fiscal adicional sin alterar la configuración operativa | Usuario operativo intenta configurar otro emisor | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-07 | Perfil fiscal adicional sin alterar la configuración operativa | Perfil real del taller | Regresión | `backend/tests/workshop_configuration/test_electronic_profile.py::test_real_workshop_profile_is_accepted` | Cumplido |
+| C-08 | Perfil fiscal adicional sin alterar la configuración operativa | Leyenda derivada del régimen | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-09 | Perfil fiscal adicional sin alterar la configuración operativa | Contabilidad con texto libre | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-10 | Perfil fiscal adicional sin alterar la configuración operativa | Resolución de agente de retención con formato inválido | Regresión | `backend/tests/workshop_configuration/test_electronic_profile.py::test_withholding_agent_rejects_non_ascii_digit_formats`; `backend/tests/fiscal/test_configuration_api.py::test_profile_rejects_free_text_with_field_errors` | Cumplido |
+| C-11 | Perfil fiscal adicional sin alterar la configuración operativa | Agente de retención sin número | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-12 | Perfil fiscal adicional sin alterar la configuración operativa | Revisión anterior en texto libre | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-13 | Perfil fiscal adicional sin alterar la configuración operativa | Régimen de negocio popular | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-14 | Perfil fiscal adicional sin alterar la configuración operativa | Leyenda derivada de Negocio Popular | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_profile.py::test_regime_legend_is_derived_from_the_closed_value`; `backend/tests/fiscal/test_configuration_api.py::test_popular_business_legend_is_derived_and_exposed`; `frontend/src/features/fiscal/configuration/ProfileConditionsSection.test.tsx::muestra la leyenda derivada de Negocio Popular como dato de solo lectura` | Cumplido |
+| C-15 | Perfil fiscal adicional sin alterar la configuración operativa | Contribuyente especial demasiado corto | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_profile.py::test_special_taxpayer_rejects_other_formats`; `backend/tests/fiscal/test_configuration_api.py::test_special_taxpayer_with_two_characters_is_rejected_by_the_api` | Cumplido |
+| C-16 | Perfil fiscal adicional sin alterar la configuración operativa | Gran contribuyente declarado | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_profile.py::test_large_taxpayer_applicable_keeps_its_resolution_number`; `backend/tests/fiscal/test_configuration_api.py::test_administrator_declares_and_reads_the_large_taxpayer_resolution`; `frontend/src/features/fiscal/configuration/ProfileConditionsSection.test.tsx::declara gran contribuyente con su número de resolución y conserva las demás condiciones` | Cumplido |
+| C-17 | Perfil fiscal adicional sin alterar la configuración operativa | Gran contribuyente sin número | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_profile.py::test_large_taxpayer_applicable_requires_the_resolution_number`; `backend/tests/fiscal/test_configuration_api.py::test_large_taxpayer_that_applies_needs_its_resolution_number` | Cumplido |
+| C-18 | Perfil fiscal adicional sin alterar la configuración operativa | Revisión anterior sin gran contribuyente | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_status.py::test_revision_saved_before_large_taxpayer_asks_only_for_that_condition`; `frontend/src/features/fiscal/configuration/ProfileConditionsSection.test.tsx::una revisión anterior sin gran contribuyente la muestra sin declarar y pide declararla` | Cumplido |
+| C-19 | Perfil fiscal adicional sin alterar la configuración operativa | Ventas durante el perfil por completar | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_profile_waiting_for_large_taxpayer_blocks_only_the_fiscal_preparation` | Cumplido |
+| C-20 | Perfil fiscal adicional sin alterar la configuración operativa | Valor guardado que ya no cumple el formato | Nuevo o ajustado | `backend/tests/workshop_configuration/test_electronic_profile.py::test_read_stored_conditions_reports_invalid_values_instead_of_raising`; `backend/tests/workshop_configuration/test_electronic_status.py::test_stored_value_that_no_longer_meets_its_format_asks_to_declare_it_again`; `backend/tests/workshop_configuration/test_home_summary.py::test_notice_survives_a_stored_value_that_no_longer_meets_its_format`; `backend/tests/fiscal/test_configuration_api.py::test_status_reports_the_stored_value_that_no_longer_meets_its_format` | Cumplido |
+| C-21 | Correspondencia fiscal de las formas de pago | Pago combinado declarado | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-22 | Correspondencia fiscal de las formas de pago | Crédito con plazo declarado | Nuevo o ajustado | `backend/tests/sales/test_fiscal_alignment.py::test_a_credit_with_nothing_collected_carries_the_term_on_its_form` | Cumplido |
+| C-23 | Correspondencia fiscal de las formas de pago | Catálogo completo visible | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-24 | Correspondencia fiscal de las formas de pago | Catálogo sin fuente | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-25 | Correspondencia fiscal de las formas de pago | Intento de habilitar tarjeta de crédito | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
+| C-26 | Correspondencia fiscal de las formas de pago | Deshabilitar la forma predeterminada | Regresión | Sin cambio de comportamiento: `backend/tests/workshop_configuration/` y `backend/tests/fiscal/test_configuration_api.py` en verde | Cumplido (regresión) |
 
 ### `servicios-aplicados-al-mantenimiento`
 
 | Id | Requisito | Escenario | Origen | Prueba | Resultado |
 |---|---|---|---|---|---|
-| S-01 | Detalle de servicio en la línea | Agregar una línea con detalle | Nuevo o ajustado | Pendiente | Pendiente |
-| S-02 | Detalle de servicio en la línea | Línea sin detalle | Nuevo o ajustado | Pendiente | Pendiente |
-| S-03 | Detalle de servicio en la línea | Escribir el detalle después | Nuevo o ajustado | Pendiente | Pendiente |
-| S-04 | Detalle de servicio en la línea | Detalle excedido o con saltos de línea | Nuevo o ajustado | Pendiente | Pendiente |
-| S-05 | Detalle de servicio en la línea | Línea documentada | Nuevo o ajustado | Pendiente | Pendiente |
-| S-06 | Detalle de servicio en la línea | Orden finalizada | Nuevo o ajustado | Pendiente | Pendiente |
-| S-07 | Detalle de servicio en la línea | Servicio repetido | Nuevo o ajustado | Pendiente | Pendiente |
-| S-08 | Detalle de servicio en la línea | Catálogo sin cambios | Nuevo o ajustado | Pendiente | Pendiente |
-| S-09 | Detalle de servicio en la línea | Edición simultánea | Nuevo o ajustado | Pendiente | Pendiente |
-| S-10 | Detalle de servicio en la línea | Vendedor intenta escribir el detalle | Nuevo o ajustado | Pendiente | Pendiente |
+| S-01 | Detalle de servicio en la línea | Agregar una línea con detalle | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_add_a_line_with_detail_keeps_it_without_changing_the_amounts`; `frontend/src/features/maintenance/components.test.tsx::agrega un servicio con su detalle` | Cumplido |
+| S-02 | Detalle de servicio en la línea | Línea sin detalle | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_add_a_line_without_detail_does_not_require_it`; `frontend/src/features/maintenance/components.test.tsx::agrega un servicio sin detalle sin enviar el campo` | Cumplido |
+| S-03 | Detalle de servicio en la línea | Escribir el detalle después | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_write_the_detail_later_without_changing_the_total`; `backend/tests/workshop/test_service_detail.py::test_the_audit_records_the_changed_field_and_never_the_text`; `frontend/src/features/maintenance/components.test.tsx::precarga el detalle al editar y lo envía solo si cambió` | Cumplido |
+| S-04 | Detalle de servicio en la línea | Detalle excedido o con saltos de línea | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_detail_over_the_limit_multiline_or_not_text_is_rejected_without_trimming`; `backend/tests/workshop/test_service_detail.py::test_the_detail_travels_through_the_http_api`; `frontend/src/features/maintenance/components.test.tsx::limita el detalle a 300 caracteres y muestra el error del servidor junto al campo` | Cumplido |
+| S-05 | Detalle de servicio en la línea | Línea documentada | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_a_documented_line_rejects_changing_its_detail`; `frontend/src/features/maintenance/components.test.tsx::una línea documentada muestra su detalle y no ofrece editarlo` | Cumplido |
+| S-06 | Detalle de servicio en la línea | Orden finalizada | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_a_finalized_order_rejects_changing_the_detail` | Cumplido |
+| S-07 | Detalle de servicio en la línea | Servicio repetido | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_repeated_service_keeps_an_independent_detail_per_line` | Cumplido |
+| S-08 | Detalle de servicio en la línea | Catálogo sin cambios | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_the_catalog_does_not_keep_the_detail_so_a_new_line_starts_empty` | Cumplido |
+| S-09 | Detalle de servicio en la línea | Edición simultánea | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_two_simultaneous_edits_of_the_same_version_apply_only_one` | Cumplido |
+| S-10 | Detalle de servicio en la línea | Vendedor intenta escribir el detalle | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_a_seller_cannot_write_the_detail` | Cumplido |
 
 ### `operacion-artesanal-de-servicios`
 
 | Id | Requisito | Escenario | Origen | Prueba | Resultado |
 |---|---|---|---|---|---|
-| O-01 | Detalle de servicio conservado en la operación | Confirmar conserva el detalle | Nuevo o ajustado | Pendiente | Pendiente |
-| O-02 | Detalle de servicio conservado en la operación | Comprobante interno con detalle | Nuevo o ajustado | Pendiente | Pendiente |
-| O-03 | Detalle de servicio conservado en la operación | Detalle cambiado después de revisar | Nuevo o ajustado | Pendiente | Pendiente |
-| O-04 | Detalle de servicio conservado en la operación | Intento de cambiar una línea documentada | Nuevo o ajustado | Pendiente | Pendiente |
-| O-05 | Detalle de servicio conservado en la operación | Volver a documentar después de anular | Nuevo o ajustado | Pendiente | Pendiente |
-| O-06 | Detalle de servicio conservado en la operación | Operación anterior | Nuevo o ajustado | Pendiente | Pendiente |
+| O-01 | Detalle de servicio conservado en la operación | Confirmar conserva el detalle | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_confirming_keeps_a_historical_copy_of_the_detail`; `frontend/e2e/maintenance-billing.spec.ts` | Cumplido |
+| O-02 | Detalle de servicio conservado en la operación | Comprobante interno con detalle | Nuevo o ajustado | `frontend/src/pages/maintenance/billingPages.test.tsx::el comprobante interno muestra la nota junto a su línea y no deja espacio vacío`; `frontend/e2e/maintenance-billing.spec.ts` | Cumplido |
+| O-03 | Detalle de servicio conservado en la operación | Detalle cambiado después de revisar | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_a_detail_changed_after_the_review_requires_a_new_review`; `frontend/src/features/maintenance/billing.test.tsx::muestra la nota de cada línea para revisarla antes de confirmar` | Cumplido |
+| O-04 | Detalle de servicio conservado en la operación | Intento de cambiar una línea documentada | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_a_documented_line_rejects_changing_its_detail` | Cumplido |
+| O-05 | Detalle de servicio conservado en la operación | Volver a documentar después de anular | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_voiding_keeps_the_original_text_and_the_corrected_one_goes_to_the_new_operation` | Cumplido |
+| O-06 | Detalle de servicio conservado en la operación | Operación anterior | Nuevo o ajustado | `backend/tests/workshop/test_service_detail.py::test_operations_confirmed_before_the_detail_existed_show_it_empty`; `backend/tests/workshop/test_service_detail_migration.py::test_existing_lines_and_operations_keep_their_data_with_an_empty_detail` | Cumplido |
 
 ## 4. Notas
 
-_Se completan al cerrar el cambio (tarea 11.7)._
+Verificación de cierre (2026-11-01). Solo se ejecutaron las pruebas de este cambio, por indicación del usuario.
+
+| Comprobación | Resultado |
+|---|---|
+| `pytest` de `tests/fiscal`, los archivos `test_fiscal_*` de ventas y taller, `test_service_detail*`, `test_service_lines`, `test_service_operations`, `test_api` y `test_openapi` del taller, las fronteras de ventas y taller, y `tests/workshop_configuration` | 1112 pruebas en verde |
+| `ruff format --check .` y `ruff check .` | En verde |
+| `mypy src tests` | 11 errores que ya existían, en 4 archivos que este cambio no toca (`test_withholdings`, `test_withholding_settings`, `test_artisan_withholdings`, `sales/test_api`); ninguno nuevo |
+| `manage.py makemigrations --check --dry-run` y `manage.py check` | Sin cambios pendientes ni avisos |
+| `manage.py spectacular --validate` | 0 errores; `schema.yml` coincide con lo generado |
+| `npm run format:check`, `lint`, `typecheck` y `build` | En verde (el aviso de tamaño de paquete ya existía) |
+| `vitest` de `pages/fiscal`, `features/fiscal`, `features/maintenance` y `pages/maintenance` | 270 pruebas en verde |
+| Playwright: los 2 tests nuevos de `fiscal.spec.ts`, más los 9 de ese archivo en una ejecución previa | En verde |
+| Playwright: `maintenance-billing.spec.ts` y `workshop-configuration.spec.ts`, ejecutados juntos | 15 en verde |
+| `openspec validate alinear-datos-del-comprobante-con-sri --strict` | Válido |
+
+No se ejecutó: la suite completa del backend (`make check`), la del frontend ni todo Playwright, ni `make audit`.
+
+- **Revisión visual humana pendiente.** Hay capturas del borrador a 1440 px y de la preparación a 390 px y a 1440 px en `frontend/test-results/alinear-datos-del-comprobante-evidence/` (carpeta que Git ignora y Playwright limpia en cada ejecución). La prueba comprueba además que a 390 px no hay desplazamiento horizontal y que no hay violaciones graves de accesibilidad.
+- **Correo en operaciones artesanales.** La instantánea del cliente de una orden de taller solo conserva nombre, identificación y teléfono, así que el Encargado siempre escribe el correo en la preparación; en ventas comerciales llega precargado si la ficha del cliente lo tiene.
+- **Reemplazo de una preparación.** El reemplazo conserva el borrador anterior y solo vuelve a precargar el detalle de servicio desde la operación; el diseño decía que pasaba por la precarga completa, pero el código ya copiaba el borrador anterior y se respetó para no perder el trabajo del usuario.
+- **Claves de error.** Los errores del plazo se devuelven como `payments.term_days`, los del detalle adicional como `additional_info[n].name` o `.value` y los del detalle de servicio como `service_details[n].detail`.
+- **Pruebas que cambiaron de reglas.** Ver la sección 2: los receptores de las suites de preparación llevan ahora correo y el perfil base de las pruebas declara gran contribuyente.
+- **Dependencia entre specs E2E.** Los tests «la configuración es adaptable y accesible» de `workshop-configuration.spec.ts` necesitan los impuestos que siembra `maintenance-billing.spec.ts`, así que no pasan si se ejecutan solos. Es anterior a este cambio.
 
 Referencia terminológica: [cobertura-datos-del-comprobante-glossary-reference.md](cobertura-datos-del-comprobante-glossary-reference.md).

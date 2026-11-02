@@ -66,6 +66,8 @@ Los contextos colaboran mediante referencias explícitas. En particular, un mant
 | Mantenimiento | Caso operativo completo de atención de un vehículo, compuesto por una intervención inicial y posibles correcciones. |
 | Intervención | Registro de trabajo realizado dentro de un mantenimiento, inicial o correctivo. |
 | Documento interno | Representación numerada de una operación del sistema; no es factura electrónica autorizada. |
+| Plazo del comprobante | Días que declara la factura de una operación a crédito con saldo pendiente; es un dato del comprobante y no crea vencimiento (`DP-035`). |
+| Detalle de servicio | Nota opcional de una línea de servicio que nace en el mantenimiento, se copia a la operación artesanal y llega a la factura (`DP-035`). |
 | Reposición por corrección | Salida de inventario asumida por el taller para corregir una falla atribuible a su trabajo. |
 | Consumo interno | Salida de una presentación para uso del taller, sin venta al cliente. |
 | Cierre diario | Conciliación lógica por fecha, entidad fiscal y medio de pago. |
@@ -99,6 +101,7 @@ Estos objetos expresan valores del negocio; su forma futura de almacenamiento no
 - **Proforma** es un documento comercial previo sin efectos definitivos.
 - **Movimiento de Kardex** registra el efecto físico confirmado; no sustituye a la operación que lo originó.
 - **Documento interno** representa una operación confirmada y recibe numeración de su entidad fiscal y tipo.
+- **Detalle de servicio** pertenece a la línea del servicio, no al catálogo: se escribe en el mantenimiento mientras la línea es editable, se conserva como copia histórica al confirmar la **operación artesanal** y puede ajustarse en la preparación fiscal sin modificar la operación (`DP-035`, regla 3).
 - **Referencia fiscal** representa el proceso de emisión ante el SRI con estados propios, realizado por un proveedor de emisión reemplazable (`DP-034`); no gobierna inventario, pago ni mantenimiento. Sustituye al concepto anterior «referencia fiscal futura».
 
 ## 6. Agregados y responsabilidades
@@ -243,6 +246,8 @@ ADR-0010 añade el módulo fiscal como referencia posterior a una venta comercia
 La configuración fiscal es centralizada por entidad: un **punto predeterminado** (automático si solo hay un punto activo), un ambiente único de pruebas mientras no exista emisión aprobada, **catálogos oficiales** versionados del SRI (tarifas de IVA y formas de pago de la Tabla 24, con procedencia de la ficha técnica) y formas de pago SRI habilitadas por entidad, de las que en V1 solo 01 y 20 son habilitables. La preparación toma estos datos del sistema, no de la persona usuaria, y los congela en su instantánea. Crédito sigue siendo una condición interna sin código de la Tabla 24.
 
 El **perfil del emisor** de cada entidad se declara con valores cerrados: régimen tributario (General, RIMPE Emprendedor o RIMPE Negocio Popular), obligación de llevar contabilidad, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y **calificación artesanal** con número, organismo y vencimiento obligatorio. La leyenda del comprobante se deriva del régimen y nadie la escribe (la de Negocio Popular está por confirmar con la ficha técnica del SRI); RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria, por lo que su preparación exige líneas a IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro (revisión nueva del perfil, tarifa interna sucesora y correspondencia sucesora con el SRI) y no altera lo ya preparado. La preparación conserva el emisor en campos estructurados, bloquea con un impedimento un código de línea de más de 25 caracteres o una descripción de más de 300 sin recortarlos, usa como código de línea de un servicio su **código de servicio** asignado por el sistema y, mientras la calificación artesanal esté vigente, solo admite líneas con IVA 0 %. Todo ello son comprobaciones locales que no acreditan el beneficio legal ante el SRI.
+
+Desde `DP-035` la preparación conserva además, en la instantánea de formato 4, el **plazo del comprobante** de las formas de pago que cubren el saldo pendiente de una operación a crédito, el correo del receptor, un detalle adicional de hasta 12 datos de nombre y valor, el detalle de cada servicio, el nombre comercial y la dirección del establecimiento del emisor. La condición de **gran contribuyente** se declara en el perfil del emisor con su número de resolución, y la leyenda de RIMPE Negocio Popular se deriva del régimen. El plazo, el correo y el detalle no son hechos de cobranza: no crean vencimiento, mora ni alertas, no cambian saldos ni cobros y no modifican la ficha del cliente ni la operación.
 
 La política del archivo se versiona por entidad fiscal. La evidencia de restauración solo habilita incorporación productiva cuando coincide con la versión del procedimiento y almacenamiento vigentes. Esta extensión no implementa firma, transmisión, consulta de autorización ni emisión productiva.
 
