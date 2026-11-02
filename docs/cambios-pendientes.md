@@ -2,9 +2,9 @@
 
 | Campo | Valor |
 |---|---|
-| Fecha | 2026-11-01 |
+| Fecha | 2026-11-02 |
 | Cambios activos en OpenSpec | Ninguno |
-| Cambios pendientes | 13, más 1 diferido |
+| Cambios pendientes | 19 (6 de la etapa 0 y 13 de las etapas 1 a 3), más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
 | Estado | Plan de trabajo; cada cambio se aprueba por separado en OpenSpec |
@@ -129,6 +129,164 @@ el desarrollo debe usar el adaptador simulado.
 **Alternativa: Ruxi.** Consta en el catastro y su plan Negocio cuesta $113.85 al año, pero sus dos
 facturas de prueba no se autorizaron el 2026-11-01 y su API no envía correos.
 
+## Etapa 0: usar el sistema a diario
+
+Nace del [análisis del sistema](analisis-del-sistema.md): el sistema es difícil de usar. Una persona
+lo usa cada día en el taller (la hija del dueño, con todos los roles) y no sabe de contabilidad. Va
+**antes** del cambio 3 de la etapa 1. Los números U1 a U6 son propios para no alterar las referencias a
+los cambios 3 a 16 que ya constan en `DP-034` y `DP-035`.
+
+Orden: U1 deja las decisiones escritas, U2 prueba el aspecto y el recorrido sin programar, y de U3 a U6
+se programa con el diseño ya aprobado. Cada cambio se hace en sesiones cortas: uno o dos grupos de
+tareas, commit y `/clear`.
+
+### U1. `reenfocar-tallkit-en-el-uso-diario`
+
+Solo documentos, sin código. Registra `DP-036` con las decisiones del titular del 2026-11-01: usuaria
+diaria con todos los roles y opciones poco frecuentes en «Ajustes»; una sola pantalla «Cobrar y facturar»
+que resuelve repuestos y servicios con dos cobros y dos facturas visibles; nombre comercial de cada
+negocio en lugar de «RUC comercial» y «RUC artesanal»; correo guardado en el cliente al facturar;
+búsqueda global; reemplazo de la dirección visual de septiembre; y requisitos medibles de rapidez.
+
+- Requisitos de usabilidad con objetivo: servicio simple cobrado y facturado en 8 a 10 acciones, venta
+  de mostrador en 5 a 6 y mantenimiento con repuesto en 12 a 14 (hoy 25, 16 y 47).
+- Documentación desactualizada: `README.md:11`, `AGENTS.md` («el dominio funcional aún no está
+  implementado»), `decisiones-confirmadas.yaml:407`, `PRODUCT.md:37`, `DESIGN.md:12`, y las secciones
+  2.2 y 7.3 de `interfaz-y-navegacion.md`. Revisar también las specs que hablen de navegación, jerga o
+  estilo visual.
+- Marcar `DESIGN.md` y las specs visuales como «en reemplazo»; la dirección nueva se escribe al
+  aprobar el prototipo (U2).
+
+**Choques por decidir**
+
+- [ ] `RNF-USA-009` y `RNF-USA-010`: mostrar la jerga y la entidad fiscal. Se ajustan
+- [ ] `interfaz-y-navegacion.md:37` y `DESIGN.md`: sin búsqueda global. Se reemplaza
+- [ ] `DP-035`, regla 1: el correo no cambia la ficha del cliente. Se ajusta con una casilla
+- [ ] `DP-027` y `DP-013`: confirmar y cobrar son independientes; un pago, una operación. Se mantienen,
+  la pantalla los encadena
+- [ ] `DP-021`: finalizar nunca confirma la venta. Se mantiene
+
+**Pasos**
+
+- [ ] Propuesta aprobada
+- [ ] Specs aprobadas
+- [ ] Diseño aprobado
+- [ ] Tareas aprobadas
+- [ ] Aplicado
+- [ ] Verificado
+- [ ] Archivado y registrado en `master`
+
+### U2. Prototipo de las pantallas clave
+
+Sin código del sistema. Se hace dentro del repositorio, por ejemplo en `docs/prototipo/`, y cubre
+Inicio, el menú, la ficha del cliente, la ficha del mantenimiento, «Cobrar y facturar» y la venta
+rápida, con el estilo visual nuevo. Sirve para probar el recorrido con la usuaria diaria antes de
+programar. Al aprobarlo se escriben la dirección visual nueva y sus tokens.
+
+- [ ] Prototipo hecho
+- [ ] Probado con la usuaria diaria
+- [ ] Aprobado por el titular
+- [ ] Dirección visual nueva escrita (reemplaza `DESIGN.md`)
+
+### U3. `renovar-sistema-visual`
+
+Aplica el prototipo aprobado: tokens, tipografía, color por negocio, formas y componentes compartidos.
+Reemplaza las specs `sistema-visual-frontend` y `patrones-de-pantalla-frontend`. Pasa los 298 tamaños
+de letra escritos a mano a tokens.
+
+**Choques por decidir**
+
+- [ ] Specs `sistema-visual-frontend`, `patrones-de-pantalla-frontend` y `experiencia-adaptable-frontend`.
+  Se reemplazan
+- [ ] Pruebas que fijan textos o estilos de la dirección anterior
+
+**Pasos**
+
+- [ ] Propuesta aprobada
+- [ ] Specs aprobadas
+- [ ] Diseño aprobado
+- [ ] Tareas aprobadas
+- [ ] Aplicado
+- [ ] Verificado
+- [ ] Archivado y registrado en `master`
+
+### U4. `reorganizar-navegacion-y-lenguaje`
+
+Menú de 9 entradas siempre visibles (Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos,
+Servicios, Cuentas y Ajustes); nombre comercial de cada negocio en lugar de «RUC»; ficha del cliente con
+sus vehículos, compras y deuda; stock visible en Productos; lenguaje simple (mantenimiento, recibo,
+total a pagar, movimientos).
+
+- Errores detectados: una venta nueva empieza en «Crédito» (`draft.ts:25`), el botón de cobro dice
+  «Registrar retención», precios con seis decimales, «Versión de registro», «IVA 0% · 0.0000 %» y los
+  avisos que tapan el total. El valor inicial «Crédito» puede adelantarse como arreglo pequeño.
+- Pedir el nombre comercial en la configuración inicial, porque hoy es opcional y, vacío, se muestra la
+  razón social.
+
+**Choques por decidir**
+
+- [ ] Sección 2.2 de `interfaz-y-navegacion.md`: navegación por áreas. Se reemplaza
+- [ ] `RF-REP-006` y `UI-062`: cuentas por cobrar separadas por entidad. Se mantienen como pestañas
+
+**Pasos**
+
+- [ ] Propuesta aprobada
+- [ ] Specs aprobadas
+- [ ] Diseño aprobado
+- [ ] Tareas aprobadas
+- [ ] Aplicado
+- [ ] Verificado
+- [ ] Archivado y registrado en `master`
+
+### U5. `buscar-en-todo-el-sistema`
+
+Búsqueda global por placa, cliente, producto o factura, desde cualquier pantalla.
+
+**Choques por decidir**
+
+- [ ] `interfaz-y-navegacion.md:37`: sin búsqueda global. Se reemplaza (decidido en U1)
+- [ ] Permisos: cada resultado respeta el rol; el backend decide qué se ve
+
+**Pasos**
+
+- [ ] Propuesta aprobada
+- [ ] Specs aprobadas
+- [ ] Diseño aprobado
+- [ ] Tareas aprobadas
+- [ ] Aplicado
+- [ ] Verificado
+- [ ] Archivado y registrado en `master`
+
+### U6. `cobrar-y-facturar-en-un-paso`
+
+Una pantalla visible desde la ficha del mantenimiento y desde la venta, que genera la operación de
+servicios, confirma la venta de repuestos, registra los dos cobros y pide las dos facturas, sin mezclar
+nada por dentro. Si la emisión falla, el cobro queda en firme (`DP-034`, regla 5). Guarda el correo en el
+cliente con una casilla activada. Usa el adaptador simulado hasta que exista el cambio 3. Registra una
+decisión `DP` nueva.
+
+- Al terminar, verificar `alinear-datos-del-comprobante-con-sri`, cuya verificación el titular aplazó
+  hasta este punto.
+
+**Choques por decidir**
+
+- [ ] `interfaz-y-navegacion.md`, sección 6.6: ningún botón reparte dinero en silencio entre los dos RUC.
+  Se ajusta: la pantalla muestra los dos importes
+- [ ] `DP-029`: las líneas iniciales se documentan una sola vez. Se mantiene; se documentan al cobrar
+- [ ] `actores-y-roles.md`: el Encargado no cobra repuestos. Sin ese permiso, solo ve su parte
+- [ ] Spec `preparacion-y-seguimiento-fiscal`: la preparación como pantalla propia pasa a ser un paso
+  interno del flujo
+
+**Pasos**
+
+- [ ] Propuesta aprobada
+- [ ] Specs aprobadas
+- [ ] Diseño aprobado
+- [ ] Tareas aprobadas
+- [ ] Aplicado
+- [ ] Verificado
+- [ ] Archivado y registrado en `master`
+
 ## Etapa 1: facturación electrónica
 
 La emisión empieza por el RUC artesanal, porque es lo que pidió el cliente. Sin Internet no se podrá
@@ -205,7 +363,7 @@ del cambio 1. Registra la decisión `DP-035`.
 ### 3. `emitir-comprobantes-electronicos`
 
 Crea el núcleo independiente del proveedor. Aplica la regla de independencia y deja `ADR-0013`.
-Depende del cambio 2.
+Depende del cambio 2 y de U6, para que «Facturar» viva dentro del flujo «Cobrar y facturar».
 
 - Interfaz neutral, capacidades declaradas y adaptador simulado.
 - Estados propios, referencia externa y pruebas de contrato.
