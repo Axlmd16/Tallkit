@@ -3,8 +3,8 @@
 | Campo | Valor |
 |---|---|
 | Fecha | 2026-11-01 |
-| Cambios activos en OpenSpec | `alinear-datos-del-comprobante-con-sri` (cambio 2) |
-| Cambios pendientes | 15, más 1 diferido |
+| Cambios activos en OpenSpec | Ninguno |
+| Cambios pendientes | 13, más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
 | Estado | Plan de trabajo; cada cambio se aprueba por separado en OpenSpec |
@@ -199,8 +199,8 @@ del cambio 1. Registra la decisión `DP-035`.
 - [x] Diseño aprobado
 - [x] Tareas aprobadas
 - [x] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [ ] Verificado: el titular lo aplazó el 2026-11-01 hasta después del rediseño; se archivó sin verificar
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-01-alinear-datos-del-comprobante-con-sri`)
 
 ### 3. `emitir-comprobantes-electronicos`
 

@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Cambio OpenSpec | `openspec/changes/alinear-datos-del-comprobante-con-sri`; deltas de `preparacion-y-seguimiento-fiscal`, `configuracion-operativa-y-fiscal`, `servicios-aplicados-al-mantenimiento` y `operacion-artesanal-de-servicios` |
-| Estado | Aplicado y verificado con pruebas focalizadas; falta la revisión visual humana y la verificación completa antes de integrar |
+| Cambio OpenSpec | `openspec/changes/archive/2026-11-01-alinear-datos-del-comprobante-con-sri`; deltas de `preparacion-y-seguimiento-fiscal`, `configuracion-operativa-y-fiscal`, `servicios-aplicados-al-mantenimiento` y `operacion-artesanal-de-servicios` |
+| Estado | Aplicado con pruebas focalizadas y archivado el 2026-11-01. El titular aplazó la verificación y la revisión visual hasta después del rediseño |
 | Fecha | 2026-11-01 |
 | Alcance | Correo del comprador, plazo del comprobante, detalle adicional, detalle de servicio, emisor completo y condición de gran contribuyente. No emite comprobantes ni cambia dinero, inventario o secuencias. |
 
