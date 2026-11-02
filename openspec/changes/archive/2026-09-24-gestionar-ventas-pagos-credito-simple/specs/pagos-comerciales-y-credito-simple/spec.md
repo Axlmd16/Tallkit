@@ -208,5 +208,3 @@ El sistema SHALL mostrar **cuentas por cobrar** comerciales por cliente, venta, 
 - **DADO** una venta a crédito pendiente confirmada diez fechas operativas antes de la fecha de consulta
 - **CUANDO** se consulta su antigüedad
 - **ENTONCES** SHALL mostrar diez días desde confirmación sin fecha de vencimiento, recargo ni etiqueta de morosidad.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

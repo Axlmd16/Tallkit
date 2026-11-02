@@ -134,5 +134,3 @@ Si la impresión se cancela, el modal y sus opciones SHALL permanecer disponible
 #### Scenario: Guardar como PDF
 - **CUANDO** el usuario elige el destino PDF del navegador
 - **ENTONCES** SHALL obtener las mismas páginas y medidas que en papel, sin que el sistema guarde un trabajo de impresión.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

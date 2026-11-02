@@ -58,6 +58,3 @@ El bloque artesanal SHALL mostrarse a quien tenga `servicios_economicos.ver`. El
 - **DADO** un Vendedor que consulta una venta vinculada
 - **CUANDO** abre su orden de origen
 - **ENTONCES** SHALL ver número, estado, cliente, vehículo y repuestos de la orden, y SHALL NOT ver servicios, importes artesanales, diagnóstico ni fotografías.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

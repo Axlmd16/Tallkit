@@ -74,5 +74,4 @@ Las solicitudes preparadas SHALL ser inmutables; su cancelación o reemplazo SHA
 - **CUANDO** el Administrador relaciona la evidencia importada
 - **ENTONCES** SHALL conservarse la relación y la condición no verificada, contando una sola afectación y sin cerrar la solicitud como oficialmente comprobada.
 
-Fuentes: [resolución 25-14](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=137046a6-787c-47fb-a2d7-176595d292dc&nombre=NAC-DGERCGC25-00000014.pdf) y [reforma 25-17](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=e98fc8a6-299e-4ea9-8de7-2f6c70dbb4f5&nombre=NAC-DGERCGC25-00000017.pdf). Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
+Fuentes: [resolución 25-14](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=137046a6-787c-47fb-a2d7-176595d292dc&nombre=NAC-DGERCGC25-00000014.pdf) y [reforma 25-17](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=e98fc8a6-299e-4ea9-8de7-2f6c70dbb4f5&nombre=NAC-DGERCGC25-00000017.pdf).

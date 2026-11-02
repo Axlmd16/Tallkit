@@ -200,5 +200,3 @@ No se ejecutó: la suite completa del backend (`make check`), la del frontend ni
 - **Claves de error.** Los errores del plazo se devuelven como `payments.term_days`, los de las notas como `additional_info[n].name` o `.value` y los del detalle de servicio como `service_details[n].detail`.
 - **Pruebas que cambiaron de reglas.** Ver la sección 2: los receptores de las suites de preparación llevan ahora correo y el perfil base de las pruebas declara gran contribuyente.
 - **Dependencia entre specs E2E.** Los tests «la configuración es adaptable y accesible» de `workshop-configuration.spec.ts` necesitan los impuestos que siembra `maintenance-billing.spec.ts`, así que no pasan si se ejecutan solos. Es anterior a este cambio.
-
-Referencia terminológica: [cobertura-datos-del-comprobante-glossary-reference.md](cobertura-datos-del-comprobante-glossary-reference.md).

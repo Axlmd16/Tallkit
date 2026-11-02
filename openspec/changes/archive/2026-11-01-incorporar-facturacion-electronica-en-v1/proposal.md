@@ -130,5 +130,3 @@ Conservan su comportamiento hasta que su propio cambio las modifique. La regla 8
 ## Fuentes consultadas
 
 `docs/negocio/decisiones/decisiones-confirmadas.yaml`, `docs/arquitectura/modelo-dominio.md`, `docs/cambios-pendientes.md`, `docs/negocio/producto/` (`alcance-v1.md`, `vision.md`, `reglas-negocio.md`, `glosario.md`), `docs/negocio/requisitos/` (`requisitos-funcionales.md`, `requisitos-no-funcionales.md`, `casos-de-uso.md`, `actores-y-roles.md`, `interfaz-y-navegacion.md`), `docs/adr/0010-modulo-fiscal-independiente-y-archivo-transaccional.md`, `docs/architecture/c4-context.md`, `docs/tecnico/operacion-archivo-fiscal.md` y las specs `modelo-dominio-taller`, `identidad-y-numeracion-fiscal`, `archivo-de-comprobantes-fiscales`, `preparacion-y-seguimiento-fiscal`, `solicitudes-de-correccion-fiscal` y `configuracion-operativa-y-fiscal`. `docs/negocio/historico/` no se consultó.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

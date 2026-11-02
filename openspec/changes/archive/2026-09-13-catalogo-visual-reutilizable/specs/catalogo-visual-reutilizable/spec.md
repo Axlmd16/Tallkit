@@ -221,5 +221,3 @@ Trazabilidad: RNF-MAN-003/005; aceptación visual de sistema-visual-frontend; pe
 - **GIVEN** una comparación con desviaciones no justificadas
 - **WHEN** las pruebas unitarias y de accesibilidad pasan
 - **THEN** la fase conserva la diferencia abierta y no se declara visualmente aceptada hasta corregirla o recibir aceptación explícita de la adaptación
-
-[Referencia terminológica](spec-glossary-reference.md).

@@ -115,5 +115,3 @@ Cubre diseño Migration Plan y Verification Strategy. Estas tareas se ejecutan e
 - [x] 10.6 Ejecutar verificación OpenSpec de implementación frente a propuesta/specs/diseño y `openspec validate gestionar-proformas-comerciales --strict`; revisar diff y cambios ajenos. Cierre: sin criterios pendientes ni desviaciones sin aprobar; registrar informe verificable. Integración, sincronización final de specs y archivo requieren su fase y autorizaciones, y el archivo ocurre en `master` después de integrar y verificar; no archivar por completar los cuatro artefactos.
 
 Dependencias: grupos 1…9. Evidencia de grupo: comandos oficiales y reporte de verificación, enlaces a pruebas y evidencia visual/operativa. La documentación histórica no redefine requisitos. La creación de tasks deja la planificación completa, no la funcionalidad implementada.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

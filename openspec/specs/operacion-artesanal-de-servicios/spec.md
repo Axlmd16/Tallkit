@@ -216,8 +216,6 @@ La preparación SHALL permitir completar datos fiscales faltantes conservando la
 - **CUANDO** se reabre por corrección del taller
 - **ENTONCES** SHALL conservarse la historia fiscal y SHALL NOT producirse una nueva factura ni una nota de crédito automática.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Detalle de servicio conservado en la operación
 
 Al confirmar una operación artesanal, cada línea SHALL conservar una copia histórica de su **detalle de servicio**. La revisión previa SHALL mostrarlo; si cambia después de revisar, la confirmación SHALL exigir una nueva revisión. El detalle de una línea documentada SHALL NOT modificarse por ninguna acción ordinaria, y un cambio posterior en la orden SHALL NOT alterar la copia.
@@ -255,6 +253,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-CON-002; RF-TAL-008; UI-
 - **DADO** una operación confirmada antes de existir el detalle de servicio
 - **CUANDO** se consulta
 - **ENTONCES** SHALL mostrarse sin detalle y sin cambios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

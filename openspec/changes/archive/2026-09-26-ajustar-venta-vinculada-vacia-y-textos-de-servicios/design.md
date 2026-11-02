@@ -86,5 +86,3 @@ Sin migraciones. Tras el despliegue, se ejecuta `python manage.py purge_empty_li
 ## Open Questions
 
 Ninguna.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

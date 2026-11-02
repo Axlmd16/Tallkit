@@ -96,5 +96,3 @@ Trazabilidad: propuesta §C.12 y D2; RF-CAT-004; UI-030…032.
 - **GIVEN** un Vendedor que no puede editar productos
 - **WHEN** solicita el filtro de código excedido
 - **THEN** SHALL denegarse sin revelar el listado
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

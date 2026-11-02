@@ -341,5 +341,3 @@ No se crea un ADR nuevo. La decisión de catálogos como datos, valores predeter
 - **API BREAKING para la propia interfaz** → backend y frontend se despliegan juntos, con OpenAPI actualizado. No hay consumidores externos.
 - **`keepMounted` mantiene montadas cinco pestañas con consultas** → las consultas son pequeñas y ya se cargaban en la página única actual. *Facturación electrónica* se monta al visitarla por primera vez y después se conserva montada.
 - **Choque de textos con el cambio activo `ajustar-venta-vinculada-vacia-y-textos-de-servicios`** en `ServiceOperationDetailPage.tsx` → se aplica sobre la versión integrada de ese cambio y se modifican solo los textos fiscales.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

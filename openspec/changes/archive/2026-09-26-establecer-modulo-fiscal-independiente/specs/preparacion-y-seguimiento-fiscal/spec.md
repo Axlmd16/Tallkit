@@ -160,4 +160,4 @@ Si el origen sufre una corrección posterior, la preparación SHALL conservarse 
 - **CUANDO** se intenta crear una preparación ordinaria nueva
 - **ENTONCES** SHALL bloquearse con referencia a esa evidencia, sin afirmar que su autorización fue verificada.
 
-Fuentes: [SRI: ficha y validación de identificaciones](https://www.sri.gob.ec/facturacion-electronica); [circular 24-05](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=6549b576-12c9-4d2f-a7cd-6e42d4cb887e&nombre=NAC-DGECCGC24-00000005.pdf); resoluciones enlazadas en `solicitudes-de-correccion-fiscal`. Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
+Fuentes: [SRI: ficha y validación de identificaciones](https://www.sri.gob.ec/facturacion-electronica); [circular 24-05](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=6549b576-12c9-4d2f-a7cd-6e42d4cb887e&nombre=NAC-DGECCGC24-00000005.pdf); resoluciones enlazadas en `solicitudes-de-correccion-fiscal`.

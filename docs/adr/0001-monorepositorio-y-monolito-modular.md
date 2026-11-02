@@ -38,4 +38,3 @@ evidencia operativa y un nuevo ADR.
 - `docs/negocio/decisiones/decisiones-confirmadas.yaml`
 - `docs/negocio/requisitos/requisitos-no-funcionales.md` (`RNF-MAN-001`)
 - `docs/tecnico/arquitectura-inicial.md`
-- [Referencia terminológica](0001-monorepositorio-y-monolito-modular-glossary-reference.md)

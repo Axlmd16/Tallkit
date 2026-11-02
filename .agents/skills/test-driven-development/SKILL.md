@@ -1,9 +1,11 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: Use when implementing high-risk code (money, taxes, inventory, sequences, permissions, concurrency, invoicing or domain rules), before writing implementation code
 ---
 
 # Test-Driven Development (TDD)
+
+> **En este proyecto** aplica solo al nivel estricto de «Pruebas según el riesgo» en `AGENTS.md`. Esa tabla manda sobre todo lo que sigue. Fuera de ese nivel, no use este ciclo.
 
 ## Overview
 
@@ -15,7 +17,7 @@ Write the test first. Watch it fail. Write minimal code to pass.
 
 ## When to Use
 
-**Always:**
+**Only in the strict level of `AGENTS.md`:**
 - New features
 - Bug fixes
 - Refactoring

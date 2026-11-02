@@ -125,4 +125,4 @@ Las solicitudes de acceso, rectificación o eliminación SHALL tramitarse median
 - **CUANDO** se intenta habilitar la incorporación de documentos reales
 - **ENTONCES** SHALL bloquearse esa habilitación indicando el requisito pendiente, sin impedir ensayos con datos sintéticos.
 
-Fuentes: [Reglamento de la LOPDP](https://spdp.gob.ec/wp-content/uploads/2024/12/04.pdf.pdf); [SRI: archivo obligatorio](https://www.sri.gob.ec/detalle-noticias?idnoticia=1021&marquesina=1) y [esquemas oficiales](https://www.sri.gob.ec/facturacion-electronica). Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
+Fuentes: [Reglamento de la LOPDP](https://spdp.gob.ec/wp-content/uploads/2024/12/04.pdf.pdf); [SRI: archivo obligatorio](https://www.sri.gob.ec/detalle-noticias?idnoticia=1021&marquesina=1) y [esquemas oficiales](https://www.sri.gob.ec/facturacion-electronica).

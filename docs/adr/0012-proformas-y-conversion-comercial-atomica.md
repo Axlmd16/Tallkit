@@ -35,4 +35,3 @@ Complementa ADR-0004/0006/0008/0009; no modifica reservas de mantenimiento ni in
 - [ADR-0004](0004-contrato-transaccional-configuracion-y-numeracion.md).
 - [ADR-0006](0006-coordinacion-transaccional-ventas-comerciales.md).
 - [ADR-0009](0009-reservas-inventario-y-ventas-vinculadas.md).
-- [Referencia terminológica](0012-proformas-y-conversion-comercial-atomica-glossary-reference.md).

@@ -189,5 +189,3 @@ Trazabilidad: propuesta §B y §C; `docs/cambios-pendientes.md`, regla para cada
 - **DADO** este cambio en aplicación
 - **CUANDO** se revisan sus archivos modificados
 - **ENTONCES** SHALL NOT incluir código, modelos, migraciones, endpoints, pantallas ni `modelo-datos.md`.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

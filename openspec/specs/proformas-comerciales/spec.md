@@ -282,6 +282,3 @@ SHALL ofrecerse listado con número cuando exista, cliente, emisión, vigencia, 
 - **DADO** un usuario que captura una oferta con teclado o desde una pantalla de 360 px
 - **CUANDO** una validación rechaza guardar
 - **ENTONCES** SHALL conservarse la entrada, identificarse el error junto al campo o acción y mantenerse accesibles las acciones sin depender solo del color ni desbordar horizontalmente el formulario principal.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

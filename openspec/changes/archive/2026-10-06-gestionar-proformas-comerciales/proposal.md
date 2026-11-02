@@ -72,5 +72,3 @@ Estado: propuesta aprobada por el usuario el 2026-10-06 mediante «gestionar-pro
 Ajuste posterior (2026-10-06, durante la aplicación, a pedido del usuario): el impreso es el documento que recibe el cliente. Muestra el código del producto, el código del fabricante y la marca, y no muestra disponibilidad, avisos de insuficiencia, la leyenda de cotización interna ni la mención del sistema. Esto concreta D4 y D5 y el punto de alcance sobre el texto del impreso; la disponibilidad sigue visible en las pantallas internas.
 
 Segundo ajuste (2026-10-06, a pedido del usuario): el cliente es opcional en la proforma, porque se cotiza también a personas no registradas; al convertir, la venta exige un cliente registrado, que se elige en ese momento si la oferta no lo tiene. La ficha de la proforma muestra las mismas columnas que el impreso. Esto modifica la frase «Exige cliente registrado» de «What Changes».
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

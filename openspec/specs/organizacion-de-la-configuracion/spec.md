@@ -363,5 +363,3 @@ Trazabilidad: propuesta §6; spec `configuracion-operativa-y-fiscal` («Logotipo
 - **DADO** el diálogo de confirmación para quitar el logotipo
 - **CUANDO** el Administrador cancela
 - **ENTONCES** el logotipo SHALL conservarse y el foco SHALL volver a la acción «Quitar».
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

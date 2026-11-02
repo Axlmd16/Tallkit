@@ -52,4 +52,3 @@ revisión de compatibilidad ni las pruebas.
 
 - `backend/pyproject.toml` y `backend/uv.lock`
 - `frontend/package.json` y `frontend/package-lock.json`
-- [Referencia terminológica](0002-gestion-de-versiones-y-dependencias-glossary-reference.md)

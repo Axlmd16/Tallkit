@@ -142,5 +142,3 @@ Ninguna. El logotipo es un dato más de la entidad fiscal y se especifica en su 
 - RNF-SEG-009 solo menciona fotografías y exportaciones; el logotipo recibe la misma protección por coherencia.
 
 **Información insuficiente:** el límite exacto de resolución (R3), que se propondrá en las specs.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

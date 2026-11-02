@@ -212,5 +212,3 @@ La sección de repuestos del detalle de la orden SHALL separar visualmente la ve
 - **DADO** un usuario que ingresó un producto y una cantidad
 - **CUANDO** el servidor rechaza la línea por disponibilidad insuficiente
 - **ENTONCES** la interfaz SHALL mostrar el error en el campo de cantidad con la disponibilidad actual y SHALL conservar la selección para corregirla.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

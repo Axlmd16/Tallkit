@@ -130,5 +130,3 @@ Trazabilidad: propuesta C15; CT-001; spec `autorizacion-y-navegacion`.
 - **DADO** un Encargado del taller sin rol Administrador
 - **CUANDO** navega por el menú
 - **ENTONCES** SHALL NOT ver el acceso a la configuración.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

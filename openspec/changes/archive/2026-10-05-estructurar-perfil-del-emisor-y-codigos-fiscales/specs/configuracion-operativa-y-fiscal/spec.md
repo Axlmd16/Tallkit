@@ -187,5 +187,3 @@ Trazabilidad: RF-ACC-011; UI-015; DP-017.
 - **DADO** el formulario de programar tarifa
 - **CUANDO** el servidor rechaza la fecha por no ser posterior a hoy
 - **ENTONCES** SHALL mostrarse el motivo dentro del formulario sin cerrarlo ni modificar la tarifa vigente.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

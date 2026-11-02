@@ -21,4 +21,3 @@ archiven los cambios 3 y 4 de `docs/cambios-pendientes.md` el sistema opera solo
 aplicación anterior queda fuera del sistema. El personal opera información compartida de
 clientes y vehículos, pero las operaciones económicas de los RUC comercial y artesanal permanecen
 separadas. El detalle se define en el [modelo conceptual del dominio](../arquitectura/modelo-dominio.md).
-Consulte la [referencia terminológica](c4-context-glossary-reference.md).

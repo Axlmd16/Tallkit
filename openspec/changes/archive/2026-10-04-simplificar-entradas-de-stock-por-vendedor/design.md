@@ -153,5 +153,3 @@ Los borradores anteriores no se modifican ni eliminan: quedan como `LEGACY` en b
 
 - Validación externa con un contador sobre dejar de registrar el IVA de compras y mantener existencias sin valor. No bloquea la implementación; debe resolverse antes de operar con datos reales.
 - Ninguna decisión técnica pendiente bloquea las tareas.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

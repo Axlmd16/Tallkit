@@ -157,5 +157,3 @@ CORS ni JWT.
 Identidad y acceso se implementaron mediante `gestion-usuarios-autenticacion-roles`. El resto del
 dominio funcional sigue sin implementarse y requiere su propio flujo OpenSpec antes de crear
 modelos, migraciones, API o pantallas.
-
-Consulte la [referencia terminológica](arquitectura-inicial-glossary-reference.md).

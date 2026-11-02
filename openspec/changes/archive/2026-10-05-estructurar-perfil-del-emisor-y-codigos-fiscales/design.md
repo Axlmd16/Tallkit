@@ -191,5 +191,3 @@ Reversión: las migraciones son aditivas y reversibles (eliminan columnas nuevas
 ## Open Questions
 
 - Presentación del número de calificación artesanal en el comprobante (D5): se decide en el cambio de emisión.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

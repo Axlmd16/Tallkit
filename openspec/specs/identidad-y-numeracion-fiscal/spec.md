@@ -83,5 +83,4 @@ Solo el Administrador SHALL gestionar antecedentes y ámbitos; usuarios con perm
 - **CUANDO** solicita identidad para una preparación artesanal
 - **ENTONCES** SHALL denegarse sin revelar el documento ni modificar secuencias.
 
-Fuentes: [ficha técnica y esquemas SRI](https://www.sri.gob.ec/facturacion-electronica). Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
+Fuentes: [ficha técnica y esquemas SRI](https://www.sri.gob.ec/facturacion-electronica).

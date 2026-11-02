@@ -337,5 +337,3 @@ El Administrador y el Vendedor SHALL consultar entradas y compras anteriores bus
 
 **Reason**: La referencia externa deja de ser única, por lo que una entrada anulada no bloquea registrar otra con la misma referencia.
 **Migration**: Tras anular una entrada, registrar una entrada nueva. Los reemplazos ya registrados conservan su vínculo como historia de solo lectura.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

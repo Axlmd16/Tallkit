@@ -122,5 +122,3 @@ Las siguientes son recomendaciones. La propuesta se detiene aquí hasta que el t
 - La regla del exceso tras una devolución (punto 16) cubre un caso poco frecuente y deja una diferencia visible que exige intervención del Administrador.
 
 **Trazabilidad.** DP-003, DP-013, DP-014, DP-019, DP-027, DP-028, DP-029, DP-031; RN-VEN-009…014, RN-VEN-016, RN-FIS-001…009, RN-CLI-001; RF-PAG-002…009, RF-PAG-011; CU-013; ADR-0006, ADR-0008. Decisión abierta relacionada, que este cambio no cierra: «Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos futuros de consumidor final y facturación electrónica».
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

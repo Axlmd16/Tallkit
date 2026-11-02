@@ -32,5 +32,3 @@ La preparación SHALL permitir completar datos fiscales faltantes conservando la
 - **DADO** una orden con operación artesanal documentada
 - **CUANDO** se reabre por corrección del taller
 - **ENTONCES** SHALL conservarse la historia fiscal y SHALL NOT producirse una nueva factura ni una nota de crédito automática.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

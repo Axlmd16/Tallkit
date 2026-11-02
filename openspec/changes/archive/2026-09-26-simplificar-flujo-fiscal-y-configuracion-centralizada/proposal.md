@@ -188,5 +188,3 @@ El certificado opcional no hace que el perfil deje de estar listo; su ausencia o
   - Backend: `fiscal/application/preparations.py`, `snapshot_builder.py`, `fiscal/domain/payment_declaration.py` y `snapshot.py`, `workshop_configuration/application/fiscal_resolver.py` y `fiscal_tax_mapping.py`, `workshop_configuration/models.py` y `sales/application/fiscal_source.py`.
 - Propuesta del cambio activo `ajustar-venta-vinculada-vacia-y-textos-de-servicios`.
 - Decisiones del usuario sobre esta propuesta (2026-09-26).
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

@@ -251,5 +251,3 @@ Ambos se proponen con este diseño y pasan a «Aceptada» al aplicar el cambio.
 ## Open Questions
 
 Ninguna bloqueante. Hay que confirmar durante la aplicación que la base de desarrollo tiene la serie ART-SER activa (paso 4).
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

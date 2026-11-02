@@ -40,5 +40,3 @@ La vista de impresión SHALL ser una superficie separada de `DocumentSheet`: reu
 #### Scenario: Regreso después de imprimir o cancelar
 - **CUANDO** el usuario cancela el modal o vuelve del diálogo de impresión
 - **ENTONCES** SHALL conservarse la lista o ficha de origen con sus filtros, página y posición de desplazamiento.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

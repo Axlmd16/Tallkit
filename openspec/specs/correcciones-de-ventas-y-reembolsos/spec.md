@@ -56,8 +56,6 @@ Una **anulación** SHALL conservar la venta, sus líneas, número e historia, de
 - **CUANDO** el Administrador solicita anularla
 - **ENTONCES** SHALL rechazarse explicando que sus repuestos se consideran utilizados, sin restituir inventario, modificar pagos ni cambiar la orden.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Tratamiento de pagos al anular la venta
 
 La anulación SHALL distinguir pagos registrados erróneamente de dinero realmente recibido. Un pago inexistente en la realidad SHALL poder corregirse mediante la capacidad de pagos con motivo; el dinero recibido SHALL exigir **reembolso** efectivo trazable, sin borrar o anular ficticiamente el ingreso. Al completar la anulación, el conjunto de venta, compensaciones, tratamiento de pagos y auditoría SHALL quedar coherente y sin saldo ni exceso pendiente; confirmar la anulación SHALL NOT afirmar un desembolso que el Administrador no haya registrado expresamente. El tratamiento del dinero SHALL permanecer asociado a la misma venta comercial. Trazabilidad: RN-VEN-016/019; RF-VEN-011; RF-PAG-008; CU-015; modelo de dominio §8; propuesta, recomendación 4.
@@ -241,8 +239,6 @@ Las correcciones SHALL conservar original, acción, motivo, responsable, fecha e
 - **CUANDO** se rechaza y el registro de auditoría está disponible
 - **ENTONCES** SHALL conservarse el resultado rechazado correlacionado con la acción, sin registrar un éxito ni datos sensibles innecesarios.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Reembolso limitado al dinero cobrado cuando hay retenciones
 
 Cuando una venta tenga **retenciones recibidas** vigentes, el **reembolso** SHALL limitarse al dinero efectivamente cobrado neto de reembolsos anteriores; un valor retenido SHALL NOT reembolsarse ni convertirse en saldo a favor. La parte del exceso que corresponda a retenciones SHALL mostrarse como retención en exceso, separada de la obligación de reembolso, hasta que el Administrador anule la retención con motivo. Trazabilidad: propuesta de retenciones D16; DP-014/028; RN-VEN-019; RF-VEN-017.
@@ -265,5 +261,3 @@ Una venta con retenciones vigentes SHALL NOT anularse. El intento SHALL bloquear
 - **DADO** una venta directa confirmada, por lo demás anulable, con una retención vigente de 5.00
 - **CUANDO** el Administrador intenta anularla
 - **ENTONCES** SHALL bloquearse identificando la retención, sin movimientos de inventario ni cambios en la venta.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

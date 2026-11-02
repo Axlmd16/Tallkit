@@ -33,5 +33,3 @@ Cada ajuste SHALL declararse por entidad e independiente de la otra, con ayuda c
 - **DADO** una operación con una retención vigente registrada con la advertencia al 20 %
 - **CUANDO** el Administrador cambia la advertencia al 10 % o desactiva el registro
 - **ENTONCES** la retención SHALL conservarse sin cambios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

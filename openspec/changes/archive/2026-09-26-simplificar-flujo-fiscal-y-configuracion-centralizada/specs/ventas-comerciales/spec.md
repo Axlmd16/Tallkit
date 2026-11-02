@@ -27,5 +27,3 @@ Trazabilidad: propuesta P1/P2 y Modified Capabilities; propuesta de simplificaci
 - **DADO** un Encargado que puede consultar el resumen de una venta vinculada
 - **CUANDO** intenta abrir su XML o preparación comercial sin rol adicional
 - **ENTONCES** SHALL denegarse conservando el acceso limitado al resumen económico autorizado.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -147,5 +147,3 @@ Una venta vinculada a un mantenimiento SHALL conservar de forma inmutable su ord
 - **DADO** una venta directa en borrador sin relación con órdenes
 - **CUANDO** un Vendedor la edita, la confirma y la cobra
 - **ENTONCES** SHALL comportarse como antes de esta entrega, sin reservas ni vínculos de mantenimiento.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

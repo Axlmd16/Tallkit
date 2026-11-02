@@ -137,8 +137,6 @@ El servidor SHALL calcular el subtotal de cada línea como cantidad × precio ap
 - **CUANDO** se muestra la sección de servicios
 - **ENTONCES** SHALL rotularse el total como total de servicios de la orden, cada línea SHALL indicar su estado de documentación, y el saldo y los impuestos SHALL mostrarse solo en la operación artesanal.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Autorización de las acciones sobre servicios
 
 Agregar, editar y retirar líneas SHALL exigir `mantenimientos.gestionar`. Fijar un precio aplicado distinto del referencial SHALL exigir además `mantenimientos.cambiar_precio_servicio`. Consultar las líneas SHALL exigir `mantenimientos.ver`. Un usuario con solo el rol Vendedor SHALL NOT consultar ni modificar líneas. Trazabilidad: actores-y-roles §3.5; RF-TAL-005/006.
@@ -147,8 +145,6 @@ Agregar, editar y retirar líneas SHALL exigir `mantenimientos.gestionar`. Fijar
 - **DADO** un usuario con solo el rol Vendedor
 - **CUANDO** envía directamente una solicitud para agregar una línea
 - **ENTONCES** el sistema SHALL denegarla sin crear la línea.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
 
 ### Requirement: Detalle de servicio en la línea
 
@@ -209,6 +205,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-TAL-003/018; RF-TAL-005;
 - **DADO** un usuario con solo el rol Vendedor
 - **CUANDO** envía directamente un detalle para una línea
 - **ENTONCES** el sistema SHALL denegarlo sin cambiar la línea.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

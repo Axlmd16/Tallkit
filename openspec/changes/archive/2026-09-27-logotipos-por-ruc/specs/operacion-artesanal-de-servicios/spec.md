@@ -28,5 +28,3 @@ Un usuario con `servicios_economicos.ver` (Administrador o Encargado del taller)
 - **DADO** una operación anulada confirmada con un logotipo artesanal anterior
 - **CUANDO** se consulta después de reemplazar el logotipo
 - **ENTONCES** SHALL mostrar el logotipo vigente, la indicación de anulación y los datos históricos sin cambios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

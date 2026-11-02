@@ -206,6 +206,3 @@ Registrar una retención SHALL NOT exigir una preparación fiscal ni un comproba
 - **DADO** una operación de 250.00 con pago de 245.00 y retención de 5.00
 - **CUANDO** se prepara su factura
 - **ENTONCES** las formas de pago declaradas SHALL sumar 250.00 con códigos habilitados, sin una forma de pago «retención».
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

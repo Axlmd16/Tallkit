@@ -129,5 +129,3 @@ Cambios surgidos de la revisión del cambio ya aplicado. La spec delta de `prepa
 - [x] 12.2 Reescribir la pantalla de preparación en lenguaje simple y con los componentes compartidos (`SectionPanel`, `FactList`, `Field`, `Input`, `Select`, `Checkbox`, `HintPopover`, `AdvancedInfo`), con textos cortos y los datos técnicos del emisor plegados. Cubre la pantalla, el acceso desde la operación y el aviso de configuración. Evidencia: `npm run test -- src/pages/fiscal src/features/fiscal`.
 - [x] 12.3 Quitar las capturas de pantalla de las pruebas E2E que este cambio añadió; no se toman capturas.
 - [x] 12.4 Actualizar las pruebas, los E2E afectados, la decisión de interfaz `UI-059`, el glosario y la cobertura.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

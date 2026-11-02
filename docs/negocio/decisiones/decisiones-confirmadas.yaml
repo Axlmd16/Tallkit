@@ -410,7 +410,9 @@ context: |
   - No preservar compatibilidad con comportamientos históricos que contradigan la línea objetivo.
 
   Calidad y verificación:
-  - Todo comportamiento nuevo o corregido debe incluir pruebas automatizadas.
+  - Todo comportamiento nuevo o corregido con lógica debe incluir pruebas automatizadas, con la
+    exigencia según el riesgo definido en AGENTS.md. Textos, colores y maquetación no requieren
+    prueba nueva.
   - Reglas de dominio: pruebas unitarias.
   - API, persistencia y coordinación entre módulos: pruebas de integración.
   - Dinero, stock y secuenciales: pruebas transaccionales y de concurrencia.
@@ -464,7 +466,7 @@ rules:
     - Separar tareas de backend, frontend, datos/migraciones, pruebas y documentación.
     - Nombrar rutas o módulos reales cuando hayan sido confirmados mediante inspección.
     - Añadir criterio de finalización y comando o evidencia de verificación para cada tarea.
-    - Incluir pruebas antes o junto con cada cambio de comportamiento, no como tarea opcional final.
+    - Incluir pruebas según el riesgo de AGENTS.md: antes del código en dinero, impuestos, inventario, secuencias, permisos y facturación; al final del grupo en el resto.
     - Incluir migraciones y tratamiento de datos existentes cuando cambie el modelo.
     - Incluir actualización de OpenAPI, trazabilidad y documentación afectada.
     - Ordenar dependencias para no implementar pantallas sobre contratos o modelos inestables.
@@ -475,7 +477,7 @@ operations:
     guidance:
       - Aplicar únicamente tasks aprobadas y marcar progreso con evidencia verificable.
       - Preservar cambios ajenos y evitar refactorizaciones fuera del alcance aprobado.
-      - Ejecutar primero pruebas enfocadas y después la verificación completa disponible.
+      - Ejecutar solo las pruebas relacionadas; la verificación completa, únicamente si el titular la pide.
       - No realizar operaciones destructivas sobre datos ni historial sin autorización explícita.
       - Si aparece una contradicción o decisión no resuelta, detener la implementación y documentarla.
   archive:

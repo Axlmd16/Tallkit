@@ -23,4 +23,3 @@ Cada contenedor es una unidad ejecutable; los módulos internos de Django no son
 futuras fronteras modulares se alinearán con los contextos del
 [modelo conceptual del dominio](../arquitectura/modelo-dominio.md), sin convertir automáticamente
 cada entidad conceptual en un módulo o tabla.
-Consulte la [referencia terminológica](c4-containers-glossary-reference.md).

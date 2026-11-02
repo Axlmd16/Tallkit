@@ -196,5 +196,3 @@ No se requiere un ADR nuevo: el cambio aplica los contratos transaccionales de A
 
 - Los porcentajes legales de retención no se confirmaron; el diseño no depende de ellos.
 - Queda para el cambio de emisión decidir si una retención se vincula con la factura autorizada y si el XML del comprobante se importa desde el archivo fiscal.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

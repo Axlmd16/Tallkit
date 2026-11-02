@@ -49,5 +49,3 @@ La lectura SHALL obtener el conjunto en una sola operación lógica y SHALL NOT 
 #### Scenario: Sin coincidencias
 - **CUANDO** ningún producto coincide con el filtro válido
 - **ENTONCES** SHALL devolverse un conjunto vacío y la interfaz SHALL impedir abrir una preparación sin productos.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

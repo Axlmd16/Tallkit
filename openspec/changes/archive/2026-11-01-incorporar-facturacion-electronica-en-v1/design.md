@@ -190,5 +190,3 @@ No hay datos ni despliegue. Si la decisión se revierte antes de los cambios sig
 - **Fecha y plazo del comprobante que esperó sin Internet:** se resuelve en la matriz antes del diseño del cambio 3.
 - **Registro del desarrollador ante el SRI:** se resuelve en la matriz antes de la prueba real.
 - **Disponibilidad de los textos oficiales:** si el sitio del SRI no los entrega, sus filas quedan pendientes y el titular deberá conseguirlos.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

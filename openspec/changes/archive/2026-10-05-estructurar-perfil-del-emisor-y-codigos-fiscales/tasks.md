@@ -272,5 +272,3 @@ Verificación completa antes de integrar (2026-10-05), ejecutada a petición del
 - Frontend: `format:check`, `lint` (sin avisos), `typecheck`, `test:coverage` con 1266 pruebas (funciones 86,32 %, ramas 80,02 %, umbral 85 % y 80 %) y `build`; la cobertura estaba bajo el umbral y se añadieron pruebas de contrato de los hooks fiscales y de facturación del mantenimiento, de puntos de emisión y de correspondencias.
 - `docker compose config` y `openspec validate --strict` correctos.
 - No ejecutado: la suite E2E de Playwright con el navegador; los E2E del grupo 9 se ejecutaron antes de las enmiendas del grupo 13 y las pantallas nuevas («Programar cambio» y «Programar tarifa») solo tienen pruebas de componente.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

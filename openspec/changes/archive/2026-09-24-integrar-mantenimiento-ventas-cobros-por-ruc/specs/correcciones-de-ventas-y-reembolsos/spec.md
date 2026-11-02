@@ -34,5 +34,3 @@ Una **anulación** SHALL conservar la venta, sus líneas, número e historia, de
 - **DADO** una venta vinculada confirmada, con o sin pagos, cuyas salidas son los últimos efectos de sus productos
 - **CUANDO** el Administrador solicita anularla
 - **ENTONCES** SHALL rechazarse explicando que sus repuestos se consideran utilizados, sin restituir inventario, modificar pagos ni cambiar la orden.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

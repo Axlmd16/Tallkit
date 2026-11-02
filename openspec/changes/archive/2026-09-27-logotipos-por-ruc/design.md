@@ -227,5 +227,3 @@ La decisión de fondo (sistema de archivos privado y entrega por la API) no camb
 ## Open Questions
 
 Ninguna que bloquee. Se verificará durante la implementación, sin cambiar el comportamiento especificado, si el detalle del ingreso confirmado ya expone el nombre conservado del emisor (D6).
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

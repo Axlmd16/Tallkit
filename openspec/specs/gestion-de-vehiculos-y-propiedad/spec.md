@@ -151,5 +151,3 @@ La interfaz SHALL reutilizar el sistema visual vigente para búsqueda, lista, fi
 - **GIVEN** un formulario con modelo y propietario informados
 - **WHEN** el servidor rechaza una placa duplicada
 - **THEN** SHALL conservar los valores, asociar el error a la placa y ofrecer la ficha coincidente según permisos
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

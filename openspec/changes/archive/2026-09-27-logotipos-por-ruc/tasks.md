@@ -222,5 +222,3 @@ Advertencias abiertas, que no bloquean:
 - las 2 pruebas de `ServiceOperationDetailPage` que ya fallaban antes del cambio;
 - la impresión física en A4 no se verificó;
 - el tiempo máximo de 5 s para imprimir empieza a contar al montar la página, así que una carga del documento muy lenta puede habilitar la impresión sin logotipo y mostrar el nombre.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

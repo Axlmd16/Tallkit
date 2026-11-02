@@ -22,5 +22,3 @@ Una venta con retenciones vigentes SHALL NOT anularse. El intento SHALL bloquear
 - **DADO** una venta directa confirmada, por lo demás anulable, con una retención vigente de 5.00
 - **CUANDO** el Administrador intenta anularla
 - **ENTONCES** SHALL bloquearse identificando la retención, sin movimientos de inventario ni cambios en la venta.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

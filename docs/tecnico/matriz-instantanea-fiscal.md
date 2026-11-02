@@ -234,5 +234,3 @@ no pueden activarse por omisión o por valores ficticios. La incorporación de `
 XSD: ambos son necesarios para representar `codigoPrincipal` y `descripcion` sin consultar
 maestros actuales. Firma, transmisión, consulta al SRI y autorización quedan fuera del alcance de esta
 matriz, que solo compara campos del comprobante; `DP-034` las incorpora a V1 mediante otros cambios.
-
-Referencia terminológica: [matriz-instantanea-fiscal-glossary-reference.md](matriz-instantanea-fiscal-glossary-reference.md).

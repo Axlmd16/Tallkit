@@ -43,5 +43,3 @@ Una operación artesanal con retenciones vigentes SHALL NOT anularse. El intento
 - **DADO** una operación artesanal sin pagos vigentes y con una retención vigente de USD 5,00
 - **CUANDO** el Administrador intenta anularla
 - **ENTONCES** SHALL bloquearse identificando la retención, sin cambiar la operación.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

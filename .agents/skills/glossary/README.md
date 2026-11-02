@@ -26,50 +26,6 @@ Example:
 Use glossary entries for project-specific language. Avoid generic dictionary
 words and one-off implementation details.
 
-## Companion Reference Files
-
-When an artifact uses glossary terms, it gets a companion reference file in the
-same directory. Remove `.md` from the artifact name and append
-`-glossary-reference.md`.
-
-| Artifact | Companion reference |
-| --- | --- |
-| `proposal.md` | `proposal-glossary-reference.md` |
-| `design.md` | `design-glossary-reference.md` |
-
-The companion file lists which glossary terms the artifact uses, where each term
-came from, and how the artifact uses it. It does not copy definitions.
-
-```markdown
-# Glossary Reference
-
-| Term | Source Glossary | Context |
-| --- | --- | --- |
-| Account | `glossary/business.md` | The customer identity that owns the subscription being changed. |
-```
-
-If no glossary terms are used, the companion file says so:
-
-```markdown
-# Glossary Reference
-
-No glossary terms referenced.
-```
-
-## Marking Terms In Artifacts
-
-Glossary terms that appear in a companion reference file are bolded in prose in
-the artifact itself.
-
-Example:
-
-```markdown
-During checkout, the **Account** owner can update the subscription plan.
-```
-
-Do not bold terms in code blocks, frontmatter, links, or places where Markdown
-formatting would reduce readability.
-
 ## Framework Usage
 
 The glossary skill is framework-agnostic. It can be used with any documentation,

@@ -74,5 +74,3 @@ No quedan decisiones de negocio abiertas que bloqueen las specs. La elección de
 **Contradicciones:** ninguna entre las fuentes normativas. La interfaz vigente no tiene selección múltiple ni impresión de etiquetas; es una brecha que este cambio cubre. El resumen de logotipos expone hoy la razón social, pero no el nombre comercial requerido por la etiqueta.
 
 **Información insuficiente no bloqueante:** las tolerancias físicas reales dependen de cada impresora. La capacidad fija dimensiones CSS y deja al diálogo del navegador la selección del dispositivo, escala y márgenes.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

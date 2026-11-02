@@ -202,5 +202,3 @@ Trazabilidad: propuesta A6; DP-018; invariante 25 del modelo de dominio; RN-CON-
 - **DADO** un borrador sin impedimentos
 - **CUANDO** el usuario completa la preparación
 - **ENTONCES** la notificación SHALL indicar que los datos fiscales quedaron preparados localmente, sin afirmar emisión ni envío.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

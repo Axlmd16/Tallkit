@@ -250,5 +250,3 @@ La página de inicio SHALL usar los fundamentos, tokens, piezas y patrones ya de
 - **DADO** la página de inicio junto a una lista existente del sistema
 - **CUANDO** se comparan sus paneles, cabeceras, tipografía y acciones
 - **ENTONCES** SHALL usar los mismos tokens y piezas, sin valores visuales propios de la página.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

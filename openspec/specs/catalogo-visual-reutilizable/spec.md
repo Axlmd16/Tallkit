@@ -244,5 +244,3 @@ Trazabilidad: RNF-MAN-003/005; sistema-visual-frontend, «Validación visual con
 - **GIVEN** los ejemplos deterministas y las pantallas funcionales disponibles
 - **WHEN** el usuario decide revisarlos directamente
 - **THEN** puede validar el resultado sin que el sistema exija generar capturas comparativas
-
-[Referencia terminológica](spec-glossary-reference.md).

@@ -136,6 +136,3 @@ Comandos: `cd frontend && npm run test:e2e -- e2e/catalogs.spec.ts`, pruebas Pos
 - [x] 14.1 Añadir `manufacturer_code` opcional al producto (migración `catalog/0002_product_manufacturer_code.py`, dominio, servicios, búsqueda OR con `code`/`name`, serializadores, OpenAPI, formulario, ficha y listado), conservando `code` como código interno obligatorio; unicidad por marca de producto. Pruebas: `backend/tests/catalog/test_manufacturer_code.py`, `ProductForm.test.tsx`, `ProductsPage.test.tsx`.
 
 Evidencia: ensayo reproducible, matriz completa, comandos oficiales recientes y revisión del diff. Las verificaciones pendientes permanecen sin marcar.
-
-[Referencia terminológica](tasks-glossary-reference.md).
-

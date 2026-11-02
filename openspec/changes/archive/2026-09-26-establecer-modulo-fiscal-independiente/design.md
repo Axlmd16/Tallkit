@@ -256,5 +256,3 @@ No bloquean redactar tareas, pero condicionan habilitaciones o aceptación de ca
 - Procedimiento operativo, responsable y destino independiente de copias: obligatorios antes de importación productiva; DA-003 general continúa abierta.
 - Cobertura territorial de calendario y datos externos de correcciones: evaluación pendiente cuando falten, sin permisos legales presumidos.
 - Proveedor, custodia de firma, transporte, reintentos externos, entrega y obligaciones de registro: objeto de otro cambio. La documentación de AutorizadorEC revisada no resuelve disponibilidad contractual, duplicados, conservación remota ni anulación oficial.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

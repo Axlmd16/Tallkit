@@ -91,5 +91,3 @@ Alertas de stock bajo y configuración de umbrales (RF-INV-011, decisión pendie
 Estado: propuesta aprobada por el usuario el 2026-10-06 mediante «está bien, continúa», después de su presentación para revisión. La aprobación comprende D1…D5. Autoriza redactar las specs; no autoriza design, tasks ni implementación.
 
 Specs aprobadas por el usuario el 2026-10-06 mediante «está bien, haz commit y continúa», incluidas sus cuatro concreciones: el pendiente de servicios de contado sin cobrar, los pendientes en cero visibles, los cobros recientes sin restar reembolsos y el aviso de la calificación artesanal ya vencida. Se autoriza registrar propuesta y specs en `master` y continuar con el design; no autoriza tasks ni implementación.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

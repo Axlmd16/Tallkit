@@ -252,5 +252,3 @@ Reversión futura: retirar archivos aditivos y entrada de catálogo; revertir so
 ## Open Questions
 
 No hay preguntas técnicas rutinarias. Pendientes de revisión: adaptaciones tipográficas/accesibles, cuatro artefactos y futura aceptación visual. Revalidar nodos antes de cada lote; nuevas variantes de Figma requieren actualizar la procedencia. No se presume aprobación de valores no observados.
-
-[Referencia terminológica](design-glossary-reference.md).

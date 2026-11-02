@@ -183,5 +183,3 @@ La ficha del **cliente** SHALL admitir una marca opcional «Agente de retención
 - **DADO** un cliente sin la marca y una entidad que registra retenciones
 - **CUANDO** se registra una retención sobre una operación suya
 - **ENTONCES** SHALL admitirse igual que para un cliente marcado.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

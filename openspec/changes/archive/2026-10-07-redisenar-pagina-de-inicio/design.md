@@ -249,5 +249,3 @@ Estado: diseño aprobado por el usuario el 2026-10-06 mediante «está bien, haz
 - **Presupuesto de consultas.** `pending/` hace hasta 22 consultas pequeñas, casi la mitad para comprobar permisos; con 5 000 ventas y cobros el resumen comercial respondió en 0,12 s, así que no se añadió índice.
 - **Pendientes en teléfono.** La rejilla usa dos columnas también en teléfono, no una, para que el panel no resulte demasiado largo.
 - **Título del gráfico.** Dentro del panel «Cobrado en 7 días» el gráfico no repite el título a la vista; lo conserva como nombre accesible.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

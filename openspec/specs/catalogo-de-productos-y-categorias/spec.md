@@ -353,8 +353,6 @@ Las listas, fichas y formularios SHALL reutilizar navegación, tipografía, colo
 - **WHEN** el usuario intenta abandonarlo
 - **THEN** SHALL advertir los cambios sin guardar y permitir permanecer sin perderlos
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Selección de productos para imprimir etiquetas
 
 La lista de productos SHALL permitir a todo usuario con `productos.ver` seleccionar uno o varios resultados mediante casillas y abrir «Imprimir etiquetas». La selección SHALL conservarse al recorrer páginas mientras la búsqueda y los filtros no cambien. La interfaz SHALL ofrecer además «Todos los del filtro actual», que representa exactamente la búsqueda, categoría, estado, marca de producto y marca de vehículo vigentes, incluidos inactivos cuando el filtro los incluya.
@@ -425,5 +423,3 @@ Trazabilidad: propuesta §C.12 y D2; RF-CAT-004; UI-030…032.
 - **GIVEN** un Vendedor que no puede editar productos
 - **WHEN** solicita el filtro de código excedido
 - **THEN** SHALL denegarse sin revelar el listado
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

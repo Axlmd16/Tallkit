@@ -102,5 +102,3 @@ Las consultas y formularios de marcas SHALL usar exclusivamente el sistema visua
 - **GIVEN** que no existen marcas activas
 - **WHEN** se abre la selección de marca de vehículo
 - **THEN** SHALL mostrarse un estado vacío claro y acceso a crear una marca únicamente a quienes tienen permiso
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

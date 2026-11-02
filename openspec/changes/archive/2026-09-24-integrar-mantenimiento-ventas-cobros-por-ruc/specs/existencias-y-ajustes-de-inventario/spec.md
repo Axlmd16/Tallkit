@@ -84,5 +84,3 @@ Una **reserva de mantenimiento** SHALL existir solo mientras la venta vinculada 
 - **GIVEN** una venta directa en borrador con 2 unidades de un producto
 - **WHEN** se consulta la disponibilidad del producto
 - **THEN** SHALL NOT reflejar ninguna reserva por ese borrador
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

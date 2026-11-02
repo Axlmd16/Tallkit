@@ -32,5 +32,3 @@ Confirmar, cobrar, devolver o anular una venta SHALL conservar sus requisitos ex
 - **DADO** ventas confirmadas antes de disponer del módulo fiscal
 - **CUANDO** se habilita esta capacidad
 - **ENTONCES** SHALL conservarse su estado y no crearse intenciones, facturas ni cobros retrospectivos.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

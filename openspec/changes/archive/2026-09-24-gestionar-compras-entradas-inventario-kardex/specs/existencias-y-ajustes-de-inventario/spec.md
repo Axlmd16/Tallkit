@@ -226,5 +226,3 @@ Inventario SHALL integrarse con navegación y ficha de producto existentes, most
 - **GIVEN** un producto con stock cero
 - **WHEN** se consulta su inventario
 - **THEN** SHALL identificarse sin existencias, sin atribuirle un umbral ficticio ni presentar alertas avanzadas como disponibles
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

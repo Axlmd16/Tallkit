@@ -271,5 +271,3 @@ Ejecutado:
 - `openspec validate simplificar-flujo-fiscal-y-configuracion-centralizada --strict` correcto.
 
 No ejecutado, por instrucción del usuario: `make check`, `make test`, la suite completa de backend y frontend y el resto de Playwright. `backend/schema.yml` no se regeneró: no lo valida ninguna prueba y ya estaba desactualizado antes del módulo fiscal; el contrato se verifica en vivo con `tests/fiscal/test_openapi.py`.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

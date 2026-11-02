@@ -109,5 +109,3 @@ Facturación electrónica y SRI; devoluciones, reembolsos y notas de crédito nu
 ## Límite de aprobación
 
 Propuesta aprobada y registrada en `master`. Las specs requieren su propia aprobación y registro en `master` antes del diseño.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

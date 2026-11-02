@@ -131,8 +131,6 @@ Por instrucción del usuario no se ejecutan suites completas por defecto. Desde 
 - Verificación posterior (`/opsx:verify`, 2026-09-26) y correcciones: la matriz citaba `backend/tests/fiscal/test_preparations.py` y `test_identity.py`, inexistentes, además de comodines; cada requisito enlaza ahora rutas completas comprobadas. Se añadieron pruebas para dos escenarios sin evidencia directa: «Anulación artesanal posterior» (`backend/tests/workshop/test_fiscal_preparation.py`) y «XML con número externo» (`backend/tests/fiscal/test_xml_archive.py`); ambas pasaron sin cambios de código, como caracterización. El listado del archivo quedó paginado (1 a 100, omisión 20) con filtros por emisor, ambiente, tipo y fechas de emisión (D11); la exportación arma el ZIP en un temporal de disco en lugar de memoria y responde con `Cache-Control: private, no-store` (D12, tarea 6.8); se formatearon migraciones y fuentes pendientes. Resultados: 306 pruebas backend del cambio verdes; paquete HTTP fiscal más archivo con 89.29% de ramas; 72 pruebas frontend; 4/4 E2E fiscales; `ruff` y `ruff format --check` sobre todo el backend, `mypy`, `manage.py check`, `makemigrations --check`, `npm run typecheck`, ESLint, Prettier, `npm run build` y `openspec validate --strict` correctos. No se ejecutaron las suites completas.
 - Restauración y tratamiento de datos requieren evidencia administrativa; no equivalen a verificación legal automática.
 
-Referencia terminológica: [cobertura-modulo-fiscal-glossary-reference.md](cobertura-modulo-fiscal-glossary-reference.md).
-
 
 ## Simplificación del flujo fiscal y configuración centralizada
 
@@ -272,4 +270,3 @@ Limitación: la comprobación de tarifa con calificación vigente es local y no 
 La cobertura de los 108 escenarios de este cambio, con su prueba y su resultado, está en [cobertura-datos-del-comprobante.md](cobertura-datos-del-comprobante.md). Cambia el formato de la instantánea a 4 (ver [matriz-instantanea-fiscal.md](../../tecnico/matriz-instantanea-fiscal.md)), exige el correo del comprador identificado y el plazo de una operación a crédito con saldo pendiente, y agrega gran contribuyente, detalle adicional y detalle de servicio.
 
 Limitaciones: el plazo no define cuándo corresponde (`NOR-019`, `V-6`); la leyenda de Negocio Popular contradice al XSD local (`NOR-020`); el redondeo del IVA incluido sigue abierto (`V-5`); y los enlaces de las filas anteriores a rutas de cambios ya archivados se corrigen en el cambio 15.
-

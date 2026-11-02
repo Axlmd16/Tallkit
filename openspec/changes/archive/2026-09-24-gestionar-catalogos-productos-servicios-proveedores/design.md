@@ -229,5 +229,3 @@ Fuentes normativas leídas durante esta tarea: decisiones confirmadas y modelo d
 Fuentes técnicas: arquitectura inicial, C4 de contenedores, ADR-0001/0002/0003/0004, `DESIGN.md`, README y Makefile; diseño de clientes y contratos relacionados, propuesta/diseño/tareas y deltas del cambio visual. Inspección real: modelos/validación/servicios de marcas y consultas de clientes, modelos y servicios tributarios/recibos de configuración, autorización/auditoría, composición de rutas, cliente HTTP, APIs de frontend, shell y componentes exportados. Las rutas nuevas se identifican como propuestas, no como implementadas.
 
 La validación de este artefacto comprobará OpenSpec y estado documental; no demuestra ejecución del diseño, migraciones ni pruebas de software. El siguiente artefacto es tasks, únicamente tras aprobación y registro de este diseño.
-
-[Referencia terminológica](design-glossary-reference.md).

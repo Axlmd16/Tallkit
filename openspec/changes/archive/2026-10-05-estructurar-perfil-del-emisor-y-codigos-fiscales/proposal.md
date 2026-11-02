@@ -105,5 +105,3 @@ Ninguna.
 - La regla de coherencia entre calificación artesanal y tarifa 0 % es una comprobación local: no acredita que el beneficio sea legalmente aplicable ni sustituye la revisión del responsable tributario.
 
 **Trazabilidad.** DP-008, DP-017, DP-018, DP-029; RN-FIS-001…010; RN-CAT-001; RF-ACC-010, RF-ACC-011; RF-CAT-001, RF-CAT-002, RF-CAT-010; CU-003; ADR-0010; XSD de factura 2.1.0 del SRI. Decisión abierta relacionada, que este cambio no cierra: «Tarifas y clasificación tributaria reales, reglas de redondeo y requisitos futuros de consumidor final y facturación electrónica».
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

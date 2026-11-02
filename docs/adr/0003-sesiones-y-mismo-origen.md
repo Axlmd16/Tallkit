@@ -39,4 +39,3 @@ para terceros o aplicación nativa podría justificar otro mecanismo mediante Op
 - `RNF-SEG-001` a `RNF-SEG-006`
 - `backend/tests/api/test_authentication.py`
 - `infra/nginx/default.conf`
-- [Referencia terminológica](0003-sesiones-y-mismo-origen-glossary-reference.md)

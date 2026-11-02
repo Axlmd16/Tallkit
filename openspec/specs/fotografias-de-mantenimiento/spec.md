@@ -88,5 +88,3 @@ Un registro de fotografía SHALL existir solo si su archivo quedó almacenado po
 - **DADO** archivos pendientes de limpieza
 - **CUANDO** el proceso de limpieza se ejecuta dos veces
 - **ENTONCES** SHALL eliminar solo archivos sin un registro vigente y la segunda ejecución SHALL NOT fallar ni afectar a fotografías vigentes.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

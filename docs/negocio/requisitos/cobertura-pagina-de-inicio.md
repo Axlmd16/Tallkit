@@ -111,5 +111,3 @@ Observaciones:
 - `make audit` termina con error por avisos en `urllib3` y `virtualenv` (backend) y dos avisos de severidad alta en dependencias de npm. Son anteriores a este cambio, que no modifica `uv.lock` ni `package-lock.json`.
 - El recorrido de Playwright se ejecutó con el servidor de pruebas en el puerto 8011, porque el 8001 de la configuración estaba ocupado por el entorno de desarrollo.
 - El recorrido repite ayudantes de siembra que ya existen en `e2e/sales-payments.spec.ts`; no se extrajeron a un módulo común para no modificar un recorrido ajeno a este cambio.
-
-Referencia terminológica: [cobertura-pagina-de-inicio-glossary-reference.md](cobertura-pagina-de-inicio-glossary-reference.md).

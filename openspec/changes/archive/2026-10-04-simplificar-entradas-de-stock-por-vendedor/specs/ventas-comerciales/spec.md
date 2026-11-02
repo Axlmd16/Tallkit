@@ -23,5 +23,3 @@ La ausencia de costo SHALL NOT impedir vender. Confirmar una venta con un produc
 - **DADO** un Vendedor sin Administrador
 - **CUANDO** confirma o consulta una venta con un producto sin costo registrado
 - **ENTONCES** SHALL operar y ver la venta igual que cualquier otra, sin avisos ni campos sobre costos.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

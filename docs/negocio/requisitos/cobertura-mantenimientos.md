@@ -146,6 +146,4 @@
 | Autorización del historial | Vendedor consulta la ficha de un cliente | Cumplido | `frontend/src/pages/customers/CustomerDetailPage.test.tsx`; `frontend/src/pages/vehicles/VehicleDetailPage.test.tsx`; `backend/tests/workshop/test_queries.py::test_seller_cannot_list`. | — |
 | Autorización del historial | Historial vacío | Cumplido | `frontend/src/features/maintenance/MaintenanceHistorySection.test.tsx`. | — |
 
-Referencia terminológica: [cobertura-mantenimientos-glossary-reference.md](cobertura-mantenimientos-glossary-reference.md).
-
 > Ampliación posterior: la integración con repuestos, ventas vinculadas, operación artesanal y cobros por RUC se documenta en [cobertura-integracion-mantenimiento.md](cobertura-integracion-mantenimiento.md).

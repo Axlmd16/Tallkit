@@ -241,8 +241,6 @@ No hay migración de datos. Los enlaces existentes `?tab=` y `?seccion=` siguen 
 
 Ninguna que bloquee. Si más adelante se prefiere que el backend informe la subsección de cada causa, requerirá un cambio propio con actualización de OpenAPI.
 
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).
-
 ### D8c. Cuarta revisión: mismo estilo que las demás secciones
 
 El usuario pidió que las subsecciones de facturación sigan el estilo de *Entidades fiscales*, *Bodega* y *Series*, y que la estructura sea simétrica:

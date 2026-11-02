@@ -48,5 +48,3 @@ La ficha de un cliente o de un vehículo SHALL mostrar el historial de mantenimi
 - **DADO** un vehículo sin órdenes y un usuario autorizado
 - **CUANDO** consulta su historial
 - **ENTONCES** la interfaz SHALL mostrar un estado vacío explicativo.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

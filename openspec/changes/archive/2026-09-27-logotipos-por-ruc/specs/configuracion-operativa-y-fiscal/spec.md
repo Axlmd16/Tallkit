@@ -146,5 +146,3 @@ Trazabilidad: `RN-FIS-008`, `RN-CON-002`, `RF-ACC-010`, `RNF-DAT-003`; propuesta
 #### Scenario: Cambio de logotipo con documentos confirmados
 - **WHEN** el Administrador reemplaza el logotipo comercial y luego se reimprime una venta confirmada el mes anterior
 - **THEN** el comprobante SHALL mostrar el logotipo nuevo junto con la razón social, el RUC, los importes y el número históricos sin cambios
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

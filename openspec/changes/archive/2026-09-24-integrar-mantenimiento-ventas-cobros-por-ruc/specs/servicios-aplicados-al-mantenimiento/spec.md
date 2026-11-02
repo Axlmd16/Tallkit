@@ -58,5 +58,3 @@ El servidor SHALL calcular el subtotal de cada línea como cantidad × precio ap
 - **DADO** el detalle de una orden con una línea documentada en `ART-SER-000004` y otra pendiente
 - **CUANDO** se muestra la sección de servicios
 - **ENTONCES** SHALL rotularse el total como total de servicios de la orden, cada línea SHALL indicar su estado de documentación, y el saldo y los impuestos SHALL mostrarse solo en la operación artesanal.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

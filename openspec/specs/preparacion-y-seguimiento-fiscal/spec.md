@@ -584,8 +584,6 @@ Trazabilidad: propuesta §A.5 y §D; DP-017/025; RN-FIS-010; RF-FIS-007.
 - **CUANDO** llega la fecha del cambio y el Administrador declara el régimen *RIMPE Emprendedor*
 - **ENTONCES** las preparaciones nuevas SHALL usar IVA 15 %, código de tarifa `4` y la leyenda del régimen Emprendedor, y las anteriores SHALL conservar el régimen *RIMPE Negocio Popular* y el IVA 0 %.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Plazo del comprobante en operaciones a crédito
 
 Al preparar una operación con condición CREDITO y saldo pendiente mayor que cero, el sistema SHALL exigir un **plazo del comprobante**: un número entero de días entre 1 y 9999. Se SHALL declarar un solo plazo por comprobante, y SHALL NOT sugerirse ni completarse automáticamente. La unidad SHALL ser `dias`, resuelta por el sistema y nunca aceptada como dato del usuario.
@@ -745,6 +743,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-CON-002; RF-FIS-001; `NO
 - **DADO** una preparación cancelada cuyo detalle se había ajustado
 - **CUANDO** se crea su reemplazo
 - **ENTONCES** el reemplazo SHALL precargar el detalle de la operación, y la preparación anterior SHALL conservar el suyo.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

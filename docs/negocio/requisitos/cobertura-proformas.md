@@ -149,5 +149,3 @@ Las specs aprobadas tenían 76 escenarios; dos ajustes pedidos por el usuario du
 - Sin la leyenda al pie, lo que distingue el impreso de una factura es el título del documento. Desde el 2026-10-15, a pedido del usuario, ese título es «PROFORMA N.º» con el número, y el encabezado ya no rotula el estado vigente; la cotización tampoco es una factura.
 
 Las specs principales se sincronizaron y el cambio se archivó el 2026-10-06 a pedido del usuario.
-
-Referencia terminológica: [cobertura-proformas-glossary-reference.md](cobertura-proformas-glossary-reference.md).

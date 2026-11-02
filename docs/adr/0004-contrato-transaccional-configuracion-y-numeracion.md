@@ -135,4 +135,3 @@ concurrencia para demostrar la adopción del contrato.
 - `docs/adr/0001-monorepositorio-y-monolito-modular.md`
 - `docs/adr/0003-sesiones-y-mismo-origen.md`
 - `docs/tecnico/arquitectura-inicial.md`
-- [Referencia terminológica](0004-contrato-transaccional-configuracion-y-numeracion-glossary-reference.md)

@@ -100,5 +100,3 @@ Ninguna.
 - Cambio archivado `2026-09-26-simplificar-flujo-fiscal-y-configuracion-centralizada`.
 
 No se encontraron decisiones de negocio abiertas afectadas. Las contradicciones detectadas entre la maqueta y las specs vigentes se resuelven a favor de las specs, en la tabla anterior.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

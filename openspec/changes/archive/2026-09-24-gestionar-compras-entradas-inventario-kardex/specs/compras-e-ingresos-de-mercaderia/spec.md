@@ -279,5 +279,3 @@ El Administrador SHALL buscar por número interno, referencia o proveedor, filtr
 - **GIVEN** una lista sin resultados o todavía pendiente
 - **WHEN** se presenta al usuario
 - **THEN** SHALL identificarse el estado real sin compras ficticias, y una falla SHALL mostrar recuperación sin datos inventados
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

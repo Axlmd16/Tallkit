@@ -271,6 +271,3 @@ Ninguna de las dos piezas SHALL depender solo del color para comunicar un estado
 #### Scenario: Cambio de un token
 - **WHEN** se modifica el valor del token de tono de un ámbito fiscal
 - **THEN** los indicadores y gráficos de ese ámbito SHALL reflejar el cambio sin editar cada pantalla
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

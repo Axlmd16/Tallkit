@@ -85,4 +85,4 @@ La preparación SHALL distinguir la **forma de pago** declarada para el comproba
 - **CUANDO** se solicita declararla preparada
 - **ENTONCES** SHALL indicarse qué dato falta, sin usar CREDITO como código SRI, ni inventar pago o vencimiento comercial.
 
-Fuentes normativas: [ficha y catálogos oficiales](https://www.sri.gob.ec/facturacion-electronica). Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
+Fuentes normativas: [ficha y catálogos oficiales](https://www.sri.gob.ec/facturacion-electronica).

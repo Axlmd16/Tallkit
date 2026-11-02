@@ -64,5 +64,3 @@ El total de la operación SHALL estar visible junto a las acciones. La vista pre
 #### Scenario: Encabezado del emisor en la vista previa
 - **WHEN** se abre el editor de una venta directa o de un ingreso de mercadería
 - **THEN** la hoja de vista previa SHALL encabezarse con la identidad de la entidad comercial conforme a PPF-09
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

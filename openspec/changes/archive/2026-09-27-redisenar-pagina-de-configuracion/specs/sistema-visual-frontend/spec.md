@@ -25,5 +25,3 @@ La interfaz SHALL representar de forma consistente los datos propios del negocio
 #### Scenario: RUC de una entidad fiscal
 - **WHEN** se muestra el RUC `1140258475001` de una entidad fiscal en la configuración
 - **THEN** SHALL verse en una placa de RUC con la etiqueta «RUC» y los 13 dígitos en tipografía monoespaciada, y las tecnologías de asistencia SHALL anunciar «RUC 1140258475001»
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

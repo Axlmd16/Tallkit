@@ -33,5 +33,3 @@ Solo Administrador SHALL consultar proveedores con `proveedores.ver` y crear, ed
 - **GIVEN** un Administrador que también es Vendedor
 - **WHEN** consulta proveedores
 - **THEN** SHALL conservar su permiso de Administrador
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

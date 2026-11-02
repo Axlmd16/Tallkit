@@ -262,5 +262,3 @@ Resultado registrado (2026-10-05):
 - La cobertura de ramas queda a 0,28 puntos del umbral: cualquier cambio posterior del frontend debe llegar con sus pruebas.
 - No se ejecutó: `make check`, `make test`, el resto de pytest ni Playwright después de estas correcciones (los recorridos de los grupos 11 no cubren la columna ni el filtro nuevos).
 - La sugerencia de mostrar en pantalla quién registró cada retención no se aplicó: el dato viaja en la API y queda como mejora.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

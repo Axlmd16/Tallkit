@@ -192,5 +192,3 @@ El sistema SHALL ofrecer lista y detalle autorizados con número, cliente, orige
 - **DADO** un borrador con líneas capturadas
 - **CUANDO** una validación rechaza guardar o confirmar
 - **ENTONCES** SHALL conservarse la entrada para corregirla y comunicarse el error en el campo o acción correspondiente, accesible por teclado y sin repetir efectos.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

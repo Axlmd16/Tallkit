@@ -53,5 +53,3 @@ Un **Servicio** SHALL exigir nombre no vacío, **precio referencial**, estado y 
 - **GIVEN** un servicio con código `SRV-000012`
 - **WHEN** se busca « srv-000012 »
 - **THEN** SHALL localizarse ese servicio
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

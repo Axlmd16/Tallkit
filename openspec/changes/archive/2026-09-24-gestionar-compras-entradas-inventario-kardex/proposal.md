@@ -107,5 +107,3 @@ Primero resolver las recomendaciones y aprobar esta propuesta. `openspec/config.
 - `openspec status --change gestionar-compras-entradas-inventario-kardex --json` reconoce proposal como presente: 1/4 artefactos. `done` no significa aprobación humana; aunque el esquema genérico habilite design, prevalece la secuencia proposal → specs → design → tasks del repositorio.
 - `openspec validate gestionar-compras-entradas-inventario-kardex --strict --no-interactive --json` devuelve un único error: ausencia de deltas. La validación integral queda pendiente de las specs aprobadas; no se crean anticipadamente para satisfacer al validador.
 - `git diff --check` no informó errores en los cambios seguidos existentes al comprobar. Los archivos nuevos se revisan separadamente antes de entregar. No se ejecutaron pruebas de software, build ni migraciones: esta fase no modifica implementación.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

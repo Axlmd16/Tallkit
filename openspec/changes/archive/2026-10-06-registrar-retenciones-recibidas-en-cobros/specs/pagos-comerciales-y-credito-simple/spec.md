@@ -69,5 +69,3 @@ Las **cuentas por cobrar** comerciales y el detalle de cada venta SHALL mostrar 
 - **DADO** una venta con una retención anulada y otra vigente
 - **CUANDO** se abre su historial
 - **ENTONCES** SHALL distinguirse ambas y su vigencia, sumando solo la vigente al total retenido.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

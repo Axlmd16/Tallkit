@@ -193,5 +193,3 @@ Trazabilidad: propuesta §3; propuesta de simplificación B10, R3/R6; DP-003/013
 - **DADO** una entidad con `01` y `20` habilitadas y `01` como predeterminada
 - **CUANDO** el Administrador intenta deshabilitar `01` sin designar otra
 - **ENTONCES** SHALL rechazarse indicando que primero debe designarse otra forma predeterminada habilitada.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -25,4 +25,3 @@ Los documentos, numeración, pagos y cuentas por cobrar quedan físicamente sepa
 
 - [Diseño del cambio](../../openspec/changes/archive/2026-09-24-integrar-mantenimiento-ventas-cobros-por-ruc/design.md) (D1, D5, D6).
 - [ADR-0006](0006-coordinacion-transaccional-ventas-comerciales.md).
-- [Referencia terminológica](0008-documentos-artesanales-separados-y-nucleo-monetario-glossary-reference.md).

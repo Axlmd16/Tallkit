@@ -163,5 +163,3 @@ Las órdenes existentes antes de esta entrega SHALL conservar su historial sin c
 - **DADO** una orden finalizada antes de esta entrega con servicios por USD 120,00
 - **CUANDO** se despliega la entrega
 - **ENTONCES** SHALL NOT existir una operación ni un saldo para esa orden hasta que un usuario autorizado la confirme explícitamente tras la advertencia.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

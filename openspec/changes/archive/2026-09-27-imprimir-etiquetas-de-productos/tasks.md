@@ -134,5 +134,3 @@ Dependencias: grupos 2 a 9.
 - [x] 10.7 Registrar cada comando y resultado, junto con lo no ejecutado por alcance: suites completas, resto de Playwright, `make check` y `make test`. Solicitar validación directa del usuario de la vista previa y del PDF antes de verificar o archivar el cambio.
 
 Evidencia del grupo: documentación y trazabilidad sincronizadas, verificación focalizada reciente y validación visual solicitada al usuario.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

@@ -38,4 +38,3 @@ La preparación y consulta funcionan sin proveedor, los snapshots son reproducib
 - [ADR-0001](0001-monorepositorio-y-monolito-modular.md), [ADR-0004](0004-contrato-transaccional-configuracion-y-numeracion.md), [ADR-0006](0006-coordinacion-transaccional-ventas-comerciales.md) y [ADR-0008](0008-documentos-artesanales-separados-y-nucleo-monetario.md).
 - [ADR-0007](0007-almacenamiento-privado-fotografias.md) sigue rigiendo fotografías; este ADR no lo sustituye.
 - [Operación del archivo fiscal](../tecnico/operacion-archivo-fiscal.md).
-- [Referencia terminológica](0010-modulo-fiscal-independiente-y-archivo-transaccional-glossary-reference.md).

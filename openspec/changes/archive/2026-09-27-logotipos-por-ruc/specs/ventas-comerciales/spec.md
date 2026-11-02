@@ -38,5 +38,3 @@ El sistema SHALL ofrecer lista y detalle autorizados con número, cliente, orige
 - **DADO** un Encargado del taller con acceso limitado a la venta vinculada de su orden
 - **CUANDO** abre su comprobante
 - **ENTONCES** SHALL ver el logotipo comercial en el encabezado sin obtener acceso adicional a datos comerciales o fiscales.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -70,5 +70,3 @@ Ninguna spec principal requiere sustituir sus reglas en esta propuesta. Las capa
 ### Aprobaciones y siguiente paso
 
 La propuesta y sus recomendaciones ya fueron aprobadas sobre el contenido registrado en `master`; esta actualización deja constancia de la aprobación recibida. Las specs se redactan en `develop` y requieren su propia aprobación y registro en `master` antes de crear diseño. La autorización para redactar no autoriza commits, ramas ni merges. La secuencia del repositorio sigue proposal → specs → design → tasks, aunque el esquema genérico habilite simultáneamente specs y design.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

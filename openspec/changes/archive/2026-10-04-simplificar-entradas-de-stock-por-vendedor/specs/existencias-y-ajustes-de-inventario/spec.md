@@ -50,5 +50,3 @@ Una entrada sin costo SHALL aumentar la existencia sin modificar el promedio: SH
 - **GIVEN** un producto valorado en 40.00 y otro sin costo registrado con 8 unidades
 - **WHEN** el Administrador consulta el valor del inventario
 - **THEN** SHALL mostrarse 40.00 e indicarse que un producto queda fuera por no tener costo registrado
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

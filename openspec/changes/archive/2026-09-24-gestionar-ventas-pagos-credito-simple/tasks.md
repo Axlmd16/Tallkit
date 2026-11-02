@@ -368,5 +368,3 @@ Toda evidencia debe ser un resultado real ejecutado, nunca una afirmación antic
 - [x] 30.5 Ejecutar `openspec validate --all --strict --no-interactive` y `git diff --check`, revisando además que no se versionan secretos, `.env`, datos, cargas, respaldos, cachés ni artefactos generados.
 - [x] 30.6 Ejecutar `reconcile_inventory` y `reconcile_sales` sobre el entorno de prueba y comprobar diferencia cero y código de salida cero antes de dar el cambio por aplicado.
 - [x] 30.7 Informar los comandos ejecutados y sus resultados reales, junto con el trabajo pendiente y las limitaciones, y solicitar autorización explícita antes de cualquier operación Git, despliegue o archivo del cambio.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

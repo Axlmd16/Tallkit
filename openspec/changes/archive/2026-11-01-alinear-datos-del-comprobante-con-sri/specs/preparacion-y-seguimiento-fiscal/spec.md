@@ -440,5 +440,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-CON-002; RF-FIS-001; `NO
 - **DADO** una preparación cancelada cuyo detalle se había ajustado
 - **CUANDO** se crea su reemplazo
 - **ENTONCES** el reemplazo SHALL precargar el detalle de la operación, y la preparación anterior SHALL conservar el suyo.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

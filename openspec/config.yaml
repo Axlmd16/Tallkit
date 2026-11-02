@@ -5,17 +5,13 @@ context: |
   Idioma de documentación y artefactos OpenSpec: español.
   Zona horaria del negocio: America/Guayaquil.
 
-  Lectura obligatoria antes de crear o modificar artefactos:
-  1. Leer completo docs/negocio/decisiones/decisiones-confirmadas.yaml.
-  2. Leer completo docs/arquitectura/modelo-dominio.md.
-  3. Leer la spec principal y los documentos de producto y requisitos relacionados con
-     la capacidad afectada:
-     - openspec/specs/
-     - docs/negocio/producto/
-     - docs/negocio/requisitos/
-  4. Cuando el cambio afecte diseño técnico, leer docs/tecnico/, docs/architecture/ y
-     los ADR aplicables de docs/adr/.
-  5. Si existe un cambio activo, leer todos sus artefactos anteriores antes de continuar.
+  Lectura según la fase; leer solo lo necesario y buscar con rg en documentos largos:
+  1. Proposal: leer completos docs/negocio/decisiones/decisiones-confirmadas.yaml y
+     docs/arquitectura/modelo-dominio.md, más la spec principal y los documentos de producto
+     y requisitos de la capacidad afectada.
+  2. Specs y tasks: leer los artefactos anteriores del cambio y solo las decisiones, reglas
+     y secciones que citan.
+  3. Design: lo anterior más docs/tecnico/, docs/architecture/ y los ADR aplicables.
 
   Precedencia:
   - Las decisiones confirmadas tienen máxima precedencia.
@@ -42,12 +38,9 @@ context: |
   - Monorepositorio con backend Django/DRF, frontend React/TypeScript/Vite y PostgreSQL.
   - Arquitectura objetivo: monolito modular, API /api/v1/, sesiones Django, CSRF y mismo origen.
   - El backend es la autoridad para permisos, invariantes, dinero, inventario y transiciones.
-  - La infraestructura inicial existe, pero el dominio funcional todavía debe implementarse
-    capacidad por capacidad mediante OpenSpec y TDD.
+  - Las pruebas se exigen según el riesgo definido en AGENTS.md.
   - El modelo de dominio es conceptual; no inferir automáticamente tablas, modelos Django
     ni un módulo por cada entidad.
-
-  Referencia terminológica: openspec/config-glossary-reference.md.
 
 rules:
   proposal:
@@ -64,6 +57,7 @@ rules:
     - Mantener los requisitos independientes de Django, React y del diseño de persistencia.
     - Trazar cada requisito hacia decisiones y documentación vigente.
     - Cubrir flujo principal, errores, permisos, estados y correcciones; para dinero, inventario y secuencias cubrir también atomicidad, idempotencia y concurrencia.
+    - Agrupar las variantes en un solo escenario; detallar cada caso solo en lo de riesgo alto.
     - Preservar la separación fiscal y no introducir decisiones pendientes silenciosamente.
     - Esperar aprobación explícita antes de crear design.
 
@@ -79,8 +73,10 @@ rules:
   tasks:
     - Crear tasks solo después de la aprobación explícita del design.
     - Dividir el trabajo en pasos pequeños, ordenados, verificables y con rutas reales.
-    - Aplicar TDD mediante una prueba que falla, implementación mínima y refactorización.
+    - Marcar el nivel de riesgo de cada grupo según AGENTS.md: TDD solo en dinero, impuestos, inventario, secuencias, permisos, concurrencia, facturación y reglas de dominio; prueba al final en lógica de pantallas y formularios; sin prueba nueva en textos, estilos y maquetación.
+    - Ejecutar las pruebas relacionadas al cerrar cada grupo; E2E solo en flujos críticos y al cerrar el cambio.
     - Separar tareas de backend, frontend, datos o migraciones, pruebas y documentación cuando existan.
-    - Incluir actualización de OpenAPI, trazabilidad, glosarios y ADR afectados.
+    - Incluir actualización de OpenAPI, trazabilidad y ADR afectados, y de los glosarios principales solo si hay términos nuevos.
+    - No crear archivos de glosario por artefacto; la cobertura lleva una fila por requisito.
     - Añadir para cada grupo la evidencia o comando de finalización correspondiente.
     - Esperar aprobación explícita antes de aplicar el cambio.

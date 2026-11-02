@@ -74,5 +74,3 @@ Trazabilidad: propuesta §5; CT-001; separación fiscal confirmada; RN-FIS-001�
 - **DADO** la entidad comercial con un logotipo de 2000 × 200 px
 - **CUANDO** el Administrador consulta su ficha
 - **ENTONCES** la vista previa SHALL mostrarse completa, sin deformarse ni desbordar la fila.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

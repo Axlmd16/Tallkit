@@ -576,8 +576,6 @@ Trazabilidad: propuesta §3; propuesta de simplificación B10, R3/R6; DP-003/013
 - **CUANDO** el Administrador intenta deshabilitar `01` sin designar otra
 - **ENTONCES** SHALL rechazarse indicando que primero debe designarse otra forma predeterminada habilitada.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Logotipo opcional por entidad fiscal
 
 Cada **entidad fiscal** SHALL admitir como máximo un **logotipo** vigente, opcional e independiente del de la otra entidad. Toda entidad SHALL comenzar sin logotipo, y la ausencia de logotipo SHALL NOT bloquear ninguna operación ni confirmación. El logotipo identifica visualmente al emisor en sus documentos internos. SHALL NOT confundirse con el logotipo de Tallkit, que identifica al sistema y no se configura en esta capacidad.
@@ -828,6 +826,3 @@ Cada ajuste SHALL declararse por entidad e independiente de la otra, con ayuda c
 - **DADO** una operación con una retención vigente registrada con la advertencia al 20 %
 - **CUANDO** el Administrador cambia la advertencia al 10 % o desactiva el registro
 - **ENTONCES** la retención SHALL conservarse sin cambios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-

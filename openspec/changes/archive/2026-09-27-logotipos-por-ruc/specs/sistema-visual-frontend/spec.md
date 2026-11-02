@@ -26,5 +26,3 @@ El logotipo de Tallkit identifica al sistema, no al emisor de los documentos int
 #### Scenario: Marca del sistema frente a la del emisor
 - **WHEN** las entidades fiscales tienen logotipo y un usuario recorre la navegación y un comprobante interno
 - **THEN** la navegación y el acceso SHALL seguir mostrando el logotipo de Tallkit, y el encabezado del comprobante SHALL mostrar el logotipo del emisor con «Generado con Tallkit» solo al pie
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

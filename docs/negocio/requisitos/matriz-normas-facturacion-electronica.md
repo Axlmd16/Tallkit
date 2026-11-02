@@ -85,5 +85,3 @@ Las validaciones también aplican a las filas Pendientes: al leerse su texto, la
 - Reglamento de Comprobantes de Venta, Retención y Documentos Complementarios (arts. 15 y 50 y la regla de consumidor final).
 - Resto de la ficha técnica 2.34, según lo requiera cada cambio.
 - Resolución `NAC-DGERCGC26-00000024`, que la ficha cita en otro anexo y aún no se ha leído.
-
-Referencia terminológica: [matriz-normas-facturacion-electronica-glossary-reference.md](matriz-normas-facturacion-electronica-glossary-reference.md).

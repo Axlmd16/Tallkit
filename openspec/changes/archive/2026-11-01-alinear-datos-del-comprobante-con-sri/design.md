@@ -248,5 +248,3 @@ No se requiere un ADR nuevo: ninguna decisión es transversal ni costosa de reve
 - **`V-6`:** si un crédito sin fecha acordada debe llevar plazo y qué número corresponde. Si la respuesta cambia la regla, se ajusta `term_required`.
 - **`NOR-020`:** si manda la ficha o el XSD. Bloquea activar un RUC en Negocio Popular, no este cambio.
 - **Representación de `plazo` en Factuplan:** se comprueba en el cambio 4, junto con el detalle por línea.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

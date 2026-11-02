@@ -241,5 +241,3 @@ Cada fallo listado como «previo» se reprodujo en un árbol limpio de `HEAD` (s
 - No hay existencias, reservas, costos ni Kardex; RF-CAT-005 y el filtro de disponibilidad de RF-CAT-004 quedan fuera de esta cobertura.
 - La revisión visual humana y la aceptación de fidelidad de otros cambios no se marcan aquí; la evidencia de capturas se guardó fuera del repositorio.
 - Las políticas de redondeo, tarifas reales y retención de recibos idempotentes siguen abiertas.
-
-[Referencia terminológica](cobertura-catalogos-glossary-reference.md).

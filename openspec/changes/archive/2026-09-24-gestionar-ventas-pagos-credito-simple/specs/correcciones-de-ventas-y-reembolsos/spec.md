@@ -236,5 +236,3 @@ Las correcciones SHALL conservar original, acción, motivo, responsable, fecha e
 - **DADO** una solicitud de corrección sin permiso o con cantidad excesiva
 - **CUANDO** se rechaza y el registro de auditoría está disponible
 - **ENTONCES** SHALL conservarse el resultado rechazado correlacionado con la acción, sin registrar un éxito ni datos sensibles innecesarios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

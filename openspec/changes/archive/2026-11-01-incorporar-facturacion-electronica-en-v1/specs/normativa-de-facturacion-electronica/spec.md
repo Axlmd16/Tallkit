@@ -100,5 +100,3 @@ Trazabilidad: propuesta, fuera de alcance; `DP-031`; alcance §7.
 - **DADO** una matriz con todas sus filas en estado Verificada
 - **CUANDO** se consulta
 - **ENTONCES** SHALL seguir indicando que no certifica cumplimiento y que la emisión depende de la **activación por RUC**.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

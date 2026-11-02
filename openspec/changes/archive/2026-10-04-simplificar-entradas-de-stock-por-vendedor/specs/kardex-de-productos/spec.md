@@ -52,5 +52,3 @@ Cada movimiento SHALL identificar una referencia interna trazable de su operaci�
 - **GIVEN** un movimiento corregido y su compensación
 - **WHEN** se consulta cualquiera de ellos
 - **THEN** SHALL identificarse el vínculo y sentido de la corrección sin ocultar la operación original
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -221,5 +221,3 @@ Las listas, fichas y formularios SHALL reutilizar navegación, tipografía, colo
 - **GIVEN** un formulario modificado
 - **WHEN** el usuario intenta abandonarlo
 - **THEN** SHALL advertir los cambios sin guardar y permitir permanecer sin perderlos
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

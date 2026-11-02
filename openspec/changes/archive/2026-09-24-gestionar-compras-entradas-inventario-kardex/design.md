@@ -269,5 +269,3 @@ Fuentes normativas consultadas en esta tarea: decisiones confirmadas y modelo de
 Fuentes técnicas: ADR-0001/0003/0004, arquitectura inicial, C4 de contenedores, README, Makefile, DESIGN.md; propuesta/diseño/tareas y contratos pertinentes del catálogo activo. Inspección de modelos de catálogo/proveedor/configuración, servicios de productos/proveedores, recibos, resolvedor/numeración/series/impuestos, autorización y errores uniformes; pruebas de frontera y concurrencia existentes; App, ProductDetailPage/ProductsPage, componentes/exportaciones, cliente HTTP, seguimiento de intenciones y scripts npm. Los nombres de archivos de implementación nuevos son propuestas, no archivos creados.
 
 Validación de este artefacto: OpenSpec, enlaces locales, estructura y revisión del diff. No se ejecutan ni se declaran aprobadas pruebas de software, migraciones o revisión visual por crear este diseño. El siguiente artefacto es tasks, únicamente después de aprobación explícita y registro de design en `master`.
-
-[Referencia terminológica](design-glossary-reference.md).

@@ -97,5 +97,3 @@ Base externa de la investigación del 24–25 de septiembre de 2026, a concretar
 - [SRI: conservación de comprobantes](https://www.sri.gob.ec/detalle-noticias?idnoticia=1021&marquesina=1) y [transmisión inmediata](https://www.sri.gob.ec/detalle-noticias?idnoticia=1240&marquesina=1).
 - [Resolución 25-14](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=137046a6-787c-47fb-a2d7-176595d292dc&nombre=NAC-DGERCGC25-00000014.pdf) y [reforma 25-17](https://www.sri.gob.ec/o/sri-portlet-biblioteca-alfresco-internet/descargar?id=e98fc8a6-299e-4ea9-8de7-2f6c70dbb4f5&nombre=NAC-DGERCGC25-00000017.pdf): correcciones y distinción entre solicitud y efecto oficial.
 - [SRI: regímenes RIMPE](https://www.sri.gob.ec/rimpe), [comunicado sobre registro de proveedores](https://www.sri.gob.ec/detalle-noticias?idnoticia=1318&marquesina=1) y [Reglamento de protección de datos](https://spdp.gob.ec/wp-content/uploads/2024/12/04.pdf.pdf): obligaciones condicionadas al perfil y futura integración.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

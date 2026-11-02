@@ -133,5 +133,3 @@ Trazabilidad: propuesta §A.5 y §D; DP-017/025; RN-FIS-010; RF-FIS-007.
 - **DADO** una entidad que prepara a IVA 0 % como Negocio Popular, con su tarifa interna y su correspondencia sucesoras de 15 % programadas
 - **CUANDO** llega la fecha del cambio y el Administrador declara el régimen *RIMPE Emprendedor*
 - **ENTONCES** las preparaciones nuevas SHALL usar IVA 15 %, código de tarifa `4` y la leyenda del régimen Emprendedor, y las anteriores SHALL conservar el régimen *RIMPE Negocio Popular* y el IVA 0 %.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

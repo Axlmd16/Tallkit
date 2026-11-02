@@ -44,5 +44,3 @@ Mientras la venta vinculada siga abierta y la orden esté `registrada`, un usuar
 - **DADO** un Vendedor que confirma la venta vinculada mientras un Encargado retira o cambia una de sus líneas
 - **CUANDO** ambas solicitudes se procesan
 - **ENTONCES** SHALL aplicarse una sola en un orden coherente: si la confirmación se aplica primero, el cambio SHALL rechazarse; si el cambio se aplica primero, la confirmación con la revisión anterior SHALL exigir una nueva revisión o informar que la venta ya no existe. En ningún caso SHALL confirmarse una cantidad distinta de la revisada ni una venta eliminada.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

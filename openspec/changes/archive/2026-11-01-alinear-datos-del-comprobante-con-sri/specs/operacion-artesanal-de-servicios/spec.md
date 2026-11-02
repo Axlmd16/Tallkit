@@ -37,5 +37,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-CON-002; RF-TAL-008; UI-
 - **DADO** una operación confirmada antes de existir el detalle de servicio
 - **CUANDO** se consulta
 - **ENTONCES** SHALL mostrarse sin detalle y sin cambios.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -139,5 +139,3 @@ Dependencias: grupos anteriores. No iniciar este grupo como sustituto de pruebas
 - [x] 11.7 Ejecutar `openspec validate establecer-modulo-fiscal-independiente --strict`, revisar diff y comunicar alcance, limitaciones y comandos reales; entregar para verificación. No archivar ni integrar implementación sin el flujo/autorización correspondientes.
 
 Evidencia de cierre: checks estáticos aplicables, build, cobertura focalizada, matriz y validación OpenSpec. Una indisponibilidad de infraestructura se registra como bloqueo real, no como prueba aprobada. Las pruebas completas solo se reconsideran ante una necesidad concreta explicada al usuario.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

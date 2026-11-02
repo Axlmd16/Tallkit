@@ -224,5 +224,3 @@ La verificación contra las specs encontró tres puntos, corregidos antes de arc
 - las subsecciones anidadas de la navegación medían 40 px; ahora miden 44 px en dispositivos táctiles (`pointer-coarse:min-h-11`);
 - el escenario «Altura estable de la hoja» fallaba cuando el contenido superaba la ventana: la hoja pasó a una altura fija desde `md`, con el contenido y la navegación desplazándose dentro de ella, y la spec se ajustó en ese sentido. La nueva prueba E2E lo cubre;
 - el escenario «Formulario abierto al cambiar de entidad» no tenía una prueba explícita; se añadió en `FiscalConfigurationSection.test.tsx`.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

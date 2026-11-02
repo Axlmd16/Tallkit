@@ -138,5 +138,3 @@ Ninguna.
 **Fuente oficial:** ficha técnica 2.34 del SRI, descargada el 2026-11-01 (apartado 4.7, tablas de factura 2.1.0, Anexos 21, 22, 24, 25 y 26) y `factura-2.1.0.xsd` del repositorio.
 
 **Código, solo como estado actual:** módulos `fiscal`, `workshop_configuration` y `workshop`. `docs/negocio/historico/` no se consultó.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

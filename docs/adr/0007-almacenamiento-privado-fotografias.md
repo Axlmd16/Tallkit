@@ -32,5 +32,3 @@ Se incorpora `pillow` para validar el contenido real, las dimensiones y la anima
   - se sirven como imagen regenerada sin metadatos;
   - los obtiene cualquier usuario autenticado, porque los tres roles imprimen comprobantes, con `Cache-Control: private, max-age=31536000, immutable` y una URL que cambia con cada revisión. Nunca se usan cachés compartidas.
 - Las fotografías (`workshop.application.photo_storage`) y los logotipos (`workshop_configuration.application.logo_storage`) duplican la inspección de imágenes. Consolidarla en `shared/` queda como mejora futura, fuera de ese cambio.
-
-Referencia terminológica: [0007-almacenamiento-privado-fotografias-glossary-reference.md](0007-almacenamiento-privado-fotografias-glossary-reference.md).

@@ -144,5 +144,3 @@ La acción de cobro de servicios SHALL rotularse como cobro del RUC artesanal y 
 - **DADO** una orden con saldos en repuestos y servicios
 - **CUANDO** el Encargado del taller abre «Cobrar servicios»
 - **ENTONCES** el diálogo SHALL identificar el RUC artesanal y la operación, mostrar solo su saldo y no ofrecer aplicar el importe a la venta comercial.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

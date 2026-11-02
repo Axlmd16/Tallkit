@@ -22,5 +22,3 @@ Trazabilidad: propuesta P1/P2 y Modified Capabilities; propuesta de simplificaci
 - **DADO** un Vendedor sin rol de taller que conoce el cliente de la orden
 - **CUANDO** intenta consultar el expediente artesanal
 - **ENTONCES** SHALL denegarse sin revelar el XML ni sus datos fiscales.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

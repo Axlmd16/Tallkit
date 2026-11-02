@@ -168,5 +168,3 @@ El detalle SHALL organizar la información en secciones: datos generales, diagn�
 **Reason**: Requisito transitorio de la séptima entrega, que no tenía repuestos, ventas vinculadas ni operación artesanal. Esta entrega incorpora esos efectos mediante acciones explícitas separadas: reservas y ventas vinculadas en `repuestos-del-mantenimiento`, y documentos y cobros en `operacion-artesanal-de-servicios` y `pagos-artesanales-y-credito-simple`.
 
 **Migration**: La garantía se conserva con otra forma. Crear, editar, finalizar o reabrir una orden, y gestionar sus datos o fotografías, siguen sin crear ni modificar ventas, reservas, existencias, Kardex, pagos, deudas ni secuencias; así lo exigen los requisitos modificados de finalización y reapertura. Los efectos económicos ocurren únicamente con las acciones explícitas de repuestos, confirmación de venta, documentación de servicios y cobro. No se migran ni se generan datos para las órdenes existentes.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

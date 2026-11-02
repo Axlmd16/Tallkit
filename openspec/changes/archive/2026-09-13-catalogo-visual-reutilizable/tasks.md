@@ -300,5 +300,3 @@ Dependencia:todas. CVR-01–11.
   Evidencia: implementación declarada completa tras aceptación explícita del usuario. No se ejecutó ningún commit, merge ni archive. El siguiente paso autorizado es integrar la rama del cambio en `master` y ejecutar el flujo `verify → archive` desde `master` cuando el usuario lo indique.
 
 Las dependencias permiten lotes independientes, pero no se delega ni se crea otra tarea durante esta sesión. La fase9 cierra la variante móvil que fase7 deja identificada, sin aceptar una navegación incompleta.
-
-[Referencia terminológica](tasks-glossary-reference.md).

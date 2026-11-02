@@ -57,5 +57,3 @@ Ninguna. `sistema-visual-frontend` y `experiencia-adaptable-frontend` siguen vig
 - Figma: los 22 frames solicitados, mediante `get_design_context`; nodos auxiliares de navegación, calendario anual y formularios de acceso para respuestas demasiado grandes. El diseño contiene el registro preciso, valores y matriz por componente.
 
 Las menciones antiguas de bootstrap sin dominio implementado en documentos generales no describen el checkout actual: existen identidad y código de clientes/vehículos. Se registra la desactualización sin reescribir documentación de otros cambios.
-
-[Referencia terminológica](proposal-glossary-reference.md).

@@ -123,5 +123,3 @@ Criterio de grupo: comandos ejecutados y resultados registrados. Formato, lint, 
 **Hallazgo que requiere decisión del titular**
 
 - `NOR-008`: el art. 7 de la `NAC-DGERCGC18-00000233` exige transmitir el comprobante «en el momento mismo de realizarse la transacción» y solo prevé otras formas de emisión por fuerza mayor. La regla 6 de `DP-034` («el comprobante espera en Tallkit») podría no ser admisible. Queda registrado como validación V-1 y como dependencia del cambio 3; no se modificó `DP-034`.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

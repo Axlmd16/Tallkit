@@ -165,5 +165,4 @@ periodicidad:
 - [OpenSpec](openspec/config.yaml)
 
 Consulte [AGENTS.md](AGENTS.md) antes de realizar cambios. Los cambios funcionales o arquitectónicos
-no triviales deben comenzar en OpenSpec. Consulte también la
-[referencia terminológica](README-glossary-reference.md).
+no triviales deben comenzar en OpenSpec.

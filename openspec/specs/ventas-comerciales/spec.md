@@ -251,8 +251,6 @@ Trazabilidad adicional: proposal D6; RF-VEN-002; RF-PRO-007/008/009; CU-011.
 - **CUANDO** un Vendedor filtra por origen proforma
 - **ENTONCES** SHALL recibir solo esas ventas, con el número de oferta y navegación autorizada al documento original.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Venta vinculada protegida frente a acciones ordinarias
 
 Una venta vinculada a un mantenimiento SHALL conservar de forma inmutable su orden de origen, el RUC comercial y el cliente de la orden. Mientras esté en borrador, sus líneas SHALL modificarse únicamente mediante las acciones de repuestos de la orden. Las acciones ordinarias de edición de ventas SHALL rechazar cambios de cliente, entidad, origen o líneas, y la eliminación o el descarte del borrador. El borrador vinculado SHALL eliminarse únicamente cuando se retira su última línea desde la orden, conforme a `repuestos-del-mantenimiento`, o mediante la limpieza explícita de borradores vacíos. La condición contado o crédito SHALL elegirse en la confirmación por un usuario con `ventas.confirmar`. Después de confirmarse, la venta vinculada SHALL seguir las reglas de historia inmutable, cobro y consulta de cualquier venta, y SHALL NOT eliminarse. Las ventas directas SHALL conservar su comportamiento sin cambios. Trazabilidad: RN-TAL-012; RN-VEN-006; RF-TAL-011; RF-VEN-002; propuesta de integración P5/P7; propuesta A1.
@@ -352,8 +350,6 @@ La ausencia de costo SHALL NOT impedir vender. Confirmar una venta con un produc
 - **CUANDO** confirma o consulta una venta con un producto sin costo registrado
 - **ENTONCES** SHALL operar y ver la venta igual que cualquier otra, sin avisos ni campos sobre costos.
 
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).
-
 ### Requirement: Origen proforma conservado y venta editable
 
 La **venta de repuestos** creada por conversión SHALL identificar como origen la **proforma** y conservar su vínculo único durante toda su vida. SHALL copiar inicialmente cliente y líneas, y permitir ajustar productos y cantidades en borrador con las reglas ordinarias de ventas, sin alterar la oferta ni habilitar otra conversión. El origen SHALL NOT cambiarse mediante edición genérica ni asociarse simultáneamente a mantenimiento. Una venta vaciada SHALL conservar su vínculo y SHALL NOT confirmarse sin líneas ni eliminarse para liberar la conversión. Corregir o anular posteriormente la venta SHALL NOT reactivar la oferta. Trazabilidad: proposal D6 y alcance aprobado; RN-PRO-005/006/008; RF-PRO-007/009; RF-VEN-002; CU-011.
@@ -411,4 +407,3 @@ La conversión SHALL recalcular precios, impuestos y disponibilidad con valores 
 - **DADO** una venta de origen proforma revisada, con condición contado y disponibilidad suficiente
 - **CUANDO** se confirma
 - **ENTONCES** SHALL asignarse número COM-VEN, conservarse valores históricos, generarse salida e importe exigible atómicamente sin crear un pago ni autorización fiscal, y ofrecerse después el cobro habitual.
-

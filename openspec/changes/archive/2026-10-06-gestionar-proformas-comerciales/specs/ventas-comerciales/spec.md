@@ -184,5 +184,3 @@ Trazabilidad adicional: proposal D6; RF-VEN-002; RF-PRO-007/008/009; CU-011.
 - **DADO** ventas directas, de mantenimiento y de proformas
 - **CUANDO** un Vendedor filtra por origen proforma
 - **ENTONCES** SHALL recibir solo esas ventas, con el número de oferta y navegación autorizada al documento original.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

@@ -220,5 +220,3 @@ No se crea ni modifica un ADR. El endpoint es una proyección local y reversible
 ## Open Questions
 
 Ninguna que bloquee la aplicación. El cliente pidió un único tamaño fijo y descartó las imágenes de producto; el usuario delegó la medida, que se fijó en 100 × 55 mm; también confirmó la etiqueta de referencia, la paleta, el asset fijo de camión, el logotipo sin nombre duplicado, la descripción secundaria, y la presentación. La tolerancia de corte y el área imprimible exactas se validarán con el equipo disponible.
-
-Referencia terminológica: [design-glossary-reference.md](design-glossary-reference.md).

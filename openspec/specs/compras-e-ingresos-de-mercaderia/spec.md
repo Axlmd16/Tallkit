@@ -335,5 +335,3 @@ Las compras registradas con el flujo anterior SHALL conservarse íntegras como h
 - **GIVEN** un Vendedor sin Administrador
 - **WHEN** consulta una compra anterior
 - **THEN** SHALL recibir productos, cantidades, estado y número, sin costos, impuestos, totales ni datos privados del proveedor
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

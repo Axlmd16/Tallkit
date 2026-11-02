@@ -40,5 +40,3 @@ El sistema SHALL ofrecer una acción operativa explícita para eliminar los borr
 - **DADO** el mismo estado
 - **CUANDO** se ejecuta la limpieza con confirmación expresa
 - **ENTONCES** SHALL eliminarse solo el borrador vinculado vacío, con su evento de auditoría, y una segunda ejecución SHALL informar que no hay nada por limpiar.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

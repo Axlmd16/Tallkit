@@ -59,5 +59,3 @@ Trazabilidad: propuesta §A.3 y §C; DP-035 regla 3; RN-TAL-003/018; RF-TAL-005;
 - **DADO** un usuario con solo el rol Vendedor
 - **CUANDO** envía directamente un detalle para una línea
 - **ENTONCES** el sistema SHALL denegarlo sin cambiar la línea.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

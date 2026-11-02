@@ -156,5 +156,3 @@ El Kardex SHALL ofrecer navegación accesible, contexto de producto, filtros con
 - **GIVEN** un usuario que navega por teclado y una consulta fallida
 - **WHEN** se presenta el estado
 - **THEN** SHALL comunicarse el error y ofrecer reintento sin presentar historial vacío o saldo cero como información confirmada
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

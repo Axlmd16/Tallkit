@@ -119,5 +119,3 @@ Notas de cierre (2026-10-06):
 - 10.5: conforme a la preferencia del usuario se ejecutaron las pruebas focalizadas de este cambio y no la suite completa de `make check`. `make audit` termina con error por avisos anteriores a este cambio en `urllib3`, `virtualenv` y dos dependencias de npm; los lockfiles no se modificaron. El detalle está en `docs/negocio/requisitos/cobertura-pagina-de-inicio.md` §3.
 
 Dependencias: grupos 2 a 9. Criterio de grupo: documentación sincronizada, cobertura completa y verificación registrada. Estas tareas no autorizan commits, ramas, merges ni el archivado del cambio fuera de los que el usuario solicite.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).

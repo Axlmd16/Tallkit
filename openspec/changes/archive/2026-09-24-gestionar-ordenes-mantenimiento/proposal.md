@@ -115,5 +115,3 @@ La documentación de reglas, requisitos, matriz de permisos, trazabilidad, inter
 - `openspec status --change gestionar-ordenes-mantenimiento --json`: salida 0; proposal presente, specs/design ausentes y tasks bloqueadas. `done` describe existencia del artefacto, no aprobación del usuario.
 - `openspec validate gestionar-ordenes-mantenimiento --strict --json`: salida 1, único error «Change must have at least one delta». La validación completa queda pendiente de crear las specs tras aprobación; no se añadieron deltas ficticios para evitar el error.
 - `git status --short`: únicamente el directorio nuevo de este cambio sin seguimiento. No hay modificación de código ni migración que ejecutar en esta fase.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

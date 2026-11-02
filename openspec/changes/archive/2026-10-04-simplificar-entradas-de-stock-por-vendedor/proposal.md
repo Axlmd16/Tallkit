@@ -88,5 +88,3 @@ Ninguna.
 **Contradicciones:** este cambio contradice deliberadamente DP-011, DP-022, DP-023 (compras) y DP-024, y la asignación de ingresos al Administrador. Por precedencia, esas decisiones deben sustituirse de forma expresa antes de que las specs dependan de ellas; la aprobación de esta propuesta constituye esa sustitución.
 
 **Información insuficiente:** no se ha validado con un contador el efecto de dejar de registrar el IVA de compras ni de mantener inventario sin valoración. No bloquea las specs, pero el cliente debe confirmarlo antes de operar con datos reales.
-
-Referencia terminológica: [proposal-glossary-reference.md](proposal-glossary-reference.md).

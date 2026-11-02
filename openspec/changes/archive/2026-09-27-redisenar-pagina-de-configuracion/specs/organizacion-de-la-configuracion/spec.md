@@ -314,5 +314,3 @@ Trazabilidad: propuesta §9 y R2; propuesta B7–B12 y C13 del cambio `simplific
 ### Requirement: Accesibilidad y navegación directa de las pestañas
 **Reason**: Las pestañas ARIA no admiten elementos anidados. La navegación pasa a ser de enlaces que marcan la posición actual y se recorren con Tab.
 **Migration**: La requirement «Accesibilidad y navegación directa de las secciones» conserva los parámetros `tab` y `seccion`, la restauración al recargar, el tratamiento de indicaciones desconocidas y la barra desplazable en pantallas estrechas.
-
-Referencia terminológica: [spec-glossary-reference.md](spec-glossary-reference.md).

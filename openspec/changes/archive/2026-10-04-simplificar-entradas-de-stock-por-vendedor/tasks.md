@@ -151,5 +151,3 @@ Dependencias: grupos 1 a 11.
 - [x] 12.4 Ejecutar `openspec validate simplificar-entradas-de-stock-por-vendedor --strict` y registrar en el resumen los comandos ejecutados, sus resultados y las suites completas no ejecutadas, para que el usuario decida si quiere la verificación completa antes de integrar.
 
 Evidencia del grupo: resultados y comandos en `docs/negocio/requisitos/cobertura-compras-inventario.md` §5. 12.2 se cumplió: Vitest (664), `tsc -b`, ESLint, Prettier y el E2E del cambio (9 de 9 con Chrome); `make check`, `make test` y el E2E completo no se ejecutaron por indicación del usuario.
-
-Referencia terminológica: [tasks-glossary-reference.md](tasks-glossary-reference.md).
