@@ -73,7 +73,7 @@ rules:
   tasks:
     - Crear tasks solo después de la aprobación explícita del design.
     - Dividir el trabajo en pasos pequeños, ordenados, verificables y con rutas reales.
-    - Marcar el nivel de riesgo de cada grupo según AGENTS.md: TDD solo en dinero, impuestos, inventario, secuencias, permisos, concurrencia, facturación y reglas de dominio; prueba al final en lógica de pantallas y formularios; sin prueba nueva en textos, estilos y maquetación.
+    - "Marcar el nivel de riesgo de cada grupo según AGENTS.md: TDD solo en dinero, impuestos, inventario, secuencias, permisos, concurrencia, facturación y reglas de dominio; prueba al final en lógica de pantallas y formularios; sin prueba nueva en textos, estilos y maquetación."
     - Ejecutar las pruebas relacionadas al cerrar cada grupo; E2E solo en flujos críticos y al cerrar el cambio.
     - Separar tareas de backend, frontend, datos o migraciones, pruebas y documentación cuando existan.
     - Incluir actualización de OpenAPI, trazabilidad y ADR afectados, y de los glosarios principales solo si hay términos nuevos.
