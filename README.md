@@ -6,9 +6,11 @@ PostgreSQL como única base de datos relacional.
 
 El repositorio incluye identidad (autenticación por sesión, roles fijos, autorización y auditoría
 administrativa), configuración, catálogos de productos, servicios y proveedores, el registro de
-clientes, vehículos y marcas de vehículo, y los ingresos de mercadería con existencias, ajustes,
-carga inicial y Kardex (módulos `purchasing` e `inventory`). Ventas, pagos, mantenimientos, alertas
-de stock mínimo y adjuntos de ingresos todavía no están implementados.
+clientes, vehículos y marcas de vehículo, los ingresos de mercadería con existencias, ajustes,
+carga inicial y Kardex (módulos `purchasing` e `inventory`), las ventas, proformas, mantenimientos
+y pagos con crédito simple, la página de inicio y la preparación y el seguimiento fiscal. La
+facturación electrónica opera solo en pruebas: la emisión real no está habilitada. Las alertas de
+stock mínimo y los adjuntos de ingresos todavía no están implementados.
 
 ## Inicio rápido con Docker
 

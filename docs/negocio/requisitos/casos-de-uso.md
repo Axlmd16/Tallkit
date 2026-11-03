@@ -334,6 +334,8 @@
 **Garantía de éxito:** venta, secuencial, cuenta por cobrar y Kardex son coherentes.  
 **Garantía mínima:** ningún efecto parcial permanece.
 
+**Nota (`DP-036`, reglas 2 y 8):** este caso también se alcanza desde la pantalla «Cobrar y facturar», que encadena la confirmación y el cobro como hechos separados (`DP-027`). El caso no cambia: sus pasos, permisos y efectos son los mismos. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`.
+
 ## 15. CU-013 — Registrar pago o abono
 
 **Actor principal:** Administrador en ambas entidades; Vendedor para repuestos; Encargado del taller para servicios.  
@@ -363,6 +365,8 @@
 - 6b. La retención se registró por error: el Administrador la anula con motivo y el importe vuelve al saldo.
 
 **Garantía de éxito:** pago, retención, saldo y estado son reproducibles y pertenecen a una sola entidad fiscal; lo retenido nunca figura como dinero cobrado.
+
+**Nota (`DP-036`, reglas 2 y 8):** este caso también se alcanza desde la pantalla «Cobrar y facturar», con un pago independiente para cada operación (`DP-013`). El caso no cambia: sus pasos, permisos y efectos son los mismos. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`.
 
 ## 16. CU-014 — Registrar devolución o reembolso
 
@@ -501,6 +505,8 @@
 3. Los servicios correctivos se registran sin cargo al cliente.
 4. Si una instalación incorrecta exige un repuesto del inventario, el Encargado lo solicita y el Administrador registra la reposición mediante `CU-024`.
 5. Tras la corrección, el actor vuelve a finalizar el mantenimiento.
+
+**Nota (`DP-036`, reglas 2 y 8):** este caso también se alcanza desde la pantalla «Cobrar y facturar»; si esa pantalla finaliza la orden lo decide U6. El caso no cambia: sus pasos, permisos y efectos son los mismos. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`.
 
 **Excepciones**
 

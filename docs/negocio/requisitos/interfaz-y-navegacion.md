@@ -4,11 +4,11 @@
 |---|---|
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
-| Versión del documento | 0.5 |
-| Estado | Modelo de dominio aprobado; sistema visual Tallkit aplicado, pendiente de aceptación visual final |
-| Fecha | 2026-09-23 |
+| Versión del documento | 0.6 |
+| Estado | Modelo de dominio aprobado; sistema visual Tallkit aplicado (cambio archivado `2026-09-23-redisenar-sistema-visual-tallkit`) y en reemplazo por `DP-036` (regla 6), vigente hasta U3 |
+| Fecha | 2026-11-03 |
 
-> Este documento define estructura, pantallas y comportamiento esperado. El sistema visual propio **Tallkit · Banco de trabajo**, sus tokens y componentes se documentan en [`../../../DESIGN.md`](../../../DESIGN.md); los patrones de pantalla PPF-01…PPF-08 están en la capacidad `patrones-de-pantalla-frontend` (hoy en `openspec/changes/redisenar-sistema-visual-tallkit/specs/`, y en `openspec/specs/` al archivar el cambio).
+> Este documento define estructura, pantallas y comportamiento esperado. El sistema visual propio **Tallkit · Banco de trabajo**, sus tokens y componentes se documentan en [`../../../DESIGN.md`](../../../DESIGN.md); los patrones de pantalla PPF-01…PPF-08 están en la capacidad `patrones-de-pantalla-frontend` (en [`openspec/specs/patrones-de-pantalla-frontend/`](../../../openspec/specs/patrones-de-pantalla-frontend/spec.md), incorporada al archivar el cambio `2026-09-23-redisenar-sistema-visual-tallkit`). `DP-036` reemplaza la dirección visual: la nueva se escribe al aprobar el prototipo (U2) y la actual sigue vigente hasta U3. Cada ajuste de este documento indica el cambio de `docs/cambios-pendientes.md` desde el cual rige; hasta entonces siguen las pantallas descritas.
 
 ## 1. Principios de interfaz
 
@@ -34,7 +34,7 @@ La aplicación autenticada tendrá:
   - desde 1280 px, barra lateral desplegada de 240 px con iconos y etiquetas;
   - de 768 a 1279 px, barra compacta de iconos de 72 px con nombre accesible y ayuda emergente;
   - por debajo de 768 px, barra superior con menú y un panel temporal de navegación que se cierra al elegir.
-- Barra superior de escritorio con la ruta de migas; no incluye búsqueda global.
+- Barra superior de escritorio con la ruta de migas, sin búsqueda global hasta U5. `DP-036` (regla 5) la incorpora: se buscará por placa, cliente, producto o factura desde cualquier pantalla, y el servidor decidirá qué resultados puede ver cada rol. Aprobado y todavía no implementado: U5 de `docs/cambios-pendientes.md`.
 - Título de página y contexto breve cuando resulte útil.
 - Área principal de contenido, a todo el ancho disponible.
 - Indicador visible de entidad fiscal (nombre, icono y tono propios de cada RUC) en la barra superior cuando la pantalla tenga ámbito económico.
@@ -43,6 +43,8 @@ La aplicación autenticada tendrá:
 Los recursos tipográficos e iconográficos esenciales se sirven desde el paquete local. Los controles táctiles esenciales tienen al menos 44 px; el foco es visible y el movimiento respeta `prefers-reduced-motion`. Las tablas comparables se mantienen en computadora y tableta, mientras el teléfono prioriza identificación, estado y acciones sin provocar desplazamiento horizontal de la página.
 
 ### 2.2 Navegación principal propuesta
+
+> **En reemplazo (`DP-036`, regla 1):** este diagrama por áreas sigue vigente hasta U4 de `docs/cambios-pendientes.md`, que reorganiza el menú para la usuaria diaria y agrupa lo poco frecuente en «Ajustes». No se dibuja aquí el menú nuevo: lo decide U4.
 
 ```mermaid
 flowchart TD
@@ -209,6 +211,8 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 
 Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dinero entre los dos RUC. Si un mantenimiento tiene servicios y repuestos pendientes, se mostrarán dos operaciones claramente separadas.
 
+**Ajuste (`DP-036`, reglas 2 y 8).** Un botón único de cobro es válido si muestra los dos importes, uno por operación, y registra un pago independiente para cada una (`DP-013`); lo que sigue prohibido es repartir en silencio, o escribir un solo importe para que el sistema lo divida. Un pago parcial se indica por negocio. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`; hasta entonces rige el texto anterior.
+
 ### 6.7 Mantenimientos
 
 **Estado de implementación de UI-070…073, UI-075, UI-076 y UI-078 (cambio `openspec/changes/archive/2026-09-24-gestionar-ordenes-mantenimiento` (specs principales en `openspec/specs/`)).** Se entregan lista con búsqueda por número, cliente o placa y filtros de estado y fechas, editor de página completa, detalle por secciones, servicios con precio aplicado en modal, fotografías privadas, finalización con resumen y requisitos pendientes, reapertura con causa e historial en las fichas de cliente y vehículo. La lista muestra el total de servicios de la orden en lugar de saldos artesanales; no hay repuestos (UI-074), comprobante artesanal (UI-077) ni cancelación. Evidencia: [cobertura-mantenimientos.md](cobertura-mantenimientos.md).
@@ -264,9 +268,11 @@ flowchart TD
 
 `Proformas → Nueva/Editar → Emitir → Convertir → Revisar cambios → Venta en borrador → Confirmar`
 
-### 7.3 Ingreso de mercadería
+### 7.3 Entrada de stock
 
-`Ingresos → Nuevo → Proveedor y líneas → Guardar borrador → Confirmar → Detalle → Ver movimientos de Kardex`
+`Entradas → Registrar entrada → Productos y cantidades (proveedor, referencia, observación y costo opcionales) → Revisar y confirmar → Aviso con el número y formulario listo para otra entrada → Ver → Detalle → Movimientos de Kardex`
+
+La entrada se registra y se confirma en una sola acción, sin borrador persistente (`DP-030`).
 
 ### 7.4 Mantenimiento con repuestos
 
@@ -294,6 +300,8 @@ flowchart TD
 - Desactivar usuarios.
 - Restaurar un respaldo.
 
+**Ajuste (`DP-036`, regla 2).** En «Cobrar y facturar» la propia pantalla hace de confirmación de lo que contiene: muestra la entidad fiscal, el efecto y los valores revisados por el servidor de cada operación, y no se pide un diálogo adicional por acción. Pedirlo impediría los objetivos `RNF-USA-013…015`. Quien pulsa cobrar confirma expresamente (`DP-021`) y finalizar no confirma nada. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`; hasta entonces rige la lista anterior.
+
 La confirmación debe indicar el objeto y su número interno, la entidad fiscal, el efecto principal y el motivo obligatorio cuando aplique, y mostrar los valores revisados por el servidor antes de habilitar la acción. El efecto se explica en el cuerpo del diálogo; el botón usa un texto breve que nombra la acción, por ejemplo `Confirmar venta`, `Registrar cobro` o `Anular venta`, nunca `Aceptar`. Las acciones destructivas usan el tratamiento de peligro y su salida segura nombra lo que se conserva, por ejemplo `Conservar venta`.
 
 ### 8.2 Tipos de mensaje
@@ -313,8 +321,7 @@ Información, advertencias y errores nunca se comunican solo con una notificaci�
 
 | Objeto | Estado | Acciones habituales |
 |---|---|---|
-| Ingreso | Borrador | Editar, confirmar, descartar si no tiene efectos. |
-| Ingreso | Confirmado | Consultar, imprimir, anular con permiso. |
+| Entrada de stock | Confirmada | Consultar, ver sus movimientos de Kardex y, solo el Administrador, anular (`DP-030`). No existe el estado «Borrador»: la entrada se registra y se confirma en una sola acción. |
 | Proforma | Borrador | Editar, revisar y emitir, anular. |
 | Proforma | Vigente | Imprimir, convertir, anular o crear nueva proforma vinculada; su contenido no se edita. |
 | Proforma | Vencida | Consultar, crear nueva proforma vinculada o anular. |

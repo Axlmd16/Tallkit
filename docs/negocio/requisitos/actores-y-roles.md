@@ -35,6 +35,8 @@ Responsable del proceso comercial del RUC comercial. Gestiona clientes, consulta
 
 Responsable de la operación del RUC artesanal. Gestiona clientes, vehículos, catálogo de servicios, mantenimientos, intervenciones, fotografías, servicios realizados y pagos artesanales. Selecciona y reserva los repuestos utilizados, solicita consumos internos y puede reabrir mantenimientos; la confirmación y el cobro de la venta comercial corresponden al Vendedor o al Administrador.
 
+**Usuaria diaria.** La persona que atiende cada día en el taller reúne los tres roles (`CT-001`; principio 2 de §1) y es la referencia de diseño de las pantallas de uso diario (`DP-036`, regla 1). No es un actor nuevo ni un rol nuevo: sus permisos son la unión de los tres roles fijos y el servidor los sigue decidiendo. Quien tenga un solo rol conserva solo los permisos de ese rol. Asignarle los tres roles es un acto de operación del Administrador. La tabla de §4 y la separación de funciones críticas de §5 no cambian: continúan en los permisos y la auditoría, aunque una misma persona acumule los roles. El riesgo de que nadie más revise lo que esa persona anula o ajusta, y de que vea costos, lo aceptó el titular por tratarse de una persona de confianza (`DP-036`).
+
 El cliente es una parte interesada y un dato del negocio, pero no es un usuario ni un actor autenticado en V1. Las tareas técnicas de soporte son responsabilidad operativa del Administrador y no constituyen un rol adicional del sistema.
 
 ## 3. Catálogo de permisos

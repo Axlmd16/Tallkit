@@ -292,7 +292,7 @@ context: |
     se aplazan la convivencia del comprobante interno con el RIDE y los permisos de emisión.
     No certifica el cumplimiento tributario ni verifica ninguna norma: eso corresponde a la
     matriz de normas.
-  - DP-035 (datos del comprobante, aprobada 2026-11-01 en la propuesta de
+  - DP-035 (datos del comprobante, ajustada en su regla 1 por DP-036, regla 4, desde U6; aprobada 2026-11-01 en la propuesta de
     alinear-datos-del-comprobante-con-sri, reglas 1…5): no sustituye a ninguna decisión; ajusta
     DP-003, DP-027 y DP-031 con excepciones escritas y aplica lo que DP-008 ya preveía. Regla 1:
     el correo del comprador es obligatorio al preparar la factura de un comprador identificado
@@ -323,6 +323,39 @@ context: |
     Una factura a un cliente sin correo no puede prepararse con sus datos hasta que se lo
     completa; el cambio 5 revisa la entrega impresa. No certifica el cumplimiento tributario ni
     verifica ninguna norma: eso corresponde a la matriz de normas.
+  - DP-036 (uso diario, aprobada 2026-11-03 en la propuesta de
+    reenfocar-tallkit-en-el-uso-diario, reglas 1…8; decidida por el titular el 2026-11-01): no
+    sustituye a ninguna decisión; ajusta DP-035 y reemplaza reglas de interfaz con excepciones
+    escritas. Regla 1: Tallkit se diseña para la usuaria diaria, la persona que atiende cada día,
+    sin conocimientos contables y con los roles Administrador, Vendedor y Encargado del taller
+    acumulados (CT-001); la tabla de permisos no cambia y lo poco frecuente se agrupa en
+    «Ajustes». Regla 2: una sola pantalla, «Cobrar y facturar», abierta desde el mantenimiento o
+    la venta, resuelve repuestos y servicios con los dos importes, dos cobros y dos facturas a la
+    vista; por dentro siguen siendo operaciones separadas, cada una con su entidad fiscal, número,
+    pagos y factura; quien no tiene permiso sobre una parte solo ve la suya, y esa pantalla es la
+    única revisión. Regla 3: las pantallas identifican cada negocio por su nombre comercial o, si
+    no lo tiene, por su razón social, en lugar de «RUC comercial» y «RUC artesanal»; el RUC sigue
+    visible en facturas, comprobantes y «Ajustes»; los conceptos internos siguen existiendo, pero
+    no se muestran si no ayudan a la tarea. Regla 4: al facturar, una casilla activada por omisión
+    guarda el correo del comprador en la ficha del cliente; desactivada, el correo queda solo en
+    esa factura; registrar un cliente sigue sin exigirlo. Regla 5: la búsqueda global localiza por
+    placa, cliente, producto o factura desde cualquier pantalla y el servidor decide qué resultados
+    puede ver cada rol. Regla 6: se reemplaza la dirección visual de septiembre; la nueva se
+    escribe al aprobar el prototipo (U2) y la anterior sigue vigente hasta U3. Regla 7: los
+    objetivos de rapidez pasan a ser requisitos (RNF-USA-013…016), provisionales y medidos con el
+    método de la línea base; ninguno se alcanza omitiendo una regla vigente. Regla 8: registrar
+    esta decisión no cambia ninguna pantalla; cada regla rige al archivar el cambio que la
+    implementa (U3 a U6 de docs/cambios-pendientes.md) y hasta entonces siguen las specs
+    vigentes; tampoco habilita la emisión real (DP-034, regla 8). Choques resueltos: se ajustan
+    DP-035 (regla 1, desde U6), RN-CLI-003, el modelo de dominio §11.6, RNF-USA-009 y RNF-USA-010
+    (desde U4), interfaz-y-navegacion §2.1 (U5), §6.6 y §8.1, RNF-USA-003 y PPF-06 (U6); se
+    reemplazan en U3 la dirección visual de DESIGN.md y de las specs visuales, y en U4 la
+    navegación por áreas de §2.2; se mantienen DP-006, DP-008, DP-013, DP-021, DP-027, RN-FIS-009,
+    la tabla de permisos, la separación de funciones críticas de actores-y-roles §5 y el rechazo
+    de un pago repartido sin importes por negocio; se aplazan DP-029 y el permiso del Encargado
+    sobre repuestos (U6), qué muestra «Facturas» antes del cambio 3 (U4 y U5), si «Cobrar y
+    facturar» también finaliza la orden (U6) y el uso de tableta en el taller (U2). No habilita
+    la emisión real ni certifica el cumplimiento tributario.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 
@@ -404,8 +437,10 @@ context: |
   - Preservar cambios del usuario y no ampliar el alcance para refactorizaciones no solicitadas.
 
   Estado actual relevante:
-  - Backend y frontend contienen infraestructura inicial, pero todavía no implementan el
-    dominio funcional descrito en este documento.
+  - Backend y frontend implementan los módulos de la línea base: identidad, configuración,
+    catálogos, clientes y vehículos, compras e inventario, ventas, proformas, mantenimientos y
+    pagos, y la preparación y el seguimiento fiscal. La facturación electrónica opera solo en
+    pruebas: la emisión real no está habilitada (DP-034, regla 8).
   - El comportamiento de la aplicación Flutter anterior es histórico y no define requisitos.
   - No preservar compatibilidad con comportamientos históricos que contradigan la línea objetivo.
 

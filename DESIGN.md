@@ -1,5 +1,7 @@
 # Sistema visual Tallkit · Banco de trabajo
 
+> **En reemplazo por `DP-036`** (`docs/negocio/decisiones/decisiones-confirmadas.yaml`). Esta dirección visual sigue vigente hasta U3 de `docs/cambios-pendientes.md`; la dirección nueva se escribe al aprobar el prototipo de U2. Hasta entonces, las pantallas que se toquen siguen esta guía.
+
 ## Propósito
 
 Esta guía resume el lenguaje visual implementado en el frontend. **Tallkit** es el nombre visible del producto; «Sys-Taller»/«Sys-Inventario» se conserva como nombre técnico del repositorio. La guía no define reglas del negocio ni sustituye las especificaciones OpenSpec:
@@ -9,7 +11,7 @@ Esta guía resume el lenguaje visual implementado en el frontend. **Tallkit** es
 - `openspec/specs/experiencia-adaptable-frontend/spec.md`: navegación, modales, listas y formularios por tamaño.
 - `openspec/specs/catalogo-visual-reutilizable/spec.md`: catálogo interno de desarrollo.
 
-Mientras el cambio `redisenar-sistema-visual-tallkit` no se archive, estas especificaciones viven como deltas en `openspec/changes/redisenar-sistema-visual-tallkit/specs/`; `patrones-de-pantalla-frontend` es una capacidad nueva de ese cambio.
+Estas especificaciones están aprobadas y archivadas en `openspec/specs/`; el cambio `redisenar-sistema-visual-tallkit` quedó en `openspec/changes/archive/2026-09-23-redisenar-sistema-visual-tallkit/`.
 
 ## Dirección visual
 

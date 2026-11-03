@@ -8,7 +8,7 @@ web
 
 ## Users
 
-El producto es utilizado por personal interno del taller con los roles **Administrador**, **Vendedor** y **Encargado del taller**. La computadora es el dispositivo principal para tareas extensas; la tableta tiene importancia operativa para consulta y captura, y el teléfono debe conservar los flujos esenciales.
+El producto es utilizado por personal interno del taller con los roles **Administrador**, **Vendedor** y **Encargado del taller**. La persona de referencia de diseño es la **usuaria diaria**: atiende cada día, no tiene conocimientos contables y acumula los tres roles (`DP-036`, regla 1; `CT-001`). Lo que se usa con poca frecuencia se agrupa en «Ajustes». La computadora es el dispositivo principal para tareas extensas; la tableta tiene importancia operativa para consulta y captura, y el teléfono debe conservar los flujos esenciales.
 
 ## Product Purpose
 
@@ -34,7 +34,9 @@ La aplicación se utiliza durante la jornada en computadoras, tabletas y teléfo
 
 ## Brand Commitments
 
-El nombre técnico provisional es Sys-Inventario. El usuario prefiere interfaces limpias, claras, sobrias y de alta legibilidad, con navegación compacta, jerarquía precisa y poco ruido visual, según las cuatro capturas de referencia proporcionadas el 10 de septiembre de 2026. No existe todavía nombre comercial, logotipo ni manual de marca definitivo.
+El nombre visible del producto es **Tallkit**, con el logotipo existente en `frontend/src/assets/brand/`; «Sys-Inventario» se conserva como nombre técnico. No existe todavía manual de marca definitivo.
+
+**En reemplazo por `DP-036`** (vigente hasta U3 de `docs/cambios-pendientes.md`): la preferencia por interfaces limpias, claras, sobrias y de alta legibilidad, con navegación compacta, jerarquía precisa y poco ruido visual, según las cuatro capturas de referencia del 10 de septiembre de 2026. La dirección nueva, más interactiva y con color, se escribe al aprobar el prototipo de U2.
 
 ## Evidence on Hand
 
@@ -48,7 +50,7 @@ El nombre técnico provisional es Sys-Inventario. El usuario prefiere interfaces
 1. Claridad operativa antes que decoración.
 2. Separación fiscal visible sin duplicar la navegación.
 3. Acciones críticas explícitas y trazables.
-4. Densidad útil en computadora con adaptación real para interacción táctil.
+4. Densidad útil en computadora con adaptación real para interacción táctil. *(En reemplazo por `DP-036`, vigente hasta U3: la facilidad de uso diario pesa más que la densidad.)*
 5. Un lenguaje visual común para todas las capacidades futuras.
 
 ## Accessibility & Inclusion

@@ -78,6 +78,8 @@ Desarrollar una aplicación web segura y trazable que integre la gestión de inv
 
 Los únicos roles internos de V1 son **Administrador**, **Vendedor** y **Encargado del taller**. El cliente es una parte interesada, pero no accede al sistema en esta versión. Los permisos definitivos de los tres roles se detallan en `../requisitos/actores-y-roles.md`.
 
+**Usuaria diaria.** La referencia de diseño de las pantallas de uso diario es la persona que atiende cada día en el taller: no tiene conocimientos contables y reúne los tres roles (`CT-001`). Esta referencia no crea roles ni cambia permisos; lo que se usa poco se agrupa en «Ajustes» (`DP-036`, regla 1). Aprobado y todavía no implementado: U2 y U4 de `docs/cambios-pendientes.md`.
+
 ## 8. Propuesta de valor
 
 - Una única fuente confiable para los datos compartidos del negocio.
@@ -117,7 +119,7 @@ El contenido comprometido para la primera versión se define en `alcance-v1.md`.
 6. **Configuración antes que valores fijos:** impuestos, tarifas y parámetros variables no deben quedar incrustados permanentemente en el código.
 7. **Seguridad por acción:** los permisos se conceden sobre operaciones concretas, especialmente aquellas que afectan dinero, inventario o configuración.
 8. **Consistencia concurrente:** una operación debe producir el mismo resultado correcto aunque varios usuarios trabajen simultáneamente.
-9. **Simplicidad operativa:** la primera versión cubrirá el flujo real del taller sin incorporar procesos que actualmente no se utilizan.
+9. **Simplicidad operativa:** la primera versión cubrirá el flujo real del taller sin incorporar procesos que actualmente no se utilizan. La simplicidad se mide con los objetivos de acciones por tarea `RNF-USA-013…016` (`../requisitos/requisitos-no-funcionales.md`), sin omitir ninguna regla vigente (`DP-036`, regla 7). Aprobado y todavía no implementado: U2 y U6 de `docs/cambios-pendientes.md`.
 
 ## 11. Criterios generales de éxito
 

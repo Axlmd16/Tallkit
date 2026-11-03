@@ -29,8 +29,8 @@ Flutter anterior solo explican el pasado; no definen requisitos ni arquitectura 
 - `docs/adr/`: decisiones arquitectónicas duraderas aceptadas.
 - `openspec/specs/`: línea base de comportamiento aprobada.
 - `openspec/changes/`: cambios activos; `openspec/changes/archive/` conserva su historia.
-- `backend/`: Django/DRF, configuración y pruebas; el dominio funcional aún no está implementado.
-- `frontend/`: React/Vite, página técnica y pruebas.
+- `backend/`: Django/DRF, configuración, pruebas y los módulos de la línea base (identidad, catálogos, clientes, compras, inventario, ventas, proformas, mantenimientos, pagos y fiscal); la facturación electrónica opera solo en pruebas.
+- `frontend/`: React/Vite, pantallas de esos módulos y pruebas.
 - `infra/` y `compose.yaml`: despliegue y desarrollo local.
 
 ## Fuentes y precedencia

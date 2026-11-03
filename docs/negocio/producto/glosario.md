@@ -7,7 +7,7 @@
 | Estado | Alineado con el modelo de dominio aprobado |
 | Fecha | 2026-09-08 |
 
-> Las definiciones de este glosario son las que deben utilizarse en requisitos, pantallas, API, diagramas y conversaciones del proyecto. Cuando un término tributario requiera precisión legal, deberá validarse con el responsable contable.
+> Las definiciones de «Términos» son las que deben utilizarse en requisitos, API, diagramas y conversaciones del proyecto. Las pantallas no están obligadas a mostrar todos esos términos: el lenguaje visible se rige por «Términos visibles en pantalla». Cuando un término tributario requiera precisión legal, deberá validarse con el responsable contable.
 
 ## Términos
 
@@ -508,6 +508,16 @@ Rol responsable de clientes, proformas, ventas de repuestos, consumos internos y
 ### Venta de repuestos
 
 Operación económica del RUC comercial que contiene productos vendidos. Puede ser directa, provenir de una proforma o estar vinculada a un mantenimiento.
+
+## Términos visibles en pantalla
+
+Las pantallas hablan con la usuaria diaria, que no tiene conocimientos contables (`DP-036`, reglas 1 y 3). Los términos de la sección «Términos» siguen existiendo en el dominio, pero no se muestran en pantalla si no ayudan a la tarea.
+
+| Término del dominio | Se muestra como |
+|---|---|
+| Entidad fiscal (incluidos «RUC comercial» y «RUC artesanal») | El nombre comercial del negocio o, si no lo tiene, su razón social. El RUC sigue visible en facturas, comprobantes y «Ajustes». |
+
+Las demás equivalencias las define U4 de `docs/cambios-pendientes.md`. Aprobado y todavía no implementado: hasta entonces las pantallas siguen mostrando los términos actuales.
 
 ## Términos que no deben usarse como sinónimos
 

@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |---|---|
-| Fecha | 2026-11-02 |
-| Cambios activos en OpenSpec | Ninguno |
+| Fecha | 2026-11-03 |
+| Cambios activos en OpenSpec | `reenfocar-tallkit-en-el-uso-diario` (U1) |
 | Cambios pendientes | 19 (6 de la etapa 0 y 13 de las etapas 1 a 3), más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
@@ -157,22 +157,39 @@ búsqueda global; reemplazo de la dirección visual de septiembre; y requisitos 
 - Marcar `DESIGN.md` y las specs visuales como «en reemplazo»; la dirección nueva se escribe al
   aprobar el prototipo (U2).
 
-**Choques por decidir**
+**Choques decididos** (el titular los aprobó con la propuesta)
 
-- [ ] `RNF-USA-009` y `RNF-USA-010`: mostrar la jerga y la entidad fiscal. Se ajustan
-- [ ] `interfaz-y-navegacion.md:37` y `DESIGN.md`: sin búsqueda global. Se reemplaza
-- [ ] `DP-035`, regla 1: el correo no cambia la ficha del cliente. Se ajusta con una casilla
-- [ ] `DP-027` y `DP-013`: confirmar y cobrar son independientes; un pago, una operación. Se mantienen,
+- [x] `RNF-USA-009` y `RNF-USA-010`: mostrar la jerga y la entidad fiscal. Se ajustan (rigen desde U4)
+- [x] `interfaz-y-navegacion.md:37` y `DESIGN.md`: sin búsqueda global. Se reemplaza (rige desde U5)
+- [x] `DP-035`, regla 1: el correo no cambia la ficha del cliente. Se ajusta con una casilla (rige desde U6)
+- [x] `DP-027` y `DP-013`: confirmar y cobrar son independientes; un pago, una operación. Se mantienen,
   la pantalla los encadena
-- [ ] `DP-021`: finalizar nunca confirma la venta. Se mantiene
+- [x] `DP-021`: finalizar nunca confirma la venta. Se mantiene
+
+**Choques nuevos** (hallados al escribir la propuesta; también decididos)
+
+- [x] Specs de pagos, sin «pago repartido» ni pago a «la orden como conjunto». Se mantienen (U6): un pago
+  parcial se indica por negocio
+- [x] `interfaz-y-navegacion.md`, sección 6.6. Se ajusta (U6): un botón es válido si muestra los dos
+  importes; repartir en silencio sigue prohibido
+- [x] `RNF-USA-003`, sección 8.1 y `PPF-06`: diálogo de confirmación por acción. Se ajustan (U6): la
+  pantalla hace de confirmación y muestra efectos y valores del servidor
+- [x] `RN-FIS-009` y principio 3 de la interfaz. Se mantienen (U4): el nombre del negocio identifica la
+  entidad fiscal
+- [x] Encabezado de `glosario.md`: sus términos se usan en pantallas. Se ajusta (U1): separa términos
+  del dominio y términos visibles
+- [x] `configuracion-operativa-y-fiscal`: nombre comercial opcional. Se mantiene (U4): la razón social
+  es el respaldo
+- [x] `actores-y-roles.md`, sección 5: funciones críticas separadas. Se mantiene (U1): `CT-001` permite
+  acumular roles; la separación sigue en permisos y auditoría
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
 
@@ -182,6 +199,10 @@ Sin código del sistema. Se hace dentro del repositorio, por ejemplo en `docs/pr
 Inicio, el menú, la ficha del cliente, la ficha del mantenimiento, «Cobrar y facturar» y la venta
 rápida, con el estilo visual nuevo. Sirve para probar el recorrido con la usuaria diaria antes de
 programar. Al aprobarlo se escriben la dirección visual nueva y sus tokens.
+
+- Medir con la usuaria diaria, no con un robot: cuántas acciones y cuánto tiempo le toma cada tarea
+  de `RNF-USA-013…015`, con el método de `RNF-USA-016`, y compararlo con el Facturador del SRI, como pide
+  el paso 1 del [análisis](analisis-del-sistema.md). Confirmar si se usará tableta en el taller.
 
 - [ ] Prototipo hecho
 - [ ] Probado con la usuaria diaria
@@ -222,6 +243,9 @@ total a pagar, movimientos).
   avisos que tapan el total. El valor inicial «Crédito» puede adelantarse como arreglo pequeño.
 - Pedir el nombre comercial en la configuración inicial, porque hoy es opcional y, vacío, se muestra la
   razón social.
+- Corregir `frontend/src/shared/ui/states.test.tsx:21`, que fija el texto «RUC comercial» contra la regla
+  de `AGENTS.md` de no fijar textos de la interfaz, al cambiar el texto de `states.tsx:86`.
+- Definir qué muestra «Facturas» en el menú antes del cambio 3.
 
 **Choques por decidir**
 
@@ -267,6 +291,13 @@ decisión `DP` nueva.
 
 - Al terminar, verificar `alinear-datos-del-comprobante-con-sri`, cuya verificación el titular aplazó
   hasta este punto.
+- Acortar el registro de la orden, sus servicios y sus repuestos: elegir solo el vehículo cuando hay uno,
+  agregar servicios y repuestos en dos acciones y finalizar sin ventana adicional. Sin esto, el
+  mantenimiento con repuesto ya gasta 16 acciones antes de cobrar y no alcanza `RNF-USA-015`.
+- Decidir si «Cobrar y facturar» también finaliza la orden. Los objetivos cuentan el cierre.
+- Comprobar antes de cobrar (por ejemplo, el stock) y mostrar qué quedó hecho si una operación falla;
+  avisar si el correo difiere del guardado.
+- Evaluar si coordinar ventas, taller, cobros y fiscal desde una sola acción necesita un ADR.
 
 **Choques por decidir**
 

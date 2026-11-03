@@ -27,7 +27,7 @@ La precedencia aplicada es:
 4. Arquitectura vigente en `docs/arquitectura/`, `docs/architecture/` y `docs/tecnico/`.
 5. El código existente únicamente como evidencia del estado actual.
 
-Este modelo concreta además el cambio OpenSpec `consolidar-modelo-dominio-taller`, aprobado después de la entrevista de dominio. No se preserva por defecto ningún comportamiento del antiguo sistema Flutter.
+Este modelo concreta además el cambio OpenSpec `consolidar-modelo-dominio-taller` (archivado como `2026-09-09-consolidar-modelo-dominio-taller`), aprobado después de la entrevista de dominio. No se preserva por defecto ningún comportamiento del antiguo sistema Flutter.
 
 ## 3. Contextos del negocio
 
@@ -226,12 +226,12 @@ Estas recomendaciones no autorizan implementación.
 - “Responsable del vehículo” se reemplazó por propietario vigente con historia.
 - La devolución dejó de producir saldo a favor y distingue aptitud para reventa.
 - El documento interno quedó diferenciado de la factura electrónica autorizada.
+- `DM-001` dejó de estar aplazada: `DP-029` la cerró para V1 con estructuras separadas por RUC y reglas monetarias puras compartidas.
 
 ### 11.4 Decisiones aplazadas
 
 - `DA-002`: límites, almacenamiento y conservación de fotografías.
 - `DA-003`: instalación, actualización, respaldo y restauración local continúa pendiente en general. ADR-0010 resuelve únicamente el archivo fiscal en PostgreSQL.
-- `DM-001`: estructura técnica común o separada de documentos económicos.
 
 ### 11.5 Información insuficiente o validación externa
 
@@ -245,9 +245,11 @@ ADR-0010 añade el módulo fiscal como referencia posterior a una venta comercia
 
 La configuración fiscal es centralizada por entidad: un **punto predeterminado** (automático si solo hay un punto activo), un ambiente único de pruebas mientras no exista emisión aprobada, **catálogos oficiales** versionados del SRI (tarifas de IVA y formas de pago de la Tabla 24, con procedencia de la ficha técnica) y formas de pago SRI habilitadas por entidad, de las que en V1 solo 01 y 20 son habilitables. La preparación toma estos datos del sistema, no de la persona usuaria, y los congela en su instantánea. Crédito sigue siendo una condición interna sin código de la Tabla 24.
 
-El **perfil del emisor** de cada entidad se declara con valores cerrados: régimen tributario (General, RIMPE Emprendedor o RIMPE Negocio Popular), obligación de llevar contabilidad, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y **calificación artesanal** con número, organismo y vencimiento obligatorio. La leyenda del comprobante se deriva del régimen y nadie la escribe (la de Negocio Popular está por confirmar con la ficha técnica del SRI); RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria, por lo que su preparación exige líneas a IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro (revisión nueva del perfil, tarifa interna sucesora y correspondencia sucesora con el SRI) y no altera lo ya preparado. La preparación conserva el emisor en campos estructurados, bloquea con un impedimento un código de línea de más de 25 caracteres o una descripción de más de 300 sin recortarlos, usa como código de línea de un servicio su **código de servicio** asignado por el sistema y, mientras la calificación artesanal esté vigente, solo admite líneas con IVA 0 %. Todo ello son comprobaciones locales que no acreditan el beneficio legal ante el SRI.
+El **perfil del emisor** de cada entidad se declara con valores cerrados: régimen tributario (General, RIMPE Emprendedor o RIMPE Negocio Popular), obligación de llevar contabilidad, agente de retención y contribuyente especial con su número de resolución solo cuando aplican, y **calificación artesanal** con número, organismo y vencimiento obligatorio. La leyenda del comprobante se deriva del régimen y nadie la escribe (la de Negocio Popular quedó confirmada por `DP-035` con el Anexo 22 de la ficha técnica 2.34); RIMPE Negocio Popular no cobra IVA y puede emitir comprobantes electrónicos de forma voluntaria, por lo que su preparación exige líneas a IVA 0 %. Un cambio de régimen o de tarifa se programa a futuro (revisión nueva del perfil, tarifa interna sucesora y correspondencia sucesora con el SRI) y no altera lo ya preparado. La preparación conserva el emisor en campos estructurados, bloquea con un impedimento un código de línea de más de 25 caracteres o una descripción de más de 300 sin recortarlos, usa como código de línea de un servicio su **código de servicio** asignado por el sistema y, mientras la calificación artesanal esté vigente, solo admite líneas con IVA 0 %. Todo ello son comprobaciones locales que no acreditan el beneficio legal ante el SRI.
 
 Desde `DP-035` la preparación conserva además, en la instantánea de formato 4, el **plazo del comprobante** de las formas de pago que cubren el saldo pendiente de una operación a crédito, el correo del receptor, un detalle adicional de hasta 12 datos de nombre y valor, el detalle de cada servicio, el nombre comercial y la dirección del establecimiento del emisor. La condición de **gran contribuyente** se declara en el perfil del emisor con su número de resolución, y la leyenda de RIMPE Negocio Popular se deriva del régimen. El plazo, el correo y el detalle no son hechos de cobranza: no crean vencimiento, mora ni alertas, no cambian saldos ni cobros y no modifican la ficha del cliente ni la operación.
+
+**Excepción del correo (`DP-036`, regla 4).** Al completar los datos de una factura, una casilla activada por omisión guarda el correo del comprador en la ficha del cliente; desactivada, o sin permiso para editar clientes, el correo queda solo en esa factura, y si la ficha ya tenía otro correo se muestran ambos antes de reemplazarlo. Guardarlo se audita en el cliente y no modifica facturas ya preparadas; registrar un cliente sigue sin exigir el correo. Esta excepción ajusta lo dicho arriba para el correo y rige desde U6 de `docs/cambios-pendientes.md`: aprobado y todavía no implementado. Hasta entonces el correo completado al facturar no cambia la ficha.
 
 La política del archivo se versiona por entidad fiscal. La evidencia de restauración solo habilita incorporación productiva cuando coincide con la versión del procedimiento y almacenamiento vigentes. Esta extensión no implementa firma, transmisión, consulta de autorización ni emisión productiva.
 
@@ -465,4 +467,4 @@ Venta y Operación artesanal crean importes exigibles independientes. Los pagos 
 | Documentos, cierres y reportes | DP-018, DP-019 | RN-CON-001…012; RF-REP-001…014; RF-AUD-* |
 | Facturación electrónica | DP-018, DP-034 | RN-FIS-011…018; RN-CON-009…010; RF-FIS-001…013; RF-REP-014; RNF-DIS-009; RNF-COM-007 (los posteriores a RF-FIS-007 están pendientes de implementar) |
 
-La trazabilidad detallada entre reglas, requisitos, casos de uso e interfaz se encuentra en `../negocio/requisitos/matriz-trazabilidad.md` y la especificación de aceptación documental en `../../openspec/changes/consolidar-modelo-dominio-taller/specs/modelo-dominio-taller/spec.md`.
+La trazabilidad detallada entre reglas, requisitos, casos de uso e interfaz se encuentra en `../negocio/requisitos/matriz-trazabilidad.md` y la especificación de aceptación documental en `../../openspec/specs/modelo-dominio-taller/spec.md`.
