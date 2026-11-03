@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Fecha | 2026-11-03 |
-| Cambios activos en OpenSpec | `reenfocar-tallkit-en-el-uso-diario` (U1) |
+| Cambios activos en OpenSpec | Ninguno |
 | Cambios pendientes | 19 (6 de la etapa 0 y 13 de las etapas 1 a 3), más 1 diferido |
 | Proveedor actual | Factuplan; reemplazable sin rehacer el sistema |
 | Fecha límite | No hay |
@@ -190,8 +190,8 @@ búsqueda global; reemplazo de la dirección visual de septiembre; y requisitos 
 - [x] Diseño aprobado
 - [x] Tareas aprobadas
 - [x] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Verificado
+- [x] Archivado y registrado en `master`
 
 ### U2. Prototipo de las pantallas clave
 

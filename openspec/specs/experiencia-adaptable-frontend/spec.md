@@ -3,7 +3,6 @@
 ## Purpose
 Garantizar operación adaptable y accesible en computadora, tableta y teléfono.
 ## Requirements
-
 ### Requirement: Interfaz utilizable en los dispositivos objetivo
 La aplicación SHALL ser utilizable desde 360 px de ancho hasta pantallas de escritorio. El contenido, los formularios y las acciones esenciales SHALL adaptarse al espacio disponible sin producir desplazamiento horizontal de la página completa.
 
@@ -176,3 +175,20 @@ En escritorio y tableta, las listas operativas SHALL presentarse como una tabla 
 #### Scenario: Contenido largo en una fila
 - **WHEN** un nombre, correo, identificador o estado excede el espacio previsto
 - **THEN** SHALL truncarse con acceso al valor completo o redistribuirse, sin solapar acciones ni romper la página
+
+### Requirement: Navegación y densidad en reemplazo
+
+La navegación agrupada por área de trabajo y las filas compactas de esta spec quedan **en reemplazo** por `DP-036`, reglas 5 y 6: U4 reorganiza el menú y U3 decide la densidad, y hasta entonces siguen vigentes. Los requisitos de tamaños de pantalla, teclado, controles táctiles, movimiento, modales y permisos de la navegación SHALL seguir vigentes sin cambio.
+
+Trazabilidad: `DP-036`, reglas 5, 6 y 8; `interfaz-y-navegacion.md` §2.1 y §2.2; `docs/cambios-pendientes.md`, U3 y U4.
+
+#### Scenario: Menú antes de U4
+- **DADO** U4 sin archivar
+- **CUANDO** un cambio agrega una entrada a la navegación
+- **ENTONCES** SHALL ubicarla en los grupos vigentes y respetar los permisos efectivos.
+
+#### Scenario: Requisito de accesibilidad
+- **DADO** el requisito de controles táctiles de al menos 44 px o el de operación con teclado
+- **CUANDO** se reorganiza la navegación o se cambia la densidad
+- **ENTONCES** SHALL seguir cumpliéndose.
+
