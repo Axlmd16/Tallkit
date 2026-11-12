@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Clientes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas b{color:#1C1F23;font-weight:600}
+.buscar{flex:1 1 260px;max-width:420px;display:flex;align-items:center;gap:10px;height:40px;padding:0 2px;border-bottom:1.5px solid #D5D1CB;color:#5E6369;text-decoration:none;font-size:13.5px}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.ph-ico{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:#F5E8E0;color:#9C4A22;flex:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-out{background:#FFFFFF;color:#1C1F23;border-color:#1C1F23}.btn-out:hover{background:#1C1F23;color:#FFFFFF}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:4px;border-radius:999px;background:#EAE7E2}
+.seg-b{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:500;color:#4E5257;cursor:pointer}
+.seg-b.on{background:#FFFFFF;color:#1C1F23;font-weight:600;box-shadow:0 1px 3px rgba(31,35,41,.14)}
+.seg-n{font-weight:600;color:#7C8085}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{background:#E5EFE8;color:#2F6B4A}.p-debe{background:#F5E5E2;color:#A8392F}.p-abierto{background:#E9EDF2;color:#3E546F}
+.campo{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:500;color:#5E6369}
+.inp{width:100%;height:44px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;border-radius:0;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.inp::placeholder{color:#8D9196;font-weight:400}
+.letra{position:sticky;top:0;padding:6px 20px;background:#F8F7F4;font-size:12px;font-weight:700;color:#7C8085;border-top:1px solid #EFEEEB}
+.cli{display:flex;align-items:center;gap:12px;width:100%;padding:12px 20px;border:0;border-left:3px solid transparent;background:#FFFFFF;font-family:inherit;font-size:14px;text-align:left;color:#1C1F23;cursor:pointer;transition:background-color .12s}
+.cli:hover{background:#FAF9F7}
+.cli.on{background:#F9F0EA;border-left-color:#B5582A}
+.minip{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:5px;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:10.5px;letter-spacing:.07em}
+.dato{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #EFEEEB}
+.dato-ico{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#EFEEEB;color:#44484E;flex:none}
+.mini{flex:1 1 0;padding:12px 14px;border-radius:12px;background:#F6F5F2}
+.mov{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid #EFEEEB;font-size:13px}
+.dlg{animation:dlgIn .2s ease-out}
+@keyframes dlgIn{from{opacity:0;transform:translateY(8px) scale(.985)}}
+.toast{position:absolute;top:80px;right:32px;z-index:60;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:12px;background:#1C1F23;color:#FFFFFF;font-weight:600;font-size:13.5px;box-shadow:0 12px 32px rgba(30,34,38,.28);animation:toastIn .25s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translateY(-6px)}}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0"><dc-import activo="clientes" name="Menu" hint-size="100%,1000px"></dc-import></div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+<header class="top">
+<nav class="migas" aria-label="Ruta"><b>Clientes</b></nav>
+<a href="Buscar.dc.html" class="buscar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Buscar placa, cliente, producto o factura</a>
+<div class="user"><span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span><span class="av" aria-hidden="true">U</span><a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a></div>
+</header>
+
+<main style="padding:28px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:20px">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<span class="ph-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7"></path><path d="M18 14a6.5 6.5 0 0 1 3.5 6"></path></svg></span>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">128 clientes</p>
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.25">Clientes</h1>
+<p style="margin:6px 0 0;color:#44484E;font-size:14.5px">Elige un cliente para ver sus vehículos, lo que debe y lo último que hizo.</p>
+</div>
+</div>
+<button type="button" class="btn btn-pri" onClick="{{abrir}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo cliente</button>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch">
+<section class="card" aria-label="Lista de clientes" style="flex:1 1 380px;max-width:460px;overflow:hidden;display:flex;flex-direction:column">
+<div style="padding:16px 20px 12px;display:flex;flex-direction:column;gap:10px">
+<label style="position:relative;display:block">
+<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar cliente</span>
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5E6369" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:2px;top:14px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<input class="inp" style="padding-left:28px" value="{{q}}" onChange="{{onQ}}" placeholder="Nombre, cédula, RUC o placa">
+</label>
+<div class="seg" role="group" aria-label="Filtrar" style="align-self:flex-start"><sc-for list="{{filtros}}" as="f" hint-placeholder-count="3"><button type="button" class="{{f.cls}}" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.label}}<span class="seg-n">{{f.n}}</span></button></sc-for></div>
+</div>
+<div style="flex:1;max-height:640px;overflow:auto">
+<sc-for list="{{grupos}}" as="g" hint-placeholder-count="4">
+<div class="letra">{{g.letra}}</div>
+<sc-for list="{{g.items}}" as="c" hint-placeholder-count="2">
+<button type="button" class="{{c.cls}}" aria-pressed="{{c.on}}" onClick="{{c.pick}}">
+<span aria-hidden="true" style="display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:{{c.avBg}};color:{{c.avFg}};font-weight:700;font-size:12.5px;flex:none">{{c.ini}}</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.3"><span style="font-weight:700">{{c.nombre}}</span><span style="display:flex;flex-wrap:wrap;align-items:center;gap:5px"><sc-for list="{{c.placas}}" as="p" hint-placeholder-count="1"><span class="minip">{{p}}</span></sc-for><sc-if value="{{c.sinVeh}}" hint-placeholder-val="{{false}}"><span style="font-size:12px;color:#7C8085">Solo mostrador</span></sc-if></span></span>
+<sc-if value="{{c.debe}}" hint-placeholder-val="{{false}}"><span class="num" style="font-size:12.5px;font-weight:700;color:#A8392F">{{c.deuda}}</span></sc-if>
+</button>
+</sc-for>
+</sc-for>
+</div>
+</section>
+
+<section class="card" aria-labelledby="cli-t" style="flex:999 1 520px;min-width:0;overflow:hidden;display:flex;flex-direction:column">
+<div style="position:relative;overflow:hidden;padding:24px 26px;background:#1E2226;color:#FFFFFF;display:flex;flex-wrap:wrap;align-items:center;gap:18px">
+<svg width="300" height="200" viewBox="0 0 300 200" fill="none" aria-hidden="true" style="position:absolute;right:-50px;top:-30px"><circle cx="230" cy="190" r="80" stroke="#2C3137"></circle><circle cx="230" cy="190" r="120" stroke="#2C3137"></circle><circle cx="230" cy="190" r="160" stroke="#272B30"></circle><path d="M118 136A120 120 0 0 1 152 98" stroke="#B5582A" stroke-width="2.5" stroke-linecap="round"></path></svg>
+<span aria-hidden="true" style="position:relative;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:20px">{{sel.ini}}</span>
+<div style="position:relative;flex:1;min-width:0">
+<p style="margin:0;font-size:12.5px;color:#969BA1">{{sel.tipo}} · cliente desde {{sel.desdeAnio}}</p>
+<h2 id="cli-t" style="margin:2px 0 0;font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2">{{sel.nombre}}</h2>
+</div>
+<a href="Cliente.dc.html" class="btn" style="position:relative;background:#FFFFFF;color:#1E2226">Abrir ficha completa</a>
+</div>
+
+<div style="padding:18px 26px 22px;display:flex;flex-wrap:wrap;gap:26px">
+<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column">
+<div class="dato" style="border-top:0"><span class="dato-ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M6 16a3 3 0 0 1 6 0M15 10h3M15 14h3"></path></svg></span><span style="line-height:1.3"><span style="display:block;font-size:12px;color:#5E6369">{{sel.docTipo}}</span><span class="num" style="font-weight:600">{{sel.doc}}</span></span></div>
+<div class="dato"><span class="dato-ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2"></rect><path d="M11 18h2"></path></svg></span><span style="line-height:1.3"><span style="display:block;font-size:12px;color:#5E6369">Teléfono</span><span class="num" style="font-weight:600">{{sel.tel}}</span></span></div>
+<div class="dato"><span class="dato-ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></span><span style="line-height:1.3;min-width:0"><span style="display:block;font-size:12px;color:#5E6369">Correo para facturas</span><span style="font-weight:600">{{sel.correo}}</span></span></div>
+<div style="display:flex;gap:10px;margin-top:14px">
+<div class="mini"><p style="margin:0;font-size:12px;color:#5E6369">Este año</p><p class="num" style="margin:0;font-size:20px;font-weight:300;letter-spacing:-.02em">{{sel.gasto}}</p></div>
+<div class="mini" style="background:{{sel.dBg}}"><p style="margin:0;font-size:12px;color:{{sel.dTc}}">Debe</p><p class="num" style="margin:0;font-size:20px;font-weight:300;letter-spacing:-.02em;color:{{sel.dTc}}">{{sel.deudaTxt}}</p></div>
+</div>
+</div>
+
+<div style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:14px">
+<div>
+<p style="margin:0 0 8px;font-size:12.5px;font-weight:600;color:#5E6369">Vehículos</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{sel.vehs}}" as="v" hint-placeholder-count="1">
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #E4E1DC;border-radius:12px"><span class="minip" style="height:24px;font-size:12px;padding:0 8px">{{v.placa}}</span><span style="flex:1;min-width:0;font-weight:600;font-size:13px">{{v.modelo}}</span><sc-if value="{{v.abierto}}" hint-placeholder-val="{{false}}"><span class="pill p-abierto">En el taller</span></sc-if></div>
+</sc-for>
+<sc-if value="{{sel.sinVeh}}" hint-placeholder-val="{{false}}"><p style="margin:0;font-size:13px;color:#5E6369">Compra solo en mostrador.</p></sc-if>
+</div>
+</div>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:600;color:#5E6369">Lo último</p>
+<sc-for list="{{sel.movs}}" as="m" hint-placeholder-count="3"><div class="mov"><span class="num" style="color:#5E6369">{{m.f}}</span><span style="min-width:0">{{m.que}}</span><span class="num" style="font-weight:700">{{m.v}}</span></div></sc-for>
+</div>
+</div>
+</div>
+<div style="margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;padding:14px 26px 20px;border-top:1px solid #EFEEEB">
+<a href="NuevoMantenimiento.dc.html" class="btn btn-pri">Nuevo mantenimiento</a>
+<a href="VentaRapida.dc.html" class="btn btn-out">Venta rápida</a>
+<sc-if value="{{sel.debe}}" hint-placeholder-val="{{false}}"><a href="Cuentas.dc.html" class="btn btn-ghost">Registrar pago</a></sc-if>
+</div>
+</section>
+</div>
+</main>
+</div>
+
+<sc-if value="{{modal}}" hint-placeholder-val="{{false}}">
+<div style="position:absolute;inset:0;z-index:50;background:rgba(30,34,38,.45);display:flex;align-items:center;justify-content:center;padding:32px 16px">
+<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="nc-t" style="width:100%;max-width:560px;background:#FFFFFF;border-radius:20px;box-shadow:0 30px 70px rgba(20,22,25,.30);padding:24px 28px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+<div><h2 id="nc-t" style="margin:0;font-size:20px;font-weight:700">Nuevo cliente</h2><p style="margin:2px 0 0;font-size:13px;color:#5E6369">El correo y el vehículo se piden cuando hagan falta.</p></div>
+<button type="button" class="btn btn-ghost" aria-label="Cerrar" style="width:44px;padding:0" onClick="{{cerrar}}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<label class="campo">Nombre y apellido, o razón social<input class="inp" placeholder="Como aparecerá en la factura"></label>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px">
+<label class="campo">Cédula o RUC<input class="inp num" inputmode="numeric" placeholder="10 o 13 dígitos"></label>
+<label class="campo">Teléfono<input class="inp num" inputmode="tel" placeholder="099 000 0000"></label>
+</div>
+<div style="display:flex;justify-content:flex-end;gap:10px;padding-top:4px">
+<button type="button" class="btn btn-ghost" onClick="{{cerrar}}">Cancelar</button>
+<button type="button" class="btn btn-pri" style="min-width:170px" onClick="{{guardar}}">Guardar cliente</button>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="toast" role="status"><span aria-hidden="true" style="display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#3D7A57"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></span>Cliente guardado</div>
+</sc-if>
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><button type="button" class="{{pA}}" onClick="{{verA}}">Con deuda</button><button type="button" class="{{pB}}" onClick="{{verB}}">Empresa</button><button type="button" class="{{pN}}" onClick="{{abrir}}">Nuevo cliente</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { f: 'todos', q: '', sel: 1, modal: false, toast: false }; }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var norm = function (s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ''); };
+    var data = [
+      { ini: 'AT', nombre: 'Ana Torres', tipo: 'Persona', docTipo: 'RUC', doc: '0991234567001', tel: '098 765 4321', correo: 'atorres@correo.com', desdeAnio: '2023', gasto: '214.50', debe: 0, vehs: [{ placa: 'PCQ-0571', modelo: 'Kia Rio 2019', abierto: false }], movs: [{ f: 'Hoy', que: 'Mantenimiento N.º 23, cambio de aceite', v: '61.50' }, { f: '30 sep', que: 'Venta 14, plumas limpiaparabrisas', v: '12.00' }] },
+      { ini: 'CM', nombre: 'Carlos Mendoza', tipo: 'Persona', docTipo: 'Cédula', doc: '0912345678', tel: '099 123 4567', correo: 'cmendoza@correo.com', desdeAnio: '2024', gasto: '386.00', debe: 18, vehs: [{ placa: 'GBA-1234', modelo: 'Chevrolet Aveo 2016', abierto: true }], movs: [{ f: 'Hoy', que: 'Mantenimiento N.º 24, pastillas de freno', v: '43.00' }, { f: '2 oct', que: 'Venta 15, aceite y filtro', v: '38.50' }, { f: '12 jun', que: 'Mantenimiento N.º 15, cambio de aceite', v: '42.00' }] },
+      { ini: 'JV', nombre: 'José Vera', tipo: 'Persona', docTipo: 'Cédula', doc: '0956781234', tel: '097 555 1020', correo: 'jvera@correo.com', desdeAnio: '2025', gasto: '96.00', debe: 0, vehs: [{ placa: 'GSM-8820', modelo: 'Hyundai Accent 2014', abierto: false }], movs: [{ f: 'Ayer', que: 'Mantenimiento N.º 21, revisión de frenos', v: '26.00' }] },
+      { ini: 'LA', nombre: 'Lucía Andrade', tipo: 'Persona', docTipo: 'Cédula', doc: '0918273645', tel: '099 888 1122', correo: 'landrade@correo.com', desdeAnio: '2025', gasto: '97.00', debe: 0, vehs: [{ placa: 'GBA-1290', modelo: 'Toyota Hilux 2021', abierto: true }], movs: [{ f: 'Hoy', que: 'Mantenimiento N.º 25, alineación', v: '25.00' }] },
+      { ini: 'LP', nombre: 'Luis Paredes', tipo: 'Persona', docTipo: 'Cédula', doc: '0945612378', tel: '097 222 3344', correo: 'lparedes@correo.com', desdeAnio: '2022', gasto: '512.00', debe: 40, vehs: [{ placa: 'GYE-0447', modelo: 'Mazda BT-50 2017', abierto: false }, { placa: 'GBC-2210', modelo: 'Suzuki Swift 2020', abierto: false }], movs: [{ f: '11 nov', que: 'Venta 18, batería 12V', v: '40.00' }] },
+      { ini: 'MS', nombre: 'María Sánchez', tipo: 'Persona', docTipo: 'Cédula', doc: '0923456781', tel: '096 111 2233', correo: 'msanchez@correo.com', desdeAnio: '2024', gasto: '135.00', debe: 0, vehs: [{ placa: 'GTR-5521', modelo: 'Nissan Sentra 2018', abierto: true }], movs: [{ f: 'Hoy', que: 'Venta 19, aceite y filtro', v: '38.50' }] },
+      { ini: 'PG', nombre: 'Pedro Guamán', tipo: 'Persona', docTipo: 'Cédula', doc: '0934561278', tel: '098 444 5566', correo: 'pguaman@correo.com', desdeAnio: '2023', gasto: '177.00', debe: 20, vehs: [], movs: [{ f: '1 nov', que: 'Venta 16, pastillas y líquido', v: '32.00' }] },
+      { ini: 'TR', nombre: 'Transportes Ríos', tipo: 'Empresa', docTipo: 'RUC', doc: '0992345678001', tel: '04 260 1122', correo: 'compras@transportesrios.ec', desdeAnio: '2021', gasto: '1 840.00', debe: 85, vehs: [{ placa: 'GBP-3011', modelo: 'Hino 300 2019', abierto: false }, { placa: 'GBP-3012', modelo: 'Hino 300 2019', abierto: false }, { placa: 'GBA-3307', modelo: 'Hino 300 2019', abierto: false }], movs: [{ f: '20 oct', que: 'Mantenimiento N.º 17, ABC de motor', v: '120.00' }, { f: '15 oct', que: 'Venta 12, filtros', v: '40.00' }] }
+    ];
+    var q = norm(st.q).trim();
+    var pasa = function (k) { return function (c) { return k === 'todos' || (k === 'debe' && c.debe > 0) || (k === 'emp' && c.tipo === 'Empresa'); }; };
+    var vis = data.map(function (c, i) { return Object.assign({ i: i }, c); })
+      .filter(pasa(st.f))
+      .filter(function (c) { return q.length === 0 || norm(c.nombre + ' ' + c.doc + ' ' + c.vehs.map(function (v) { return v.placa; }).join(' ')).indexOf(q) >= 0; });
+    var grupos = [];
+    vis.forEach(function (c) {
+      var l = c.nombre.charAt(0).toUpperCase();
+      var g = grupos.length && grupos[grupos.length - 1].letra === l ? grupos[grupos.length - 1] : null;
+      var item = Object.assign({}, c, {
+        on: st.sel === c.i, cls: st.sel === c.i ? 'cli on' : 'cli',
+        placas: c.vehs.map(function (v) { return v.placa; }), sinVeh: c.vehs.length === 0,
+        debe: c.debe > 0, deuda: c.debe.toFixed(2),
+        avBg: c.tipo === 'Empresa' ? '#1C1F23' : '#EFEEEB', avFg: c.tipo === 'Empresa' ? '#FFFFFF' : '#1C1F23',
+        pick: function () { self.setState({ sel: c.i }); }
+      });
+      if (g) { g.items.push(item); } else { grupos.push({ letra: l, items: [item] }); }
+    });
+    var s = data[st.sel];
+    var sel = Object.assign({}, s, {
+      debe: s.debe > 0, deudaTxt: s.debe > 0 ? s.debe.toFixed(2) : 'Nada',
+      dBg: s.debe > 0 ? '#F8EEEC' : '#F6F5F2', dTc: s.debe > 0 ? '#A8392F' : '#44484E',
+      sinVeh: s.vehs.length === 0
+    });
+    var filtros = [['todos', 'Todos'], ['debe', 'Con deuda'], ['emp', 'Empresas']].map(function (f) {
+      var on = st.f === f[0];
+      return { label: f[1], n: data.filter(pasa(f[0])).length, on: on, cls: on ? 'seg-b on' : 'seg-b', pick: function () { self.setState({ f: f[0] }); } };
+    });
+    return {
+      grupos: grupos, sel: sel, filtros: filtros,
+      q: st.q, onQ: function (e) { self.setState({ q: e.target.value }); },
+      modal: st.modal, toast: st.toast,
+      abrir: function () { self.setState({ modal: true, toast: false }); },
+      cerrar: function () { self.setState({ modal: false }); },
+      guardar: function () { self.setState({ modal: false, toast: true }); },
+      verA: function () { self.setState({ sel: 1, modal: false }); },
+      verB: function () { self.setState({ sel: 7, modal: false }); },
+      pA: !st.modal && st.sel === 1 ? 'proto-b on' : 'proto-b', pB: !st.modal && st.sel === 7 ? 'proto-b on' : 'proto-b', pN: st.modal ? 'proto-b on' : 'proto-b'
+    };
+  }
+}
+</script>
+</body>
+</html>

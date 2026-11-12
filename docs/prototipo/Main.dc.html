@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas b{color:#1C1F23;font-weight:600}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-out{background:#FFFFFF;color:#1C1F23;border-color:#1C1F23}.btn-out:hover{background:#1C1F23;color:#FFFFFF}
+.btn-claro{background:transparent;color:#FFFFFF;border-color:rgba(255,255,255,.4)}.btn-claro:hover{background:rgba(255,255,255,.1);color:#FFFFFF;border-color:#FFFFFF}
+.btn-sm{min-height:38px;padding:0 13px;font-size:13px}
+.hero-busca{flex:1 1 360px;max-width:560px;display:flex;align-items:center;gap:12px;height:56px;padding:0 18px;border-radius:14px;background:#FFFFFF;color:#5E6369;text-decoration:none;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.hero-busca:hover{color:#1C1F23}
+.placa{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:12px;letter-spacing:.08em;flex:none}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-abierto{background:#E9EDF2;color:#3E546F}.p-reab{background:#F5EDDC;color:#855E16}.p-debe{background:#F5E5E2;color:#A8392F}.p-curso{background:#EFEEEB;color:#44484E}
+.col-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px 12px}
+.col-n{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 8px;border-radius:8px;font-size:12.5px;font-weight:700}
+.item{display:flex;flex-direction:column;gap:8px;padding:14px 20px;border-top:1px solid #EFEEEB;color:#1C1F23;text-decoration:none;transition:background-color .12s}
+.item:hover{background:#FAF9F7;color:#1C1F23}
+.logo-t{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#4A6280;color:#FFFFFF;font-size:9px;font-weight:700;letter-spacing:.02em;flex:none}
+.logo-r{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#8C6B3F;color:#FFFFFF;font-size:9px;font-weight:700;letter-spacing:.02em;flex:none}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0"><dc-import activo="inicio" name="Menu" hint-size="100%,1000px"></dc-import></div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+<header class="top">
+<nav class="migas" aria-label="Ruta"><b>Inicio</b></nav>
+<div class="user"><span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span><span class="av" aria-hidden="true">U</span><a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a></div>
+</header>
+
+<main style="padding:24px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:20px">
+
+<section aria-label="Mostrador" style="position:relative;overflow:hidden;border-radius:20px;background:#1E2226;color:#FFFFFF;padding:28px 32px;display:flex;flex-wrap:wrap;align-items:center;gap:28px">
+<svg width="520" height="320" viewBox="0 0 520 320" fill="none" aria-hidden="true" style="position:absolute;right:-60px;top:-40px;pointer-events:none"><circle cx="420" cy="300" r="120" stroke="#2C3137"></circle><circle cx="420" cy="300" r="170" stroke="#2C3137"></circle><circle cx="420" cy="300" r="220" stroke="#2C3137"></circle><circle cx="420" cy="300" r="270" stroke="#272B30"></circle><path d="M250 230A170 170 0 0 1 300 180" stroke="#B5582A" stroke-width="3" stroke-linecap="round"></path></svg>
+<div style="position:relative;flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:16px">
+<div><p style="margin:0;font-size:13px;font-weight:500;color:#969BA1">Jueves 12 de noviembre</p><h1 style="margin:2px 0 0;font-size:30px;font-weight:700;letter-spacing:-.025em;line-height:1.2">¿Qué llegó al taller?</h1></div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<a href="Buscar.dc.html" class="hero-busca"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Escribe una placa, un cliente, un producto o una factura</a>
+<a href="NuevoMantenimiento.dc.html" class="btn btn-pri" style="min-height:56px;padding:0 22px;font-size:14.5px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo mantenimiento</a>
+<a href="VentaRapida.dc.html" class="btn btn-claro" style="min-height:56px;padding:0 20px;font-size:14.5px">Venta rápida</a>
+</div>
+</div>
+<div style="position:relative;flex:1 1 300px;display:flex;align-items:center;gap:18px;padding:16px 18px;border-radius:16px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)">
+<svg width="104" height="104" viewBox="0 0 104 104" role="img" aria-label="{{caja.aria}}" style="flex:none"><circle cx="52" cy="52" r="42" fill="none" stroke="#34393F" stroke-width="12"></circle><circle cx="52" cy="52" r="42" fill="none" stroke="#8EA3BD" stroke-width="12" stroke-dasharray="{{caja.dT}}" transform="rotate(-90 52 52)"></circle><circle cx="52" cy="52" r="42" fill="none" stroke="#C9A574" stroke-width="12" stroke-dasharray="{{caja.dR}}" stroke-dashoffset="{{caja.oR}}" transform="rotate(-90 52 52)"></circle></svg>
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+<div><p style="margin:0;font-size:12px;color:#969BA1">Cobrado hoy</p><p class="num" style="margin:0;font-size:26px;font-weight:300;letter-spacing:-.02em;line-height:1.2">USD {{caja.total}}</p></div>
+<p style="margin:0;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#E2E3E5"><span aria-hidden="true" style="width:8px;height:8px;border-radius:50%;background:#8EA3BD"></span>Transmisiones y Embragues Jimenez <b class="num" style="margin-left:auto;color:#FFFFFF">{{caja.t}}</b></p>
+<p style="margin:0;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#E2E3E5"><span aria-hidden="true" style="width:8px;height:8px;border-radius:2px;background:#C9A574"></span>Transmisiones y Embragues Repuestos Automotrices <b class="num" style="margin-left:auto;color:#FFFFFF">{{caja.r}}</b></p>
+</div>
+</div>
+</section>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start">
+
+<section class="card" aria-labelledby="c1" style="overflow:hidden">
+<div class="col-h"><span style="display:flex;flex-direction:column;line-height:1.3"><h2 id="c1" style="margin:0;font-size:15.5px;font-weight:700">En el taller</h2><span style="font-size:12px;color:#5E6369">Mantenimientos abiertos</span></span><span class="col-n" style="background:#E9EDF2;color:#3E546F">{{nA}}</span></div>
+<sc-for list="{{abiertos}}" as="m" hint-placeholder-count="3">
+<a class="item" href="Mantenimiento.dc.html">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="placa">{{m.placa}}</span><span class="pill {{m.pc}}">{{m.estado}}</span></div>
+<div style="line-height:1.35"><div style="font-weight:700">{{m.nombre}}</div><div style="font-size:12.5px;color:#5E6369">{{m.vehiculo}}</div></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:#5E6369"><span>N.º {{m.n}} · desde {{m.desde}}</span><span class="num" style="font-weight:700;font-size:13.5px;color:#1C1F23">{{m.total}}</span></div>
+</a>
+</sc-for>
+<sc-if value="{{sinA}}" hint-placeholder-val="{{false}}"><div style="padding:8px 20px 20px"><a href="NuevoMantenimiento.dc.html" style="display:flex;align-items:center;justify-content:center;min-height:56px;border:1.5px dashed #CCC8C1;border-radius:12px;color:#44484E;font-weight:600;font-size:13px;text-decoration:none">+ Recibir un vehículo</a></div></sc-if>
+</section>
+
+<section class="card" aria-labelledby="c2" style="overflow:hidden">
+<div class="col-h"><span style="display:flex;flex-direction:column;line-height:1.3"><h2 id="c2" style="margin:0;font-size:15.5px;font-weight:700">Falta cobrar</h2><span style="font-size:12px;color:#5E6369">Documentos con saldo</span></span><span class="col-n" style="background:#F5E5E2;color:#A8392F">{{nC}}</span></div>
+<sc-for list="{{cobrar}}" as="c" hint-placeholder-count="3">
+<div class="item">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#44484E"><span class="{{c.logo}}" aria-hidden="true">{{c.ini}}</span>{{c.negocio}}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="line-height:1.35;min-width:0"><div style="font-weight:700">{{c.cliente}}</div><div style="font-size:12.5px;color:#5E6369">{{c.doc}}</div></div><span class="num" style="font-size:18px;font-weight:600;letter-spacing:-.01em">{{c.saldo}}</span></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span class="pill {{c.pc}}">{{c.plazo}}</span><a href="{{c.href}}" class="btn btn-out btn-sm">Cobrar</a></div>
+</div>
+</sc-for>
+<sc-if value="{{sinC}}" hint-placeholder-val="{{false}}"><p style="margin:0;padding:8px 20px 22px;color:#5E6369">Nadie debe nada.</p></sc-if>
+</section>
+
+<section class="card" aria-labelledby="c3" style="overflow:hidden">
+<div class="col-h"><span style="display:flex;flex-direction:column;line-height:1.3"><h2 id="c3" style="margin:0;font-size:15.5px;font-weight:700">Falta facturar</h2><span style="font-size:12px;color:#5E6369">Cobrado y sin factura pedida</span></span><span class="col-n" style="background:#ECEBE8;color:#44484E">{{nF}}</span></div>
+<sc-for list="{{facturar}}" as="f" hint-placeholder-count="2">
+<div class="item">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#44484E"><span class="{{f.logo}}" aria-hidden="true">{{f.ini}}</span>{{f.negocio}}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="line-height:1.35;min-width:0"><div style="font-weight:700">{{f.cliente}}</div><div style="font-size:12.5px;color:#5E6369">{{f.doc}}</div></div><span class="num" style="font-size:18px;font-weight:600;letter-spacing:-.01em">{{f.total}}</span></div>
+<div style="display:flex;justify-content:flex-end"><a href="Facturas.dc.html" class="btn btn-pri btn-sm">Facturar</a></div>
+</div>
+</sc-for>
+<sc-if value="{{sinF}}" hint-placeholder-val="{{false}}"><p style="margin:0;padding:8px 20px 22px;color:#5E6369">Todo lo cobrado ya tiene factura.</p></sc-if>
+</section>
+</div>
+</main>
+</div>
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><button type="button" class="{{e1}}" onClick="{{conTrabajo}}">Día con trabajo</button><button type="button" class="{{e2}}" onClick="{{diaVacio}}">Día tranquilo</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { vacio: false }; }
+  renderVals() {
+    var self = this;
+    var v = this.state.vacio;
+    var T = { negocio: 'Transmisiones y Embragues Jimenez', logo: 'logo-t', ini: 'TJ' };
+    var R = { negocio: 'Transmisiones y Embragues Repuestos Automotrices', logo: 'logo-r', ini: 'RA' };
+    var abiertos = v ? [] : [
+      { placa: 'GBA-1234', nombre: 'Carlos Mendoza', vehiculo: 'Chevrolet Aveo 2016', n: 24, desde: 'hoy 09:40', estado: 'Abierto', pc: 'p-abierto', total: '43.00' },
+      { placa: 'GBA-1290', nombre: 'Lucía Andrade', vehiculo: 'Toyota Hilux 2021', n: 25, desde: 'hoy 10:05', estado: 'Abierto', pc: 'p-abierto', total: '25.00' },
+      { placa: 'GTR-5521', nombre: 'María Sánchez', vehiculo: 'Nissan Sentra 2018', n: 19, desde: 'ayer', estado: 'Reabierto', pc: 'p-reab', total: '12.00' }
+    ];
+    var cobrar = v ? [] : [
+      Object.assign({ cliente: 'Ana Torres', doc: 'Mantenimiento N.º 23 · finalizado', saldo: '10.00', plazo: 'Sin pagar', pc: 'p-curso', href: 'Cobrar.dc.html' }, T),
+      Object.assign({ cliente: 'Ana Torres', doc: 'Mantenimiento N.º 23 · repuestos', saldo: '51.50', plazo: 'Sin pagar', pc: 'p-curso', href: 'Cobrar.dc.html' }, R),
+      Object.assign({ cliente: 'Luis Paredes', doc: 'Venta 18', saldo: '40.00', plazo: 'Vence en 20 días', pc: 'p-curso', href: 'Cuentas.dc.html' }, R),
+      Object.assign({ cliente: 'Pedro Guamán', doc: 'Mantenimiento N.º 12', saldo: '20.00', plazo: 'Venció hace 11 días', pc: 'p-debe', href: 'Cuentas.dc.html' }, T)
+    ];
+    var facturar = v ? [] : [
+      Object.assign({ cliente: 'José Vera', doc: 'Mantenimiento N.º 21 · repuestos', total: '18.00' }, R),
+      Object.assign({ cliente: 'Consumidor final', doc: 'Venta 17', total: '18.00' }, R)
+    ];
+    var C = 263.89, tot = v ? 0 : 462.5, t = v ? 0 : 120, r = v ? 0 : 342.5;
+    var lT = tot ? C * t / tot : 0, lR = tot ? C * r / tot : 0;
+    return {
+      abiertos: abiertos, cobrar: cobrar, facturar: facturar,
+      nA: abiertos.length, nC: cobrar.length, nF: facturar.length,
+      sinA: abiertos.length === 0, sinC: cobrar.length === 0, sinF: facturar.length === 0,
+      caja: {
+        total: tot.toFixed(2), t: t.toFixed(2), r: r.toFixed(2),
+        dT: lT.toFixed(1) + ' ' + C, dR: lR.toFixed(1) + ' ' + C, oR: (-lT).toFixed(1),
+        aria: 'Cobrado hoy: ' + t.toFixed(2) + ' del taller y ' + r.toFixed(2) + ' de repuestos'
+      },
+      e1: v ? 'proto-b' : 'proto-b on', e2: v ? 'proto-b on' : 'proto-b',
+      conTrabajo: function () { self.setState({ vacio: false }); },
+      diaVacio: function () { self.setState({ vacio: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

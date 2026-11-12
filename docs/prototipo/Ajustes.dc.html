@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ajustes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas b{color:#1C1F23;font-weight:600}
+.buscar{flex:1 1 260px;max-width:420px;display:flex;align-items:center;gap:10px;height:40px;padding:0 2px;border-bottom:1.5px solid #D5D1CB;color:#5E6369;text-decoration:none;font-size:13.5px}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.ph-ico{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:#1C1F23;color:#B5582A;flex:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-out{background:#FFFFFF;color:#1C1F23;border-color:#1C1F23}.btn-out:hover{background:#1C1F23;color:#FFFFFF}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid #E4E1DC}
+.tab{display:inline-flex;align-items:center;gap:9px;min-height:50px;padding:0 16px;border:0;border-bottom:2.5px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit;font-size:14px;font-weight:500;color:#5E6369;cursor:pointer}
+.tab:hover{color:#1C1F23}
+.tab.on{color:#1C1F23;font-weight:700;border-bottom-color:#B5582A}
+.tab-dot{width:8px;height:8px;border-radius:50%;background:#B5582A}
+.fila{display:flex;align-items:center;gap:14px;width:100%;padding:15px 22px;border:0;border-top:1px solid #EFEEEB;background:transparent;font-family:inherit;font-size:14px;text-align:left;color:#1C1F23;cursor:pointer;transition:background-color .12s}
+.fila:hover{background:#FAF9F7}
+.fila-ico{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#F0EFEB;color:#1C1F23;flex:none}
+.est{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.est::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{background:#E5EFE8;color:#2F6B4A}.p-aviso{background:#F5EDDC;color:#855E16}.p-curso{background:#EFEEEB;color:#44484E}
+.rolb{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid #D5D1CB;background:#FFFFFF;font-family:inherit;font-size:12.5px;font-weight:500;color:#44484E;cursor:pointer}
+.rolb.on{background:#1C1F23;border-color:#1C1F23;color:#FFFFFF;font-weight:600}
+.sw{position:relative;width:44px;height:26px;border:0;border-radius:999px;background:#CCC8C1;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .15s}
+.sw.on{background:#3D7A57}.sw.on::after{left:21px}
+.chipm{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid #E4E1DC;border-radius:999px;background:#FFFFFF;font-weight:600;font-size:13px}
+.campo{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:500;color:#5E6369}
+.inp{width:100%;height:44px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;border-radius:0;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.dlg{animation:dlgIn .2s ease-out}
+@keyframes dlgIn{from{opacity:0;transform:translateY(8px) scale(.985)}}
+.toast{position:absolute;top:80px;right:32px;z-index:60;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:12px;background:#1C1F23;color:#FFFFFF;font-weight:600;font-size:13.5px;box-shadow:0 12px 32px rgba(30,34,38,.28);animation:toastIn .25s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translateY(-6px)}}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0"><dc-import activo="ajustes" name="Menu" hint-size="100%,1000px"></dc-import></div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+<header class="top">
+<nav class="migas" aria-label="Ruta"><b>Ajustes</b></nav>
+<a href="Buscar.dc.html" class="buscar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Buscar placa, cliente, producto o factura</a>
+<div class="user"><span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span><span class="av" aria-hidden="true">U</span><a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a></div>
+</header>
+
+<main style="padding:28px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:20px">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<span class="ph-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg></span>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">Se usa poco</p>
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.25">Ajustes</h1>
+<p style="margin:6px 0 0;color:#44484E;font-size:14.5px">Los datos de cada negocio, quién entra al sistema y lo que se configura una vez.</p>
+</div>
+</div>
+<a href="ConfigInicial.dc.html" class="btn btn-ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"></path><path d="M4 4v4.7h4.7"></path></svg>Repetir la guía inicial</a>
+</div>
+
+<div class="tabs" role="tablist">
+<sc-for list="{{secs}}" as="s" hint-placeholder-count="6">
+<button type="button" role="tab" class="{{s.cls}}" aria-selected="{{s.on}}" onClick="{{s.pick}}">{{s.label}}<sc-if value="{{s.alerta}}" hint-placeholder-val="{{false}}"><span class="tab-dot" aria-label="Requiere atención"></span></sc-if></button>
+</sc-for>
+</div>
+
+<sc-if value="{{enNeg}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:20px">
+<sc-for list="{{negocios}}" as="n" hint-placeholder-count="2">
+<article class="card" style="overflow:hidden">
+<div style="position:relative;height:96px;background:{{n.color}};overflow:hidden">
+<svg width="320" height="140" viewBox="0 0 320 140" fill="none" aria-hidden="true" style="position:absolute;right:-40px;top:-10px"><circle cx="250" cy="140" r="60" stroke="rgba(255,255,255,.18)"></circle><circle cx="250" cy="140" r="95" stroke="rgba(255,255,255,.18)"></circle><circle cx="250" cy="140" r="130" stroke="rgba(255,255,255,.12)"></circle><path d="M164 112A95 95 0 0 1 196 64" stroke="#B5582A" stroke-width="2.5" stroke-linecap="round"></path></svg>
+<span style="position:absolute;top:16px;right:18px" class="pill {{n.pc}}">{{n.estado}}</span>
+</div>
+<div style="padding:0 24px 18px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;margin-top:-40px;position:relative">
+<span aria-hidden="true" style="display:grid;place-items:center;width:84px;height:84px;border-radius:{{n.radio}};background:{{n.color}};color:#FFFFFF;font-weight:700;font-size:24px;letter-spacing:.02em;box-shadow:0 0 0 5px #FFFFFF,0 8px 20px rgba(30,34,38,.15)">{{n.ini}}</span>
+<div style="flex:1;min-width:0;padding-bottom:4px">
+<h2 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.015em;line-height:1.2">{{n.nombre}}</h2>
+<p style="margin:2px 0 0;font-size:12.5px;color:#5E6369">{{n.que}}</p>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:14px;margin:0 24px 16px;padding:14px 16px;border-radius:14px;background:#F6F5F2">
+<svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true" style="flex:none"><circle cx="23" cy="23" r="18" fill="none" stroke="#E4E1DC" stroke-width="5"></circle><circle cx="23" cy="23" r="18" fill="none" stroke="{{n.anillo}}" stroke-width="5" stroke-linecap="round" stroke-dasharray="{{n.dash}}" transform="rotate(-90 23 23)"></circle></svg>
+<span style="line-height:1.35"><span style="display:block;font-weight:700">{{n.listoTxt}}</span><span style="font-size:12.5px;color:#5E6369">{{n.listoSub}}</span></span>
+</div>
+<div>
+<sc-for list="{{n.filas}}" as="f" hint-placeholder-count="5">
+<button type="button" class="fila" onClick="{{f.abrir}}">
+<span class="fila-ico" aria-hidden="true">{{f.ini}}</span>
+<span style="flex:1;min-width:0;line-height:1.35"><span style="display:block;font-weight:600">{{f.label}}</span><span class="num" style="font-size:12.5px;color:#5E6369">{{f.valor}}</span></span>
+<span class="est" style="color:{{f.ec}}">{{f.est}}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9EA1A5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg>
+</button>
+</sc-for>
+</div>
+</article>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{enPer}}" hint-placeholder-val="{{false}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+<sc-for list="{{personas}}" as="u" hint-placeholder-count="3">
+<article class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:center;gap:14px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:{{u.bg}};color:{{u.fg}};font-weight:700;font-size:16px">{{u.ini}}</span>
+<span style="flex:1;min-width:0;line-height:1.35"><span style="display:block;font-weight:700;font-size:15px">{{u.nombre}}</span><span style="font-size:12.5px;color:#5E6369">Último acceso: {{u.acceso}}</span></span>
+<button type="button" class="{{u.swCls}}" role="switch" aria-checked="{{u.activo}}" aria-label="Acceso activo" onClick="{{u.toggleActivo}}"></button>
+</div>
+<div><p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#5E6369">Puede trabajar como</p>
+<div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{u.roles}}" as="r" hint-placeholder-count="3"><button type="button" class="{{r.cls}}" aria-pressed="{{r.on}}" onClick="{{r.toggle}}">{{r.label}}</button></sc-for></div></div>
+<button type="button" class="btn btn-ghost" style="align-self:flex-start;min-height:36px;padding:0 10px">Cambiar contraseña</button>
+</article>
+</sc-for>
+<button type="button" style="min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1.5px dashed #CCC8C1;border-radius:18px;background:transparent;font-family:inherit;color:#44484E;font-weight:600;cursor:pointer"><span aria-hidden="true" style="display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#EFEEEB;font-size:20px">+</span>Dar acceso a otra persona</button>
+</div>
+</sc-if>
+
+<sc-if value="{{enProv}}" hint-placeholder-val="{{false}}">
+<section class="card" style="overflow:hidden">
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px"><h2 style="margin:0;font-size:16px;font-weight:700">Proveedores</h2><button type="button" class="btn btn-pri" style="min-height:40px">+ Nuevo proveedor</button></div>
+<div style="display:grid;grid-template-columns:44px minmax(0,1fr) 170px 150px 170px;gap:18px;padding:11px 22px;background:#F8F7F4;border-top:1px solid #EFEEEB;font-size:12px;font-weight:600;color:#5E6369"><span></span><span>Proveedor</span><span>RUC</span><span>Teléfono</span><span>Última entrada</span></div>
+<sc-for list="{{proveedores}}" as="p" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:44px minmax(0,1fr) 170px 150px 170px;gap:18px;align-items:center;padding:14px 22px;border-top:1px solid #EFEEEB">
+<span aria-hidden="true" style="display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#F2ECE2;color:#6E5430;font-weight:700;font-size:12px">{{p.ini}}</span>
+<span style="font-weight:700">{{p.nombre}}</span>
+<span class="num" style="font-size:13px">{{p.ruc}}</span>
+<span class="num" style="font-size:13px">{{p.tel}}</span>
+<span style="font-size:13px;color:#5E6369">{{p.ultima}}</span>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{enMarcas}}" hint-placeholder-val="{{false}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px">
+<section class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span style="line-height:1.3"><h2 style="margin:0;font-size:16px;font-weight:700">Marcas de vehículos</h2><span style="font-size:12.5px;color:#5E6369">El número es cuántos vehículos hay de cada una</span></span><button type="button" class="btn btn-out" style="min-height:38px">+ Agregar</button></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{marcasV}}" as="m" hint-placeholder-count="10"><span class="chipm">{{m.n}}<span class="num" style="font-size:12px;color:#7C8085;font-weight:500">{{m.c}}</span></span></sc-for></div>
+</section>
+<section class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><span style="line-height:1.3"><h2 style="margin:0;font-size:16px;font-weight:700">Marcas de repuestos</h2><span style="font-size:12.5px;color:#5E6369">El número es cuántos productos hay de cada una</span></span><button type="button" class="btn btn-out" style="min-height:38px">+ Agregar</button></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{marcasP}}" as="m" hint-placeholder-count="8"><span class="chipm">{{m.n}}<span class="num" style="font-size:12px;color:#7C8085;font-weight:500">{{m.c}}</span></span></sc-for></div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{enHist}}" hint-placeholder-val="{{false}}">
+<section class="card" style="padding:10px 26px 18px">
+<sc-for list="{{cambios}}" as="c" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:110px 40px minmax(0,1fr);gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid #EFEEEB">
+<span class="num" style="font-size:12.5px;color:#5E6369">{{c.cuando}}</span>
+<span aria-hidden="true" style="display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:{{c.bg}};color:{{c.fg}};font-weight:700;font-size:12px">{{c.ini}}</span>
+<span style="line-height:1.4"><span style="display:block;font-weight:600">{{c.que}}</span><span style="font-size:12.5px;color:#5E6369">{{c.quien}}</span></span>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{enSis}}" hint-placeholder-val="{{false}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px">
+<sc-for list="{{sistema}}" as="e" hint-placeholder-count="4">
+<section class="card" style="padding:22px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span aria-hidden="true" style="display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:{{e.bg}};color:{{e.fg}};font-weight:700">{{e.ini}}</span><span class="pill {{e.pc}}">{{e.est}}</span></div>
+<span style="font-weight:700;font-size:15px">{{e.que}}</span>
+<span style="font-size:13px;color:#44484E">{{e.det}}</span>
+</section>
+</sc-for>
+</div>
+</sc-if>
+</main>
+</div>
+
+<sc-if value="{{modal}}" hint-placeholder-val="{{false}}">
+<div style="position:absolute;inset:0;z-index:50;background:rgba(30,34,38,.45);display:flex;align-items:center;justify-content:center;padding:32px 16px">
+<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="aj-t" style="width:100%;max-width:600px;background:#FFFFFF;border-radius:20px;box-shadow:0 30px 70px rgba(20,22,25,.30);padding:24px 28px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+<div><h2 id="aj-t" style="margin:0;font-size:20px;font-weight:700">{{m.titulo}}</h2><p style="margin:2px 0 0;font-size:13px;color:#5E6369">{{m.negocio}}</p></div>
+<button type="button" class="btn btn-ghost" aria-label="Cerrar" style="width:44px;padding:0" onClick="{{cerrar}}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+<sc-if value="{{m.esLogo}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:20px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:110px;height:110px;border-radius:{{m.radio}};background:{{m.color}};color:#FFFFFF;font-weight:700;font-size:30px">{{m.ini}}</span>
+<div style="flex:1 1 240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:110px;border:1.5px dashed #CCC8C1;border-radius:14px;color:#44484E;text-align:center;padding:14px"><span style="font-weight:600">Arrastra aquí el logo o elige un archivo</span><span style="font-size:12px;color:#5E6369">PNG o JPG · aparece en recibos y facturas</span></div>
+</div>
+</sc-if>
+<sc-if value="{{m.esCampos}}" hint-placeholder-val="{{true}}">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px">
+<sc-for list="{{m.campos}}" as="c" hint-placeholder-count="2"><label class="campo">{{c.l}}<input class="inp num" value="{{c.v}}"></label></sc-for>
+</div>
+</sc-if>
+<div style="display:flex;justify-content:flex-end;gap:10px;padding-top:4px">
+<button type="button" class="btn btn-ghost" onClick="{{cerrar}}">Cancelar</button>
+<button type="button" class="btn btn-pri" style="min-width:150px" onClick="{{guardar}}">Guardar</button>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{toast}}" hint-placeholder-val="{{false}}">
+<div class="toast" role="status"><span aria-hidden="true" style="display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#3D7A57"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></span>Cambios guardados</div>
+</sc-if>
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><sc-for list="{{secs}}" as="s" hint-placeholder-count="6"><button type="button" class="{{s.pcls}}" onClick="{{s.pick}}">{{s.label}}</button></sc-for><button type="button" class="{{pLogo}}" onClick="{{abrirLogo}}">Cambiar logo</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sec: 'neg', modal: null, toast: false, activos: [true, true, true], roles: [['Administrador', 'Vendedor', 'Encargado del taller'], ['Administrador'], ['Encargado del taller']] };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var defs = [['neg', 'Negocios', true], ['per', 'Personas con acceso', false], ['prov', 'Proveedores', false], ['marcas', 'Marcas', false], ['hist', 'Historial de cambios', false], ['sis', 'Sistema', false]];
+    var secs = defs.map(function (d) {
+      var on = st.sec === d[0];
+      return { label: d[1], alerta: d[2], on: on, cls: on ? 'tab on' : 'tab', pcls: on && !st.modal ? 'proto-b on' : 'proto-b', pick: function () { self.setState({ sec: d[0], modal: null }); } };
+    });
+    var OK = '#2F6B4A', AV = '#855E16';
+    var abrir = function (neg, f) { return function () { self.setState({ modal: { neg: neg, f: f } }); }; };
+    var negDefs = [
+      { k: 't', nombre: 'Transmisiones y Embragues Jimenez', que: 'Mano de obra y servicios del taller', ini: 'TJ', color: '#4A6280', radio: '50%', listos: 5,
+        filas: [
+          { id: 'datos', ini: 'D', label: 'Datos del negocio', valor: '[Razón social del taller] · RUC [RUC del taller]', est: 'Completo', ec: OK, campos: [{ l: 'Nombre comercial', v: 'Transmisiones y Embragues Jimenez' }, { l: 'RUC', v: '[RUC del taller]' }] },
+          { id: 'logo', ini: 'L', label: 'Logo', valor: 'Sale en recibos y facturas', est: 'Cargado', ec: OK },
+          { id: 'punto', ini: 'N', label: 'Numeración de facturas', valor: 'Punto 001-001 · próxima 000000249', est: 'Completo', ec: OK, campos: [{ l: 'Punto de emisión', v: '001-001' }, { l: 'Próximo número', v: '000000249' }] },
+          { id: 'firma', ini: 'F', label: 'Firma electrónica', valor: 'Vence el 14 de marzo de 2027', est: 'Vigente', ec: OK, campos: [{ l: 'Vence el', v: '14/03/2027' }, { l: 'A nombre de', v: '[Titular de la firma]' }] },
+          { id: 'imp', ini: 'I', label: 'Impuestos', valor: 'Artesano calificado N.º [número] · vence [fecha]', est: 'Completo', ec: OK, campos: [{ l: 'N.º de calificación artesanal', v: '[número]' }, { l: 'Vence el', v: '[fecha]' }] }
+        ] },
+      { k: 'r', nombre: 'Transmisiones y Embragues Repuestos Automotrices', que: 'Venta de repuestos y accesorios', ini: 'RA', color: '#8C6B3F', radio: '22px', listos: 4,
+        filas: [
+          { id: 'datos', ini: 'D', label: 'Datos del negocio', valor: '[Razón social de repuestos] · RUC [RUC de repuestos]', est: 'Completo', ec: OK, campos: [{ l: 'Nombre comercial', v: 'Transmisiones y Embragues Repuestos Automotrices' }, { l: 'RUC', v: '[RUC de repuestos]' }] },
+          { id: 'logo', ini: 'L', label: 'Logo', valor: 'Sale en recibos y facturas', est: 'Cargado', ec: OK },
+          { id: 'punto', ini: 'N', label: 'Numeración de facturas', valor: 'Punto 001-001 · próxima 000001204', est: 'Completo', ec: OK, campos: [{ l: 'Punto de emisión', v: '001-001' }, { l: 'Próximo número', v: '000001204' }] },
+          { id: 'firma', ini: 'F', label: 'Firma electrónica', valor: 'Todavía no se cargó', est: 'Falta', ec: AV, campos: [{ l: 'Vence el', v: '' }, { l: 'A nombre de', v: '' }] },
+          { id: 'imp', ini: 'I', label: 'Impuestos', valor: 'IVA 15 % en los repuestos', est: 'Completo', ec: OK, campos: [{ l: 'IVA de los repuestos', v: '15 %' }, { l: 'Desde', v: '01/04/2024' }] }
+        ] }
+    ];
+    var C = 113.1;
+    var negocios = negDefs.map(function (n) {
+      var listo = n.listos === 5;
+      return Object.assign({}, n, {
+        estado: listo ? 'Listo para facturar' : 'Falta un dato', pc: listo ? 'p-ok' : 'p-aviso',
+        listoTxt: n.listos + ' de 5 datos completos', listoSub: listo ? 'Puede emitir facturas' : 'Completa la firma electrónica para facturar',
+        anillo: listo ? '#3D7A57' : '#B5582A', dash: (C * n.listos / 5).toFixed(1) + ' ' + C,
+        filas: n.filas.map(function (f) { return Object.assign({}, f, { abrir: abrir(n, f) }); })
+      });
+    });
+    var nombresRol = ['Administrador', 'Vendedor', 'Encargado del taller'];
+    var personas = [['U', '[Nombre de la usuaria]', 'Ahora', '#B5582A', '#1C1F23'], ['D', '[Nombre del dueño]', 'Ayer', '#1C1F23', '#FFFFFF'], ['M', '[Nombre del mecánico]', 'Hace 3 días', '#EFEEEB', '#1C1F23']].map(function (p, i) {
+      var act = st.activos[i];
+      return {
+        ini: p[0], nombre: p[1], acceso: p[2], bg: p[3], fg: p[4], activo: act, swCls: act ? 'sw on' : 'sw',
+        toggleActivo: function () { var a = st.activos.slice(); a[i] = !a[i]; self.setState({ activos: a }); },
+        roles: nombresRol.map(function (r) {
+          var on = st.roles[i].indexOf(r) >= 0;
+          return { label: r, on: on, cls: on ? 'rolb on' : 'rolb', toggle: function () {
+            var t = st.roles.map(function (x) { return x.slice(); }); var k = t[i].indexOf(r);
+            if (k >= 0) { t[i].splice(k, 1); } else { t[i].push(r); } self.setState({ roles: t });
+          } };
+        })
+      };
+    });
+    var md = st.modal;
+    var m = md ? {
+      titulo: md.f.label, negocio: md.neg.nombre, esLogo: md.f.id === 'logo', esCampos: md.f.id !== 'logo',
+      campos: md.f.campos || [], ini: md.neg.ini, color: md.neg.color, radio: md.neg.radio === '50%' ? '50%' : '26px'
+    } : { titulo: '', negocio: '', esLogo: false, esCampos: false, campos: [], ini: '', color: '', radio: '' };
+    return {
+      secs: secs,
+      enNeg: st.sec === 'neg', enPer: st.sec === 'per', enProv: st.sec === 'prov', enMarcas: st.sec === 'marcas', enHist: st.sec === 'hist', enSis: st.sec === 'sis',
+      negocios: negocios, personas: personas,
+      proveedores: [
+        { ini: 'AP', nombre: 'Autopartes del Pacífico', ruc: '0992233445001', tel: '04 228 1100', ultima: '28 de octubre' },
+        { ini: 'LL', nombre: 'Lubricantes del Litoral', ruc: '0991122334001', tel: '04 239 7788', ultima: '15 de octubre' },
+        { ini: 'FE', nombre: 'Frenos y Embragues Guayas', ruc: '0993344556001', tel: '04 245 6020', ultima: '2 de octubre' },
+        { ini: 'BC', nombre: 'Baterías Costa', ruc: '0994455667001', tel: '04 260 3300', ultima: '21 de septiembre' }
+      ],
+      marcasV: [{ n: 'Chevrolet', c: 38 }, { n: 'Kia', c: 21 }, { n: 'Hyundai', c: 19 }, { n: 'Toyota', c: 17 }, { n: 'Nissan', c: 12 }, { n: 'Mazda', c: 9 }, { n: 'Hino', c: 6 }, { n: 'Suzuki', c: 5 }, { n: 'Renault', c: 4 }, { n: 'Volkswagen', c: 3 }],
+      marcasP: [{ n: 'Bosch', c: 64 }, { n: 'NGK', c: 22 }, { n: 'Valvoline', c: 18 }, { n: 'Brembo', c: 15 }, { n: 'Valeo', c: 12 }, { n: 'Prestone', c: 9 }, { n: 'Mann-Filter', c: 8 }, { n: 'Monroe', c: 6 }],
+      cambios: [
+        { cuando: 'Hoy 08:02', ini: 'U', bg: '#B5582A', fg: '#FFFFFF', que: 'Cambió el precio de «Cambio de aceite» de 9.00 a 10.00', quien: '[Nombre de la usuaria]' },
+        { cuando: 'Ayer 17:45', ini: 'D', bg: '#1C1F23', fg: '#FFFFFF', que: 'Agregó el proveedor Baterías Costa', quien: '[Nombre del dueño]' },
+        { cuando: '30 oct', ini: 'D', bg: '#1C1F23', fg: '#FFFFFF', que: 'Actualizó la firma electrónica de Transmisiones y Embragues Jimenez', quien: '[Nombre del dueño]' },
+        { cuando: '28 oct', ini: 'D', bg: '#1C1F23', fg: '#FFFFFF', que: 'Dio acceso a [Nombre del mecánico] como Encargado del taller', quien: '[Nombre del dueño]' },
+        { cuando: '20 oct', ini: 'U', bg: '#B5582A', fg: '#FFFFFF', que: 'Ajustó el stock de Pastillas de freno delanteras', quien: '[Nombre de la usuaria]' }
+      ],
+      sistema: [
+        { ini: 'R', bg: '#E5EFE8', fg: '#2F6B4A', que: 'Respaldo', est: 'Al día', pc: 'p-ok', det: 'Último respaldo hoy a las 03:00 en el disco externo.' },
+        { ini: 'F', bg: '#F5EDDC', fg: '#855E16', que: 'Facturación electrónica', est: 'En pruebas', pc: 'p-aviso', det: 'Las facturas se piden, pero todavía no se envían al SRI.' },
+        { ini: 'I', bg: '#E5EFE8', fg: '#2F6B4A', que: 'Conexión a internet', est: 'Bien', pc: 'p-ok', det: 'Hace falta para enviar facturas y correos.' },
+        { ini: 'E', bg: '#EFEEEB', fg: '#44484E', que: 'Espacio del equipo', est: '62 % usado', pc: 'p-curso', det: 'Quedan 180 GB libres en la mini PC del taller.' }
+      ],
+      modal: !!md, m: m, toast: st.toast,
+      cerrar: function () { self.setState({ modal: null }); },
+      guardar: function () { self.setState({ modal: null, toast: true }); },
+      abrirLogo: function () { self.setState({ sec: 'neg', modal: { neg: negDefs[0], f: negDefs[0].filas[1] } }); },
+      pLogo: md ? 'proto-b on' : 'proto-b'
+    };
+  }
+}
+</script>
+</body>
+</html>

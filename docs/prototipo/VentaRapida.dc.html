@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Venta rápida</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas a{color:#5E6369;text-decoration:none}.migas a:hover{color:#1C1F23}
+.migas b{color:#1C1F23;font-weight:600}
+.buscar{flex:1 1 260px;max-width:420px;display:flex;align-items:center;gap:10px;height:40px;padding:0 2px;border-bottom:1.5px solid #D5D1CB;color:#5E6369;text-decoration:none;font-size:13.5px}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-pri[disabled]{background:#E6CBBB;color:#6B4B3A;cursor:not-allowed}
+.btn-out{background:#FFFFFF;color:#1C1F23;border-color:#1C1F23}.btn-out:hover{background:#1C1F23;color:#FFFFFF}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{background:#E5EFE8;color:#2F6B4A}
+.p-facturar{background:#ECEBE8;color:#44484E}
+.p-stock{background:#F2ECE2;color:#6E5430}
+.p-poco{background:#F5EDDC;color:#855E16}
+.campo{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:500;color:#5E6369}
+.inp{width:100%;height:44px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;border-radius:0;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.inp::placeholder{color:#8D9196;font-weight:400}
+.res{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:8px 12px;border:0;border-radius:10px;background:transparent;font-family:inherit;font-size:14px;color:#1C1F23;text-align:left;cursor:pointer}
+.res:hover{background:#F4F3F0}
+.linea{display:grid;grid-template-columns:minmax(0,1fr) 128px 96px 40px;align-items:center;gap:16px;padding:14px 20px;border-top:1px solid #EFEEEB}
+.cant{display:inline-flex;align-items:center;gap:4px}
+.cant button{display:grid;place-items:center;width:30px;height:30px;border:1px solid #D5D1CB;border-radius:8px;background:#FFFFFF;font-family:inherit;font-size:16px;font-weight:600;color:#1C1F23;cursor:pointer}
+.cant b{display:inline-grid;place-items:center;min-width:30px;height:30px;border-radius:8px;background:#1C1F23;color:#FFFFFF;font-size:13px}
+.quitar{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:#7C8085;cursor:pointer}
+.quitar:hover{background:#F5E5E2;color:#A8392F}
+.medio{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1.5px solid #E4E1DC;border-radius:10px;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:600;color:#44484E;cursor:pointer}
+.medio.on{border-color:#1C1F23;background:#1C1F23;color:#FFFFFF}
+.check{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:500;color:#44484E;cursor:pointer}
+.check input{width:18px;height:18px;margin:1px 0 0;accent-color:#1C1F23}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+.toast{position:absolute;top:80px;right:32px;z-index:30;display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:12px;background:#1C1F23;color:#FFFFFF;font-weight:600;font-size:13.5px;box-shadow:0 12px 32px rgba(30,34,38,.28);animation:toastIn .25s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translateY(-6px)}}
+@media (max-width:900px){.linea{grid-template-columns:minmax(0,1fr) auto}}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0">
+<dc-import activo="ventas" name="Menu" hint-size="100%,1000px"></dc-import>
+</div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+
+<header class="top">
+<nav class="migas" aria-label="Ruta"><a href="Ventas.dc.html">Ventas</a><span aria-hidden="true">/</span><b>Venta rápida</b></nav>
+<a href="Buscar.dc.html" class="buscar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Buscar placa, cliente, producto o factura</a>
+<div class="user">
+<span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span>
+<span class="av" aria-hidden="true">U</span>
+<a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a>
+</div>
+</header>
+
+<main style="padding:28px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid #E4E1DC">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<span aria-hidden="true" style="display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:#F2ECE2;color:#6E5430;flex:none"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 14H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg></span>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">Mostrador · Transmisiones y Embragues Repuestos Automotrices</p>
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.25">Venta rápida</h1>
+<p style="margin:6px 0 0;color:#44484E;font-size:14.5px">Elige al cliente, pasa los productos y cobra. Sale una sola factura, del almacén de repuestos.</p>
+</div>
+</div>
+<button type="button" class="btn btn-ghost" onClick="{{nueva}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"></path><path d="M4 4v4.7h4.7"></path></svg>Empezar de nuevo</button>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+<div style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px">
+
+<section class="card" aria-labelledby="cl-t" style="padding:16px 20px;display:flex;flex-direction:column;gap:6px">
+<h2 id="cl-t" style="margin:0;font-size:15px;font-weight:700">Cliente</h2>
+<sc-if value="{{sinCliente}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px">
+<label class="campo" style="flex:1 1 280px">
+<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar cliente</span>
+<input class="inp" value="{{qc}}" onChange="{{onQc}}" placeholder="Nombre, cédula o placa" autocomplete="off">
+</label>
+<button type="button" class="btn btn-ghost" style="min-height:40px" onClick="{{consumidor}}">Consumidor final</button>
+</div>
+<ul style="list-style:none;margin:0 -12px;padding:0">
+<sc-for list="{{resC}}" as="c" hint-placeholder-count="2">
+<li><button type="button" class="res" onClick="{{c.pick}}">
+<span aria-hidden="true" style="display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#EFEEEB;font-weight:700;font-size:12px">{{c.ini}}</span>
+<span style="flex:1;display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:600">{{c.nombre}}</span><span class="num" style="font-size:12px;color:#5E6369">{{c.doc}}</span></span>
+<span style="font-size:12px;color:#5E6369">{{c.correo}}</span>
+</button></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-if value="{{hayCliente}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding-top:6px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:13px">{{cli.ini}}</span>
+<span style="flex:1;display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:700">{{cli.nombre}}</span><span class="num" style="font-size:12.5px;color:#5E6369">{{cli.doc}}</span></span>
+<button type="button" class="btn btn-ghost" style="min-height:36px;padding:0 10px" onClick="{{quitarCliente}}">Cambiar</button>
+</div>
+</sc-if>
+</section>
+
+<section class="card" aria-labelledby="pr-t" style="overflow:hidden">
+<div style="padding:16px 20px 6px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><h2 id="pr-t" style="margin:0;font-size:15px;font-weight:700">Productos</h2><span style="font-size:12.5px;color:#5E6369">{{nProd}}</span></div>
+<label style="display:block;position:relative">
+<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar producto</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5E6369" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:2px;top:12px"><path d="M4 6v12M7 6v12M10 6v12M14 6v12M17 6v12M20 6v12"></path></svg>
+<input class="inp" style="padding-left:32px" value="{{qp}}" onChange="{{onQp}}" placeholder="Escribe el nombre o pasa el lector de códigos" autocomplete="off">
+</label>
+</div>
+<sc-if value="{{hayResP}}" hint-placeholder-val="{{false}}">
+<ul style="list-style:none;margin:0;padding:4px 8px 8px">
+<sc-for list="{{resP}}" as="p" hint-placeholder-count="3">
+<li><button type="button" class="res" onClick="{{p.add}}">
+<span style="flex:1;display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:600">{{p.nombre}}</span><span style="font-size:12px;color:#5E6369">Código {{p.cod}} · quedan {{p.stock}}</span></span>
+<span class="num" style="font-weight:700">{{p.precioTxt}}</span>
+<span aria-hidden="true" style="display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#1C1F23;color:#FFFFFF"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></span>
+</button></li>
+</sc-for>
+</ul>
+</sc-if>
+<sc-for list="{{lineas}}" as="l" hint-placeholder-count="2">
+<div class="linea">
+<div style="min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px"><span style="font-weight:600">{{l.nombre}}</span><span class="pill {{l.stockCls}}">{{l.stockTxt}}</span><span style="flex-basis:100%;font-size:12px;color:#5E6369">{{l.unitTxt}} c/u</span></div>
+<span class="cant"><button type="button" aria-label="Uno menos" onClick="{{l.menos}}">−</button><b class="num">{{l.cant}}</b><button type="button" aria-label="Uno más" onClick="{{l.mas}}">+</button></span>
+<span class="num" style="text-align:right;font-weight:700">{{l.totalTxt}}</span>
+<button type="button" class="quitar" aria-label="Quitar {{l.nombre}}" onClick="{{l.quitar}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+</sc-for>
+<sc-if value="{{sinLineas}}" hint-placeholder-val="{{true}}">
+<div style="padding:8px 20px 20px"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border:1.5px dashed #CCC8C1;border-radius:12px;color:#5E6369;text-align:center">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8D9196" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 6v12M7 6v12M10 6v12M14 6v12M17 6v12M20 6v12"></path></svg>
+<span style="font-weight:600;color:#44484E">Pasa el primer producto por el lector</span>
+<span style="font-size:12.5px">o escribe su nombre arriba</span>
+</div></div>
+</sc-if>
+</section>
+</div>
+
+<aside style="flex:1 1 320px;min-width:0">
+<sc-if value="{{noHecho}}" hint-placeholder-val="{{true}}">
+<section class="card" aria-labelledby="co-t" style="padding:20px 22px;display:flex;flex-direction:column;gap:16px">
+<div>
+<h2 id="co-t" style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">Total a cobrar</h2>
+<p class="num" style="margin:0;font-size:40px;font-weight:300;letter-spacing:-.03em;line-height:1.2">USD {{total}}</p>
+</div>
+<div role="group" aria-label="Cómo paga" style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12.5px;font-weight:500;color:#5E6369">¿Cómo paga?</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{medios}}" as="m" hint-placeholder-count="4">
+<button type="button" class="{{m.cls}}" aria-pressed="{{m.on}}" onClick="{{m.pick}}">{{m.label}}</button>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{hayCliente}}" hint-placeholder-val="{{false}}">
+<label class="campo">Correo para la factura<input class="inp" type="email" value="{{correo}}" onChange="{{onCorreo}}"></label>
+<label class="check"><input type="checkbox" checked="{{guardar}}" onChange="{{onGuardar}}">Guardar en la ficha del cliente</label>
+</sc-if>
+<sc-if value="{{puede}}" hint-placeholder-val="{{false}}">
+<button type="button" class="btn btn-pri" style="width:100%;min-height:52px;font-size:14.5px" onClick="{{cobrar}}">Cobrar y facturar</button>
+</sc-if>
+<sc-if value="{{noPuede}}" hint-placeholder-val="{{true}}">
+<button type="button" class="btn btn-pri" style="width:100%;min-height:52px" disabled="disabled">Agrega un producto</button>
+</sc-if>
+</section>
+</sc-if>
+<sc-if value="{{hecho}}" hint-placeholder-val="{{false}}">
+<section class="card" style="padding:24px 22px;display:flex;flex-direction:column;gap:14px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#E5EFE8;color:#2F6B4A"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></span>
+<div><h2 style="margin:0;font-size:20px;font-weight:700">Venta 19 cobrada</h2><p class="num" style="margin:2px 0 0;font-size:30px;font-weight:300;letter-spacing:-.03em">USD {{total}}</p></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><span class="pill p-ok">Cobro registrado</span><span class="pill p-facturar">Factura solicitada</span></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button type="button" class="btn btn-out" style="flex:1">Imprimir recibo</button>
+<button type="button" class="btn btn-pri" style="flex:1" onClick="{{nueva}}">Nueva venta</button>
+</div>
+</section>
+</sc-if>
+</aside>
+</div>
+</main>
+</div>
+
+<sc-if value="{{hecho}}" hint-placeholder-val="{{false}}">
+<div class="toast" role="status"><span aria-hidden="true" style="display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#3D7A57"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></span>Venta cobrada y factura solicitada</div>
+</sc-if>
+
+<div class="proto" role="group" aria-label="Escenario del prototipo">
+<span class="proto-l">Prototipo</span>
+<sc-for list="{{escenarios}}" as="e" hint-placeholder-count="3">
+<button type="button" class="{{e.cls}}" aria-pressed="{{e.on}}" onClick="{{e.pick}}">{{e.label}}</button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { escena: 'vacia', cliente: null, qc: '', qp: '', lineas: [], medio: 'efectivo', correo: '', guardar: true, hecho: false };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var fmt = function (c) { return (c / 100).toFixed(2); };
+    var norm = function (s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+    var clientes = [
+      { ini: 'CM', nombre: 'Carlos Mendoza', doc: 'Cédula 0912345678', correo: 'cmendoza@correo.com', placa: 'gba1234' },
+      { ini: 'MS', nombre: 'María Sánchez', doc: 'Cédula 0923456781', correo: 'msanchez@correo.com', placa: 'gtr5521' },
+      { ini: 'AT', nombre: 'Ana Torres', doc: 'RUC 0991234567001', correo: 'atorres@correo.com', placa: 'pcq0571' }
+    ];
+    var productos = [
+      { cod: '7861234', nombre: 'Aceite 20W-50, galón', precio: 3200, stock: 12 },
+      { cod: '7861102', nombre: 'Filtro de aceite', precio: 650, stock: 8 },
+      { cod: '7861350', nombre: 'Pastillas de freno delanteras', precio: 2300, stock: 5 },
+      { cod: '7861411', nombre: 'Líquido de frenos DOT 4', precio: 900, stock: 2 },
+      { cod: '7861588', nombre: 'Bujía de iridio', precio: 450, stock: 24 },
+      { cod: '7861690', nombre: 'Plumas limpiaparabrisas 18"', precio: 1200, stock: 6 }
+    ];
+    var qc = norm(st.qc).replace(/[^a-z0-9 ]/g, '').trim();
+    var resC = qc.length < 2 ? [] : clientes.filter(function (c) { return norm(c.nombre).indexOf(qc) >= 0 || c.doc.indexOf(qc) >= 0 || c.placa.indexOf(qc) >= 0; });
+    var qp = norm(st.qp).trim();
+    var resP = qp.length < 2 ? [] : productos.filter(function (p) { return norm(p.nombre).indexOf(qp) >= 0 || p.cod.indexOf(qp) >= 0; }).slice(0, 5);
+    var agregar = function (p) {
+      var lineas = st.lineas.slice();
+      var i = lineas.findIndex(function (l) { return l.cod === p.cod; });
+      if (i >= 0) { lineas[i] = Object.assign({}, lineas[i], { cant: Math.min(p.stock, lineas[i].cant + 1) }); }
+      else { lineas.push(Object.assign({}, p, { cant: 1 })); }
+      self.setState({ lineas: lineas, qp: '' });
+    };
+    var cambiar = function (cod, d) { self.setState({ lineas: st.lineas.map(function (l) { return l.cod === cod ? Object.assign({}, l, { cant: Math.max(1, Math.min(l.stock, l.cant + d)) }) : l; }) }); };
+    var lineas = st.lineas.map(function (l) {
+      var queda = l.stock - l.cant;
+      return Object.assign({}, l, {
+        totalTxt: fmt(l.precio * l.cant), unitTxt: fmt(l.precio),
+        stockTxt: 'Quedan ' + queda, stockCls: queda <= 2 ? 'p-poco' : 'p-stock',
+        mas: function () { cambiar(l.cod, 1); }, menos: function () { cambiar(l.cod, -1); },
+        quitar: function () { self.setState({ lineas: st.lineas.filter(function (x) { return x.cod !== l.cod; }) }); }
+      });
+    });
+    var total = st.lineas.reduce(function (a, l) { return a + l.precio * l.cant; }, 0);
+    var unidades = st.lineas.reduce(function (a, l) { return a + l.cant; }, 0);
+    var medios = [['efectivo', 'Efectivo'], ['transferencia', 'Transferencia'], ['tarjeta', 'Tarjeta'], ['debe', 'Queda debiendo']].map(function (m) {
+      var on = st.medio === m[0];
+      return { label: m[1], on: on, cls: on ? 'medio on' : 'medio', pick: function () { self.setState({ medio: m[0] }); } };
+    });
+    var lleno = [Object.assign({}, productos[0], { cant: 1 }), Object.assign({}, productos[1], { cant: 1 })];
+    var nueva = function () { self.setState({ escena: 'vacia', cliente: null, qc: '', qp: '', lineas: [], medio: 'efectivo', correo: '', hecho: false }); };
+    var escenarios = [
+      ['vacia', 'Vacía', nueva],
+      ['llena', 'Con productos', function () { self.setState({ escena: 'llena', cliente: clientes[1], correo: clientes[1].correo, lineas: lleno, hecho: false }); }],
+      ['hecho', 'Cobrada', function () { self.setState({ escena: 'hecho', cliente: clientes[1], correo: clientes[1].correo, lineas: lleno, hecho: true }); }]
+    ].map(function (e) { var on = st.escena === e[0]; return { label: e[1], on: on, cls: on ? 'proto-b on' : 'proto-b', pick: e[2] }; });
+    var cli = st.cliente;
+    return {
+      qc: st.qc, onQc: function (e) { self.setState({ qc: e.target.value }); },
+      resC: resC.map(function (c) { return Object.assign({}, c, { pick: function () { self.setState({ cliente: c, correo: c.correo, qc: '' }); } }); }),
+      consumidor: function () { self.setState({ cliente: { ini: 'CF', nombre: 'Consumidor final', doc: 'Sin identificación', correo: '' }, correo: '' }); },
+      sinCliente: !cli, hayCliente: !!cli,
+      cli: cli || { ini: '', nombre: '', doc: '' },
+      quitarCliente: function () { self.setState({ cliente: null }); },
+      qp: st.qp, onQp: function (e) { self.setState({ qp: e.target.value }); },
+      hayResP: resP.length > 0,
+      resP: resP.map(function (p) { return Object.assign({}, p, { precioTxt: fmt(p.precio), add: function () { agregar(p); } }); }),
+      lineas: lineas, sinLineas: lineas.length === 0,
+      nProd: unidades === 1 ? '1 unidad' : unidades + ' unidades',
+      total: fmt(total),
+      medios: medios,
+      correo: st.correo, onCorreo: function (e) { self.setState({ correo: e.target.value }); },
+      guardar: st.guardar, onGuardar: function () { self.setState({ guardar: !st.guardar }); },
+      puede: total > 0, noPuede: total === 0,
+      cobrar: function () { self.setState({ hecho: true }); },
+      hecho: st.hecho, noHecho: !st.hecho,
+      nueva: nueva,
+      escenarios: escenarios
+    };
+  }
+}
+</script>
+</body>
+</html>

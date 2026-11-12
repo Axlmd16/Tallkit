@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mantenimientos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas b{color:#1C1F23;font-weight:600}
+.buscar{flex:1 1 260px;max-width:420px;display:flex;align-items:center;gap:10px;height:40px;padding:0 2px;border-bottom:1.5px solid #D5D1CB;color:#5E6369;text-decoration:none;font-size:13.5px}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.ph-ico{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:#F5E8E0;color:#9C4A22;flex:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:4px;border-radius:999px;background:#EAE7E2}
+.seg-b{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:13px;font-weight:500;color:#4E5257;cursor:pointer}
+.seg-b.on{background:#FFFFFF;color:#1C1F23;font-weight:600;box-shadow:0 1px 3px rgba(31,35,41,.14)}
+.seg-n{font-weight:600;color:#7C8085}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-abierto{background:#E9EDF2;color:#3E546F}.p-reab{background:#F5EDDC;color:#855E16}.p-fin{background:#EFEEEB;color:#44484E}
+.placa{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:12px;letter-spacing:.08em;flex:none}
+.inp{width:100%;height:42px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;background:transparent;font-family:inherit;font-size:14px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.inp::placeholder{color:#8D9196;font-weight:400}
+.vtile{position:relative;overflow:hidden;flex:0 0 250px;display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:14px;background:#1E2226;color:#FFFFFF;text-decoration:none;transition:transform .15s}
+.vtile:hover{color:#FFFFFF;transform:translateY(-2px)}
+.fila{display:grid;grid-template-columns:60px 200px minmax(0,1fr) 120px 120px 230px 96px;align-items:center;gap:18px;padding:15px 24px;border-top:1px solid #EFEEEB;color:#1C1F23;text-decoration:none}
+.fila:hover{background:#FAF9F7;color:#1C1F23}
+.cob{display:flex;align-items:center;gap:8px;font-size:12px;color:#44484E}
+.lg-t{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#4A6280;color:#FFFFFF;font-size:8.5px;font-weight:700;flex:none}
+.lg-r{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:5px;background:#8C6B3F;color:#FFFFFF;font-size:8.5px;font-weight:700;flex:none}
+.est{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.est::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (max-width:1100px){.fila{grid-template-columns:60px minmax(0,1fr) auto}}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0"><dc-import activo="mantenimientos" name="Menu" hint-size="100%,1000px"></dc-import></div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+<header class="top">
+<nav class="migas" aria-label="Ruta"><b>Mantenimientos</b></nav>
+<a href="Buscar.dc.html" class="buscar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Buscar placa, cliente, producto o factura</a>
+<div class="user"><span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span><span class="av" aria-hidden="true">U</span><a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a></div>
+</header>
+
+<main style="padding:28px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:20px">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<span class="ph-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">Transmisiones y Embragues Jimenez</p>
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.25">Mantenimientos</h1>
+<p style="margin:6px 0 0;color:#44484E;font-size:14.5px">Cada vehículo que entró al taller, con lo cobrado y lo facturado.</p>
+</div>
+</div>
+<a href="NuevoMantenimiento.dc.html" class="btn btn-pri"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo mantenimiento</a>
+</div>
+
+<section aria-labelledby="ahora-t" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:baseline;gap:10px"><h2 id="ahora-t" style="margin:0;font-size:16px;font-weight:700">En el taller ahora</h2><span style="font-size:12.5px;color:#5E6369">{{nAbiertos}} abiertos</span></div>
+<div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:4px">
+<sc-for list="{{abiertos}}" as="m" hint-placeholder-count="3">
+<a class="vtile" href="Mantenimiento.dc.html">
+<svg width="140" height="100" viewBox="0 0 140 100" fill="none" aria-hidden="true" style="position:absolute;right:-30px;bottom:-40px"><circle cx="100" cy="100" r="45" stroke="#30353B"></circle><circle cx="100" cy="100" r="70" stroke="#30353B"></circle><path d="M40 84A70 70 0 0 1 64 42" stroke="#B5582A" stroke-width="2" stroke-linecap="round"></path></svg>
+<div style="position:relative;display:flex;align-items:center;justify-content:space-between"><span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:7px;background:#FFFFFF;color:#1E2226;font-weight:700;font-size:13.5px;letter-spacing:.08em">{{m.placa}}</span><span class="num" style="font-size:12px;color:#969BA1">N.º {{m.n}}</span></div>
+<div style="position:relative;line-height:1.35"><div style="font-weight:700">{{m.nombre}}</div><div style="font-size:12.5px;color:#BEC2C7">{{m.vehiculo}}</div></div>
+<div style="position:relative;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#BEC2C7"><span>{{m.estado}} · {{m.desde}}</span><span class="num" style="font-size:14px;font-weight:600;color:#FFFFFF">{{m.total}}</span></div>
+</a>
+</sc-for>
+<a href="NuevoMantenimiento.dc.html" style="flex:0 0 200px;display:flex;align-items:center;justify-content:center;min-height:130px;border:1.5px dashed #CCC8C1;border-radius:14px;color:#44484E;font-weight:600;font-size:13px;text-decoration:none">+ Recibir vehículo</a>
+</div>
+</section>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px">
+<div class="seg" role="group" aria-label="Estado">
+<sc-for list="{{filtros}}" as="f" hint-placeholder-count="4"><button type="button" class="{{f.cls}}" aria-pressed="{{f.on}}" onClick="{{f.pick}}">{{f.label}}<span class="seg-n">{{f.n}}</span></button></sc-for>
+</div>
+<label style="flex:0 1 340px;position:relative">
+<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Filtrar</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5E6369" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:2px;top:13px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<input class="inp" style="padding-left:26px" value="{{q}}" onChange="{{onQ}}" placeholder="Placa, cliente o número">
+</label>
+</div>
+
+<section class="card" style="overflow:hidden">
+<div style="display:grid;grid-template-columns:60px 200px minmax(0,1fr) 120px 120px 230px 96px;gap:18px;padding:12px 24px;font-size:12px;font-weight:600;color:#7C8085"><span>N.º</span><span>Vehículo</span><span>Cliente</span><span>Abierto</span><span>Estado</span><span>Cobro y factura</span><span style="text-align:right">Total</span></div>
+<sc-for list="{{lista}}" as="m" hint-placeholder-count="7">
+<a class="fila" href="Mantenimiento.dc.html">
+<span class="num" style="font-weight:700">{{m.n}}</span>
+<span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span class="placa" style="align-self:flex-start">{{m.placa}}</span><span style="font-size:12.5px;color:#5E6369">{{m.vehiculo}}</span></span>
+<span style="font-weight:600;min-width:0">{{m.nombre}}</span>
+<span style="line-height:1.35"><span class="num" style="display:block;font-size:13px">{{m.fecha}}</span><span class="num" style="font-size:12px;color:#7C8085">{{m.km}} km</span></span>
+<span><span class="pill {{m.pc}}">{{m.estado}}</span></span>
+<span style="display:flex;flex-direction:column;gap:5px">
+<span class="cob"><span class="lg-t" aria-hidden="true">TJ</span><span class="est" style="color:{{m.tC}}">{{m.tCob}}</span><span style="color:#7C8085">·</span><span>{{m.tFac}}</span></span>
+<sc-if value="{{m.hayR}}" hint-placeholder-val="{{true}}"><span class="cob"><span class="lg-r" aria-hidden="true">RA</span><span class="est" style="color:{{m.rC}}">{{m.rCob}}</span><span style="color:#7C8085">·</span><span>{{m.rFac}}</span></span></sc-if>
+</span>
+<span class="num" style="text-align:right;font-weight:700">{{m.total}}</span>
+</a>
+</sc-for>
+</section>
+</main>
+</div>
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><sc-for list="{{filtros}}" as="f" hint-placeholder-count="4"><button type="button" class="{{f.pcls}}" onClick="{{f.pick}}">{{f.label}}</button></sc-for></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { f: 'todos', q: '' }; }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var norm = function (s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ''); };
+    var C = { pag: ['Pagado', '#2F6B4A'], sin: ['Sin cobrar', '#5E6369'], sal: ['Saldo ', '#A8392F'] };
+    var data = [
+      { e: 'a', n: 25, placa: 'GBA-1290', nombre: 'Lucía Andrade', vehiculo: 'Toyota Hilux 2021', fecha: 'Hoy 10:05', desde: 'hoy 10:05', km: '41 980', t: ['sin'], tf: 'Sin factura', r: null, total: '25.00' },
+      { e: 'a', n: 24, placa: 'GBA-1234', nombre: 'Carlos Mendoza', vehiculo: 'Chevrolet Aveo 2016', fecha: 'Hoy 09:40', desde: 'hoy 09:40', km: '84 300', t: ['sin'], tf: 'Sin factura', r: ['sin'], rf: 'Sin factura', total: '43.00' },
+      { e: 'f', n: 23, placa: 'PCQ-0571', nombre: 'Ana Torres', vehiculo: 'Kia Rio 2019', fecha: 'Hoy 08:15', km: '63 150', t: ['sin'], tf: 'Sin factura', r: ['sin'], rf: 'Sin factura', total: '61.50' },
+      { e: 'r', n: 19, placa: 'GTR-5521', nombre: 'María Sánchez', vehiculo: 'Nissan Sentra 2018', fecha: '10 nov', desde: 'ayer', km: '98 410', t: ['pag'], tf: 'Factura pedida', r: null, total: '12.00' },
+      { e: 'f', n: 21, placa: 'GSM-8820', nombre: 'José Vera', vehiculo: 'Hyundai Accent 2014', fecha: '11 nov', km: '152 800', t: ['pag'], tf: 'Factura pedida', r: ['pag'], rf: 'Falta pedir', total: '26.00' },
+      { e: 'f', n: 17, placa: 'GBA-3307', nombre: 'Transportes Ríos', vehiculo: 'Hino 300 2019', fecha: '20 oct', km: '210 400', t: ['sal', '45.00'], tf: 'Factura pedida', r: null, total: '120.00' },
+      { e: 'f', n: 12, placa: 'GYE-0447', nombre: 'Pedro Guamán', vehiculo: 'Mazda BT-50 2017', fecha: '2 oct', km: '120 330', t: ['sal', '20.00'], tf: 'Factura pedida', r: ['pag'], rf: 'Factura pedida', total: '68.00' }
+    ];
+    var info = { a: ['Abierto', 'p-abierto'], f: ['Finalizado', 'p-fin'], r: ['Reabierto', 'p-reab'] };
+    var deco = function (m) {
+      var tc = C[m.t[0]], rc = m.r ? C[m.r[0]] : null;
+      return Object.assign({}, m, {
+        estado: info[m.e][0], pc: info[m.e][1],
+        tCob: tc[0] + (m.t[1] || ''), tC: tc[1], tFac: m.tf,
+        hayR: !!m.r, rCob: rc ? rc[0] + (m.r[1] || '') : '', rC: rc ? rc[1] : '', rFac: m.rf || ''
+      });
+    };
+    var q = norm(st.q).trim();
+    var pasa = function (k) { return function (m) { return k === 'todos' || m.e === k; }; };
+    var lista = data.filter(pasa(st.f)).filter(function (m) { return q.length === 0 || norm(m.placa + ' ' + m.nombre + ' ' + m.n).indexOf(q) >= 0; }).map(deco);
+    var abiertos = data.filter(function (m) { return m.e !== 'f'; }).map(deco);
+    var filtros = [['todos', 'Todos'], ['a', 'Abiertos'], ['r', 'Reabiertos'], ['f', 'Finalizados']].map(function (f) {
+      var on = st.f === f[0];
+      return { label: f[1], n: data.filter(pasa(f[0])).length, on: on, cls: on ? 'seg-b on' : 'seg-b', pcls: on ? 'proto-b on' : 'proto-b', pick: function () { self.setState({ f: f[0] }); } };
+    });
+    return { lista: lista, abiertos: abiertos, nAbiertos: abiertos.length, filtros: filtros, q: st.q, onQ: function (e) { self.setState({ q: e.target.value }); } };
+  }
+}
+</script>
+</body>
+</html>

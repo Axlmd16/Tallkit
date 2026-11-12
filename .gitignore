@@ -34,3 +34,6 @@ frontend/actual/
 tmp/
 # Local Pi runtime state
 .atl/
+
+# Enlace local de la skill frontend-design (la skill vive en .agents/skills/)
+.claude/skills/frontend-design

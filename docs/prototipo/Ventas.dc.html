@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ventas y proformas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;min-height:64px;padding:10px clamp(16px,2.5vw,40px);background:#FFFFFF;border-bottom:1px solid #E4E1DC}
+.migas{display:flex;align-items:center;gap:8px;color:#5E6369;font-weight:500}
+.migas a{color:#5E6369;text-decoration:none}.migas b{color:#1C1F23;font-weight:600}
+.buscar{flex:1 1 260px;max-width:420px;display:flex;align-items:center;gap:10px;height:40px;padding:0 2px;border-bottom:1.5px solid #D5D1CB;color:#5E6369;text-decoration:none;font-size:13.5px}
+.user{margin-left:auto;display:flex;align-items:center;gap:12px}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#B5582A;color:#FFFFFF;font-weight:700;font-size:13px}
+.icob{display:grid;place-items:center;width:44px;height:44px;border:1px solid #E2DFDA;border-radius:11px;background:#FFFFFF;color:#1C1F23;text-decoration:none}
+.ph-ico{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:#F2ECE2;color:#6E5430;flex:none}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-out{background:#FFFFFF;color:#1C1F23;border-color:#1C1F23}.btn-out:hover{background:#1C1F23;color:#FFFFFF}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid #E4E1DC}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 14px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit;font-size:14px;font-weight:500;color:#5E6369;cursor:pointer}
+.tab.on{color:#1C1F23;font-weight:600;border-bottom-color:#1C1F23}
+.tab-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:6px;background:#EFEEEB;font-size:11.5px;font-weight:700;color:#44484E}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{background:#E5EFE8;color:#2F6B4A}.p-debe{background:#F5E5E2;color:#A8392F}.p-facturar{background:#ECEBE8;color:#44484E}.p-curso{background:#EFEEEB;color:#44484E}.p-cobrar{background:#F5EDDC;color:#855E16}
+.stat{padding:14px 18px;border-radius:12px;background:#FFFFFF;border:1px solid #E4E1DC}
+.stat-l{margin:0;font-size:13px;font-weight:500;color:#4E5257}
+.stat-v{margin:2px 0 0;font-size:28px;font-weight:300;letter-spacing:-.02em;line-height:1.2}
+.fila{display:grid;grid-template-columns:96px minmax(0,1fr) 130px 150px 150px 96px;align-items:center;gap:18px;padding:14px 24px;border-top:1px solid #EFEEEB}
+.fila:hover{background:#FAF9F7}
+.medio{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#44484E}
+.proto{position:absolute;left:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (max-width:900px){.fila{grid-template-columns:80px minmax(0,1fr) auto}}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#1E2226">
+<div style="flex:1 1 264px;min-width:0"><dc-import activo="ventas" name="Menu" hint-size="100%,1000px"></dc-import></div>
+<div style="flex:999 1 600px;min-width:0;background:#F4F3F0;display:flex;flex-direction:column">
+<header class="top">
+<nav class="migas" aria-label="Ruta"><b>Ventas</b></nav>
+<a href="Buscar.dc.html" class="buscar"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Buscar placa, cliente, producto o factura</a>
+<div class="user"><span style="display:flex;flex-direction:column;align-items:flex-end;line-height:1.25"><span style="font-weight:700;font-size:13.5px">[Nombre de la usuaria]</span><span style="font-size:12px;color:#5E6369">Todos los permisos</span></span><span class="av" aria-hidden="true">U</span><a href="#" class="icob" aria-label="Salir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"></path><path d="M10 16l4-4-4-4M14 12H4"></path></svg></a></div>
+</header>
+
+<main style="padding:28px clamp(16px,2.5vw,40px) 96px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:20px">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<span class="ph-ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 14H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg></span>
+<div>
+<p style="margin:0;font-size:12.5px;font-weight:500;color:#5E6369">Transmisiones y Embragues Repuestos Automotrices</p>
+<h1 style="margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.25">Ventas y proformas</h1>
+<p style="margin:6px 0 0;color:#44484E;font-size:14.5px">Lo vendido en mostrador y los presupuestos que aún esperan respuesta.</p>
+</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<button type="button" class="btn btn-out">Nueva proforma</button>
+<a href="VentaRapida.dc.html" class="btn btn-pri"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Venta rápida</a>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+<div class="stat"><p class="stat-l">Vendido hoy</p><p class="stat-v num">USD 342.50</p></div>
+<div class="stat"><p class="stat-l">Ventas de hoy</p><p class="stat-v num">7</p></div>
+<div class="stat" style="background:#F8EEEC;border-color:#EACFCA"><p class="stat-l" style="color:#A8392F">Quedaron debiendo</p><p class="stat-v num" style="color:#A8392F">USD 58.00</p></div>
+<div class="stat"><p class="stat-l">Proformas vigentes</p><p class="stat-v num">3</p></div>
+</div>
+
+<div class="tabs" role="tablist">
+<button type="button" role="tab" class="{{tV}}" aria-selected="{{enV}}" onClick="{{verV}}">Ventas<span class="tab-n">7</span></button>
+<button type="button" role="tab" class="{{tP}}" aria-selected="{{enP}}" onClick="{{verP}}">Proformas<span class="tab-n">3</span></button>
+</div>
+
+<sc-if value="{{enV}}" hint-placeholder-val="{{true}}">
+<section class="card" style="overflow:hidden">
+<div style="display:grid;grid-template-columns:96px minmax(0,1fr) 130px 150px 150px 96px;gap:18px;padding:12px 24px;font-size:12px;font-weight:600;color:#7C8085"><span>Venta</span><span>Cliente y productos</span><span>Pagó con</span><span>Cobro</span><span>Factura</span><span style="text-align:right">Total</span></div>
+<sc-for list="{{ventas}}" as="v" hint-placeholder-count="6">
+<div class="fila">
+<div><div class="num" style="font-weight:700">N.º {{v.n}}</div><div class="num" style="font-size:11.5px;color:#7C8085">{{v.hora}}</div></div>
+<div style="min-width:0;line-height:1.35"><div style="font-weight:600">{{v.cliente}}</div><div style="font-size:12.5px;color:#5E6369;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{v.items}}</div></div>
+<span class="medio">{{v.medio}}</span>
+<span><span class="pill {{v.cpc}}">{{v.cobro}}</span></span>
+<span><span class="pill {{v.fpc}}">{{v.factura}}</span></span>
+<span class="num" style="text-align:right;font-weight:700">{{v.total}}</span>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{enP}}" hint-placeholder-val="{{false}}">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+<sc-for list="{{proformas}}" as="p" hint-placeholder-count="3">
+<article class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+<div style="line-height:1.35"><div style="font-size:12px;font-weight:600;color:#7C8085">Proforma N.º {{p.n}}</div><div style="font-weight:700;font-size:15px">{{p.cliente}}</div></div>
+<span class="pill {{p.pc}}">{{p.vence}}</span>
+</div>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{p.items}}" as="i" hint-placeholder-count="2"><li style="display:flex;justify-content:space-between;gap:10px;font-size:13px"><span style="color:#44484E">{{i.d}}</span><span class="num" style="font-weight:600">{{i.v}}</span></li></sc-for>
+</ul>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;padding-top:12px;border-top:1px solid #EFEEEB"><span style="font-size:12.5px;font-weight:500;color:#5E6369">Total</span><span class="num" style="font-size:24px;font-weight:300;letter-spacing:-.02em;line-height:1">{{p.total}}</span></div>
+<div style="display:flex;gap:8px">
+<button type="button" class="btn btn-ghost" style="flex:1;min-height:40px">Enviar al cliente</button>
+<a href="VentaRapida.dc.html" class="btn btn-out" style="flex:1;min-height:40px">Convertir en venta</a>
+</div>
+</article>
+</sc-for>
+<button type="button" style="min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1.5px dashed #CCC8C1;border-radius:14px;background:transparent;font-family:inherit;color:#44484E;font-weight:600;cursor:pointer">+ Nueva proforma</button>
+</div>
+</sc-if>
+</main>
+</div>
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><button type="button" class="{{pV}}" onClick="{{verV}}">Ventas</button><button type="button" class="{{pP}}" onClick="{{verP}}">Proformas</button></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'v' }; }
+  renderVals() {
+    var self = this;
+    var v = this.state.tab === 'v';
+    var ventas = [
+      { n: 19, hora: '11:42', cliente: 'María Sánchez', items: 'Aceite 20W-50, filtro de aceite', medio: 'Efectivo', cobro: 'Cobrada', cpc: 'p-ok', factura: 'Solicitada', fpc: 'p-facturar', total: '38.50' },
+      { n: 18, hora: 'Ayer', cliente: 'Luis Paredes', items: 'Batería 12V 60Ah', medio: 'Queda debiendo', cobro: 'Debe 40.00', cpc: 'p-debe', factura: 'Solicitada', fpc: 'p-facturar', total: '40.00' },
+      { n: 17, hora: 'Ayer', cliente: 'Consumidor final', items: 'Bujía de iridio × 4', medio: 'Efectivo', cobro: 'Cobrada', cpc: 'p-ok', factura: 'Solicitada', fpc: 'p-facturar', total: '18.00' },
+      { n: 16, hora: '1 nov', cliente: 'Pedro Guamán', items: 'Pastillas de freno, líquido DOT 4', medio: 'Transferencia', cobro: 'Cobrada', cpc: 'p-ok', factura: 'Solicitada', fpc: 'p-facturar', total: '32.00' },
+      { n: 15, hora: '2 oct', cliente: 'Carlos Mendoza', items: 'Aceite 20W-50, filtro de aceite', medio: 'Queda debiendo', cobro: 'Debe 18.00', cpc: 'p-debe', factura: 'Solicitada', fpc: 'p-facturar', total: '38.50' },
+      { n: 14, hora: '30 sep', cliente: 'Ana Torres', items: 'Plumas limpiaparabrisas 18"', medio: 'Tarjeta', cobro: 'Cobrada', cpc: 'p-ok', factura: 'Falta enviar', fpc: 'p-cobrar', total: '12.00' }
+    ];
+    var proformas = [
+      { n: 9, cliente: 'Transportes Ríos', vence: 'Vence en 5 días', pc: 'p-curso', items: [{ d: 'Llanta 205/55 R16 × 4', v: '340.00' }, { d: 'Válvulas × 4', v: '8.00' }], total: '348.00' },
+      { n: 8, cliente: 'Lucía Andrade', vence: 'Vence mañana', pc: 'p-cobrar', items: [{ d: 'Amortiguador delantero × 2', v: '96.00' }, { d: 'Bases de amortiguador × 2', v: '24.00' }], total: '120.00' },
+      { n: 7, cliente: 'Pedro Guamán', vence: 'Vence en 12 días', pc: 'p-curso', items: [{ d: 'Kit de embrague', v: '185.00' }], total: '185.00' }
+    ];
+    return {
+      enV: v, enP: !v,
+      tV: v ? 'tab on' : 'tab', tP: v ? 'tab' : 'tab on',
+      pV: v ? 'proto-b on' : 'proto-b', pP: v ? 'proto-b' : 'proto-b on',
+      verV: function () { self.setState({ tab: 'v' }); },
+      verP: function () { self.setState({ tab: 'p' }); },
+      ventas: ventas, proformas: proformas
+    };
+  }
+}
+</script>
+</body>
+</html>

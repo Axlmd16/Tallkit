@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Búsqueda global</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.placa{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:6px;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:12px;letter-spacing:.08em;flex:none}
+.grp{display:flex;align-items:center;gap:10px;padding:12px 22px 6px;font-size:12px;font-weight:600;color:#5E6369}
+.grp-n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:6px;background:#EFEEEB;font-size:11.5px;font-weight:700;color:#44484E}
+.res{display:flex;align-items:center;gap:14px;margin:0 10px;padding:10px 12px;border-radius:10px;color:#1C1F23;text-decoration:none;transition:background-color .12s}
+.res:hover{background:#F4F3F0;color:#1C1F23}
+.res-ir{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#7C8085}
+.res:hover .res-ir{color:#1C1F23}
+.ico{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-facturar{background:#ECEBE8;color:#44484E}
+.p-ok{background:#E5EFE8;color:#2F6B4A}
+.p-stock{background:#F2ECE2;color:#6E5430}
+.dlg{animation:dlgIn .2s ease-out}
+@keyframes dlgIn{from{opacity:0;transform:translateY(-8px) scale(.99)}}
+.proto{position:absolute;left:24px;bottom:24px;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;min-height:100vh;overflow:hidden">
+<div aria-hidden="true" inert="inert">
+<dc-import name="Main" hint-size="100%,1000px"></dc-import>
+</div>
+
+<div style="position:absolute;inset:0;z-index:30;background:rgba(30,34,38,.42);display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 32px">
+<div class="dlg" role="dialog" aria-modal="true" aria-label="Buscar" style="width:100%;max-width:640px;max-height:720px;display:flex;flex-direction:column;background:#FFFFFF;border-radius:18px;box-shadow:0 30px 70px rgba(20,22,25,.30);overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid #EFEEEB">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C1F23" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<label style="flex:1">
+<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar</span>
+<input value="{{q}}" onChange="{{onQ}}" placeholder="Placa, cliente, cédula, producto o factura" autocomplete="off" style="width:100%;height:40px;border:0;background:transparent;font-family:inherit;font-size:17px;font-weight:500;color:#1C1F23;outline:none">
+</label>
+<a href="Main.dc.html" style="display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:7px;background:#EFEEEB;color:#44484E;font-size:12px;font-weight:600;text-decoration:none">Cerrar</a>
+</div>
+
+<div style="overflow:auto;padding-bottom:10px">
+<sc-if value="{{hayV}}" hint-placeholder-val="{{true}}">
+<div class="grp">Vehículos<span class="grp-n">{{nV}}</span></div>
+<sc-for list="{{vs}}" as="r" hint-placeholder-count="1">
+<a class="res" href="Mantenimiento.dc.html"><span class="placa">{{r.placa}}</span><span style="display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:600">{{r.vehiculo}}</span><span style="font-size:12.5px;color:#5E6369">{{r.dueno}}</span></span><span class="res-ir">{{r.ir}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></span></a>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{hayC}}" hint-placeholder-val="{{true}}">
+<div class="grp">Clientes<span class="grp-n">{{nC}}</span></div>
+<sc-for list="{{cs}}" as="r" hint-placeholder-count="1">
+<a class="res" href="Cliente.dc.html"><span class="ico" aria-hidden="true" style="border-radius:50%;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:12px">{{r.ini}}</span><span style="display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:600">{{r.nombre}}</span><span class="num" style="font-size:12.5px;color:#5E6369">{{r.doc}}</span></span><span class="res-ir">Abrir ficha<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></span></a>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{hayF}}" hint-placeholder-val="{{true}}">
+<div class="grp">Facturas<span class="grp-n">{{nF}}</span></div>
+<sc-for list="{{fs}}" as="r" hint-placeholder-count="2">
+<a class="res" href="#"><span class="ico" aria-hidden="true" style="background:{{r.bg}};color:{{r.fg}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5"></path><path d="M9 13h7M9 17h5"></path></svg></span><span style="display:flex;flex-direction:column;line-height:1.35;min-width:0"><span class="num" style="font-weight:600">{{r.num}}</span><span style="font-size:12.5px;color:#5E6369">{{r.negocio}} · {{r.cliente}} · {{r.fecha}}</span></span><span class="pill {{r.pc}}" style="margin-left:auto">{{r.estado}}</span><span class="num" style="min-width:60px;text-align:right;font-weight:700">{{r.total}}</span></a>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{hayP}}" hint-placeholder-val="{{false}}">
+<div class="grp">Productos<span class="grp-n">{{nP}}</span></div>
+<sc-for list="{{ps}}" as="r" hint-placeholder-count="2">
+<a class="res" href="#"><span class="ico" aria-hidden="true" style="background:#F2ECE2;color:#6E5430"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5"></path><path d="M12 12v9"></path></svg></span><span style="display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:600">{{r.nombre}}</span><span class="num" style="font-size:12.5px;color:#5E6369">Código {{r.cod}}</span></span><span class="pill p-stock" style="margin-left:auto">Quedan {{r.stock}}</span><span class="num" style="min-width:60px;text-align:right;font-weight:700">{{r.precio}}</span></a>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{nada}}" hint-placeholder-val="{{false}}">
+<div style="padding:40px 22px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#5E6369">
+<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#8D9196" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5M8.5 11h5"></path></svg>
+<span style="font-weight:600;color:#1C1F23">Nada coincide con «{{q}}»</span>
+<span style="font-size:13px">Prueba con la placa sin guion o con parte del nombre.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{vacio}}" hint-placeholder-val="{{false}}">
+<div class="grp">Buscados hace poco</div>
+<a class="res" href="Mantenimiento.dc.html"><span class="placa">GBA-1234</span><span style="font-weight:500">Carlos Mendoza</span></a>
+<a class="res" href="Cliente.dc.html"><span class="placa">PCQ-0571</span><span style="font-weight:500">Ana Torres</span></a>
+</sc-if>
+</div>
+</div>
+</div>
+
+<div class="proto" role="group" aria-label="Escenario del prototipo">
+<span class="proto-l">Prototipo</span>
+<sc-for list="{{escenarios}}" as="e" hint-placeholder-count="4">
+<button type="button" class="{{e.cls}}" aria-pressed="{{e.on}}" onClick="{{e.pick}}">{{e.label}}</button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { q: 'mendoza' };
+  }
+  renderVals() {
+    var self = this;
+    var norm = function (s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ''); };
+    var q = norm(this.state.q).trim();
+    var vehiculos = [
+      { placa: 'GBA-1234', vehiculo: 'Chevrolet Aveo 2016', dueno: 'Carlos Mendoza', ir: 'En el taller' },
+      { placa: 'GBA-1290', vehiculo: 'Toyota Hilux 2021', dueno: 'Lucía Andrade', ir: 'En el taller' },
+      { placa: 'PCQ-0571', vehiculo: 'Kia Rio 2019', dueno: 'Ana Torres', ir: 'Listo para cobrar' }
+    ];
+    var clientes = [
+      { ini: 'CM', nombre: 'Carlos Mendoza', doc: 'Cédula 0912345678' },
+      { ini: 'MM', nombre: 'Marta Mendoza', doc: 'Cédula 0934567812' },
+      { ini: 'AT', nombre: 'Ana Torres', doc: 'RUC 0991234567001' }
+    ];
+    var facturas = [
+      { num: '001-001-000000231', negocio: 'Transmisiones y Embragues Jimenez', cliente: 'Carlos Mendoza', fecha: '12 jun', estado: 'Solicitada', pc: 'p-facturar', total: '15.00', bg: '#E9EDF2', fg: '#3E546F' },
+      { num: '001-001-000001187', negocio: 'Transmisiones y Embragues Repuestos Automotrices', cliente: 'Carlos Mendoza', fecha: '12 jun', estado: 'Solicitada', pc: 'p-facturar', total: '27.00', bg: '#F2ECE2', fg: '#6E5430' },
+      { num: '001-001-000001102', negocio: 'Transmisiones y Embragues Repuestos Automotrices', cliente: 'Ana Torres', fecha: '28 may', estado: 'Solicitada', pc: 'p-facturar', total: '51.50', bg: '#F2ECE2', fg: '#6E5430' }
+    ];
+    var productos = [
+      { nombre: 'Pastillas de freno delanteras', cod: '7861350', stock: 5, precio: '23.00' },
+      { nombre: 'Pastillas de freno traseras', cod: '7861351', stock: 3, precio: '21.00' },
+      { nombre: 'Aceite 20W-50, galón', cod: '7861234', stock: 12, precio: '32.00' }
+    ];
+    var has = function (s) { return q.length > 0 && norm(s).indexOf(q) >= 0; };
+    var vs = vehiculos.filter(function (v) { return has(v.placa) || has(v.dueno) || has(v.vehiculo); });
+    var cs = clientes.filter(function (c) { return has(c.nombre) || has(c.doc); });
+    var fs = facturas.filter(function (f) { return has(f.num) || has(f.cliente); });
+    var ps = productos.filter(function (p) { return has(p.nombre) || has(p.cod); });
+    var total = vs.length + cs.length + fs.length + ps.length;
+    var escena = this.state.q;
+    var escenarios = [['mendoza', 'Un cliente'], ['GBA', 'Una placa'], ['pastillas', 'Un producto'], ['zzz', 'Sin resultados'], ['', 'Vacía']].map(function (e) {
+      var on = escena === e[0];
+      return { label: e[1], on: on, cls: on ? 'proto-b on' : 'proto-b', pick: function () { self.setState({ q: e[0] }); } };
+    });
+    return {
+      q: this.state.q,
+      onQ: function (e) { self.setState({ q: e.target.value }); },
+      vs: vs, cs: cs, fs: fs, ps: ps,
+      hayV: vs.length > 0, hayC: cs.length > 0, hayF: fs.length > 0, hayP: ps.length > 0,
+      nV: vs.length, nC: cs.length, nF: fs.length, nP: ps.length,
+      nada: q.length > 0 && total === 0,
+      vacio: q.length === 0,
+      escenarios: escenarios
+    };
+  }
+}
+</script>
+</body>
+</html>

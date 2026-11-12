@@ -1,0 +1,65 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-03T15:00:00Z" },
+  "title": "Tallkit · Prototipo U2",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 1000, "title": "1 · Inicio", "expand": "fill", "is_interactive": true },
+    "NuevoMantenimiento.dc.html": { "x": 1520, "y": 0, "w": 1440, "h": 1000, "title": "1a · Nuevo mantenimiento", "expand": "fill", "is_interactive": true },
+    "Mantenimiento.dc.html": { "x": 3040, "y": 0, "w": 1440, "h": 1100, "title": "2 · Ficha del mantenimiento", "expand": "fill", "is_interactive": true },
+    "Cobrar.dc.html": { "x": 4560, "y": 0, "w": 1440, "h": 1100, "title": "3 · Cobrar y facturar", "expand": "fill", "is_interactive": true },
+    "VentaRapida.dc.html": { "x": 0, "y": 1480, "w": 1440, "h": 1000, "title": "4 · Venta rápida", "expand": "fill", "is_interactive": true },
+    "Cliente.dc.html": { "x": 1520, "y": 1480, "w": 1440, "h": 1000, "title": "5 · Ficha del cliente", "expand": "fill", "is_interactive": true },
+    "Buscar.dc.html": { "x": 3040, "y": 1480, "w": 1440, "h": 1000, "title": "6 · Búsqueda global", "expand": "fill", "is_interactive": true },
+    "Menu.dc.html": { "x": 4560, "y": 1480, "w": 264, "h": 1000, "title": "Menú", "is_interactive": true },
+    "MantenimientosLista.dc.html": { "x": 0, "y": 2860, "w": 1440, "h": 1000, "title": "7 · Mantenimientos", "expand": "fill", "is_interactive": true },
+    "Ventas.dc.html": { "x": 1520, "y": 2860, "w": 1440, "h": 1000, "title": "8 · Ventas y proformas", "expand": "fill", "is_interactive": true },
+    "Facturas.dc.html": { "x": 3040, "y": 2860, "w": 1440, "h": 1000, "title": "9 · Facturas", "expand": "fill", "is_interactive": true },
+    "Clientes.dc.html": { "x": 4560, "y": 2860, "w": 1440, "h": 1000, "title": "10 · Clientes", "expand": "fill", "is_interactive": true },
+    "Productos.dc.html": { "x": 0, "y": 4240, "w": 1440, "h": 1000, "title": "11 · Productos", "expand": "fill", "is_interactive": true },
+    "Producto.dc.html": { "x": 1520, "y": 4240, "w": 1440, "h": 1000, "title": "11a · Ficha del producto", "expand": "fill", "is_interactive": true },
+    "Entrada.dc.html": { "x": 3040, "y": 4240, "w": 1440, "h": 1000, "title": "11b · Entrada de mercadería", "expand": "fill", "is_interactive": true },
+    "Servicios.dc.html": { "x": 4560, "y": 4240, "w": 1440, "h": 1000, "title": "12 · Servicios", "expand": "fill", "is_interactive": true },
+    "Cuentas.dc.html": { "x": 0, "y": 5620, "w": 1440, "h": 1000, "title": "13 · Cuentas", "expand": "fill", "is_interactive": true },
+    "Ajustes.dc.html": { "x": 1520, "y": 5620, "w": 1440, "h": 1000, "title": "14 · Ajustes", "expand": "fill", "is_interactive": true },
+    "ConfigInicial.dc.html": { "x": 3040, "y": 5620, "w": 1440, "h": 1000, "title": "14a · Configuración inicial", "expand": "fill", "is_interactive": true }
+  },
+  "order": [
+    "Main.dc.html",
+    "NuevoMantenimiento.dc.html",
+    "Mantenimiento.dc.html",
+    "Cobrar.dc.html",
+    "VentaRapida.dc.html",
+    "Cliente.dc.html",
+    "Buscar.dc.html",
+    "Menu.dc.html",
+    "MantenimientosLista.dc.html",
+    "Ventas.dc.html",
+    "Facturas.dc.html",
+    "Clientes.dc.html",
+    "Productos.dc.html",
+    "Producto.dc.html",
+    "Entrada.dc.html",
+    "Servicios.dc.html",
+    "Cuentas.dc.html",
+    "Ajustes.dc.html",
+    "ConfigInicial.dc.html"
+  ],
+  "notes": {
+    "t1": { "x": 0, "y": -300, "text": "Mantenimiento: de la llegada al cobro", "kind": "title1", "maxW": 6000 },
+    "t2": { "x": 0, "y": 1200, "text": "Venta, cliente y navegación", "kind": "title1", "maxW": 4824 },
+    "t3": { "x": 0, "y": 2580, "text": "Listas del día a día", "kind": "title1", "maxW": 6000 },
+    "t4": { "x": 0, "y": 3960, "text": "Inventario y catálogo", "kind": "title1", "maxW": 6000 },
+    "t5": { "x": 0, "y": 5340, "text": "Cuentas y ajustes", "kind": "title1", "maxW": 4480 },
+    "r1": {
+      "x": -600, "y": 0, "w": 480, "fill": "teal", "size": "m",
+      "text": "Recorridos para probar con la usuaria diaria (método RNF-USA-016)\n\nServicio simple, objetivo 8 a 10: Nuevo mantenimiento (1), escribir placa (2), elegirla (3), kilometraje (4), Abrir mantenimiento (5), escribir servicio (6), elegirlo (7), Cobrar y facturar (8), Cobrar y facturar (9).\n\nVenta de mostrador, objetivo 5 a 6: Venta rápida (1), escribir cliente (2), elegirlo (3), escribir producto (4), elegirlo (5), Cobrar y facturar (6).\n\nMantenimiento con un servicio y un repuesto, objetivo 12 a 14: el servicio simple más escribir y elegir el repuesto (11).\n\nAnotar fecha, tarea, tiempo, acciones y dudas. Repetir con el Facturador del SRI."
+    },
+    "r2": {
+      "x": -600, "y": 760, "w": 480, "fill": "orange", "size": "m",
+      "text": "Por confirmar en la prueba\n\n¿«Cobrar y facturar» también cierra el mantenimiento? (U6)\n¿Se usará tableta en el taller?\n\nNombres comerciales reales: «Transmisiones y Embragues Jimenez» (taller) y «Transmisiones y Embragues Repuestos Automotrices» (almacén). Sus logos (TJ y RA) son provisionales hasta cargar los reales en Ajustes. Los datos son de ejemplo y las facturas quedan solicitadas, nunca autorizadas. El selector «Prototipo» de cada pantalla cambia de escenario."
+    }
+  },
+  "designSystems": []
+}

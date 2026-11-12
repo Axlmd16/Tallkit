@@ -204,10 +204,24 @@ programar. Al aprobarlo se escriben la dirección visual nueva y sus tokens.
   de `RNF-USA-013…015`, con el método de `RNF-USA-016`, y compararlo con el Facturador del SRI, como pide
   el paso 1 del [análisis](analisis-del-sistema.md). Confirmar si se usará tableta en el taller.
 
-- [ ] Prototipo hecho
-- [ ] Probado con la usuaria diaria
-- [ ] Aprobado por el titular
-- [ ] Dirección visual nueva escrita (reemplaza `DESIGN.md`)
+Resultado (2026-11-12): el prototipo cubre las pantallas pedidas y el resto del menú (18 pantallas),
+en el lienzo «Tallkit · Prototipo U2», con copia en [`docs/prototipo/`](prototipo/README.md). La
+dirección elegida es **grafito y cobre** con Montserrat. La usuaria diaria lo revisó y lo aprobó, pero
+sin conteo de acciones ni tiempos y sin compararlo con el Facturador del SRI. Los nombres comerciales
+son «Transmisiones y Embragues Jimenez» (taller) y «Transmisiones y Embragues Repuestos Automotrices»
+(almacén).
+
+- [x] Prototipo hecho
+- [x] Probado con la usuaria diaria (revisión sin medición, 2026-11-12)
+- [x] Aprobado por el titular (2026-11-12)
+- [x] Dirección visual nueva escrita (reemplaza `DESIGN.md`)
+
+**Brechas registradas**
+
+- [ ] Medición con conteo de acciones y tiempos y comparación con el Facturador del SRI. La spec
+  `objetivos-de-uso-diario` la exige antes de programar U3 a U6; el titular decidió no hacerla en U2.
+  Hay que hacerla antes de aplicar U3 o ajustar esa spec con un cambio OpenSpec.
+- [ ] Uso de tableta en el taller: sigue sin confirmar; pasa a U3.
 
 ### U3. `renovar-sistema-visual`
 

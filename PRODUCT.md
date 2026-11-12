@@ -36,7 +36,7 @@ La aplicación se utiliza durante la jornada en computadoras, tabletas y teléfo
 
 El nombre visible del producto es **Tallkit**, con el logotipo existente en `frontend/src/assets/brand/`; «Sys-Inventario» se conserva como nombre técnico. No existe todavía manual de marca definitivo.
 
-**En reemplazo por `DP-036`** (vigente hasta U3 de `docs/cambios-pendientes.md`): la preferencia por interfaces limpias, claras, sobrias y de alta legibilidad, con navegación compacta, jerarquía precisa y poco ruido visual, según las cuatro capturas de referencia del 10 de septiembre de 2026. La dirección nueva, más interactiva y con color, se escribe al aprobar el prototipo de U2.
+**En reemplazo por `DP-036`** (vigente hasta U3 de `docs/cambios-pendientes.md`): la preferencia por interfaces limpias, claras, sobrias y de alta legibilidad, con navegación compacta, jerarquía precisa y poco ruido visual, según las cuatro capturas de referencia del 10 de septiembre de 2026. La dirección nueva, «Grafito y cobre», quedó escrita en `DESIGN.md` al aprobar el prototipo de U2 (2026-11-12) y se aplica en U3.
 
 ## Evidence on Hand
 

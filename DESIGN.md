@@ -1,111 +1,105 @@
-# Sistema visual Tallkit · Banco de trabajo
+# Sistema visual Tallkit · Grafito y cobre
 
-> **En reemplazo por `DP-036`** (`docs/negocio/decisiones/decisiones-confirmadas.yaml`). Esta dirección visual sigue vigente hasta U3 de `docs/cambios-pendientes.md`; la dirección nueva se escribe al aprobar el prototipo de U2. Hasta entonces, las pantallas que se toquen siguen esta guía.
+> **Dirección aprobada el 2026-11-12 con el prototipo de U2** (`DP-036`, regla 6; `docs/cambios-pendientes.md`, U2). Se aplica al frontend mediante U3 (`renovar-sistema-visual`). Hasta archivar U3, el código sigue la dirección anterior, «Banco de trabajo», descrita en `openspec/specs/sistema-visual-frontend/spec.md` y en el historial de este archivo (`git show f6c4cea:DESIGN.md`). Esta guía no define reglas del negocio ni sustituye las specs; U3 decide qué requisitos visuales vigentes se conservan.
 
-## Propósito
+## Referencia
 
-Esta guía resume el lenguaje visual implementado en el frontend. **Tallkit** es el nombre visible del producto; «Sys-Taller»/«Sys-Inventario» se conserva como nombre técnico del repositorio. La guía no define reglas del negocio ni sustituye las especificaciones OpenSpec:
+- **Prototipo aprobado:** lienzo «Tallkit · Prototipo U2» (<https://claude.ai/artifact/Xdc8YNnWYq5UyC3QFzLai8>), con copia de las fuentes en [`docs/prototipo/`](docs/prototipo/README.md). Cubre 18 pantallas y el menú, con datos de ejemplo y un selector «Prototipo» para cambiar de escenario.
+- **Estilo de referencia del titular:** sus prototipos «Prototipos de Competencia», con tipografía geométrica, barra lateral oscura con un motivo gráfico propio, un solo color fuerte para la acción principal, pestañas tipo píldora y huecos punteados para agregar.
+- El prototipo fija fundamentos y patrones, no fidelidad píxel a píxel ni comportamiento del backend.
 
-- `openspec/specs/sistema-visual-frontend/spec.md`: fundamentos, tokens, piezas del taller y aceptación visual.
-- `openspec/specs/patrones-de-pantalla-frontend/spec.md`: patrones PPF-01…PPF-08.
-- `openspec/specs/experiencia-adaptable-frontend/spec.md`: navegación, modales, listas y formularios por tamaño.
-- `openspec/specs/catalogo-visual-reutilizable/spec.md`: catálogo interno de desarrollo.
+## Principios
 
-Estas especificaciones están aprobadas y archivadas en `openspec/specs/`; el cambio `redisenar-sistema-visual-tallkit` quedó en `openspec/changes/archive/2026-09-23-redisenar-sistema-visual-tallkit/`.
+1. **Color con regla.** Neutros para casi todo; un solo color de marca, el cobre, para la acción principal y lo activo; cada negocio con un color discreto en su logo y sus marcas; tres estados apagados. Ningún otro color decorativo.
+2. **Una acción fuerte por pantalla.** Solo un botón cobre por vista: lo demás va en contorno o sin fondo.
+3. **Poco texto visible.** Encabezado con una sola línea de descripción; la ayuda y los avisos van en iconos o chips que se despliegan.
+4. **Lenguaje del negocio.** Cada negocio se nombra por su nombre comercial y su logo, nunca «RUC comercial» ni «RUC artesanal» (`DP-036`, regla 3). Los estados son los reales del dominio: el mantenimiento está abierto, finalizado o reabierto, y el cobro y la factura llevan estado propio en cada documento.
+5. **Interacción visible.** Filtros, pestañas, selección y confirmaciones responden en la misma pantalla; las confirmaciones son toast.
+6. **Sin saturar.** Modales centrados y cortos, de uno a tres campos; lo largo va en la página o en una guía por pasos.
 
-## Dirección visual
+## Tipografía
 
-Sistema propio, pensado para jornadas largas de mostrador y taller; no reproduce plantillas de terceros. Su referencia aprobada es la maqueta «Tallkit — Sistema visual» (2026-09-21), que fija fundamentos y patrones, no pantallas cerradas ni fidelidad píxel a píxel.
+- **Montserrat** en 300, 400, 500, 600 y 700 para toda la interfaz, servida desde la instalación (sin depender de Internet, como hoy IBM Plex). U3 elige el paquete y registra su licencia (OFL-1.1).
+- No hay fuente monoespaciada: placas, códigos, RUC y números usan cifras tabulares (`font-variant-numeric: tabular-nums`) y un ligero espaciado entre letras.
+- Escala: texto base 14 px; títulos de página 28 px en 700; títulos de bloque 15–16 px en 700; etiquetas 12–12,5 px en 500; importes destacados 24–40 px en 300.
+- Jerarquía por peso: nombres en 700, datos en 400 gris, importes en 700 en tablas y en 300 cuando son cifras grandes.
 
-- Neutros en capas: lienzo gris claro, paneles blancos y cabeceras de sección en gris suave.
-- Azul Tallkit para la acción principal; petróleo para selección, enlaces y foco; naranja del logotipo solo como acento de marca, nunca como texto.
-- Bordes finos, radios contenidos y elevación reservada a menús, diálogos, notificaciones y la hoja del documento.
-- Densidad alta: filas compactas y sin una tarjeta por registro.
+## Paleta
 
-## Recursos locales
+Todas las parejas de texto y fondo cumplen WCAG AA (4,5:1 o más), medidas el 2026-11-12.
 
-- Tipografía: IBM Plex Sans 400, 500, 600 y 700 para la interfaz, e IBM Plex Mono 400, 500 y 600 para códigos, placas, RUC, identificaciones y números internos. Subconjunto latino con tildes y ñ, servido desde la instalación.
-- Iconos: Phosphor en peso regular, siempre con nombre accesible cuando no son decorativos.
-- Logotipo: `frontend/src/assets/brand/` (principal, secundario e isotipo).
-- Ningún recurso visual esencial depende de Internet; una prueba e2e bloquea las solicitudes externas y comprueba que las fuentes cargan.
+| Rol | Valor | Uso | Contraste |
+|---|---|---|---|
+| Grafito | `#1E2226` | Barra lateral, tarjetas oscuras, encabezados de vehículo | Texto del menú `#BEC2C7`: 8,9:1 |
+| Tinta | `#1C1F23` | Texto principal; fondo de placas, stock y cantidades | Sobre blanco: 16,5:1 |
+| Texto de apoyo | `#5E6369` | Descripciones y etiquetas | Sobre blanco 6,1:1; sobre fondo 5,5:1 |
+| Fondo | `#F4F3F0` | Lienzo de la aplicación | — |
+| Superficie | `#FFFFFF` | Tarjetas, tablas y modales | — |
+| Neutros de apoyo | `#EFEEEB`, `#F8F7F4`, `#EAE7E2` | Fondo de controles, cabeceras de tabla, segmentos | — |
+| Líneas | `#E4E1DC` / `#D5D1CB` / `#CCC8C1` | Borde de tarjeta / de campo / punteado | — |
+| Cobre (marca) | `#B5582A`, intenso `#9C4A22`, suave `#F5E8E0` | Acción principal, elemento activo, motivo del tacómetro | Blanco sobre cobre: 4,8:1 |
+| Negocio de servicios | Pizarra `#4A6280`, texto `#3E546F`, suave `#E9EDF2` | Logo y marcas de Transmisiones y Embragues Jimenez | Blanco 6,3:1; texto sobre suave 6,6:1 |
+| Negocio de repuestos | Arena `#8C6B3F`, texto `#6E5430`, suave `#F2ECE2` | Logo y marcas de Transmisiones y Embragues Repuestos Automotrices | Blanco 4,9:1; texto sobre suave 6,0:1 |
+| Correcto | `#2F6B4A` sobre `#E5EFE8` | Pagado, completo, al día | 5,4:1 |
+| Atención | `#855E16` sobre `#F5EDDC` | Reabierto, falta un dato, plazo próximo | 5,0:1 |
+| Deuda o error | `#A8392F` sobre `#F5E5E2` | Saldo pendiente, vencido, agotado, rechazada | 5,2:1 |
+| Enlaces y foco | `#3E546F`; foco de 2 px en `#4A6280` | Enlaces y foco visible | Enlace sobre blanco: 7,8:1 |
 
-Versiones exactas en el lockfile: `@fontsource/ibm-plex-sans@5.3.0` y `@fontsource/ibm-plex-mono@5.3.0` (OFL-1.1), `@phosphor-icons/react@2.1.10` (MIT) y, solo para pruebas, `@axe-core/playwright@4.13.0` (MPL-2.0).
+Reglas:
 
-## Tokens
+- El cobre no se usa para estados ni para un negocio.
+- El color de un negocio aparece solo en su logo, su marca pequeña y los tintes de sus bloques; nunca en botones.
+- Los estados neutros (por ejemplo, «Solicitada» o «Finalizado») usan grafito sobre `#ECEBE8`, sin color propio.
+- Ningún estado depende solo del color: lleva texto y un punto o icono.
+- Mientras el negocio no cargue su logo, se muestran sus iniciales: círculo en pizarra para el taller y cuadrado redondeado en arena para el almacén. Los dos nombres comerciales se parecen, así que forma, color y logo deben distinguirlos.
 
-Dos capas: los valores crudos `--tk-*` viven en `frontend/src/shared/styles/tokens.css`, y `index.css` los expone a Tailwind con `@theme inline` bajo nombres semánticos. Cambiar un valor actualiza todas las pantallas sin editarlas una a una.
+## Formas, espacio y movimiento
 
-| Token | Valor claro | Uso |
-|---|---|---|
-| `canvas` | `#F3F4F6` | Lienzo de la aplicación. |
-| `surface` / `surface-subtle` / `surface-muted` | `#FFFFFF` / `#F8F9FA` / `#EEF0F3` | Panel, cabecera de sección o tabla, fondo de control. |
-| `workspace` | `#E6E9ED` | Fondo del visor de documentos. |
-| `line` / `line-strong` | `#E2E5E9` / `#CBD1D8` | Borde de panel y borde de campo. |
-| `ink` / `ink-muted` | `#15233A` / `#5B6474` | Texto principal y de apoyo. |
-| `primary` / `primary-strong` / `primary-soft` | `#224368` / `#1A3453` / `#E6EDF6` | Acción principal (azul Tallkit). |
-| `accent` / `accent-strong` / `accent-soft` | `#0F6B6F` / `#0A5255` / `#E1F0EF` | Selección, enlaces y foco (petróleo). |
-| `brand` | `#E58439` | Acento de marca; nunca texto. |
-| `scope-commercial` / `-soft` | `#224368` / `#E6EDF6` | RUC comercial. |
-| `scope-artisan` / `-soft` | `#94460B` / `#FCEEE2` | RUC artesanal. |
-| `success`, `warning`, `danger`, `info` y sus `-soft` | ver `tokens.css` | Estados, con contraste AA sobre su fondo. |
+- Radios: chips y placas 6–7 px; controles y botones 10 px; tarjetas 14–16 px; modales 18–20 px; píldoras de estado y segmentos redondeados por completo.
+- Sombras solo en modales, toast, selector flotante y tarjetas al pasar el puntero; las tarjetas en reposo tienen solo borde.
+- Separación de 20 a 28 px entre bloques. Las páginas usan todo el ancho, sin ancho máximo.
+- Movimiento breve, solo como respuesta (entrada de modal y toast, pestaña o paso nuevo), y desactivado con `prefers-reduced-motion`.
 
-- Radios: `chip` 4 px, `control` 6 px, `panel` 8 px y `dialog` 10 px.
-- Sombras: `menu`, `dialog`, `sheet` y `toast`; los paneles ordinarios no tienen sombra.
-- Tipografía: títulos de página de unos 22 px, títulos de panel de unos 15 px, texto de interfaz de 13–14 px y etiquetas de 12 px. Importes y cantidades con cifras tabulares.
-- Foco visible: contorno de 2 px en `accent`.
+## Marco
 
-### Tema oscuro
+- **Barra lateral** grafito de 264 px:
+  - Logotipo y «Taller y repuestos».
+  - Grupo «Día a día» con Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos, Servicios y Cuentas, y grupo «Poco frecuente» con Ajustes (`DP-036`, regla 1; la estructura del menú rige con U4).
+  - Opción activa con fondo `#2C3137` y una barra cobre a la izquierda; contadores pequeños a la derecha.
+  - Al pie, un tacómetro en líneas finas con un arco y una aguja cobre: es el motivo gráfico propio, inspirado en el oficio. Se repite en las tarjetas oscuras.
+- **Barra superior** blanca: migas, búsqueda global subrayada (rige con U5), nombre y permisos de la persona, avatar cobre y botón de salir.
+- **Encabezado de página:** icono en un cuadro suave, antetítulo pequeño, título y una línea de descripción; acciones a la derecha.
 
-`tokens.css` documenta un bloque `[data-theme='dark']` con los valores de la maqueta. Ningún código asigna ese atributo ni responde a `prefers-color-scheme`: el tema claro es el único disponible y no hay selector de tema. Una prueba unitaria y otra e2e lo verifican.
+## Patrones
 
-## Marco y composición adaptable
-
-- Desde 1280 px: barra lateral de 240 px con logotipo, grupos de navegación, opción activa en `accent-soft` y usuario, roles y cierre de sesión al pie. Barra superior con ruta de migas y marca de ámbito fiscal en las pantallas económicas; sin búsqueda global.
-- De 768 a 1279 px: barra de iconos de 72 px con nombre accesible y ayuda emergente.
-- Por debajo de 768 px: barra superior con menú y `NavigationPanel`, un panel temporal que se cierra al elegir.
-- El contenido usa todo el ancho disponible.
-
-## Patrones de pantalla
-
-- **Lista (PPF-01):** encabezado con acción principal según permiso; estados por segmentos y filtros en la franja superior del panel; tabla compacta con encabezado visible, importes con `Money` alineados a la derecha y estado con `StatusBadge`. En teléfono, filas de dos líneas. Los filtros viven en la URL y se conservan al volver de la ficha.
-- **Ficha (PPF-02):** volver, resumen con la identificación principal (placa, código o número interno en monoespaciada) y el estado, bloques con título y una columna lateral de acciones y datos relacionados que en pantallas estrechas pasa debajo.
-- **Formulario en página (PPF-03):** producto, cliente, vehículo, proveedor y configuración del taller, por secciones, con barra de acciones fija y advertencia al abandonar con cambios.
-- **Formulario corto en modal (PPF-04):** `FormModal` para marcas, categorías, unidades de medida, servicio, ajuste de inventario y usuario, con «Guardar y crear otro» cuando procede. No se usan paneles laterales para crear ni editar.
-- **Editor con vista previa (PPF-05):** venta e ingreso; líneas editables fila por fila, importes solo del servidor (guion si faltan), total junto a las acciones y hoja A4 `DocumentSheet` con el aviso del SRI.
-- **Diálogos de confirmación (PPF-06):** objeto y número interno, entidad fiscal, efecto en el cuerpo y valores revisados por el servidor; botón breve que nombra la acción, peligro sólido en las destructivas y salida segura con nombre.
-- **Estados de contenido (PPF-07):** carga con marcadores, vacío con acción de creación, sin resultados con «Limpiar filtros», error con «Reintentar» y sin permiso; nunca datos inventados.
-- **Página de configuración:** una sola hoja blanca con borde y sin sombra, de alto completo desde `md` (`flex-1` sobre `calc(100dvh - 100px)`); `SectionNav` (enlaces con `aria-current`, rótulo «Secciones», vertical desde 1024 px con marca petróleo y fondo suave, barra horizontal por debajo) y contenido en modo de consulta con `SheetHeading`, `FactList`/`FactRow`, tablas con `sheetTableHead`/`sheetTableCell` agrupadas por entidad, `StateMark` para estados y `AdvancedInfo` para datos técnicos. Toda edición se abre en `FormModal`. En facturación, el título es la subsección actual; `EntitySwitch` es un selector segmentado compacto a su derecha; `HintPopover` despliega el aviso de preparación local y los pendientes con puntero, foco o toque, y `StateChip` muestra los estados con los tonos semánticos. Los modales con vista previa usan el tamaño `large` (860 px).
-- **Notificaciones temporales (PPF-08):** `ToastProvider`/`useToast` abajo a la derecha, 6 s, pausa con puntero o foco, cierre con Escape, hasta tres y enlace «Ver». La región se monta fuera de la aplicación y queda exenta del aislamiento de los modales para anunciarse aunque haya uno abierto. Los errores y advertencias permanecen en línea.
+- **Inicio:** banda grafito con la pregunta del día, el buscador grande, «Nuevo mantenimiento», «Venta rápida» y un gráfico circular de lo cobrado hoy por negocio. Debajo, tres columnas con datos reales: en el taller (mantenimientos abiertos), falta cobrar (documentos con saldo) y falta facturar (cobros sin factura pedida).
+- **Listas:** búsqueda subrayada, segmentos tipo píldora con contador, tabla con cabecera gris y columnas fijas. El código, la marca y el número del fabricante van en columnas propias.
+- **Maestro y detalle:** lista agrupada a la izquierda y vista previa a la derecha (clientes, facturas).
+- **Fichas:** encabezado con la identificación (placa, nombre o código), estado real y acciones; pestañas subrayadas para separar la información.
+- **Cobro:** los dos negocios lado a lado, cada uno con su total y su factura; forma de pago en recuadros grandes; total y botón «Cobrar y facturar» en una columna fija.
+- **Modales:** centrados, de 420 a 980 px según el contenido, con uno a tres campos. El de nuevo mantenimiento es el más amplio: búsqueda a la izquierda y datos del vehículo a la derecha.
+- **Huecos punteados** «+ …» para agregar donde aún no hay contenido.
+- **Estados de contenido:** vacío con acción, sin resultados con explicación breve y nunca datos inventados.
+- **Toast** de confirmación arriba a la derecha.
 
 ## Piezas del taller
 
-- `PlateTag`: placa en una pieza reconocible y monoespaciada.
-- `PartCode`: código de repuesto monoespaciado con acción de copiar accesible.
-- `StockIndicator`: cantidad disponible y «Agotado» en cero; nunca «Stock bajo», porque el umbral (`RF-INV-011`) sigue sin decidir.
-- `Money`: importe USD con dos decimales o guion, sin aritmética de coma flotante.
-- `FiscalScopeBadge`: «RUC comercial» o «RUC artesanal» con icono y tono propios.
-- `ScopeLabel`: rótulo en mayúsculas con icono y tono del ámbito que encabeza fichas y grupos de tabla.
-- `RucPlate`: placa de RUC con la etiqueta «RUC» sobre tinta y los 13 dígitos monoespaciados, sin separadores.
-- `DocumentSheet`: hoja A4 común a la vista previa, el comprobante y la impresión.
+- **Placa:** chip tinta con letras blancas espaciadas; en las tarjetas oscuras, chip blanco con letras grafito.
+- **Código:** chip gris (`#EFEEEB`) para productos y chip pizarra suave para servicios (`SRV-000012`).
+- **Stock:** marcador tinta con la cantidad y rojo suave cuando está agotado; nunca «stock bajo» mientras `RF-INV-011` siga sin decidir.
+- **Cantidad editable:** botones − y + alrededor de un marcador tinta.
+- **Importes:** USD con dos decimales y cifras tabulares, alineados a la derecha.
+- **Logo de negocio:** iniciales o logo cargado, con la forma y el color de cada negocio.
 
-## Componentes compartidos
+## Accesibilidad
 
-`frontend/src/shared/ui/` agrupa acciones, campos (incluido `Combobox`, que sustituye al antiguo selector de referencias), navegación, superposiciones (`Modal`, `FormModal`, `Dialog`, `ConfirmationPanel`, `DropdownMenu`, `Tooltip`), datos, estados, notificaciones, superficies y piezas del taller. `Drawer` se conserva sin exportación pública ni consumidores funcionales para una capacidad futura; no se usa como formato de creación o edición. Se retiraron las familias de gráficos, calendario, tablero, conversación y cronología, y los layouts y tarjetas de métricas de la plantilla anterior; volverán solo cuando una capacidad aprobada los necesite.
+- Objetivos táctiles de 44 px en controles esenciales.
+- Foco visible en todos los controles, modales que contienen el foco y cierran con Escape.
+- Etiquetas reales en campos, `aria-label` en botones de solo icono y estados con texto.
+- Las pruebas automáticas de accesibilidad y de ancho (360 a 1440 px) que exige la spec vigente se conservan en U3.
 
-El frontend oculta opciones según los permisos efectivos, pero el backend conserva la autoridad sobre toda acción.
+## Pendiente de decidir en U3
 
-## Accesibilidad e interacción
-
-- Objetivos táctiles de al menos 44 px en controles esenciales.
-- Errores asociados a sus campos; estados comprensibles por texto y marcador, sin depender del color.
-- Modales, diálogos y el panel de navegación contienen el foco, cierran con Escape y lo devuelven al disparador. Cerrar un modal con cambios pide «Seguir editando» o «Descartar».
-- Movimiento breve y desactivado con `prefers-reduced-motion`.
-- `axe` y la comprobación de desplazamiento horizontal se ejecutan en 360, 768, 1024, 1280 y 1440 px (`frontend/e2e/responsive.spec.ts`); las infracciones serias o críticas bloquean la suite.
-
-## Catálogo visual interno
-
-`frontend/visual-catalog.html` (puerto 55175 en desarrollo) muestra los componentes y patrones Tallkit por familias —fundamentos, acciones, campos, combobox, tablas, estados, piezas del taller, superposiciones, notificaciones, navegación y patrones de pantalla—, cada uno con su tablero de origen o marca de adaptación, variantes o estados reproducibles en los cinco anchos, criterios de aceptación y diferencias conocidas. Queda fuera de la compilación productiva y se prueba con `npm run test:e2e:catalog`.
-
-## Aceptación visual
-
-El usuario valida el rediseño directamente en la aplicación y puede apoyarse en el catálogo reproducible. Las capturas comparativas son opcionales y solo se preparan cuando las solicita. Las diferencias justificadas siguen registradas, por ejemplo las funciones de la maqueta fuera de alcance como la búsqueda global o los indicadores sin dato del servidor.
+- Si se usará tableta en el taller (sin confirmar en U2); define la prioridad del diseño táctil entre 768 y 1279 px.
+- Qué requisitos de `sistema-visual-frontend`, `patrones-de-pantalla-frontend` y `experiencia-adaptable-frontend` se reemplazan o se conservan.
+- El tema oscuro, que hoy no está disponible, queda fuera de esta dirección.

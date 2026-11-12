@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo mantenimiento</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:14px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-pri[disabled]{background:#E6CBBB;color:#6B4B3A;cursor:not-allowed}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.placa{display:inline-flex;align-items:center;height:26px;padding:0 9px;border-radius:6px;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:12.5px;letter-spacing:.08em;flex:none}
+.campo{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:500;color:#5E6369}
+.inp{width:100%;height:46px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;border-radius:0;background:transparent;font-family:inherit;font-size:16px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.inp::placeholder{color:#8D9196;font-weight:400}
+.res{display:flex;align-items:center;gap:14px;width:100%;min-height:64px;padding:10px 12px;border:1.5px solid transparent;border-radius:12px;background:transparent;font-family:inherit;font-size:14px;color:#1C1F23;text-align:left;cursor:pointer;transition:background-color .12s,border-color .12s}
+.res:hover{background:#F4F3F0}
+.res.on{background:#F9F0EA;border-color:#B5582A}
+.chipq{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid #D5D1CB;background:#FFFFFF;font-family:inherit;font-size:13px;font-weight:500;color:#44484E;cursor:pointer}
+.chipq.on{background:#1C1F23;border-color:#1C1F23;color:#FFFFFF;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-debe{background:#F5E5E2;color:#A8392F}.p-ok{background:#E5EFE8;color:#2F6B4A}
+.dlg{animation:dlgIn .2s ease-out}
+@keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.985)}}
+.proto{position:absolute;left:24px;bottom:24px;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 13px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;min-height:100vh;overflow:hidden">
+<div aria-hidden="true" inert="inert">
+<dc-import name="Main" hint-size="100%,1000px"></dc-import>
+</div>
+
+<div style="position:absolute;inset:0;z-index:30;background:rgba(30,34,38,.48);display:flex;align-items:center;justify-content:center;padding:32px 24px">
+<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="nm-t" style="width:100%;max-width:980px;min-height:620px;background:#FFFFFF;border-radius:20px;box-shadow:0 30px 80px rgba(20,22,25,.32);overflow:hidden;display:flex;flex-direction:column">
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 28px;border-bottom:1px solid #EFEEEB">
+<div style="display:flex;align-items:center;gap:14px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#F5E8E0;color:#9C4A22"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
+<div><h2 id="nm-t" style="margin:0;font-size:21px;font-weight:700;letter-spacing:-.02em">Nuevo mantenimiento</h2><p style="margin:2px 0 0;font-size:13px;color:#5E6369">Busca el vehículo, revisa sus datos y ábrelo.</p></div>
+</div>
+<a href="Main.dc.html" class="btn btn-ghost" aria-label="Cerrar" style="width:44px;padding:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></a>
+</div>
+
+<div style="flex:1;display:flex;flex-wrap:wrap;min-height:0">
+<section aria-label="Buscar vehículo" style="flex:1 1 380px;min-width:0;padding:22px 24px;border-right:1px solid #EFEEEB;display:flex;flex-direction:column;gap:12px">
+<label class="campo">¿Qué vehículo llegó?
+<span style="position:relative;display:block">
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5E6369" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="position:absolute;left:2px;top:14px"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+<input class="inp" style="padding-left:30px" value="{{q}}" onChange="{{onQ}}" placeholder="Placa, nombre o cédula del dueño" autocomplete="off">
+</span>
+</label>
+<span style="font-size:12px;font-weight:600;color:#7C8085">{{resTxt}}</span>
+<ul style="list-style:none;margin:0 -8px;padding:0;display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{res}}" as="r" hint-placeholder-count="3">
+<li><button type="button" class="{{r.cls}}" aria-pressed="{{r.on}}" onClick="{{r.pick}}">
+<span class="placa">{{r.placa}}</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35"><span style="font-weight:700">{{r.nombre}}</span><span style="font-size:12.5px;color:#5E6369">{{r.vehiculo}}</span></span>
+<span style="font-size:12px;font-weight:500;color:#7C8085;text-align:right">{{r.visita}}</span>
+</button></li>
+</sc-for>
+</ul>
+<sc-if value="{{sinRes}}" hint-placeholder-val="{{false}}">
+<div style="padding:22px 12px;text-align:center;color:#5E6369">Ningún vehículo con «{{q}}».</div>
+</sc-if>
+<a href="#" style="margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border:1.5px dashed #CCC8C1;border-radius:12px;color:#44484E;font-weight:600;font-size:13.5px;text-decoration:none">+ Cliente o vehículo que no está registrado</a>
+</section>
+
+<section aria-label="Datos de llegada" style="flex:1 1 420px;min-width:0;padding:22px 26px;background:#FAF9F7;display:flex;flex-direction:column;gap:18px">
+<sc-if value="{{noSel}}" hint-placeholder-val="{{false}}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;color:#5E6369;border:1.5px dashed #D5D1CB;border-radius:16px;padding:32px">
+<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#9EA1A5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5"></path><path d="M3 16h18v3H3z"></path><circle cx="7.5" cy="16" r="1.5"></circle><circle cx="16.5" cy="16" r="1.5"></circle></svg>
+<span style="font-weight:600;color:#1C1F23">Elige el vehículo de la lista</span>
+<span style="font-size:13px">Aquí verás su último kilometraje y si el cliente debe algo.</span>
+</div>
+</sc-if>
+<sc-if value="{{haySel}}" hint-placeholder-val="{{true}}">
+<div style="position:relative;overflow:hidden;padding:20px 22px;border-radius:16px;background:#1E2226;color:#FFFFFF">
+<svg width="200" height="140" viewBox="0 0 200 140" fill="none" aria-hidden="true" style="position:absolute;right:-24px;bottom:-56px"><circle cx="140" cy="140" r="60" stroke="#30353B"></circle><circle cx="140" cy="140" r="90" stroke="#30353B"></circle><path d="M64 110A90 90 0 0 1 100 62" stroke="#B5582A" stroke-width="2.5" stroke-linecap="round"></path></svg>
+<span style="position:relative;display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:7px;background:#FFFFFF;color:#1E2226;font-weight:700;font-size:16px;letter-spacing:.09em">{{sel.placa}}</span>
+<p style="position:relative;margin:12px 0 0;font-size:18px;font-weight:700">{{sel.vehiculo}}</p>
+<p style="position:relative;margin:0;font-size:13px;color:#BEC2C7">Dueño: {{sel.nombre}}</p>
+<div style="position:relative;display:flex;flex-wrap:wrap;gap:22px;margin-top:14px">
+<span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-size:11.5px;color:#969BA1">Último kilometraje</span><span class="num" style="font-weight:600">{{sel.km}} km</span></span>
+<span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-size:11.5px;color:#969BA1">Última visita</span><span style="font-weight:600">{{sel.ultima}}</span></span>
+</div>
+</div>
+<sc-if value="{{sel.debe}}" hint-placeholder-val="{{false}}"><span class="pill p-debe" style="align-self:flex-start">Este cliente debe {{sel.deuda}} de una compra anterior</span></sc-if>
+<label class="campo">Kilometraje de hoy
+<input class="inp num" inputmode="numeric" value="{{km}}" onChange="{{onKm}}" placeholder="Mayor a {{sel.km}}" style="font-size:22px;font-weight:600">
+</label>
+<div class="campo" role="group" aria-label="Lo que pide el cliente">
+<span>Lo que pide el cliente</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+<sc-for list="{{motivos}}" as="m" hint-placeholder-count="6"><button type="button" class="{{m.cls}}" aria-pressed="{{m.on}}" onClick="{{m.toggle}}">{{m.label}}</button></sc-for>
+</div>
+</div>
+</sc-if>
+</section>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:16px 28px;border-top:1px solid #EFEEEB">
+<span style="font-size:12.5px;color:#5E6369">Se abre con la fecha de hoy. Los servicios y repuestos se agregan dentro.</span>
+<span style="display:flex;gap:10px">
+<a href="Main.dc.html" class="btn btn-ghost">Cancelar</a>
+<sc-if value="{{haySel}}" hint-placeholder-val="{{true}}"><a href="Mantenimiento.dc.html" class="btn btn-pri" style="min-width:220px">Abrir mantenimiento</a></sc-if>
+<sc-if value="{{noSel}}" hint-placeholder-val="{{false}}"><button type="button" class="btn btn-pri" style="min-width:220px" disabled="disabled">Abrir mantenimiento</button></sc-if>
+</span>
+</div>
+</div>
+</div>
+
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span>
+<sc-for list="{{escenarios}}" as="e" hint-placeholder-count="3"><button type="button" class="{{e.cls}}" onClick="{{e.pick}}">{{e.label}}</button></sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { q: 'GBA', sel: 0, km: '', motivos: ['Frenos'] };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var vehiculos = [
+      { placa: 'GBA-1234', nombre: 'Carlos Mendoza', vehiculo: 'Chevrolet Aveo 2016 · plateado', km: '84 300', ultima: '12 jun 2026', visita: 'Vino el 12 jun', debe: true, deuda: 'USD 18.00' },
+      { placa: 'GBA-1290', nombre: 'Lucía Andrade', vehiculo: 'Toyota Hilux 2021 · blanco', km: '41 020', ultima: '2 sep 2026', visita: 'Vino el 2 sep', debe: false, deuda: '' },
+      { placa: 'GBA-3307', nombre: 'Transportes Ríos', vehiculo: 'Hino 300 2019 · blanco', km: '210 400', ultima: '20 oct 2026', visita: 'Vino el 20 oct', debe: false, deuda: '' },
+      { placa: 'PCQ-0571', nombre: 'Ana Torres', vehiculo: 'Kia Rio 2019 · rojo', km: '63 150', ultima: 'Hoy', visita: 'Hoy', debe: false, deuda: '' },
+      { placa: 'GSM-8820', nombre: 'José Vera', vehiculo: 'Hyundai Accent 2014 · gris', km: '152 800', ultima: 'Ayer', visita: 'Ayer', debe: false, deuda: '' }
+    ];
+    var norm = function (s) { return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ''); };
+    var q = norm(st.q).trim();
+    var res = q.length === 0 ? [] : vehiculos.map(function (v, i) { return Object.assign({ i: i }, v); }).filter(function (v) { return norm(v.placa).indexOf(q) >= 0 || norm(v.nombre).indexOf(q) >= 0; });
+    var sel = st.sel === null ? null : vehiculos[st.sel];
+    var motivos = ['Cambio de aceite', 'Frenos', 'Revisión general', 'Alineación', 'Ruido extraño', 'Otro'].map(function (m) {
+      var on = st.motivos.indexOf(m) >= 0;
+      return { label: m, on: on, cls: on ? 'chipq on' : 'chipq', toggle: function () {
+        var l = st.motivos.slice(); var k = l.indexOf(m); if (k >= 0) { l.splice(k, 1); } else { l.push(m); } self.setState({ motivos: l });
+      } };
+    });
+    var escena = sel ? 'sel' : (q.length > 0 && res.length === 0 ? 'nada' : 'buscar');
+    var escenarios = [
+      ['buscar', 'Sin elegir', function () { self.setState({ sel: null, q: 'GBA' }); }],
+      ['sel', 'Vehículo elegido', function () { self.setState({ sel: 0, q: 'GBA' }); }],
+      ['nada', 'Sin resultados', function () { self.setState({ sel: null, q: 'XYZ-999' }); }]
+    ].map(function (e) { return { label: e[1], cls: escena === e[0] ? 'proto-b on' : 'proto-b', pick: e[2] }; });
+    return {
+      q: st.q, onQ: function (e) { self.setState({ q: e.target.value }); },
+      resTxt: res.length === 1 ? '1 vehículo encontrado' : res.length + ' vehículos encontrados',
+      res: res.map(function (v) { var on = st.sel === v.i; return Object.assign({}, v, { on: on, cls: on ? 'res on' : 'res', pick: function () { self.setState({ sel: v.i }); } }); }),
+      sinRes: q.length > 0 && res.length === 0,
+      sel: sel || vehiculos[0], haySel: !!sel, noSel: !sel,
+      km: st.km, onKm: function (e) { self.setState({ km: e.target.value }); },
+      motivos: motivos, escenarios: escenarios
+    };
+  }
+}
+</script>
+</body>
+</html>

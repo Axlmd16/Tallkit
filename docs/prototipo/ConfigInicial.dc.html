@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Configuración inicial</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F0}
+.tk,.tk *{box-sizing:border-box}
+.tk{font-family:'Montserrat',system-ui,sans-serif;font-size:14px;font-weight:400;line-height:1.5;color:#1C1F23}
+.num{font-variant-numeric:tabular-nums}
+a{color:#3E546F}a:hover{color:#2E3F55}
+.tk :focus-visible{outline:2px solid #4A6280;outline-offset:2px}
+.card{background:#FFFFFF;border:1px solid #E4E1DC;border-radius:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:13.5px;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color .15s,border-color .15s,color .15s}
+.btn-pri{background:#B5582A;color:#FFFFFF}.btn-pri:hover{background:#9C4A22;color:#FFFFFF}
+.btn-ghost{background:transparent;color:#5E6369}.btn-ghost:hover{background:#EFEEEB;color:#1C1F23}
+.campo{display:flex;flex-direction:column;gap:2px;font-size:12.5px;font-weight:500;color:#5E6369}
+.inp{width:100%;height:44px;padding:0 2px;border:0;border-bottom:1.5px solid #D5D1CB;border-radius:0;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:#1C1F23}
+.inp:focus{outline:none;border-color:#1C1F23}
+.inp::placeholder{color:#8D9196;font-weight:400}
+.paso{display:flex;align-items:center;gap:14px;width:100%;padding:10px 12px;border:0;border-radius:11px;background:transparent;font-family:inherit;text-align:left;color:#BEC2C7;cursor:pointer}
+.paso:hover{background:rgba(255,255,255,.05)}
+.paso-n{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;flex:none;font-size:12.5px;font-weight:700}
+.rolb{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid #D5D1CB;background:#FFFFFF;font-family:inherit;font-size:12.5px;font-weight:500;color:#44484E;cursor:pointer}
+.rolb.on{background:#1C1F23;border-color:#1C1F23;color:#FFFFFF;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-ok{background:#E5EFE8;color:#2F6B4A}.p-cobrar{background:#F5EDDC;color:#855E16}
+.paso-c{animation:pasoIn .25s ease-out}
+@keyframes pasoIn{from{opacity:0;transform:translateX(8px)}}
+.proto{position:absolute;right:24px;bottom:24px;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:5px;border-radius:999px;background:#FFFFFF;border:1px dashed #CCC8C1;box-shadow:0 10px 30px rgba(20,24,30,.16)}
+.proto-l{padding:0 10px 0 12px;font-size:12.5px;font-weight:500;color:#4E5257}
+.proto-b{min-height:34px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:#4E5257;cursor:pointer}
+.proto-b.on{background:#F0EFEB;color:#1C1F23;box-shadow:inset 0 0 0 1px #E2DFDA}
+@media (prefers-reduced-motion:reduce){.tk *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="tk" style="position:relative;display:flex;flex-wrap:wrap;min-height:100vh;background:#F4F3F0">
+
+<aside style="position:relative;overflow:hidden;flex:1 1 340px;max-width:420px;background:#1E2226;color:#FFFFFF;padding:32px 28px;display:flex;flex-direction:column;gap:28px">
+<svg width="340" height="340" viewBox="0 0 340 340" fill="none" aria-hidden="true" style="position:absolute;left:-40px;bottom:-120px;pointer-events:none"><circle cx="300" cy="340" r="120" stroke="#2C3137"></circle><circle cx="300" cy="340" r="160" stroke="#2C3137"></circle><circle cx="300" cy="340" r="200" stroke="#2C3137"></circle><circle cx="300" cy="340" r="240" stroke="#272B30"></circle><path d="M{{arco}}" stroke="#B5582A" stroke-width="3" stroke-linecap="round"></path></svg>
+<div style="position:relative;display:flex;align-items:center;gap:10px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#B5582A;color:#FFFFFF"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></span>
+<span style="font-weight:700;font-size:19px;letter-spacing:-.02em">Tallkit</span>
+</div>
+<div style="position:relative">
+<h1 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.25">Preparemos el taller</h1>
+<p style="margin:8px 0 0;color:#BEC2C7;font-size:14px">Cinco pasos que se hacen una sola vez. Puedes volver a cualquiera más tarde desde Ajustes.</p>
+</div>
+<ol style="position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{pasos}}" as="p" hint-placeholder-count="5">
+<li><button type="button" class="paso" aria-current="{{p.cur}}" onClick="{{p.pick}}" style="background:{{p.bg}}">
+<span class="paso-n" style="background:{{p.nBg}};color:{{p.nFg}};box-shadow:{{p.ring}}">{{p.marca}}</span>
+<span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-weight:{{p.fw}};color:{{p.tc}}">{{p.label}}</span><span style="font-size:12px;color:#969BA1">{{p.sub}}</span></span>
+</button></li>
+</sc-for>
+</ol>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:44px clamp(16px,4vw,56px) 96px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="font-size:12.5px;font-weight:600;color:#5E6369">Paso {{n}} de 5</span>
+<span aria-hidden="true" style="flex:1;height:4px;border-radius:999px;background:#E4E1DC"><span style="display:block;width:{{avance}};height:4px;border-radius:999px;background:#B5582A"></span></span>
+</div>
+
+<sc-if value="{{p1}}" hint-placeholder-val="{{true}}">
+<div class="paso-c" style="display:flex;flex-direction:column;gap:20px">
+<div><h2 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em">Los dos negocios</h2><p style="margin:6px 0 0;color:#44484E">El taller factura la mano de obra y el almacén factura las piezas. Cada uno tiene su RUC.</p></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
+<section class="card" style="overflow:hidden"><div style="padding:14px 18px;background:#E9EDF2;font-weight:700;color:#3E546F">Taller · mano de obra</div><div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><label class="campo">Nombre que verán los clientes<input class="inp" placeholder="Nombre comercial del taller"></label><label class="campo">RUC<input class="inp num" inputmode="numeric" placeholder="13 dígitos"></label></div></section>
+<section class="card" style="overflow:hidden"><div style="padding:14px 18px;background:#F2ECE2;font-weight:700;color:#6E5430">Almacén · repuestos</div><div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><label class="campo">Nombre que verán los clientes<input class="inp" placeholder="Nombre comercial del almacén"></label><label class="campo">RUC<input class="inp num" inputmode="numeric" placeholder="13 dígitos"></label></div></section>
+</div>
+<p style="margin:0;font-size:12.5px;color:#5E6369">La razón social y la dirección se completan solas con el RUC y puedes revisarlas después.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{p2}}" hint-placeholder-val="{{false}}">
+<div class="paso-c" style="display:flex;flex-direction:column;gap:20px">
+<div><h2 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em">Facturación electrónica</h2><p style="margin:6px 0 0;color:#44484E">Desde dónde sale cada factura y hasta cuándo vale la firma electrónica de cada negocio.</p></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><span style="font-weight:700;color:#3E546F">Transmisiones y Embragues Jimenez</span><label class="campo">Punto de emisión<input class="inp num" value="001-001"></label><label class="campo">La firma electrónica vence el<input class="inp" placeholder="dd/mm/aaaa"></label></section>
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><span style="font-weight:700;color:#6E5430">Transmisiones y Embragues Repuestos Automotrices</span><label class="campo">Punto de emisión<input class="inp num" value="001-001"></label><label class="campo">La firma electrónica vence el<input class="inp" placeholder="dd/mm/aaaa"></label></section>
+</div>
+<span class="pill p-cobrar" style="align-self:flex-start">Las facturas quedarán en pruebas hasta activar la emisión real</span>
+</div>
+</sc-if>
+
+<sc-if value="{{p3}}" hint-placeholder-val="{{false}}">
+<div class="paso-c" style="display:flex;flex-direction:column;gap:20px">
+<div><h2 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em">Impuestos</h2><p style="margin:6px 0 0;color:#44484E">Ya vienen puestos los valores de hoy. Solo revisa que coincidan con tu contador.</p></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><span style="font-weight:700;color:#3E546F">Transmisiones y Embragues Jimenez</span><label class="campo">N.º de calificación artesanal<input class="inp num" placeholder="Número del carné"></label><label class="campo">Vence el<input class="inp" placeholder="dd/mm/aaaa"></label></section>
+<section class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:14px"><span style="font-weight:700;color:#6E5430">Transmisiones y Embragues Repuestos Automotrices</span><div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #EFEEEB"><span>IVA de los repuestos</span><span class="num" style="font-weight:700">15 %</span></div><p style="margin:0;font-size:12.5px;color:#5E6369">Los precios se escriben con IVA incluido.</p></section>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{p4}}" hint-placeholder-val="{{false}}">
+<div class="paso-c" style="display:flex;flex-direction:column;gap:20px">
+<div><h2 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em">Personas con acceso</h2><p style="margin:6px 0 0;color:#44484E">Quién entra al sistema y qué puede hacer. Una persona puede tener varios permisos.</p></div>
+<section class="card" style="overflow:hidden">
+<sc-for list="{{personas}}" as="u" hint-placeholder-count="2">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px 18px;border-top:1px solid #EFEEEB">
+<span aria-hidden="true" style="display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#1C1F23;color:#FFFFFF;font-weight:700;font-size:13px">{{u.ini}}</span>
+<span style="flex:1 1 160px;font-weight:700">{{u.nombre}}</span>
+<span style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{u.roles}}" as="r" hint-placeholder-count="3"><button type="button" class="{{r.cls}}" aria-pressed="{{r.on}}" onClick="{{r.toggle}}">{{r.label}}</button></sc-for></span>
+</div>
+</sc-for>
+<div style="padding:12px 18px 16px;border-top:1px solid #EFEEEB"><button type="button" style="width:100%;min-height:46px;border:1.5px dashed #CCC8C1;border-radius:10px;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:#44484E;cursor:pointer">+ Agregar otra persona</button></div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{p5}}" hint-placeholder-val="{{false}}">
+<div class="paso-c" style="display:flex;flex-direction:column;gap:20px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#E5EFE8;color:#2F6B4A"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"></path></svg></span>
+<div><h2 style="margin:0;font-size:26px;font-weight:700;letter-spacing:-.02em">Todo listo para atender</h2><p style="margin:6px 0 0;color:#44484E">Ya puedes recibir vehículos, vender y cobrar. Lo que falte se puede completar después.</p></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+<sc-for list="{{resumen}}" as="r" hint-placeholder-count="4"><div class="card" style="display:flex;flex-direction:column;gap:12px;padding:18px 20px"><span style="font-weight:700">{{r.que}}</span><span class="pill {{r.pc}}" style="align-self:flex-start">{{r.est}}</span></div></sc-for>
+</div>
+</div>
+</sc-if>
+
+<div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:8px">
+<sc-if value="{{hayAtras}}" hint-placeholder-val="{{false}}"><button type="button" class="btn btn-ghost" onClick="{{atras}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg>Atrás</button></sc-if>
+<span style="flex:1"></span>
+<sc-if value="{{noFin}}" hint-placeholder-val="{{true}}"><button type="button" class="btn btn-ghost" onClick="{{siguiente}}">Hacerlo después</button><button type="button" class="btn btn-pri" style="min-width:180px" onClick="{{siguiente}}">Guardar y seguir</button></sc-if>
+<sc-if value="{{fin}}" hint-placeholder-val="{{false}}"><a href="Main.dc.html" class="btn btn-pri" style="min-width:200px">Ir al inicio</a></sc-if>
+</div>
+</main>
+
+<div class="proto" role="group" aria-label="Escenario del prototipo"><span class="proto-l">Prototipo</span><sc-for list="{{pasos}}" as="p" hint-placeholder-count="5"><button type="button" class="{{p.pcls}}" onClick="{{p.pick}}">{{p.n}}</button></sc-for></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { paso: 1, roles: [['Administrador', 'Vendedor', 'Encargado del taller'], ['Administrador']] };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var defs = [['Los dos negocios', 'Nombre y RUC'], ['Facturación electrónica', 'Punto de emisión y firma'], ['Impuestos', 'Artesano e IVA'], ['Personas con acceso', 'Quién usa el sistema'], ['Listo', 'Revisar y empezar']];
+    var pasos = defs.map(function (d, i) {
+      var n = i + 1, hecho = n < st.paso, act = n === st.paso;
+      return {
+        n: n, label: d[0], sub: d[1], marca: hecho ? '✓' : String(n),
+        nBg: hecho ? '#B5582A' : (act ? '#FFFFFF' : 'transparent'),
+        nFg: hecho ? '#FFFFFF' : (act ? '#1E2226' : '#969BA1'),
+        ring: hecho || act ? 'none' : 'inset 0 0 0 1.5px #40454C',
+        fw: act ? '700' : '500', tc: act || hecho ? '#FFFFFF' : '#BEC2C7',
+        bg: act ? 'rgba(255,255,255,.06)' : 'transparent',
+        cur: act ? 'step' : undefined,
+        pcls: act ? 'proto-b on' : 'proto-b',
+        pick: function () { self.setState({ paso: n }); }
+      };
+    });
+    var arcos = ['140 252A160 160 0 0 1 166 220', '140 252A160 160 0 0 1 200 196', '140 252A160 160 0 0 1 240 184', '140 252A160 160 0 0 1 270 183', '140 252A160 160 0 0 1 300 180'];
+    var nombresRol = ['Administrador', 'Vendedor', 'Encargado del taller'];
+    var personas = [['U', '[Nombre de la usuaria]'], ['D', '[Nombre del dueño]']].map(function (p, i) {
+      return {
+        ini: p[0], nombre: p[1],
+        roles: nombresRol.map(function (r) {
+          var on = st.roles[i].indexOf(r) >= 0;
+          return {
+            label: r, on: on, cls: on ? 'rolb on' : 'rolb',
+            toggle: function () {
+              var todos = st.roles.map(function (x) { return x.slice(); });
+              var k = todos[i].indexOf(r);
+              if (k >= 0) { todos[i].splice(k, 1); } else { todos[i].push(r); }
+              self.setState({ roles: todos });
+            }
+          };
+        })
+      };
+    });
+    return {
+      pasos: pasos, n: st.paso, avance: (st.paso * 20) + '%', arco: arcos[st.paso - 1],
+      p1: st.paso === 1, p2: st.paso === 2, p3: st.paso === 3, p4: st.paso === 4, p5: st.paso === 5,
+      hayAtras: st.paso > 1, fin: st.paso === 5, noFin: st.paso < 5,
+      atras: function () { self.setState({ paso: Math.max(1, st.paso - 1) }); },
+      siguiente: function () { self.setState({ paso: Math.min(5, st.paso + 1) }); },
+      personas: personas,
+      resumen: [
+        { que: 'Los dos negocios', est: 'Completo', pc: 'p-ok' },
+        { que: 'Facturación electrónica', est: 'En pruebas', pc: 'p-cobrar' },
+        { que: 'Impuestos', est: 'Completo', pc: 'p-ok' },
+        { que: 'Personas con acceso', est: '2 personas', pc: 'p-ok' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

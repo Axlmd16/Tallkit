@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Menú</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Menú principal" style="position:relative;box-sizing:border-box;width:100%;height:100%;min-height:1000px;overflow:hidden;padding:22px 14px 24px;display:flex;flex-direction:column;gap:22px;background:#1E2226;color:#BEC2C7;font-family:'Montserrat',system-ui,sans-serif;font-size:14px;line-height:1.4">
+
+<svg width="264" height="310" viewBox="0 0 264 310" fill="none" aria-hidden="true" style="position:absolute;left:0;bottom:0;pointer-events:none">
+<circle cx="240" cy="310" r="110" stroke="#2C3137" stroke-width="1"></circle>
+<circle cx="240" cy="310" r="140" stroke="#2C3137" stroke-width="1"></circle>
+<circle cx="240" cy="310" r="170" stroke="#2C3137" stroke-width="1"></circle>
+<circle cx="240" cy="310" r="232" stroke="#272B30" stroke-width="1"></circle>
+<path d="M28 310H42M31.2 273.1 45 275.5M40.7 237.5 53.9 242.3M56.4 204 68.5 211M77.6 173.7 88.3 182.7M103.7 147.6 112.7 158.3M134 126.4 141 138.5M167.5 110.7 172.3 123.9M203.1 101.2 205.5 115M240 98V112" stroke="#40454C" stroke-width="1.5" stroke-linecap="round"></path>
+<path d="M80.2 251.9A170 170 0 0 1 181.9 150.2" stroke="#B5582A" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M240 310 176.6 174.1" stroke="#B5582A" stroke-width="1.5" stroke-linecap="round"></path>
+<circle cx="240" cy="310" r="7" fill="#B5582A"></circle>
+</svg>
+
+<div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 6px">
+<span style="display:flex;align-items:center;gap:10px">
+<span aria-hidden="true" style="display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#B5582A;color:#FFFFFF">
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+</span>
+<span style="display:flex;flex-direction:column;line-height:1.15">
+<span style="color:#FFFFFF;font-weight:700;font-size:19px;letter-spacing:-.02em">Tallkit</span>
+<span style="font-size:11.5px;color:#969BA1">Taller y repuestos</span>
+</span>
+</span>
+<button type="button" aria-label="Contraer menú" style="display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:#969BA1;cursor:pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M16 10l-2 2 2 2"></path></svg>
+</button>
+</div>
+
+<div style="position:relative;display:flex;align-items:center;gap:12px;padding:0 12px;font-size:11.5px;color:#8A8F95;letter-spacing:.06em">
+<span aria-hidden="true" style="width:22px;height:1px;background:#40454C"></span>Día a día
+</div>
+
+<div style="position:relative;display:flex;flex-wrap:wrap;gap:3px;margin-top:-10px">
+<a href="Main.dc.html" aria-current="{{cur.inicio}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.inicio}};background:{{bg.inicio}};color:{{fg.inicio}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.inicio}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M10 21v-6h4v6"></path></svg>Inicio</a>
+<a href="MantenimientosLista.dc.html" aria-current="{{cur.mantenimientos}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.mantenimientos}};background:{{bg.mantenimientos}};color:{{fg.mantenimientos}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.mantenimientos}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Mantenimientos<span style="margin-left:auto;display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;background:#34393F;color:#E6E5E2;font-size:12px;font-weight:600">3</span></a>
+<a href="Ventas.dc.html" aria-current="{{cur.ventas}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.ventas}};background:{{bg.ventas}};color:{{fg.ventas}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.ventas}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>Ventas</a>
+<a href="Facturas.dc.html" aria-current="{{cur.facturas}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.facturas}};background:{{bg.facturas}};color:{{fg.facturas}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.facturas}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5"></path><path d="M9 13h7M9 17h5"></path></svg>Facturas<span style="margin-left:auto;display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;background:#B5582A;color:#FFFFFF;font-size:12px;font-weight:600">1</span></a>
+<a href="Clientes.dc.html" aria-current="{{cur.clientes}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.clientes}};background:{{bg.clientes}};color:{{fg.clientes}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.clientes}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7"></path><path d="M18 14a6.5 6.5 0 0 1 3.5 6"></path></svg>Clientes</a>
+<a href="Productos.dc.html" aria-current="{{cur.productos}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.productos}};background:{{bg.productos}};color:{{fg.productos}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.productos}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"></path><path d="M3 7.5 12 12l9-4.5"></path><path d="M12 12v9"></path></svg>Productos</a>
+<a href="Servicios.dc.html" aria-current="{{cur.servicios}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.servicios}};background:{{bg.servicios}};color:{{fg.servicios}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.servicios}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1"></path><path d="m9 13 2 2 4-4"></path></svg>Servicios</a>
+<a href="Cuentas.dc.html" aria-current="{{cur.cuentas}}" style="flex:1 1 180px;position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.cuentas}};background:{{bg.cuentas}};color:{{fg.cuentas}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.cuentas}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M3 7V6a2 2 0 0 1 2-2h11"></path><circle cx="16.5" cy="13.5" r="1.2"></circle></svg>Cuentas</a>
+</div>
+
+<div style="position:relative;display:flex;align-items:center;gap:12px;padding:0 12px;font-size:11.5px;color:#8A8F95;letter-spacing:.06em">
+<span aria-hidden="true" style="width:22px;height:1px;background:#40454C"></span>Poco frecuente
+</div>
+<div style="position:relative;margin-top:-10px">
+<a href="Ajustes.dc.html" aria-current="{{cur.ajustes}}" style="position:relative;display:flex;align-items:center;gap:13px;min-height:44px;padding:0 14px;border-radius:10px;text-decoration:none;font-weight:{{fw.ajustes}};background:{{bg.ajustes}};color:{{fg.ajustes}}"><span aria-hidden="true" style="position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:{{bar.ajustes}}"></span>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>Ajustes</a>
+</div>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"activo":{"editor":"enum","options":["inicio","mantenimientos","ventas","facturas","clientes","productos","servicios","cuentas","ajustes"],"default":"inicio"},"$preview":{"width":264,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var activo = this.props.activo ?? 'inicio';
+    var keys = ['inicio', 'mantenimientos', 'ventas', 'facturas', 'clientes', 'productos', 'servicios', 'cuentas', 'ajustes'];
+    var bg = {}, fg = {}, fw = {}, bar = {}, cur = {};
+    keys.forEach(function (k) {
+      var on = k === activo;
+      bg[k] = on ? '#2C3137' : 'transparent';
+      fg[k] = on ? '#FFFFFF' : '#BEC2C7';
+      fw[k] = on ? '600' : '500';
+      bar[k] = on ? '#B5582A' : 'transparent';
+      cur[k] = on ? 'page' : undefined;
+    });
+    return { bg: bg, fg: fg, fw: fw, bar: bar, cur: cur };
+  }
+}
+</script>
+</body>
+</html>
