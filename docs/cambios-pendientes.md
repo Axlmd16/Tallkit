@@ -218,9 +218,9 @@ son «Transmisiones y Embragues Jimenez» (taller) y «Transmisiones y Embragues
 
 **Brechas registradas**
 
-- [ ] Medición con conteo de acciones y tiempos y comparación con el Facturador del SRI. La spec
-  `objetivos-de-uso-diario` la exige antes de programar U3 a U6; el titular decidió no hacerla en U2.
-  Hay que hacerla antes de aplicar U3 o ajustar esa spec con un cambio OpenSpec.
+- [x] ~~Medición con conteo de acciones y tiempos y comparación con el Facturador del SRI~~. **No
+  necesaria** por decisión del titular (2026-11-12). La spec `objetivos-de-uso-diario` la exigía antes
+  de programar U3 a U6; U3 (`renovar-sistema-visual`) la ajusta para quitar ese requisito.
 - [ ] Uso de tableta en el taller: sigue sin confirmar; pasa a U3.
 
 ### U3. `renovar-sistema-visual`
