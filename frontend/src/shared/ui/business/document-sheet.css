@@ -9,6 +9,7 @@
   border-radius: var(--radius-panel);
   background: var(--color-surface);
   color: var(--color-ink);
+  font-family: var(--tk-font-print);
   font-size: 13px;
   /* Rojo del membrete, tomado del logotipo del local. */
   --sheet-letterhead-accent: #d7262b;

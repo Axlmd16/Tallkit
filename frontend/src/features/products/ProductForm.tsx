@@ -300,7 +300,7 @@ export function ProductForm({
               required
             >
               <Input
-                className="font-mono"
+                className="code"
                 disabled={pending}
                 id="product-code"
                 maxLength={hasLongCode ? undefined : CODE_MAX}
@@ -315,7 +315,7 @@ export function ProductForm({
               label="Código del fabricante"
             >
               <Input
-                className="font-mono"
+                className="code"
                 disabled={pending}
                 id="product-manufacturer-code"
                 onChange={(e) =>
@@ -411,7 +411,7 @@ export function ProductForm({
                 label="Es un kit comprado completo"
                 onChange={(e) => update('isKit', e.target.checked)}
               />
-              <p className="pb-2 pl-7 text-xs text-ink-muted">
+              <p className="pb-2 pl-7 text-label text-ink-muted">
                 Se compra y vende como una sola pieza; solo se descompone con un
                 desarme explícito.
               </p>
@@ -479,7 +479,7 @@ export function ProductForm({
               />
             </div>
             {permissions.has('productos.gestionar') && (
-              <p className="flex items-start gap-2 text-sm text-ink-muted sm:col-span-2">
+              <p className="flex items-start gap-2 text-body text-ink-muted sm:col-span-2">
                 <Info
                   aria-hidden="true"
                   className="mt-0.5 shrink-0 text-accent"
@@ -537,7 +537,7 @@ export function ProductForm({
             >
               <LeadingIcon
                 icon={
-                  <span className="text-xs font-semibold tracking-wide">
+                  <span className="text-label font-semibold tracking-wide">
                     USD
                   </span>
                 }
@@ -626,7 +626,7 @@ export function ProductForm({
             className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-subtle px-5 py-3"
             role="group"
           >
-            <span className="mr-auto text-[12.5px] text-ink-muted">
+            <span className="mr-auto text-label text-ink-muted">
               <span aria-hidden="true" className="text-danger">
                 *
               </span>{' '}
@@ -696,12 +696,12 @@ function ProductSummary({
   return (
     <aside className="space-y-4" aria-label="Resumen del producto">
       <section className="rounded-panel border border-line bg-surface">
-        <h3 className="border-b border-line px-4 py-3 text-[14.5px] font-semibold">
+        <h3 className="border-b border-line px-4 py-3 text-body font-semibold">
           Así se verá en la venta
         </h3>
-        <div className="space-y-3 p-4 text-[13px]">
+        <div className="space-y-3 p-4 text-body">
           <div className="flex min-h-10 items-center gap-2 rounded-control border border-line-strong px-2.5">
-            <span className="rounded-chip border border-line bg-surface-muted px-1.5 font-mono text-xs">
+            <span className="rounded-chip border border-line bg-surface-muted px-1.5 code text-label">
               {draft.code.trim() || 'CÓDIGO'}
             </span>
             <span className="truncate font-medium">
@@ -714,7 +714,7 @@ function ProductSummary({
               amount={
                 PRICE.test(draft.price.trim()) ? draft.price.trim() : null
               }
-              className="text-lg font-bold"
+              className="text-block font-bold"
             />
           </div>
           <div className="flex justify-between gap-3">
@@ -739,12 +739,12 @@ function ProductSummary({
       </section>
       <section className="rounded-panel border border-line bg-surface">
         <div className="flex items-center justify-between border-b border-line px-4 py-3">
-          <h3 className="text-[14.5px] font-semibold">Antes de guardar</h3>
-          <span className="text-[12.5px] text-ink-muted">
+          <h3 className="text-body font-semibold">Antes de guardar</h3>
+          <span className="text-label text-ink-muted">
             {done} de {checks.length}
           </span>
         </div>
-        <ul className="space-y-2 px-4 py-3 text-[13px]">
+        <ul className="space-y-2 px-4 py-3 text-body">
           {checks.map(([label, ok]) => (
             <li className="flex items-center gap-2" key={label}>
               {ok ? (
@@ -771,7 +771,7 @@ function ProductSummary({
           ))}
         </ul>
       </section>
-      <p className="flex gap-2 rounded-control bg-info-soft px-3 py-2.5 text-[12.5px] text-info">
+      <p className="flex gap-2 rounded-control bg-info-soft px-3 py-2.5 text-label text-info">
         <Info aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
         <span>
           Las existencias no se cargan aquí: entran con un <b>ingreso</b> de

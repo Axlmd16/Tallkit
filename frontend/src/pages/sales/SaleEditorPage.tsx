@@ -223,7 +223,7 @@ export function SaleEditorPage() {
               <>
                 Originada en la proforma{' '}
                 <Link
-                  className="font-mono font-semibold hover:underline"
+                  className="code font-semibold hover:underline"
                   to={`/proformas/${origin.proforma_id}`}
                 >
                   {origin.proforma_number}
@@ -374,7 +374,7 @@ export function SaleEditorPage() {
                     Ver orden de origen
                   </Link>
                 </InlineNotice>
-                <ul className="mt-2 text-[13px]">
+                <ul className="mt-2 text-body">
                   {(saved.data?.lines ?? []).map((line) => (
                     <li key={line.id}>
                       {line.product_code} · {line.product_name} ×{' '}
@@ -433,7 +433,7 @@ export function SaleEditorPage() {
               <span>Total de la venta</span>
               <Money
                 amount={showValues ? (preview?.totals?.total ?? null) : null}
-                className={`text-xl font-bold ${fresh ? '' : 'pending-value'}`}
+                className={`text-block font-bold ${fresh ? '' : 'pending-value'}`}
               />
             </div>
             <p aria-live="polite" className="sale-actions-note">

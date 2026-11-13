@@ -148,14 +148,14 @@ export function Progress({
           </svg>
 
           {showValue && !indeterminate && (
-            <span className="absolute text-[11px] font-semibold text-ink">
+            <span className="absolute text-micro font-semibold text-ink">
               {formattedValue}
             </span>
           )}
         </div>
 
         {label && (
-          <span className="text-xs font-medium text-ink-muted">{label}</span>
+          <span className="text-label font-medium text-ink-muted">{label}</span>
         )}
       </div>
     )
@@ -172,7 +172,7 @@ export function Progress({
       role="progressbar"
     >
       {(label || showValue) && (
-        <div className="flex items-center justify-between text-xs font-medium text-ink-muted">
+        <div className="flex items-center justify-between text-label font-medium text-ink-muted">
           {label && <span id={labelId}>{label}</span>}
           {showValue && !indeterminate && <span>{formattedValue}</span>}
         </div>

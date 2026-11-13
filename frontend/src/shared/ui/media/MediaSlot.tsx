@@ -36,7 +36,7 @@ export function MediaSlot({
       ) : (
         <div className="flex flex-col items-center gap-2">
           {icon ? (
-            <span className="text-2xl text-ink-muted/70">{icon}</span>
+            <span className="text-figure text-ink-muted/70">{icon}</span>
           ) : (
             <svg
               aria-hidden="true"
@@ -55,7 +55,7 @@ export function MediaSlot({
           )}
 
           {label && (
-            <span className="text-xs font-semibold text-ink-muted max-w-[200px] truncate">
+            <span className="text-label font-semibold text-ink-muted max-w-[200px] truncate">
               {label}
             </span>
           )}

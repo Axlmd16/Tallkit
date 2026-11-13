@@ -177,7 +177,7 @@ describe('Tabs (C15)', () => {
     expect(screen.getByText('12')).toBeInTheDocument()
   })
 
-  it('marca la pestaña activa con el acento de selección, no con la acción principal', () => {
+  it('marca la pestaña activa con subrayado cobre de 2 px y texto de tinta', () => {
     render(
       <Tabs
         activeId="board"
@@ -187,9 +187,10 @@ describe('Tabs (C15)', () => {
       />,
     )
     const active = screen.getByRole('tab', { name: 'Tablero' })
-    expect(active.className).toMatch(/\bborder-accent\b/)
-    expect(active.className).toMatch(/\btext-accent-strong\b/)
-    expect(active.className).not.toMatch(/\b(text|bg|border)-primary\b/)
+    expect(active.className).toMatch(/\bborder-b-2\b/)
+    expect(active.className).toMatch(/\bborder-primary\b/)
+    expect(active.className).toMatch(/\btext-ink\b/)
+    expect(active).toHaveAttribute('aria-selected', 'true')
   })
 
   it('keeps every panel mounted and hides inactive ones when keepMounted is set', async () => {

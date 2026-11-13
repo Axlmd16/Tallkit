@@ -36,7 +36,7 @@ La aplicación se utiliza durante la jornada en computadoras, tabletas y teléfo
 
 El nombre visible del producto es **Tallkit**, con el logotipo existente en `frontend/src/assets/brand/`; «Sys-Inventario» se conserva como nombre técnico. No existe todavía manual de marca definitivo.
 
-**En reemplazo por `DP-036`** (vigente hasta U3 de `docs/cambios-pendientes.md`): la preferencia por interfaces limpias, claras, sobrias y de alta legibilidad, con navegación compacta, jerarquía precisa y poco ruido visual, según las cuatro capturas de referencia del 10 de septiembre de 2026. La dirección nueva, «Grafito y cobre», quedó escrita en `DESIGN.md` al aprobar el prototipo de U2 (2026-11-12) y se aplica en U3.
+**Dirección vigente desde U3: «Grafito y cobre»**, escrita en `DESIGN.md` al aprobar el prototipo de U2 (2026-11-12) y aplicada por `renovar-sistema-visual`: barra lateral grafito con el motivo del tacómetro, cobre solo para la acción principal y lo activo, un color discreto por negocio y Montserrat. Sustituye a la preferencia anterior por interfaces sobrias y compactas (cuatro capturas del 10 de septiembre de 2026).
 
 ## Evidence on Hand
 
@@ -50,7 +50,7 @@ El nombre visible del producto es **Tallkit**, con el logotipo existente en `fro
 1. Claridad operativa antes que decoración.
 2. Separación fiscal visible sin duplicar la navegación.
 3. Acciones críticas explícitas y trazables.
-4. Densidad útil en computadora con adaptación real para interacción táctil. *(En reemplazo por `DP-036`, vigente hasta U3: la facilidad de uso diario pesa más que la densidad.)*
+4. Densidad útil en computadora con adaptación real para interacción táctil. *(Por `DP-036`, la facilidad de uso diario pesa más que la densidad; U3 aplicó la escala de 14 px.)*
 5. Un lenguaje visual común para todas las capacidades futuras.
 
 ## Accessibility & Inclusion

@@ -40,15 +40,15 @@ export function SaleOriginLabel({
 }) {
   if (origin?.type === 'MAINTENANCE') {
     return (
-      <span className="text-[13px]">
-        Mantenimiento <span className="font-mono">{origin.order_number}</span>
+      <span className="text-body">
+        Mantenimiento <span className="code">{origin.order_number}</span>
       </span>
     )
   }
   if (origin?.type === 'PROFORMA') {
     return (
-      <span className="text-[13px]">
-        Proforma <span className="font-mono">{origin.proforma_number}</span>
+      <span className="text-body">
+        Proforma <span className="code">{origin.proforma_number}</span>
       </span>
     )
   }

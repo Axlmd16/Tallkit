@@ -24,8 +24,8 @@ export function NavigationItem({
   className = '',
 }: NavigationItemProps) {
   const activeClasses = active
-    ? 'bg-accent-soft text-accent-strong font-semibold'
-    : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
+    ? 'bg-graphite-raised text-white font-semibold before:absolute before:inset-y-2 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-primary'
+    : 'text-graphite-ink hover:bg-graphite-raised/60 hover:text-white'
 
   const sizeClasses = collapsed
     ? 'size-11 justify-center mx-auto'
@@ -35,7 +35,7 @@ export function NavigationItem({
     <button
       aria-current={active ? 'page' : undefined}
       aria-label={label}
-      className={`min-h-[44px] flex items-center rounded-control text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 ${sizeClasses} ${activeClasses} ${className}`.trim()}
+      className={`relative min-h-11 flex items-center rounded-control text-body transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-1 focus-visible:ring-offset-graphite disabled:cursor-not-allowed disabled:opacity-40 ${sizeClasses} ${activeClasses} ${className}`.trim()}
       data-item-id={id}
       disabled={disabled}
       onClick={onClick}
@@ -51,8 +51,10 @@ export function NavigationItem({
           <span className="flex-1 text-left truncate">{label}</span>
           {badge !== undefined && (
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 ${
-                active ? 'bg-accent text-white' : 'bg-surface-muted text-ink'
+              className={`rounded-full px-2 py-0.5 text-micro font-semibold shrink-0 ${
+                active
+                  ? 'bg-primary text-white'
+                  : 'bg-graphite-line text-graphite-ink'
               }`}
             >
               {badge}

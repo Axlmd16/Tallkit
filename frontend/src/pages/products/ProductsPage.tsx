@@ -1,5 +1,6 @@
 import {
   DotsThreeVertical,
+  Package,
   PencilSimple,
   Power,
   Printer,
@@ -206,11 +207,12 @@ export function ProductsPage() {
   return (
     <div className="catalog-page list-page space-y-6">
       <PageHeader
+        icon={<Package />}
         actions={
           <div className="flex flex-wrap items-center gap-4">
             <nav
               aria-label="Catálogos de apoyo"
-              className="flex flex-wrap gap-3 text-[13px] font-semibold"
+              className="flex flex-wrap gap-3 text-body font-semibold"
             >
               <Link
                 className="text-accent hover:underline"
@@ -319,7 +321,7 @@ export function ProductsPage() {
               role="toolbar"
             >
               <p
-                className="text-xs font-semibold text-ink-muted"
+                className="text-label font-semibold text-ink-muted"
                 aria-live="polite"
               >
                 {selectedProducts.size}{' '}
@@ -400,9 +402,9 @@ export function ProductsPage() {
                   priority: 'primary',
                   render: (row) => (
                     <>
-                      <span className="font-mono font-medium">{row.code}</span>
+                      <span className="code font-medium">{row.code}</span>
                       {row.code_length !== undefined && (
-                        <span className="block text-xs text-ink-muted">
+                        <span className="block text-label text-ink-muted">
                           {row.code_length} caracteres
                         </span>
                       )}
@@ -415,7 +417,7 @@ export function ProductsPage() {
                   priority: 'secondary',
                   render: (row) =>
                     row.manufacturer_code ? (
-                      <span className="font-mono text-sm">
+                      <span className="code text-body">
                         {row.manufacturer_code}
                       </span>
                     ) : (

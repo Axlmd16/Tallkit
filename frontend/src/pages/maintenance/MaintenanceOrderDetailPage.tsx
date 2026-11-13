@@ -112,9 +112,9 @@ export function MaintenanceOrderDetailPage() {
             <ArrowLeft aria-hidden="true" size={18} />
           </Link>
           <div className="min-w-0">
-            <p className="text-xs text-ink-muted">Mantenimientos</p>
+            <p className="text-label text-ink-muted">Mantenimientos</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+              <h1 className="code text-page font-semibold text-ink">
                 {order.number}
               </h1>
               <OrderStateBadge state={order.state} />
@@ -180,9 +180,9 @@ export function MaintenanceOrderDetailPage() {
                       id="order-diagnosis-title"
                       title="Diagnóstico y observaciones"
                     >
-                      <dl className="grid gap-4 p-4 text-[13px] sm:grid-cols-2">
+                      <dl className="grid gap-4 p-4 text-body sm:grid-cols-2">
                         <div>
-                          <dt className="text-xs text-ink-muted">
+                          <dt className="text-label text-ink-muted">
                             Diagnóstico
                           </dt>
                           <dd className="mt-1 whitespace-pre-line">
@@ -194,7 +194,7 @@ export function MaintenanceOrderDetailPage() {
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-xs text-ink-muted">
+                          <dt className="text-label text-ink-muted">
                             Observaciones
                           </dt>
                           <dd className="mt-1 whitespace-pre-line">
@@ -278,9 +278,9 @@ export function MaintenanceOrderDetailPage() {
 
 function GeneralInfo({ order }: { order: MaintenanceOrder }) {
   return (
-    <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 xl:grid-cols-4 p-4">
+    <dl className="grid gap-x-6 gap-y-3 text-body sm:grid-cols-2 xl:grid-cols-4 p-4">
       <div>
-        <dt className="text-xs text-ink-muted">Cliente</dt>
+        <dt className="text-label text-ink-muted">Cliente</dt>
         <dd className="mt-1 font-medium text-ink">
           <Link
             className="hover:underline"
@@ -291,13 +291,13 @@ function GeneralInfo({ order }: { order: MaintenanceOrder }) {
           {!order.customer.is_active && (
             <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
           )}
-          <span className="block text-xs text-ink-muted">
+          <span className="block text-label text-ink-muted">
             {order.customer.identification_type} {order.customer.identification}
           </span>
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-ink-muted">Vehículo</dt>
+        <dt className="text-label text-ink-muted">Vehículo</dt>
         <dd className="mt-1">
           <Link
             aria-label={`Vehículo ${order.vehicle.plate}`}
@@ -308,21 +308,21 @@ function GeneralInfo({ order }: { order: MaintenanceOrder }) {
           {!order.vehicle.is_active && (
             <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
           )}
-          <span className="block text-xs text-ink-muted">
+          <span className="block text-label text-ink-muted">
             {order.vehicle.brand} {order.vehicle.model}
           </span>
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-ink-muted">Apertura</dt>
+        <dt className="text-label text-ink-muted">Apertura</dt>
         <dd className="mt-1">{documentDate(order.opened_on)}</dd>
       </div>
       <div>
-        <dt className="text-xs text-ink-muted">Kilometraje</dt>
+        <dt className="text-label text-ink-muted">Kilometraje</dt>
         <dd className="mt-1">
           {kilometers(order.odometer_km)}
           {order.odometer_confirmation && (
-            <span className="block text-xs text-ink-muted">
+            <span className="block text-label text-ink-muted">
               Menor al último conocido; confirmado por{' '}
               {order.odometer_confirmation.by.name}
             </span>
@@ -330,19 +330,19 @@ function GeneralInfo({ order }: { order: MaintenanceOrder }) {
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-ink-muted">Registrada por</dt>
+        <dt className="text-label text-ink-muted">Registrada por</dt>
         <dd className="mt-1">
           {order.created_by.name} · {timestamp(order.created_at)}
         </dd>
       </div>
       <div>
-        <dt className="text-xs text-ink-muted">Última actualización</dt>
+        <dt className="text-label text-ink-muted">Última actualización</dt>
         <dd className="mt-1">
           {order.updated_by.name} · {timestamp(order.updated_at)}
         </dd>
       </div>
       <div className="sm:col-span-2">
-        <dt className="text-xs text-ink-muted">RUC artesanal</dt>
+        <dt className="text-label text-ink-muted">RUC artesanal</dt>
         <dd className="mt-1">
           {order.fiscal_entity.legal_name} · {order.fiscal_entity.ruc}
         </dd>

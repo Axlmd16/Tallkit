@@ -91,7 +91,7 @@ export function PhotosSection({
     >
       <div className="p-4">
         {order.photos.length === 0 ? (
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-body text-ink-muted">
             La orden no tiene fotografías.
           </p>
         ) : (
@@ -123,10 +123,10 @@ export function PhotosSection({
                     />
                   </button>
                   <div className="flex items-start justify-between gap-1 p-2">
-                    <div className="min-w-0 text-xs">
+                    <div className="min-w-0 text-label">
                       <p className="truncate font-medium text-ink">{label}</p>
                       {corrective && (
-                        <span className="mt-0.5 inline-block rounded-chip bg-scope-artisan-soft px-1.5 py-px text-[11px] font-semibold text-scope-artisan">
+                        <span className="mt-0.5 inline-block rounded-chip bg-scope-artisan-soft px-1.5 py-px text-micro font-semibold text-scope-artisan">
                           Corrección
                         </span>
                       )}
@@ -289,7 +289,7 @@ export function PhotoUploadDialog({
         >
           <input
             accept={ACCEPTED.join(',')}
-            className="block w-full text-[13px]"
+            className="block w-full text-body"
             id="photo-file"
             onChange={(event) => choose(event.target.files?.[0] ?? null)}
             type="file"

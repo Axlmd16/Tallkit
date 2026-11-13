@@ -72,7 +72,7 @@ export function FinalizeDialog({
       saveLabel="Finalizar orden"
       title={`Finalizar ${order.number}`}
     >
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-body">
         <dt className="text-ink-muted">Cliente</dt>
         <dd>{order.customer.name}</dd>
         <dt className="text-ink-muted">Vehículo</dt>
@@ -223,13 +223,13 @@ function Step({
         />
       )}
       <div className="min-w-0">
-        <p className="text-[13px] font-medium text-ink">
+        <p className="text-body font-medium text-ink">
           {title}
           <span className="sr-only">
             {done ? ' (completo)' : ' (pendiente)'}
           </span>
         </p>
-        <p className="text-xs text-ink-muted">{detail}</p>
+        <p className="text-label text-ink-muted">{detail}</p>
       </div>
     </li>
   )
@@ -273,16 +273,16 @@ export function InterventionsSection({
               <li className="relative flex gap-3" key={intervention.id}>
                 <span
                   aria-hidden="true"
-                  className="z-10 mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-scope-artisan-soft text-[11px] font-bold text-scope-artisan ring-4 ring-surface"
+                  className="z-10 mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-scope-artisan-soft text-micro font-bold text-scope-artisan ring-4 ring-surface"
                 >
                   {intervention.ordinal - 1}
                 </span>
-                <div className="min-w-0 flex-1 rounded-control border border-line px-3 py-2.5 text-[13px]">
+                <div className="min-w-0 flex-1 rounded-control border border-line px-3 py-2.5 text-body">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-ink">
                       Corrección {intervention.ordinal - 1}
                     </p>
-                    <p className="text-xs text-ink-muted">
+                    <p className="text-label text-ink-muted">
                       Cerrada {timestamp(intervention.closed_at)}
                     </p>
                   </div>
@@ -340,22 +340,22 @@ function CorrectionWorkspace({
               <Wrench size={17} />
             </span>
             <h2
-              className="text-[15px] font-semibold text-ink"
+              className="text-lead font-semibold text-ink"
               id="order-correction-title"
             >
               Corrección {number} en curso
             </h2>
-            <span className="rounded-chip bg-surface px-2 py-0.5 text-xs font-semibold text-scope-artisan ring-1 ring-scope-artisan/25">
+            <span className="rounded-chip bg-surface px-2 py-0.5 text-label font-semibold text-scope-artisan ring-1 ring-scope-artisan/25">
               Sin cargo al cliente
             </span>
           </div>
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             Reabierta por {intervention.opened_by.name} ·{' '}
             {timestamp(intervention.opened_at)}
           </p>
         </div>
-        <div className="rounded-control bg-surface/70 px-3 py-2 text-[13px]">
-          <p className="text-xs font-semibold text-scope-artisan">
+        <div className="rounded-control bg-surface/70 px-3 py-2 text-body">
+          <p className="text-label font-semibold text-scope-artisan">
             Causa de la reapertura
           </p>
           <p className="mt-0.5 whitespace-pre-line text-ink">
@@ -373,9 +373,9 @@ function CorrectionWorkspace({
               order={order}
             />
           ) : (
-            <dl className="space-y-3 text-[13px]">
+            <dl className="space-y-3 text-body">
               <div>
-                <dt className="text-xs text-ink-muted">
+                <dt className="text-label text-ink-muted">
                   Trabajo correctivo realizado
                 </dt>
                 <dd className="mt-1 whitespace-pre-line">
@@ -383,7 +383,7 @@ function CorrectionWorkspace({
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">
+                <dt className="text-label text-ink-muted">
                   Observaciones de la corrección
                 </dt>
                 <dd className="mt-1 whitespace-pre-line">
@@ -394,7 +394,7 @@ function CorrectionWorkspace({
           )}
         </div>
         <div className="border-t border-line bg-surface-subtle p-5 lg:border-t-0 lg:border-l">
-          <h3 className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+          <h3 className="text-label font-semibold tracking-wide text-ink-muted uppercase">
             Pasos de la corrección
           </h3>
           <ol aria-label="Pasos de la corrección" className="mt-3 space-y-3">
@@ -504,7 +504,7 @@ function CorrectiveEditor({
         </InlineNotice>
       )}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-        <p aria-live="polite" className="text-xs text-ink-muted">
+        <p aria-live="polite" className="text-label text-ink-muted">
           {saving
             ? 'Guardando…'
             : dirty
@@ -548,14 +548,14 @@ export function TransitionTimeline({ order }: { order: MaintenanceOrder }) {
     >
       <ol className="relative space-y-3 px-4 py-4 before:absolute before:top-6 before:bottom-6 before:left-[20px] before:w-px before:bg-line">
         {events.map((event) => (
-          <li className="relative flex gap-3 text-[13px]" key={event.key}>
+          <li className="relative flex gap-3 text-body" key={event.key}>
             <span
               aria-hidden="true"
               className={`z-10 mt-1.5 size-2.5 shrink-0 rounded-full ring-4 ring-surface ${event.tone}`}
             />
             <div className="min-w-0">
               <p className="font-medium text-ink">{event.title}</p>
-              <p className="text-xs text-ink-muted">
+              <p className="text-label text-ink-muted">
                 {event.who} · {timestamp(event.when)}
               </p>
               {event.reason && <p className="mt-0.5">Causa: {event.reason}</p>}

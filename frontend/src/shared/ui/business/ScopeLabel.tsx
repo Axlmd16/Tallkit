@@ -1,17 +1,15 @@
-import { Storefront, Wrench } from '@phosphor-icons/react'
+import { BusinessMark } from './BusinessMark'
 
 export type ScopeLabelScope = 'commercial' | 'artesanal'
 
 const scopes = {
   commercial: {
     label: 'Comercial',
-    Icon: Storefront,
-    className: 'text-scope-commercial',
+    className: 'text-scope-commercial-ink',
   },
   artesanal: {
     label: 'Artesanal',
-    Icon: Wrench,
-    className: 'text-scope-artisan',
+    className: 'text-scope-artisan-ink',
   },
 } as const
 
@@ -19,16 +17,27 @@ const scopes = {
 export function ScopeLabel({
   scope,
   className = '',
+  name,
+  logoUrl,
 }: {
   scope: ScopeLabelScope
   className?: string
+  /** Nombre comercial de la entidad, para las iniciales de su marca. */
+  name?: string
+  logoUrl?: string | null
 }) {
-  const { label, Icon, className: tone } = scopes[scope]
+  const { label, className: tone } = scopes[scope]
   return (
     <span
-      className={`inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] uppercase ${tone} ${className}`}
+      className={`inline-flex items-center gap-2 text-micro font-semibold tracking-wider uppercase ${tone} ${className}`}
     >
-      <Icon aria-hidden="true" size={14} weight="bold" />
+      <BusinessMark
+        decorative
+        logoUrl={logoUrl}
+        name={name ?? label}
+        scope={scope}
+        size="sm"
+      />
       {label}
     </span>
   )

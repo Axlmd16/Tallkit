@@ -84,25 +84,44 @@ export const CATALOG: CatalogEntry[] = (
         'surface',
         'line',
         'ink',
+        'graphite',
         'primary',
         'accent',
-        'brand',
+        'scope-*',
       ],
-      variants: ['Marca', 'Neutros', 'Estados', 'Ámbitos fiscales'],
+      variants: ['Cobre', 'Grafito', 'Neutros', 'Estados', 'Negocios'],
       consumers: ['Toda la aplicación'],
       description:
-        'Azul Tallkit para la acción, petróleo para selección y foco, neutros en capas y el naranja del logotipo solo como acento.',
+        'Neutros cálidos para casi todo, grafito para la barra lateral y las tarjetas oscuras, cobre solo para la acción principal y lo activo, pizarra y arena para cada negocio, y tres estados apagados.',
     },
     {
       id: 'TK-02',
       name: 'Tipografía',
       family: 'fundamentos',
       source: board('Fundamentos'),
-      tokens: ['font-sans', 'font-mono'],
-      variants: ['Página', 'Panel', 'Cuerpo', 'Tabla', 'Etiqueta', 'Código'],
+      tokens: [
+        'font-sans',
+        'text-micro',
+        'text-label',
+        'text-body',
+        'text-lead',
+        'text-block',
+        'text-figure',
+        'text-page',
+        'text-display',
+        'code',
+      ],
+      variants: [
+        'Página',
+        'Bloque',
+        'Cuerpo',
+        'Etiqueta',
+        'Cifra destacada',
+        'Código',
+      ],
       consumers: ['Toda la aplicación'],
       description:
-        'IBM Plex Sans para la interfaz e IBM Plex Mono para códigos, placas, RUC y números internos, servidas desde la instalación.',
+        'Montserrat servida desde la instalación, con la escala text-* y la utilidad code (cifras tabulares y espaciado) para placas, códigos y números; sin fuente monoespaciada. Las hojas impresas conservan su propia fuente.',
     },
     {
       id: 'TK-03',
@@ -111,7 +130,7 @@ export const CATALOG: CatalogEntry[] = (
       source: board('Fundamentos'),
       tokens: [
         'primary',
-        'line-strong',
+        'ink',
         'accent',
         'accent-soft',
         'danger',
@@ -131,7 +150,8 @@ export const CATALOG: CatalogEntry[] = (
       acceptanceCriteria: [
         'La variante procesando impide envíos repetidos.',
         'Las acciones principal, secundaria y destructiva conservan jerarquías distintas.',
-        'La variante suave (adaptación del proyecto) conserva el fondo petróleo suave en reposo para acciones de sección.',
+        'La variante suave (adaptación del proyecto) conserva el fondo pizarra suave en reposo para acciones de sección.',
+        'Solo hay una acción principal en cobre por pantalla.',
       ],
       consumers: [
         'Formularios',
@@ -148,7 +168,15 @@ export const CATALOG: CatalogEntry[] = (
       family: 'campos',
       source: board('Fundamentos'),
       tokens: ['surface', 'line-strong', 'accent', 'danger'],
-      variants: ['Texto', 'Selector', 'Casilla', 'Área', 'Fecha', 'Error'],
+      variants: [
+        'Texto',
+        'Selector',
+        'Casilla',
+        'Área',
+        'Fecha',
+        'Error',
+        'Búsqueda subrayada',
+      ],
       consumers: ['Formularios en página y en modal'],
       description:
         'Etiqueta real, ayuda y error asociados al control; el valor se conserva ante un error.',
@@ -158,11 +186,15 @@ export const CATALOG: CatalogEntry[] = (
       name: 'Selección segmentada y pestañas',
       family: 'campos',
       source: board('Nueva venta'),
-      tokens: ['surface-muted', 'accent'],
-      variants: ['Condición de venta', 'Pestañas de ficha'],
-      consumers: ['Editor de venta', 'Fichas'],
+      tokens: ['workspace', 'surface', 'primary'],
+      variants: [
+        'Condición de venta',
+        'Segmentos con contador',
+        'Pestañas de ficha',
+      ],
+      consumers: ['Editor de venta', 'Listas', 'Fichas'],
       description:
-        'Contado y crédito como opciones exclusivas; pestañas con subrayado petróleo.',
+        'Segmentos en píldora con la opción activa blanca y un contador opcional; pestañas con subrayado cobre de 2 px.',
     },
     {
       id: 'TK-06',
@@ -195,7 +227,7 @@ export const CATALOG: CatalogEntry[] = (
       variants: ['Borrador', 'Confirmada', 'Pendiente', 'Anulada', 'RUC'],
       consumers: ['Listas', 'Fichas', 'Barra superior'],
       description:
-        'Distintivo rectangular con marcador y texto; cada RUC con su tono e icono.',
+        'Distintivo en píldora con punto y texto; los estados neutros usan grafito sobre gris cálido; cada RUC con su tono e icono.',
     },
     {
       id: 'TK-09',
@@ -224,11 +256,17 @@ export const CATALOG: CatalogEntry[] = (
       name: 'Placa, código, existencias e importes',
       family: 'taller',
       source: board('Fundamentos'),
-      tokens: ['font-mono', 'line-strong', 'success', 'danger'],
-      variants: ['Placa', 'Código copiable', 'Existencias', 'Importe o guion'],
+      tokens: ['code', 'ink', 'surface-muted', 'danger-soft'],
+      variants: [
+        'Placa',
+        'Placa sobre fondo oscuro',
+        'Código copiable',
+        'Existencias',
+        'Importe o guion',
+      ],
       consumers: ['Vehículos', 'Productos', 'Ventas', 'Inventario'],
       description:
-        'Piezas propias del negocio; las existencias muestran la cantidad y «Agotado» en cero, sin umbrales.',
+        'Placa en pieza de tinta (invertida sobre grafito), código en chip gris y existencias en un marcador; muestran la cantidad y «Agotado» en cero, sin umbrales.',
     },
     {
       id: 'TK-12',
@@ -294,29 +332,29 @@ export const CATALOG: CatalogEntry[] = (
       name: 'Notificación temporal',
       family: 'notificaciones',
       source: board('Toasts: variantes y reglas'),
-      tokens: ['ink', 'shadow-toast'],
+      tokens: ['graphite', 'shadow-toast'],
       variants: ['Creado', 'Actualizado', 'Informativo'],
       consumers: ['Toda acción terminada con éxito'],
       description:
-        'Abajo a la derecha, 6 s, pausable, hasta tres; nunca para errores.',
+        'Grafito con icono, abajo a la derecha, 6 s, pausable, hasta tres; nunca para errores.',
     },
     {
       id: 'TK-17',
       name: 'Navegación y barra superior',
       family: 'navegacion',
       source: board('Lista de ventas'),
-      tokens: ['surface', 'accent-soft', 'accent-strong'],
-      variants: ['Escritorio 240 px', 'Tableta 72 px', 'Teléfono'],
+      tokens: ['graphite', 'graphite-raised', 'graphite-ink', 'primary'],
+      variants: ['Escritorio 264 px', 'Tableta 72 px', 'Teléfono'],
       consumers: ['Marco autenticado'],
       description:
-        'Grupos por área de trabajo, ruta de migas y ámbito fiscal; sin búsqueda global.',
+        'Barra lateral grafito con la opción activa elevada y barra cobre, el tacómetro al pie, ruta de migas y ámbito fiscal; sin búsqueda global.',
     },
     {
       id: 'TK-18',
       name: 'Patrones de pantalla',
       family: 'patrones',
       source: board('Lista de ventas'),
-      tokens: ['canvas', 'surface', 'line'],
+      tokens: ['canvas', 'surface', 'line', 'text-page'],
       variants: ['Lista', 'Ficha', 'Formulario por secciones', 'Editor'],
       consumers: ['Todas las pantallas'],
       description:
@@ -387,6 +425,55 @@ export const CATALOG: CatalogEntry[] = (
       consumers: ['Inicio'],
       description:
         'Acciones secundarias con icono, pendientes en un solo panel, saldos por cobrar y cobros recientes separados por entidad fiscal. Cada bloque carga y falla por separado.',
+    },
+    {
+      id: 'TK-22',
+      name: 'Motivo del tacómetro',
+      family: 'fundamentos',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Motivo gráfico propio de la dirección «Grafito y cobre» aprobada en U2; la maqueta anterior no lo incluye.',
+      },
+      tokens: ['graphite', 'graphite-line', 'graphite-ink', 'primary'],
+      variants: ['Barra lateral', 'Tarjeta oscura'],
+      consumers: ['Barra lateral', 'Ficha de vehículo'],
+      description:
+        'Tacómetro en líneas finas con un arco y una aguja cobre; es solo decorativo, no recibe foco ni se anuncia.',
+    },
+    {
+      id: 'TK-23',
+      name: 'Marca de negocio',
+      family: 'taller',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Pieza nueva de U3 para distinguir a las dos entidades fiscales, cuyos nombres comerciales empiezan igual.',
+      },
+      tokens: ['scope-artisan', 'scope-commercial', 'radius-control'],
+      variants: [
+        'Iniciales del taller',
+        'Iniciales del almacén',
+        'Con logotipo',
+      ],
+      consumers: ['Rótulo de ámbito fiscal', 'Bloques económicos por negocio'],
+      description:
+        'Logotipo de la entidad o sus iniciales: círculo pizarra para la artesanal y cuadrado redondeado arena para la comercial; anuncia el nombre de la entidad.',
+    },
+    {
+      id: 'TK-24',
+      name: 'Maestro y detalle',
+      family: 'patrones',
+      source: {
+        kind: 'adaptacion',
+        reason:
+          'Patrón PPF-11 definido en U3; ninguna pantalla lo adopta todavía y se demuestra aquí.',
+      },
+      tokens: ['surface', 'primary-soft', 'primary', 'line'],
+      variants: ['Escritorio', 'Teléfono', 'Sin registro elegido'],
+      consumers: ['Ninguna pantalla todavía'],
+      description:
+        'Lista agrupada a la izquierda y vista previa a la derecha; el elegido se marca con fondo suave, barra de acento y aria-current, y en teléfono se muestran una después de la otra.',
     },
   ] satisfies CatalogEntryDefinition[]
 ).map(defineEntry)

@@ -24,7 +24,7 @@ type Confirmation = 'activate' | 'deactivate'
 
 // Clases del catálogo para <Link> que actúa visualmente como Button variant="primary"
 const primaryButtonLinkClass =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-body font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -86,7 +86,7 @@ export function CustomerDetailPage() {
     return (
       <div className="customer-detail-page space-y-6">
         <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+          className="inline-flex items-center gap-2 text-body font-semibold text-accent hover:underline"
           to="/customers"
         >
           <ArrowLeft aria-hidden="true" size={18} />
@@ -109,7 +109,7 @@ export function CustomerDetailPage() {
     <div className="customer-detail-page space-y-6">
       <div>
         <Link
-          className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+          className="inline-flex items-center gap-2 text-body font-semibold text-accent hover:underline"
           to="/customers"
         >
           <ArrowLeft aria-hidden="true" size={18} />
@@ -196,7 +196,7 @@ export function CustomerDetailPage() {
           actions={
             canManageVehicles ? (
               <Button
-                className="text-xs"
+                className="text-label"
                 onClick={() =>
                   void navigate(
                     `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
@@ -213,13 +213,13 @@ export function CustomerDetailPage() {
           title="Vehículos asociados"
         >
           {vehiclesQuery.isPending ? (
-            <p className="text-sm text-ink-muted">Cargando vehículos…</p>
+            <p className="text-body text-ink-muted">Cargando vehículos…</p>
           ) : vehiclesQuery.isError ? (
-            <p className="text-sm text-danger">
+            <p className="text-body text-danger">
               No fue posible cargar los vehículos asociados.
             </p>
           ) : (vehiclesQuery.data?.results.length ?? 0) === 0 ? (
-            <p className="text-sm text-ink-muted">
+            <p className="text-body text-ink-muted">
               El cliente no tiene vehículos asociados actualmente.
             </p>
           ) : (
@@ -236,11 +236,11 @@ export function CustomerDetailPage() {
                     >
                       {v.plate}
                     </Link>
-                    <p className="text-sm text-ink">
+                    <p className="text-body text-ink">
                       {v.brand.name} {v.model}
                     </p>
                     {(v.color || v.year) && (
-                      <p className="text-xs text-ink-muted">
+                      <p className="text-label text-ink-muted">
                         {[v.color, v.year].filter(Boolean).join(' · ')}
                       </p>
                     )}

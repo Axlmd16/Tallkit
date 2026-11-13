@@ -134,7 +134,7 @@ export function PartsSection({
           </InlineNotice>
         )}
         {query.isSuccess && sales.length === 0 && (
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-body text-ink-muted">
             Sin repuestos registrados en esta orden.
           </p>
         )}
@@ -217,15 +217,12 @@ function DraftSale({
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <StatusBadge label="Reservado, pendiente de confirmar" tone="warning" />
         {canOpenSales && (
-          <Link
-            className="text-[13px] hover:underline"
-            to={`/sales/${sale.id}`}
-          >
+          <Link className="text-body hover:underline" to={`/sales/${sale.id}`}>
             Abrir venta pendiente
           </Link>
         )}
       </div>
-      <p className="mb-2 text-xs text-ink-muted">
+      <p className="mb-2 text-label text-ink-muted">
         Reserva la disponibilidad sin descontar inventario ni generar deuda. La
         salida ocurre cuando el Vendedor o el Administrador confirma la venta;
         la orden no puede finalizar mientras haya repuestos pendientes.
@@ -253,7 +250,7 @@ function DraftSale({
         lines={sale.lines}
       />
       {sale.estimate?.totals && (
-        <p className="mt-2 flex justify-end gap-3 text-[13px]">
+        <p className="mt-2 flex justify-end gap-3 text-body">
           <span className="text-ink-muted">
             Total estimado (precios vigentes)
           </span>
@@ -279,7 +276,7 @@ function ConfirmedSale({
   return (
     <div className="rounded-control border border-line p-3">
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[13px] font-semibold">
+        <span className="code text-body font-semibold">
           {sale.internal_number}
         </span>
         <StatusBadge
@@ -291,15 +288,12 @@ function ConfirmedSale({
           tone={sale.state === 'VOIDED' ? 'neutral' : 'success'}
         />
         {canOpenSales && (
-          <Link
-            className="text-[13px] hover:underline"
-            to={`/sales/${sale.id}`}
-          >
+          <Link className="text-body hover:underline" to={`/sales/${sale.id}`}>
             Ver venta y movimientos
           </Link>
         )}
       </div>
-      <p className="mb-2 text-xs text-ink-muted">
+      <p className="mb-2 text-label text-ink-muted">
         Venta confirmada: sus líneas no se modifican desde la orden. Una
         corrección requiere el procedimiento comercial correspondiente.
       </p>
@@ -331,9 +325,9 @@ function PartTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[13px]">
+      <table className="w-full text-body">
         <thead>
-          <tr className="border-b border-line text-left text-xs text-ink-muted">
+          <tr className="border-b border-line text-left text-label text-ink-muted">
             <th className="py-2 pr-3 font-semibold">Repuesto</th>
             <th className="py-2 pr-3 text-right font-semibold">Cant.</th>
             <th className="py-2 pr-3 text-right font-semibold">Precio final</th>
@@ -355,13 +349,13 @@ function PartTable({
                   {kardex ? (
                     <Link
                       aria-label={`Kardex de ${line.product_name ?? ''}`}
-                      className="font-mono text-xs hover:underline"
+                      className="code text-label hover:underline"
                       to={`/inventory/products/${line.product_id}/kardex`}
                     >
                       {line.product_code}
                     </Link>
                   ) : (
-                    <span className="font-mono text-xs text-ink-muted">
+                    <span className="code text-label text-ink-muted">
                       {line.product_code}
                     </span>
                   )}{' '}
@@ -476,7 +470,7 @@ function PartDialog({
         {!line && (
           <div className="ui-field">
             <label
-              className="block text-xs font-semibold text-ink"
+              className="block text-label font-semibold text-ink"
               htmlFor="part-product"
             >
               Repuesto del catálogo
@@ -496,7 +490,7 @@ function PartDialog({
             {product?.detail && (
               <p
                 aria-live="polite"
-                className="mt-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-xs text-ink-muted"
+                className="mt-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-label text-ink-muted"
               >
                 {product.detail}. La disponibilidad es informativa; se valida al
                 reservar y al confirmar.

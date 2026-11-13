@@ -23,7 +23,7 @@ export function DataList<T>({
     return (
       <div
         aria-label={label}
-        className={`p-6 text-center text-[13px] text-ink-muted bg-surface rounded-panel border border-line ${className}`.trim()}
+        className={`p-6 text-center text-body text-ink-muted bg-surface rounded-panel border border-line ${className}`.trim()}
         role="region"
       >
         <p>{emptyText}</p>
@@ -57,7 +57,7 @@ export function DataList<T>({
               role="group"
             >
               <h3
-                className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider px-1"
+                className="text-micro font-semibold text-ink-muted uppercase tracking-wider px-1"
                 id={groupId}
               >
                 {groupName}

@@ -7,6 +7,7 @@ import {
   Plus,
   Power,
   XCircle,
+  Car,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
@@ -172,6 +173,7 @@ export function VehiclesPage() {
   return (
     <section className="vehicles-page list-page">
       <PageHeader
+        icon={<Car />}
         title="Vehículos"
         description="Gestión y consulta del catálogo de vehículos registrados y sus propietarios."
         actions={
@@ -305,7 +307,7 @@ export function VehiclesPage() {
                 key: 'plate',
                 priority: 'primary',
                 render: (v) => (
-                  <span className="inline-flex rounded-control bg-surface-subtle px-2.5 py-1 font-mono text-sm font-bold tracking-wide text-ink">
+                  <span className="inline-flex rounded-control bg-surface-subtle px-2.5 py-1 code text-body font-bold tracking-wide text-ink">
                     {v.plate}
                   </span>
                 ),
@@ -380,7 +382,7 @@ export function VehiclesPage() {
                         >
                           {v.current_owner.name}
                         </Link>
-                        <p className="mt-0.5 wrap-break-word text-xs text-ink-muted">
+                        <p className="mt-0.5 wrap-break-word text-label text-ink-muted">
                           {v.current_owner.identification}
                         </p>
                       </div>
@@ -409,7 +411,7 @@ export function VehiclesPage() {
                     title="Editar"
                     variant="quiet"
                     onClick={() => handleOpenEdit(v)}
-                    className="record-action inline-flex items-center gap-1.5 text-xs"
+                    className="record-action inline-flex items-center gap-1.5 text-label"
                   >
                     <PencilSimple size={16} />
                     <span>Editar</span>
@@ -426,7 +428,7 @@ export function VehiclesPage() {
                         vehicle: v,
                       })
                     }
-                    className="record-action inline-flex items-center gap-1.5 text-xs"
+                    className="record-action inline-flex items-center gap-1.5 text-label"
                   >
                     <Power size={16} />
                     <span>{v.is_active ? 'Desactivar' : 'Activar'}</span>
@@ -474,10 +476,10 @@ export function VehiclesPage() {
                   src={exampleVehiclePhoto}
                 />
               </MediaSlot>
-              <h3 className="mt-4 text-xl font-bold text-ink">
+              <h3 className="mt-4 text-block font-bold text-ink">
                 {previewing.brand.name} {previewing.model}
               </h3>
-              <p className="mt-1 font-mono text-sm font-semibold tracking-wide text-ink-muted">
+              <p className="mt-1 code text-body font-semibold tracking-wide text-ink-muted">
                 {previewing.plate}
               </p>
               <div className="mt-3">
@@ -490,33 +492,33 @@ export function VehiclesPage() {
 
             <section aria-labelledby="vehicle-details-title">
               <h3
-                className="text-base font-bold text-ink"
+                className="text-block font-bold text-ink"
                 id="vehicle-details-title"
               >
                 Datos del vehículo
               </h3>
               <div className="mt-3 divide-y divide-line border-y border-line">
                 <div className="flex items-center justify-between gap-3 py-4">
-                  <span className="text-xs font-semibold text-ink-muted">
+                  <span className="text-label font-semibold text-ink-muted">
                     Color
                   </span>
-                  <span className="text-sm text-ink">
+                  <span className="text-body text-ink">
                     {previewing.color || 'No registrado'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 py-4">
-                  <span className="text-xs font-semibold text-ink-muted">
+                  <span className="text-label font-semibold text-ink-muted">
                     Año
                   </span>
-                  <span className="text-sm tabular-nums text-ink">
+                  <span className="text-body tabular-nums text-ink">
                     {previewing.year || 'No registrado'}
                   </span>
                 </div>
                 <div className="flex items-start justify-between gap-3 py-4">
-                  <span className="text-xs font-semibold text-ink-muted">
+                  <span className="text-label font-semibold text-ink-muted">
                     VIN / Chasis
                   </span>
-                  <span className="max-w-48 break-all text-right font-mono text-xs text-ink">
+                  <span className="max-w-48 break-all text-right code text-label text-ink">
                     {previewing.vin || 'No registrado'}
                   </span>
                 </div>
@@ -525,7 +527,7 @@ export function VehiclesPage() {
 
             <section aria-labelledby="vehicle-owner-title">
               <h3
-                className="text-base font-bold text-ink"
+                className="text-block font-bold text-ink"
                 id="vehicle-owner-title"
               >
                 Propietario actual
@@ -545,13 +547,13 @@ export function VehiclesPage() {
                       >
                         {previewing.current_owner.name}
                       </Link>
-                      <p className="mt-0.5 text-xs text-ink-muted">
+                      <p className="mt-0.5 text-label text-ink-muted">
                         {previewing.current_owner.identification}
                       </p>
                     </div>
                   </>
                 ) : (
-                  <span className="text-sm text-ink-muted">
+                  <span className="text-body text-ink-muted">
                     Sin propietario asignado
                   </span>
                 )}
@@ -560,7 +562,7 @@ export function VehiclesPage() {
 
             <div className="flex flex-wrap gap-2">
               <Link
-                className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px"
+                className="ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-body font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px"
                 to={`/vehicles/${previewing.id}`}
               >
                 Ver ficha completa

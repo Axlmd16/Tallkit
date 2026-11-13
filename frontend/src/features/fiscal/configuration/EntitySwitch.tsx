@@ -64,7 +64,7 @@ function EntityTab({
 
   return (
     <label
-      className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 text-sm whitespace-nowrap first:pl-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent has-[:focus-visible]:ring-inset ${checked ? 'border-accent text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
+      className={`flex min-h-11 shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 text-body whitespace-nowrap first:pl-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent has-[:focus-visible]:ring-inset ${checked ? 'border-accent text-ink' : 'border-transparent text-ink-muted hover:text-ink'}`}
     >
       <input
         checked={checked}
@@ -82,7 +82,7 @@ function EntityTab({
         {commercial ? 'Comercial' : 'Artesanal'}
       </span>
       <span className={checked ? 'text-ink' : ''}>{entity.legal_name}</span>
-      <span className="pl-1 text-xs">
+      <span className="pl-1 text-label">
         <StateMarker readiness={readiness} />
       </span>
     </label>

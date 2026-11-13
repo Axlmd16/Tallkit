@@ -72,7 +72,7 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
 
     const dashboardBtn = screen.getByRole('button', { name: /Tablero/ })
     expect(dashboardBtn).toHaveAttribute('aria-current', 'page')
-    expect(dashboardBtn.className).toContain('bg-accent-soft')
+    expect(dashboardBtn.className).toContain('bg-graphite-raised')
 
     const aside = nav.closest('aside')
     expect(aside?.className).not.toContain('border-r')
@@ -142,9 +142,9 @@ describe('Sidebar y NavigationItem (C27, C28)', () => {
     )
     const item = screen.getByRole('button', { name: 'Ventas' })
     expect(item).toHaveAttribute('aria-current', 'page')
-    expect(item.className).toMatch(/\bbg-accent-soft\b/)
-    expect(item.className).toMatch(/focus-visible:ring-accent\b/)
-    expect(screen.getByText('3').className).toMatch(/\bbg-accent\b/)
-    expect(item.innerHTML).not.toMatch(/\b(text|bg|ring)-primary\b/)
+    expect(item.className).toMatch(/\bbg-graphite-raised\b/)
+    expect(item.className).toMatch(/focus-visible:ring-white\b/)
+    expect(screen.getByText('3').className).toMatch(/\bbg-primary\b/)
+    expect(item.innerHTML).not.toMatch(/\b(text|bg|ring)-accent\b/)
   })
 })

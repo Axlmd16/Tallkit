@@ -36,11 +36,11 @@ export function SectionPanel({
             {icon}
           </span>
           <div className="min-w-0">
-            <h2 className="text-[14.5px] font-semibold text-ink" id={id}>
+            <h2 className="text-body font-semibold text-ink" id={id}>
               {title}
             </h2>
             {description && (
-              <p className="text-xs text-ink-muted">{description}</p>
+              <p className="text-label text-ink-muted">{description}</p>
             )}
           </div>
         </div>

@@ -258,12 +258,12 @@ export function AdjustmentModal({
               <strong>{effect.resulting_quantity}</strong>.
             </p>
           ))}
-          <p className="text-sm text-ink-muted">
+          <p className="text-body text-ink-muted">
             {operation.reference} queda preparada; abandonarla no cambia
             existencias.
           </p>
           {!review.can_confirm && (
-            <p className="text-sm font-semibold text-danger">
+            <p className="text-body font-semibold text-danger">
               Corrija los impedimentos antes de confirmar.
             </p>
           )}

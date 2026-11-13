@@ -44,10 +44,10 @@ export function WithholdingSettingsBlock({ entityId }: { entityId: number }) {
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-[13.5px] font-semibold text-ink">
+          <h3 className="text-body font-semibold text-ink">
             Retenciones que le hacen sus clientes
           </h3>
-          <p className="mt-0.5 max-w-[70ch] text-[12.5px] text-ink-muted">
+          <p className="mt-0.5 max-w-[70ch] text-label text-ink-muted">
             Algunos clientes pagan un poco menos porque retienen impuestos y
             entregan un comprobante. Si le ocurre, déjelo activado para poder
             anotarlo al cobrar.
@@ -63,9 +63,9 @@ export function WithholdingSettingsBlock({ entityId }: { entityId: number }) {
           Editar
         </Button>
       </div>
-      <dl className="mt-3 grid gap-3 text-[13px] sm:grid-cols-2">
+      <dl className="mt-3 grid gap-3 text-body sm:grid-cols-2">
         <div>
-          <dt className="text-xs font-semibold text-ink-muted">
+          <dt className="text-label font-semibold text-ink-muted">
             Registrar retenciones al cobrar
           </dt>
           <dd className="mt-1">
@@ -76,7 +76,7 @@ export function WithholdingSettingsBlock({ entityId }: { entityId: number }) {
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-semibold text-ink-muted">
+          <dt className="text-label font-semibold text-ink-muted">
             Avisar si la retención supera
           </dt>
           <dd className="mt-1 font-semibold text-ink">
@@ -159,7 +159,7 @@ function WithholdingSettingsDialog({
       title="Retenciones que le hacen sus clientes"
     >
       <div className="space-y-4">
-        <label className="flex items-start gap-2 text-sm text-ink">
+        <label className="flex items-start gap-2 text-body text-ink">
           <input
             checked={enabled}
             className="mt-1"
@@ -170,13 +170,13 @@ function WithholdingSettingsDialog({
             <span className="font-semibold">
               Registrar retenciones al cobrar
             </span>
-            <span className="block text-[12.5px] text-ink-muted">
+            <span className="block text-label text-ink-muted">
               Desactívelo solo si sus clientes nunca retienen. Si un cliente
               retiene y está desactivado, ese valor quedará como deuda.
             </span>
           </span>
         </label>
-        <label className="flex items-start gap-2 text-sm text-ink">
+        <label className="flex items-start gap-2 text-body text-ink">
           <input
             checked={warn}
             className="mt-1"
@@ -185,7 +185,7 @@ function WithholdingSettingsDialog({
           />
           <span>
             <span className="font-semibold">Avisar de valores inusuales</span>
-            <span className="block text-[12.5px] text-ink-muted">
+            <span className="block text-label text-ink-muted">
               Pide confirmar cuando la retención es muy alta, para detectar
               errores al escribir. Nunca bloquea el cobro.
             </span>

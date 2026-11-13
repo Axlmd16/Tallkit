@@ -25,7 +25,7 @@ export function QuickActionsBlock({
           return (
             <li key={action.id}>
               <Link
-                className="ui-button group flex min-h-11 w-full items-center gap-2 rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-[13.5px] font-semibold text-ink transition-[background-color,border-color,color] duration-150 hover:border-accent/50 hover:bg-accent-soft hover:text-accent-strong"
+                className="ui-button group flex min-h-11 w-full items-center gap-2 rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body font-semibold text-ink transition-[background-color,border-color,color] duration-150 hover:border-accent/50 hover:bg-accent-soft hover:text-accent-strong"
                 to={action.to}
               >
                 <Icon

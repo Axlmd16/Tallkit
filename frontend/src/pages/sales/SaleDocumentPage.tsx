@@ -59,8 +59,8 @@ export function SaleDocumentPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-ink-muted">Comprobante interno</p>
-          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Comprobante interno</p>
+          <h1 className="code text-page font-semibold text-ink">
             {doc.number ?? 'Sin número'}
           </h1>
         </div>

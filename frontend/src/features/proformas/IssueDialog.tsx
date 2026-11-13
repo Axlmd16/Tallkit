@@ -126,7 +126,7 @@ export function IssueDialog({
         )}
         {review?.totals && (
           <section aria-label="Valores revisados">
-            <dl className="grid grid-cols-2 gap-1 text-sm">
+            <dl className="grid grid-cols-2 gap-1 text-body">
               <dt>Fecha de emisión</dt>
               <dd className="text-right">
                 {review.issue_date ? documentDate(review.issue_date) : '—'}
@@ -150,7 +150,7 @@ export function IssueDialog({
           <ul aria-label="Avisos de disponibilidad" className="space-y-1">
             {warnings.map((warning) => (
               <li
-                className="flex items-start gap-2 text-[13px] text-ink"
+                className="flex items-start gap-2 text-body text-ink"
                 key={warning.product_id}
               >
                 <Warning
@@ -160,7 +160,7 @@ export function IssueDialog({
                   weight="fill"
                 />
                 <span>
-                  <span className="font-mono">{warning.product_code}</span>: hay{' '}
+                  <span className="code">{warning.product_code}</span>: hay{' '}
                   {warning.available} y se cotizan {warning.requested}. Se puede
                   emitir.
                 </span>

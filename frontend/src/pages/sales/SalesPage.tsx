@@ -1,4 +1,10 @@
-import { DotsThreeVertical, Eye, NotePencil, Plus } from '@phosphor-icons/react'
+import {
+  DotsThreeVertical,
+  Eye,
+  NotePencil,
+  Plus,
+  Receipt,
+} from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -68,6 +74,7 @@ export function SalesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<Receipt />}
         actions={
           canCreate && (
             <Button onClick={() => navigate('/sales/new')} type="button">
@@ -118,7 +125,7 @@ export function SalesPage() {
             >
               <div className="ui-field">
                 <label
-                  className="block text-xs font-semibold text-ink"
+                  className="block text-label font-semibold text-ink"
                   htmlFor="sales-filter-customer"
                 >
                   Cliente
@@ -251,7 +258,7 @@ export function SalesPage() {
                 priority: 'primary',
                 render: (row) =>
                   row.internal_number ? (
-                    <span className="font-mono font-medium text-ink">
+                    <span className="code font-medium text-ink">
                       {row.internal_number}
                     </span>
                   ) : (

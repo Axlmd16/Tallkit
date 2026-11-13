@@ -5,7 +5,7 @@
 | Fecha | 2026-09-10 |
 | Cambio | `establecer-sistema-visual-frontend` |
 | Dirección | Adaptación del kit **SAAS Dashboard** al taller |
-| Estado | Histórico. La dirección SAAS Dashboard y su corrección de fidelidad se cancelaron; el sistema visual vigente es Tallkit (cambio `redisenar-sistema-visual-tallkit`, ver `DESIGN.md`). |
+| Estado | Histórico. La dirección SAAS Dashboard y su corrección de fidelidad se cancelaron. La dirección vigente es «Grafito y cobre» (U3, cambio `renovar-sistema-visual`; ver `DESIGN.md`), que sustituyó a «Banco de trabajo». |
 
 ## Línea base anterior al rediseño
 

@@ -107,12 +107,12 @@ export function ServiceLinesSection({
           />
         ))}
         <div className="flex items-center justify-end gap-3 border-t border-line pt-3">
-          <span className="text-[13px] font-semibold text-ink">
+          <span className="text-body font-semibold text-ink">
             Total de servicios de la orden
           </span>
           <Money
             amount={order.services_total}
-            className="text-[15px] font-semibold"
+            className="text-lead font-semibold"
           />
         </div>
       </div>
@@ -165,18 +165,18 @@ function InterventionLines({
   const corrective = intervention.kind === 'CORRECTIVE'
   return (
     <div>
-      <h3 className="mb-2 text-[13px] font-semibold text-ink">
+      <h3 className="mb-2 text-body font-semibold text-ink">
         {corrective
           ? `Intervención correctiva ${intervention.ordinal - 1} · sin cargo`
           : 'Intervención inicial'}
       </h3>
       {intervention.lines.length === 0 ? (
-        <p className="text-[13px] text-ink-muted">Sin servicios registrados.</p>
+        <p className="text-body text-ink-muted">Sin servicios registrados.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-body">
             <thead>
-              <tr className="border-b border-line text-left text-xs text-ink-muted">
+              <tr className="border-b border-line text-left text-label text-ink-muted">
                 <th className="py-2 pr-3 font-semibold">Servicio</th>
                 <th className="py-2 pr-3 text-right font-semibold">
                   Precio referencial
@@ -204,12 +204,12 @@ function InterventionLines({
                       {line.service_name}
                     </span>
                     {line.service_code && (
-                      <span className="block font-mono text-xs text-ink-muted">
+                      <span className="block code text-label text-ink-muted">
                         {line.service_code}
                       </span>
                     )}
                     {line.detail && (
-                      <span className="block text-xs break-words text-ink-muted">
+                      <span className="block text-label break-words text-ink-muted">
                         {line.detail}
                       </span>
                     )}
@@ -253,7 +253,7 @@ function InterventionLines({
                     <Money amount={line.subtotal} />
                   </td>
                   {canManage && line.documented_by && (
-                    <td className="py-1 text-right text-xs text-ink-muted">
+                    <td className="py-1 text-right text-label text-ink-muted">
                       Bloqueada: incluida en un comprobante
                     </td>
                   )}
@@ -390,7 +390,7 @@ function ServiceLineDialog({
         {!line && (
           <div className="ui-field">
             <label
-              className="block text-xs font-semibold text-ink"
+              className="block text-label font-semibold text-ink"
               htmlFor="line-service"
             >
               Servicio del catálogo
@@ -415,13 +415,13 @@ function ServiceLineDialog({
             {service && (
               <div
                 aria-live="polite"
-                className="mt-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]"
+                className="mt-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body"
               >
                 <p className="font-semibold break-words text-ink">
                   {service.label}
                 </p>
                 {reference && (
-                  <p className="mt-0.5 text-xs text-ink-muted">
+                  <p className="mt-0.5 text-label text-ink-muted">
                     Precio referencial del catálogo: USD {reference}
                   </p>
                 )}

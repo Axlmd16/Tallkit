@@ -23,7 +23,7 @@ describe('DetailCard (C23)', () => {
 
     expect(
       screen.getByRole('heading', { level: 3, name: 'Ficha de Vehículo' }),
-    ).toHaveClass('text-[15px]', 'font-semibold')
+    ).toHaveClass('text-lead', 'font-semibold')
     expect(screen.getByText('Mantenimiento preventivo')).toBeInTheDocument()
     expect(screen.getByText('Activo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument()
@@ -62,5 +62,19 @@ describe('DetailCard (C23)', () => {
     expect(
       screen.getByRole('heading', { level: 3, name: 'Ficha con Icono' }),
     ).toBeInTheDocument()
+  })
+
+  it('ofrece una variante oscura con el tacómetro decorativo', () => {
+    const { container } = render(
+      <DetailCard title="PBA-1234" variant="dark">
+        <p>Toyota Hilux</p>
+      </DetailCard>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'PBA-1234' })).toHaveClass(
+      'text-white',
+    )
+    const gauge = container.querySelector('svg[data-variant="card"]')
+    expect(gauge).toHaveAttribute('aria-hidden', 'true')
   })
 })

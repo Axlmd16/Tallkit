@@ -54,13 +54,13 @@ function UploadForm({
   return (
     <Surface aria-label="Incorporar comprobante externo">
       <h2 className="font-bold text-ink">Incorporar comprobante externo</h2>
-      <p className="mt-1 text-sm text-ink-muted">
+      <p className="mt-1 text-body text-ink-muted">
         Un XML por carga, máximo 2 MiB. Se conserva como evidencia externa no
         verificada; su declaración de autorización no equivale a comprobación
         oficial.
       </p>
       <form className="mt-4 grid gap-4 md:grid-cols-3" onSubmit={submit}>
-        <label className="text-sm font-semibold text-ink">
+        <label className="text-body font-semibold text-ink">
           Entidad fiscal
           <select
             className={`${getControlClasses()} mt-1.5`}
@@ -74,7 +74,7 @@ function UploadForm({
             ))}
           </select>
         </label>
-        <label className="text-sm font-semibold text-ink">
+        <label className="text-body font-semibold text-ink">
           Procedencia
           <input
             className={`${getControlClasses()} mt-1.5`}
@@ -82,7 +82,7 @@ function UploadForm({
             required
           />
         </label>
-        <label className="text-sm font-semibold text-ink">
+        <label className="text-body font-semibold text-ink">
           Archivo XML
           <input
             accept="text/xml,application/xml,.xml"
@@ -104,7 +104,7 @@ function UploadForm({
             </div>
           )}
           {uploadArchive.isSuccess && (
-            <p className="mb-3 text-sm text-success">
+            <p className="mb-3 text-body text-success">
               Evidencia conservada como externa no verificada
               {uploadArchive.data.replayed ? ' (ya existente).' : '.'}
             </p>
@@ -185,8 +185,8 @@ export function FiscalArchivePage() {
   return (
     <div className="catalog-page space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-ink">Archivo fiscal</h1>
-        <label className="text-sm font-semibold text-ink">
+        <h1 className="text-page font-semibold text-ink">Archivo fiscal</h1>
+        <label className="text-body font-semibold text-ink">
           Entidad
           <select
             aria-label="Filtrar por entidad"
@@ -239,7 +239,7 @@ export function FiscalArchivePage() {
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-4 border-b border-line px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm font-semibold text-ink">
+          <label className="text-body font-semibold text-ink">
             Ambiente
             <select
               className={`${getControlClasses()} mt-1.5`}
@@ -257,7 +257,7 @@ export function FiscalArchivePage() {
               <option value="2">Producción</option>
             </select>
           </label>
-          <label className="text-sm font-semibold text-ink">
+          <label className="text-body font-semibold text-ink">
             Tipo
             <select
               className={`${getControlClasses()} mt-1.5`}
@@ -275,7 +275,7 @@ export function FiscalArchivePage() {
               <option value="04">04 · Nota de crédito</option>
             </select>
           </label>
-          <label className="text-sm font-semibold text-ink">
+          <label className="text-body font-semibold text-ink">
             Emitido desde
             <input
               className={`${getControlClasses()} mt-1.5`}
@@ -286,7 +286,7 @@ export function FiscalArchivePage() {
               value={filters.issuedFrom ?? ''}
             />
           </label>
-          <label className="text-sm font-semibold text-ink">
+          <label className="text-body font-semibold text-ink">
             Emitido hasta
             <input
               className={`${getControlClasses()} mt-1.5`}
@@ -304,8 +304,8 @@ export function FiscalArchivePage() {
           <ErrorState message="No se pudo cargar el archivo fiscal." />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-surface-subtle text-xs text-ink-muted">
+            <table className="w-full min-w-[720px] text-left text-body">
+              <thead className="bg-surface-subtle text-label text-ink-muted">
                 <tr>
                   <th className="px-4 py-2" />
                   <th className="px-4 py-2">Clave de acceso</th>
@@ -327,7 +327,7 @@ export function FiscalArchivePage() {
                         type="checkbox"
                       />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs">
+                    <td className="px-4 py-3 code text-label">
                       {dossier.access_key}
                     </td>
                     <td className="px-4 py-3">{dossier.document_type}</td>
@@ -370,7 +370,7 @@ export function FiscalArchivePage() {
             {page && page.total_pages > 1 && (
               <nav
                 aria-label="Paginación del archivo"
-                className="flex items-center justify-between border-t border-line px-4 py-3 text-sm"
+                className="flex items-center justify-between border-t border-line px-4 py-3 text-body"
               >
                 <span className="text-ink-muted">
                   Página {page.page} de {page.total_pages} · {page.count}{' '}

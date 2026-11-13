@@ -1,4 +1,4 @@
-import { PencilSimple, Power } from '@phosphor-icons/react'
+import { PencilSimple, Power, Truck } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
@@ -64,6 +64,7 @@ export function SuppliersPage() {
   return (
     <div className="catalog-page list-page space-y-6">
       <PageHeader
+        icon={<Truck />}
         description="Proveedores del ámbito comercial. Solo el nombre es obligatorio; identificación y contacto son opcionales."
         title="Proveedores"
         actions={

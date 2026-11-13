@@ -223,34 +223,34 @@ export function KardexPage() {
             className="rounded-panel border border-line bg-surface"
           >
             <div className="border-b border-line px-4 py-3">
-              <h2 className="text-[14.5px] font-semibold text-ink">
+              <h2 className="text-body font-semibold text-ink">
                 Saldos del período
               </h2>
             </div>
             <dl className="grid gap-x-6 gap-y-3 px-4 py-3 sm:grid-cols-3">
               <div>
-                <dt className="text-xs text-ink-muted">Saldo inicial</dt>
-                <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                <dt className="text-label text-ink-muted">Saldo inicial</dt>
+                <dd className="mt-0.5 code text-block font-semibold tabular-nums">
                   {data.opening_quantity}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Saldo final</dt>
-                <dd className="mt-0.5 font-mono text-lg font-semibold tabular-nums">
+                <dt className="text-label text-ink-muted">Saldo final</dt>
+                <dd className="mt-0.5 code text-block font-semibold tabular-nums">
                   {data.closing_quantity}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">
+                <dt className="text-label text-ink-muted">
                   Movimientos del período
                 </dt>
-                <dd className="mt-0.5 text-[13px] text-ink">
+                <dd className="mt-0.5 text-body text-ink">
                   {totalsText(data.period_totals)}
                 </dd>
               </div>
             </dl>
             {canSeeValuation && data.opening_value !== undefined && (
-              <p className="flex flex-wrap items-center gap-x-1.5 border-t border-line px-4 py-2 text-[13px] text-ink-muted tabular-nums">
+              <p className="flex flex-wrap items-center gap-x-1.5 border-t border-line px-4 py-2 text-body text-ink-muted tabular-nums">
                 Valor inicial{' '}
                 {data.opening_value === null ? (
                   <NoCost />
@@ -268,7 +268,7 @@ export function KardexPage() {
           </section>
           <section
             aria-label="Coincidencias con los filtros"
-            className="rounded-panel border border-line bg-surface-subtle px-4 py-3 text-[13px]"
+            className="rounded-panel border border-line bg-surface-subtle px-4 py-3 text-body"
           >
             <h2 className="font-semibold text-ink">
               Coincidencias con los filtros
@@ -277,7 +277,7 @@ export function KardexPage() {
             {data.page_opening_quantity !== null && (
               <p className="text-ink-muted">
                 Saldo antes de la primera fila de esta página:{' '}
-                <span className="font-mono tabular-nums">
+                <span className="code tabular-nums">
                   {data.page_opening_quantity}
                 </span>
               </p>
@@ -309,7 +309,7 @@ export function KardexPage() {
                   priority: 'secondary',
                   render: (row) => (
                     <Link
-                      className="font-mono text-xs font-semibold text-accent hover:underline"
+                      className="code text-label font-semibold text-accent hover:underline"
                       to={`/inventory/operations/${row.source.reference.replace('INV-', '')}`}
                     >
                       {row.source.reference}

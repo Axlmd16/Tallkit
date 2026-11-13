@@ -107,7 +107,7 @@ export function ConvertDialog({
         {needsCustomer && (
           <div className="ui-field">
             <label
-              className="block text-xs font-semibold text-ink"
+              className="block text-label font-semibold text-ink"
               htmlFor="convert-customer"
             >
               Cliente de la venta
@@ -128,7 +128,7 @@ export function ConvertDialog({
                 useOptions={useCustomerPickerOptions}
               />
             </div>
-            <p className="mt-1 text-xs text-ink-muted">
+            <p className="mt-1 text-label text-ink-muted">
               La proforma no tiene cliente; la venta sí lo necesita.
             </p>
           </div>
@@ -198,7 +198,7 @@ export function ConvertDialog({
           <ul aria-label="Avisos de disponibilidad" className="space-y-1">
             {review?.warnings.map((warning) => (
               <li
-                className="flex items-start gap-2 text-[13px] text-ink"
+                className="flex items-start gap-2 text-body text-ink"
                 key={warning.product_id}
               >
                 <Warning
@@ -208,7 +208,7 @@ export function ConvertDialog({
                   weight="fill"
                 />
                 <span>
-                  <span className="font-mono">{warning.product_code}</span>: hay{' '}
+                  <span className="code">{warning.product_code}</span>: hay{' '}
                   {warning.available} y la oferta incluye {warning.requested}.
                   La venta no podrá confirmarse así.
                 </span>

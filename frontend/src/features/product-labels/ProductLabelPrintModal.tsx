@@ -152,7 +152,7 @@ function StepHeading({
       <div className="flex items-center gap-2">
         <span
           aria-hidden="true"
-          className="grid size-6 place-items-center rounded-full bg-primary text-xs font-bold text-white"
+          className="grid size-6 place-items-center rounded-full bg-primary text-label font-bold text-white"
         >
           {step}
         </span>
@@ -311,7 +311,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
   const actionButtons = (
     <>
       {!loading && !loadError && products.length > 0 && (
-        <p className="mr-auto text-sm font-semibold tabular-nums text-ink">
+        <p className="mr-auto text-body font-semibold tabular-nums text-ink">
           {summary}
         </p>
       )}
@@ -361,7 +361,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                 <StepHeading
                   id="label-copies-heading"
                   meta={
-                    <span className="rounded-chip bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-strong tabular-nums">
+                    <span className="rounded-chip bg-accent-soft px-2 py-0.5 text-label font-semibold text-accent-strong tabular-nums">
                       {layout.totalLabels} etiquetas
                     </span>
                   }
@@ -370,7 +370,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                   Copias
                 </StepHeading>
                 <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
-                  <span className="text-xs text-ink-muted">
+                  <span className="text-label text-ink-muted">
                     {products.length}{' '}
                     {products.length === 1
                       ? 'producto seleccionado'
@@ -430,7 +430,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                           <p className="truncate font-semibold">
                             {product.name}
                           </p>
-                          <p className="truncate font-mono text-xs text-ink-muted">
+                          <p className="truncate code text-label text-ink-muted">
                             {product.code}
                           </p>
                         </div>
@@ -483,7 +483,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                 <StepHeading
                   id="label-size-heading"
                   meta={
-                    <span className="rounded-chip bg-surface-muted px-2 py-0.5 text-xs font-semibold text-ink-muted">
+                    <span className="rounded-chip bg-surface-muted px-2 py-0.5 text-label font-semibold text-ink-muted">
                       {`${LABEL_WIDTH_MM} × ${LABEL_HEIGHT_MM} mm · ${grid.capacity} por hoja`}
                     </span>
                   }
@@ -521,7 +521,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                       )
                     })}
                   </div>
-                  <ul className="space-y-2 text-xs text-ink-muted">
+                  <ul className="space-y-2 text-label text-ink-muted">
                     <li className="flex items-center gap-2">
                       <span
                         className="product-label-slot-key"
@@ -558,7 +558,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                   Antes de imprimir
                 </StepHeading>
                 <div className="space-y-3 px-3 py-3">
-                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                  <div className="flex flex-wrap gap-2 text-label font-semibold">
                     <span className="inline-flex items-center gap-1.5 rounded-chip bg-warning-soft px-2 py-1 text-warning">
                       <WarningCircle
                         aria-hidden="true"
@@ -587,7 +587,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                     )}
                   </div>
                   {issuer.isPending && (
-                    <p className="text-xs text-ink-muted">
+                    <p className="text-label text-ink-muted">
                       Preparando identidad comercial…
                     </p>
                   )}
@@ -638,7 +638,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                   <h3 className="font-bold" id="label-preview-heading">
                     Vista previa
                   </h3>
-                  <p className="text-xs text-ink-muted">
+                  <p className="text-label text-ink-muted">
                     A4 · {grid.capacity} etiquetas por hoja
                   </p>
                 </div>
@@ -658,7 +658,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                     <output
                       aria-label="Nivel de zoom"
                       aria-live="polite"
-                      className="min-w-12 text-center text-xs font-semibold tabular-nums"
+                      className="min-w-12 text-center text-label font-semibold tabular-nums"
                       role="status"
                     >
                       {Math.round(previewScale * 100)} %
@@ -696,7 +696,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                       />
                       <span
                         aria-live="polite"
-                        className="px-1 text-xs font-semibold tabular-nums"
+                        className="px-1 text-label font-semibold tabular-nums"
                       >
                         Página {pageIndex + 1} de {pageCount}
                       </span>
@@ -760,7 +760,7 @@ function ModalContent(props: ProductLabelPrintModalProps) {
                       type="button"
                     >
                       <PageThumbnail page={page} />
-                      <span className="text-[11px] font-semibold tabular-nums">
+                      <span className="text-micro font-semibold tabular-nums">
                         {index + 1}
                       </span>
                     </button>

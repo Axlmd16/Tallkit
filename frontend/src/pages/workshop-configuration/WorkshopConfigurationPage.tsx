@@ -10,6 +10,7 @@ import {
   Storefront,
   Warehouse as WarehouseIcon,
   WarningCircle,
+  SlidersHorizontal,
 } from '@phosphor-icons/react'
 
 import {
@@ -145,17 +146,17 @@ function ConfiguredWorkshopContent() {
     <section className="animate-fade-in flex flex-col gap-6 md:h-[calc(100dvh-100px)]">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
+          <p className="flex items-center gap-2 text-micro font-semibold tracking-[0.12em] text-ink-muted uppercase">
             <span
               aria-hidden="true"
               className="size-2 rounded-[2px] bg-brand"
             />
             Administración
           </p>
-          <h1 className="mt-2 text-[22px] leading-7 font-bold text-ink">
+          <h1 className="mt-2 text-page font-bold text-ink">
             Configuración del taller
           </h1>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="mt-1 text-body text-ink-muted">
             Datos base del taller: entidades fiscales, bodega, impuestos,
             numeración y facturación electrónica.
           </p>
@@ -304,6 +305,7 @@ function InitializeWorkshopForm() {
     <div className="space-y-6 lg:space-y-8">
       {/* 1. Header de página con badge de estado a la derecha */}
       <PageHeader
+        icon={<SlidersHorizontal />}
         title="Inicialización del taller"
         description="Complete los datos para configurar el sistema por primera vez."
         actions={
@@ -322,7 +324,7 @@ function InitializeWorkshopForm() {
       )}
 
       {hasRucCollision && (
-        <div className="rounded-group border border-danger/30 bg-danger-soft p-4 text-sm text-danger flex items-center gap-3">
+        <div className="rounded-group border border-danger/30 bg-danger-soft p-4 text-body text-danger flex items-center gap-3">
           <WarningCircle size={20} className="shrink-0" />
           <span>El RUC comercial y el RUC artesanal deben ser diferentes.</span>
         </div>
@@ -346,7 +348,7 @@ function InitializeWorkshopForm() {
                     size={24}
                     weight="duotone"
                   />
-                  <h2 className="text-base font-bold text-ink">
+                  <h2 className="text-block font-bold text-ink">
                     Entidad Comercial
                   </h2>
                 </div>
@@ -356,14 +358,14 @@ function InitializeWorkshopForm() {
                   kind="category"
                   shape="rectangle"
                   showIcon={false}
-                  className="text-xs"
+                  className="text-label"
                 />
               </div>
 
               <div className="space-y-4">
                 <div className="ui-field">
                   <label
-                    className="block text-sm font-semibold text-ink"
+                    className="block text-body font-semibold text-ink"
                     htmlFor="commercial_ruc"
                   >
                     RUC Comercial
@@ -386,14 +388,14 @@ function InitializeWorkshopForm() {
                       className={getControlClasses()}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-ink-muted">
+                  <p className="mt-1 text-label text-ink-muted">
                     13 dígitos numéricos. Se validará el formato SRI.
                   </p>
                 </div>
 
                 <div className="ui-field">
                   <label
-                    className="block text-sm font-semibold text-ink"
+                    className="block text-body font-semibold text-ink"
                     htmlFor="commercial_legal_name"
                   >
                     Razón Social
@@ -409,7 +411,7 @@ function InitializeWorkshopForm() {
                       className={getControlClasses()}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-ink-muted">
+                  <p className="mt-1 text-label text-ink-muted">
                     Razón social comercial registrada ante la autoridad fiscal.
                   </p>
                 </div>
@@ -425,7 +427,7 @@ function InitializeWorkshopForm() {
                     size={24}
                     weight="duotone"
                   />
-                  <h2 className="text-base font-bold text-ink">
+                  <h2 className="text-block font-bold text-ink">
                     Entidad Artesanal
                   </h2>
                 </div>
@@ -435,14 +437,14 @@ function InitializeWorkshopForm() {
                   kind="category"
                   shape="rectangle"
                   showIcon={false}
-                  className="text-xs"
+                  className="text-label"
                 />
               </div>
 
               <div className="space-y-4">
                 <div className="ui-field">
                   <label
-                    className="block text-sm font-semibold text-ink"
+                    className="block text-body font-semibold text-ink"
                     htmlFor="artisanal_ruc"
                   >
                     RUC Artesanal
@@ -465,14 +467,14 @@ function InitializeWorkshopForm() {
                       className={getControlClasses()}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-ink-muted">
+                  <p className="mt-1 text-label text-ink-muted">
                     13 dígitos numéricos. Se validará el formato SRI.
                   </p>
                 </div>
 
                 <div className="ui-field">
                   <label
-                    className="block text-sm font-semibold text-ink"
+                    className="block text-body font-semibold text-ink"
                     htmlFor="artisanal_legal_name"
                   >
                     Razón Social
@@ -488,7 +490,7 @@ function InitializeWorkshopForm() {
                       className={getControlClasses()}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-ink-muted">
+                  <p className="mt-1 text-label text-ink-muted">
                     Razón social o nombre del titular artesanal calificado.
                   </p>
                 </div>
@@ -505,7 +507,7 @@ function InitializeWorkshopForm() {
                   size={24}
                   weight="duotone"
                 />
-                <h2 className="text-base font-bold text-ink">
+                <h2 className="text-block font-bold text-ink">
                   Bodega Principal
                 </h2>
               </div>
@@ -515,14 +517,14 @@ function InitializeWorkshopForm() {
                 kind="category"
                 shape="rectangle"
                 showIcon={false}
-                className="text-xs"
+                className="text-label"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
               <div className="ui-field">
                 <label
-                  className="block text-sm font-semibold text-ink"
+                  className="block text-body font-semibold text-ink"
                   htmlFor="warehouse_name"
                 >
                   Nombre de la bodega
@@ -538,7 +540,7 @@ function InitializeWorkshopForm() {
                     className={getControlClasses()}
                   />
                 </div>
-                <p className="mt-1 text-xs text-ink-muted">
+                <p className="mt-1 text-label text-ink-muted">
                   Espacio físico principal para inventario, recepción y despacho
                   de repuestos.
                 </p>
@@ -546,24 +548,24 @@ function InitializeWorkshopForm() {
 
               {/* Registro previo / información de bodega única del sistema */}
               <div className="rounded-group border border-line bg-surface-muted p-4 space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-ink-muted">
+                <div className="flex items-center justify-between text-label font-semibold text-ink-muted">
                   <span>Bodegas iniciales del sistema</span>
                   <StatusBadge
                     label="1 bodega"
                     tone="neutral"
                     shape="pill"
                     showIcon={false}
-                    className="text-[11px]"
+                    className="text-micro"
                   />
                 </div>
                 <div className="flex items-center justify-between pt-1">
                   <div className="flex items-center gap-2">
                     <span className="size-2 rounded-full bg-success"></span>
-                    <span className="text-sm font-medium text-ink">
+                    <span className="text-body font-medium text-ink">
                       {warehouseName.trim() || 'Bodega Matriz (Pendiente)'}
                     </span>
                   </div>
-                  <span className="text-xs text-ink-muted">
+                  <span className="text-label text-ink-muted">
                     Activa por defecto
                   </span>
                 </div>
@@ -576,10 +578,10 @@ function InitializeWorkshopForm() {
         <div className="lg:col-span-1 lg:sticky lg:top-6">
           <Surface className="space-y-6">
             <div>
-              <h3 className="text-lg font-bold text-ink">
+              <h3 className="text-block font-bold text-ink">
                 Resumen de configuración
               </h3>
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="mt-1 text-label text-ink-muted">
                 Verifique que los datos requeridos estén completos para
                 continuar.
               </p>
@@ -600,20 +602,20 @@ function InitializeWorkshopForm() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Entidad Comercial
                     </p>
-                    <span className="text-[11px] font-medium text-ink-muted">
+                    <span className="text-micro font-medium text-ink-muted">
                       {isCommercialComplete ? 'Listo' : 'Pendiente'}
                     </span>
                   </div>
                   <p
-                    className={`mt-0.5 text-sm truncate ${commercialLegalName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
+                    className={`mt-0.5 text-body truncate ${commercialLegalName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
                   >
                     {commercialLegalName || 'Sin completar'}
                   </p>
                   {commercialRuc && (
-                    <p className="text-xs font-mono text-ink-muted mt-0.5">
+                    <p className="text-label code text-ink-muted mt-0.5">
                       RUC: {commercialRuc}
                     </p>
                   )}
@@ -633,20 +635,20 @@ function InitializeWorkshopForm() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Entidad Artesanal
                     </p>
-                    <span className="text-[11px] font-medium text-ink-muted">
+                    <span className="text-micro font-medium text-ink-muted">
                       {isArtisanalComplete ? 'Listo' : 'Pendiente'}
                     </span>
                   </div>
                   <p
-                    className={`mt-0.5 text-sm truncate ${artisanalLegalName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
+                    className={`mt-0.5 text-body truncate ${artisanalLegalName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
                   >
                     {artisanalLegalName || 'Sin completar'}
                   </p>
                   {artisanalRuc && (
-                    <p className="text-xs font-mono text-ink-muted mt-0.5">
+                    <p className="text-label code text-ink-muted mt-0.5">
                       RUC: {artisanalRuc}
                     </p>
                   )}
@@ -666,15 +668,15 @@ function InitializeWorkshopForm() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Bodega Principal
                     </p>
-                    <span className="text-[11px] font-medium text-ink-muted">
+                    <span className="text-micro font-medium text-ink-muted">
                       {isWarehouseComplete ? 'Listo' : 'Pendiente'}
                     </span>
                   </div>
                   <p
-                    className={`mt-0.5 text-sm truncate ${warehouseName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
+                    className={`mt-0.5 text-body truncate ${warehouseName ? 'font-semibold text-ink' : 'text-ink-muted italic'}`}
                   >
                     {warehouseName || 'Sin completar'}
                   </p>
@@ -693,7 +695,7 @@ function InitializeWorkshopForm() {
               >
                 Guardar configuración inicial
               </Button>
-              <p className="text-[11px] text-center text-ink-muted leading-relaxed">
+              <p className="text-micro text-center text-ink-muted leading-relaxed">
                 Esta acción creará de forma atómica las entidades fiscales, la
                 bodega y las 4 series iniciales de comprobantes.
               </p>

@@ -1,4 +1,4 @@
-import { ArrowLeft } from '@phosphor-icons/react'
+import { ArrowLeft, SealPercent } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -114,9 +114,10 @@ export function PendingWithholdingsPage({
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<SealPercent />}
         actions={
           <Link
-            className="inline-flex items-center gap-2 text-[13px] font-semibold text-accent hover:underline"
+            className="inline-flex items-center gap-2 text-body font-semibold text-accent hover:underline"
             to={text.back}
           >
             <ArrowLeft aria-hidden="true" size={16} />
@@ -129,7 +130,7 @@ export function PendingWithholdingsPage({
       <div className="flex flex-wrap items-center gap-3">
         <FiscalScopeBadge scope={scope} />
         {data && (
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-body text-ink-muted">
             <span className="font-semibold text-ink">
               <Money amount={data.pending_total} />
             </span>{' '}
@@ -142,7 +143,7 @@ export function PendingWithholdingsPage({
       {customer && (
         <div
           aria-label="Filtro por cliente"
-          className="flex flex-wrap items-center gap-3 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]"
+          className="flex flex-wrap items-center gap-3 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body"
           role="group"
         >
           <span>
@@ -196,7 +197,7 @@ export function PendingWithholdingsPage({
           aria-label={text.title}
           className="overflow-hidden rounded-panel border border-line bg-surface"
         >
-          <ul className="divide-y divide-line text-[13px]">
+          <ul className="divide-y divide-line text-body">
             {data.items.map((item) => {
               const operation = operationOf(item, scope)
               return (
@@ -213,7 +214,7 @@ export function PendingWithholdingsPage({
                       </span>
                       {!customer && (
                         <button
-                          className="ml-2 text-[12.5px] font-semibold text-accent hover:underline"
+                          className="ml-2 text-label font-semibold text-accent hover:underline"
                           onClick={() => {
                             setCustomer({
                               id: item.customer.id,
@@ -229,7 +230,7 @@ export function PendingWithholdingsPage({
                     </p>
                     <p className="text-ink-muted">
                       <Link
-                        className="font-mono font-semibold text-accent hover:underline"
+                        className="code font-semibold text-accent hover:underline"
                         to={operation.to}
                       >
                         {operation.label}
@@ -270,7 +271,7 @@ export function PendingWithholdingsPage({
           {pages > 1 && (
             <nav
               aria-label="Paginación"
-              className="flex items-center justify-between gap-3 border-t border-line px-4 py-2 text-[13px]"
+              className="flex items-center justify-between gap-3 border-t border-line px-4 py-2 text-body"
             >
               <Button
                 disabled={page <= 1}

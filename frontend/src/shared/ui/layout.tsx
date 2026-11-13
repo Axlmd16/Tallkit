@@ -6,21 +6,43 @@ import { DataTable } from './data/DataTable'
 export function PageHeader({
   actions,
   description,
+  eyebrow,
+  icon,
   title,
 }: {
   actions?: ReactNode
   description?: string
+  /** Antetítulo pequeño sobre el título, por ejemplo el grupo del menú. */
+  eyebrow?: string
+  /** Icono del encabezado, dentro de un cuadro suave. Es decorativo. */
+  icon?: ReactNode
   title: string
 }) {
   return (
     <header className="page-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-[22px] leading-7 font-bold text-ink">{title}</h1>
-        {description && (
-          <p className="mt-1 max-w-[72ch] text-sm text-ink-muted">
-            {description}
-          </p>
+      <div className="flex min-w-0 items-center gap-4">
+        {icon && (
+          <span
+            aria-hidden="true"
+            className="grid size-12 shrink-0 place-items-center rounded-card bg-primary-soft text-primary-strong [&>svg]:size-6"
+            data-testid="page-header-icon"
+          >
+            {icon}
+          </span>
         )}
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="text-micro font-semibold tracking-wider text-ink-muted uppercase">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="text-page font-bold text-ink">{title}</h1>
+          {description && (
+            <p className="mt-1 max-w-[72ch] text-body text-ink-muted">
+              {description}
+            </p>
+          )}
+        </div>
       </div>
       {actions && <div className="shrink-0">{actions}</div>}
     </header>
@@ -168,6 +190,8 @@ export function ResponsiveDataView<T extends object>(props: DataViewProps<T>) {
 export { Pagination, type PaginationProps } from './data/Pagination'
 
 export { RowActions, type RowActionsProps } from './data/RowActions'
+
+export { MasterDetail, type MasterDetailProps } from './layout/MasterDetail'
 
 export {
   FormLayout,

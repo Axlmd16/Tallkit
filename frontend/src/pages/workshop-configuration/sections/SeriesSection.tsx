@@ -72,7 +72,7 @@ export function SeriesSection() {
         />
       ) : (
         <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[40rem] border-collapse text-sm">
+          <table className="w-full min-w-[40rem] border-collapse text-body">
             <thead>
               <tr>
                 <th className={`${sheetTableHead} w-[32%]`}>Documento</th>
@@ -100,7 +100,7 @@ export function SeriesSection() {
         </div>
       )}
 
-      <p className="text-[13px] text-ink-muted">
+      <p className="text-body text-ink-muted">
         Son números internos; no acreditan una factura electrónica ni una
         autorización del SRI.
       </p>
@@ -145,11 +145,11 @@ function SeriesGroup({
           <tr key={item.id}>
             <td className={sheetTableCell}>{documentLabel(item)}</td>
             <td className={sheetTableCell}>
-              <span className="rounded-chip border border-line bg-surface-subtle px-2 py-0.5 font-mono font-semibold tracking-[0.04em]">
+              <span className="rounded-chip border border-line bg-surface-subtle px-2 py-0.5 code font-semibold tracking-[0.04em]">
                 {item.code}
               </span>
             </td>
-            <td className={`${sheetTableCell} font-mono tabular-nums`}>
+            <td className={`${sheetTableCell} code tabular-nums`}>
               {used ? (
                 internalNumber(item, item.last_number)
               ) : (
@@ -280,7 +280,7 @@ function CodeInput({
   return (
     <input
       {...field}
-      className={`${getControlClasses()} font-mono uppercase`}
+      className={`${getControlClasses()} code uppercase`}
       maxLength={20}
       name="code"
       onChange={(event) => onChange(event.target.value)}

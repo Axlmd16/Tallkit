@@ -307,7 +307,7 @@ export function CustomerForm({
                   />
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-ink-muted tabular-nums"
+                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-label font-semibold text-ink-muted tabular-nums"
                   >
                     {draft.identification.trim().length}/{identificationLength}
                   </span>
@@ -361,7 +361,7 @@ export function CustomerForm({
                       <span className="font-semibold">{m.name}</span> (
                       {m.identification_type}: {m.identification}) – Tel:{' '}
                       {m.phone}{' '}
-                      <span className="text-xs">
+                      <span className="text-label">
                         [{m.is_active ? 'Activo' : 'Inactivo'}]
                       </span>
                     </li>
@@ -426,7 +426,7 @@ export function CustomerForm({
               </LeadingIcon>
             </Field>
 
-            <label className="flex items-start gap-2 text-sm text-ink sm:col-span-2">
+            <label className="flex items-start gap-2 text-body text-ink sm:col-span-2">
               <input
                 checked={Boolean(draft.is_withholding_agent)}
                 className="mt-1"
@@ -440,7 +440,7 @@ export function CustomerForm({
               />
               <span>
                 <span className="font-semibold">Agente de retención</span>
-                <span className="block text-[12.5px] text-ink-muted">
+                <span className="block text-label text-ink-muted">
                   Márquelo si este cliente suele pagar un poco menos porque
                   retiene impuestos. Puede comprobarlo en la consulta de RUC del
                   SRI. Solo sirve para sugerir la retención al cobrar.
@@ -460,7 +460,7 @@ export function CustomerForm({
           <div className="flex items-center gap-3 border-b border-line p-4">
             <span
               aria-hidden="true"
-              className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-muted text-sm font-semibold text-ink-muted"
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-muted text-body font-semibold text-ink-muted"
             >
               {initials ||
                 (draft.person_type === 'JURIDICA' ? (
@@ -475,16 +475,16 @@ export function CustomerForm({
                   <span className="font-normal text-ink-muted">Sin nombre</span>
                 )}
               </p>
-              <p className="text-xs text-ink-muted">
+              <p className="text-label text-ink-muted">
                 {draft.person_type === 'JURIDICA'
                   ? 'Persona jurídica'
                   : 'Persona natural'}
               </p>
             </div>
           </div>
-          <dl className="space-y-3 p-4 text-[13px]">
+          <dl className="space-y-3 p-4 text-body">
             <div>
-              <dt className="text-xs text-ink-muted">Identificación</dt>
+              <dt className="text-label text-ink-muted">Identificación</dt>
               <dd className="mt-0.5 text-ink tabular-nums">
                 {draft.identification.trim()
                   ? `${draft.identification_type} · ${draft.identification.trim()}`
@@ -492,24 +492,27 @@ export function CustomerForm({
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-ink-muted">Teléfono</dt>
+              <dt className="text-label text-ink-muted">Teléfono</dt>
               <dd className="mt-0.5 text-ink">
                 {draft.phone.trim() || missing}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-ink-muted">Correo</dt>
+              <dt className="text-label text-ink-muted">Correo</dt>
               <dd className="mt-0.5 break-words text-ink">
                 {draft.email?.trim() || missing}
               </dd>
             </div>
             {!customer && (
-              <p className="rounded-control bg-surface-subtle px-3 py-2 text-xs text-ink-muted">
+              <p className="rounded-control bg-surface-subtle px-3 py-2 text-label text-ink-muted">
                 Los vehículos se registran después, desde la ficha del cliente.
               </p>
             )}
             {dirty && (
-              <p className="text-xs font-semibold text-warning" role="status">
+              <p
+                className="text-label font-semibold text-warning"
+                role="status"
+              >
                 Hay cambios sin guardar.
               </p>
             )}

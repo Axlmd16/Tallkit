@@ -11,9 +11,11 @@ import {
 } from './navigation'
 
 const rowBase =
-  'app-rail-nav-item relative flex min-h-11 w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
-const rowIdle = 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
-const rowActive = 'bg-accent-soft font-semibold text-accent-strong'
+  'app-rail-nav-item relative flex min-h-11 w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white'
+const rowIdle = 'text-graphite-ink hover:bg-graphite-raised/60 hover:text-white'
+/* Opción activa: fondo elevado, texto blanco y barra cobre a la izquierda. */
+const rowActive =
+  'bg-graphite-raised font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-primary'
 
 interface SidebarProps {
   groups: readonly NavGroup[]
@@ -49,7 +51,7 @@ function ItemLink({
   )
 }
 
-const kidsList = 'ml-[18px] border-l border-line pl-2'
+const kidsList = 'ml-[18px] border-l border-graphite-line pl-2'
 
 /** Sidebar expandido (escritorio y drawer móvil): grupos desplegables. */
 export function ExpandedNavigation({
@@ -93,25 +95,27 @@ export function ExpandedNavigation({
         const panelId = `${idPrefix}-${group.id}`
         return (
           <li
-            className={index === 0 ? 'mt-2 border-t border-line pt-3' : 'mt-1'}
+            className={
+              index === 0 ? 'mt-2 border-t border-graphite-line pt-3' : 'mt-1'
+            }
             key={group.id}
           >
             <button
               aria-controls={panelId}
               aria-expanded={isOpen}
-              className={`${rowBase} font-semibold ${hasActive ? 'text-accent-strong hover:bg-surface-subtle' : 'text-ink hover:bg-surface-subtle'}`}
+              className={`${rowBase} font-semibold ${hasActive ? 'text-white' : 'text-graphite-ink'} hover:bg-graphite-raised/60 hover:text-white`}
               onClick={() => toggle(group.id)}
               type="button"
             >
               <Icon
                 aria-hidden="true"
-                className={`shrink-0 ${hasActive ? 'text-accent' : 'text-ink-muted'}`}
+                className={`shrink-0 ${hasActive ? 'text-primary' : 'text-graphite-ink'}`}
                 size={18}
               />
               <span className="min-w-0 flex-1">{group.label}</span>
               <CaretDown
                 aria-hidden="true"
-                className={`shrink-0 text-ink-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                className={`shrink-0 text-graphite-ink transition-transform ${isOpen ? 'rotate-180' : ''}`}
                 size={16}
               />
             </button>
@@ -188,7 +192,7 @@ export function CompactNavigation({
   }
 
   const railButton =
-    'relative mx-auto grid size-11 place-items-center rounded-control transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus'
+    'relative mx-auto grid size-11 place-items-center rounded-control transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white'
 
   return (
     <>
@@ -207,14 +211,16 @@ export function CompactNavigation({
           const expanded = flyout?.id === candidate.id
           return (
             <li
-              className={index === 0 ? 'mt-2 border-t border-line pt-3' : ''}
+              className={
+                index === 0 ? 'mt-2 border-t border-graphite-line pt-3' : ''
+              }
               key={candidate.id}
             >
               <button
                 aria-expanded={expanded}
                 aria-haspopup="true"
                 aria-label={candidate.label}
-                className={`${railButton} ${active ? `${rowActive}` : rowIdle} ${expanded && !active ? 'bg-surface-muted text-ink' : ''}`}
+                className={`${railButton} ${active ? `${rowActive}` : rowIdle} ${expanded && !active ? 'bg-graphite-raised text-white' : ''}`}
                 data-active={active ? 'true' : undefined}
                 data-flyout-trigger=""
                 onClick={(event) => toggle(candidate.id, event.currentTarget)}
@@ -230,12 +236,12 @@ export function CompactNavigation({
       {group && flyout && (
         <div
           aria-label={group.label}
-          className="fixed left-[80px] z-40 w-60 rounded-panel border border-line bg-surface p-2 shadow-menu"
+          className="fixed left-[80px] z-40 w-60 rounded-panel border border-graphite-line bg-graphite p-2 shadow-menu"
           data-flyout=""
           role="group"
           style={{ top: flyout.top }}
         >
-          <p className="mx-2.5 mt-1 mb-1.5 text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
+          <p className="mx-2.5 mt-1 mb-1.5 text-micro font-semibold tracking-wider text-graphite-ink uppercase">
             {group.label}
           </p>
           <ul className="flex flex-col gap-0.5">

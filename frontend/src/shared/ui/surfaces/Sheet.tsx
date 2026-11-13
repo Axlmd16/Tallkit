@@ -21,13 +21,13 @@ export function SheetHeading({
       <div className="min-w-0">
         <Heading
           id={id}
-          className={`font-bold text-ink ${level === 2 ? 'text-xl' : 'text-[17px]'}`}
+          className={`font-bold text-ink ${level === 2 ? 'text-block' : 'text-lead'}`}
         >
           {title}
         </Heading>
         {description && (
           <p
-            className={`mt-1.5 max-w-[80ch] text-ink-muted ${level === 2 ? 'text-sm' : 'text-[13px]'}`}
+            className={`mt-1.5 max-w-[80ch] text-ink-muted ${level === 2 ? 'text-body' : 'text-body'}`}
           >
             {description}
           </p>
@@ -42,10 +42,7 @@ export function SheetHeading({
 export function PendingCount({ count }: { count: number }) {
   return (
     <span className="inline-flex items-center gap-1.5 font-semibold text-warning">
-      <span
-        aria-hidden="true"
-        className="size-[7px] rounded-full bg-[#c98a00]"
-      />
+      <span aria-hidden="true" className="size-[7px] rounded-full bg-warning" />
       {count}
       <span className="sr-only">
         {count === 1 ? ' pendiente' : ' pendientes'}
@@ -78,7 +75,7 @@ export function SubsectionIndicator({
       <span className="inline-flex items-center gap-1.5 font-semibold text-warning">
         <span
           aria-hidden="true"
-          className="size-[7px] rounded-full bg-[#c98a00]"
+          className="size-[7px] rounded-full bg-warning"
         />
         {label}
       </span>
@@ -102,7 +99,7 @@ export function StateMark({
   }[tone]
   return (
     <span
-      className={`inline-flex items-center gap-2 text-[13px] ${tone === 'unknown' ? 'text-ink-muted' : 'text-ink'}`}
+      className={`inline-flex items-center gap-2 text-body ${tone === 'unknown' ? 'text-ink-muted' : 'text-ink'}`}
     >
       <span
         aria-hidden="true"
@@ -114,7 +111,7 @@ export function StateMark({
 }
 
 export const sheetTableHead =
-  'bg-surface-subtle px-4 py-2.5 text-left text-xs font-semibold text-ink-muted first:rounded-l-control first:pl-3 last:rounded-r-control last:pr-3 last:text-right'
+  'bg-surface-subtle px-4 py-2.5 text-left text-label font-semibold text-ink-muted first:rounded-l-control first:pl-3 last:rounded-r-control last:pr-3 last:text-right'
 export const sheetTableCell =
   'border-b border-line px-4 py-3 align-middle first:pl-3 last:pr-3 last:text-right'
 
@@ -145,11 +142,11 @@ export function StateChip({
 }) {
   return (
     <span
-      className={`inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold whitespace-nowrap ${chipTones[tone]}`}
+      className={`inline-flex min-h-6 items-center gap-1.5 rounded-full px-2.5 text-label font-semibold whitespace-nowrap ${chipTones[tone]}`}
     >
       <span
         aria-hidden="true"
-        className={`size-[7px] shrink-0 bg-current ${tone === 'warning' || tone === 'neutral' ? 'rounded-[2px]' : 'rounded-full'}`}
+        className={`size-[7px] shrink-0 bg-current ${tone === 'warning' || tone === 'neutral' ? 'rounded-chip' : 'rounded-full'}`}
       />
       {label}
     </span>

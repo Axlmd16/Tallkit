@@ -236,13 +236,13 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
           )}
         </div>
         {selected?.inactive && (
-          <p className="text-xs text-warning" id={helpId}>
+          <p className="text-label text-warning" id={helpId}>
             <strong>Inactivo.</strong> {inactiveHelp}
           </p>
         )}
         {error && (
           <p
-            className="text-xs font-semibold text-danger"
+            className="text-label font-semibold text-danger"
             id={errorId}
             role="alert"
           >
@@ -263,7 +263,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
             >
               {results.isPending && (
                 <p
-                  className="px-3 py-2 text-xs text-ink-muted"
+                  className="px-3 py-2 text-label text-ink-muted"
                   id={statusId}
                   role="status"
                 >
@@ -271,7 +271,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                 </p>
               )}
               {results.isError && (
-                <div className="px-3 py-2 text-xs text-danger" role="alert">
+                <div className="px-3 py-2 text-label text-danger" role="alert">
                   No se pudo buscar.{' '}
                   <button
                     className="underline"
@@ -283,7 +283,10 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                 </div>
               )}
               {results.data && options.length === 0 && (
-                <p className="px-3 py-2 text-xs text-ink-muted" role="status">
+                <p
+                  className="px-3 py-2 text-label text-ink-muted"
+                  role="status"
+                >
                   Sin coincidencias.
                 </p>
               )}
@@ -296,7 +299,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                   <li
                     aria-disabled={option.inactive ? true : undefined}
                     aria-selected={index === active}
-                    className={`flex cursor-pointer flex-col gap-0.5 px-3 py-2 text-[13px] outline-none ${index === active ? 'bg-accent-soft text-accent-strong' : 'text-ink'} ${option.inactive ? 'cursor-not-allowed opacity-55' : 'hover:bg-surface-subtle'}`}
+                    className={`flex cursor-pointer flex-col gap-0.5 px-3 py-2 text-body outline-none ${index === active ? 'bg-primary-soft text-ink' : 'text-ink'} ${option.inactive ? 'cursor-not-allowed opacity-55' : 'hover:bg-surface-subtle'}`}
                     data-active={index === active}
                     id={`${listId}-option-${index}`}
                     key={option.id}
@@ -307,7 +310,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                     <span className="truncate font-semibold">
                       {option.label}
                     </span>
-                    <span className="truncate text-xs text-ink-muted">
+                    <span className="truncate text-label text-ink-muted">
                       {option.inactive
                         ? 'Inactivo: no seleccionable'
                         : option.detail}
@@ -316,7 +319,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(
                 ))}
               </ul>
               {totalPages > 1 && (
-                <div className="flex items-center justify-between gap-3 border-t border-line px-3 py-2 text-xs text-ink-muted">
+                <div className="flex items-center justify-between gap-3 border-t border-line px-3 py-2 text-label text-ink-muted">
                   <button
                     className="font-semibold text-accent disabled:opacity-40"
                     disabled={page <= 1}

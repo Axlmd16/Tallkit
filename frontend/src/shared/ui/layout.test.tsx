@@ -25,10 +25,27 @@ it('keeps page context and its primary action together', () => {
   )
 
   expect(screen.getByRole('heading', { name: 'Usuarios' })).toHaveClass(
-    'text-[22px]',
+    'text-page',
     'font-bold',
   )
   expect(screen.getByRole('button', { name: 'Crear usuario' })).toBeEnabled()
+})
+
+it('adds an optional decorative icon and eyebrow without changing the heading', () => {
+  render(
+    <PageHeader
+      eyebrow="Día a día"
+      icon={<svg data-testid="glyph" />}
+      title="Mantenimientos"
+    />,
+  )
+
+  expect(screen.getByRole('heading', { name: 'Mantenimientos' })).toBeVisible()
+  expect(screen.getByText('Día a día')).toBeVisible()
+  expect(screen.getByTestId('page-header-icon')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  )
 })
 
 it('labels filter and toolbar regions', () => {

@@ -183,7 +183,7 @@ export function ProfileConditionsSection({
       />
 
       <div className="relative overflow-x-auto">
-        <table className="w-full min-w-[42rem] border-collapse text-sm">
+        <table className="w-full min-w-[42rem] border-collapse text-body">
           <thead>
             <tr>
               <th className={`${sheetTableHead} w-[30%]`}>Condición</th>
@@ -219,13 +219,13 @@ export function ProfileConditionsSection({
                     {item.key === 'tax_regime' &&
                       status === 'APPLICABLE' &&
                       data.regime_legend && (
-                        <span className="mt-0.5 block text-xs text-ink-muted">
+                        <span className="mt-0.5 block text-label text-ink-muted">
                           Leyenda en la factura: {data.regime_legend}
                         </span>
                       )}
                   </td>
                   <td
-                    className={`${sheetTableCell} font-mono text-[13px] whitespace-nowrap`}
+                    className={`${sheetTableCell} code text-body whitespace-nowrap`}
                   >
                     {condition?.starts_on ?? (
                       <span className="font-sans text-ink-muted">—</span>
@@ -316,7 +316,7 @@ function LegacyNotice() {
         <>
           <WarningCircle
             aria-hidden="true"
-            className="text-[#c98a00]"
+            className="text-warning"
             size={16}
             weight="fill"
           />
@@ -344,7 +344,7 @@ function ExpiringNotice({ warnings }: { warnings: StatusCause[] }) {
         <>
           <WarningCircle
             aria-hidden="true"
-            className="text-[#c98a00]"
+            className="text-warning"
             size={16}
             weight="fill"
           />
@@ -505,7 +505,7 @@ export function ConditionDialog({
           </Field>
         ) : (
           <fieldset className="border-0 p-0">
-            <legend className="mb-2 p-0 text-xs font-semibold text-ink">
+            <legend className="mb-2 p-0 text-label font-semibold text-ink">
               Declaración
             </legend>
             <div className="grid grid-cols-3 overflow-hidden rounded-control border border-line-strong">
@@ -514,7 +514,7 @@ export function ConditionDialog({
                   const checked = values.status === option
                   return (
                     <label
-                      className={`flex min-h-11 cursor-pointer items-center justify-center gap-2 border-l border-line-strong px-2 text-[13px] first:border-l-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent has-[:focus-visible]:ring-inset ${checked ? 'bg-accent-soft font-semibold text-accent-strong' : 'text-ink'}`}
+                      className={`flex min-h-11 cursor-pointer items-center justify-center gap-2 border-l border-line-strong px-2 text-body first:border-l-0 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent has-[:focus-visible]:ring-inset ${checked ? 'bg-accent-soft font-semibold text-accent-strong' : 'text-ink'}`}
                       key={option}
                     >
                       <input
@@ -530,9 +530,9 @@ export function ConditionDialog({
                 },
               )}
             </div>
-            <p className="mt-1.5 text-xs text-ink-muted">{item.help}</p>
+            <p className="mt-1.5 text-label text-ink-muted">{item.help}</p>
             {fieldErrors.status && (
-              <p className="mt-1.5 text-xs font-semibold text-danger">
+              <p className="mt-1.5 text-label font-semibold text-danger">
                 {fieldErrors.status}
               </p>
             )}
@@ -540,7 +540,7 @@ export function ConditionDialog({
         )}
 
         {item.key === 'tax_regime' && (
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             La leyenda del régimen la pone el sistema en el comprobante; no se
             escribe aquí.
           </p>
@@ -624,7 +624,7 @@ export function ConditionDialog({
             </div>
           </>
         )}
-        <details className="group text-[13px]">
+        <details className="group text-body">
           <summary className="min-h-8 cursor-pointer font-semibold text-accent">
             ¿Por qué se solicita?
           </summary>

@@ -15,7 +15,7 @@ export function SupplierDetails({ supplier }: { supplier: Supplier }) {
       className="space-y-4 rounded-group bg-surface p-5 shadow-card"
     >
       <FiscalScopeBadge scope="commercial" />
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 text-body sm:grid-cols-2">
         {row('Nombre o razón social', supplier.name)}
         <div>
           <dt className="font-semibold text-ink-muted">Estado</dt>

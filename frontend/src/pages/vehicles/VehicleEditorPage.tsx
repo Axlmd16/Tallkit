@@ -93,8 +93,8 @@ export function VehicleEditorPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Vehículos</p>
-          <h1 className="text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Vehículos</p>
+          <h1 className="text-page font-semibold text-ink">
             {vehicle ? `Editar ${vehicle.plate}` : 'Nuevo vehículo'}
           </h1>
         </div>

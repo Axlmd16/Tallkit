@@ -1,3 +1,4 @@
+import { Pulse } from '@phosphor-icons/react'
 import { useQuery } from '@tanstack/react-query'
 
 import { getHealth } from '@/shared/api/health'
@@ -20,6 +21,7 @@ export function TechnicalStatusPage() {
   return (
     <section>
       <PageHeader
+        icon={<Pulse />}
         description={`Disponibilidad de la base técnica de ${environment.appName}.`}
         title="Estado técnico"
       />

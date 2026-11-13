@@ -1,3 +1,9 @@
+export {
+  BusinessMark,
+  businessInitials,
+  type BusinessMarkProps,
+  type BusinessMarkSize,
+} from './BusinessMark'
 export { formatMoney, Money, type MoneyProps } from './Money'
 export { PartCode, type PartCodeProps } from './PartCode'
 export { PlateTag, type PlateTagProps } from './PlateTag'

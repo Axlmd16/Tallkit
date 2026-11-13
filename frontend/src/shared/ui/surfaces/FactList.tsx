@@ -19,7 +19,7 @@ export function FactRow({
   children: ReactNode
 }) {
   return (
-    <div className="grid gap-1 border-t border-line py-3.5 text-sm leading-[1.45] sm:grid-cols-[11.25rem_minmax(0,1fr)] sm:gap-6">
+    <div className="grid gap-1 border-t border-line py-3.5 text-body leading-[1.45] sm:grid-cols-[11.25rem_minmax(0,1fr)] sm:gap-6">
       <dt className="text-ink-muted">{label}</dt>
       <dd className="min-w-0 text-ink">{children}</dd>
     </div>

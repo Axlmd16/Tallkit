@@ -26,7 +26,7 @@ export function InventoryOperationDetailPage() {
   const op = query.data
   const originId = (ref: string) => ref.replace('INV-', '')
   const panel = 'rounded-panel border border-line bg-surface'
-  const link = 'font-mono font-semibold text-accent hover:underline'
+  const link = 'code font-semibold text-accent hover:underline'
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -39,8 +39,8 @@ export function InventoryOperationDetailPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">{kindLabels[op.kind]}</p>
-          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">{kindLabels[op.kind]}</p>
+          <h1 className="code text-page font-semibold text-ink">
             {op.reference}
           </h1>
         </div>
@@ -55,13 +55,13 @@ export function InventoryOperationDetailPage() {
             tone={op.state === 'POSTED' ? 'success' : 'neutral'}
           />
         </div>
-        <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-2 xl:grid-cols-4">
+        <dl className="grid gap-x-6 gap-y-3 text-body sm:grid-cols-2 xl:grid-cols-4">
           <div className="min-w-0 sm:col-span-2">
-            <dt className="text-xs text-ink-muted">Producto</dt>
+            <dt className="text-label text-ink-muted">Producto</dt>
             <dd className="mt-0.5 font-medium">
               {op.product ? (
                 <>
-                  <span className="font-mono text-xs font-semibold">
+                  <span className="code text-label font-semibold">
                     {op.product.code}
                   </span>{' '}
                   — {op.product.name}
@@ -72,13 +72,13 @@ export function InventoryOperationDetailPage() {
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Cantidad</dt>
-            <dd className="mt-0.5 font-mono font-semibold tabular-nums">
+            <dt className="text-label text-ink-muted">Cantidad</dt>
+            <dd className="mt-0.5 code font-semibold tabular-nums">
               {op.quantity ?? '—'}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Origen</dt>
+            <dt className="text-label text-ink-muted">Origen</dt>
             <dd className="mt-0.5">
               {op.origin.type}{' '}
               {op.origin.origin_url ? (
@@ -89,19 +89,19 @@ export function InventoryOperationDetailPage() {
                   Abrir origen
                 </Link>
               ) : (
-                <span className="font-mono">({op.origin.reference})</span>
+                <span className="code">({op.origin.reference})</span>
               )}
             </dd>
           </div>
           {op.reason !== undefined && (
             <div className="sm:col-span-2">
-              <dt className="text-xs text-ink-muted">Motivo</dt>
+              <dt className="text-label text-ink-muted">Motivo</dt>
               <dd className="mt-0.5">{op.reason || '—'}</dd>
             </div>
           )}
           {op.reverses_reference && (
             <div>
-              <dt className="text-xs text-ink-muted">Compensa a</dt>
+              <dt className="text-label text-ink-muted">Compensa a</dt>
               <dd className="mt-0.5">
                 <Link
                   className={link}
@@ -116,8 +116,8 @@ export function InventoryOperationDetailPage() {
       </section>
       {op.entry_value !== undefined && (
         <section aria-label="Valoración" className={`${panel} px-4 py-3`}>
-          <h2 className="text-[14.5px] font-semibold text-ink">Valoración</h2>
-          <p className="mt-1 text-[13px] tabular-nums">
+          <h2 className="text-body font-semibold text-ink">Valoración</h2>
+          <p className="mt-1 text-body tabular-nums">
             {op.entry_value === null ? (
               <NoCost />
             ) : (
@@ -134,14 +134,12 @@ export function InventoryOperationDetailPage() {
           className={`${panel} overflow-hidden`}
         >
           <div className="border-b border-line px-4 py-3">
-            <h2 className="text-[14.5px] font-semibold text-ink">
-              Movimientos
-            </h2>
+            <h2 className="text-body font-semibold text-ink">Movimientos</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-[13px]">
+            <table className="w-full min-w-[560px] text-left text-body">
               <thead>
-                <tr className="border-b border-line bg-surface-subtle text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+                <tr className="border-b border-line bg-surface-subtle text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase">
                   <th className="h-9 px-4" scope="col">
                     Movimiento
                   </th>

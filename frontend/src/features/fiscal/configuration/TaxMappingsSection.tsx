@@ -58,7 +58,7 @@ export function TaxMappingsSection({
       />
 
       {definitions.length === 0 && (
-        <p className="rounded-control bg-surface-subtle px-4 py-3 text-sm text-ink-muted">
+        <p className="rounded-control bg-surface-subtle px-4 py-3 text-body text-ink-muted">
           Primero debe configurarse el catálogo tributario de esta entidad.
         </p>
       )}
@@ -69,14 +69,14 @@ export function TaxMappingsSection({
         <ErrorState message="No se pudieron cargar las correspondencias." />
       ) : list.length === 0 ? (
         definitions.length > 0 && (
-          <p className="text-sm text-ink-muted">
+          <p className="text-body text-ink-muted">
             Todavía no hay correspondencias registradas.
           </p>
         )
       ) : (
         <>
           <div className="relative overflow-x-auto">
-            <table className="w-full min-w-[40rem] border-collapse text-sm">
+            <table className="w-full min-w-[40rem] border-collapse text-body">
               <caption className="sr-only">
                 Correspondencias vigentes e históricas
               </caption>
@@ -100,14 +100,12 @@ export function TaxMappingsSection({
                     <td className={`${sheetTableCell} font-semibold`}>
                       {mapping.display_name ?? 'Sin entrada del catálogo'}
                     </td>
-                    <td className={`${sheetTableCell} text-[13px]`}>
-                      Desde{' '}
-                      <span className="font-mono">{mapping.starts_on}</span>
+                    <td className={`${sheetTableCell} text-body`}>
+                      Desde <span className="code">{mapping.starts_on}</span>
                       {mapping.ends_on && (
                         <>
                           {' '}
-                          hasta{' '}
-                          <span className="font-mono">{mapping.ends_on}</span>
+                          hasta <span className="code">{mapping.ends_on}</span>
                         </>
                       )}
                     </td>
@@ -149,9 +147,9 @@ export function TaxMappingsSection({
                     {mapping.display_name ?? mapping.definition_name}:
                   </span>{' '}
                   código SRI{' '}
-                  <span className="font-mono">{mapping.percentage_code}</span> ·
+                  <span className="code">{mapping.percentage_code}</span> ·
                   catálogo{' '}
-                  <span className="font-mono">{mapping.catalog_version}</span> ·
+                  <span className="code">{mapping.catalog_version}</span> ·
                   fundamento: {mapping.source}
                 </li>
               ))}
@@ -226,13 +224,15 @@ function MappingModal({
     >
       <div className="space-y-4">
         {single ? (
-          <div className="text-sm">
-            <p className="text-xs font-semibold text-ink">Impuesto interno</p>
+          <div className="text-body">
+            <p className="text-label font-semibold text-ink">
+              Impuesto interno
+            </p>
             <p className="mt-1.5 text-ink">
               {single.name}
               {single.current_rate != null && ` · ${single.current_rate} %`}
             </p>
-            <p className="mt-1 text-xs text-ink-muted">
+            <p className="mt-1 text-label text-ink-muted">
               Es el único impuesto interno de esta entidad.
             </p>
           </div>
@@ -340,15 +340,15 @@ function SuccessorModal({
       title="Programar cambio de tarifa SRI"
     >
       <div className="space-y-4">
-        <div className="text-sm">
-          <p className="text-xs font-semibold text-ink">
+        <div className="text-body">
+          <p className="text-label font-semibold text-ink">
             Correspondencia actual
           </p>
           <p className="mt-1.5 text-ink">
             {mapping.definition_name} · {mapping.display_name ?? 'Sin entrada'}
           </p>
-          <p className="mt-1 text-xs text-ink-muted">
-            Vigente desde <span className="font-mono">{mapping.starts_on}</span>
+          <p className="mt-1 text-label text-ink-muted">
+            Vigente desde <span className="code">{mapping.starts_on}</span>
           </p>
         </div>
         <Field label="Nueva tarifa del catálogo SRI" required>

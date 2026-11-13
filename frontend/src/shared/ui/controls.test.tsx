@@ -99,7 +99,7 @@ it('keeps select, checkbox and grouped actions natively operable', () => {
 })
 
 describe('lenguaje Tallkit de los controles', () => {
-  it('la acción principal usa el azul Tallkit y la secundaria un borde de campo', () => {
+  it('la acción principal usa el cobre y la secundaria un contorno de tinta', () => {
     render(
       <>
         <Button>Guardar</Button>
@@ -111,7 +111,7 @@ describe('lenguaje Tallkit de los controles', () => {
       /\bbg-primary\b.*\btext-white\b|\btext-white\b.*\bbg-primary\b/,
     )
     const secondary = screen.getByRole('button', { name: 'Cancelar' })
-    expect(secondary.className).toMatch(/\bborder-line-strong\b/)
+    expect(secondary.className).toMatch(/\bborder-ink\b/)
     expect(secondary.className).toMatch(/\bbg-surface\b/)
     expect(
       screen.getByRole('button', { name: 'Anular venta' }).className,
@@ -132,7 +132,7 @@ describe('lenguaje Tallkit de los controles', () => {
     expect(input.className).toMatch(/\bborder-line-strong\b/)
     expect(input.className).toMatch(/focus:border-accent/)
     expect(input.className).not.toMatch(/bg-surface-muted|primary/)
-    expect(screen.getByText('Cantidad').className).toMatch(/text-xs/)
+    expect(screen.getByText('Cantidad').className).toMatch(/text-label/)
   })
 
   it('un botón de icono ofrece al menos 44 px en táctil y ayuda textual', () => {

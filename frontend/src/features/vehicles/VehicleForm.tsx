@@ -245,10 +245,10 @@ export function VehicleForm({
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-surface-muted pb-3">
           <div>
-            <h3 className="text-base font-bold text-ink">
+            <h3 className="text-block font-bold text-ink">
               Nueva marca de vehículo
             </h3>
-            <p className="text-xs text-ink-muted">
+            <p className="text-label text-ink-muted">
               Cree la marca y volverá al formulario del vehículo con la marca
               seleccionada.
             </p>
@@ -257,7 +257,7 @@ export function VehicleForm({
             variant="quiet"
             type="button"
             onClick={() => setIsCreatingBrand(false)}
-            className="text-xs"
+            className="text-label"
           >
             Volver
           </Button>
@@ -296,21 +296,21 @@ export function VehicleForm({
         {/* Propietario */}
         {isEditing ? (
           <div className="md:col-span-2 rounded-group border border-ink/10 bg-surface-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <p className="text-label font-semibold uppercase tracking-wider text-ink-muted">
               Propietario actual
             </p>
             <p className="mt-1 font-medium text-ink">
               {vehicle?.current_owner?.name ?? 'Sin propietario asignado'} (
               {vehicle?.current_owner?.identification})
             </p>
-            <p className="mt-1 text-xs text-ink-muted">
+            <p className="mt-1 text-label text-ink-muted">
               El cambio de propietario se realiza mediante la opción de
               transferencia.
             </p>
           </div>
         ) : defaultOwnerId && defaultOwnerName ? (
           <div className="md:col-span-2 rounded-group border border-ink/10 bg-surface-muted p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+            <p className="text-label font-semibold uppercase tracking-wider text-ink-muted">
               Propietario asignado
             </p>
             <p className="mt-1 font-medium text-ink">{defaultOwnerName}</p>

@@ -1,4 +1,4 @@
-import { PencilSimple, Plus, Power, Key } from '@phosphor-icons/react'
+import { PencilSimple, Plus, Power, Key, Users } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
@@ -111,7 +111,7 @@ export function UsersPage() {
           </span>
           <div className="min-w-0">
             <p className="break-words font-semibold">{user.username}</p>
-            <p className="break-words text-sm text-ink-muted">
+            <p className="break-words text-body text-ink-muted">
               {`${user.first_name} ${user.last_name}`.trim() ||
                 'Sin nombre registrado'}
             </p>
@@ -200,6 +200,7 @@ export function UsersPage() {
   return (
     <section className="users-page list-page">
       <PageHeader
+        icon={<Users />}
         actions={
           permissions.has('usuarios.crear') ? (
             <Button onClick={() => setEditing(null)}>
@@ -332,7 +333,7 @@ export function UsersPage() {
       )}
 
       <details className="role-reference">
-        <summary className="cursor-pointer py-2 text-sm font-semibold">
+        <summary className="cursor-pointer py-2 text-body font-semibold">
           Roles y permisos fijos
         </summary>
         {roles.isPending && <LoadingState label="Cargando roles…" />}
@@ -350,7 +351,7 @@ export function UsersPage() {
                 key={role.code}
               >
                 <strong>{roleLabels[role.code]}</strong>
-                <span className="ml-2 break-words text-sm text-ink-muted">
+                <span className="ml-2 break-words text-body text-ink-muted">
                   {role.permissions.join(', ') || 'Sin permisos adicionales'}
                 </span>
               </li>
@@ -418,7 +419,7 @@ export function UsersPage() {
           <code className="numeric block break-all rounded-control bg-surface-subtle p-3">
             {temporaryPassword}
           </code>
-          <p className="mt-3 text-sm text-ink-muted">
+          <p className="mt-3 text-body text-ink-muted">
             Si la pierde, inicie deliberadamente otro restablecimiento.
           </p>
         </div>

@@ -107,7 +107,7 @@ export function CorrectionDialog({
           value={reason}
         />
       </Field>
-      <label className="flex items-center gap-2 text-sm text-ink">
+      <label className="flex items-center gap-2 text-body text-ink">
         <input
           checked={replace}
           onChange={(event) => setReplace(event.target.checked)}

@@ -56,7 +56,7 @@ function Preview({
       data-testid="catalog-preview-frame"
       style={{ maxWidth: `${width}px` }}
     >
-      <p className="mb-3 text-xs text-ink-muted">
+      <p className="mb-3 text-label text-ink-muted">
         Variante o estado: <strong className="text-ink">{variant}</strong> ·{' '}
         {width} px
       </p>
@@ -113,7 +113,7 @@ export function CatalogApp() {
         data-testid="isolated-view"
         data-visual-catalog
       >
-        <p className="mb-4 text-sm font-semibold">
+        <p className="mb-4 text-body font-semibold">
           {entry.id} — {entry.name}
         </p>
         <ToastProvider>
@@ -134,18 +134,18 @@ export function CatalogApp() {
       data-visual-catalog
     >
       <aside className="border-b border-line bg-surface p-4 md:border-r md:border-b-0">
-        <h1 className="text-lg font-semibold">Catálogo visual Tallkit</h1>
-        <p className="mt-1 text-xs text-ink-muted">
+        <h1 className="text-block font-semibold">Catálogo visual Tallkit</h1>
+        <p className="mt-1 text-label text-ink-muted">
           Solo desarrollo · datos de ejemplo
         </p>
         <label
-          className="mt-4 mb-1.5 block text-xs font-semibold"
+          className="mt-4 mb-1.5 block text-label font-semibold"
           htmlFor="catalog-search"
         >
           Buscar componentes
         </label>
         <input
-          className="min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-[13.5px] focus:border-accent focus:outline-none"
+          className="min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-body focus:border-accent focus:outline-none"
           id="catalog-search"
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar componentes"
@@ -153,13 +153,13 @@ export function CatalogApp() {
           value={query}
         />
         <label
-          className="mt-3 mb-1.5 block text-xs font-semibold"
+          className="mt-3 mb-1.5 block text-label font-semibold"
           htmlFor="catalog-family"
         >
           Familia
         </label>
         <select
-          className="min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-[13.5px]"
+          className="min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-body"
           id="catalog-family"
           onChange={(event) =>
             setFamily((event.target.value || null) as CatalogFamily | null)
@@ -179,7 +179,7 @@ export function CatalogApp() {
               <li key={item.id}>
                 <button
                   aria-current={item.id === entry.id ? 'true' : undefined}
-                  className={`flex min-h-10 w-full items-center gap-2 rounded-control px-2.5 text-left text-[13px] ${item.id === entry.id ? 'bg-accent-soft font-semibold text-accent-strong' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
+                  className={`flex min-h-10 w-full items-center gap-2 rounded-control px-2.5 text-left text-body ${item.id === entry.id ? 'bg-primary-soft font-semibold text-ink' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
                   onClick={() => {
                     setSelectedId(item.id)
                     setSelectedVariant(item.variants[0]!)
@@ -187,13 +187,13 @@ export function CatalogApp() {
                   }}
                   type="button"
                 >
-                  <span className="font-mono text-xs">{item.id}</span>
+                  <span className="code text-label">{item.id}</span>
                   {item.name}
                 </button>
               </li>
             ))}
             {visible.length === 0 && (
-              <li className="px-2.5 py-2 text-[13px] text-ink-muted">
+              <li className="px-2.5 py-2 text-body text-ink-muted">
                 Sin coincidencias.
               </li>
             )}
@@ -203,19 +203,17 @@ export function CatalogApp() {
       <main className="min-w-0 p-4 md:p-6">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="font-mono text-xs text-ink-muted">
+            <p className="code text-label text-ink-muted">
               {entry.id} · {FAMILY_LABELS[entry.family]}
             </p>
-            <h2 className="text-[22px] leading-7 font-semibold">
-              {entry.name}
-            </h2>
-            <p className="mt-1 max-w-2xl text-[13px] text-ink-muted">
+            <h2 className="text-page leading-7 font-semibold">{entry.name}</h2>
+            <p className="mt-1 max-w-2xl text-body text-ink-muted">
               {entry.description}
             </p>
           </div>
           <div className="flex gap-2">
             <button
-              className="min-h-10 rounded-control border border-line-strong bg-surface px-3 text-[13px] font-semibold"
+              className="min-h-10 rounded-control border border-line-strong bg-surface px-3 text-body font-semibold"
               onClick={() => {
                 setSelectedVariant(entry.variants[0]!)
                 setPreviewWidth(1440)
@@ -226,7 +224,7 @@ export function CatalogApp() {
               Restablecer ejemplo
             </button>
             <a
-              className="inline-flex min-h-10 items-center rounded-control px-3 text-[13px] font-semibold text-accent"
+              className="inline-flex min-h-10 items-center rounded-control px-3 text-body font-semibold text-accent"
               href={`#isolate=true&id=${entry.id}&variant=${encodeURIComponent(selectedVariant)}&width=${previewWidth}`}
             >
               Vista aislada
@@ -238,10 +236,10 @@ export function CatalogApp() {
           className="mt-4 grid gap-3 rounded-panel border border-line bg-surface-subtle p-3 sm:grid-cols-2"
           role="group"
         >
-          <label className="text-xs font-semibold" htmlFor="catalog-variant">
+          <label className="text-label font-semibold" htmlFor="catalog-variant">
             Variante o estado
             <select
-              className="mt-1 min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-[13.5px]"
+              className="mt-1 min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-body"
               id="catalog-variant"
               onChange={(event) => setSelectedVariant(event.target.value)}
               value={selectedVariant}
@@ -251,10 +249,10 @@ export function CatalogApp() {
               ))}
             </select>
           </label>
-          <label className="text-xs font-semibold" htmlFor="catalog-width">
+          <label className="text-label font-semibold" htmlFor="catalog-width">
             Ancho de revisión
             <select
-              className="mt-1 min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-[13.5px]"
+              className="mt-1 min-h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-body"
               id="catalog-width"
               onChange={(event) =>
                 setPreviewWidth(parseWidth(event.target.value))
@@ -282,16 +280,14 @@ export function CatalogApp() {
             />
           </ToastProvider>
         </section>
-        <dl className="mt-4 grid gap-3 text-[12.5px] sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-4 grid gap-3 text-label sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <dt className="font-semibold">Procedencia</dt>
             <dd className="text-ink-muted">{sourceLabel(entry)}</dd>
           </div>
           <div>
             <dt className="font-semibold">Tokens</dt>
-            <dd className="font-mono text-ink-muted">
-              {entry.tokens.join(' · ')}
-            </dd>
+            <dd className="code text-ink-muted">{entry.tokens.join(' · ')}</dd>
           </div>
           <div>
             <dt className="font-semibold">Variantes y estados</dt>
@@ -302,7 +298,7 @@ export function CatalogApp() {
             <dd className="text-ink-muted">{entry.consumers.join(' · ')}</dd>
           </div>
         </dl>
-        <div className="mt-4 grid gap-4 text-[12.5px] lg:grid-cols-2">
+        <div className="mt-4 grid gap-4 text-label lg:grid-cols-2">
           <section aria-labelledby="catalog-acceptance">
             <h3 className="font-semibold" id="catalog-acceptance">
               Criterios de aceptación

@@ -106,7 +106,7 @@ export function Tabs({
         aria-orientation="horizontal"
         className={`flex items-center gap-2 overflow-x-auto border-b border-line ${
           variant === 'pill'
-            ? 'border-b-0 gap-0.5 bg-surface-muted p-[3px] rounded-control'
+            ? 'border-b-0 gap-0.5 bg-workspace p-[3px] rounded-full'
             : ''
         } ${tabListClassName}`}
         role="tablist"
@@ -119,10 +119,10 @@ export function Tabs({
           const styleClasses =
             variant === 'line'
               ? isSelected
-                ? 'border-b-2 border-accent text-accent-strong font-semibold'
+                ? 'border-b-2 border-primary text-ink font-semibold'
                 : 'border-b-2 border-transparent text-ink-muted hover:text-ink hover:border-line'
               : isSelected
-                ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(21_35_58_/_0.12)] font-semibold'
+                ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(30_34_38_/_0.12)] font-semibold'
                 : 'text-ink-muted hover:text-ink'
 
           return (
@@ -133,8 +133,8 @@ export function Tabs({
                   : undefined
               }
               aria-selected={isSelected ? 'true' : 'false'}
-              className={`min-h-10 shrink-0 whitespace-nowrap px-3.5 py-2 text-[13.5px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
-                variant === 'pill' ? 'rounded-[4px] min-h-8' : ''
+              className={`min-h-10 shrink-0 whitespace-nowrap px-3.5 py-2 text-body transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-40 flex items-center justify-center gap-2 ${
+                variant === 'pill' ? 'rounded-full min-h-8' : ''
               } ${styleClasses}`}
               disabled={item.disabled}
               id={tabId}
@@ -159,9 +159,9 @@ export function Tabs({
               <span>{item.label}</span>
               {typeof item.count === 'number' && (
                 <span
-                  className={`rounded-chip px-1.5 py-0.5 text-xs font-semibold ${
+                  className={`rounded-full px-1.5 py-0.5 text-micro font-semibold ${
                     isSelected
-                      ? 'bg-accent-soft text-accent-strong'
+                      ? 'bg-primary-soft text-primary-strong'
                       : 'bg-surface-muted text-ink-muted'
                   }`}
                 >

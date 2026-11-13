@@ -22,7 +22,7 @@ export function TaxLine({
       : null
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+      <div className="flex flex-wrap items-center gap-2 text-label text-ink-muted">
         <FiscalScopeBadge scope={scope} />
         <span>
           {tax

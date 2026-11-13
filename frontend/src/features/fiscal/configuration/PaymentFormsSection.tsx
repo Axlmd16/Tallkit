@@ -62,7 +62,7 @@ export function PaymentFormsSection({
 
       {failure && <ErrorState message={errorMessage(failure)} />}
       <div className="relative overflow-x-auto">
-        <table className="w-full min-w-[42rem] border-collapse text-sm">
+        <table className="w-full min-w-[42rem] border-collapse text-body">
           <thead>
             <tr>
               <th className={`${sheetTableHead} w-[40%]`}>Forma de pago</th>
@@ -80,11 +80,11 @@ export function PaymentFormsSection({
                   <span className="block font-semibold text-ink">
                     {form.display_name}
                   </span>
-                  <span className="block text-[13px] text-ink-muted">
+                  <span className="block text-body text-ink-muted">
                     {form.description}
                   </span>
                 </td>
-                <td className={`${sheetTableCell} font-mono`}>{form.code}</td>
+                <td className={`${sheetTableCell} code`}>{form.code}</td>
                 <td className={sheetTableCell}>
                   <StateMark {...formState(form)} />
                 </td>
@@ -155,14 +155,13 @@ export function PaymentFormsSection({
           </p>
           <p>
             Fuente: {source.source_document}, versión{' '}
-            <span className="font-mono">{source.source_version}</span>,
-            descargada el{' '}
-            <span className="font-mono">{source.downloaded_on}</span>.
+            <span className="code">{source.source_version}</span>, descargada el{' '}
+            <span className="code">{source.downloaded_on}</span>.
           </p>
           <ul className="list-none space-y-0.5 p-0">
             {forms.data.map((form) => (
               <li key={form.code}>
-                <span className="font-mono">{form.code}</span>:{' '}
+                <span className="code">{form.code}</span>:{' '}
                 {form.valid_from
                   ? `vigente desde ${form.valid_from}`
                   : 'sin fecha publicada'}

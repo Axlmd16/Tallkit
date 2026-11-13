@@ -269,7 +269,7 @@ export function DropdownMenu({
 
               return (
                 <button
-                  className={`flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
+                  className={`flex min-h-9 w-full items-center gap-2 rounded-chip px-2.5 py-1.5 text-left text-body font-medium transition-colors outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 ${itemClasses}`}
                   data-item-id={item.id}
                   disabled={item.disabled}
                   id={`item-${autoId}-${item.id}`}

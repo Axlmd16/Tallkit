@@ -1,4 +1,4 @@
-import { ChartLineUp, Plus, Warning } from '@phosphor-icons/react'
+import { ChartLineUp, Plus, Warning, Stack } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -95,6 +95,7 @@ export function InventoryPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<Stack />}
         actions={
           canAdjust && (
             <Button
@@ -113,10 +114,10 @@ export function InventoryPage() {
       {canSeeValuation && query.data?.valuation && (
         <section
           aria-label="Valor del inventario"
-          className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-panel border border-line bg-surface px-4 py-3 text-sm"
+          className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-panel border border-line bg-surface px-4 py-3 text-body"
         >
           <span className="text-ink-muted">Valor del inventario</span>
-          <strong className="text-base tabular-nums text-ink">
+          <strong className="text-block tabular-nums text-ink">
             USD {query.data.valuation.total_value}
           </strong>
           {query.data.valuation.products_without_cost > 0 && (
@@ -251,7 +252,7 @@ export function InventoryPage() {
                 priority: 'primary',
                 render: (row) => (
                   <span className="block min-w-0">
-                    <span className="block font-mono text-xs font-semibold text-ink">
+                    <span className="block code text-label font-semibold text-ink">
                       {row.code}
                     </span>
                     <span className="block truncate font-medium text-ink">

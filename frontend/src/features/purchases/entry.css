@@ -153,7 +153,8 @@
   background: rgb(209 26 42 / 0.04);
 }
 .entry-product-code {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
   font-size: 12px;
   font-weight: 700;
   color: var(--color-accent-strong);

@@ -53,7 +53,7 @@ export function SupplierDetailPage() {
   return (
     <div className="space-y-6">
       <Link
-        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent"
+        className="inline-flex min-h-11 items-center gap-2 text-body font-semibold text-accent"
         to={back}
       >
         <ArrowLeft aria-hidden="true" size={16} />

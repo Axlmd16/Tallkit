@@ -94,15 +94,15 @@ export function ConfirmationPanel({
         tabIndex={-1}
       >
         <header className="mb-4">
-          <h2 className="text-[15px] font-semibold text-ink" id={titleId}>
+          <h2 className="text-lead font-semibold text-ink" id={titleId}>
             {title}
           </h2>
-          <p className="mt-2 text-sm text-ink-muted" id={descriptionId}>
+          <p className="mt-2 text-body text-ink-muted" id={descriptionId}>
             {description}
           </p>
         </header>
 
-        {children && <div className="mb-6 text-sm text-ink">{children}</div>}
+        {children && <div className="mb-6 text-body text-ink">{children}</div>}
 
         <footer className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-line">
           <Button onClick={onCancel} variant="secondary">

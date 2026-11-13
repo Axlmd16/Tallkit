@@ -31,7 +31,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Capacidad | Decisiones | Reglas | Requisitos | Casos de uso | Interfaz | Modelo |
 |---|---|---|---|---|---|---|
 | Identidad, roles y autorización | CT-001 | RN-SEG-001…007 | RF-ACC-001…009; RF-AUD-001, 003, 005 | CU-001, CU-002 | UI-001…002, UI-010…011, UI-018 | Usuario, Rol; implementado por `gestion-usuarios-autenticacion-roles` |
-| Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001; RNF-MAN-003, RNF-MAN-005 | Sin cambio funcional | Recorridos existentes | Todas las pantallas implementadas (UI-001…002, UI-010…011, UI-014…018, UI-020…025, UI-030…037, UI-040…045, UI-053…063) | Sistema propio Tallkit, implementado por `redisenar-sistema-visual-tallkit` (sustituye a `establecer-sistema-visual-frontend`); referencia histórica en la spec `sistema-visual-frontend`. **En reemplazo por `DP-036` (regla 6):** sigue vigente hasta U3 de `docs/cambios-pendientes.md`; la dirección nueva, «Grafito y cobre», quedó en `DESIGN.md` al aprobar U2 (2026-11-12), con el prototipo en `docs/prototipo/` |
+| Sistema visual y experiencia adaptable | CT-001 | RNF-USA-001…012; RNF-COM-001…005; RNF-DIS-001; RNF-MAN-003, RNF-MAN-005 | Sin cambio funcional | Recorridos existentes | Todas las pantallas implementadas (UI-001…002, UI-010…011, UI-014…018, UI-020…025, UI-030…037, UI-040…045, UI-053…063) | Sistema propio Tallkit, implementado por `redisenar-sistema-visual-tallkit` (sustituye a `establecer-sistema-visual-frontend`); referencia histórica en la spec `sistema-visual-frontend`. **Reemplazado por `DP-036` (regla 6):** la dirección «Grafito y cobre», escrita en `DESIGN.md` al aprobar U2 (2026-11-12), rige desde U3 (`renovar-sistema-visual`) |
 | Uso diario y rapidez por tarea (`DP-036`; **aprobado y pendiente de implementar**, U2 a U6 de `docs/cambios-pendientes.md`) | CT-001; DP-013, DP-021, DP-027, DP-035, DP-036 | RN-CLI-003 (ajustada, U6); RN-FIS-009 (se mantiene) | RNF-USA-009 y RNF-USA-010 (ajustados, U4); RNF-USA-013…016 (U2 y U6); RNF-USA-003 (ajustado, U6) | CU-012, CU-013, CU-019 (también desde «Cobrar y facturar», U6) | `interfaz-y-navegacion.md` §2.1 (U5), §2.2 (U4), §6.6 y §8.1 (U6); pantalla «Cobrar y facturar» (U6) | Sin cambio de modelo; spec `objetivos-de-uso-diario` del cambio `reenfocar-tallkit-en-el-uso-diario` |
 | Página de inicio (`pagina-de-inicio`) | CT-001; DP-013, DP-019, DP-027, DP-029, DP-031, DP-032, DP-033 | RN-FIS-005, 008, 009; RN-CON-004, 005, 008 | RF-ACC-008; RF-REP-006, 008, 010; RF-PAG-002, 005, 006; RNF-SEG-003; RNF-REN-001; RNF-USA-001, 006…010 | CU-012, CU-013, CU-017 | UI-002 | Sin modelo propio: lee Venta, Proforma, Mantenimiento, OperacionArtesanal, Pago y RetencionRecibida; implementado por `redisenar-pagina-de-inicio`, evidencia en [cobertura-pagina-de-inicio.md](cobertura-pagina-de-inicio.md) |
 | Separación de los dos RUC | CT-001 | RN-FIS-001…010 | RF-ACC-010…015; RF-PAG-004, RF-PAG-009…010; RF-REP-008 | CU-003, CU-012…013, CU-017…020, CU-026 | UI-014…017, UI-053…063, UI-070…084 | EntidadFiscal, DocumentoInterno, CierreDiario |
@@ -69,7 +69,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | RNF-REN-001…007 | Consultas, reportes y archivos | Pruebas con datos representativos. |
 | RNF-DIS-001…009 | Servidor local, base de datos, archivos, actualizaciones y comprobante en espera sin Internet (RNF-DIS-009, pendiente de implementar: cambio 3) | Evidencia de respaldo, restauración y recuperación. |
 | RNF-USA-001…012 | Pantallas y documentos internos (RNF-USA-009 y RNF-USA-010 ajustados por `DP-036`, pendientes de U4) | Validación de usabilidad y accesibilidad. |
-| RNF-USA-013…016 | Tareas de uso diario: servicio simple, venta de mostrador y mantenimiento con repuesto (objetivos provisionales de acciones y su método de conteo; **aprobados y pendientes de U2 y U6**, no cumplidos) | Observación con la usuaria diaria en el prototipo (U2), comparación con el Facturador del SRI y medición al cerrar U6. |
+| RNF-USA-013…016 | Tareas de uso diario: servicio simple, venta de mostrador y mantenimiento con repuesto (objetivos provisionales de acciones y su método de conteo; **aprobados y pendientes de U2 y U6**, no cumplidos) | Medición al cerrar U6. |
 | RNF-COM-001…007 | Navegadores, API, configuración y emisión sin depender de un proveedor (RNF-COM-007, pendiente de implementar: cambios 3 y 4) | Matriz de compatibilidad. |
 | RNF-MAN-001…010 | Código, documentación, API, pruebas y ADR | Revisión, análisis estático y cobertura futura. |
 | RNF-AUD-001…006 | Auditoría funcional y registros técnicos | Pruebas de trazabilidad y retención. |
@@ -129,7 +129,7 @@ Antes de implementar una capacidad:
 
 ## Rediseño visual Tallkit
 
-> **En reemplazo (`DP-036`, regla 6):** esta dirección sigue vigente hasta U3 de `docs/cambios-pendientes.md`; la nueva quedó escrita en `DESIGN.md` al aprobar el prototipo (U2, 2026-11-12).
+> **Reemplazado por U3 (`DP-036`, regla 6):** esta sección describe el rediseño anterior («Banco de trabajo»). La dirección vigente, «Grafito y cobre», está en `DESIGN.md`; su evidencia es la tabla «Rediseño visual Grafito y cobre (U3)» de abajo.
 
 El cambio `redisenar-sistema-visual-tallkit` sustituye la dirección SAAS Dashboard y cancela `aplicar-catalogo-visual-frontend`. Solo cambia la presentación: permisos, rutas previas, API y datos no cambian. Las rutas nuevas de formulario (`/products`, `/customers`, `/vehicles` y `/suppliers` con `/new` y `/:id/edit`) reutilizan el permiso de la acción existente.
 
@@ -148,3 +148,17 @@ El cambio `redisenar-sistema-visual-tallkit` sustituye la dirección SAAS Dashbo
 | Catálogo de componentes y patrones Tallkit (`catalogo-visual-reutilizable`) | RNF-MAN-005 | `registry.test.ts`, `CatalogApp.test.tsx`; `e2e/catalog/` |
 
 Secciones de `interfaz-y-navegacion.md` modificadas: 2.1 (marco y navegación por tamaño), 8.1 (textos breves de botones), 8.2 (éxito mediante toast) y 10 (modal o página, filas compactas). La aceptación visual final del usuario sigue pendiente.
+
+## Rediseño visual Grafito y cobre (U3)
+
+El cambio `renovar-sistema-visual` aplica la dirección «Grafito y cobre» solo en la presentación: permisos, rutas, API, datos y textos no cambian. El titular aprobó el piloto el 2026-11-13 y revisó las pantallas directamente.
+
+| Requisito | Origen | Evidencia |
+|---|---|---|
+| `sistema-visual-frontend`: tokens, Montserrat, escala `text-*` y utilidad `code` | RNF-USA-008, 009; RNF-MAN-003 | `tokens.test.ts`, `legacy-guard.test.ts`; `e2e/visual-system.spec.ts` |
+| `sistema-visual-frontend`: piezas del taller y marca de negocio | RNF-USA-009, 010; DP-036 regla 3 | `business.test.tsx`, `BusinessMark.test.tsx` |
+| `patrones-de-pantalla-frontend`: PPF-01…PPF-10 con el aspecto nuevo | RNF-USA-002, 006, 011 | pruebas de cada página; `e2e/responsive.spec.ts` |
+| `patrones-de-pantalla-frontend`: PPF-11 maestro y detalle | RNF-USA-002, 006, 007, 011 | `MasterDetail.test.tsx` |
+| `experiencia-adaptable-frontend`: barra lateral de 264 px y compacta de 72 px | RNF-USA-001, 002, 007; RNF-COM-001, 002 | `AuthenticatedShell.test.tsx`, `Sidebar.test.tsx`, `NavigationPanel.test.tsx`; `e2e/responsive.spec.ts` con `axe` |
+| `catalogo-visual-reutilizable`: CVR-02 con Montserrat y las piezas nuevas | RNF-MAN-005 | `registry.test.ts`, `CatalogApp.test.tsx`; `e2e/catalog/` |
+

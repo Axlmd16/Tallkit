@@ -89,10 +89,8 @@ export function LocationsSection({
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {effective ? (
               <>
-                <span className="font-mono font-semibold">
-                  {effective.code}
-                </span>
-                <span className="text-[13px] text-ink-muted">
+                <span className="code font-semibold">{effective.code}</span>
+                <span className="text-body text-ink-muted">
                   {designatedId === effective.id
                     ? 'Designado por el Administrador'
                     : 'Automático: es el único punto activo'}
@@ -120,12 +118,12 @@ export function LocationsSection({
       </FactList>
 
       {list.length === 0 ? (
-        <p className="text-sm text-ink-muted">
+        <p className="text-body text-ink-muted">
           No hay establecimientos declarados para esta entidad.
         </p>
       ) : (
         <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[36rem] border-collapse text-sm">
+          <table className="w-full min-w-[36rem] border-collapse text-body">
             <thead>
               <tr>
                 <th className={`${sheetTableHead} w-[30%]`}>
@@ -197,10 +195,9 @@ function EstablishmentRows({
         >
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-semibold text-ink">
-              Establecimiento{' '}
-              <span className="font-mono">{establishment.code}</span>
+              Establecimiento <span className="code">{establishment.code}</span>
             </span>
-            <span className="text-[13px] text-ink-muted">
+            <span className="text-body text-ink-muted">
               {establishment.address}
             </span>
             {!establishment.is_active && (
@@ -231,7 +228,7 @@ function EstablishmentRows({
       ) : (
         establishment.points.map((point) => (
           <tr key={point.id}>
-            <td className={`${sheetTableCell} font-mono font-semibold`}>
+            <td className={`${sheetTableCell} code font-semibold`}>
               {establishment.code}-{point.code}
             </td>
             <td className={sheetTableCell}>
@@ -240,7 +237,7 @@ function EstablishmentRows({
                 tone={point.is_active ? 'success' : 'inactive'}
               />
             </td>
-            <td className={`${sheetTableCell} text-[13px]`}>
+            <td className={`${sheetTableCell} text-body`}>
               {point.id === effectiveId ? (
                 <span className="font-semibold text-accent-strong">
                   Predeterminado
@@ -268,7 +265,7 @@ function CodeInput({
   return (
     <input
       {...field}
-      className={`${getControlClasses()} font-mono`}
+      className={`${getControlClasses()} code`}
       inputMode="numeric"
       maxLength={3}
       onChange={(event) => onChange(event.target.value)}

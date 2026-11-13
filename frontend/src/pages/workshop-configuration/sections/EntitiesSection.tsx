@@ -111,7 +111,7 @@ function EntityColumn({
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <ScopeLabel scope={commercial ? 'commercial' : 'artesanal'} />
-          <h3 className="mt-2.5 text-2xl leading-tight font-bold break-words text-ink">
+          <h3 className="mt-2.5 text-figure leading-tight font-bold break-words text-ink">
             {entity.legal_name}
           </h3>
           <RucPlate className="mt-3" ruc={entity.ruc} />
@@ -266,7 +266,7 @@ function BillingState({
         tone={readiness.state === 'NOT_CONFIGURED' ? 'neutral' : 'warning'}
       />
       {cause && (
-        <span className="text-[13px] text-ink-muted">
+        <span className="text-body text-ink-muted">
           {cause.message}{' '}
           {readiness.firstDestination && (
             <Link
@@ -380,7 +380,7 @@ function EditEntityModal({
         <Field error={errors.ruc} hint="13 dígitos." label="RUC" required>
           <EntityInput
             {...bind('ruc')}
-            className="font-mono"
+            className="code"
             inputMode="numeric"
             maxLength={13}
           />

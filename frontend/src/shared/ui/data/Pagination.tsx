@@ -27,7 +27,7 @@ export function Pagination({
       aria-label="Paginación"
       className={`mt-3 flex flex-wrap items-center justify-between gap-2 ${className}`.trim()}
     >
-      <span className="numeric text-[12.5px] text-ink-muted">
+      <span className="numeric text-label text-ink-muted">
         Página {page} de {normalizedTotal}
         {hasTotal ? ` · ${totalItems} registros` : ''}
       </span>
@@ -44,7 +44,7 @@ export function Pagination({
         </Button>
         <span
           aria-current="page"
-          className="numeric grid min-h-10 min-w-10 place-items-center rounded-control bg-primary px-2 text-[13px] font-semibold text-white"
+          className="numeric grid min-h-10 min-w-10 place-items-center rounded-control bg-primary px-2 text-body font-semibold text-white"
         >
           {page}
         </span>

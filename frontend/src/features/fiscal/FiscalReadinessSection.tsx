@@ -41,7 +41,7 @@ export function FiscalReadinessSection({
           <h2 className="font-bold text-ink">
             Preparación operativa del archivo
           </h2>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="mt-1 text-body text-ink-muted">
             Registro administrativo. No comprueba por sí solo que exista una
             copia externa.
           </p>
@@ -111,7 +111,7 @@ export function FiscalReadinessSection({
             ['retention_exports', 'Retención de exportaciones'],
             ['retention_backups', 'Retención de copias'],
           ].map(([name, label]) => (
-            <label className="text-sm font-semibold text-ink" key={name}>
+            <label className="text-body font-semibold text-ink" key={name}>
               {label}
               <input
                 className={`${getControlClasses()} mt-1.5`}
@@ -168,7 +168,7 @@ export function FiscalReadinessSection({
             ['destination', 'Destino aislado', 'text'],
             ['notes', 'Notas', 'text'],
           ].map(([name, label, type]) => (
-            <label className="text-sm font-semibold text-ink" key={name}>
+            <label className="text-body font-semibold text-ink" key={name}>
               {label}
               <input
                 className={`${getControlClasses()} mt-1.5`}
@@ -179,7 +179,7 @@ export function FiscalReadinessSection({
             </label>
           ))}
           <fieldset className="space-y-2 md:col-span-2">
-            <legend className="text-sm font-semibold text-ink">
+            <legend className="text-body font-semibold text-ink">
               Comprobaciones realizadas
             </legend>
             {[
@@ -193,7 +193,7 @@ export function FiscalReadinessSection({
               ],
             ].map(([name, label]) => (
               <label
-                className="mr-4 inline-flex items-center gap-2 text-sm"
+                className="mr-4 inline-flex items-center gap-2 text-body"
                 key={name}
               >
                 <input name={name} required type="checkbox" /> {label}

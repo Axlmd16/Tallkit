@@ -5,10 +5,10 @@
 | Producto | Sistema de gestión integral para taller automotriz |
 | Nombre técnico provisional | Sys-Inventario |
 | Versión del documento | 0.6 |
-| Estado | Modelo de dominio aprobado; sistema visual Tallkit aplicado (cambio archivado `2026-09-23-redisenar-sistema-visual-tallkit`) y en reemplazo por `DP-036` (regla 6), vigente hasta U3 |
+| Estado | Modelo de dominio aprobado; sistema visual **Grafito y cobre** vigente desde U3 (`renovar-sistema-visual`), que reemplazó a «Banco de trabajo» por `DP-036` (regla 6) |
 | Fecha | 2026-11-03 |
 
-> Este documento define estructura, pantallas y comportamiento esperado. El sistema visual implementado, **Tallkit · Banco de trabajo**, se describe en la spec `sistema-visual-frontend`; la dirección aprobada para reemplazarlo, **Tallkit · Grafito y cobre**, está en [`../../../DESIGN.md`](../../../DESIGN.md); los patrones de pantalla PPF-01…PPF-08 están en la capacidad `patrones-de-pantalla-frontend` (en [`openspec/specs/patrones-de-pantalla-frontend/`](../../../openspec/specs/patrones-de-pantalla-frontend/spec.md), incorporada al archivar el cambio `2026-09-23-redisenar-sistema-visual-tallkit`). `DP-036` reemplaza la dirección visual: la nueva quedó escrita al aprobar el prototipo (U2, 2026-11-12) y la actual sigue vigente hasta U3. Cada ajuste de este documento indica el cambio de `docs/cambios-pendientes.md` desde el cual rige; hasta entonces siguen las pantallas descritas.
+> Este documento define estructura, pantallas y comportamiento esperado. El sistema visual vigente, **Tallkit · Grafito y cobre**, está en [`../../../DESIGN.md`](../../../DESIGN.md) y en la spec `sistema-visual-frontend`; los patrones de pantalla PPF-01…PPF-08 están en la capacidad `patrones-de-pantalla-frontend` (en [`openspec/specs/patrones-de-pantalla-frontend/`](../../../openspec/specs/patrones-de-pantalla-frontend/spec.md), incorporada al archivar el cambio `2026-09-23-redisenar-sistema-visual-tallkit`). `DP-036` reemplazó la dirección visual: la nueva se aprobó con el prototipo (U2, 2026-11-12) y se aplicó en U3. Cada ajuste de este documento indica el cambio de `docs/cambios-pendientes.md` desde el cual rige; hasta entonces siguen las pantallas descritas.
 
 ## 1. Principios de interfaz
 
@@ -343,7 +343,7 @@ Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como m
 
 ### Escritorio
 
-- Navegación lateral desplegada de 240 px desde 1280 px.
+- Navegación lateral grafito desplegada de 264 px desde 1280 px.
 - Tablas contenidas en un panel, con filas compactas, encabezado visible e importes alineados a la derecha.
 - Modales centrados de 420 a 480 px.
 - Formularios en página con cada sección y sus campos en una o dos columnas.
@@ -391,7 +391,7 @@ Los formularios cortos (hasta unos cuatro campos simples y sin secciones, como m
 
 ## 13. Validación mediante prototipos
 
-Antes de cerrar el diseño visual se deben prototipar y revisar al menos:
+Antes de cerrar el diseño visual se deben prototipar y revisar al menos (el prototipo de U2, en `docs/prototipo/`, y la revisión directa del titular en U3 cubrieron las pantallas clave):
 
 1. Venta directa con cobro y con crédito.
 2. Mantenimiento con servicios y repuestos separados.

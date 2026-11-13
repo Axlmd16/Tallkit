@@ -93,7 +93,7 @@ export function EntryReviewDialog({
               {review.reference && (
                 <div>
                   <dt>Referencia</dt>
-                  <dd className="font-mono">{review.reference}</dd>
+                  <dd className="code">{review.reference}</dd>
                 </div>
               )}
               {review.observation && (
@@ -121,7 +121,7 @@ export function EntryReviewDialog({
           {needsAck && (
             <InlineNotice title="Parece una entrada repetida" tone="warning">
               Hoy ya se registró una igual:{' '}
-              <strong className="font-mono">
+              <strong className="code">
                 {review.duplicates
                   .map((d) => d.internal_number ?? `#${d.purchase_id}`)
                   .join(', ')}

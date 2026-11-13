@@ -6,7 +6,12 @@ import { Icon } from '@/shared/ui/icons'
 
 export interface SearchInputProps extends InputProps {
   onClear?: () => void
+  /** `underline`: búsqueda subrayada de las listas, sin caja; `box` es el campo habitual. */
+  variant?: 'box' | 'underline'
 }
+
+const underlineClasses =
+  'rounded-none! border-0! border-b-2! border-line-strong! bg-transparent! px-0! pl-8! shadow-none! hover:border-ink-muted! focus:border-ink! focus:shadow-none!'
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   function SearchInput(
@@ -17,6 +22,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       onChange,
       onClear,
       value: controlledValue,
+      variant = 'box',
       ...props
     },
     forwardedRef,
@@ -72,12 +78,12 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       <div className="relative w-full">
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted"
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-muted ${variant === 'underline' ? 'left-0' : 'left-3'}`}
         >
           <Icon name="search" size={18} />
         </span>
         <Input
-          className={`pl-9 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none ${hasValue ? 'pr-11' : ''} ${className}`}
+          className={`${variant === 'underline' ? underlineClasses : 'pl-9'} [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none ${hasValue ? 'pr-11' : ''} ${className}`}
           disabled={disabled}
           inputMode="search"
           onChange={handleChange}

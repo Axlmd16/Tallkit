@@ -1,4 +1,4 @@
-import { Eye, CalendarBlank } from '@phosphor-icons/react'
+import { Eye, CalendarBlank, ClipboardText } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import { useAudit } from '@/features/audit/hooks'
@@ -72,7 +72,9 @@ export function AuditPage() {
             {formatAction(event.action)}
           </span>
           {formatAction(event.action) !== event.action && (
-            <span className="block text-xs text-ink-muted">{event.action}</span>
+            <span className="block text-label text-ink-muted">
+              {event.action}
+            </span>
           )}
         </div>
       ),
@@ -91,6 +93,7 @@ export function AuditPage() {
   return (
     <section className="audit-page list-page">
       <PageHeader
+        icon={<ClipboardText />}
         description="Historial inmutable de acciones relevantes del sistema y del registro."
         title="Auditoría"
       />
@@ -235,14 +238,14 @@ export function AuditPage() {
       >
         {selected && (
           <div className="min-w-0 w-full space-y-4">
-            <dl className="grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-3 text-sm">
+            <dl className="grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-3 text-body">
               <dt className="font-semibold text-ink-muted">Acción</dt>
               <dd className="break-words">
                 <span className="font-medium text-ink">
                   {formatAction(selected.action)}
                 </span>
                 {formatAction(selected.action) !== selected.action && (
-                  <span className="block text-xs text-ink-muted">
+                  <span className="block text-label text-ink-muted">
                     {selected.action}
                   </span>
                 )}
@@ -275,10 +278,10 @@ export function AuditPage() {
 
             {selected.metadata && Object.keys(selected.metadata).length > 0 && (
               <div className="border-t border-ink/10 pt-3">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                <h4 className="mb-2 text-label font-semibold uppercase tracking-wider text-ink-muted">
                   Metadatos
                 </h4>
-                <div className="rounded-control bg-surface-subtle p-3 text-sm space-y-1">
+                <div className="rounded-control bg-surface-subtle p-3 text-body space-y-1">
                   {Object.entries(selected.metadata).map(([key, val]) => (
                     <div
                       key={key}
@@ -287,13 +290,13 @@ export function AuditPage() {
                       <span className="font-medium text-ink-muted">
                         {METADATA_LABELS[key] ?? key} ({key}):
                       </span>
-                      <span className="font-mono text-ink">
+                      <span className="code text-ink">
                         {Array.isArray(val) ? val.join(', ') : String(val)}
                       </span>
                     </div>
                   ))}
                 </div>
-                <pre className="mt-2 max-w-full overflow-auto rounded-control bg-surface-muted p-2 text-xs text-ink-muted">
+                <pre className="mt-2 max-w-full overflow-auto rounded-control bg-surface-muted p-2 text-label text-ink-muted">
                   {JSON.stringify(selected.metadata, null, 2)}
                 </pre>
               </div>

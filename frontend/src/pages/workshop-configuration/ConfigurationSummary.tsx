@@ -12,7 +12,7 @@ export function ConfigurationSummary({
 }: {
   readiness: ConfigurationReadiness
 }) {
-  const box = 'text-[13px] leading-relaxed sm:text-right'
+  const box = 'text-body leading-relaxed sm:text-right'
 
   if (readiness.isLoading) {
     return (

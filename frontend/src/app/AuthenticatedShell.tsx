@@ -14,6 +14,7 @@ import {
   FiscalScopeBadge,
   IconButton,
   InlineNotice,
+  GaugeMotif,
   NavigationPanel,
   ToastProvider,
 } from '@/shared/ui'
@@ -110,7 +111,7 @@ export function AuthenticatedShell({
         <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between border-b border-line bg-surface px-3 md:hidden">
           <div className="flex min-w-0 items-center gap-2">
             <img alt="" className="app-mobile-brand-logo" src={brandMark} />
-            <span className="text-base font-bold text-primary">Tallkit</span>
+            <span className="text-block font-bold text-ink">Tallkit</span>
           </div>
           <IconButton
             icon={<List size={24} />}
@@ -120,11 +121,11 @@ export function AuthenticatedShell({
           />
         </header>
 
-        <aside className="app-rail sticky top-0 hidden h-screen flex-col border-r border-line bg-surface md:flex">
-          <div className="app-brand-mark flex h-15 shrink-0 items-center border-b border-line">
+        <aside className="app-rail sticky top-0 hidden h-screen flex-col overflow-hidden border-r border-graphite-line bg-graphite text-graphite-ink md:flex">
+          <div className="app-brand-mark flex h-15 shrink-0 items-center border-b border-graphite-line">
             <img
               alt="Tallkit"
-              className="app-brand-compact"
+              className="app-brand-compact rounded-control bg-white p-0.5"
               data-testid="brand-logo-compact"
               src={brandMark}
             />
@@ -132,8 +133,12 @@ export function AuthenticatedShell({
               className="app-brand-expanded items-center gap-2.5"
               data-testid="brand-logo-expanded"
             >
-              <img alt="" className="size-8" src={brandMark} />
-              <span className="text-[19px] font-bold tracking-tight text-primary">
+              <img
+                alt=""
+                className="size-8 rounded-control bg-white p-0.5"
+                src={brandMark}
+              />
+              <span className="text-block font-bold tracking-tight text-white">
                 Tallkit
               </span>
             </span>
@@ -153,23 +158,23 @@ export function AuthenticatedShell({
             )}
           </nav>
           <div
-            className="rail-profile mt-auto border-t border-line"
+            className="rail-profile mt-auto border-t border-graphite-line"
             title={userSummary}
           >
             <span aria-hidden="true" className="rail-avatar">
               {session.username?.slice(0, 2).toUpperCase()}
             </span>
             <div className="hidden min-w-0 xl:block">
-              <p className="truncate text-[13px] font-semibold">
+              <p className="truncate text-body font-semibold text-white">
                 {session.username}
               </p>
-              <p className="truncate text-xs text-ink-muted">
+              <p className="truncate text-label text-graphite-ink">
                 {session.roles.map((role) => roleLabels[role]).join(' · ')}
               </p>
             </div>
             <p className="sr-only">{userSummary}</p>
             <Button
-              className="mt-2 w-full xl:justify-start"
+              className="mt-2 w-full text-graphite-ink! hover:bg-graphite-raised! hover:text-white! xl:justify-start"
               onClick={() => void logout()}
               pending={pending}
               pendingLabel="Cerrando…"
@@ -179,6 +184,10 @@ export function AuthenticatedShell({
               <span className="app-logout-label">Cerrar sesión</span>
             </Button>
           </div>
+          <GaugeMotif
+            className="mx-auto hidden h-16 w-full max-w-[9rem] shrink-0 pb-3 xl:block"
+            variant="rail"
+          />
         </aside>
 
         <div className="min-w-0">
@@ -186,7 +195,7 @@ export function AuthenticatedShell({
             className="app-topbar sticky top-0 z-20 hidden h-15 items-center gap-4 border-b border-line bg-surface px-6 md:flex"
             data-testid="app-topbar"
           >
-            <nav aria-label="Ruta" className="min-w-0 flex-1 text-[13px]">
+            <nav aria-label="Ruta" className="min-w-0 flex-1 text-body">
               {location && (
                 <ol className="flex min-w-0 items-center gap-1.5">
                   {location.group && (
@@ -252,7 +261,7 @@ export function AuthenticatedShell({
               pathname={pathname}
             />
             <Button
-              className="mt-4 w-full justify-start"
+              className="mt-4 w-full justify-start text-graphite-ink! hover:bg-graphite-raised! hover:text-white!"
               onClick={() => void logout()}
               pending={pending}
               pendingLabel="Cerrando…"

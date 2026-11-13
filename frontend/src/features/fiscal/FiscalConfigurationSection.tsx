@@ -45,7 +45,7 @@ export function FiscalConfigurationSection({
 
   if (!selected)
     return (
-      <p className="text-sm text-ink-muted">
+      <p className="text-body text-ink-muted">
         Registre primero las entidades fiscales.
       </p>
     )
@@ -89,7 +89,7 @@ export function FiscalConfigurationSection({
 
       <div className="space-y-6" key={selected.id}>
         {readiness.isError && !summary && (
-          <p className="text-[13px] text-danger" role="status">
+          <p className="text-body text-danger" role="status">
             No se pudo evaluar el estado de esta entidad.
           </p>
         )}
@@ -169,7 +169,7 @@ function SectionHints({ pending }: { pending: StatusCause[] }) {
             <>
               <WarningCircle
                 aria-hidden="true"
-                className="text-[#c98a00]"
+                className="text-warning"
                 size={16}
                 weight="fill"
               />
@@ -187,7 +187,7 @@ function SectionHints({ pending }: { pending: StatusCause[] }) {
               <li className="flex items-start gap-2" key={cause.code}>
                 <span
                   aria-hidden="true"
-                  className="mt-[6px] size-[7px] shrink-0 rounded-full bg-[#c98a00]"
+                  className="mt-[6px] size-[7px] shrink-0 rounded-full bg-warning"
                 />
                 {cause.message}
               </li>

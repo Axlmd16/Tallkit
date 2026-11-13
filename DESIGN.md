@@ -1,6 +1,6 @@
 # Sistema visual Tallkit · Grafito y cobre
 
-> **Dirección aprobada el 2026-11-12 con el prototipo de U2** (`DP-036`, regla 6; `docs/cambios-pendientes.md`, U2). Se aplica al frontend mediante U3 (`renovar-sistema-visual`). Hasta archivar U3, el código sigue la dirección anterior, «Banco de trabajo», descrita en `openspec/specs/sistema-visual-frontend/spec.md` y en el historial de este archivo (`git show f6c4cea:DESIGN.md`). Esta guía no define reglas del negocio ni sustituye las specs; U3 decide qué requisitos visuales vigentes se conservan.
+> **Vigente desde U3** (`renovar-sistema-visual`). Dirección aprobada el 2026-11-12 con el prototipo de U2 (`DP-036`, regla 6; `docs/cambios-pendientes.md`, U2) y aplicada al frontend por U3. La dirección anterior, «Banco de trabajo», queda solo en el historial de este archivo (`git show f6c4cea:DESIGN.md`). Esta guía no define reglas del negocio ni sustituye las specs de `openspec/specs/`.
 
 ## Referencia
 
@@ -19,9 +19,9 @@
 
 ## Tipografía
 
-- **Montserrat** en 300, 400, 500, 600 y 700 para toda la interfaz, servida desde la instalación (sin depender de Internet, como hoy IBM Plex). U3 elige el paquete y registra su licencia (OFL-1.1).
-- No hay fuente monoespaciada: placas, códigos, RUC y números usan cifras tabulares (`font-variant-numeric: tabular-nums`) y un ligero espaciado entre letras.
-- Escala: texto base 14 px; títulos de página 28 px en 700; títulos de bloque 15–16 px en 700; etiquetas 12–12,5 px en 500; importes destacados 24–40 px en 300.
+- **Montserrat** en 300, 400, 500, 600 y 700 para toda la interfaz, del paquete `@fontsource/montserrat@5.3.0` (OFL-1.1), servida desde la instalación sin depender de Internet. Las hojas impresas (documento interno, proforma y etiquetas) conservan IBM Plex mediante `--tk-font-print`.
+- No hay fuente monoespaciada: placas, códigos, RUC y números usan la utilidad `code` (`tabular-nums` y `letter-spacing: 0.04em`).
+- Escala `text-*` (ningún tamaño se escribe a mano): `micro` 11,5 px, `label` 12,5 px, `body` 14 px (base), `lead` 15 px, `block` 16 px, `figure` 24 px, `page` 28 px y `display` 36 px. Títulos de página en 700, títulos de bloque en 700, etiquetas en 500 e importes destacados en 300.
 - Jerarquía por peso: nombres en 700, datos en 400 gris, importes en 700 en tablas y en 300 cuando son cifras grandes.
 
 ## Paleta
@@ -80,7 +80,7 @@ Reglas:
 - **Modales:** centrados, de 420 a 980 px según el contenido, con uno a tres campos. El de nuevo mantenimiento es el más amplio: búsqueda a la izquierda y datos del vehículo a la derecha.
 - **Huecos punteados** «+ …» para agregar donde aún no hay contenido.
 - **Estados de contenido:** vacío con acción, sin resultados con explicación breve y nunca datos inventados.
-- **Toast** de confirmación arriba a la derecha.
+- **Toast** de confirmación abajo a la derecha (`PPF-08`), en grafito con icono.
 
 ## Piezas del taller
 
@@ -91,6 +91,13 @@ Reglas:
 - **Importes:** USD con dos decimales y cifras tabulares, alineados a la derecha.
 - **Logo de negocio:** iniciales o logo cargado, con la forma y el color de cada negocio.
 
+## Piezas de la interfaz en código
+
+- `GaugeMotif` (`shared/ui/brand`): el tacómetro decorativo, en variante de barra lateral y de tarjeta oscura.
+- `BusinessMark` (`shared/ui/business`): logotipo o iniciales de cada negocio, con su forma y su tono. Las iniciales son la primera letra de la primera y de la última palabra significativa, para distinguir nombres que empiezan igual.
+- `MasterDetail` (`shared/ui/layout`): patrón de maestro y detalle (PPF-11). Ninguna pantalla lo adopta todavía.
+- `code`: utilidad para placas, códigos y números (ver «Tipografía»).
+
 ## Accesibilidad
 
 - Objetivos táctiles de 44 px en controles esenciales.
@@ -98,8 +105,7 @@ Reglas:
 - Etiquetas reales en campos, `aria-label` en botones de solo icono y estados con texto.
 - Las pruebas automáticas de accesibilidad y de ancho (360 a 1440 px) que exige la spec vigente se conservan en U3.
 
-## Pendiente de decidir en U3
+## Pendiente
 
-- Si se usará tableta en el taller (sin confirmar en U2); define la prioridad del diseño táctil entre 768 y 1279 px.
-- Qué requisitos de `sistema-visual-frontend`, `patrones-de-pantalla-frontend` y `experiencia-adaptable-frontend` se reemplazan o se conservan.
-- El tema oscuro, que hoy no está disponible, queda fuera de esta dirección.
+- Si se usará tableta en el taller (sin confirmar): define la prioridad del diseño táctil entre 768 y 1279 px.
+- El tema oscuro no está disponible: `tokens.css` conserva valores provisionales sin activarlos.

@@ -23,9 +23,9 @@ import {
 
 const panel = 'rounded-panel border border-line bg-surface'
 const panelHead = 'border-b border-line px-4 py-3'
-const panelTitle = 'text-[14.5px] font-semibold text-ink'
+const panelTitle = 'text-body font-semibold text-ink'
 const head =
-  'h-9 px-4 text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase'
+  'h-9 px-4 text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase'
 
 function Datum({
   label,
@@ -38,8 +38,8 @@ function Datum({
 }) {
   return (
     <div className={`min-w-0 ${wide ? 'sm:col-span-2' : ''}`}>
-      <dt className="text-xs text-ink-muted">{label}</dt>
-      <dd className="mt-0.5 text-[13px] font-medium break-words text-ink">
+      <dt className="text-label text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 text-body font-medium break-words text-ink">
         {children}
       </dd>
     </div>
@@ -49,9 +49,7 @@ function Datum({
 function ProductCell({ line }: { line: PurchaseLine }) {
   return (
     <td className="px-4 py-2.5">
-      <span className="font-mono text-xs font-semibold">
-        {line.product.code}
-      </span>
+      <span className="code text-label font-semibold">{line.product.code}</span>
       <span className="sr-only"> — </span>
       <span className="block text-ink">{line.product.name}</span>
     </td>
@@ -63,7 +61,7 @@ function Lines({ purchase }: { purchase: Purchase }) {
   const showCost = purchase.lines.some((line) => 'cost_registered' in line)
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[420px] text-left text-[13px]">
+      <table className="w-full min-w-[420px] text-left text-body">
         <thead>
           <tr className="border-b border-line bg-surface-subtle">
             <th className={head} scope="col">
@@ -93,7 +91,7 @@ function Lines({ purchase }: { purchase: Purchase }) {
                       {unitCost(line.unit_cost)}
                     </span>
                   ) : (
-                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink-muted">
+                    <span className="rounded-full bg-surface-muted px-2 py-0.5 text-label text-ink-muted">
                       Sin costo
                     </span>
                   )}
@@ -121,7 +119,7 @@ function LegacyPanel({ purchase }: { purchase: Purchase }) {
       <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-4">
         <Datum label="Documento">
           {legacy.document.type}{' '}
-          <span className="font-mono">{legacy.document.reference}</span>
+          <span className="code">{legacy.document.reference}</span>
         </Datum>
         <Datum label="Fecha del documento">{legacy.document_date ?? '—'}</Datum>
         {legacy.document.no_document_reason && (
@@ -131,7 +129,7 @@ function LegacyPanel({ purchase }: { purchase: Purchase }) {
         )}
       </dl>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] text-left text-[13px]">
+        <table className="w-full min-w-[560px] text-left text-body">
           <thead>
             <tr className="border-b border-line bg-surface-subtle">
               <th className={head} scope="col">
@@ -170,7 +168,7 @@ function LegacyPanel({ purchase }: { purchase: Purchase }) {
       {legacy.totals && (
         <dl
           aria-label="Totales de la compra anterior"
-          className="ml-auto grid max-w-xs grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-[13px]"
+          className="ml-auto grid max-w-xs grid-cols-[1fr_auto] gap-x-6 gap-y-1 text-body"
         >
           <dt className="text-ink-muted">Base</dt>
           <dd className="text-right">
@@ -229,7 +227,7 @@ export function PurchaseDetailPage() {
   const linesSection = (
     <>
       <Lines purchase={purchase} />
-      <p className="border-t border-line bg-surface-subtle px-4 py-2.5 text-[13px] text-ink-muted">
+      <p className="border-t border-line bg-surface-subtle px-4 py-2.5 text-body text-ink-muted">
         {count(totals.products, 'producto', 'productos')} ·{' '}
         {count(totals.units, 'unidad', 'unidades')}
       </p>
@@ -248,10 +246,8 @@ export function PurchaseDetailPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Entradas de stock</p>
-          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
-            {title}
-          </h1>
+          <p className="text-label text-ink-muted">Entradas de stock</p>
+          <h1 className="code text-page font-semibold text-ink">{title}</h1>
         </div>
         <PurchaseStateBadge state={purchase.state} />
       </div>
@@ -282,7 +278,7 @@ export function PurchaseDetailPage() {
               )}
               {purchase.reference && (
                 <Datum label="Referencia">
-                  <span className="font-mono">{purchase.reference}</span>
+                  <span className="code">{purchase.reference}</span>
                 </Datum>
               )}
               {purchase.observation && (
@@ -351,12 +347,12 @@ export function PurchaseDetailPage() {
                 <div className={panelHead}>
                   <h2 className={panelTitle}>En inventario</h2>
                 </div>
-                <ul className="space-y-2 p-4 text-[13px]">
+                <ul className="space-y-2 p-4 text-body">
                   {purchase.inventory_operation_id && (
                     <li>
                       Movimiento:{' '}
                       <Link
-                        className="font-mono font-semibold text-accent hover:underline"
+                        className="code font-semibold text-accent hover:underline"
                         to={`/inventory/operations/${purchase.inventory_operation_id}`}
                       >
                         INV-{purchase.inventory_operation_id}
@@ -367,7 +363,7 @@ export function PurchaseDetailPage() {
                     <li>
                       Compensación:{' '}
                       <Link
-                        className="font-mono font-semibold text-accent hover:underline"
+                        className="code font-semibold text-accent hover:underline"
                         to={`/inventory/operations/${purchase.void_operation_id}`}
                       >
                         INV-{purchase.void_operation_id}

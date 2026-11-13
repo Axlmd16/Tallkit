@@ -10,7 +10,7 @@ export function AdvancedInfo({
   hint?: string
 }) {
   return (
-    <details className="group text-sm">
+    <details className="group text-body">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 font-semibold text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
         <CaretRight
           aria-hidden="true"
@@ -21,7 +21,7 @@ export function AdvancedInfo({
         Información avanzada
         {hint && <span className="font-normal text-ink-muted">· {hint}</span>}
       </summary>
-      <div className="space-y-1 pb-2 pl-[22px] text-[13px] text-ink-muted">
+      <div className="space-y-1 pb-2 pl-[22px] text-body text-ink-muted">
         {children}
       </div>
     </details>

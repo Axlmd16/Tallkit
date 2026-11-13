@@ -234,7 +234,7 @@ export function EntryPage() {
                 />
                 {errors.lines && (
                   <p
-                    className="pb-1 text-xs font-semibold text-danger"
+                    className="pb-1 text-label font-semibold text-danger"
                     role="alert"
                   >
                     {errors.lines}
@@ -481,7 +481,7 @@ export function EntryPage() {
                     label="Referencia"
                   >
                     <Input
-                      className="font-mono"
+                      className="code"
                       maxLength={128}
                       onChange={(event) =>
                         update({ reference: event.target.value })
@@ -578,7 +578,7 @@ export function EntryPage() {
             <div>
               <dt>Referencia</dt>
               <dd
-                className={draft.reference.trim() ? 'font-mono' : undefined}
+                className={draft.reference.trim() ? 'code' : undefined}
                 data-empty={!draft.reference.trim()}
               >
                 {draft.reference.trim() || 'Sin indicar'}

@@ -65,7 +65,7 @@ export function StatLink({
         )}
       </span>
       <span
-        className={`text-[26px] leading-8 font-bold tabular-nums ${isZero ? 'text-ink-muted' : 'text-ink'}`}
+        className={`text-page leading-8 font-bold tabular-nums ${isZero ? 'text-ink-muted' : 'text-ink'}`}
         data-zero={isZero || undefined}
       >
         {amount === undefined ? (
@@ -74,10 +74,10 @@ export function StatLink({
           <Money amount={amount} className="!text-left" />
         )}
       </span>
-      <span className="text-[13px] font-medium text-ink group-hover:text-accent">
+      <span className="text-body font-medium text-ink group-hover:text-accent">
         {label}
       </span>
-      {detail && <span className="text-xs text-ink-muted">{detail}</span>}
+      {detail && <span className="text-label text-ink-muted">{detail}</span>}
     </Link>
   )
 }

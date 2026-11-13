@@ -218,13 +218,13 @@ export function ProformaEditorPage() {
       >
         <div className="sale-editor-scroll">
           {saved.data?.origin && (
-            <p className="text-[13px] text-ink-muted">
+            <p className="text-body text-ink-muted">
               Nueva oferta vinculada a{' '}
               <Link
                 className="font-semibold text-accent hover:underline"
                 to={`/proformas/${saved.data.origin.id}`}
               >
-                <span className="font-mono">{saved.data.origin.number}</span>
+                <span className="code">{saved.data.origin.number}</span>
               </Link>
               ; usa precios actuales.
             </p>
@@ -326,7 +326,7 @@ export function ProformaEditorPage() {
             <span>Total de la proforma</span>
             <Money
               amount={showValues ? (preview?.totals?.total ?? null) : null}
-              className={`text-xl font-bold ${fresh ? '' : 'pending-value'}`}
+              className={`text-block font-bold ${fresh ? '' : 'pending-value'}`}
             />
           </div>
           <p aria-live="polite" className="sale-actions-note">

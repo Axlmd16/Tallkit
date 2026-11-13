@@ -13,7 +13,8 @@ import type { ReactNode } from 'react'
 type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const toneClasses: Record<Tone, string> = {
-  neutral: 'bg-surface-muted text-ink-muted',
+  /** Estados neutros («Solicitada», «Finalizado»): grafito sobre gris cálido, sin color propio. */
+  neutral: 'bg-info-soft text-info',
   info: 'bg-info-soft text-info',
   success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning',
@@ -43,7 +44,7 @@ export interface StatusBadgeProps {
 export function StatusBadge({
   label,
   tone = 'neutral',
-  shape = 'rectangle',
+  shape = 'pill',
   kind = 'status',
   showIcon = kind === 'status',
   className = '',
@@ -54,13 +55,13 @@ export function StatusBadge({
   return (
     <span
       aria-label={isStatus ? `Estado: ${label}` : `Categoría: ${label}`}
-      className={`inline-flex min-h-[22px] items-center gap-1.5 ${shapeClass} px-2 py-0.5 text-xs font-semibold whitespace-nowrap ${toneClasses[tone]} ${className}`}
+      className={`inline-flex min-h-[22px] items-center gap-1.5 ${shapeClass} px-2 py-0.5 text-label font-semibold whitespace-nowrap ${toneClasses[tone]} ${className}`}
       {...(isStatus ? { role: 'status' } : {})}
     >
       {showIcon && (
         <span
           aria-hidden="true"
-          className="inline-block size-[7px] shrink-0 rounded-[2px] bg-current"
+          className="inline-block size-[7px] shrink-0 rounded-full bg-current"
           data-marker=""
         />
       )}
@@ -79,7 +80,7 @@ export function FiscalScopeBadge({
   return (
     <span
       aria-label={`Ámbito fiscal: ${commercial ? 'RUC comercial' : 'RUC artesanal'}`}
-      className={`inline-flex min-h-[26px] items-center gap-1.5 rounded-chip px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${commercial ? 'bg-scope-commercial-soft text-scope-commercial' : 'bg-scope-artisan-soft text-scope-artisan'}`}
+      className={`inline-flex min-h-[26px] items-center gap-1.5 rounded-full px-2.5 py-0.5 text-label font-semibold whitespace-nowrap ${commercial ? 'bg-scope-commercial-soft text-scope-commercial-ink' : 'bg-scope-artisan-soft text-scope-artisan-ink'}`}
       role="status"
     >
       <Icon aria-hidden="true" size={14} weight="bold" />
@@ -100,13 +101,13 @@ export function InlineNotice({
   const Icon = toneIcons[tone]
   return (
     <div
-      className={`flex gap-2.5 rounded-control px-3 py-2.5 text-[13px] ${toneClasses[tone]}`}
+      className={`flex gap-2.5 rounded-control px-3 py-2.5 text-body ${toneClasses[tone]}`}
       role={tone === 'danger' ? 'alert' : 'status'}
     >
       <Icon aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
       <div className="min-w-0">
         <p className="font-semibold">{title}</p>
-        {children && <div className="mt-0.5 text-[12.5px]">{children}</div>}
+        {children && <div className="mt-0.5 text-label">{children}</div>}
       </div>
     </div>
   )
@@ -115,7 +116,7 @@ export function InlineNotice({
 export function LoadingState({ label = 'Cargando…' }: { label?: string }) {
   return (
     <div
-      className="flex min-h-24 items-center justify-center gap-2.5 text-[13px] text-ink-muted"
+      className="flex min-h-24 items-center justify-center gap-2.5 text-body text-ink-muted"
       role="status"
     >
       <SpinnerGap
@@ -139,8 +140,8 @@ export function EmptyState({
 }) {
   return (
     <section className="rounded-panel border border-line bg-surface px-5 py-9 text-center">
-      <h2 className="text-[14.5px] font-semibold text-ink">{title}</h2>
-      <p className="mx-auto mt-1.5 max-w-md text-[13px] text-ink-muted">
+      <h2 className="text-body font-semibold text-ink">{title}</h2>
+      <p className="mx-auto mt-1.5 max-w-md text-body text-ink-muted">
         {description}
       </p>
       {action && <div className="mt-4 flex justify-center">{action}</div>}
@@ -166,8 +167,8 @@ export function ForbiddenState({
       >
         <LockSimple size={22} />
       </span>
-      <h2 className="mt-3 text-[14.5px] font-semibold text-ink">{title}</h2>
-      <p className="mx-auto mt-1.5 max-w-md text-[13px] text-ink-muted">
+      <h2 className="mt-3 text-body font-semibold text-ink">{title}</h2>
+      <p className="mx-auto mt-1.5 max-w-md text-body text-ink-muted">
         {description}
       </p>
       {action && <div className="mt-4 flex justify-center">{action}</div>}
@@ -193,13 +194,13 @@ export function SkeletonRows({
           data-skeleton-row=""
           key={index}
         >
-          <span className="h-2.5 w-16 rounded-[3px] bg-surface-muted" />
+          <span className="h-2.5 w-16 rounded-chip bg-surface-muted" />
           <span
-            className="h-2.5 rounded-[3px] bg-surface-muted"
+            className="h-2.5 rounded-chip bg-surface-muted"
             style={{ width: `${48 + ((index * 17) % 36)}%` }}
           />
-          <span className="h-2.5 w-14 rounded-[3px] bg-surface-muted" />
-          <span className="h-2.5 w-12 justify-self-end rounded-[3px] bg-surface-muted" />
+          <span className="h-2.5 w-14 rounded-chip bg-surface-muted" />
+          <span className="h-2.5 w-12 justify-self-end rounded-chip bg-surface-muted" />
         </div>
       ))}
     </div>

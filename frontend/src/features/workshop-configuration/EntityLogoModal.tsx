@@ -131,7 +131,7 @@ function LogoFileInput({
     <input
       {...field}
       accept={ACCEPTED}
-      className="block w-full text-[13px]"
+      className="block w-full text-body"
       onChange={(event) => onChoose(event.target.files?.[0] ?? null)}
       type="file"
     />

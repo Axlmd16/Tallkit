@@ -455,13 +455,14 @@ it('marks the active group in the compact rail', () => {
   ).not.toHaveAttribute('data-active')
 })
 
-it('marca la opción activa con el acento de selección, no con la acción principal', () => {
+it('marca la opción activa con fondo grafito elevado y la barra cobre', () => {
   renderAt('/customers')
   const active = screen.getByRole('link', { name: 'Clientes' })
   expect(active).toHaveAttribute('aria-current', 'page')
-  expect(active.className).toMatch(/bg-accent-soft/)
-  expect(active.className).toMatch(/text-accent-strong/)
-  expect(active.className).not.toMatch(/\bbg-primary-soft\b|\btext-primary\b/)
+  expect(active.className).toMatch(/\bbg-graphite-raised\b/)
+  expect(active.className).toMatch(/\btext-white\b/)
+  expect(active.className).toMatch(/before:bg-primary/)
+  expect(active.className).not.toMatch(/\bbg-accent-soft\b/)
 })
 
 it('muestra la ruta de migas de la pantalla actual en la barra superior', () => {
@@ -501,13 +502,13 @@ it('no ofrece búsqueda global en la barra superior', () => {
   expect(within(banner).queryByRole('searchbox')).toBeNull()
 })
 
-it('el CSS fija barra lateral de 240 px desde 1280 px e iconos de 72 px en tableta', () => {
+it('el CSS fija barra lateral de 264 px desde 1280 px e iconos de 72 px en tableta', () => {
   const css: string = fs.readFileSync('src/shared/styles/index.css', 'utf-8')
   expect(css).toMatch(
     /@media \(min-width: 768px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*72px/,
   )
   expect(css).toMatch(
-    /@media \(min-width: 1280px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*240px/,
+    /@media \(min-width: 1280px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*264px/,
   )
   expect(css).not.toMatch(/width:\s*80px;\s*\n\s*height: calc\(100dvh - 60px\)/)
 })

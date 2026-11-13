@@ -28,7 +28,7 @@ describe('C02: Button - Variantes opt-in 40/50 y estados', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-primary')
 
     rerender(<Button variant="secondary">Secundario</Button>)
-    expect(screen.getByRole('button')).toHaveClass('border-line-strong')
+    expect(screen.getByRole('button')).toHaveClass('border-ink')
 
     rerender(<Button variant="quiet">Quiet</Button>)
     expect(screen.getByRole('button')).toHaveClass('bg-transparent')

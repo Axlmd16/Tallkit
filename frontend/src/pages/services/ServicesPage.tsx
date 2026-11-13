@@ -1,4 +1,4 @@
-import { PencilSimple, Power, Wrench } from '@phosphor-icons/react'
+import { PencilSimple, Power, Toolbox, Wrench } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
@@ -65,6 +65,7 @@ export function ServicesPage() {
   return (
     <div className="catalog-page list-page space-y-6">
       <PageHeader
+        icon={<Toolbox />}
         description="Catálogo de servicios del taller con precio referencial final en USD. No maneja existencias."
         title="Servicios"
         actions={
@@ -159,7 +160,7 @@ export function ServicesPage() {
                     key: 'code',
                     priority: 'secondary',
                     render: (row) => (
-                      <span className="font-mono text-[13px] text-ink-muted">
+                      <span className="code text-body text-ink-muted">
                         {row.code}
                       </span>
                     ),

@@ -40,36 +40,36 @@ export function CommercialOrderViewPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div>
-          <p className="text-xs text-ink-muted">Orden de origen de repuestos</p>
+          <p className="text-label text-ink-muted">
+            Orden de origen de repuestos
+          </p>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-mono text-[22px] leading-7 font-semibold">
-              {view.number}
-            </h1>
+            <h1 className="code text-page font-semibold">{view.number}</h1>
             <OrderStateBadge state={view.state} />
           </div>
         </div>
       </div>
-      <dl className="grid gap-4 rounded-panel border border-line bg-surface p-4 text-[13px] sm:grid-cols-3">
+      <dl className="grid gap-4 rounded-panel border border-line bg-surface p-4 text-body sm:grid-cols-3">
         <div>
-          <dt className="text-xs text-ink-muted">Cliente</dt>
+          <dt className="text-label text-ink-muted">Cliente</dt>
           <dd className="mt-1 font-medium">
             {view.customer.name}
-            <span className="block text-xs text-ink-muted">
+            <span className="block text-label text-ink-muted">
               {view.customer.identification}
             </span>
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-ink-muted">Vehículo</dt>
+          <dt className="text-label text-ink-muted">Vehículo</dt>
           <dd className="mt-1">
             <PlateTag plate={view.vehicle.plate ?? ''} />
-            <span className="block text-xs text-ink-muted">
+            <span className="block text-label text-ink-muted">
               {view.vehicle.brand} {view.vehicle.model}
             </span>
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-ink-muted">Apertura</dt>
+          <dt className="text-label text-ink-muted">Apertura</dt>
           <dd className="mt-1">{view.opened_on}</dd>
         </div>
       </dl>
@@ -87,7 +87,7 @@ export function CommercialOrderViewPage() {
             >
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <Link
-                  className="font-mono text-[13px] font-semibold hover:underline"
+                  className="code text-body font-semibold hover:underline"
                   to={`/sales/${sale.id}`}
                 >
                   {sale.internal_number ?? `Borrador ${sale.id}`}
@@ -103,7 +103,7 @@ export function CommercialOrderViewPage() {
                   tone={sale.state === 'DRAFT' ? 'warning' : 'success'}
                 />
               </div>
-              <ul className="text-[13px]">
+              <ul className="text-body">
                 {sale.lines.map((line) => (
                   <li className="flex justify-between gap-3" key={line.id}>
                     <span>

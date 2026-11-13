@@ -28,10 +28,8 @@ export function LoginPage() {
             data-testid="login-brand-logo"
             src={principalBrand}
           />
-          <h1 className="mt-8 text-[22px] leading-7 font-semibold">
-            Iniciar sesión
-          </h1>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <h1 className="mt-8 text-page font-semibold">Iniciar sesión</h1>
+          <p className="mt-1 text-body text-ink-muted">
             {environment.appName} · Acceso interno del personal del taller
           </p>
           <div className="mt-6 rounded-panel border border-line bg-surface p-5">
@@ -42,7 +40,7 @@ export function LoginPage() {
               }}
             />
           </div>
-          <p className="mt-4 text-xs text-ink-muted">
+          <p className="mt-4 text-label text-ink-muted">
             Las cuentas las crea el administrador. Si olvidó su contraseña,
             pídale que la restablezca.
           </p>
@@ -50,40 +48,40 @@ export function LoginPage() {
       </section>
       <section
         aria-hidden="true"
-        className="relative hidden overflow-hidden bg-primary text-white lg:flex lg:flex-col lg:justify-between lg:p-12"
+        className="relative hidden overflow-hidden bg-graphite text-white lg:flex lg:flex-col lg:justify-between lg:p-12"
         data-testid="login-visual"
       >
         <div className="flex items-center gap-3">
           <span className="grid size-11 place-items-center rounded-panel bg-white">
             <img alt="" className="size-8" src={brandMark} />
           </span>
-          <span className="text-xl font-bold tracking-tight">Tallkit</span>
+          <span className="text-block font-bold tracking-tight">Tallkit</span>
         </div>
         <div className="max-w-md">
-          <p className="text-[28px] leading-9 font-semibold">
+          <p className="text-page leading-9 font-semibold">
             El mostrador y el taller, en un mismo banco de trabajo.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <span className="inline-flex flex-col overflow-hidden rounded-chip border-2 border-white bg-white text-ink">
               <span className="h-1 bg-brand" />
-              <span className="px-2.5 py-1 font-mono text-sm font-semibold tracking-wider">
+              <span className="px-2.5 py-1 code text-body font-semibold tracking-wider">
                 PBA-1234
               </span>
             </span>
-            <span className="rounded-chip bg-white/12 px-2 py-1 font-mono text-sm">
+            <span className="rounded-chip bg-white/12 px-2 py-1 code text-body">
               FLT-0915
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-chip bg-white/12 px-2.5 py-1 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-chip bg-white/12 px-2.5 py-1 text-body">
               <Tag size={16} />
               Ventas
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-chip bg-white/12 px-2.5 py-1 text-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-chip bg-white/12 px-2.5 py-1 text-body">
               <Wrench size={16} />
               Taller
             </span>
           </div>
         </div>
-        <p className="text-sm text-white/75">
+        <p className="text-body text-white/75">
           Repuestos del RUC comercial y servicios del RUC artesanal, siempre
           separados.
         </p>

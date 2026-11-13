@@ -202,7 +202,7 @@ export const UserForm = forwardRef<UserFormHandle, UserFormProps>(
           className="rounded-group bg-surface-muted p-4"
         >
           <legend className="px-1 font-semibold text-ink">Roles</legend>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="mt-1 text-body text-ink-muted">
             Puede asignar uno o varios roles según las funciones de la persona.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -224,7 +224,7 @@ export const UserForm = forwardRef<UserFormHandle, UserFormProps>(
           </div>
           {rolesError && (
             <p
-              className="mt-2 text-sm font-semibold text-danger"
+              className="mt-2 text-body font-semibold text-danger"
               id={rolesErrorId}
             >
               {rolesError}
@@ -233,7 +233,7 @@ export const UserForm = forwardRef<UserFormHandle, UserFormProps>(
         </fieldset>
 
         {dirty && (
-          <p className="text-sm text-warning" role="status">
+          <p className="text-body text-warning" role="status">
             Hay cambios sin guardar.
           </p>
         )}

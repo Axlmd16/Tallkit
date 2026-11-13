@@ -68,14 +68,14 @@ export function SectionNav({
     'outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset'
 
   const itemBase = adaptive
-    ? 'flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm lg:gap-3 lg:border-b-0 lg:pr-4 lg:pl-5 lg:whitespace-normal'
-    : 'flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm'
+    ? 'flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-body lg:gap-3 lg:border-b-0 lg:pr-4 lg:pl-5 lg:whitespace-normal'
+    : 'flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 text-body'
   const itemCurrent = adaptive
-    ? 'border-accent font-semibold text-accent-strong lg:bg-accent-soft lg:shadow-[inset_3px_0_0_var(--color-accent)]'
-    : 'border-accent font-semibold text-accent-strong'
+    ? 'border-primary font-semibold text-ink lg:bg-primary-soft lg:shadow-[inset_3px_0_0_var(--color-primary)]'
+    : 'border-primary font-semibold text-ink'
   // Con subsecciones visibles, la marca pasa a la subsección actual.
   const itemExpanded = adaptive
-    ? 'border-accent font-semibold text-accent-strong lg:text-ink'
+    ? 'border-primary font-semibold text-ink lg:text-ink'
     : itemCurrent
   const itemIdle = adaptive
     ? 'border-transparent text-ink-muted hover:text-ink lg:text-ink lg:hover:bg-surface-subtle'
@@ -85,7 +85,7 @@ export function SectionNav({
     <nav aria-label={ariaLabel} className={className}>
       {title && (
         <p
-          className={`hidden px-5 pb-2.5 text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase ${adaptive ? 'lg:block' : ''}`}
+          className={`hidden px-5 pb-2.5 text-micro font-semibold tracking-wider text-ink-muted uppercase ${adaptive ? 'lg:block' : ''}`}
         >
           {title}
         </p>
@@ -109,13 +109,13 @@ export function SectionNav({
                 {ItemIcon && (
                   <ItemIcon
                     aria-hidden="true"
-                    className={`hidden shrink-0 ${adaptive ? 'lg:block' : ''} ${current ? 'text-accent' : 'text-ink-muted'}`}
+                    className={`hidden shrink-0 ${adaptive ? 'lg:block' : ''} ${current ? 'text-primary' : 'text-ink-muted'}`}
                     size={18}
                   />
                 )}
                 <span>{item.label}</span>
                 {item.indicator !== undefined && (
-                  <span className="ml-auto shrink-0 pl-2 text-xs font-normal whitespace-nowrap text-ink-muted">
+                  <span className="ml-auto shrink-0 pl-2 text-label font-normal whitespace-nowrap text-ink-muted">
                     {item.indicator}
                   </span>
                 )}
@@ -130,14 +130,14 @@ export function SectionNav({
                       <li key={child.id}>
                         <a
                           aria-current={childCurrent ? 'page' : undefined}
-                          className={`flex min-h-10 items-center gap-2.5 pr-5 pl-[50px] text-[13px] pointer-coarse:min-h-11 ${focusRing} ${childCurrent ? 'bg-accent-soft font-semibold text-accent-strong shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
+                          className={`flex min-h-10 items-center gap-2.5 pr-5 pl-[50px] text-body pointer-coarse:min-h-11 ${focusRing} ${childCurrent ? 'bg-primary-soft font-semibold text-ink shadow-[inset_3px_0_0_var(--color-primary)]' : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'}`}
                           href={child.href}
                           onClick={(event) => select(event, child.id)}
                           ref={register(child.id)}
                         >
                           <span>{child.label}</span>
                           {child.indicator !== undefined && (
-                            <span className="ml-auto shrink-0 pl-2 text-xs font-normal whitespace-nowrap">
+                            <span className="ml-auto shrink-0 pl-2 text-label font-normal whitespace-nowrap">
                               {child.indicator}
                             </span>
                           )}

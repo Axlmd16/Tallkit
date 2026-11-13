@@ -253,7 +253,7 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
               />
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-ink-muted"
+                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-label font-semibold text-ink-muted"
               >
                 USD
               </span>

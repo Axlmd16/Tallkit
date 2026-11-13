@@ -64,7 +64,7 @@ export function TaxesSection() {
         />
       ) : (
         <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[40rem] border-collapse text-sm">
+          <table className="w-full min-w-[40rem] border-collapse text-body">
             <thead>
               <tr>
                 <th className={`${sheetTableHead} w-[34%]`}>Impuesto</th>
@@ -153,24 +153,22 @@ function TaxRow({ definition }: { definition: TaxDefinition }) {
   return (
     <tr>
       <td className={sheetTableCell}>
-        <span className="font-mono font-semibold text-ink">
-          {definition.code}
-        </span>
-        <span className="block text-[13px] text-ink-muted">
+        <span className="code font-semibold text-ink">{definition.code}</span>
+        <span className="block text-body text-ink-muted">
           {definition.name}
         </span>
       </td>
-      <td className={`${sheetTableCell} font-mono tabular-nums`}>
+      <td className={`${sheetTableCell} code tabular-nums`}>
         {definition.current_rate ? `${definition.current_rate} %` : '—'}
       </td>
-      <td className={`${sheetTableCell} text-[13px]`}>
+      <td className={`${sheetTableCell} text-body`}>
         {definition.starts_on ? (
           <>
-            Desde <span className="font-mono">{definition.starts_on}</span>
+            Desde <span className="code">{definition.starts_on}</span>
             {definition.ends_on && (
               <>
                 {' '}
-                hasta <span className="font-mono">{definition.ends_on}</span>
+                hasta <span className="code">{definition.ends_on}</span>
               </>
             )}
           </>
@@ -179,8 +177,8 @@ function TaxRow({ definition }: { definition: TaxDefinition }) {
         )}
         {upcoming.map((period) => (
           <span className="mt-1 block text-ink-muted" key={period.id}>
-            Luego <span className="font-mono">{Number(period.rate)} %</span>{' '}
-            desde <span className="font-mono">{period.starts_on}</span>
+            Luego <span className="code">{Number(period.rate)} %</span> desde{' '}
+            <span className="code">{period.starts_on}</span>
           </span>
         ))}
       </td>
@@ -253,11 +251,11 @@ function ScheduleRateModal({
       title={`Programar tarifa de ${definition.code}`}
     >
       <div className="space-y-4">
-        <div className="text-sm">
-          <p className="text-xs font-semibold text-ink">Tarifa actual</p>
+        <div className="text-body">
+          <p className="text-label font-semibold text-ink">Tarifa actual</p>
           <p className="mt-1.5 text-ink">
-            <span className="font-mono">{Number(period.rate)} %</span> · desde{' '}
-            <span className="font-mono">{period.starts_on}</span>
+            <span className="code">{Number(period.rate)} %</span> · desde{' '}
+            <span className="code">{period.starts_on}</span>
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

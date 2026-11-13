@@ -43,7 +43,7 @@
   overflow: hidden;
   background: #fff;
   color: var(--label-ink);
-  font-family: var(--font-sans);
+  font-family: var(--tk-font-print);
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
@@ -283,7 +283,7 @@
 .product-label__barcode p {
   margin-top: 0.5mm;
   overflow: hidden;
-  font-family: var(--font-mono);
+  font-family: var(--tk-font-print-mono);
   font-size: 1.95mm;
   font-weight: 500;
   line-height: 1;

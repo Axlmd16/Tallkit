@@ -136,8 +136,8 @@ export function FiscalPreparationPage() {
             <ArrowLeft aria-hidden="true" />
           </Link>
           <div>
-            <p className="text-xs text-ink-muted">Factura</p>
-            <h1 className="text-xl font-semibold text-ink">
+            <p className="text-label text-ink-muted">Factura</p>
+            <h1 className="text-page font-semibold text-ink">
               {TITLES[detail.state]}
             </h1>
           </div>
@@ -212,8 +212,8 @@ function OperationSummary({ detail }: { detail: FiscalPreparationDetail }) {
         <FactRow label="Total">{money(summary.grand_total)}</FactRow>
       </FactList>
       <div className="overflow-x-auto px-4 pb-4">
-        <table className="w-full min-w-[420px] text-left text-sm">
-          <thead className="text-xs text-ink-muted">
+        <table className="w-full min-w-[420px] text-left text-body">
+          <thead className="text-label text-ink-muted">
             <tr>
               <th className="py-2">Detalle</th>
               <th className="py-2 text-right">Cantidad</th>
@@ -358,7 +358,7 @@ function DraftEditor({
       >
         <div className="space-y-4 p-4">
           {consumerFinal ? (
-            <p className="text-sm text-ink">Consumidor final</p>
+            <p className="text-body text-ink">Consumidor final</p>
           ) : (
             <FactList>
               <FactRow
@@ -366,7 +366,7 @@ function DraftEditor({
                   ID_TYPES[original.identification_type] ?? 'Identificación'
                 }
               >
-                <span className="font-mono">{original.identification}</span>
+                <span className="code">{original.identification}</span>
               </FactRow>
               <FactRow label="Nombre">{original.legal_name}</FactRow>
             </FactList>
@@ -430,7 +430,7 @@ function DraftEditor({
                 label="Factura a consumidor final"
                 onChange={(event) => setConsumerFinal(event.target.checked)}
               />
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="mt-1 text-label text-ink-muted">
                 Solo hasta USD 50. Luego no se puede anular ni corregir.
               </p>
             </div>
@@ -544,7 +544,7 @@ function DraftEditor({
               <Plus aria-hidden="true" /> Añadir forma de pago
             </Button>
             <p
-              className={`text-sm ${difference === 0 ? 'text-ink-muted' : 'text-warning'}`}
+              className={`text-body ${difference === 0 ? 'text-ink-muted' : 'text-warning'}`}
             >
               {difference === 0
                 ? `Cubre el total de ${money(total)}.`
@@ -624,7 +624,7 @@ function DraftEditor({
         {(serverErrors.additional_info?.[0] || notes.length > 0) && (
           <div className="p-4">
             {serverErrors.additional_info?.[0] && (
-              <p className="mb-2 text-xs font-semibold text-danger">
+              <p className="mb-2 text-label font-semibold text-danger">
                 {serverErrors.additional_info[0]}
               </p>
             )}
@@ -641,13 +641,13 @@ function DraftEditor({
                     key={`${note.name}-${index}`}
                   >
                     <div className="min-w-0">
-                      <p className="text-xs text-ink-muted">{note.name}</p>
-                      <p className="text-sm font-medium break-words text-ink">
+                      <p className="text-label text-ink-muted">{note.name}</p>
+                      <p className="text-body font-medium break-words text-ink">
                         {note.value}
                       </p>
                       {errors.map((message) => (
                         <p
-                          className="mt-1 text-xs font-semibold text-danger"
+                          className="mt-1 text-label font-semibold text-danger"
                           key={message}
                         >
                           {message}
@@ -712,7 +712,7 @@ function DraftEditor({
       {review && review.impediments.length === 0 && review.review_token && (
         <Surface>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-sm text-success">
+            <p className="flex items-center gap-2 text-body text-success">
               <CheckCircle aria-hidden="true" /> Todo está en orden.
             </p>
             <Button
@@ -821,11 +821,11 @@ function ImpedimentList({
 }) {
   return (
     <section>
-      <h3 className="text-sm font-bold text-ink">{title}</h3>
+      <h3 className="text-body font-bold text-ink">{title}</h3>
       <ul aria-label={title} className="mt-2 space-y-2">
         {items.map((item, index) => (
           <li
-            className="flex gap-2 rounded-control bg-warning-soft p-3 text-sm text-warning"
+            className="flex gap-2 rounded-control bg-warning-soft p-3 text-body text-warning"
             key={`${item.field}-${index}`}
           >
             <WarningCircle aria-hidden="true" className="mt-0.5 shrink-0" />
@@ -864,9 +864,7 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
         <FactList className="px-4">
           <FactRow label="Nombre">{text(receiver.legal_name) || '—'}</FactRow>
           <FactRow label="Identificación">
-            <span className="font-mono">
-              {text(receiver.identification) || '—'}
-            </span>
+            <span className="code">{text(receiver.identification) || '—'}</span>
           </FactRow>
           {text(receiver.email) && (
             <FactRow label="Correo">{text(receiver.email)}</FactRow>
@@ -874,7 +872,7 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
           <FactRow label="Impuestos">{money(totals.tax)}</FactRow>
           <FactRow label="Total">{money(totals.grand)}</FactRow>
         </FactList>
-        <p className="px-4 py-3 text-xs text-ink-muted">
+        <p className="px-4 py-3 text-label text-ink-muted">
           Guardados el {text(snapshot.reference_date)}. Los cambios posteriores
           de configuración no los modifican.
         </p>
@@ -886,8 +884,8 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
         title="Detalle"
       >
         <div className="overflow-x-auto px-4 pb-4">
-          <table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="text-xs text-ink-muted">
+          <table className="w-full min-w-[520px] text-left text-body">
+            <thead className="text-label text-ink-muted">
               <tr>
                 <th className="py-2">Código</th>
                 <th className="py-2">Descripción</th>
@@ -899,13 +897,13 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
             <tbody className="divide-y divide-line">
               {lines.map((line, index) => (
                 <tr key={`${text(line.position)}-${index}`}>
-                  <td className="py-3 font-mono text-xs">
+                  <td className="py-3 code text-label">
                     {text(line.item_code)}
                   </td>
                   <td className="py-3">
                     {text(line.description)}
                     {text(line.service_detail) && (
-                      <span className="block text-xs break-words text-ink-muted">
+                      <span className="block text-label break-words text-ink-muted">
                         {text(line.service_detail)}
                       </span>
                     )}
@@ -933,7 +931,7 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
       >
         <ul
           aria-label="Formas de pago preparadas"
-          className="space-y-1 p-4 text-sm"
+          className="space-y-1 p-4 text-body"
         >
           {payments.map((payment, index) => (
             <li key={index}>
@@ -969,7 +967,7 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
 
       {detail.technical && (
         <AdvancedInfo hint="para el Administrador">
-          <pre className="overflow-x-auto text-xs text-ink-muted">
+          <pre className="overflow-x-auto text-label text-ink-muted">
             {JSON.stringify(detail.technical, null, 2)}
           </pre>
         </AdvancedInfo>
@@ -994,7 +992,7 @@ function IssuerSummary({
   const qualification = record(profile.artisan_qualification)
   return (
     <Surface aria-label="Emisor preparado">
-      <details className="group text-sm">
+      <details className="group text-body">
         <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 font-semibold text-ink [&::-webkit-details-marker]:hidden">
           Datos del emisor
         </summary>
@@ -1028,21 +1026,21 @@ function IssuerSummary({
               )}
               {text(profile.withholding_agent_resolution) && (
                 <FactRow label="Agente de retención">
-                  <span className="font-mono">
+                  <span className="code">
                     {text(profile.withholding_agent_resolution)}
                   </span>
                 </FactRow>
               )}
               {text(profile.special_taxpayer_resolution) && (
                 <FactRow label="Contribuyente especial">
-                  <span className="font-mono">
+                  <span className="code">
                     {text(profile.special_taxpayer_resolution)}
                   </span>
                 </FactRow>
               )}
               {text(profile.large_taxpayer_resolution) && (
                 <FactRow label="Gran contribuyente">
-                  <span className="font-mono">
+                  <span className="code">
                     {text(profile.large_taxpayer_resolution)}
                   </span>
                 </FactRow>

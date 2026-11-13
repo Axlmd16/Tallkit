@@ -84,7 +84,7 @@ export function Dialog({
         tabIndex={-1}
       >
         <h2
-          className="flex items-center gap-2 text-base leading-[22px] font-semibold"
+          className="flex items-center gap-2 text-block leading-[22px] font-semibold"
           id={titleId}
         >
           {tone === 'danger' && (
@@ -96,7 +96,7 @@ export function Dialog({
           )}
           {title}
         </h2>
-        <p className="mt-1 text-[13px] text-ink-muted" id={descriptionId}>
+        <p className="mt-1 text-body text-ink-muted" id={descriptionId}>
           {description}
         </p>
         <div className="dialog-actions mt-5 flex flex-wrap justify-end gap-2">

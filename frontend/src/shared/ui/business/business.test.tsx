@@ -11,22 +11,27 @@ describe('piezas visuales del taller', () => {
     })
   })
 
-  it('presenta la placa como dato monoespaciado reconocible', () => {
-    render(<PlateTag plate="pba-1234" />)
-    expect(screen.getByText('PBA-1234')).toHaveClass('font-mono')
+  it('presenta la placa como pieza oscura con cifras de ancho uniforme y la invierte sobre fondo oscuro', () => {
+    const { rerender } = render(<PlateTag plate="pba-1234" />)
+    const plate = screen.getByText('PBA-1234')
+    expect(plate).toHaveClass('code', 'bg-ink')
+    expect(plate).not.toHaveClass('font-mono')
+
+    rerender(<PlateTag onDark plate="pba-1234" />)
+    expect(screen.getByText('PBA-1234')).toHaveClass('bg-white')
   })
 
   it('presenta el RUC como una placa accesible sin separadores', () => {
     const { rerender } = render(<RucPlate ruc="1140258475001" size="sm" />)
 
     const compactPlate = screen.getByText('RUC').parentElement
-    expect(compactPlate).toHaveClass('font-mono')
+    expect(compactPlate).toHaveClass('code')
     expect(compactPlate).toHaveTextContent('RUC 1140258475001')
     expect(screen.getByText('1140258475001')).toBeInTheDocument()
     expect(screen.queryByText(/114\.025/)).not.toBeInTheDocument()
 
     rerender(<RucPlate ruc="1140258475001" size="md" />)
-    expect(screen.getByText('RUC').parentElement).toHaveClass('font-mono')
+    expect(screen.getByText('RUC').parentElement).toHaveClass('code')
   })
 
   it('copia el código con una acción de nombre accesible', async () => {

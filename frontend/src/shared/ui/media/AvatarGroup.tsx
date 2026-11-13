@@ -24,7 +24,7 @@ export function AvatarGroup({
   const extraCount = Math.max(0, items.length - max)
 
   const extraSizeClasses =
-    size === '70' ? 'size-[70px] text-lg' : 'size-9 text-xs'
+    size === '70' ? 'size-[70px] text-block' : 'size-9 text-label'
 
   return (
     <div

@@ -93,20 +93,20 @@ export function ProductDetails({ product }: { product: Product }) {
       >
         <div className="p-4">
           {product.vehicle_brands.length === 0 ? (
-            <p className="text-[13px] text-ink-muted">
+            <p className="text-body text-ink-muted">
               Universal: sin marcas de vehículo asignadas.
             </p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {product.vehicle_brands.map((brand) => (
                 <li
-                  className={`inline-flex min-h-7 items-center gap-1.5 rounded-chip border border-line bg-surface-subtle px-2.5 text-[12.5px] font-medium ${brand.is_active ? 'text-ink' : 'text-ink-muted'}`}
+                  className={`inline-flex min-h-7 items-center gap-1.5 rounded-chip border border-line bg-surface-subtle px-2.5 text-label font-medium ${brand.is_active ? 'text-ink' : 'text-ink-muted'}`}
                   key={brand.id}
                 >
                   <Car aria-hidden="true" size={14} />
                   {brand.name}
                   {!brand.is_active && (
-                    <span className="text-xs">(inactiva)</span>
+                    <span className="text-label">(inactiva)</span>
                   )}
                 </li>
               ))}

@@ -50,7 +50,7 @@ export function WithholdingList({
 }) {
   if (withholdings.length === 0) return null
   return (
-    <ul className="divide-y divide-line text-[13px]">
+    <ul className="divide-y divide-line text-body">
       {withholdings.map((item) => {
         const active = item.state === 'ACTIVE'
         return (
@@ -72,12 +72,12 @@ export function WithholdingList({
               }
             />
             {item.income_tax_amount != null && item.vat_amount != null && (
-              <span className="text-xs text-ink-muted">
+              <span className="text-label text-ink-muted">
                 Renta USD {item.income_tax_amount} · IVA USD {item.vat_amount}
               </span>
             )}
             {item.void_reason && (
-              <span className="text-xs text-ink-muted">
+              <span className="text-label text-ink-muted">
                 Motivo: {item.void_reason}
               </span>
             )}
@@ -206,7 +206,7 @@ export function VoucherDialog({
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-body">
           <span className="font-semibold text-ink">
             Valor retenido: <Money amount={withholding.amount} />
           </span>
@@ -235,10 +235,10 @@ export function VoucherDialog({
           />
         </Field>
         <fieldset className="space-y-3">
-          <legend className="text-[13px] font-semibold text-ink">
+          <legend className="text-body font-semibold text-ink">
             Desglose (opcional)
           </legend>
-          <p className="text-[12.5px] text-ink-muted">
+          <p className="text-label text-ink-muted">
             Si el comprobante separa renta e IVA, anote ambos valores. Deben
             sumar el valor retenido.
           </p>
@@ -261,7 +261,7 @@ export function VoucherDialog({
             </Field>
           </div>
           {hasBreakdown && !breakdownOk && (
-            <p className="text-[12.5px] text-danger">
+            <p className="text-label text-danger">
               Complete los dos valores con hasta 2 decimales, o deje ambos
               vacíos.
             </p>
@@ -328,7 +328,7 @@ export function VoidWithholdingDialog({
       title="Anular retención"
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[13px]">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-body">
           <span className="font-semibold text-ink">
             Valor retenido: <Money amount={withholding.amount} />
           </span>

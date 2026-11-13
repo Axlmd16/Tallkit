@@ -74,7 +74,7 @@ export function PartsFields({
           value={transfer}
         />
       </Field>
-      <p className="text-sm text-ink-muted">
+      <p className="text-body text-ink-muted">
         Total de las partes: USD {partsTotal(cash, transfer)}
       </p>
     </fieldset>

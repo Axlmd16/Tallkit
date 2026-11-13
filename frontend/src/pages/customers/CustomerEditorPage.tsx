@@ -80,8 +80,8 @@ export function CustomerEditorPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Clientes</p>
-          <h1 className="text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Clientes</p>
+          <h1 className="text-page font-semibold text-ink">
             {customer ? `Editar ${customer.name}` : 'Nuevo cliente'}
           </h1>
         </div>

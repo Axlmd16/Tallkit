@@ -61,22 +61,26 @@ export function NavigationPanel({
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="mr-auto flex h-full w-[min(20rem,calc(100%-3rem))] flex-col overflow-y-auto bg-surface text-ink shadow-sheet"
+        className="mr-auto flex h-full w-[min(20rem,calc(100%-3rem))] flex-col overflow-y-auto bg-graphite text-graphite-ink shadow-sheet"
         onKeyDown={handleKeyDown}
         ref={panelRef}
         role="dialog"
         tabIndex={-1}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
+        <header className="flex items-start justify-between gap-3 border-b border-graphite-line px-4 py-3">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold" id={titleId}>
+            <h2 className="text-lead font-semibold text-white" id={titleId}>
               {title}
             </h2>
-            <p className="mt-0.5 text-xs text-ink-muted" id={descriptionId}>
+            <p
+              className="mt-0.5 text-label text-graphite-ink"
+              id={descriptionId}
+            >
               {description}
             </p>
           </div>
           <IconButton
+            className="text-graphite-ink! hover:bg-graphite-raised! hover:text-white!"
             icon={<X size={18} />}
             label="Cerrar navegación"
             onClick={onClose}

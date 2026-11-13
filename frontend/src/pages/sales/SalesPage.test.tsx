@@ -111,10 +111,10 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   expect(screen.queryByText('RUC comercial')).toBeNull()
 })
 
-it('el número interno usa la letra monoespaciada y el total se alinea a la derecha', () => {
+it('el número interno usa cifras de ancho uniforme y el total se alinea a la derecha', () => {
   renderPage()
   const table = screen.getByRole('table', { name: 'Ventas' })
-  expect(within(table).getByText('COM-VEN-000007')).toHaveClass('font-mono')
+  expect(within(table).getByText('COM-VEN-000007')).toHaveClass('code')
   expect(within(table).getByText('USD 23.00').closest('td')).toHaveClass(
     'text-right',
   )

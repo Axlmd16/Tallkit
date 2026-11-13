@@ -143,7 +143,7 @@ export function SaleReviewDialog({
             <h3 className="font-semibold text-ink">
               Importes según el servidor
             </h3>
-            <dl className="mt-2 grid grid-cols-2 gap-1 text-sm">
+            <dl className="mt-2 grid grid-cols-2 gap-1 text-body">
               <dt>Base imponible</dt>
               <dd className="text-right">{usd(review.totals.base)}</dd>
               <dt>Impuesto</dt>
@@ -159,7 +159,7 @@ export function SaleReviewDialog({
           <section aria-label="Diferencias con la proforma">
             <h3 className="mb-2 font-semibold text-ink">
               Cotizado en{' '}
-              <span className="font-mono">
+              <span className="code">
                 {review.quote_comparison.proforma_number}
               </span>{' '}
               frente a esta venta
@@ -170,7 +170,7 @@ export function SaleReviewDialog({
         {review && review.effects.length > 0 && (
           <section aria-label="Efecto en existencias">
             <h3 className="font-semibold text-ink">Efecto en existencias</h3>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-body">
               {review.effects.map((effect) => (
                 <li key={effect.product_id}>
                   <strong>{effect.code}</strong>: {effect.current_quantity} →{' '}

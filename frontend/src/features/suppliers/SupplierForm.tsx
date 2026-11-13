@@ -207,7 +207,7 @@ export function SupplierForm({
       )}
 
       <fieldset className="form-section space-y-4">
-        <legend className="text-base font-bold text-ink">
+        <legend className="text-block font-bold text-ink">
           Identificación (opcional)
         </legend>
         <Field
@@ -256,7 +256,7 @@ export function SupplierForm({
       </fieldset>
 
       <fieldset className="form-section space-y-4">
-        <legend className="text-base font-bold text-ink">
+        <legend className="text-block font-bold text-ink">
           Contacto (opcional)
         </legend>
         <Field error={errors.phone} id="supplier-phone" label="Teléfono">

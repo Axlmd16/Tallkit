@@ -506,7 +506,7 @@ describe('ficha de vehículo Tallkit (PPF-02)', () => {
       screen.getByRole('link', { name: 'Volver a vehículos' }),
     ).toHaveAttribute('href', '/vehicles')
     const summary = screen.getByRole('region', { name: 'Resumen del vehículo' })
-    expect(within(summary).getByText('ABC-1234')).toHaveClass('font-mono')
+    expect(within(summary).getByText('ABC-1234')).toHaveClass('code')
     expect(
       within(summary).getByRole('status', { name: /Estado: Activo/ }),
     ).toBeInTheDocument()

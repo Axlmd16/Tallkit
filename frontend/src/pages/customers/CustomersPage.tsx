@@ -7,6 +7,7 @@ import {
   Power,
   Phone,
   XCircle,
+  AddressBook,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
@@ -45,7 +46,7 @@ type Confirmation = {
 }
 
 const primaryButtonLinkClass =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-sm font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-body font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
 
 export function CustomersPage() {
   const navigate = useNavigate()
@@ -165,7 +166,7 @@ export function CustomersPage() {
             >
               {row.name}
             </button>
-            <p className="break-words text-sm text-ink-muted">
+            <p className="break-words text-body text-ink-muted">
               {row.person_type === 'JURIDICA'
                 ? 'Persona jurídica'
                 : 'Persona natural'}
@@ -227,6 +228,7 @@ export function CustomersPage() {
   return (
     <section className="customers-page list-page">
       <PageHeader
+        icon={<AddressBook />}
         actions={
           canManage ? (
             <Button onClick={() => void navigate('/customers/new')}>
@@ -400,10 +402,10 @@ export function CustomersPage() {
                 name={previewing.name}
                 size="70"
               />
-              <h3 className="mt-4 text-xl font-bold text-ink">
+              <h3 className="mt-4 text-block font-bold text-ink">
                 {previewing.name}
               </h3>
-              <p className="mt-1 text-sm text-ink-muted">
+              <p className="mt-1 text-body text-ink-muted">
                 {previewing.person_type === 'JURIDICA'
                   ? 'Persona jurídica'
                   : 'Persona natural'}
@@ -418,7 +420,7 @@ export function CustomersPage() {
 
             <section aria-labelledby="customer-contact-title">
               <h3
-                className="text-base font-bold text-ink"
+                className="text-block font-bold text-ink"
                 id="customer-contact-title"
               >
                 Información de contacto
@@ -431,10 +433,10 @@ export function CustomersPage() {
                     size={20}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Correo electrónico
                     </p>
-                    <p className="mt-1 break-words text-sm text-ink">
+                    <p className="mt-1 break-words text-body text-ink">
                       {previewing.email || 'No registrado'}
                     </p>
                   </div>
@@ -446,10 +448,12 @@ export function CustomersPage() {
                     size={20}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Teléfono
                     </p>
-                    <p className="mt-1 text-sm text-ink">{previewing.phone}</p>
+                    <p className="mt-1 text-body text-ink">
+                      {previewing.phone}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 py-4">
@@ -459,10 +463,10 @@ export function CustomersPage() {
                     size={20}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-ink-muted">
+                    <p className="text-label font-semibold text-ink-muted">
                       Dirección
                     </p>
-                    <p className="mt-1 break-words text-sm text-ink">
+                    <p className="mt-1 break-words text-body text-ink">
                       {previewing.address || 'No registrada'}
                     </p>
                   </div>
@@ -472,13 +476,13 @@ export function CustomersPage() {
 
             <section aria-labelledby="customer-identification-title">
               <h3
-                className="text-base font-bold text-ink"
+                className="text-block font-bold text-ink"
                 id="customer-identification-title"
               >
                 Identificación
               </h3>
               <div className="mt-3 flex items-center justify-between gap-3 rounded-group bg-surface-subtle p-3">
-                <span className="text-sm text-ink">
+                <span className="text-body text-ink">
                   {previewing.identification}
                 </span>
                 <StatusBadge

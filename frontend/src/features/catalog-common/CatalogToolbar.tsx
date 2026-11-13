@@ -43,11 +43,11 @@ export function CatalogToolbar({
             <div className="relative">
               <MagnifyingGlass
                 aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted"
+                className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 text-ink-muted"
                 size={16}
               />
               <Input
-                className="pl-9"
+                className="rounded-none! border-0! border-b-2! border-line-strong! bg-transparent! px-0! pl-8! shadow-none! hover:border-ink-muted! focus:border-ink! focus:shadow-none!"
                 id={`${idPrefix}-search`}
                 onChange={(event) => setText(event.target.value)}
                 placeholder={searchPlaceholder}

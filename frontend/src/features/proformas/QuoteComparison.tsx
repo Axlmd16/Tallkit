@@ -80,13 +80,13 @@ export function QuoteComparison({
         role="group"
         tabIndex={0}
       >
-        <table className="w-full min-w-[520px] text-[13px]">
+        <table className="w-full min-w-[520px] text-body">
           <caption className="sr-only">
             Productos cotizados frente a {currentLabel.toLowerCase()}: cantidad,
             precio final, impuesto y total
           </caption>
           <thead>
-            <tr className="text-left text-xs text-ink-muted">
+            <tr className="text-left text-label text-ink-muted">
               <th className="py-1.5 pr-3 font-semibold" scope="col">
                 Producto
               </th>
@@ -111,7 +111,7 @@ export function QuoteComparison({
             {comparison.products.map((product) => (
               <tr className="border-t border-line" key={product.product_id}>
                 <th className="py-2 pr-3 text-left font-normal" scope="row">
-                  <span className="font-mono">{product.product_code}</span>{' '}
+                  <span className="code">{product.product_code}</span>{' '}
                   {product.product_name}
                 </th>
                 <td className="px-2 py-2 text-right tabular-nums">
@@ -141,21 +141,21 @@ export function QuoteComparison({
           </tbody>
         </table>
       </div>
-      <dl className="grid grid-cols-3 gap-2 text-sm">
+      <dl className="grid grid-cols-3 gap-2 text-body">
         <div>
-          <dt className="text-xs text-ink-muted">Total cotizado</dt>
+          <dt className="text-label text-ink-muted">Total cotizado</dt>
           <dd className="font-semibold tabular-nums">
             <Money amount={totals.quoted?.total ?? null} />
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-ink-muted">{currentLabel}</dt>
+          <dt className="text-label text-ink-muted">{currentLabel}</dt>
           <dd className="font-semibold tabular-nums">
             <Money amount={totals.current?.total ?? null} />
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-ink-muted">Diferencia</dt>
+          <dt className="text-label text-ink-muted">Diferencia</dt>
           <dd className="font-semibold tabular-nums">
             <Money amount={totals.difference} />
           </dd>

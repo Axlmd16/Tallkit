@@ -105,7 +105,7 @@ export function ReturnDialog({
               <p className="font-semibold text-ink">
                 {line.product_code} · {line.product_name}
               </p>
-              <p className="text-sm text-ink-muted">
+              <p className="text-body text-ink-muted">
                 Vendidas {line.quantity} · ya devueltas {returned} · devolvibles{' '}
                 {remaining}
               </p>

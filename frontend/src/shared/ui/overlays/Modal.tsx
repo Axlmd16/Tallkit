@@ -22,16 +22,18 @@ export interface ModalProps {
   className?: string | undefined
   portalContainer?: HTMLElement | null | undefined
   mobileFullWidth?: boolean | undefined
-  /** Ancho máximo: `default` 466 px, `wide` 600 px para formularios con nombres largos, `media` para imágenes. */
+  /** Ancho máximo: `default` 466 px, `wide` 600 px para formularios con nombres largos, `large` 860 px, `xl` 980 px para dos columnas y `media` para imágenes. */
   size?: ModalSize | undefined
 }
 
-export type ModalSize = 'default' | 'wide' | 'large' | 'media'
+export type ModalSize = 'default' | 'wide' | 'large' | 'xl' | 'media'
 
 const sizeClasses: Record<ModalSize, string> = {
   default: 'max-w-[466px]',
   wide: 'max-w-[600px]',
   large: 'max-w-[860px]',
+  /** Modales de dos columnas, como el de nuevo mantenimiento. */
+  xl: 'max-w-[980px]',
   media: 'max-w-[min(90vw,1100px)]',
 }
 
@@ -93,11 +95,11 @@ export function Modal({
       >
         <header className="flex items-start justify-between gap-4 border-b border-line pb-3 mb-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-bold text-ink" id={titleId}>
+            <h2 className="text-block font-bold text-ink" id={titleId}>
               {title}
             </h2>
             {description && (
-              <p className="mt-1 text-xs text-ink-muted" id={descriptionId}>
+              <p className="mt-1 text-label text-ink-muted" id={descriptionId}>
                 {description}
               </p>
             )}
@@ -112,7 +114,7 @@ export function Modal({
         </header>
 
         <div
-          className={`modal-content mb-6 text-sm text-ink ${mobileFullWidth ? 'max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto' : ''}`}
+          className={`modal-content mb-6 text-body text-ink ${mobileFullWidth ? 'max-sm:min-h-0 max-sm:flex-1 max-sm:overflow-y-auto' : ''}`}
         >
           {children}
         </div>

@@ -1,3 +1,4 @@
+import { Coins } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 
 import { useUrlFilters } from '@/features/catalog-common/filters'
@@ -35,9 +36,10 @@ export function ArtisanReceivablesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<Coins />}
         actions={
           <Link
-            className="text-[13px] font-semibold text-accent hover:underline"
+            className="text-body font-semibold text-accent hover:underline"
             to="/maintenance/withholdings"
           >
             Retenciones por completar
@@ -59,8 +61,10 @@ export function ArtisanReceivablesPage() {
             ['Saldo por cobrar', totals.balance],
           ].map(([label, amount]) => (
             <div className="bg-surface px-4 py-3" key={label}>
-              <h2 className="text-xs font-semibold text-ink-muted">{label}</h2>
-              <p className="mt-1 text-xl font-semibold">
+              <h2 className="text-label font-semibold text-ink-muted">
+                {label}
+              </h2>
+              <p className="mt-1 text-block font-semibold">
                 <Money amount={amount ?? null} />
               </p>
             </div>
@@ -131,7 +135,7 @@ export function ArtisanReceivablesPage() {
                 priority: 'primary',
                 render: (row) => (
                   <Link
-                    className="font-mono font-semibold text-accent hover:underline"
+                    className="code font-semibold text-accent hover:underline"
                     to={`/maintenance/service-operations/${row.id}`}
                   >
                     {row.internal_number}
@@ -144,7 +148,7 @@ export function ArtisanReceivablesPage() {
                 priority: 'secondary',
                 render: (row) => (
                   <Link
-                    className="font-mono hover:underline"
+                    className="code hover:underline"
                     to={`/maintenance/${row.order_id}`}
                   >
                     {row.order_number}

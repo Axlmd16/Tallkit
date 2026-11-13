@@ -25,13 +25,15 @@ export function ConfigurationMap({ items }: ConfigurationMapProps) {
     <section className="rounded-group bg-surface p-5 shadow-card sm:p-6">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold text-ink">Mapa de configuración</h2>
-          <p className="mt-1 max-w-[62ch] text-sm text-ink-muted">
+          <h2 className="text-block font-bold text-ink">
+            Mapa de configuración
+          </h2>
+          <p className="mt-1 max-w-[62ch] text-body text-ink-muted">
             Acceda directamente a los parámetros que mantienen operativo el
             taller.
           </p>
         </div>
-        <span className="text-xs font-semibold text-ink-muted">
+        <span className="text-label font-semibold text-ink-muted">
           4 áreas bajo control
         </span>
       </div>
@@ -53,14 +55,14 @@ export function ConfigurationMap({ items }: ConfigurationMapProps) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-bold text-ink">
+                <span className="truncate text-body font-bold text-ink">
                   {item.label}
                 </span>
-                <span className="shrink-0 text-sm font-extrabold text-ink">
+                <span className="shrink-0 text-body font-extrabold text-ink">
                   {item.count}
                 </span>
               </span>
-              <span className="mt-0.5 block truncate text-xs text-ink-muted">
+              <span className="mt-0.5 block truncate text-label text-ink-muted">
                 {item.description}
               </span>
             </span>

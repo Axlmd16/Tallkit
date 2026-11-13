@@ -112,7 +112,7 @@ export function SaleDetailPage() {
   const panel = 'rounded-panel border border-line bg-surface'
   const panelHead =
     'flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3'
-  const panelTitle = 'text-[14.5px] font-semibold text-ink'
+  const panelTitle = 'text-body font-semibold text-ink'
   const canPay =
     confirmed && balance > 0 && permissions.has('pagos_comerciales.registrar')
   const canReturn = confirmed && permissions.has('ventas.devolver')
@@ -134,8 +134,8 @@ export function SaleDetailPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Ventas</p>
-          <h1 className="font-mono text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Ventas</p>
+          <h1 className="code text-page font-semibold text-ink">
             {sale.internal_number ?? 'Venta en borrador'}
           </h1>
         </div>
@@ -152,17 +152,17 @@ export function SaleDetailPage() {
           aria-label="Origen proforma"
           className="space-y-3 rounded-panel border border-line bg-surface p-4"
         >
-          <p className="text-sm text-ink">
+          <p className="text-body text-ink">
             Originada en la proforma{' '}
             {permissions.has('proformas.ver') ? (
               <Link
-                className="font-mono font-semibold text-accent hover:underline"
+                className="code font-semibold text-accent hover:underline"
                 to={`/proformas/${sale.origin.proforma_id}`}
               >
                 {sale.origin.proforma_number}
               </Link>
             ) : (
-              <span className="font-mono font-semibold">
+              <span className="code font-semibold">
                 {sale.origin.proforma_number}
               </span>
             )}
@@ -202,39 +202,41 @@ export function SaleDetailPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-4">
           <section aria-label="Estados" className={`${panel} px-5 py-4`}>
-            <dl className="grid gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3">
+            <dl className="grid gap-x-6 gap-y-3 text-body sm:grid-cols-3">
               <div>
-                <dt className="text-xs text-ink-muted">Estado de la venta</dt>
+                <dt className="text-label text-ink-muted">
+                  Estado de la venta
+                </dt>
                 <dd className="mt-1">
                   <SaleStateBadge state={sale.state} />
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Estado de pago</dt>
+                <dt className="text-label text-ink-muted">Estado de pago</dt>
                 <dd className="mt-1">
                   <PaymentStateBadge state={money.payment_state} />
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Documento interno</dt>
-                <dd className="mt-0.5 font-mono font-medium">
+                <dt className="text-label text-ink-muted">Documento interno</dt>
+                <dd className="mt-0.5 code font-medium">
                   {sale.internal_number ?? 'Sin número (borrador)'}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Cliente</dt>
+                <dt className="text-label text-ink-muted">Cliente</dt>
                 <dd className="mt-0.5 font-medium">
                   {sale.customer.name ?? '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Condición</dt>
+                <dt className="text-label text-ink-muted">Condición</dt>
                 <dd className="mt-0.5 font-medium">
                   {conditionLabels[sale.condition]}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Fecha operativa</dt>
+                <dt className="text-label text-ink-muted">Fecha operativa</dt>
                 <dd className="mt-0.5 font-medium">
                   {sale.operational_date
                     ? documentDate(sale.operational_date)
@@ -254,9 +256,9 @@ export function SaleDetailPage() {
               </h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left text-[13px]">
+              <table className="w-full min-w-[560px] text-left text-body">
                 <thead>
-                  <tr className="border-b border-line bg-surface-subtle text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+                  <tr className="border-b border-line bg-surface-subtle text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase">
                     <th className="h-9 px-4" scope="col">
                       Producto
                     </th>
@@ -278,7 +280,7 @@ export function SaleDetailPage() {
                   {sale.lines.map((line) => (
                     <tr aria-label={`Línea ${line.position}`} key={line.id}>
                       <td className="px-4 py-2.5">
-                        <span className="font-mono text-xs font-semibold">
+                        <span className="code text-label font-semibold">
                           {line.product_code}
                         </span>
                         <span className="sr-only"> · </span>
@@ -313,7 +315,7 @@ export function SaleDetailPage() {
                 </h2>
               </div>
               {sale.payments.length === 0 ? (
-                <p className="px-4 py-4 text-[13px] text-ink-muted">
+                <p className="px-4 py-4 text-body text-ink-muted">
                   Aún no hay cobros registrados.
                 </p>
               ) : (
@@ -321,7 +323,7 @@ export function SaleDetailPage() {
                   {sale.payments.map((payment) => (
                     <div
                       aria-label={`Cobro ${payment.id}`}
-                      className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-[13px]"
+                      className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-body"
                       key={payment.id}
                       role="group"
                     >
@@ -372,7 +374,7 @@ export function SaleDetailPage() {
               <div className={panelHead}>
                 <h2 className={panelTitle}>Retenciones del cliente</h2>
                 <Link
-                  className="text-[12.5px] font-semibold text-accent hover:underline"
+                  className="text-label font-semibold text-accent hover:underline"
                   to="/sales/withholdings"
                 >
                   Ver retenciones por completar
@@ -398,7 +400,7 @@ export function SaleDetailPage() {
                 }
                 withholdings={withholdings}
               />
-              <p className="border-t border-line px-4 py-2 text-[12px] text-ink-muted">
+              <p className="border-t border-line px-4 py-2 text-label text-ink-muted">
                 Lo retenido baja la deuda, pero no es dinero recibido.
               </p>
             </section>
@@ -413,7 +415,7 @@ export function SaleDetailPage() {
                 {sale.returns.map((item) => (
                   <div
                     aria-label={`Devolución ${item.id}`}
-                    className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-[13px]"
+                    className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-body"
                     key={item.id}
                     role="group"
                   >
@@ -441,7 +443,7 @@ export function SaleDetailPage() {
                 ))}
               </div>
               {(sale.refunds ?? []).length > 0 && (
-                <ul className="space-y-1 border-t border-line px-4 py-3 text-[13px]">
+                <ul className="space-y-1 border-t border-line px-4 py-3 text-body">
                   {(sale.refunds ?? []).map((refund) => (
                     <li className="text-ink" key={refund.id}>
                       Reembolso registrado: {usd(refund.amount)} (
@@ -519,7 +521,7 @@ export function SaleDetailPage() {
             <div className={panelHead}>
               <h2 className={panelTitle}>Importes</h2>
             </div>
-            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-4 py-3 text-[13px]">
+            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-4 py-3 text-body">
               <AmountRow label="Total confirmado" value={sale.grand_total} />
               <AmountRow label="Exigible vigente" value={money.exigible} />
               <AmountRow label="Cobrado en dinero" value={money.paid_total} />
@@ -542,19 +544,19 @@ export function SaleDetailPage() {
               />
             </dl>
             {withheldExcess > 0 && (
-              <p className="border-t border-line px-4 py-2 text-[12.5px] text-warning">
+              <p className="border-t border-line px-4 py-2 text-label text-warning">
                 Hay USD {money.withheld_excess} retenidos de más tras una
                 devolución. No se reembolsan: el Administrador anula la
                 retención cuando el cliente corrija su comprobante.
               </p>
             )}
             {refundDue > 0 && (
-              <p className="border-t border-line px-4 py-2 text-[12.5px] text-ink-muted">
+              <p className="border-t border-line px-4 py-2 text-label text-ink-muted">
                 El exceso por reembolsar no es un saldo a favor ni una deuda del
                 cliente.
               </p>
             )}
-            <p className="border-t border-line px-4 py-2 text-[12px] text-ink-muted">
+            <p className="border-t border-line px-4 py-2 text-label text-ink-muted">
               Los importes, el saldo y los estados se derivan de hechos
               registrados; no se editan.
             </p>
@@ -655,7 +657,7 @@ export function SaleDetailPage() {
 }
 
 const linkButton =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-4 py-2 text-[13.5px] font-semibold'
+  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-4 py-2 text-body font-semibold'
 
 function AmountRow({
   label,

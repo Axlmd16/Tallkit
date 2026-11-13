@@ -13,3 +13,5 @@ export {
   type FormLayoutColumns,
   type FormLayoutProps,
 } from './FormLayout'
+
+export { MasterDetail, type MasterDetailProps } from './MasterDetail'

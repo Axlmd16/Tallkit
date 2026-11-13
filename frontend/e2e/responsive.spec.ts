@@ -31,8 +31,8 @@ const railVariants = [
   { width: 768, railWidth: 72, labels: false },
   { width: 1024, railWidth: 72, labels: false },
   { width: 1279, railWidth: 72, labels: false },
-  { width: 1280, railWidth: 240, labels: true },
-  { width: 1440, railWidth: 240, labels: true },
+  { width: 1280, railWidth: 264, labels: true },
+  { width: 1440, railWidth: 264, labels: true },
 ] as const
 
 test('en teléfono la navegación es un panel temporal que se cierra al elegir', async ({
@@ -129,6 +129,8 @@ test('conserva foco y movimiento reducido con el contenido ampliado', async ({
   await page.setViewportSize({ width: 720, height: 900 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/login')
+  // Con la página recién cargada la primera pulsación puede llegar antes de que React pinte el formulario.
+  await expect(page.getByLabel('Identificación de acceso')).toBeVisible()
   await page.keyboard.press('Tab')
   await expect(page.getByLabel('Identificación de acceso')).toBeFocused()
   await page.evaluate(() => {

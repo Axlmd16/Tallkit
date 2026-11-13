@@ -74,18 +74,18 @@ export function MiniBarChart({
         <div className="flex flex-col gap-1">
           <ScopeLabel scope={scope} />
           {!hideTitle && (
-            <span className="text-[13px] font-medium text-ink">{title}</span>
+            <span className="text-body font-medium text-ink">{title}</span>
           )}
         </div>
         {total !== null && (
           <Money
             amount={total}
-            className="text-[20px] leading-7 font-bold text-ink"
+            className="text-block leading-7 font-bold text-ink"
           />
         )}
       </div>
       {days.length === 0 ? (
-        <p className="grid h-24 place-items-center text-[13px] text-ink-muted">
+        <p className="grid h-24 place-items-center text-body text-ink-muted">
           Sin datos
         </p>
       ) : (
@@ -106,7 +106,7 @@ export function MiniBarChart({
                 >
                   <span
                     aria-label={`${label}: ${formatMoney(day.amount) ?? '—'}`}
-                    className="flex h-full w-full cursor-default items-end rounded-[3px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="flex h-full w-full cursor-default items-end rounded-chip focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                     role="img"
                     tabIndex={0}
                   >
@@ -128,7 +128,7 @@ export function MiniBarChart({
                 </Tooltip>
                 <span
                   aria-hidden="true"
-                  className="text-center text-[11px] font-medium text-ink-muted uppercase"
+                  className="text-center text-micro font-medium text-ink-muted uppercase"
                 >
                   {narrowDay.format(date)}
                 </span>

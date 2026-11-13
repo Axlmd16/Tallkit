@@ -99,7 +99,7 @@ it('muestra número, cliente, emisión, vigencia, total y estado con texto', () 
     'Total USD',
     'Acciones',
   ])
-  expect(within(table).getByText('COM-PRO-000007')).toHaveClass('font-mono')
+  expect(within(table).getByText('COM-PRO-000007')).toHaveClass('code')
   expect(within(table).getByText('Ana Pérez')).toBeInTheDocument()
   expect(within(table).getByText('06/10/2026')).toBeInTheDocument()
   expect(within(table).getByText('13/10/2026')).toBeInTheDocument()

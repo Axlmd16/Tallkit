@@ -45,20 +45,22 @@ export function VehicleBrandPicker({
 
   return (
     <fieldset className="space-y-3" disabled={disabled}>
-      <legend className="text-sm font-semibold text-ink">
+      <legend className="text-body font-semibold text-ink">
         Marcas de vehículo compatibles (opcional)
       </legend>
-      <p className="text-sm text-ink-muted">
+      <p className="text-body text-ink-muted">
         Compatibilidad informativa para búsquedas; no bloquea ventas.
       </p>
 
       <ul aria-label="Marcas seleccionadas" className="flex flex-wrap gap-2">
         {selected.length === 0 && (
-          <li className="text-sm text-ink-muted">Sin marcas seleccionadas.</li>
+          <li className="text-body text-ink-muted">
+            Sin marcas seleccionadas.
+          </li>
         )}
         {selected.map((brand) => (
           <li
-            className="inline-flex min-h-9 items-center gap-1 rounded-chip bg-accent-soft py-1 pl-3 pr-1 text-sm font-semibold text-accent-strong"
+            className="inline-flex min-h-9 items-center gap-1 rounded-chip bg-accent-soft py-1 pl-3 pr-1 text-body font-semibold text-accent-strong"
             key={brand.id}
           >
             {brand.name}
@@ -90,15 +92,15 @@ export function VehicleBrandPicker({
       </Field>
 
       {query.isPending && (
-        <p className="text-sm text-ink-muted">Cargando marcas…</p>
+        <p className="text-body text-ink-muted">Cargando marcas…</p>
       )}
       {query.isError && (
-        <p className="text-sm font-semibold text-danger" role="alert">
+        <p className="text-body font-semibold text-danger" role="alert">
           No fue posible cargar las marcas de vehículo.
         </p>
       )}
       {query.isSuccess && results.length === 0 && (
-        <p className="text-sm text-ink-muted">
+        <p className="text-body text-ink-muted">
           {search.trim()
             ? 'Ninguna marca activa coincide con la búsqueda.'
             : 'No hay marcas de vehículo activas.'}
@@ -131,7 +133,7 @@ export function VehicleBrandPicker({
         />
       )}
       {error && (
-        <p className="text-sm font-semibold text-danger" role="alert">
+        <p className="text-body font-semibold text-danger" role="alert">
           {error}
         </p>
       )}

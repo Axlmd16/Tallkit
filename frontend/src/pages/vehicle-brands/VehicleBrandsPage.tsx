@@ -4,6 +4,7 @@ import {
   Plus,
   Power,
   XCircle,
+  Tag,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
@@ -198,6 +199,7 @@ export function VehicleBrandsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={<Tag />}
         title="Marcas"
         description="Catálogo de marcas homologadas para vehículos atendidos en el taller."
       />
@@ -339,7 +341,7 @@ export function VehicleBrandsPage() {
                 key: 'version',
                 priority: 'secondary',
                 render: (b) => (
-                  <span className="font-mono text-xs text-ink-muted">
+                  <span className="code text-label text-ink-muted">
                     v{b.version}
                   </span>
                 ),

@@ -1,4 +1,10 @@
-import { DotsThreeVertical, Eye, NotePencil, Plus } from '@phosphor-icons/react'
+import {
+  DotsThreeVertical,
+  Eye,
+  NotePencil,
+  Plus,
+  Wrench,
+} from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -64,6 +70,7 @@ export function MaintenanceOrdersPage() {
             </Button>
           )
         }
+        icon={<Wrench />}
         description="Órdenes de mantenimiento del RUC artesanal. El total de servicios es operativo: no es un cobro ni una factura."
         title="Mantenimientos"
       />
@@ -79,6 +86,7 @@ export function MaintenanceOrdersPage() {
                   }
                   placeholder="Número, cliente o placa"
                   value={filters.search}
+                  variant="underline"
                 />
               </div>
               <SegmentedControl
@@ -182,7 +190,7 @@ export function MaintenanceOrdersPage() {
                 key: 'number',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="font-mono font-medium text-ink">
+                  <span className="code font-medium text-ink">
                     {row.number}
                   </span>
                 ),

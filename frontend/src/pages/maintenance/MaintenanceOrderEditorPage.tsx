@@ -139,8 +139,8 @@ export function MaintenanceOrderEditorPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Mantenimientos</p>
-          <h1 className="text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Mantenimientos</p>
+          <h1 className="text-page font-semibold text-ink">
             {order ? `Editar ${order.number}` : 'Nueva orden de mantenimiento'}
           </h1>
         </div>

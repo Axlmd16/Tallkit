@@ -107,9 +107,9 @@ export function ProductDetailPage() {
         <div className="flex min-w-0 items-center gap-3">
           {backLink}
           <div className="min-w-0">
-            <p className="text-xs text-ink-muted">Productos</p>
+            <p className="text-label text-ink-muted">Productos</p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-[22px] leading-7 font-semibold break-words text-ink">
+              <h1 className="text-page font-semibold break-words text-ink">
                 {product.name}
               </h1>
               <StatusBadge
@@ -172,17 +172,17 @@ export function ProductDetailPage() {
             title={canSeeStock ? 'Precio y existencias' : 'Precio'}
           >
             <div className="space-y-2 p-4">
-              <p className="text-xs text-ink-muted">Precio final</p>
+              <p className="text-label text-ink-muted">Precio final</p>
               <Money
                 amount={product.sale_price}
-                className="text-2xl leading-8 font-semibold text-ink"
+                className="text-figure leading-8 font-semibold text-ink"
               />
               <TaxLine scope="commercial" tax={product.tax} />
             </div>
             {canSeeStock && (
               <section
                 aria-label="Existencias"
-                className="space-y-3 border-t border-line p-4 text-[13px]"
+                className="space-y-3 border-t border-line p-4 text-body"
               >
                 {stock.isPending && (
                   <LoadingState label="Consultando existencias…" />
@@ -207,7 +207,7 @@ export function ProductDetailPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-ink">
                         Existencia actual:{' '}
-                        <strong className="text-base tabular-nums">
+                        <strong className="text-block tabular-nums">
                           {stock.data.quantity}
                         </strong>{' '}
                         presentaciones completas.
@@ -218,13 +218,15 @@ export function ProductDetailPage() {
                     </div>
                     <dl className="grid grid-cols-2 gap-3">
                       <div>
-                        <dt className="text-xs text-ink-muted">Reservado</dt>
+                        <dt className="text-label text-ink-muted">Reservado</dt>
                         <dd className="mt-0.5 font-medium text-ink tabular-nums">
                           {stock.data.reserved}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-xs text-ink-muted">Disponible</dt>
+                        <dt className="text-label text-ink-muted">
+                          Disponible
+                        </dt>
                         <dd className="mt-0.5 font-medium text-ink tabular-nums">
                           {stock.data.available}
                         </dd>
@@ -232,10 +234,10 @@ export function ProductDetailPage() {
                     </dl>
                     {(stock.data.reservations ?? []).length > 0 && (
                       <div>
-                        <p className="text-xs text-ink-muted">
+                        <p className="text-label text-ink-muted">
                           Reservas de mantenimiento (no descuentan existencia):
                         </p>
-                        <ul className="mt-1 space-y-1 text-[13px]">
+                        <ul className="mt-1 space-y-1 text-body">
                           {(stock.data.reservations ?? []).map(
                             (reservation) => (
                               <li
@@ -245,7 +247,7 @@ export function ProductDetailPage() {
                                 {reservation.order_id &&
                                 (canSeeOrders || canSeeSales) ? (
                                   <Link
-                                    className="font-mono hover:underline"
+                                    className="code hover:underline"
                                     to={
                                       canSeeOrders
                                         ? `/maintenance/${reservation.order_id}?tab=parts`
@@ -256,7 +258,7 @@ export function ProductDetailPage() {
                                       `Orden ${reservation.order_id}`}
                                   </Link>
                                 ) : (
-                                  <span className="font-mono">
+                                  <span className="code">
                                     {reservation.order_number ??
                                       `Orden ${reservation.order_id ?? '—'}`}
                                   </span>
@@ -274,7 +276,7 @@ export function ProductDetailPage() {
                       <>
                         <dl className="grid grid-cols-2 gap-3">
                           <div>
-                            <dt className="text-xs text-ink-muted">
+                            <dt className="text-label text-ink-muted">
                               Costo promedio
                             </dt>
                             <dd className="mt-0.5 font-medium text-ink tabular-nums">
@@ -288,7 +290,7 @@ export function ProductDetailPage() {
                             </dd>
                           </div>
                           <div>
-                            <dt className="text-xs text-ink-muted">
+                            <dt className="text-label text-ink-muted">
                               Valor inventariable
                             </dt>
                             <dd className="mt-0.5 font-medium text-ink tabular-nums">
@@ -302,7 +304,7 @@ export function ProductDetailPage() {
                             </dd>
                           </div>
                         </dl>
-                        <p className="rounded-control bg-surface-subtle px-3 py-2 text-xs text-ink-muted">
+                        <p className="rounded-control bg-surface-subtle px-3 py-2 text-label text-ink-muted">
                           Es un costo de compra: no es el precio final de venta.
                         </p>
                       </>
@@ -314,7 +316,7 @@ export function ProductDetailPage() {
             {canSeeStock && (
               <div className="border-t border-line p-4">
                 <Link
-                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-control border border-line bg-surface text-sm font-semibold text-ink hover:bg-surface-subtle"
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-control border border-line bg-surface text-body font-semibold text-ink hover:bg-surface-subtle"
                   state={{ from: `/products/${product.id}` }}
                   to={`/inventory/products/${product.id}/kardex`}
                 >

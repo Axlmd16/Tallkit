@@ -167,7 +167,7 @@ export function OrderForm({
           <div className="space-y-4 p-4">
             <div className="ui-field">
               <label
-                className="block text-xs font-semibold text-ink after:ml-0.5 after:text-danger after:content-['*']"
+                className="block text-label font-semibold text-ink after:ml-0.5 after:text-danger after:content-['*']"
                 htmlFor="order-customer"
               >
                 Cliente
@@ -294,7 +294,7 @@ export function OrderForm({
                   />
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-ink-muted"
+                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-label font-semibold text-ink-muted"
                   >
                     km
                   </span>
@@ -368,9 +368,9 @@ export function OrderForm({
           id="order-form-summary"
           title={order ? `Orden ${order.number}` : 'Resumen de la orden'}
         >
-          <dl className="space-y-3 p-4 text-[13px]">
+          <dl className="space-y-3 p-4 text-body">
             <div>
-              <dt className="text-xs text-ink-muted">Cliente</dt>
+              <dt className="text-label text-ink-muted">Cliente</dt>
               <dd className="mt-0.5 font-medium break-words text-ink">
                 {values.customer?.label ?? (
                   <span className="font-normal text-ink-muted">
@@ -378,19 +378,19 @@ export function OrderForm({
                   </span>
                 )}
                 {values.customer?.detail && (
-                  <span className="block text-xs font-normal text-ink-muted">
+                  <span className="block text-label font-normal text-ink-muted">
                     {values.customer.detail}
                   </span>
                 )}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-ink-muted">Vehículo</dt>
+              <dt className="text-label text-ink-muted">Vehículo</dt>
               <dd className="mt-0.5">
                 {vehicleSummary ? (
                   <>
                     <PlateTag plate={vehicleSummary.plate} />
-                    <span className="mt-1 block text-xs text-ink-muted">
+                    <span className="mt-1 block text-label text-ink-muted">
                       {vehicleSummary.description}
                     </span>
                   </>
@@ -401,13 +401,13 @@ export function OrderForm({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <dt className="text-xs text-ink-muted">Apertura</dt>
+                <dt className="text-label text-ink-muted">Apertura</dt>
                 <dd className="mt-0.5 text-ink">
                   {values.openedOn ? documentDate(values.openedOn) : '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-ink-muted">Kilometraje</dt>
+                <dt className="text-label text-ink-muted">Kilometraje</dt>
                 <dd className="mt-0.5 text-ink">
                   {/^\d+$/.test(values.odometer.trim())
                     ? kilometers(Number(values.odometer.trim()))
@@ -416,7 +416,7 @@ export function OrderForm({
               </div>
             </div>
             {!order && (
-              <p className="rounded-control bg-surface-subtle px-3 py-2 text-xs text-ink-muted">
+              <p className="rounded-control bg-surface-subtle px-3 py-2 text-label text-ink-muted">
                 El número ART-OT se asigna al registrar. Servicios y fotografías
                 se agregan después, desde la ficha.
               </p>

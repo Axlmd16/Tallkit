@@ -45,10 +45,10 @@ export function ServiceOperationDocumentPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             Comprobante interno de servicios
           </p>
-          <h1 className="font-mono text-[22px] leading-7 font-semibold">
+          <h1 className="code text-page font-semibold">
             {doc.internal_number}
           </h1>
         </div>
@@ -97,9 +97,9 @@ export function ServiceOperationDocumentPage() {
               : 'CONFIRMADA'
           }
         >
-          <table className="w-full text-[13px]">
+          <table className="w-full text-body">
             <thead>
-              <tr className="border-b border-line text-left text-xs">
+              <tr className="border-b border-line text-left text-label">
                 <th className="py-1 pr-2">Servicio</th>
                 <th className="py-1 pr-2 text-right">Cant.</th>
                 <th className="py-1 pr-2 text-right">Base</th>
@@ -113,12 +113,12 @@ export function ServiceOperationDocumentPage() {
                   <td className="py-1 pr-2">
                     {line.service_name}
                     {line.service_code && (
-                      <span className="block font-mono text-xs text-ink-muted">
+                      <span className="block code text-label text-ink-muted">
                         {line.service_code}
                       </span>
                     )}
                     {line.detail && (
-                      <span className="block text-xs break-words text-ink-muted">
+                      <span className="block text-label break-words text-ink-muted">
                         {line.detail}
                       </span>
                     )}
@@ -137,7 +137,7 @@ export function ServiceOperationDocumentPage() {
               ))}
             </tbody>
           </table>
-          <dl className="mt-3 ml-auto grid w-64 grid-cols-2 gap-1 text-[13px]">
+          <dl className="mt-3 ml-auto grid w-64 grid-cols-2 gap-1 text-body">
             <dt>Base</dt>
             <dd className="text-right">
               <Money amount={doc.base_total} />

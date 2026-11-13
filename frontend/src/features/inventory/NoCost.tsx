@@ -5,7 +5,7 @@
 export function NoCost() {
   return (
     <span
-      className="inline-block rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink-muted"
+      className="inline-block rounded-full bg-surface-muted px-2 py-0.5 text-label font-medium text-ink-muted"
       title="Sin costo registrado"
     >
       Sin costo

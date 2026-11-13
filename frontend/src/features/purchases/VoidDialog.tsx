@@ -115,7 +115,7 @@ export function VoidDialog({
                         {' '}
                         Movimiento posterior:{' '}
                         <Link
-                          className="font-mono font-semibold text-accent underline"
+                          className="code font-semibold text-accent underline"
                           to={`/inventory/operations/${issue.blocking_reference.replace('INV-', '')}`}
                         >
                           {issue.blocking_reference}
@@ -137,7 +137,7 @@ export function VoidDialog({
         {review && review.effects.length > 0 && (
           <section aria-label="Efecto de la anulación">
             <h3 className="font-semibold text-ink">Efecto de la anulación</h3>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-body">
               {review.effects.map((effect) => (
                 <li key={effect.product_id}>
                   <strong>{effect.code}</strong>: se restituyen las existencias

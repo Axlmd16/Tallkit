@@ -88,12 +88,12 @@ export function DataTable<T extends object>({
     rows.some((row) => selectedSet.has(getRowKey(row))) && !allSelected
 
   const tableLayoutClasses = isContained
-    ? 'w-full border-collapse text-left text-[13px] bg-surface'
-    : 'w-full border-collapse text-left text-[13px]'
+    ? 'w-full border-collapse text-left text-body bg-surface'
+    : 'w-full border-collapse text-left text-body'
 
   const theadClasses = isContained
-    ? 'bg-surface-subtle border-b border-line text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase'
-    : 'text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase'
+    ? 'bg-surface-subtle border-b border-line text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase'
+    : 'text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase'
 
   const rowBaseClasses = isContained
     ? 'align-middle transition-colors hover:bg-surface-subtle focus-within:bg-surface-subtle'
@@ -123,7 +123,7 @@ export function DataTable<T extends object>({
                     aria-checked={someSelected ? 'mixed' : allSelected}
                     aria-label="Seleccionar todas las filas"
                     checked={allSelected}
-                    className="size-4 rounded accent-accent cursor-pointer align-middle"
+                    className="size-4 rounded accent-primary cursor-pointer align-middle"
                     onChange={(e) => onSelectAll?.(e.target.checked)}
                     ref={(input) => {
                       if (input) {
@@ -163,7 +163,7 @@ export function DataTable<T extends object>({
                         <span>{column.header}</span>
                         <span
                           aria-hidden="true"
-                          className="text-xs text-ink-muted"
+                          className="text-label text-ink-muted"
                         >
                           {currentSort === 'ascending'
                             ? '▲'
@@ -194,7 +194,7 @@ export function DataTable<T extends object>({
 
               return (
                 <tr
-                  className={`${rowBaseClasses} ${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'bg-accent-soft/60' : ''}`.trim()}
+                  className={`${rowBaseClasses} ${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'bg-primary-soft/60' : ''}`.trim()}
                   onClick={() => onRowClick?.(row)}
                   onKeyDown={(event) => {
                     if (
@@ -216,7 +216,7 @@ export function DataTable<T extends object>({
                       <input
                         aria-label={`Seleccionar fila ${rowKey}`}
                         checked={isSelected}
-                        className="size-4 rounded accent-accent cursor-pointer align-middle"
+                        className="size-4 rounded accent-primary cursor-pointer align-middle"
                         onChange={(e) =>
                           onSelectRow?.(rowKey, e.target.checked)
                         }
@@ -260,7 +260,7 @@ export function DataTable<T extends object>({
           return (
             <li
               className={`min-w-0 px-4 py-3 ${
-                isSelected ? 'bg-accent-soft/60' : ''
+                isSelected ? 'bg-primary-soft/60' : ''
               } ${onRowClick ? 'cursor-pointer' : ''}`}
               key={rowKey}
               onClick={() => onRowClick?.(row)}
@@ -270,10 +270,10 @@ export function DataTable<T extends object>({
                   className="mb-2 flex items-center gap-2"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <label className="inline-flex min-h-11 items-center gap-2 text-[13px] font-semibold text-ink cursor-pointer">
+                  <label className="inline-flex min-h-11 items-center gap-2 text-body font-semibold text-ink cursor-pointer">
                     <input
                       checked={isSelected}
-                      className="size-4 rounded accent-accent"
+                      className="size-4 rounded accent-primary"
                       onChange={(e) => onSelectRow?.(rowKey, e.target.checked)}
                       type="checkbox"
                     />
@@ -282,7 +282,7 @@ export function DataTable<T extends object>({
                 </div>
               )}
 
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[13.5px] font-semibold text-ink">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-body font-semibold text-ink">
                 {columns
                   .filter((column) => column.priority === 'primary')
                   .map((column) => (
@@ -295,7 +295,7 @@ export function DataTable<T extends object>({
                     </span>
                   ))}
               </div>
-              <dl className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-ink-muted">
+              <dl className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink-muted">
                 {columns
                   .filter((column) => column.priority !== 'primary')
                   .map((column) => (

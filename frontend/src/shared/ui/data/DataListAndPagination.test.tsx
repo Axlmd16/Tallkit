@@ -42,7 +42,7 @@ describe('DataList, Pagination y RowActions (C35, C36, C38) - Fase 8.3', () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-bold text-ink">{c.name}</p>
-              <p className="text-xs text-ink-muted">{c.phone}</p>
+              <p className="text-label text-ink-muted">{c.phone}</p>
             </div>
             <RowActions>
               <Button size="40" variant="secondary">

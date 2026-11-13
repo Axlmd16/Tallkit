@@ -100,7 +100,7 @@ export function PendingBlock({
     <SectionPanel
       actions={
         allClear && (
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-success">
+          <span className="inline-flex items-center gap-1.5 text-body font-semibold text-success">
             <CheckCircle aria-hidden="true" size={17} weight="fill" />
             Todo al día
           </span>

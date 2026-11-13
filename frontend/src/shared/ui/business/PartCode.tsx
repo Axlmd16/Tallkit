@@ -16,12 +16,12 @@ export function PartCode({ code, className = '' }: PartCodeProps) {
 
   return (
     <span
-      className={`inline-flex min-h-7 items-center overflow-hidden rounded-chip border border-line-strong bg-surface-subtle font-mono text-[12.5px] font-semibold text-ink ${className}`}
+      className={`inline-flex min-h-7 items-center overflow-hidden rounded-chip bg-surface-muted code text-label font-semibold text-ink ${className}`}
     >
       <span className="px-2">{code}</span>
       <button
         aria-label={`Copiar código ${code}`}
-        className="grid size-7 place-items-center border-l border-line-strong text-ink-muted hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+        className="grid size-7 place-items-center border-l border-line-strong text-ink-muted hover:bg-line hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
         onClick={() => void copy()}
         type="button"
       >

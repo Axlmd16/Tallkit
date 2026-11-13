@@ -25,10 +25,10 @@ function getInitials(name: string): string {
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
-  '36': 'size-9 text-xs',
-  '70': 'size-[70px] text-xl font-bold',
-  '134': 'size-[134px] text-4xl font-extrabold',
-  '45x43': 'w-[45px] h-[43px] text-sm font-semibold',
+  '36': 'size-9 text-label',
+  '70': 'size-[70px] text-block font-bold',
+  '134': 'size-[134px] text-display font-extrabold',
+  '45x43': 'w-[45px] h-[43px] text-body font-semibold',
 }
 
 const iconSizes: Record<AvatarSize, number> = {

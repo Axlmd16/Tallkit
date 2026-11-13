@@ -1,3 +1,4 @@
+import { Coins } from '@phosphor-icons/react'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import { documentDate, PaymentStateBadge } from '@/features/sales/format'
@@ -46,9 +47,10 @@ export function ReceivablesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<Coins />}
         actions={
           <Link
-            className="text-[13px] font-semibold text-accent hover:underline"
+            className="text-body font-semibold text-accent hover:underline"
             to="/sales/withholdings"
           >
             Retenciones por completar
@@ -63,25 +65,25 @@ export function ReceivablesPage() {
           className="grid gap-px overflow-hidden rounded-panel border border-line bg-line sm:grid-cols-2"
         >
           <div className="bg-surface px-4 py-3">
-            <h2 className="text-xs font-semibold text-ink-muted">
+            <h2 className="text-label font-semibold text-ink-muted">
               Deuda cobrable
             </h2>
-            <p className="mt-1 text-xl font-semibold text-ink">
+            <p className="mt-1 text-block font-semibold text-ink">
               <Money amount={totals.receivable_total} />
             </p>
-            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+            <p className="mt-0.5 text-label text-ink-muted">
               en {totals.count} ventas (todas las coincidencias, no solo esta
               página).
             </p>
           </div>
           <div className="bg-surface px-4 py-3">
-            <h2 className="text-xs font-semibold text-ink-muted">
+            <h2 className="text-label font-semibold text-ink-muted">
               Reembolsos pendientes
             </h2>
-            <p className="mt-1 text-xl font-semibold text-ink">
+            <p className="mt-1 text-block font-semibold text-ink">
               <Money amount={totals.refund_due_total} />
             </p>
-            <p className="mt-0.5 text-[12.5px] text-ink-muted">
+            <p className="mt-0.5 text-label text-ink-muted">
               No se resta de la deuda ni es saldo a favor utilizable.
             </p>
           </div>
@@ -110,7 +112,7 @@ export function ReceivablesPage() {
           >
             <div className="ui-field">
               <label
-                className="block text-xs font-semibold text-ink"
+                className="block text-label font-semibold text-ink"
                 htmlFor="receivables-customer"
               >
                 Cliente
@@ -224,7 +226,7 @@ export function ReceivablesPage() {
                 priority: 'primary',
                 render: (row) => (
                   <Link
-                    className="font-mono font-semibold text-accent hover:underline"
+                    className="code font-semibold text-accent hover:underline"
                     to={`/sales/${row.id}`}
                   >
                     {row.internal_number}

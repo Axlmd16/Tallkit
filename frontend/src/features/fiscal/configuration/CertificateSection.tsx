@@ -84,7 +84,7 @@ export function certificateValidity(
 
 const BAR_TONES: Record<StateChipTone, string> = {
   success: 'bg-success',
-  warning: 'bg-[#c98a00]',
+  warning: 'bg-warning',
   danger: 'bg-danger',
   info: 'bg-info',
   primary: 'bg-primary',
@@ -125,7 +125,7 @@ export function CertificateSection({
                   <>
                     <WarningCircle
                       aria-hidden="true"
-                      className="text-[#c98a00]"
+                      className="text-warning"
                       size={16}
                       weight="fill"
                     />
@@ -163,11 +163,11 @@ export function CertificateSection({
             </FactRow>
             <FactRow label="Emisor">{certificate.issuer}</FactRow>
             <FactRow label="Referencia">
-              <span className="font-mono">{certificate.reference}</span>
+              <span className="code">{certificate.reference}</span>
             </FactRow>
             <FactRow label="Vigencia">
               <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="font-mono text-[13px]">
+                <span className="code text-body">
                   {certificate.starts_on} — {certificate.ends_on}
                 </span>
                 <StateMark
@@ -220,7 +220,7 @@ function CertificateCard({
     >
       <header className="flex items-center gap-2 bg-primary px-4 py-3 text-white">
         <ShieldCheck aria-hidden="true" size={18} weight="duotone" />
-        <span className="text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase">
+        <span className="text-micro font-semibold tracking-[0.12em] whitespace-nowrap uppercase">
           Certificado de firma
         </span>
         <span className="ml-auto">
@@ -229,23 +229,23 @@ function CertificateCard({
       </header>
       <div className="space-y-3 px-4 py-4">
         <div>
-          <p className="text-lg leading-snug font-bold break-words text-ink">
+          <p className="text-block leading-snug font-bold break-words text-ink">
             {values.holder || (
               <span className="font-normal text-ink-muted">Titular</span>
             )}
           </p>
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-body text-ink-muted">
             {values.issuer || 'Entidad emisora'}
           </p>
         </div>
-        <p className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+        <p className="flex flex-wrap items-center gap-2 text-label text-ink-muted">
           Referencia
-          <span className="rounded-chip border border-line bg-surface-subtle px-2 py-0.5 font-mono text-[13px] text-ink">
+          <span className="rounded-chip border border-line bg-surface-subtle px-2 py-0.5 code text-body text-ink">
             {values.reference || '—'}
           </span>
         </p>
         <div>
-          <div className="flex justify-between font-mono text-xs text-ink-muted">
+          <div className="flex justify-between code text-label text-ink-muted">
             <span>{values.starts_on || 'Inicio'}</span>
             <span>{values.ends_on || 'Vencimiento'}</span>
           </div>
@@ -262,7 +262,7 @@ function CertificateCard({
           </div>
         </div>
         {values.source && (
-          <p className="text-xs text-ink-muted">Fuente: {values.source}</p>
+          <p className="text-label text-ink-muted">Fuente: {values.source}</p>
         )}
       </div>
     </article>
@@ -341,7 +341,7 @@ function CertificateModal({
       <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_17.5rem]">
         <div className="space-y-5">
           {error && (
-            <p className="text-xs font-semibold text-danger" role="alert">
+            <p className="text-label font-semibold text-danger" role="alert">
               {error}
             </p>
           )}
@@ -351,7 +351,7 @@ function CertificateModal({
               label="Referencia o identificador"
             >
               <Input
-                className="font-mono"
+                className="code"
                 onChange={set('reference')}
                 value={values.reference}
               />
@@ -396,10 +396,10 @@ function CertificateModal({
               className="flex flex-wrap items-center gap-2"
               role="group"
             >
-              <span className="text-xs text-ink-muted">Duración:</span>
+              <span className="text-label text-ink-muted">Duración:</span>
               {[1, 2, 3].map((years) => (
                 <button
-                  className="ui-button min-h-8 rounded-full border border-line-strong bg-surface px-3 text-xs font-semibold text-ink hover:border-accent hover:bg-accent-soft hover:text-accent-strong focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                  className="ui-button min-h-8 rounded-full border border-line-strong bg-surface px-3 text-label font-semibold text-ink hover:border-accent hover:bg-accent-soft hover:text-accent-strong focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   key={years}
                   onClick={() => setDuration(years)}
                   type="button"
@@ -419,11 +419,11 @@ function CertificateModal({
           </Step>
         </div>
         <aside aria-label="Vista previa del certificado" className="space-y-3">
-          <p className="text-[11px] font-semibold tracking-[0.12em] text-ink-muted uppercase">
+          <p className="text-micro font-semibold tracking-[0.12em] text-ink-muted uppercase">
             Vista previa
           </p>
           <CertificateCard values={values} />
-          <p className="flex items-start gap-2 rounded-control bg-surface-subtle px-3 py-2.5 text-xs text-ink-muted">
+          <p className="flex items-start gap-2 rounded-control bg-surface-subtle px-3 py-2.5 text-label text-ink-muted">
             <LockSimple
               aria-hidden="true"
               className="mt-px shrink-0"
@@ -450,10 +450,10 @@ function Step({
 }) {
   return (
     <fieldset className="min-w-0 space-y-3 border-0 p-0">
-      <legend className="mb-3 flex items-center gap-2.5 p-0 text-sm font-semibold text-ink">
+      <legend className="mb-3 flex items-center gap-2.5 p-0 text-body font-semibold text-ink">
         <span
           aria-hidden="true"
-          className="grid size-6 place-items-center rounded-full bg-primary-soft text-xs font-bold text-primary"
+          className="grid size-6 place-items-center rounded-full bg-primary-soft text-label font-bold text-primary"
         >
           {number}
         </span>

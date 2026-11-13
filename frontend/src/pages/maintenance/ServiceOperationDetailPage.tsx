@@ -106,11 +106,11 @@ export function ServiceOperationDetailPage() {
             <ArrowLeft aria-hidden="true" size={18} />
           </Link>
           <div>
-            <p className="text-xs text-ink-muted">
+            <p className="text-label text-ink-muted">
               Operación de servicios · orden {operation.order_number}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-[22px] leading-7 font-semibold">
+              <h1 className="code text-page font-semibold">
                 {operation.internal_number}
               </h1>
               <FiscalScopeBadge scope="artesanal" />
@@ -123,7 +123,7 @@ export function ServiceOperationDetailPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-control border border-line px-3 text-[13px] font-semibold hover:bg-surface-subtle"
+            className="inline-flex min-h-10 items-center gap-2 rounded-control border border-line px-3 text-body font-semibold hover:bg-surface-subtle"
             to={`/maintenance/service-operations/${operation.id}/document`}
           >
             <FileText aria-hidden="true" size={16} />
@@ -195,18 +195,18 @@ export function ServiceOperationDetailPage() {
           ['Saldo', operation.balance],
         ].map(([label, amount]) => (
           <div className="bg-surface px-4 py-3" key={label}>
-            <p className="text-xs font-semibold text-ink-muted">{label}</p>
-            <p className="mt-1 text-xl font-semibold">
+            <p className="text-label font-semibold text-ink-muted">{label}</p>
+            <p className="mt-1 text-block font-semibold">
               <Money amount={amount ?? null} />
             </p>
           </div>
         ))}
         <div className="bg-surface px-4 py-3">
-          <p className="text-xs font-semibold text-ink-muted">Condición</p>
-          <p className="mt-1 text-[15px] font-semibold">
+          <p className="text-label font-semibold text-ink-muted">Condición</p>
+          <p className="mt-1 text-lead font-semibold">
             {operation.condition === 'CREDITO' ? 'Crédito' : 'Contado'}
           </p>
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             Sin vencimiento, cuotas ni intereses.
           </p>
         </div>
@@ -218,9 +218,9 @@ export function ServiceOperationDetailPage() {
         title="Servicios documentados"
       >
         <div className="overflow-x-auto p-4">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-body">
             <thead>
-              <tr className="border-b border-line text-left text-xs text-ink-muted">
+              <tr className="border-b border-line text-left text-label text-ink-muted">
                 <th className="py-2 pr-3 font-semibold">Servicio</th>
                 <th className="py-2 pr-3 text-right font-semibold">Cant.</th>
                 <th className="py-2 pr-3 text-right font-semibold">
@@ -240,16 +240,16 @@ export function ServiceOperationDetailPage() {
                   <td className="py-2 pr-3">
                     {line.service_name}
                     {line.service_code && (
-                      <span className="block font-mono text-xs text-ink-muted">
+                      <span className="block code text-label text-ink-muted">
                         {line.service_code}
                       </span>
                     )}
                     {line.detail && (
-                      <span className="block text-xs break-words text-ink-muted">
+                      <span className="block text-label break-words text-ink-muted">
                         {line.detail}
                       </span>
                     )}
-                    <span className="block text-xs text-ink-muted">
+                    <span className="block text-label text-ink-muted">
                       {line.tax_name} · {line.tax_rate} %
                     </span>
                   </td>
@@ -280,11 +280,9 @@ export function ServiceOperationDetailPage() {
       >
         <div className="p-4">
           {operation.payments.length === 0 ? (
-            <p className="text-[13px] text-ink-muted">
-              Sin cobros registrados.
-            </p>
+            <p className="text-body text-ink-muted">Sin cobros registrados.</p>
           ) : (
-            <ul className="divide-y divide-line text-[13px]">
+            <ul className="divide-y divide-line text-body">
               {operation.payments.map((payment) => (
                 <li
                   className="flex flex-wrap items-center gap-3 py-2"
@@ -312,7 +310,7 @@ export function ServiceOperationDetailPage() {
                     }
                   />
                   {payment.correction && (
-                    <span className="text-xs text-ink-muted">
+                    <span className="text-label text-ink-muted">
                       Motivo: {payment.correction.reason}
                     </span>
                   )}
@@ -356,7 +354,7 @@ export function ServiceOperationDetailPage() {
             }}
             withholdings={operation.withholdings ?? []}
           />
-          <p className="border-t border-line px-4 py-2 text-[12px] text-ink-muted">
+          <p className="border-t border-line px-4 py-2 text-label text-ink-muted">
             Lo retenido baja la deuda, pero no es dinero recibido.{' '}
             <Link
               className="font-semibold text-accent hover:underline"

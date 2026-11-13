@@ -10,15 +10,15 @@ export function RucPlate({ ruc, className = '', size = 'md' }: RucPlateProps) {
 
   return (
     <span
-      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-chip border-[1.5px] border-ink bg-surface font-mono text-ink ${className}`}
+      className={`inline-flex shrink-0 items-stretch overflow-hidden rounded-chip border border-ink bg-surface code text-ink ${className}`}
     >
       <span
-        className={`flex items-center bg-ink font-semibold tracking-[0.1em] text-surface ${compact ? 'px-1.5 text-[9px]' : 'px-[7px] text-[10px]'}`}
+        className={`flex items-center bg-ink font-semibold tracking-[0.1em] text-surface ${compact ? 'px-1.5 text-micro' : 'px-[7px] text-micro'}`}
       >
         RUC
       </span>{' '}
       <span
-        className={`tracking-[0.06em] tabular-nums ${compact ? 'px-2 py-[3px] text-[13px]' : 'px-2.5 py-[5px] text-[15px]'}`}
+        className={`tabular-nums ${compact ? 'px-2 py-[3px] text-body' : 'px-2.5 py-[5px] text-lead'}`}
       >
         {ruc}
       </span>

@@ -58,10 +58,10 @@ it('distinguishes loading from an actionable empty result', () => {
 })
 
 describe('estados Tallkit', () => {
-  it('un estado es rectangular, con marcador y texto', () => {
+  it('un estado es una píldora, con punto y texto', () => {
     render(<StatusBadge label="Confirmada" tone="success" />)
     const badge = screen.getByRole('status', { name: 'Estado: Confirmada' })
-    expect(badge.className).toMatch(/rounded-chip/)
+    expect(badge.className).toMatch(/rounded-full/)
     expect(badge.querySelector('[data-marker]')).not.toBeNull()
   })
 

@@ -21,8 +21,8 @@ export function DetailItem({
         {icon}
       </span>
       <div className="min-w-0">
-        <dt className="text-xs text-ink-muted">{label}</dt>
-        <dd className="mt-0.5 text-[13px] font-medium break-words text-ink">
+        <dt className="text-label text-ink-muted">{label}</dt>
+        <dd className="mt-0.5 text-body font-medium break-words text-ink">
           {children}
         </dd>
       </div>

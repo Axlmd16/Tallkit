@@ -112,3 +112,4 @@ export {
   type ProgressTone,
   type ProgressVariant,
 } from './data/Progress'
+export * from './brand'

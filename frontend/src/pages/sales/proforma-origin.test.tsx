@@ -81,7 +81,7 @@ it('la lista de ventas filtra por origen proforma y muestra el número de la ofe
   expect(mocks.args.at(-1)).toMatchObject({ origin: 'PROFORMA' })
   expect(screen.getByLabelText('Origen')).toHaveValue('PROFORMA')
   const table = screen.getByRole('table', { name: 'Ventas' })
-  expect(within(table).getByText('COM-PRO-000004')).toHaveClass('font-mono')
+  expect(within(table).getByText('COM-PRO-000004')).toHaveClass('code')
   expect(within(table).getByText(/Proforma/)).toBeInTheDocument()
 })
 

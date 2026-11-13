@@ -184,9 +184,9 @@ export function VehicleDetailPage() {
 
   const field = (label: string, value: ReactNode, mono = false) => (
     <div>
-      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dt className="text-label text-ink-muted">{label}</dt>
       <dd
-        className={`mt-0.5 text-[13.5px] font-medium text-ink ${mono ? 'font-mono' : ''}`}
+        className={`mt-0.5 text-body font-medium text-ink ${mono ? 'code' : ''}`}
       >
         {value}
       </dd>
@@ -205,8 +205,8 @@ export function VehicleDetailPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0">
-          <p className="text-xs text-ink-muted">Vehículos</p>
-          <h1 className="text-[22px] leading-7 font-semibold text-ink">
+          <p className="text-label text-ink-muted">Vehículos</p>
+          <h1 className="text-page font-semibold text-ink">
             {vehicle.brand.name} {vehicle.model}
           </h1>
         </div>
@@ -249,7 +249,7 @@ export function VehicleDetailPage() {
           >
             <div className="border-b border-line px-5 py-3">
               <h2
-                className="text-[14.5px] font-semibold text-ink"
+                className="text-body font-semibold text-ink"
                 id="vehicle-periods-title"
               >
                 Historial de propiedad
@@ -258,14 +258,14 @@ export function VehicleDetailPage() {
             {periodsQuery.isLoading ? (
               <LoadingState label="Cargando períodos de propiedad…" />
             ) : periods.length === 0 ? (
-              <p className="px-5 py-6 text-[13px] text-ink-muted">
+              <p className="px-5 py-6 text-body text-ink-muted">
                 No hay períodos de propiedad registrados para este vehículo.
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13px]">
+                <table className="w-full text-left text-body">
                   <thead>
-                    <tr className="border-b border-line bg-surface-subtle text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+                    <tr className="border-b border-line bg-surface-subtle text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase">
                       <th className="h-9 px-4">Propietario</th>
                       <th className="h-9 px-4">Identificación</th>
                       <th className="h-9 px-4">Inicio</th>
@@ -284,7 +284,7 @@ export function VehicleDetailPage() {
                             {p.customer.name}
                           </Link>
                         </td>
-                        <td className="h-12 px-4 font-mono text-xs text-ink-muted">
+                        <td className="h-12 px-4 code text-label text-ink-muted">
                           {p.customer.identification}
                         </td>
                         <td className="h-12 px-4 text-ink-muted">
@@ -350,7 +350,7 @@ export function VehicleDetailPage() {
             >
               <div className="border-b border-line px-4 py-3">
                 <h2
-                  className="text-[14.5px] font-semibold text-ink"
+                  className="text-body font-semibold text-ink"
                   id="vehicle-actions-title"
                 >
                   Acciones
@@ -395,14 +395,14 @@ export function VehicleDetailPage() {
           >
             <div className="flex items-center justify-between border-b border-line px-4 py-3">
               <h2
-                className="text-[14.5px] font-semibold text-ink"
+                className="text-body font-semibold text-ink"
                 id="vehicle-owner-title"
               >
                 Propietario actual
               </h2>
               {vehicle.current_owner && (
                 <Link
-                  className="text-[12.5px] font-semibold text-accent hover:underline"
+                  className="text-label font-semibold text-accent hover:underline"
                   to={`/customers/${vehicle.current_owner.id}`}
                 >
                   Ver cliente
@@ -410,17 +410,17 @@ export function VehicleDetailPage() {
               )}
             </div>
             {vehicle.current_owner ? (
-              <div className="space-y-3 p-4 text-[13px]">
+              <div className="space-y-3 p-4 text-body">
                 <div>
                   <Link
-                    className="text-sm font-semibold text-ink hover:text-accent hover:underline"
+                    className="text-body font-semibold text-ink hover:text-accent hover:underline"
                     to={`/customers/${vehicle.current_owner.id}`}
                   >
                     {vehicle.current_owner.name}
                   </Link>
-                  <p className="text-[12.5px] text-ink-muted">
+                  <p className="text-label text-ink-muted">
                     Identificación{' '}
-                    <span className="font-mono">
+                    <span className="code">
                       {vehicle.current_owner.identification}
                     </span>
                   </p>
@@ -450,7 +450,7 @@ export function VehicleDetailPage() {
                 )}
               </div>
             ) : (
-              <p className="p-4 text-[13px] text-ink-muted">
+              <p className="p-4 text-body text-ink-muted">
                 Este vehículo no tiene propietario registrado actualmente.
               </p>
             )}
@@ -493,7 +493,7 @@ export function VehicleDetailPage() {
             </InlineNotice>
           )}
 
-          <div className="rounded-control bg-surface-muted p-3 text-xs text-ink">
+          <div className="rounded-control bg-surface-muted p-3 text-label text-ink">
             <p>
               <span className="font-semibold">Vehículo:</span> {vehicle.plate} (
               {vehicle.brand.name} {vehicle.model})

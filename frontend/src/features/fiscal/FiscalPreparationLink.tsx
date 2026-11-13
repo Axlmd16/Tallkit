@@ -51,7 +51,7 @@ export function FiscalPreparationLink({
           />
         )}
       </div>
-      <p className="mt-1 text-sm text-ink-muted">
+      <p className="mt-1 text-body text-ink-muted">
         Todavía no se ha enviado al SRI.
       </p>
       {createPreparation.isError && (

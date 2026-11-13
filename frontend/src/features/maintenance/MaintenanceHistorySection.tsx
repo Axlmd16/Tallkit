@@ -49,7 +49,7 @@ export function MaintenanceHistorySection({
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
         <h2
-          className="text-[14.5px] font-semibold text-ink"
+          className="text-body font-semibold text-ink"
           id="maintenance-history-title"
         >
           Historial de mantenimientos
@@ -79,7 +79,7 @@ export function MaintenanceHistorySection({
             </Button>
           </InlineNotice>
         ) : query.data.results.length === 0 ? (
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-body text-ink-muted">
             No hay órdenes de mantenimiento registradas.
           </p>
         ) : (
@@ -87,12 +87,12 @@ export function MaintenanceHistorySection({
             <ul className="divide-y divide-line">
               {query.data.results.map((item) => (
                 <li
-                  className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-[13px]"
+                  className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-body"
                   key={item.id}
                 >
                   <div className="min-w-0">
                     <Link
-                      className="font-mono font-semibold text-ink hover:text-accent hover:underline"
+                      className="code font-semibold text-ink hover:text-accent hover:underline"
                       to={`/maintenance/${item.id}`}
                     >
                       {item.number}
@@ -100,7 +100,7 @@ export function MaintenanceHistorySection({
                     <span className="ml-2 text-ink-muted">
                       {documentDate(item.opened_on)}
                     </span>
-                    <p className="truncate text-xs text-ink-muted">
+                    <p className="truncate text-label text-ink-muted">
                       {vehicleId ? (
                         item.customer.name
                       ) : (

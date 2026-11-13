@@ -45,7 +45,7 @@ function ReferenceLink({ reference }: { reference: ProformaReference }) {
       className="font-semibold text-accent hover:underline"
       to={`/proformas/${reference.id}`}
     >
-      <span className="font-mono">{reference.number ?? 'Borrador'}</span> ·{' '}
+      <span className="code">{reference.number ?? 'Borrador'}</span> ·{' '}
       {proformaStateLabels[reference.state]}
     </Link>
   )
@@ -62,10 +62,10 @@ function Lines({ proforma }: { proforma: Proforma }) {
         role="region"
         tabIndex={0}
       >
-        <table className="w-full min-w-[640px] text-sm">
+        <table className="w-full min-w-[640px] text-body">
           <caption className="sr-only">Productos de la proforma</caption>
           <thead>
-            <tr className="text-left text-xs text-ink-muted">
+            <tr className="text-left text-label text-ink-muted">
               <th className="py-2 pr-3 font-semibold" scope="col">
                 Código
               </th>
@@ -103,19 +103,19 @@ function Lines({ proforma }: { proforma: Proforma }) {
                 key={line.position}
               >
                 <th
-                  className="py-2.5 pr-3 text-left font-mono font-normal"
+                  className="py-2.5 pr-3 text-left code font-normal"
                   scope="row"
                 >
                   {line.product_code}
                 </th>
-                <td className="px-2 py-2.5 font-mono">
+                <td className="px-2 py-2.5 code">
                   {line.manufacturer_code || '—'}
                 </td>
                 <td className="px-2 py-2.5">{line.brand_name || '—'}</td>
                 <td className="px-2 py-2.5">
                   {line.product_name}
                   {line.product_active === false && (
-                    <span className="ml-2 text-xs font-semibold text-danger">
+                    <span className="ml-2 text-label font-semibold text-danger">
                       Inactivo
                     </span>
                   )}
@@ -134,7 +134,7 @@ function Lines({ proforma }: { proforma: Proforma }) {
           </tbody>
         </table>
       </div>
-      <dl className="mt-3 ml-auto grid max-w-[280px] grid-cols-2 gap-1 text-sm">
+      <dl className="mt-3 ml-auto grid max-w-[280px] grid-cols-2 gap-1 text-body">
         <dt className="text-ink-muted">Base imponible</dt>
         <dd className="text-right tabular-nums">
           {proforma.totals?.base ? usd(proforma.totals.base) : '—'}
@@ -184,12 +184,12 @@ function Related({ proforma }: { proforma: Proforma }) {
             className="font-semibold text-accent hover:underline"
             to={`/sales/${sale.id}`}
           >
-            <span className="font-mono">
+            <span className="code">
               {sale.internal_number ?? 'Venta en borrador'}
             </span>
           </Link>
         ) : (
-          <span className="font-mono">
+          <span className="code">
             {sale.internal_number ?? 'Venta en borrador'}
           </span>
         )}
@@ -305,9 +305,9 @@ export function ProformaDetailPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-ink-muted">Proforma</p>
-          <h1 className="flex flex-wrap items-center gap-3 text-[22px] leading-7 font-semibold text-ink">
-            <span className="font-mono">
+          <p className="text-label text-ink-muted">Proforma</p>
+          <h1 className="flex flex-wrap items-center gap-3 text-page font-semibold text-ink">
+            <span className="code">
               {proforma.internal_number ?? 'Sin número'}
             </span>
             <ProformaStateBadge state={proforma.state} />
@@ -391,13 +391,13 @@ export function ProformaDetailPage() {
       <section className="rounded-panel border border-line bg-surface p-4">
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <dt className="text-xs text-ink-muted">Cliente</dt>
+            <dt className="text-label text-ink-muted">Cliente</dt>
             {proforma.customer ? (
               <>
                 <dd className="font-medium text-ink">
                   {proforma.customer.name}
                 </dd>
-                <dd className="text-[13px] text-ink-muted">
+                <dd className="text-body text-ink-muted">
                   {proforma.customer.identification_type}{' '}
                   {proforma.customer.identification}
                 </dd>
@@ -407,13 +407,13 @@ export function ProformaDetailPage() {
             )}
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Emisión</dt>
+            <dt className="text-label text-ink-muted">Emisión</dt>
             <dd className="font-medium text-ink">
               {proforma.issue_date ? documentDate(proforma.issue_date) : '—'}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Vigente hasta</dt>
+            <dt className="text-label text-ink-muted">Vigente hasta</dt>
             <dd className="font-medium text-ink">
               {proforma.valid_until
                 ? documentDate(proforma.valid_until)
@@ -423,8 +423,8 @@ export function ProformaDetailPage() {
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Total USD</dt>
-            <dd className="text-xl font-bold text-ink tabular-nums">
+            <dt className="text-label text-ink-muted">Total USD</dt>
+            <dd className="text-block font-bold text-ink tabular-nums">
               <Money amount={proforma.totals?.total ?? null} />
             </dd>
           </div>

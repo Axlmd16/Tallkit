@@ -1,3 +1,5 @@
+import { House } from '@phosphor-icons/react'
+
 import { useSession } from '@/features/auth/hooks'
 import { roleLabels } from '@/features/auth/types'
 import {
@@ -44,6 +46,7 @@ export function HomePage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        icon={<House />}
         {...(session?.username
           ? {
               description: `Sesión de ${session.username}${roles.length > 0 ? ` · ${roles.join(' · ')}` : ''}.`,

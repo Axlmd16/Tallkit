@@ -9,7 +9,7 @@ import type { Service } from './types'
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2">
-      <h3 className="text-[11.5px] font-semibold tracking-[0.04em] text-ink-muted uppercase">
+      <h3 className="text-micro font-semibold tracking-[0.04em] text-ink-muted uppercase">
         {title}
       </h3>
       {children}
@@ -23,7 +23,7 @@ export function ServicePreview({ service }: { service: Service }) {
     <div className="space-y-6">
       <div className="rounded-panel border border-line bg-surface-subtle p-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-ink-muted">Precio final sugerido</p>
+          <p className="text-label text-ink-muted">Precio final sugerido</p>
           <StatusBadge
             label={service.is_active ? 'Activo' : 'Inactivo'}
             tone={service.is_active ? 'success' : 'neutral'}
@@ -31,7 +31,7 @@ export function ServicePreview({ service }: { service: Service }) {
         </div>
         <Money
           amount={service.reference_price}
-          className="mt-1 text-[28px] leading-9 font-semibold text-ink"
+          className="mt-1 text-page leading-9 font-semibold text-ink"
         />
         <div className="mt-3 border-t border-line pt-3">
           <TaxLine scope="artesanal" tax={service.tax} />
@@ -39,7 +39,7 @@ export function ServicePreview({ service }: { service: Service }) {
       </div>
 
       <Section title="Descripción">
-        <p className="text-[13px] leading-relaxed whitespace-pre-line text-ink">
+        <p className="text-body leading-relaxed whitespace-pre-line text-ink">
           {service.description || (
             <span className="text-ink-muted">Sin descripción</span>
           )}
@@ -49,27 +49,27 @@ export function ServicePreview({ service }: { service: Service }) {
       <Section title="Registro">
         <dl className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
-            <dt className="text-xs text-ink-muted">Código</dt>
-            <dd className="mt-0.5 font-mono text-[13px] font-medium text-ink">
+            <dt className="text-label text-ink-muted">Código</dt>
+            <dd className="mt-0.5 code text-body font-medium text-ink">
               {service.code}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Creado</dt>
-            <dd className="mt-0.5 text-[13px] font-medium text-ink">
+            <dt className="text-label text-ink-muted">Creado</dt>
+            <dd className="mt-0.5 text-body font-medium text-ink">
               {recordDate(service.created_at)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Actualizado</dt>
-            <dd className="mt-0.5 text-[13px] font-medium text-ink">
+            <dt className="text-label text-ink-muted">Actualizado</dt>
+            <dd className="mt-0.5 text-body font-medium text-ink">
               {recordDate(service.updated_at)}
             </dd>
           </div>
         </dl>
       </Section>
 
-      <p className="border-t border-line pt-4 text-xs leading-relaxed text-ink-muted">
+      <p className="border-t border-line pt-4 text-label leading-relaxed text-ink-muted">
         El precio es referencial: el Encargado del taller puede ajustarlo antes
         de confirmar una operación, sin modificar este catálogo ni la historia.
       </p>

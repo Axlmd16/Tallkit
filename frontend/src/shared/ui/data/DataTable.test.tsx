@@ -250,7 +250,7 @@ describe('DataTable (C34) - Fase 8.1', () => {
     expect(handleSort).toHaveBeenCalledWith('plate', 'descending')
   })
 
-  it('resalta las filas seleccionadas con el acento de selección', () => {
+  it('resalta las filas seleccionadas con el cobre suave', () => {
     render(
       <DataTable
         columns={columns}
@@ -269,8 +269,7 @@ describe('DataTable (C34) - Fase 8.1', () => {
       .getAllByText('P-5678')
       .map((cell) => cell.closest('tr'))
       .find(Boolean)!
-    expect(selected.className).toMatch(/\bbg-accent-soft/)
-    expect(other.className).not.toMatch(/bg-accent-soft/)
-    expect(selected.className).not.toMatch(/primary/)
+    expect(selected.className).toMatch(/\bbg-primary-soft/)
+    expect(other.className).not.toMatch(/bg-primary-soft/)
   })
 })

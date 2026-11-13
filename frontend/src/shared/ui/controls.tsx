@@ -24,7 +24,8 @@ export type ButtonSize = '40' | '50'
 const buttonVariants: Record<ButtonVariant, string> = {
   primary:
     'border-primary bg-primary text-white hover:border-primary-strong hover:bg-primary-strong',
-  secondary: 'border-line-strong bg-surface text-ink hover:bg-surface-subtle',
+  /** Secundaria: contorno de tinta sobre la superficie. */
+  secondary: 'border-ink bg-surface text-ink hover:bg-surface-muted',
   quiet:
     'border-transparent bg-transparent text-accent hover:bg-accent-soft hover:text-accent-strong',
   /** Acción de sección siempre visible: petróleo suave en reposo, borde petróleo al pasar el cursor. */
@@ -33,13 +34,14 @@ const buttonVariants: Record<ButtonVariant, string> = {
     'border-danger/30 bg-surface text-danger hover:border-danger/45 hover:bg-danger-soft',
   'danger-solid':
     'border-danger bg-danger text-white hover:border-danger/90 hover:bg-danger/90',
+  /** Fantasma: sin fondo ni contorno en reposo. */
   ghost:
-    'border-transparent bg-transparent text-ink-muted hover:bg-surface-subtle hover:text-ink',
+    'border-transparent bg-transparent text-ink-muted hover:bg-surface-muted hover:text-ink',
 }
 
 const buttonSizes: Record<ButtonSize, string> = {
-  '40': 'min-h-10 px-4 py-2 text-[13.5px]',
-  '50': 'min-h-11 px-5 py-2.5 text-sm',
+  '40': 'min-h-10 px-4 py-2 text-body',
+  '50': 'min-h-11 px-5 py-2.5 text-body',
 }
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -194,19 +196,22 @@ export function Field({
     <FieldContext.Provider value={{ describedBy, id, invalid: Boolean(error) }}>
       <div className={`ui-field ${className}`}>
         <label
-          className={`${hideLabel ? 'sr-only' : 'block text-xs font-semibold text-ink'} ${required ? "after:ml-0.5 after:text-danger after:content-['*']" : ''}`}
+          className={`${hideLabel ? 'sr-only' : 'block text-label font-semibold text-ink'} ${required ? "after:ml-0.5 after:text-danger after:content-['*']" : ''}`}
           htmlFor={id}
         >
           {label}
         </label>
         <div className={hideLabel ? '' : 'mt-1.5'}>{children}</div>
         {hint && (
-          <p className="mt-1 text-xs leading-4 text-ink-muted" id={hintId}>
+          <p className="mt-1 text-label text-ink-muted" id={hintId}>
             {hint}
           </p>
         )}
         {error && (
-          <p className="mt-1.5 text-xs font-semibold text-danger" id={errorId}>
+          <p
+            className="mt-1.5 text-label font-semibold text-danger"
+            id={errorId}
+          >
             {error}
           </p>
         )}
@@ -227,7 +232,7 @@ export function getControlClasses({
 } = {}) {
   const radiusClass = radius === 'r10' ? 'rounded-group' : 'rounded-control'
   const densityClass = density === 'compact42' ? 'min-h-10' : 'min-h-10'
-  return `ui-control ${densityClass} w-full ${radiusClass} border border-line-strong bg-surface px-3 py-2 text-[13.5px] text-ink outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:border-ink-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(15_107_111_/_0.18)] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-60 aria-invalid:border-danger aria-invalid:bg-[#fffaf9] aria-invalid:shadow-none`
+  return `ui-control ${densityClass} w-full ${radiusClass} border border-line-strong bg-surface px-3 py-2 text-body text-ink outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-ink-muted hover:border-ink-muted/60 focus:border-accent focus:shadow-[0_0_0_3px_rgb(74_98_128_/_0.2)] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-60 aria-invalid:border-danger aria-invalid:bg-danger-soft/40 aria-invalid:shadow-none`
 }
 
 export function useFieldProps() {
@@ -320,11 +325,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <label
-        className={`inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-1 text-[13.5px] font-medium text-ink ${className}`}
+        className={`inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-1 text-body font-medium text-ink ${className}`}
       >
         <input
           aria-checked={indeterminate ? 'mixed' : props.checked}
-          className={`${sizeClass} rounded accent-accent`}
+          className={`${sizeClass} rounded accent-primary`}
           ref={setRefs}
           type="checkbox"
           {...props}
@@ -337,7 +342,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
 export function FieldError({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-semibold text-danger" role="alert">
+    <p className="text-label font-semibold text-danger" role="alert">
       {children}
     </p>
   )

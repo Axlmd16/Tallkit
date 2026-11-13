@@ -14,10 +14,8 @@ export function ChangePasswordPage() {
           <img alt="" className="size-7" src={brandMark} />
           <span className="font-bold text-primary">Tallkit</span>
         </div>
-        <h1 className="mt-6 text-[22px] leading-7 font-semibold">
-          Cambiar contraseña
-        </h1>
-        <p className="mt-1 mb-6 text-[13px] text-ink-muted">
+        <h1 className="mt-6 text-page font-semibold">Cambiar contraseña</h1>
+        <p className="mt-1 mb-6 text-body text-ink-muted">
           Establezca una contraseña personal antes de continuar.
         </p>
         <ChangePasswordForm

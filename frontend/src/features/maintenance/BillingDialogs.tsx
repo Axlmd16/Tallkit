@@ -161,9 +161,9 @@ export function ServiceOperationDialog({
                 {issue.message}
               </InlineNotice>
             ))}
-            <table className="w-full text-[13px]">
+            <table className="w-full text-body">
               <thead>
-                <tr className="border-b border-line text-left text-xs text-ink-muted">
+                <tr className="border-b border-line text-left text-label text-ink-muted">
                   <th className="py-2 pr-3 font-semibold">Servicio</th>
                   <th className="py-2 pr-3 text-right font-semibold">Cant.</th>
                   <th className="py-2 pr-3 text-right font-semibold">Base</th>
@@ -182,12 +182,12 @@ export function ServiceOperationDialog({
                     <td className="py-2 pr-3">
                       {line.service_name}
                       {line.service_code && (
-                        <span className="block font-mono text-xs text-ink-muted">
+                        <span className="block code text-label text-ink-muted">
                           {line.service_code}
                         </span>
                       )}
                       {line.detail && (
-                        <span className="block text-xs break-words text-ink-muted">
+                        <span className="block text-label break-words text-ink-muted">
                           {line.detail}
                         </span>
                       )}
@@ -207,7 +207,7 @@ export function ServiceOperationDialog({
               </tbody>
             </table>
             {preview.totals && (
-              <p className="flex justify-end gap-3 text-[13px]">
+              <p className="flex justify-end gap-3 text-body">
                 <span className="text-ink-muted">Total a documentar</span>
                 <Money
                   amount={preview.totals.total}
@@ -505,7 +505,7 @@ export function ArtisanCorrectionDialog({
             value={reason}
           />
         </Field>
-        <label className="flex items-center gap-2 text-[13px]">
+        <label className="flex items-center gap-2 text-body">
           <input
             checked={replace}
             onChange={(event) => setReplace(event.target.checked)}

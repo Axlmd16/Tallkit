@@ -1,4 +1,4 @@
-import { PencilSimple, Power } from '@phosphor-icons/react'
+import { PencilSimple, Power, Tag } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
@@ -202,6 +202,7 @@ export function AuxiliaryCatalogPage<T extends AuxiliaryItem>(
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={<Tag />}
         actions={
           canManage && (
             <NewRecordButton

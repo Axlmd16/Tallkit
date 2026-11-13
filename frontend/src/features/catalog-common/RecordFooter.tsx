@@ -32,7 +32,7 @@ export function RecordFooter({
   updatedAt: string
 }) {
   return (
-    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-subtle px-4 py-2 text-xs text-ink-muted">
+    <p className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-surface-subtle px-4 py-2 text-label text-ink-muted">
       <span className="inline-flex items-center gap-1.5">
         <CalendarBlank aria-hidden="true" size={14} />
         Creado {recordTimestamp(createdAt)}

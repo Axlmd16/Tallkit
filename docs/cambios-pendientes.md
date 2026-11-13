@@ -231,18 +231,18 @@ de letra escritos a mano a tokens.
 
 **Choques por decidir**
 
-- [ ] Specs `sistema-visual-frontend`, `patrones-de-pantalla-frontend` y `experiencia-adaptable-frontend`.
-  Se reemplazan
-- [ ] Pruebas que fijan textos o estilos de la dirección anterior
+- [x] Specs `sistema-visual-frontend`, `patrones-de-pantalla-frontend` y `experiencia-adaptable-frontend`.
+  Se reemplazan (con deltas del cambio)
+- [x] Pruebas que fijan textos o estilos de la dirección anterior. Se ajustaron conservando rol, estado y nombre accesible
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
-- [ ] Verificado
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
+- [x] Verificado
 - [ ] Archivado y registrado en `master`
 
 ### U4. `reorganizar-navegacion-y-lenguaje`
@@ -260,6 +260,18 @@ total a pagar, movimientos).
 - Corregir `frontend/src/shared/ui/states.test.tsx:21`, que fija el texto «RUC comercial» contra la regla
   de `AGENTS.md` de no fijar textos de la interfaz, al cambiar el texto de `states.tsx:86`.
 - Definir qué muestra «Facturas» en el menú antes del cambio 3.
+- Diferencias de contenido con el prototipo en las pantallas piloto de U3, que U3 no incorpora porque no
+  cambia textos, datos ni columnas:
+  - Inicio: el prototipo trae la banda grafito con el buscador grande y «Venta rápida», y las columnas «en el
+    taller» y «falta cobrar» (aquí rigen con el menú de U4; «falta facturar» corresponde a U6).
+  - Lista de mantenimientos: el prototipo añade el contador de cada segmento (Todas, Abiertas…), que exige un
+    conteo del servidor por estado.
+  - Ficha del mantenimiento: el prototipo nombra cada negocio por su nombre comercial; hoy la pantalla
+    escribe «RUC comercial» y «RUC artesanal» y la marca de negocio muestra el texto «Repuestos» o «Servicios»
+    hasta que U4 entregue el nombre de la entidad.
+  - Lista de productos: el prototipo pone la existencia en una columna propia con el marcador de tinta y
+    separa marca y número del fabricante; hoy la lista de productos no trae la existencia, que se consulta en
+    Inventario (el stock visible en Productos ya está previsto en U4).
 
 **Choques por decidir**
 

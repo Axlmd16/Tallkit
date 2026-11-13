@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { useSale } from '@/features/sales/hooks'
 import { PaymentDialog } from '@/features/sales/PaymentDialog'
 import {
+  BusinessMark,
   Button,
   FiscalScopeBadge,
   InlineNotice,
@@ -95,7 +96,13 @@ export function EconomicSummary({
       <div className="grid gap-4 p-4 xl:grid-cols-2">
         <section aria-labelledby="economy-commercial" className="space-y-3">
           <header className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[13px] font-semibold" id="economy-commercial">
+            <BusinessMark
+              decorative
+              name="Repuestos"
+              scope="commercial"
+              size="sm"
+            />
+            <h3 className="text-body font-semibold" id="economy-commercial">
               Repuestos
             </h3>
             <FiscalScopeBadge scope="commercial" />
@@ -103,7 +110,7 @@ export function EconomicSummary({
           <PendingNote pending={summary.commercial.pending} />
           {summary.commercial.documents.length === 0 &&
             !summary.commercial.pending && (
-              <p className="text-[13px] text-ink-muted">Sin repuestos.</p>
+              <p className="text-body text-ink-muted">Sin repuestos.</p>
             )}
           {summary.commercial.documents.map((doc) => (
             <CommercialRow
@@ -123,7 +130,13 @@ export function EconomicSummary({
 
         <section aria-labelledby="economy-artisan" className="space-y-3">
           <header className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[13px] font-semibold" id="economy-artisan">
+            <BusinessMark
+              decorative
+              name="Servicios"
+              scope="artesanal"
+              size="sm"
+            />
+            <h3 className="text-body font-semibold" id="economy-artisan">
               Servicios
             </h3>
             <FiscalScopeBadge scope="artesanal" />
@@ -147,7 +160,7 @@ export function EconomicSummary({
               <PendingNote pending={summary.artisan.pending} />
               {summary.artisan.documents.length === 0 &&
                 !summary.artisan.pending && (
-                  <p className="text-[13px] text-ink-muted">
+                  <p className="text-body text-ink-muted">
                     Sin importe de servicios por documentar.
                   </p>
                 )}
@@ -167,16 +180,16 @@ export function EconomicSummary({
               />
             </>
           ) : (
-            <p className="text-[13px] text-ink-muted">
+            <p className="text-body text-ink-muted">
               Sin permiso para consultar documentos del RUC artesanal.
             </p>
           )}
         </section>
       </div>
       {summary.combined && (
-        <div className="mx-4 mb-4 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]">
+        <div className="mx-4 mb-4 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body">
           <p className="font-semibold">Total combinado (informativo)</p>
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             Suma de documentos de dos RUC distintos: no es una deuda única ni
             una factura y no puede cobrarse en conjunto.
           </p>
@@ -224,8 +237,8 @@ export function EconomicSummary({
 function PendingNote({ pending }: { pending: EconomicBlockPending | null }) {
   if (!pending) return null
   return (
-    <div className="rounded-control border border-dashed border-line-strong px-3 py-2 text-[13px]">
-      <p className="text-xs text-ink-muted">{pending.label}</p>
+    <div className="rounded-control border border-dashed border-line-strong px-3 py-2 text-body">
+      <p className="text-label text-ink-muted">{pending.label}</p>
       <p>
         {pending.line_count} {pending.line_count === 1 ? 'línea' : 'líneas'} ·
         estimado <Money amount={pending.estimated_total} />
@@ -242,7 +255,7 @@ function Totals({
   balance: string
 }) {
   return (
-    <p className="flex justify-end gap-4 border-t border-line pt-2 text-[13px]">
+    <p className="flex justify-end gap-4 border-t border-line pt-2 text-body">
       <span>
         Confirmado: <Money amount={confirmed} />
       </span>
@@ -267,7 +280,7 @@ function DocumentAmounts({
   const hasWithheld = Number(withheld ?? 0) > 0
   return (
     <dl
-      className={`grid gap-2 text-xs ${hasWithheld ? 'grid-cols-4' : 'grid-cols-3'}`}
+      className={`grid gap-2 text-label ${hasWithheld ? 'grid-cols-4' : 'grid-cols-3'}`}
     >
       <div>
         <dt className="text-ink-muted">Total</dt>
@@ -311,13 +324,13 @@ function CommercialRow({
       <div className="flex flex-wrap items-center gap-2">
         {doc.can_open_sale ? (
           <Link
-            className="font-mono text-[13px] font-semibold hover:underline"
+            className="code text-body font-semibold hover:underline"
             to={`/sales/${doc.id}`}
           >
             {doc.internal_number}
           </Link>
         ) : (
-          <span className="font-mono text-[13px] font-semibold">
+          <span className="code text-body font-semibold">
             {doc.internal_number}
           </span>
         )}
@@ -326,7 +339,7 @@ function CommercialRow({
           tone={doc.state === 'VOIDED' ? 'neutral' : 'success'}
         />
         <PaymentBadge state={doc.payment_state} />
-        <span className="text-xs text-ink-muted">
+        <span className="text-label text-ink-muted">
           {doc.condition === 'CREDITO' ? 'Crédito' : 'Contado'}
         </span>
       </div>
@@ -357,7 +370,7 @@ function ArtisanRow({
     <article className="space-y-2 rounded-control border border-line p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Link
-          className="font-mono text-[13px] font-semibold hover:underline"
+          className="code text-body font-semibold hover:underline"
           to={`/maintenance/service-operations/${operation.id}`}
         >
           {operation.internal_number}
@@ -367,17 +380,17 @@ function ArtisanRow({
           tone={voided ? 'neutral' : 'success'}
         />
         {!voided && <PaymentBadge state={operation.payment_state} />}
-        <span className="text-xs text-ink-muted">
+        <span className="text-label text-ink-muted">
           {operation.condition === 'CREDITO' ? 'Crédito' : 'Contado'}
         </span>
       </div>
       {operation.replaces && (
-        <p className="text-xs text-ink-muted">
+        <p className="text-label text-ink-muted">
           Reemplaza a {operation.replaces.internal_number}.
         </p>
       )}
       {voided && (
-        <p className="text-xs text-ink-muted">
+        <p className="text-label text-ink-muted">
           Anulada: {operation.void_reason}
         </p>
       )}

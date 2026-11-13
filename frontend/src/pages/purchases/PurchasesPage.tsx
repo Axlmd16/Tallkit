@@ -1,4 +1,9 @@
-import { DotsThreeVertical, Eye, Plus } from '@phosphor-icons/react'
+import {
+  DotsThreeVertical,
+  Eye,
+  Plus,
+  ShoppingCartSimple,
+} from '@phosphor-icons/react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -70,6 +75,7 @@ export function PurchasesPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<ShoppingCartSimple />}
         actions={
           canCreate && (
             <Button onClick={() => navigate('/purchases/new')} type="button">
@@ -206,7 +212,7 @@ export function PurchasesPage() {
                 priority: 'primary',
                 render: (row) =>
                   row.internal_number ? (
-                    <span className="font-mono font-medium text-ink">
+                    <span className="code font-medium text-ink">
                       {row.internal_number}
                     </span>
                   ) : (

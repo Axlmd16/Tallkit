@@ -1,4 +1,10 @@
-import { DotsThreeVertical, Eye, NotePencil, Plus } from '@phosphor-icons/react'
+import {
+  DotsThreeVertical,
+  Eye,
+  NotePencil,
+  Plus,
+  FileText,
+} from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -58,6 +64,7 @@ export function ProformasPage() {
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
+        icon={<FileText />}
         actions={
           canManage && (
             <Button onClick={() => navigate('/proformas/new')} type="button">
@@ -147,7 +154,7 @@ export function ProformasPage() {
                 priority: 'primary',
                 render: (row) =>
                   row.internal_number ? (
-                    <span className="font-mono font-medium text-ink">
+                    <span className="code font-medium text-ink">
                       {row.internal_number}
                     </span>
                   ) : (
@@ -189,7 +196,7 @@ export function ProformasPage() {
                 priority: 'secondary',
                 render: (row) =>
                   row.sale ? (
-                    <span className="font-mono text-[13px]">
+                    <span className="code text-body">
                       {row.sale.internal_number ?? 'Borrador'}
                     </span>
                   ) : (

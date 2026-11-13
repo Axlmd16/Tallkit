@@ -8,6 +8,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
 
 import {
+  BusinessMark,
   Button,
   Checkbox,
   Combobox,
@@ -15,6 +16,7 @@ import {
   DateControl,
   Dialog,
   DocumentSheet,
+  DetailCard,
   DropdownMenu,
   EmptyState,
   ErrorState,
@@ -24,9 +26,11 @@ import {
   FiscalScopeBadge,
   ForbiddenState,
   FormModal,
+  GaugeMotif,
   IconButton,
   InlineNotice,
   Input,
+  MasterDetail,
   MiniBarChart,
   Money,
   NoResultsState,
@@ -35,6 +39,7 @@ import {
   PlateTag,
   RucPlate,
   ScopeLabel,
+  SearchInput,
   SectionNav,
   SegmentedControl,
   Select,
@@ -105,7 +110,7 @@ function useSampleProducts(term: string): ComboboxResults {
 function Row({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
+      <p className="text-micro font-semibold tracking-wider text-ink-muted uppercase">
         {label}
       </p>
       <div className="flex flex-wrap items-center gap-2">{children}</div>
@@ -119,13 +124,14 @@ const SWATCHES = [
   ['surface-subtle', 'Cabecera'],
   ['line', 'Línea'],
   ['ink', 'Tinta'],
-  ['ink-muted', 'Tinta secundaria'],
-  ['primary', 'Azul Tallkit'],
-  ['accent', 'Petróleo'],
-  ['accent-soft', 'Petróleo suave'],
-  ['brand', 'Naranja del logotipo'],
-  ['scope-commercial-soft', 'RUC comercial'],
-  ['scope-artisan-soft', 'RUC artesanal'],
+  ['ink-muted', 'Tinta de apoyo'],
+  ['graphite', 'Grafito'],
+  ['graphite-raised', 'Grafito elevado'],
+  ['primary', 'Cobre'],
+  ['primary-soft', 'Cobre suave'],
+  ['accent', 'Enlaces y foco'],
+  ['scope-artisan', 'Negocio de servicios'],
+  ['scope-commercial', 'Negocio de repuestos'],
 ]
 
 function ColorPreview() {
@@ -137,8 +143,8 @@ function ColorPreview() {
             className="h-12 rounded-control border border-line"
             style={{ background: `var(--color-${token})` }}
           />
-          <p className="mt-1 text-[12.5px] font-semibold">{name}</p>
-          <p className="font-mono text-xs text-ink-muted">{token}</p>
+          <p className="mt-1 text-label font-semibold">{name}</p>
+          <p className="code text-label text-ink-muted">{token}</p>
         </div>
       ))}
     </div>
@@ -148,13 +154,15 @@ function ColorPreview() {
 function TypePreview() {
   return (
     <div className="space-y-2">
-      <p className="text-[22px] leading-7 font-semibold">Nueva venta</p>
-      <p className="text-[14.5px] font-semibold">Datos de la venta</p>
-      <p className="text-[13.5px]">
+      <p className="text-page font-bold">Nueva venta</p>
+      <p className="text-block font-bold">Datos de la venta</p>
+      <p className="text-figure font-light">USD 1,240.30</p>
+      <p className="text-body font-semibold">Detalle de la venta</p>
+      <p className="text-body">
         El precio final y el impuesto vienen del catálogo.
       </p>
-      <p className="text-xs font-semibold">Condición de venta</p>
-      <p className="font-mono text-[12.5px]">
+      <p className="text-label font-semibold">Condición de venta</p>
+      <p className="code text-label">
         COM-VEN-000131 · FLT-0915 · 1790012345001
       </p>
     </div>
@@ -187,7 +195,10 @@ function FieldsPreview() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Field hint="Único en el catálogo." id="cat-code" label="Código interno">
-        <Input className="font-mono" defaultValue="FLT-0915" />
+        <Input className="code" defaultValue="FLT-0915" />
+      </Field>
+      <Field id="cat-search" label="Buscar en la lista">
+        <SearchInput placeholder="Placa, nombre o código" variant="underline" />
       </Field>
       <Field
         error="La cantidad debe ser un entero positivo."
@@ -227,6 +238,15 @@ function SegmentsPreview() {
         ]}
         value={condition}
       />
+      <SegmentedControl
+        aria-label="Estado de la lista"
+        onChange={setCondition}
+        options={[
+          { value: 'CONTADO', label: 'Todos', count: 12 },
+          { value: 'CREDITO', label: 'Abiertos', count: 5 },
+        ]}
+        value={condition}
+      />
       <Tabs
         activeId={tab}
         aria-label="Secciones del vehículo"
@@ -244,7 +264,10 @@ function ComboboxPreview() {
   const [selected, setSelected] = useState<ComboboxOption | null>(null)
   return (
     <div className="max-w-md">
-      <label className="mb-1.5 block text-xs font-semibold" htmlFor="cat-combo">
+      <label
+        className="mb-1.5 block text-label font-semibold"
+        htmlFor="cat-combo"
+      >
         Producto
       </label>
       <Combobox
@@ -275,7 +298,7 @@ function TablePreview() {
             header: 'Número',
             key: 'id',
             priority: 'primary',
-            render: (row) => <span className="font-mono">{row.id}</span>,
+            render: (row) => <span className="code">{row.id}</span>,
           },
           { header: 'Cliente', key: 'customer' },
           {
@@ -386,6 +409,12 @@ function WorkshopPiecesPreview() {
         <RucPlate ruc="1140258475001" />
         <PartCode code="FLT-0915" />
       </Row>
+      <div
+        className="rounded-panel bg-graphite p-3"
+        data-variant="Placa sobre fondo oscuro"
+      >
+        <PlateTag onDark plate="PBA-1234" />
+      </div>
       <Row label="Ámbito fiscal">
         <ScopeLabel scope="commercial" />
         <ScopeLabel scope="artesanal" />
@@ -586,26 +615,27 @@ function NavigationPreview() {
       <div className="flex overflow-hidden rounded-panel border border-line">
         <nav
           aria-label="Navegación de ejemplo"
-          className="w-60 space-y-0.5 border-r border-line bg-surface p-3 text-[13.5px]"
+          className="w-60 space-y-0.5 border-r border-graphite-line bg-graphite p-3 text-body"
         >
-          <p className="px-2.5 pb-1 text-[11px] font-semibold tracking-wider text-ink-muted uppercase">
+          <p className="px-2.5 pb-1 text-micro font-semibold tracking-wider text-graphite-ink uppercase">
             Ventas y cobros
           </p>
           <a
             aria-current="page"
-            className="flex min-h-11 items-center rounded-control bg-accent-soft px-2.5 font-semibold text-accent-strong"
+            className="relative flex min-h-11 items-center rounded-control bg-graphite-raised px-2.5 font-semibold text-white before:absolute before:inset-y-2 before:left-0 before:w-[2.5px] before:rounded-r-full before:bg-primary"
             href="#"
           >
             Ventas
           </a>
           <a
-            className="flex min-h-11 items-center rounded-control px-2.5 text-ink-muted"
+            className="flex min-h-11 items-center rounded-control px-2.5 text-graphite-ink"
             href="#"
           >
             Cuentas por cobrar
           </a>
+          <GaugeMotif className="mx-auto mt-4 h-14 w-28" variant="rail" />
         </nav>
-        <div className="flex h-15 flex-1 items-center justify-between border-b border-line bg-surface px-5 text-[13px]">
+        <div className="flex h-15 flex-1 items-center justify-between border-b border-line bg-surface px-5 text-body">
           <span>
             <span className="text-ink-muted">Ventas y cobros / </span>
             <strong>Ventas</strong>
@@ -643,8 +673,8 @@ function PatternsPreview() {
     <div className="space-y-3 rounded-panel bg-canvas p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[22px] leading-7 font-semibold">Ventas</p>
-          <p className="text-[13px] text-ink-muted">
+          <p className="text-page font-bold">Ventas</p>
+          <p className="text-body text-ink-muted">
             Ventas directas de repuestos del RUC comercial.
           </p>
         </div>
@@ -844,6 +874,97 @@ function HomePreview() {
   )
 }
 
+function GaugePreview() {
+  return (
+    <div className="flex flex-wrap gap-4">
+      <div
+        className="rounded-panel bg-graphite p-4"
+        data-variant="Barra lateral"
+      >
+        <GaugeMotif className="h-16 w-32" variant="rail" />
+      </div>
+      <DetailCard
+        className="w-72"
+        subtitle="Toyota Hilux · 2018"
+        title="PBA-1234"
+        variant="dark"
+      />
+    </div>
+  )
+}
+
+function BusinessMarkPreview() {
+  const workshop = 'Transmisiones y Embragues Jimenez'
+  const store = 'Transmisiones y Embragues Jimenez Repuestos Automotrices'
+  return (
+    <div className="space-y-4">
+      <Row label="Iniciales del taller">
+        <BusinessMark name={workshop} scope="artesanal" size="lg" />
+        <BusinessMark name={workshop} scope="artesanal" />
+        <BusinessMark name={workshop} scope="artesanal" size="sm" />
+      </Row>
+      <Row label="Iniciales del almacén">
+        <BusinessMark name={store} scope="commercial" size="lg" />
+        <BusinessMark name={store} scope="commercial" />
+        <BusinessMark name={store} scope="commercial" size="sm" />
+      </Row>
+      <Row label="Con logotipo">
+        <BusinessMark
+          logoUrl={SAMPLE_ISSUER_LOGO}
+          name={workshop}
+          scope="artesanal"
+          size="lg"
+        />
+      </Row>
+    </div>
+  )
+}
+
+const MASTER_SAMPLE = [
+  { id: 'c1', name: 'Alvarado Mena, Luis', vehicles: 2 },
+  { id: 'c2', name: 'Andrade Torres, Rosa', vehicles: 1 },
+  { id: 'c3', name: 'Bravo Ortiz, Carlos', vehicles: 3 },
+]
+
+function MasterDetailPreview() {
+  const [selected, setSelected] = useState<string | null>('c1')
+  const [term, setTerm] = useState('')
+  const visible = MASTER_SAMPLE.filter((customer) =>
+    customer.name.toLowerCase().includes(term.trim().toLowerCase()),
+  )
+  return (
+    <MasterDetail
+      detailLabel="Vista previa del cliente"
+      getGroup={(customer) => customer.name[0] ?? ''}
+      getKey={(customer) => customer.id}
+      items={visible}
+      listLabel="Clientes de ejemplo"
+      onSelect={setSelected}
+      renderDetail={(customer) => (
+        <div className="space-y-1">
+          <p className="text-block font-bold">{customer.name}</p>
+          <p className="text-body text-ink-muted">
+            {customer.vehicles} vehículos registrados
+          </p>
+        </div>
+      )}
+      renderItem={(customer) => (
+        <span className="font-semibold">{customer.name}</span>
+      )}
+      selectedKey={selected}
+      toolbar={
+        <SearchInput
+          aria-label="Buscar cliente"
+          onChange={(event) => setTerm(event.target.value)}
+          placeholder="Buscar cliente"
+          value={term}
+          variant="underline"
+        />
+      }
+    />
+  )
+}
+
 export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-01': ColorPreview,
   'TK-02': TypePreview,
@@ -866,4 +987,7 @@ export const PREVIEWS: Record<string, () => ReactNode> = {
   'TK-19': StatPreview,
   'TK-20': BarsPreview,
   'TK-21': HomePreview,
+  'TK-22': GaugePreview,
+  'TK-23': BusinessMarkPreview,
+  'TK-24': MasterDetailPreview,
 }

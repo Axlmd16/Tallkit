@@ -161,10 +161,10 @@ export function MoneyDialog({
         {subject && (
           <div
             aria-label="Operación"
-            className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-[13px]"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body"
             role="group"
           >
-            <span className="font-mono font-semibold text-ink">{subject}</span>
+            <span className="code font-semibold text-ink">{subject}</span>
             <FiscalScopeBadge scope="commercial" />
           </div>
         )}

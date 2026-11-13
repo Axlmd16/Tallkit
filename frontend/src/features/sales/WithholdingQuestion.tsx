@@ -101,16 +101,16 @@ export function WithholdingQuestion({
       className="space-y-3 rounded-control border border-warning/30 bg-warning-soft/40 px-3 py-3"
       data-testid={`${idPrefix}-withholding`}
     >
-      <legend className="px-1 text-[13px] font-semibold text-ink">
+      <legend className="px-1 text-body font-semibold text-ink">
         ¿El cliente retuvo parte del pago?
       </legend>
       {context.customer_is_agent && (
-        <p className="text-[12.5px] text-ink-muted">
+        <p className="text-label text-ink-muted">
           Este cliente está marcado como agente de retención: suele pagar un
           poco menos y entregar el resto al SRI.
         </p>
       )}
-      <label className="flex items-start gap-2 text-sm text-ink">
+      <label className="flex items-start gap-2 text-body text-ink">
         <input
           checked={value.active}
           className="mt-1"
@@ -161,7 +161,7 @@ export function WithholdingQuestion({
             Es mayor que el {warning.percentage} % del total, algo poco
             frecuente. Confirme solo si es correcto.
           </p>
-          <label className="mt-2 flex items-center gap-2 text-sm text-ink">
+          <label className="mt-2 flex items-center gap-2 text-body text-ink">
             <input
               checked={value.acknowledged}
               onChange={(event) =>

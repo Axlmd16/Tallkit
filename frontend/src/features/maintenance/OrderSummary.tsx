@@ -33,36 +33,36 @@ export function OrderSummary({ order }: { order: MaintenanceOrder }) {
       id="order-summary-title"
       title="Resumen"
     >
-      <div className="space-y-4 p-4 text-[13px]">
+      <div className="space-y-4 p-4 text-body">
         <div className="flex items-center justify-between gap-2">
           <span className="text-ink-muted">Estado</span>
           <OrderStateBadge state={order.state} />
         </div>
         <div className="rounded-control bg-surface-subtle px-3 py-2.5">
-          <p className="text-xs text-ink-muted">
+          <p className="text-label text-ink-muted">
             Total de servicios de la orden
           </p>
           <Money
             amount={order.services_total}
-            className="text-[20px] font-semibold text-ink"
+            className="text-block font-semibold text-ink"
           />
-          <p className="mt-0.5 text-xs text-ink-muted">
+          <p className="mt-0.5 text-label text-ink-muted">
             Valor operativo; no es un cobro ni una factura.
           </p>
         </div>
         <dl className="grid grid-cols-2 gap-2">
           <div>
-            <dt className="text-xs text-ink-muted">Servicios</dt>
+            <dt className="text-label text-ink-muted">Servicios</dt>
             <dd className="font-semibold text-ink">{lineCount}</dd>
           </div>
           <div>
-            <dt className="text-xs text-ink-muted">Fotografías</dt>
+            <dt className="text-label text-ink-muted">Fotografías</dt>
             <dd className="font-semibold text-ink">{order.photos.length}</dd>
           </div>
         </dl>
         {open ? (
           <div>
-            <h3 className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            <h3 className="text-label font-semibold tracking-wide text-ink-muted uppercase">
               Para finalizar
             </h3>
             <ul
@@ -109,7 +109,7 @@ export function OrderSummary({ order }: { order: MaintenanceOrder }) {
           </div>
         ) : (
           order.last_finalized_at && (
-            <p className="text-xs text-ink-muted">
+            <p className="text-label text-ink-muted">
               Finalizada por {order.last_finalized_by?.name ?? '—'} ·{' '}
               {timestamp(order.last_finalized_at)}
             </p>

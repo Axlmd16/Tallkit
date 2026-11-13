@@ -83,7 +83,7 @@ function ToastItem({
 
   return (
     <div
-      className="flex min-h-12 w-full items-start gap-2.5 rounded-dialog border border-line bg-ink px-3 py-2.5 text-sm text-white shadow-toast transition duration-150 motion-reduce:animate-none motion-reduce:transition-none sm:w-[23rem]"
+      className="flex min-h-12 w-full items-start gap-2.5 rounded-dialog border border-graphite-line bg-graphite px-3.5 py-3 text-body text-white shadow-toast transition duration-150 motion-reduce:animate-none motion-reduce:transition-none sm:w-[23rem]"
       data-toast=""
       onBlurCapture={handleBlur}
       onFocusCapture={() => setPaused(true)}
@@ -91,7 +91,12 @@ function ToastItem({
       onMouseEnter={(_event: MouseEvent<HTMLDivElement>) => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <Icon aria-hidden="true" className="mt-0.5 shrink-0" size={17} />
+      <Icon
+        aria-hidden="true"
+        className={`mt-0.5 shrink-0 ${entry.tone === 'success' ? 'text-success-soft' : 'text-graphite-ink'}`}
+        size={17}
+        weight="fill"
+      />
       <p className="min-w-0 flex-1 leading-5">{entry.message}</p>
       {entry.href && (
         <a
