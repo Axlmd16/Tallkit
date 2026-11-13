@@ -243,7 +243,7 @@ de letra escritos a mano a tokens.
 - [x] Tareas aprobadas
 - [x] Aplicado
 - [x] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-13-renovar-sistema-visual`)
 
 ### U4. `reorganizar-navegacion-y-lenguaje`
 

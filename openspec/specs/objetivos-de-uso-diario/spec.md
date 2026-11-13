@@ -21,7 +21,7 @@ Trazabilidad: `DP-036`, regla 1; `CT-001`; `actores-y-roles.md` §4 y §5; `RNF-
 
 ### Requirement: Objetivos de rapidez por tarea
 
-El sistema SHALL permitir completar estas tareas dentro del número de acciones indicado. Son **objetivos provisionales**: estimados por el titular a partir del análisis del 2026-11-01 y sujetos a la comprobación con la usuaria diaria.
+El sistema SHALL permitir completar estas tareas dentro del número de acciones indicado. Son **objetivos provisionales**, estimados por el titular a partir del análisis del 2026-11-01.
 
 | Requisito | Tarea | Hoy | Objetivo |
 |---|---|---:|---:|
@@ -29,9 +29,9 @@ El sistema SHALL permitir completar estas tareas dentro del número de acciones 
 | `RNF-USA-014` | Venta de mostrador, cobrada y con su factura solicitada | 16 | 5 a 6 |
 | `RNF-USA-015` | Mantenimiento con un servicio y un repuesto, cobrado, con sus dos facturas solicitadas y la orden cerrada | 47 | 12 a 14 |
 
-Los objetivos SHALL comprobarse al cerrar U6, que también acorta el registro de la orden, de sus servicios y de sus repuestos. Hasta entonces SHALL constar como aprobados y todavía no implementados.
+Los objetivos SHALL comprobarse al cerrar U6, que también acorta el registro de la orden, de sus servicios y de sus repuestos. Hasta entonces SHALL constar como aprobados y todavía no implementados. No SHALL exigirse una observación previa con la usuaria diaria ni una comparación con el Facturador del SRI: el titular las declaró no necesarias el 2026-11-12.
 
-Trazabilidad: `DP-036`, regla 7; `docs/analisis-del-sistema.md` §3, §8.3 y anexo; propuesta §B y pendientes.
+Trazabilidad: `DP-036`, regla 7; `docs/analisis-del-sistema.md` §3, §8.3 y anexo; `docs/cambios-pendientes.md`, U2; propuesta de `renovar-sistema-visual`.
 
 #### Scenario: Comprobación al cerrar U6
 - **DADO** U6 aplicado y las tres tareas medidas con el método vigente
@@ -42,6 +42,11 @@ Trazabilidad: `DP-036`, regla 7; `docs/analisis-del-sistema.md` §3, §8.3 y ane
 - **DADO** U6 todavía sin archivar
 - **CUANDO** se consulta la trazabilidad de `RNF-USA-013` a `RNF-USA-015`
 - **ENTONCES** SHALL constar como aprobados y pendientes de U6, y SHALL NOT constar como cumplidos.
+
+#### Scenario: Programar sin observación previa
+- **DADO** U3, U4, U5 o U6 sin una observación registrada con la usuaria diaria
+- **CUANDO** se aprueba o se aplica el cambio
+- **ENTONCES** la falta de esa observación SHALL NOT bloquearlo.
 
 ### Requirement: Método para contar acciones
 
@@ -68,22 +73,6 @@ Trazabilidad: `DP-036`, regla 7; `docs/analisis-del-sistema.md` §2 y anexo; `DP
 - **CUANDO** se mide una tarea
 - **ENTONCES** la medición SHALL registrarse aparte y SHALL NOT compararse con los objetivos, que suponen el caso habitual.
 
-### Requirement: Comprobación con la usuaria diaria
-
-Antes de programar U3 a U6, el recorrido SHALL observarse con la usuaria diaria en el prototipo (U2) y en el sistema actual, y SHALL compararse con el Facturador del SRI que el negocio usa hoy. El resultado SHALL registrarse con fecha, tarea, acciones contadas y dificultades observadas. Si contradice los objetivos, el titular SHALL decidir antes de aprobar U6 si los ajusta.
-
-Trazabilidad: `DP-036`, regla 7; `docs/analisis-del-sistema.md` §10, paso 1; `DP-032`; propuesta, pendientes.
-
-#### Scenario: Prototipo más lento que la herramienta actual
-- **DADO** una observación en U2 donde una tarea exige más acciones o más tiempo que el Facturador del SRI
-- **CUANDO** se registra el resultado
-- **ENTONCES** SHALL quedar señalada para el titular y U6 SHALL NOT aprobarse sin su decisión.
-
-#### Scenario: Observación registrada
-- **DADO** una sesión de observación terminada
-- **CUANDO** se registra
-- **ENTONCES** SHALL constar la fecha, la tarea, las acciones contadas y las dificultades, sin datos personales innecesarios de los clientes usados.
-
 ### Requirement: Rapidez sin omitir reglas
 
 Ningún objetivo de rapidez SHALL alcanzarse omitiendo una regla vigente. Un recorrido que cumpla los objetivos mezclando entidades fiscales, uniendo cobros o facturas, aceptando stock negativo, saltándose un permiso o un dato exigido por el SRI, o presentando una factura como autorizada sin estarlo SHALL considerarse incumplido.
@@ -94,4 +83,3 @@ Trazabilidad: `DP-036`, reglas 2 y 7; `DP-002`, `DP-013`, `DP-034`, `DP-035`; in
 - **DADO** un recorrido que logra 8 acciones registrando un solo pago para servicios y repuestos
 - **CUANDO** se verifica contra los objetivos
 - **ENTONCES** SHALL marcarse como incumplido aunque el conteo esté dentro del objetivo.
-
