@@ -179,6 +179,38 @@ export interface ArchiveFilters {
   page?: number | undefined
 }
 
+/** Estado local de una preparación: nunca indica emisión, envío ni autorización. */
+export type PreparationLocalState = 'DRAFT' | 'PREPARED' | 'CANCELLED'
+export type PreparationEntity = 'COMERCIAL' | 'ARTESANAL'
+
+export interface PreparationListRow {
+  id: string
+  entity: PreparationEntity
+  fiscal_entity_id: number
+  source_kind: FiscalSourceKind
+  source_id: number
+  state: PreparationLocalState
+  number: string | null
+  customer_name: string | null
+  total: string | null
+  source_date: string | null
+  created_at: string
+}
+
+export interface PreparationListPage {
+  count: number
+  page: number
+  page_size: number
+  total_pages: number
+  results: PreparationListRow[]
+}
+
+export interface PreparationListFilters {
+  entity?: PreparationEntity | undefined
+  state?: PreparationLocalState | undefined
+  page?: number | undefined
+}
+
 export interface ArchivePage {
   count: number
   page: number

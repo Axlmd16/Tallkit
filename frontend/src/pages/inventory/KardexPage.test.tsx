@@ -152,7 +152,9 @@ it('las columnas económicas solo aparecen con el permiso de valoración', () =>
   mocks.permissions = ['inventario.ver', 'inventario.ver_valorizacion']
   renderPage()
   expect(screen.getAllByText('Costo aplicado').length).toBeGreaterThan(0)
-  expect(screen.getByText(/Valor inicial USD 20.000000/)).toBeInTheDocument()
+  expect(screen.getByText(/Valor inicial/)).toHaveTextContent(
+    'Valor inicial USD 20.00',
+  )
 })
 
 it('un corte vencido pide actualizar en lugar de mezclar cortes', () => {
@@ -213,7 +215,9 @@ it('los movimientos sin costo registrado se marcan como tales y no como cero', (
   }
   renderPage()
   expect(screen.getAllByText('Sin costo').length).toBeGreaterThanOrEqual(3)
-  expect(screen.getByText(/Valor inicial USD 0.000000/)).toBeInTheDocument()
+  expect(screen.getByText(/Valor inicial/)).toHaveTextContent(
+    'Valor inicial USD 0.00',
+  )
   expect(screen.queryByText(/valor final USD null/i)).toBeNull()
 })
 
@@ -240,7 +244,7 @@ it('la primera entrada con costo explica el valor asignado a las unidades previa
     name: /costo asignado a unidades previas/i,
   })
   await userEvent.hover(hint!)
-  expect(await screen.findByText(/asignó USD 10.000000/)).toBeInTheDocument()
+  expect(await screen.findByText(/asignó USD 10.00/)).toBeInTheDocument()
 })
 
 it('los roles sin valoración no reciben ni insinúan costos ausentes', () => {

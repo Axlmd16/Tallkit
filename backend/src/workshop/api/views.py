@@ -116,6 +116,7 @@ def _envelope(result: dict[str, Any]) -> dict[str, Any]:
         "page_size": size,
         "total_pages": (count + size - 1) // size if count else 0,
         "results": result["items"],
+        **({"status_counts": result["status_counts"]} if "status_counts" in result else {}),
     }
 
 

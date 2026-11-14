@@ -91,7 +91,7 @@ it('muestra la valoración únicamente cuando la proyección económica la inclu
     ],
   }
   renderPage()
-  expect(screen.getByLabelText('Valoración')).toHaveTextContent('USD 20.000000')
+  expect(screen.getByLabelText('Valoración')).toHaveTextContent('USD 20.00')
   expect(screen.getByLabelText('Movimientos')).toHaveTextContent(
     'Ajuste de redondeo',
   )

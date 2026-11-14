@@ -26,6 +26,8 @@ import {
   Pagination,
   Select,
 } from '@/shared/ui'
+import { Money } from '@/shared/ui/business'
+import { TERMS } from '@/shared/ui/terms'
 
 const totalsText = (t: KardexTotals) =>
   `${t.count} movimientos · entradas ${t.quantity_in} · salidas ${t.quantity_out}`
@@ -93,7 +95,7 @@ export function KardexPage() {
         <div className="min-w-0 flex-1">
           <PageHeader
             description="Historia de movimientos del producto con saldos reales de existencia."
-            title="Kardex del producto"
+            title={`${TERMS.movements} del producto`}
           />
         </div>
       </div>
@@ -113,7 +115,7 @@ export function KardexPage() {
         </Button>
       </InlineNotice>
       <FilterPanel
-        label="Filtros del Kardex"
+        label="Filtros de movimientos"
         layout="inline"
         {...(filters.filtered
           ? {
@@ -191,13 +193,13 @@ export function KardexPage() {
           />
         </Field>
       </FilterPanel>
-      {query.isPending && <LoadingState label="Cargando Kardex…" />}
+      {query.isPending && <LoadingState label="Cargando movimientos…" />}
       {(query.isError || (!query.isPending && !data)) && (
         <InlineNotice
           title={
             cutExpired
               ? 'El corte venció'
-              : 'No fue posible consultar el Kardex'
+              : 'No fue posible consultar los movimientos'
           }
           tone="danger"
         >
@@ -255,13 +257,13 @@ export function KardexPage() {
                 {data.opening_value === null ? (
                   <NoCost />
                 ) : (
-                  `USD ${data.opening_value}`
+                  <Money amount={data.opening_value} />
                 )}{' '}
                 · valor final{' '}
                 {data.closing_value === null ? (
                   <NoCost />
                 ) : (
-                  `USD ${data.closing_value}`
+                  <Money amount={data.closing_value} />
                 )}
               </p>
             )}
@@ -363,7 +365,10 @@ export function KardexPage() {
                             <NoCost />
                           ) : (
                             <span className="inline-flex items-center gap-1.5">
-                              {row.applied_unit_cost ?? '—'}
+                              <Money
+                                amount={row.applied_unit_cost}
+                                precision="cost"
+                              />
                               {Number(row.regularization_value ?? 0) > 0 && (
                                 <HintPopover
                                   align="end"
@@ -390,14 +395,14 @@ export function KardexPage() {
                           row.value_after === null ? (
                             <NoCost />
                           ) : (
-                            (row.value_after ?? '—')
+                            <Money amount={row.value_after} />
                           ),
                       },
                     ]
                   : []),
               ]}
               getRowKey={(row) => row.ordinal}
-              label="Movimientos del Kardex"
+              label="Movimientos del producto"
               rows={data.results}
             />
           )}

@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 from config.api.errors import ProblemSerializer, problem_response
 from fiscal.api import serializers as sz
-from fiscal.application import corrections, preparations, readiness, xml_archive
+from fiscal.application import corrections, listing, preparations, readiness, xml_archive
 from fiscal.application.corrections import (
     CorrectionApplicationError,
     CorrectionConflictError,
@@ -235,6 +235,55 @@ def _respond(request: Request, operation: Callable[[], Response]) -> Response:
         ObjectDoesNotExist,
     ) as exc:
         return _problem(request, exc)
+
+
+class PreparationListView(APIView):
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="fiscal_preparation_list",
+        parameters=[
+            OpenApiParameter("entity", OpenApiTypes.STR, enum=["COMERCIAL", "ARTESANAL"]),
+            OpenApiParameter("state", OpenApiTypes.STR, enum=["DRAFT", "PREPARED", "CANCELLED"]),
+            OpenApiParameter("page", OpenApiTypes.INT),
+            OpenApiParameter("page_size", OpenApiTypes.INT, description="1 a 100; omisión 20."),
+        ],
+        responses={200: sz.FiscalPreparationListPage, **_PROBLEMS},
+        description=(
+            "Lista de solo lectura de preparaciones locales de las entidades que el usuario "
+            "puede consultar. Ninguna fila indica emisión, envío ni autorización."
+        ),
+    )
+    def get(self, request: Request) -> Response:
+        def operation() -> Response:
+            params = request.query_params
+            result = listing.list_preparations(
+                actor=_actor(request),
+                entity=params.get("entity") or None,
+                state=params.get("state") or None,
+                page=_list_int(params, "page", 1),
+                page_size=_list_int(params, "page_size", listing.PAGE_SIZE_DEFAULT),
+            )
+            return Response(
+                {
+                    "count": result.count,
+                    "page": result.page,
+                    "page_size": result.page_size,
+                    "total_pages": result.total_pages,
+                    "results": [asdict(row) for row in result.results],
+                }
+            )
+
+        return _respond(request, operation)
+
+
+def _list_int(params: Any, name: str, default: int) -> int:
+    raw = params.get(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        raise listing.PreparationListError(name, "Debe ser un número entero.") from None
 
 
 class PreparationCreateView(APIView):

@@ -66,6 +66,29 @@ describe('piezas visuales del taller', () => {
     expect(screen.getByText('—')).toBeInTheDocument()
   })
 
+  it('recorta los ceros sobrantes y nunca redondea en silencio', () => {
+    const { rerender } = render(<Money amount="23.000000" />)
+    expect(screen.getByText('USD 23.00')).toBeVisible()
+
+    rerender(<Money amount="1240.300000" />)
+    expect(screen.getByText('USD 1,240.30')).toBeVisible()
+
+    // Un tercer decimal distinto de cero no es un precio válido: no se redondea, no se muestra.
+    rerender(<Money amount="0.125" />)
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
+  it('un costo conserva su precisión de hasta seis decimales', () => {
+    const { rerender } = render(<Money amount="0.123456" precision="cost" />)
+    expect(screen.getByText('USD 0.123456')).toBeVisible()
+
+    rerender(<Money amount="4.500000" precision="cost" />)
+    expect(screen.getByText('USD 4.50')).toBeVisible()
+
+    rerender(<Money amount="0.1234567" precision="cost" />)
+    expect(screen.getByText('—')).toBeInTheDocument()
+  })
+
   it('no redondea mediante aritmética de coma flotante', () => {
     render(<Money amount="9007199254740993.05" />)
     expect(screen.getByText('USD 9,007,199,254,740,993.05')).toBeVisible()

@@ -151,7 +151,7 @@ it('separa estado de la venta, estado de pago y documento interno en campos dist
     within(states).getByText('Documento interno').nextElementSibling,
   ).toHaveTextContent('COM-VEN-000007')
   // El ámbito fiscal lo muestra la barra superior del marco; la ficha no lo duplica.
-  expect(screen.queryByText('RUC comercial')).toBeNull()
+  expect(screen.queryByText('Negocio: Repuestos')).toBeNull()
 })
 
 it('distingue saldo cobrable y exceso por reembolsar sin llamarlo saldo a favor', () => {
@@ -272,7 +272,7 @@ it('una venta en borrador enlaza a la edición y no muestra comprobante ni cobro
     'href',
     '/sales/7/edit',
   )
-  expect(screen.queryByRole('link', { name: 'Ver comprobante' })).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Ver recibo' })).toBeNull()
   expect(screen.getByText('Sin número (borrador)')).toBeInTheDocument()
 })
 

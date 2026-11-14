@@ -97,9 +97,7 @@ export function ServiceOperationDialog({
             key,
           }),
       )
-      onDone(
-        `Comprobante de servicios ${operation.internal_number} generado (RUC artesanal).`,
-      )
+      onDone(`Recibo de servicios ${operation.internal_number} generado.`)
       return true
     } catch (problem) {
       const view = describeProblem(problem)
@@ -115,9 +113,9 @@ export function ServiceOperationDialog({
       open
       {...(returnFocusRef ? { returnFocusRef } : {})}
       saveDisabled={blocked}
-      saveLabel="Generar comprobante"
+      saveLabel="Generar recibo"
       size="wide"
-      title="Generar comprobante de servicios"
+      title="Generar recibo de servicios"
     >
       <div className="space-y-4">
         <FiscalScopeBadge scope="artesanal" />
@@ -216,8 +214,8 @@ export function ServiceOperationDialog({
               </p>
             )}
             <InlineNotice title="Efectos" tone="info">
-              Numeración {preview.effects.series}; nace un saldo por cobrar del
-              RUC artesanal. No afecta inventario ni registra pagos. Las líneas
+              Numeración {preview.effects.series}; nace un saldo por cobrar de
+              servicios. No afecta inventario ni registra pagos. Las líneas
               documentadas quedarán bloqueadas.
             </InlineNotice>
           </>
@@ -296,7 +294,9 @@ export function ArtisanPaymentDialog({
       saveLabel={
         parts.length > 0
           ? `Registrar cobro de USD ${partsTotal(cash, transfer)}`
-          : 'Registrar retención'
+          : withholding !== null
+            ? 'Registrar retención'
+            : 'Registrar cobro'
       }
       title={`Cobrar servicios · ${operation.internal_number}`}
     >
@@ -309,8 +309,8 @@ export function ArtisanPaymentDialog({
           {operation.condition === 'CONTADO'
             ? 'Una operación de contado exige cubrir el saldo completo en un solo cobro.'
             : 'Una operación a crédito admite abonos hasta el saldo, sin vencimiento ni cuotas.'}{' '}
-          El importe se aplica solo a esta operación del RUC artesanal; no se
-          aplica a los repuestos.
+          El importe se aplica solo a esta operación de servicios; no se aplica
+          a los repuestos.
         </InlineNotice>
         <PartsFields
           cash={cash}

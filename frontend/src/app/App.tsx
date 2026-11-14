@@ -58,6 +58,9 @@ import { VehicleEditorPage } from '@/pages/vehicles/VehicleEditorPage'
 import { VehiclesPage } from '@/pages/vehicles/VehiclesPage'
 
 import { RemoteAuthenticatedShell } from './AuthenticatedShell'
+import { InvoicesPage } from '@/pages/invoices/InvoicesPage'
+import { SettingsPage } from '@/pages/settings/SettingsPage'
+
 import { PermissionGuard } from './PermissionGuard'
 import { createAppQueryClient } from './query-client'
 
@@ -73,6 +76,16 @@ export const appRoutes: RouteObject[] = [
         element: <RemoteAuthenticatedShell />,
         children: [
           { index: true, element: <HomePage /> },
+          {
+            path: '/invoices',
+            element: (
+              <PermissionGuard
+                anyOf={['fiscal.comercial.ver', 'fiscal.artesanal.ver']}
+              >
+                <InvoicesPage />
+              </PermissionGuard>
+            ),
+          },
           {
             path: '/fiscal/preparations/:id',
             element: (
@@ -515,6 +528,7 @@ export const appRoutes: RouteObject[] = [
               </PermissionGuard>
             ),
           },
+          { path: '/settings', element: <SettingsPage /> },
           { path: '*', element: <Navigate replace to="/" /> },
         ],
       },

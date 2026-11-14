@@ -247,6 +247,8 @@ de letra escritos a mano a tokens.
 
 ### U4. `reorganizar-navegacion-y-lenguaje`
 
+- Aplicado (casillas de la propuesta y de las tareas en `openspec/changes/reorganizar-navegacion-y-lenguaje`). Brechas conocidas: el estado «cancelado» de un mantenimiento no existe en el código (los segmentos son Todas, Abiertas y Finalizadas) y el valor inicial «Crédito» de una venta nueva sigue pendiente como arreglo pequeño aparte.
+
 Menú de 9 entradas siempre visibles (Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos,
 Servicios, Cuentas y Ajustes); nombre comercial de cada negocio en lugar de «RUC»; ficha del cliente con
 sus vehículos, compras y deuda; stock visible en Productos; lenguaje simple (mantenimiento, recibo,
@@ -275,8 +277,8 @@ total a pagar, movimientos).
 
 **Choques por decidir**
 
-- [ ] Sección 2.2 de `interfaz-y-navegacion.md`: navegación por áreas. Se reemplaza
-- [ ] `RF-REP-006` y `UI-062`: cuentas por cobrar separadas por entidad. Se mantienen como pestañas
+- [x] Sección 2.2 de `interfaz-y-navegacion.md`: navegación por áreas. Se reemplaza (U4)
+- [x] `RF-REP-006` y `UI-062`: cuentas por cobrar separadas por entidad. Se mantienen como pestañas (U4)
 
 **Pasos**
 
@@ -287,6 +289,25 @@ total a pagar, movimientos).
 - [ ] Aplicado
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
+
+### U4b. Pantallas del prototipo (sin OpenSpec)
+
+Aplica en el frontend la disposición de las pantallas del prototipo U2 que ningún cambio cubría:
+Inicio, nuevo mantenimiento, ficha del mantenimiento, venta rápida, las listas y fichas de cada entrada
+del menú, Ajustes y la configuración inicial. U3 solo aplicó colores y componentes, y U4 el menú y el
+lenguaje.
+
+Por decisión del titular (2026-11-14), por la fecha de entrega, **no pasa por OpenSpec**: el plan es
+[`plan-pantallas-prototipo.md`](plan-pantallas-prototipo.md) y de ahí se pasa directo al código. Las
+reglas del negocio no cambian, y lo que exija cambiarlas queda fuera del plan. Las pruebas son solo
+las de los archivos tocados.
+
+Va antes de U5 y U6, que se apoyan en la ficha del mantenimiento y en la venta rápida.
+
+- [ ] Fase 1: trabajo diario (Inicio, nuevo mantenimiento, ficha del mantenimiento, venta rápida)
+- [ ] Fase 2: listas y fichas (mantenimientos, ventas, facturas, clientes, productos, entrada,
+  servicios, cuentas)
+- [ ] Fase 3: Ajustes y configuración inicial
 
 ### U5. `buscar-en-todo-el-sistema`
 

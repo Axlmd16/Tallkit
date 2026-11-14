@@ -64,7 +64,7 @@ Reglas:
 
 - **Barra lateral** grafito de 264 px:
   - Logotipo y «Taller y repuestos».
-  - Grupo «Día a día» con Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos, Servicios y Cuentas, y grupo «Poco frecuente» con Ajustes (`DP-036`, regla 1; la estructura del menú rige con U4).
+  - Nueve entradas planas, todas visibles y sin grupos plegables: Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos, Servicios, Cuentas y Ajustes (`DP-036`, regla 1; `reorganizar-navegacion-y-lenguaje`). Las pantallas de cada entrada se alcanzan con pestañas bajo la barra superior; «Ajustes» es una página de opciones.
   - Opción activa con fondo `#2C3137` y una barra cobre a la izquierda; contadores pequeños a la derecha.
   - Al pie, un tacómetro en líneas finas con un arco y una aguja cobre: es el motivo gráfico propio, inspirado en el oficio. Se repite en las tarjetas oscuras.
 - **Barra superior** blanca: migas, búsqueda global subrayada (rige con U5), nombre y permisos de la persona, avatar cobre y botón de salir.

@@ -60,7 +60,7 @@ Fuentes: `proposal.md`, `specs/` de este cambio, `DP-036`, `docs/analisis-del-si
 
 **D12. Avisos que no tapan el total.** El `ToastProvider` pasa a posicionarse debajo de la barra superior y fuera del pie de las pantallas con acción principal fija; en teléfono se ancla arriba. Es una corrección de maquetación sin lógica.
 
-**D13. Nombre comercial en la configuración inicial.** `InitializeView`/la pantalla de configuración inicial agregan el campo de nombre comercial por entidad, con ayuda que explica su uso; sigue opcional y se guarda con el mismo comando que ya acepta `trade_name`. No hay cambio de esquema.
+**D13. Nombre comercial en la configuración inicial.** `InitializeView`/la pantalla de configuración inicial agregan el campo de nombre comercial por entidad, con ayuda que explica su uso; sigue opcional. **Corrección al aplicar:** el comando de inicialización no recibe `trade_name`, así que el nombre se guarda justo después con la edición de entidad que ya lo acepta (`PATCH entities/{id}/`), dentro de la misma mutación del frontend y tolerando su fallo (el taller queda inicializado y el nombre se completa luego en «Ajustes»). No hay cambio de esquema ni de API.
 
 **Sin ADR nuevo:** las decisiones son de presentación y composición dentro de las fronteras vigentes (ADR-0001, ADR-0003); no se introduce un patrón duradero ni una dependencia.
 

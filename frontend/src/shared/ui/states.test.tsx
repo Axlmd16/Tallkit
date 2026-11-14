@@ -18,15 +18,19 @@ it('names business state without relying on its color', () => {
 })
 
 it.each([
-  ['commercial', 'RUC comercial'],
-  ['artesanal', 'RUC artesanal'],
-] as const)('identifies the %s fiscal scope in text', (scope, label) => {
-  render(<FiscalScopeBadge scope={scope} />)
+  ['commercial', 'Repuestos'],
+  ['artesanal', 'Servicios'],
+] as const)(
+  'identifies the %s business by name, not by RUC',
+  (scope, label) => {
+    render(<FiscalScopeBadge scope={scope} />)
 
-  expect(
-    screen.getByRole('status', { name: `Ámbito fiscal: ${label}` }),
-  ).toBeVisible()
-})
+    expect(
+      screen.getByRole('status', { name: `Negocio: ${label}` }),
+    ).toBeVisible()
+    expect(screen.queryByText(/RUC/)).toBeNull()
+  },
+)
 
 it('announces an error with its corrective detail', () => {
   render(
@@ -73,10 +77,10 @@ describe('estados Tallkit', () => {
       </>,
     )
     const commercial = screen.getByRole('status', {
-      name: 'Ámbito fiscal: RUC comercial',
+      name: 'Negocio: Repuestos',
     })
     const artisan = screen.getByRole('status', {
-      name: 'Ámbito fiscal: RUC artesanal',
+      name: 'Negocio: Servicios',
     })
     expect(commercial.className).toMatch(/bg-scope-commercial-soft/)
     expect(artisan.className).toMatch(/bg-scope-artisan-soft/)

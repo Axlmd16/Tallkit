@@ -498,7 +498,7 @@ it('cada diálogo económico nombra la venta, su número y la entidad fiscal (PP
     const { unmount } = render(element)
     const subject = screen.getByRole('group', { name: 'Operación' })
     expect(subject).toHaveTextContent('Venta COM-VEN-000007')
-    expect(subject).toHaveTextContent('RUC comercial')
+    expect(subject).toHaveTextContent('Repuestos')
     unmount()
   }
 })

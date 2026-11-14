@@ -1,18 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 
 let currentSession: Session
-
-async function openGroups(...names: string[]) {
-  const user = userEvent.setup()
-  for (const name of names) {
-    await user.click(await screen.findByRole('button', { name }))
-  }
-}
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
@@ -119,37 +111,33 @@ it.each(routes)('%s se deniega sin permiso', async (path) => {
   ).toBeInTheDocument()
 })
 
-it('muestra en la navegación solo lo que la sesión permite y distingue las marcas de vehículo', async () => {
+const navHrefs = async () =>
+  (await mainNav())
+    .getAllByRole('link')
+    .map((link) => link.getAttribute('href'))
+
+it('muestra en la navegación solo lo que la sesión permite', async () => {
   currentSession = session(['servicios.ver', 'marcas_vehiculo.ver'])
   renderPath('/')
-  await openGroups('Catálogos', 'Clientes y vehículos')
-  expect(
-    await (await mainNav()).findByRole('link', { name: 'Servicios' }),
-  ).toBeInTheDocument()
-  expect(
-    (await mainNav()).getByRole('link', { name: 'Marcas de vehículos' }),
-  ).toHaveAttribute('href', '/vehicle-brands')
-  expect(
-    (await mainNav()).queryByRole('link', { name: 'Productos' }),
-  ).toBeNull()
-  expect(
-    (await mainNav()).queryByRole('link', { name: 'Proveedores' }),
-  ).toBeNull()
+  await mainNav()
+  const hrefs = await navHrefs()
+  expect(hrefs).toContain('/services')
+  expect(hrefs).toContain('/settings')
+  expect(hrefs).not.toContain('/products')
+  expect(hrefs).not.toContain('/suppliers')
 })
 
-it('un Administrador con todos los permisos ve las tres entradas nuevas', async () => {
+it('un Administrador con permisos de catálogo llega a productos, servicios y ajustes', async () => {
   currentSession = session([
     'productos.ver',
     'servicios.ver',
     'proveedores.ver',
   ])
   renderPath('/')
-  await openGroups('Catálogos', 'Compras e inventario')
-  for (const name of ['Productos', 'Servicios', 'Proveedores']) {
-    expect(
-      await (await mainNav()).findByRole('link', { name }),
-    ).toBeInTheDocument()
-  }
+  await mainNav()
+  const hrefs = await navHrefs()
+  for (const href of ['/products', '/services', '/settings'])
+    expect(hrefs).toContain(href)
 })
 
 const productEditorRoutes = ['/products/new', '/products/7/edit']

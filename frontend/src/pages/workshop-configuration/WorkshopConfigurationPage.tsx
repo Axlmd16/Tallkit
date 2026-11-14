@@ -266,8 +266,10 @@ function InitializeWorkshopForm() {
 
   const [commercialRuc, setCommercialRuc] = useState('')
   const [commercialLegalName, setCommercialLegalName] = useState('')
+  const [commercialTradeName, setCommercialTradeName] = useState('')
   const [artisanalRuc, setArtisanalRuc] = useState('')
   const [artisanalLegalName, setArtisanalLegalName] = useState('')
+  const [artisanalTradeName, setArtisanalTradeName] = useState('')
   const [warehouseName, setWarehouseName] = useState('')
 
   const isCommercialComplete =
@@ -298,7 +300,14 @@ function InitializeWorkshopForm() {
     }
 
     const idempotencyKey = crypto.randomUUID()
-    initializeMutation.mutate({ data, idempotencyKey })
+    initializeMutation.mutate({
+      data,
+      idempotencyKey,
+      tradeNames: {
+        commercial: commercialTradeName,
+        artisanal: artisanalTradeName,
+      },
+    })
   }
 
   return (
@@ -415,6 +424,30 @@ function InitializeWorkshopForm() {
                     Razón social comercial registrada ante la autoridad fiscal.
                   </p>
                 </div>
+
+                <div className="ui-field">
+                  <label
+                    className="block text-body font-semibold text-ink"
+                    htmlFor="commercial_trade_name"
+                  >
+                    Nombre comercial (opcional)
+                  </label>
+                  <div className="mt-1.5">
+                    <input
+                      id="commercial_trade_name"
+                      name="commercial_trade_name"
+                      value={commercialTradeName}
+                      onChange={(e) => setCommercialTradeName(e.target.value)}
+                      maxLength={200}
+                      placeholder="Cómo se conoce el negocio"
+                      className={getControlClasses()}
+                    />
+                  </div>
+                  <p className="mt-1 text-label text-ink-muted">
+                    Es el nombre que verá en las pantallas y los recibos. Si lo
+                    deja vacío se usa la razón social.
+                  </p>
+                </div>
               </div>
             </Surface>
 
@@ -492,6 +525,30 @@ function InitializeWorkshopForm() {
                   </div>
                   <p className="mt-1 text-label text-ink-muted">
                     Razón social o nombre del titular artesanal calificado.
+                  </p>
+                </div>
+
+                <div className="ui-field">
+                  <label
+                    className="block text-body font-semibold text-ink"
+                    htmlFor="artisanal_trade_name"
+                  >
+                    Nombre comercial (opcional)
+                  </label>
+                  <div className="mt-1.5">
+                    <input
+                      id="artisanal_trade_name"
+                      name="artisanal_trade_name"
+                      value={artisanalTradeName}
+                      onChange={(e) => setArtisanalTradeName(e.target.value)}
+                      maxLength={200}
+                      placeholder="Cómo se conoce el negocio"
+                      className={getControlClasses()}
+                    />
+                  </div>
+                  <p className="mt-1 text-label text-ink-muted">
+                    Es el nombre que verá en las pantallas y los recibos. Si lo
+                    deja vacío se usa la razón social.
                   </p>
                 </div>
               </div>

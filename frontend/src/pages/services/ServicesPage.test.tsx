@@ -68,9 +68,7 @@ it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   )
   const table = screen.getByRole('table', { name: 'Servicios' })
   expect(within(table).getByText('USD 25.00')).toBeInTheDocument()
-  expect(
-    screen.getByLabelText(/ámbito fiscal: ruc artesanal/i),
-  ).toBeInTheDocument()
+  expect(screen.getByLabelText(/negocio: servicios/i)).toBeInTheDocument()
   expect(table.textContent).not.toMatch(/stock|existencia|costo|cobro/i)
 })
 

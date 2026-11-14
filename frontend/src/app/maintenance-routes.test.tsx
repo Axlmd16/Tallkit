@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -88,12 +87,7 @@ it('la navegación muestra Mantenimientos solo con su permiso', async () => {
   const nav = within(
     await screen.findByRole('navigation', { name: 'Navegación principal' }),
   )
-  const group = nav.queryByRole('link', { name: 'Mantenimientos' })
-  if (!group) {
-    const buttons = nav.getAllByRole('button')
-    for (const button of buttons) await userEvent.click(button)
-  }
   expect(
-    await nav.findByRole('link', { name: 'Mantenimientos' }),
-  ).toHaveAttribute('href', '/maintenance')
+    nav.getAllByRole('link').map((link) => link.getAttribute('href')),
+  ).toContain('/maintenance')
 })

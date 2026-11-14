@@ -15,6 +15,7 @@ from django.utils import timezone
 
 from catalog.application.inventory_references import (
     StockCatalogRow,
+    get_product_references,
     get_stock_catalog_row,
     list_stock_catalog,
 )
@@ -196,6 +197,40 @@ def _stock_row(
             (f"{position.value:.6f}" if position else "0.000000") if costed else None
         )
     return result
+
+
+MAX_QUANTITY_PRODUCTS = 100
+
+
+def list_stock_quantities(product_ids: list[int]) -> dict[str, Any]:
+    """Existencia por producto para las listas de uso diario: solo identificador y cantidad.
+
+    Nunca expone costos ni valoración, no crea posiciones y omite los identificadores que no
+    corresponden a un producto. Un producto sin movimientos tiene existencia cero.
+    """
+    ids = list(dict.fromkeys(product_ids))
+    if not ids:
+        raise field_error("validation_error", "product_ids", "Indique al menos un producto.")
+    if len(ids) > MAX_QUANTITY_PRODUCTS:
+        raise field_error(
+            "validation_error",
+            "product_ids",
+            f"Pida como máximo {MAX_QUANTITY_PRODUCTS} productos por consulta.",
+        )
+    known = get_product_references(ids)
+    totals = dict(
+        InventoryPosition.objects.filter(product_id__in=known.keys())
+        .values("product_id")
+        .annotate(total=Sum("quantity"))
+        .values_list("product_id", "total")
+    )
+    return {
+        "results": [
+            {"product_id": pid, "quantity": f"{totals.get(pid, Decimal(0)):.0f}"}
+            for pid in ids
+            if pid in known
+        ]
+    }
 
 
 def _valuation_summary() -> dict[str, Any]:

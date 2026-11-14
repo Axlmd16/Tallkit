@@ -82,7 +82,7 @@ export function LoginPage() {
           </div>
         </div>
         <p className="text-body text-white/75">
-          Repuestos del RUC comercial y servicios del RUC artesanal, siempre
+          Repuestos y servicios, cada uno con sus propias cuentas, siempre
           separados.
         </p>
       </section>

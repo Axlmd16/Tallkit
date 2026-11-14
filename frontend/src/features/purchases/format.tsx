@@ -1,4 +1,5 @@
 import { StatusBadge } from '@/shared/ui'
+import { formatMoney } from '@/shared/ui/business'
 
 import { purchaseStateLabels, type PurchaseState } from './types'
 
@@ -14,7 +15,9 @@ export const timestamp = (iso: string | null) =>
 
 /** Importes tal como los calculó el backend: solo se antepone la moneda. */
 export const usd = (value: string | null | undefined) =>
-  value === null || value === undefined ? '—' : `USD ${value}`
+  value === null || value === undefined
+    ? '—'
+    : (formatMoney(value) ?? `USD ${value}`)
 
 /** Cuenta con singular y plural: «1 producto», «3 productos». */
 export const count = (value: number | string, one: string, many: string) => {

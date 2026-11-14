@@ -74,7 +74,11 @@ export function PaymentDialog({
           key: idempotencyKey,
         })
       }
-      submitLabel="Registrar cobro"
+      submitLabel={
+        parts.length === 0 && withholding !== null
+          ? 'Registrar retención'
+          : 'Registrar cobro'
+      }
       title="Registrar cobro"
       extraNotice={
         <InlineNotice

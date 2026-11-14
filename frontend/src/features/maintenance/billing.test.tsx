@@ -129,7 +129,7 @@ describe('PartsSection', () => {
       />,
     )
     expect(
-      screen.getByRole('link', { name: 'Kardex de Filtro' }),
+      screen.getByRole('link', { name: 'Movimientos de Filtro' }),
     ).toHaveAttribute('href', '/inventory/products/7/kardex')
     expect(
       screen.getByText('Reservado, pendiente de confirmar'),
@@ -242,7 +242,7 @@ describe('EconomicSummary', () => {
           },
         ],
         pending: {
-          label: 'Sin comprobante: todavía no genera deuda.',
+          label: 'Sin recibo: todavía no genera deuda.',
           line_count: 1,
           estimated_total: '15.00',
         },
@@ -258,10 +258,10 @@ describe('EconomicSummary', () => {
     }
     renderIn(<EconomicSummary onDone={vi.fn()} order={order()} userScope="u" />)
     expect(
-      screen.getByRole('button', { name: 'Cobrar repuestos (RUC comercial)' }),
+      screen.getByRole('button', { name: 'Cobrar repuestos' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Cobrar servicios (RUC artesanal)' }),
+      screen.getByRole('button', { name: 'Cobrar servicios' }),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Total combinado (informativo)'),
@@ -270,14 +270,14 @@ describe('EconomicSummary', () => {
       screen.getByText(/no es una deuda única ni una\s+factura/),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Sin comprobante: todavía no genera deuda.'),
+      screen.getByText('Sin recibo: todavía no genera deuda.'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', {
-        name: 'Generar comprobante de servicios',
+        name: 'Generar recibo de servicios',
       }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Sin comprobante:')).toBeInTheDocument()
+    expect(screen.getByText('Sin recibo:')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'ART-SER-000004' }),
     ).toHaveAttribute('href', '/maintenance/service-operations/4')
@@ -337,9 +337,7 @@ describe('Diálogos de servicios', () => {
         /Comprobante interno: no es una factura electrónica autorizada por el SRI\./,
       ),
     ).toBeInTheDocument()
-    await events.click(
-      screen.getByRole('button', { name: 'Generar comprobante' }),
-    )
+    await events.click(screen.getByRole('button', { name: 'Generar recibo' }))
     await waitFor(() =>
       expect(mocks.mutations.confirmServices.mutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -350,7 +348,7 @@ describe('Diálogos de servicios', () => {
       ),
     )
     expect(onDone).toHaveBeenCalledWith(
-      'Comprobante de servicios ART-SER-000001 generado (RUC artesanal).',
+      'Recibo de servicios ART-SER-000001 generado.',
     )
   })
 
@@ -379,8 +377,49 @@ describe('Diálogos de servicios', () => {
       await screen.findByText('No hay importe de servicios por documentar.'),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Generar comprobante' }),
+      screen.getByRole('button', { name: 'Generar recibo' }),
     ).toBeDisabled()
+  })
+
+  it('el botón dice «Registrar cobro» y solo cambia a «Registrar retención» si es lo único registrado', async () => {
+    const events = userEvent.setup()
+    renderIn(
+      <ArtisanPaymentDialog
+        onClose={vi.fn()}
+        onDone={vi.fn()}
+        operation={
+          {
+            id: 4,
+            internal_number: 'ART-SER-000004',
+            condition: 'CONTADO',
+            balance: '60.00',
+            withholding_context: { enabled: true, customer_is_agent: false },
+          } as never
+        }
+        userScope="u"
+      />,
+    )
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).getByRole('button', { name: 'Registrar cobro' }),
+    ).toBeDisabled()
+    expect(
+      within(dialog).queryByRole('button', { name: /retención/ }),
+    ).toBeNull()
+
+    const cash = within(dialog).getByLabelText('Efectivo (USD)')
+    await events.type(cash, '10.00')
+    expect(
+      within(dialog).getByRole('button', { name: /^Registrar cobro de/ }),
+    ).toBeInTheDocument()
+
+    await events.click(
+      within(dialog).getByRole('checkbox', { name: /el cliente retuvo/ }),
+    )
+    await events.clear(cash)
+    expect(
+      within(dialog).getByRole('button', { name: 'Registrar retención' }),
+    ).toBeEnabled()
   })
 
   it('el cobro de servicios identifica el RUC artesanal y su saldo', async () => {
@@ -403,7 +442,7 @@ describe('Diálogos de servicios', () => {
     )
     const dialog = screen.getByRole('dialog')
     expect(
-      within(dialog).getByLabelText('Ámbito fiscal: RUC artesanal'),
+      within(dialog).getByLabelText('Negocio: Servicios'),
     ).toBeInTheDocument()
     expect(
       within(dialog).getByText(/no se\s+aplica a los repuestos/),

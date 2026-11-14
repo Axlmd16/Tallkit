@@ -19,7 +19,7 @@ describe('StatLink — indicador con conteo', () => {
       />,
     )
     const link = screen.getByRole('link', {
-      name: '3 Ventas de contado sin cobrar, RUC comercial',
+      name: '3 Ventas de contado sin cobrar, Repuestos',
     })
     expect(link).toHaveAttribute(
       'href',
@@ -61,7 +61,7 @@ describe('StatLink — indicador con conteo', () => {
     )
     expect(
       screen.getByRole('link', {
-        name: 'USD 1,300.50 Por cobrar, RUC artesanal, 2 clientes',
+        name: 'USD 1,300.50 Por cobrar, Servicios, 2 clientes',
       }),
     ).toBeInTheDocument()
     expect(screen.getByText('USD 1,300.50')).toBeInTheDocument()

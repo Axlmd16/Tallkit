@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     | ((filters: { page?: number }) => Record<string, unknown>),
   listArgs: [] as unknown[],
   setActive: vi.fn(),
+  quantitiesCalls: [] as Array<{ ids: readonly number[]; enabled: boolean }>,
 }))
 
 const page = <T,>(results: T[]) => ({
@@ -33,6 +34,16 @@ const page = <T,>(results: T[]) => ({
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
+}))
+vi.mock('@/features/inventory/hooks', () => ({
+  useStockQuantities: (ids: readonly number[], enabled: boolean) => {
+    mocks.quantitiesCalls.push({ ids, enabled })
+    return {
+      data: enabled
+        ? ids.map((id) => ({ product_id: id, quantity: '12' }))
+        : undefined,
+    }
+  },
 }))
 vi.mock('@/features/product-categories/hooks', () => ({
   useProductCategoryList: () =>
@@ -133,6 +144,7 @@ beforeEach(() => {
   mocks.labelData.mockReset()
   mocks.setActive.mockReset()
   mocks.listArgs.length = 0
+  mocks.quantitiesCalls.length = 0
   mocks.listByPage = null
   mocks.permissions = ['productos.ver']
   mocks.list = page([product])
@@ -255,7 +267,7 @@ it('mantiene un error reintentable al cargar todos los filtrados', async () => {
   expect(mocks.labelData).toHaveBeenCalledTimes(2)
 })
 
-it('muestra las columnas del catálogo sin existencias ni costos, aunque se pueda ver el inventario', () => {
+it('muestra la existencia del inventario sin costos ni valoración', () => {
   mocks.permissions.push('inventario.ver')
   renderPage()
   const table = screen.getByRole('table', { name: 'Productos' })
@@ -273,13 +285,14 @@ it('muestra las columnas del catálogo sin existencias ni costos, aunque se pued
     'Categoría',
     'Presentación',
     'Marca',
+    'Existencia',
     'Precio final USD',
     'Estado',
     'Acciones',
   ])
   expect(within(table).getByText('USD 10.50')).toBeInTheDocument()
   expect(within(table).getByText('Activo')).toBeInTheDocument()
-  expect(table.textContent).not.toMatch(/stock|existencia|costo/i)
+  expect(table.textContent).not.toMatch(/costo|valor|promedio/i)
   // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
   expect(screen.queryByLabelText(/ámbito fiscal/i)).toBeNull()
 })
@@ -480,4 +493,22 @@ it('no imprime etiquetas del filtro de códigos por corregir', () => {
   expect(
     screen.getByRole('button', { name: 'Todos los del filtro actual' }),
   ).toBeDisabled()
+})
+
+it('con permiso de inventario muestra la existencia de la página visible', () => {
+  mocks.permissions = ['productos.ver', 'inventario.ver']
+  renderPage()
+
+  expect(screen.getByRole('columnheader', { name: 'Existencia' })).toBeVisible()
+  expect(screen.getAllByLabelText('Existencias: 12')[0]).toBeVisible()
+  expect(mocks.quantitiesCalls.at(-1)).toEqual({ ids: [5], enabled: true })
+})
+
+it('sin permiso de inventario no pide ni muestra la existencia', () => {
+  mocks.permissions = ['productos.ver']
+  renderPage()
+
+  expect(screen.queryByRole('columnheader', { name: 'Existencia' })).toBeNull()
+  expect(screen.queryByLabelText(/Existencias:/)).toBeNull()
+  expect(mocks.quantitiesCalls.every((call) => !call.enabled)).toBe(true)
 })

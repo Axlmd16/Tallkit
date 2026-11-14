@@ -163,6 +163,50 @@ class StockListView(_InventoryView):
         return _respond(request, call)
 
 
+class StockQuantitiesView(_InventoryView):
+    business_permissions: ClassVar[dict[str, str]] = {"GET": "inventario.ver"}
+
+    @extend_schema(
+        tags=["Inventory"],
+        operation_id="inventory_stock_quantities",
+        parameters=[
+            OpenApiParameter(
+                "product_ids",
+                OpenApiTypes.STR,
+                required=True,
+                description="Identificadores separados por coma; máximo 100.",
+            )
+        ],
+        responses={
+            200: sz.StockQuantitiesSerializer,
+            400: ProblemSerializer,
+            403: ProblemSerializer,
+        },
+        description="Solo identificador y cantidad: sin costos, promedio ni valoración.",
+    )
+    def get(self, request: Request) -> Response:
+        def call() -> dict[str, Any]:
+            params = _query(request, {"product_ids"})
+            raw = params.get("product_ids", "")
+            try:
+                ids = [int(part) for part in raw.split(",") if part.strip()]
+            except ValueError:
+                raise InventoryApplicationError(
+                    "validation_error",
+                    "Parámetro inválido: product_ids.",
+                    {"product_ids": ["Use identificadores enteros separados por coma."]},
+                ) from None
+            if any(pid < 1 for pid in ids):
+                raise InventoryApplicationError(
+                    "validation_error",
+                    "Parámetro inválido: product_ids.",
+                    {"product_ids": ["Los identificadores deben ser positivos."]},
+                )
+            return queries.list_stock_quantities(ids)
+
+        return _respond(request, call)
+
+
 class StockItemView(_InventoryView):
     business_permissions: ClassVar[dict[str, str]] = {"GET": "inventario.ver"}
 

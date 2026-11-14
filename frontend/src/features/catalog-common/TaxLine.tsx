@@ -1,4 +1,5 @@
 import { FiscalScopeBadge, InlineNotice } from '@/shared/ui'
+import { trimRate } from '@/shared/ui/business'
 
 /** Proyección mínima del impuesto que entregan los catálogos de productos y servicios. */
 export interface TaxSummary {
@@ -18,7 +19,7 @@ export function TaxLine({
 }) {
   const rate =
     tax?.tax_status === 'applicable' && tax.rate !== null
-      ? tax.rate.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+      ? trimRate(tax.rate)
       : null
   return (
     <div className="space-y-2">

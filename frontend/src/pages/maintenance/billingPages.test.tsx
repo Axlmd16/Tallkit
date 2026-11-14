@@ -40,6 +40,8 @@ vi.mock('@/features/auth/hooks', () => ({
   }),
 }))
 vi.mock('@/shared/api/entity-logos', () => ({
+  useBusinessName: (scope: string) =>
+    scope === 'COMERCIAL' || scope === 'commercial' ? 'Repuestos' : 'Servicios',
   useIssuerBrand: (scope: string) => {
     mocks.scopes.push(scope)
     return mocks.brands[scope] ?? { logoUrl: null, legalName: undefined }
@@ -168,9 +170,7 @@ describe('ServiceOperationDetailPage', () => {
     expect(
       screen.getByRole('heading', { name: 'ART-SER-000004' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByLabelText('Ámbito fiscal: RUC artesanal'),
-    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Negocio: Servicios')).toBeInTheDocument()
     const balance = screen.getByLabelText('Saldo de la operación')
     expect(within(balance).getByText('Saldo')).toBeInTheDocument()
     expect(screen.getByText('Alineación')).toBeInTheDocument()
@@ -180,7 +180,7 @@ describe('ServiceOperationDetailPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Vigente')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Cobrar servicios (RUC artesanal)' }),
+      screen.getByRole('button', { name: 'Cobrar servicios' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Anular' })).toBeInTheDocument()
     // Sin permiso de corrección no se ofrece corregir pagos.
@@ -319,7 +319,7 @@ describe('ServiceOperationDocumentPage', () => {
       'Taller Artesanal',
     )
     expect(
-      screen.getByRole('button', { name: 'Imprimir comprobante' }),
+      screen.getByRole('button', { name: 'Imprimir recibo' }),
     ).toBeEnabled()
   })
 
@@ -354,7 +354,7 @@ describe('ServiceOperationDocumentPage', () => {
       legalName: 'Taller vigente',
     }
     renderDocument()
-    const button = screen.getByRole('button', { name: 'Imprimir comprobante' })
+    const button = screen.getByRole('button', { name: 'Imprimir recibo' })
     expect(button).toBeDisabled()
     fireEvent.error(
       screen.getByRole('img', { name: 'Logo de Taller Artesanal' }),

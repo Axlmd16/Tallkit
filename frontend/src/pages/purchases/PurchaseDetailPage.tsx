@@ -20,6 +20,7 @@ import {
   Tabs,
   useToast,
 } from '@/shared/ui'
+import { formatRate } from '@/shared/ui/business'
 
 const panel = 'rounded-panel border border-line bg-surface'
 const panelHead = 'border-b border-line px-4 py-3'
@@ -154,8 +155,7 @@ function LegacyPanel({ purchase }: { purchase: Purchase }) {
                   {unitCost(line.unit_cost)}
                 </td>
                 <td className="px-4 py-2.5 text-ink-muted">
-                  {line.tax?.code ?? '—'}{' '}
-                  {line.tax?.rate ? `${line.tax.rate}%` : ''}
+                  {line.tax?.code ?? '—'} {formatRate(line.tax?.rate) ?? ''}
                 </td>
                 <td className="px-4 py-2.5 text-right font-semibold">
                   <Money amount={line.amounts?.total ?? null} />

@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -72,18 +71,15 @@ it.each([
   expect(await screen.findByText(`Pantalla ${name}`)).toBeInTheDocument()
 })
 
-it('la navegación ofrece Proformas con permiso de consulta', async () => {
-  renderPath('/')
-  const nav = within(
-    await screen.findByRole('navigation', { name: 'Navegación principal' }),
+it('las pestañas de Ventas ofrecen Proformas con permiso de consulta', async () => {
+  currentSession = session(['ventas.ver', 'proformas.ver'])
+  renderPath('/sales')
+  const tabs = within(
+    await screen.findByRole('navigation', { name: 'Secciones de Ventas' }),
   )
-  await userEvent.click(
-    await nav.findByRole('button', { name: 'Ventas y cobros' }),
-  )
-  expect(await nav.findByRole('link', { name: 'Proformas' })).toHaveAttribute(
-    'href',
-    '/proformas',
-  )
+  expect(
+    tabs.getAllByRole('link').map((link) => link.getAttribute('href')),
+  ).toContain('/proformas')
 })
 
 it.each(['/proformas', '/proformas/7', '/proformas/7/document'])(
@@ -110,14 +106,14 @@ it.each(['/proformas/new', '/proformas/7/edit'])(
   },
 )
 
-it('sin permiso de proformas el enlace no aparece', async () => {
+it('sin permiso de proformas no hay pestaña ni enlace', async () => {
   currentSession = session(['ventas.ver'])
-  renderPath('/')
-  const nav = within(
-    await screen.findByRole('navigation', { name: 'Navegación principal' }),
-  )
-  await userEvent.click(
-    await nav.findByRole('button', { name: 'Ventas y cobros' }),
-  )
-  expect(nav.queryByRole('link', { name: 'Proformas' })).toBeNull()
+  renderPath('/sales')
+  await screen.findByRole('navigation', { name: 'Navegación principal' })
+  expect(
+    screen.queryByRole('navigation', { name: 'Secciones de Ventas' }),
+  ).toBeNull()
+  expect(
+    screen.getAllByRole('link').map((link) => link.getAttribute('href')),
+  ).not.toContain('/proformas')
 })

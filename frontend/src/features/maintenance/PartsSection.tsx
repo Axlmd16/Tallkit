@@ -105,7 +105,7 @@ export function PartsSection({
           </Button>
         )
       }
-      description="Venta comercial vinculada (RUC comercial), separada de los servicios."
+      description="Venta de repuestos vinculada, separada de los servicios."
       icon={<Package size={17} />}
       id="order-parts-title"
       title="Repuestos"
@@ -348,7 +348,7 @@ function PartTable({
                 <td className="py-2 pr-3">
                   {kardex ? (
                     <Link
-                      aria-label={`Kardex de ${line.product_name ?? ''}`}
+                      aria-label={`Movimientos de ${line.product_name ?? ''}`}
                       className="code text-label hover:underline"
                       to={`/inventory/products/${line.product_id}/kardex`}
                     >

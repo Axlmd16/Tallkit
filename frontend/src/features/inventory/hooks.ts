@@ -11,6 +11,8 @@ export const inventoryKeys = {
   item: (id: number | null) => ['inventory', 'item', id] as const,
   kardex: (id: number | null, filters: KardexFilters) =>
     ['inventory', 'kardex', id, filters] as const,
+  quantities: (ids: readonly number[]) =>
+    ['inventory', 'quantities', ids] as const,
   operation: (id: number | null) => ['inventory', 'operation', id] as const,
 }
 
@@ -18,6 +20,22 @@ export function useStock(filters: StockFilters = {}) {
   return useQuery({
     queryKey: inventoryKeys.stock(filters),
     queryFn: () => inventoryApi.stock(filters),
+    refetchOnWindowFocus: true,
+  })
+}
+
+/**
+ * Existencia de los productos visibles de una lista. Solo se pide con permiso de inventario;
+ * sin él (o sin productos) no hay consulta.
+ */
+export function useStockQuantities(
+  productIds: readonly number[],
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: inventoryKeys.quantities(productIds),
+    queryFn: () => inventoryApi.quantities(productIds),
+    enabled: enabled && productIds.length > 0,
     refetchOnWindowFocus: true,
   })
 }

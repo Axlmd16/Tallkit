@@ -23,6 +23,7 @@ import {
   StatusBadge,
   Textarea,
 } from '@/shared/ui'
+import { formatRate } from '@/shared/ui/business'
 
 import { useProductTaxOptions } from './hooks'
 import type { CatalogRef, Product, ProductInput, TaxProjection } from './types'
@@ -80,7 +81,7 @@ function withCurrent(options: CatalogRef[], current: CatalogRef | null) {
 function taxLabel(option: TaxProjection): string {
   const status =
     option.tax_status === 'applicable'
-      ? `${option.rate}%`
+      ? (formatRate(option.rate) ?? '')
       : option.tax_status === 'missing'
         ? 'vigencia pendiente'
         : 'vigencias ambiguas'
@@ -520,7 +521,7 @@ export function ProductForm({
           </FormSection>
 
           <FormSection
-            description="Precio final al cliente, con impuesto incluido. Se venderá con el RUC comercial."
+            description="Precio final al cliente, con impuesto incluido."
             title="Precio y tributación"
             variant="flush"
           >
@@ -560,7 +561,7 @@ export function ProductForm({
                   title="Configuración tributaria pendiente"
                   tone="warning"
                 >
-                  No hay definiciones de impuesto del RUC comercial. Un
+                  No hay definiciones de impuesto para repuestos. Un
                   Administrador debe configurarlas antes de registrar productos.
                   {canConfigure && (
                     <>
@@ -582,7 +583,7 @@ export function ProductForm({
                 error={errors.tax_definition_id}
                 hint="El precio no se recalcula al cambiar la tarifa."
                 id="product-tax"
-                label="Impuesto (RUC comercial)"
+                label="Impuesto"
                 required
               >
                 <Select

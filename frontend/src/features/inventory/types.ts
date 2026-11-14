@@ -79,6 +79,12 @@ export interface StockFilters {
   pageSize?: number | undefined
 }
 
+/** Existencia de un producto, sin costos ni valoración. */
+export interface StockQuantity {
+  product_id: number
+  quantity: string
+}
+
 export interface KardexTotals {
   count: number
   quantity_in: string

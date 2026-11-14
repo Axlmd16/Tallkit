@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -93,7 +92,7 @@ it.each(routes)('%s se deniega sin su permiso', async (path) => {
   ).toBeInTheDocument()
 })
 
-it('el Vendedor no accede a documentos ni cobros del RUC artesanal', async () => {
+it('el Vendedor no accede a documentos ni cobros de servicios', async () => {
   currentSession = session(['ventas.ver', 'pagos_comerciales.ver'])
   renderPath('/maintenance/service-operations/4')
   expect(
@@ -101,18 +100,14 @@ it('el Vendedor no accede a documentos ni cobros del RUC artesanal', async () =>
   ).toBeInTheDocument()
 })
 
-it('la navegación ofrece Cobros de servicios solo con su permiso', async () => {
+it('la navegación ofrece las cuentas de servicios solo con su permiso', async () => {
   currentSession = session(['mantenimientos.ver', 'pagos_artesanales.ver'])
   renderPath('/')
   const nav = within(
     await screen.findByRole('navigation', { name: 'Navegación principal' }),
   )
-  if (!nav.queryByRole('link', { name: 'Cobros de servicios' })) {
-    for (const button of nav.getAllByRole('button')) {
-      await userEvent.click(button)
-    }
-  }
-  expect(
-    await nav.findByRole('link', { name: 'Cobros de servicios' }),
-  ).toHaveAttribute('href', '/maintenance/receivables')
+  const hrefs = nav
+    .getAllByRole('link')
+    .map((link) => link.getAttribute('href'))
+  expect(hrefs).toContain('/maintenance/receivables')
 })

@@ -393,8 +393,8 @@ export const CATALOG: CatalogEntry[] = (
       },
       tokens: ['scope-commercial', 'scope-artisan', 'line-strong', 'ink'],
       variants: [
-        'RUC comercial',
-        'RUC artesanal',
+        'Repuestos',
+        'Servicios',
         'Semana en cero',
         'Sin datos',
         'Carga',

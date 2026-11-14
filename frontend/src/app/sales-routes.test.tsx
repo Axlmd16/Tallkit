@@ -1,11 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 
-import { isItemActive, navigationGroups } from './navigation'
+import { isSectionActive, navigationEntries } from './navigation'
 
 let currentSession: Session
 
@@ -98,45 +97,42 @@ it.each(routes)(
   },
 )
 
-it('la navegación muestra Ventas y Cuentas por cobrar solo con su permiso', async () => {
+const navHrefs = async () =>
+  (await mainNav())
+    .getAllByRole('link')
+    .map((link) => link.getAttribute('href'))
+
+it('la navegación muestra Ventas sin Cuentas si solo tiene ventas.ver', async () => {
   currentSession = session(['ventas.ver'])
   renderPath('/')
-  await userEvent.click(
-    await screen.findByRole('button', { name: 'Ventas y cobros' }),
-  )
-  expect(
-    await (await mainNav()).findByRole('link', { name: 'Ventas' }),
-  ).toHaveAttribute('href', '/sales')
-  expect(
-    (await mainNav()).queryByRole('link', { name: 'Cuentas por cobrar' }),
-  ).toBeNull()
+  await mainNav()
+  expect(await navHrefs()).toContain('/sales')
+  expect(await navHrefs()).not.toContain('/sales/receivables')
 })
 
-it('un Vendedor con ambos permisos ve las dos entradas', async () => {
+it('un Vendedor con ambos permisos llega a las cuentas de su negocio', async () => {
   currentSession = session(['ventas.ver', 'pagos_comerciales.ver'])
   renderPath('/')
-  await userEvent.click(
-    await screen.findByRole('button', { name: 'Ventas y cobros' }),
-  )
-  expect(
-    await (await mainNav()).findByRole('link', { name: 'Cuentas por cobrar' }),
-  ).toHaveAttribute('href', '/sales/receivables')
+  await mainNav()
+  expect(await navHrefs()).toContain('/sales/receivables')
 })
 
-it('sin permisos comerciales el grupo no aparece', async () => {
+it('sin permisos comerciales no aparecen Ventas ni Cuentas', async () => {
   currentSession = session(['clientes.ver'])
   renderPath('/')
-  await screen.findByRole('button', { name: 'Clientes y vehículos' })
-  expect(screen.queryByRole('button', { name: 'Ventas y cobros' })).toBeNull()
+  await mainNav()
+  expect(await navHrefs()).not.toContain('/sales')
+  expect(await navHrefs()).not.toContain('/sales/receivables')
 })
 
 it('Ventas no queda activa cuando se está en cuentas por cobrar', () => {
-  const items = navigationGroups.find((g) => g.id === 'ventas-cobros')!.items
-  const [sales, receivables] = items as [
-    (typeof items)[number],
-    (typeof items)[number],
-  ]
-  expect(isItemActive(sales, '/sales/receivables')).toBe(false)
-  expect(isItemActive(receivables, '/sales/receivables')).toBe(true)
-  expect(isItemActive(sales, '/sales/7/edit')).toBe(true)
+  const sales = navigationEntries
+    .find((entry) => entry.id === 'ventas')!
+    .sections.find((section) => section.id === 'ventas')!
+  const receivables = navigationEntries
+    .find((entry) => entry.id === 'cuentas')!
+    .sections.find((section) => section.scope === 'commercial')!
+  expect(isSectionActive(sales, '/sales/receivables')).toBe(false)
+  expect(isSectionActive(receivables, '/sales/receivables')).toBe(true)
+  expect(isSectionActive(sales, '/sales/7/edit')).toBe(true)
 })

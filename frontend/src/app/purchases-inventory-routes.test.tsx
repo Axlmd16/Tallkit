@@ -1,18 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
 
 let currentSession: Session
-
-async function openGroups(...names: string[]) {
-  const user = userEvent.setup()
-  for (const name of names) {
-    await user.click(await screen.findByRole('button', { name }))
-  }
-}
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
@@ -101,24 +93,26 @@ it.each(routes)('%s se deniega sin su permiso', async (path) => {
   ).toBeInTheDocument()
 })
 
-it('la navegación muestra Entradas e Inventario solo con su permiso', async () => {
+const hrefs = async () =>
+  (await mainNav())
+    .getAllByRole('link')
+    .map((link) => link.getAttribute('href'))
+
+it('la navegación ofrece Inventario sin Entradas si solo tiene su permiso', async () => {
   currentSession = session(['inventario.ver'])
   renderPath('/')
-  await openGroups('Compras e inventario')
-  expect(
-    await (await mainNav()).findByRole('link', { name: 'Inventario' }),
-  ).toHaveAttribute('href', '/inventory')
-  expect((await mainNav()).queryByRole('link', { name: 'Entradas' })).toBeNull()
+  await mainNav()
+  expect(await hrefs()).toContain('/inventory')
+  expect(await hrefs()).not.toContain('/purchases')
 })
 
-it('un Administrador ve ambas entradas', async () => {
+it('un Administrador llega a Entradas e Inventario desde las pestañas de Productos', async () => {
   currentSession = session(['ingresos.ver', 'inventario.ver'])
-  renderPath('/')
-  await openGroups('Compras e inventario')
+  renderPath('/purchases')
+  const tabs = within(
+    await screen.findByRole('navigation', { name: 'Secciones de Productos' }),
+  )
   expect(
-    await (await mainNav()).findByRole('link', { name: 'Entradas' }),
-  ).toHaveAttribute('href', '/purchases')
-  expect(
-    (await mainNav()).getByRole('link', { name: 'Inventario' }),
-  ).toBeInTheDocument()
+    tabs.getAllByRole('link').map((link) => link.getAttribute('href')),
+  ).toEqual(['/purchases', '/inventory'])
 })

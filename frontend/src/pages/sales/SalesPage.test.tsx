@@ -108,7 +108,7 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
   expect(screen.getAllByText('Confirmada').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Parcial').length).toBeGreaterThan(0)
   // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
-  expect(screen.queryByText('RUC comercial')).toBeNull()
+  expect(screen.queryByText('Negocio: Repuestos')).toBeNull()
 })
 
 it('el número interno usa cifras de ancho uniforme y el total se alinea a la derecha', () => {

@@ -10,6 +10,8 @@ import {
 } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 
+import { useBusinessName } from '@/shared/api/entity-logos'
+
 type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger'
 
 const toneClasses: Record<Tone, string> = {
@@ -77,14 +79,15 @@ export function FiscalScopeBadge({
 }) {
   const commercial = scope === 'commercial'
   const Icon = commercial ? Tag : Wrench
+  const name = useBusinessName(scope)
   return (
     <span
-      aria-label={`Ámbito fiscal: ${commercial ? 'RUC comercial' : 'RUC artesanal'}`}
+      aria-label={`Negocio: ${name}`}
       className={`inline-flex min-h-[26px] items-center gap-1.5 rounded-full px-2.5 py-0.5 text-label font-semibold whitespace-nowrap ${commercial ? 'bg-scope-commercial-soft text-scope-commercial-ink' : 'bg-scope-artisan-soft text-scope-artisan-ink'}`}
       role="status"
     >
       <Icon aria-hidden="true" size={14} weight="bold" />
-      {commercial ? 'RUC comercial' : 'RUC artesanal'}
+      {name}
     </span>
   )
 }

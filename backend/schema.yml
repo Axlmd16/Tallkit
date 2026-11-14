@@ -2583,6 +2583,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/fiscal/preparations/list/:
+    get:
+      operationId: fiscal_preparation_list
+      description: Lista de solo lectura de preparaciones locales de las entidades
+        que el usuario puede consultar. Ninguna fila indica emisión, envío ni autorización.
+      parameters:
+      - in: query
+        name: entity
+        schema:
+          type: string
+          enum:
+          - ARTESANAL
+          - COMERCIAL
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: 1 a 100; omisión 20.
+      - in: query
+        name: state
+        schema:
+          type: string
+          enum:
+          - CANCELLED
+          - DRAFT
+          - PREPARED
+      tags:
+      - Fiscal
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FiscalPreparationListPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/fiscal/readiness/:
     get:
       operationId: fiscal_readiness_retrieve
@@ -3366,6 +3431,40 @@ paths:
                 $ref: '#/components/schemas/Problem'
           description: ''
         '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/inventory/stock/quantities/:
+    get:
+      operationId: inventory_stock_quantities
+      description: 'Solo identificador y cantidad: sin costos, promedio ni valoración.'
+      parameters:
+      - in: query
+        name: product_ids
+        schema:
+          type: string
+        description: Identificadores separados por coma; máximo 100.
+        required: true
+      tags:
+      - Inventory
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockQuantities'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
           content:
             application/json:
               schema:
@@ -13052,6 +13151,14 @@ components:
       - notice
       - order_id
       - order_number
+    EntityEnum:
+      enum:
+      - COMERCIAL
+      - ARTESANAL
+      type: string
+      description: |-
+        * `COMERCIAL` - COMERCIAL
+        * `ARTESANAL` - ARTESANAL
     EntityLogo:
       type: object
       properties:
@@ -14415,6 +14522,79 @@ components:
       - technical
       - version
       - working
+    FiscalPreparationListPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiscalPreparationListRow'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+      - total_pages
+    FiscalPreparationListRow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity:
+          $ref: '#/components/schemas/EntityEnum'
+        fiscal_entity_id:
+          type: integer
+        source_kind:
+          $ref: '#/components/schemas/SourceKindEnum'
+        source_id:
+          type: integer
+        state:
+          $ref: '#/components/schemas/FiscalPreparationListRowStateEnum'
+        number:
+          type: string
+          nullable: true
+        customer_name:
+          type: string
+          nullable: true
+        total:
+          type: string
+          nullable: true
+        source_date:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+      required:
+      - created_at
+      - customer_name
+      - entity
+      - fiscal_entity_id
+      - id
+      - number
+      - source_date
+      - source_id
+      - source_kind
+      - state
+      - total
+    FiscalPreparationListRowStateEnum:
+      enum:
+      - DRAFT
+      - PREPARED
+      - CANCELLED
+      type: string
+      description: |-
+        * `DRAFT` - DRAFT
+        * `PREPARED` - PREPARED
+        * `CANCELLED` - CANCELLED
     FiscalPreparationResult:
       type: object
       properties:
@@ -15420,6 +15600,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MaintenanceOrderListItem'
+        status_counts:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceStatusCounts'
+          description: Contador por segmento con los mismos filtros, sin el de estado.
       required:
       - count
       - page
@@ -15589,6 +15773,21 @@ components:
       required:
       - line_count
       - names
+    MaintenanceStatusCounts:
+      type: object
+      properties:
+        all:
+          type: integer
+          description: Todas las órdenes que cumplen los demás filtros.
+        open:
+          type: integer
+          description: Registradas o reabiertas.
+        finalized:
+          type: integer
+      required:
+      - all
+      - finalized
+      - open
     MaintenanceTransition:
       type: object
       properties:
@@ -18586,6 +18785,26 @@ components:
       - page_size
       - results
       - total_pages
+    StockQuantities:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockQuantityRow'
+      required:
+      - results
+    StockQuantityRow:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        quantity:
+          type: string
+          description: Existencia entera; cero sin movimientos.
+      required:
+      - product_id
+      - quantity
     StockReservation:
       type: object
       properties:

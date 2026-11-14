@@ -21,6 +21,7 @@ import {
   Select,
   Textarea,
 } from '@/shared/ui'
+import { formatRate } from '@/shared/ui/business'
 
 import { useServiceTaxOptions } from './hooks'
 import type { Service, ServiceInput } from './types'
@@ -44,7 +45,7 @@ const toDraft = (service?: Service): Draft => ({
 function taxLabel(option: TaxProjection): string {
   const status =
     option.tax_status === 'applicable'
-      ? `${option.rate}%`
+      ? (formatRate(option.rate) ?? '')
       : option.tax_status === 'missing'
         ? 'vigencia pendiente'
         : 'vigencias ambiguas'
@@ -264,15 +265,15 @@ export const ServiceForm = forwardRef<ServiceFormHandle, ServiceFormProps>(
               title="Configuración tributaria pendiente"
               tone="warning"
             >
-              No hay definiciones de impuesto del RUC artesanal. Un
-              Administrador debe configurarlas antes de registrar servicios.
+              No hay definiciones de impuesto para servicios. Un Administrador
+              debe configurarlas antes de registrar servicios.
             </InlineNotice>
           ) : (
             <Field
               error={errors.tax_definition_id}
               hint="El precio no se recalcula al cambiar la tarifa del impuesto."
               id="service-tax"
-              label="Impuesto (RUC artesanal)"
+              label="Impuesto"
               required
             >
               <Select

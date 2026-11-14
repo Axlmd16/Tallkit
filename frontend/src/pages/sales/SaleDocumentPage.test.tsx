@@ -116,16 +116,16 @@ it('espera a que cargue el logotipo antes de permitir imprimir', () => {
     legalName: 'Comercial SA',
   }
   renderPage()
-  const button = screen.getByRole('button', { name: 'Imprimir comprobante' })
+  const button = screen.getByRole('button', { name: 'Imprimir recibo' })
   expect(button).toBeDisabled()
   expect(button).toHaveAttribute('aria-busy', 'true')
   fireEvent.load(screen.getByRole('img', { name: 'Logo de Comercial SA' }))
   expect(button).toBeEnabled()
 })
 
-it('muestra datos históricos, número, RUC comercial, cliente, desglose y el aviso del SRI', () => {
+it('muestra datos históricos, número, Repuestos, cliente, desglose y el aviso del SRI', () => {
   renderPage()
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   expect(sheet).toHaveTextContent('COM-VEN-000001')
   expect(sheet).toHaveTextContent(
     'Comercial SA · RUC 1790000000001 (comercial)',
@@ -148,7 +148,7 @@ it('los controles de navegación y acciones se marcan para ocultarse al imprimir
   }).parentElement
   expect(controls).toHaveClass('no-print')
   expect(
-    screen.getByRole('button', { name: 'Imprimir comprobante' }),
+    screen.getByRole('button', { name: 'Imprimir recibo' }),
   ).toBeInTheDocument()
 })
 
@@ -156,9 +156,7 @@ it('imprime con la impresión del navegador, sin PDF ni motor adicional', async 
   const print = vi.fn()
   vi.stubGlobal('print', print)
   renderPage()
-  await userEvent.click(
-    screen.getByRole('button', { name: 'Imprimir comprobante' }),
-  )
+  await userEvent.click(screen.getByRole('button', { name: 'Imprimir recibo' }))
   expect(print).toHaveBeenCalledTimes(1)
 })
 
@@ -174,7 +172,7 @@ it('una venta anulada conserva número y valores e indica la anulación', () => 
     },
   }
   renderPage()
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   expect(sheet).toHaveTextContent('Venta anulada: Error de captura')
   expect(sheet).toHaveTextContent('COM-VEN-000001')
   expect(sheet).toHaveTextContent('USD 23.00')
@@ -183,12 +181,12 @@ it('una venta anulada conserva número y valores e indica la anulación', () => 
 it('presenta carga y error con ruta de retorno', () => {
   mocks.query = { isPending: true, isError: false }
   const first = renderPage()
-  expect(screen.getByText('Cargando comprobante…')).toBeInTheDocument()
+  expect(screen.getByText('Cargando recibo…')).toBeInTheDocument()
   first.unmount()
   mocks.query = { isPending: false, isError: true }
   renderPage()
   expect(screen.getByRole('alert')).toHaveTextContent(
-    'No se pudo cargar el comprobante',
+    'No se pudo cargar el recibo',
   )
 })
 

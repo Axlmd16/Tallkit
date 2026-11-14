@@ -108,7 +108,7 @@ it('informa la configuración tributaria pendiente del ámbito artesanal', () =>
   mocks.taxes = taxPage([])
   render(<ServiceForm onCancel={vi.fn()} onSubmit={vi.fn()} />)
   expect(
-    screen.getByText(/definiciones de impuesto del ruc artesanal/i),
+    screen.getByText(/definiciones de impuesto para servicios/i),
   ).toBeInTheDocument()
 })
 

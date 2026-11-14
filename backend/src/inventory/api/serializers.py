@@ -123,6 +123,15 @@ class StockRowSerializer(_Base):
     inventory_value = serializers.CharField(required=False, allow_null=True)
 
 
+class StockQuantityRowSerializer(_Base):
+    product_id = serializers.IntegerField()
+    quantity = serializers.CharField(help_text="Existencia entera; cero sin movimientos.")
+
+
+class StockQuantitiesSerializer(_Base):
+    results = StockQuantityRowSerializer(many=True)
+
+
 class StockReservationSerializer(_Base):
     quantity = serializers.CharField()
     sale_id = serializers.IntegerField(allow_null=True)

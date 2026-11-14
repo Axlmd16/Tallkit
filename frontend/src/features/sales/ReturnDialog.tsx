@@ -64,7 +64,7 @@ export function ReturnDialog({
   return (
     <MoneyDialog
       subject={`Venta ${sale.internal_number ?? `#${sale.id}`}`}
-      description="Corrige el importe exigible con los valores históricos de la venta. Solo lo declarado apto para reventa regresa al inventario."
+      description="Corrige el total a pagar con los valores históricos de la venta. Solo lo declarado apto para reventa regresa al inventario."
       formValid={valid}
       inputSignature={JSON.stringify([trimmed, lines])}
       intentKeys={[key]}
@@ -86,7 +86,7 @@ export function ReturnDialog({
       extraNotice={
         <InlineNotice title="Aptitud para reventa" tone="info">
           Clasifique cada cantidad devuelta. Las unidades no aptas reducen el
-          exigible pero no aumentan la existencia.
+          total a pagar pero no aumentan la existencia.
         </InlineNotice>
       }
     >

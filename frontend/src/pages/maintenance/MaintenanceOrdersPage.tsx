@@ -18,7 +18,6 @@ import {
 import { useMaintenanceOrders } from '@/features/maintenance/hooks'
 import type {
   OrderListItem,
-  OrderState,
   OrderStateFilter,
 } from '@/features/maintenance/types'
 import {
@@ -36,13 +35,7 @@ import {
   SegmentedControl,
 } from '@/shared/ui'
 
-const SEGMENT_LABELS: Record<OrderState, string> = {
-  REGISTERED: 'Registradas',
-  REOPENED: 'Reabiertas',
-  FINALIZED: 'Finalizadas',
-}
-
-/** Órdenes de mantenimiento del RUC artesanal con búsqueda y filtros en la URL. */
+/** Mantenimientos con segmentos Todas, Abiertas y Finalizadas, búsqueda y filtros en la URL. */
 export function MaintenanceOrdersPage() {
   const filters = useUrlFilters()
   const location = useLocation()
@@ -59,6 +52,11 @@ export function MaintenanceOrdersPage() {
     page: filters.page,
   })
 
+  // El servidor cuenta cada segmento con la misma búsqueda y fechas, sin el estado elegido.
+  const counts = query.data?.status_counts
+  const count = (value: number | undefined) =>
+    value === undefined ? {} : { count: value }
+
   return (
     <div className="catalog-page list-page space-y-4">
       <PageHeader
@@ -71,7 +69,7 @@ export function MaintenanceOrdersPage() {
           )
         }
         icon={<Wrench />}
-        description="Órdenes de mantenimiento del RUC artesanal. El total de servicios es operativo: no es un cobro ni una factura."
+        description="Mantenimientos del taller. El total de servicios es operativo: no es un cobro ni una factura."
         title="Mantenimientos"
       />
       <ListStates
@@ -93,11 +91,13 @@ export function MaintenanceOrdersPage() {
                 aria-label="Estado de la orden"
                 onChange={(value) => filters.set({ state: value })}
                 options={[
-                  { value: '', label: 'Todas' },
-                  { value: 'OPEN', label: 'Abiertas' },
-                  ...(Object.keys(SEGMENT_LABELS) as OrderState[]).map(
-                    (value) => ({ value, label: SEGMENT_LABELS[value] }),
-                  ),
+                  { value: '', label: 'Todas', ...count(counts?.all) },
+                  { value: 'OPEN', label: 'Abiertas', ...count(counts?.open) },
+                  {
+                    value: 'FINALIZED',
+                    label: 'Finalizadas',
+                    ...count(counts?.finalized),
+                  },
                 ]}
                 value={state}
               />

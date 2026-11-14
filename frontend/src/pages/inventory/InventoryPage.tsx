@@ -25,6 +25,7 @@ import {
   StockIndicator,
   useToast,
 } from '@/shared/ui'
+import { Money } from '@/shared/ui/business'
 
 interface FlatRow {
   id: number
@@ -118,7 +119,7 @@ export function InventoryPage() {
         >
           <span className="text-ink-muted">Valor del inventario</span>
           <strong className="text-block tabular-nums text-ink">
-            USD {query.data.valuation.total_value}
+            <Money amount={query.data.valuation.total_value} />
           </strong>
           {query.data.valuation.products_without_cost > 0 && (
             <HintPopover
@@ -231,17 +232,17 @@ export function InventoryPage() {
             actions={(row) => (
               <RowActions>
                 <Button
-                  aria-label="Ver Kardex"
+                  aria-label="Ver movimientos"
                   className="record-action"
                   onClick={() =>
                     navigate(`/inventory/products/${row.id}/kardex`)
                   }
                   type="button"
-                  title="Ver Kardex"
+                  title="Ver movimientos"
                   variant="quiet"
                 >
                   <ChartLineUp aria-hidden="true" size={18} />
-                  <span>Kardex</span>
+                  <span>Movimientos</span>
                 </Button>
               </RowActions>
             )}
@@ -311,7 +312,7 @@ export function InventoryPage() {
                         !row.cost_registered ? (
                           <NoCost />
                         ) : row.average_cost != null ? (
-                          <span className="tabular-nums">{`USD ${row.average_cost}`}</span>
+                          <Money amount={row.average_cost} precision="cost" />
                         ) : (
                           '—'
                         ),
@@ -325,7 +326,7 @@ export function InventoryPage() {
                         !row.cost_registered ? (
                           <NoCost />
                         ) : row.inventory_value != null ? (
-                          <span className="tabular-nums">{`USD ${row.inventory_value}`}</span>
+                          <Money amount={row.inventory_value} />
                         ) : (
                           '—'
                         ),

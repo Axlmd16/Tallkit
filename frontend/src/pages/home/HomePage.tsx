@@ -12,8 +12,10 @@ import { EmptyState, PageHeader } from '@/shared/ui'
 
 import { CollectionsBlock } from './CollectionsBlock'
 import { PendingBlock } from './PendingBlock'
+import { OwedBlock } from './OwedBlock'
 import { QuickActionsBlock } from './QuickActionsBlock'
 import { ReceivablesBlock } from './ReceivablesBlock'
+import { WorkshopNowBlock } from './WorkshopNowBlock'
 
 /** Permisos que dan acceso a algún pendiente; el servidor decide cuáles entrega. */
 const PENDING_PERMISSIONS = [
@@ -39,6 +41,10 @@ export function HomePage() {
   const showPending = PENDING_PERMISSIONS.some((name) => permissions.has(name))
   const showMoney = MONEY_PERMISSIONS.some((name) => permissions.has(name))
 
+  const showWorkshop = permissions.has('mantenimientos.ver')
+  const showOwedCommercial = permissions.has('pagos_comerciales.ver')
+  const showOwedArtisan = permissions.has('pagos_artesanales.ver')
+
   const pending = useHomePending(showPending)
   const receivables = useHomeReceivables(showMoney)
   const collections = useHomeCollections(showMoney)
@@ -63,6 +69,20 @@ export function HomePage() {
         <>
           <QuickActionsBlock actions={actions} />
           {showPending && <PendingBlock query={pending} />}
+          {(showWorkshop || showOwedCommercial || showOwedArtisan) && (
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+              {showWorkshop && (
+                <WorkshopNowBlock className="xl:min-w-0 xl:flex-1" />
+              )}
+              {(showOwedCommercial || showOwedArtisan) && (
+                <OwedBlock
+                  artisan={showOwedArtisan}
+                  className="xl:min-w-0 xl:flex-1"
+                  commercial={showOwedCommercial}
+                />
+              )}
+            </div>
+          )}
           {showMoney && (
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
               <ReceivablesBlock

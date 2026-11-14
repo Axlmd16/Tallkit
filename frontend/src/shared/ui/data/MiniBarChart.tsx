@@ -1,3 +1,5 @@
+import { useBusinessName } from '@/shared/api/entity-logos'
+
 import { formatMoney, Money } from '../business/Money'
 import { ScopeLabel, type ScopeLabelScope } from '../business/ScopeLabel'
 import { Tooltip } from '../overlays/Tooltip'
@@ -17,11 +19,6 @@ export interface MiniBarChartProps {
   total: string | null
   /** Oculta el título a la vista cuando el panel que lo contiene ya lo muestra. */
   hideTitle?: boolean | undefined
-}
-
-const scopeNames: Record<ScopeLabelScope, string> = {
-  commercial: 'RUC comercial',
-  artesanal: 'RUC artesanal',
 }
 
 const tones: Record<ScopeLabelScope, string> = {
@@ -61,12 +58,13 @@ export function MiniBarChart({
   total,
   hideTitle = false,
 }: MiniBarChartProps) {
+  const scopeName = useBusinessName(scope)
   const heights = days.map((day) => Number(day.amount))
   const highest = Math.max(0, ...heights)
 
   return (
     <div
-      aria-label={`${title}, ${scopeNames[scope]}`}
+      aria-label={`${title}, ${scopeName}`}
       className="flex flex-col gap-3 px-4 py-3.5"
       role="group"
     >

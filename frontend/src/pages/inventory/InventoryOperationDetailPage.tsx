@@ -5,6 +5,7 @@ import { useOperation } from '@/features/inventory/hooks'
 import { NoCost } from '@/features/inventory/NoCost'
 import { kindLabels, operationStateLabels } from '@/features/inventory/types'
 import { Button, InlineNotice, LoadingState, StatusBadge } from '@/shared/ui'
+import { Money } from '@/shared/ui/business'
 
 export function InventoryOperationDetailPage() {
   const id = Number(useParams().id)
@@ -122,7 +123,8 @@ export function InventoryOperationDetailPage() {
               <NoCost />
             ) : (
               <>
-                Costo unitario USD {op.unit_cost} · valor USD {op.entry_value}
+                Costo unitario <Money amount={op.unit_cost} precision="cost" />{' '}
+                · valor <Money amount={op.entry_value} />
               </>
             )}
           </p>
@@ -167,7 +169,7 @@ export function InventoryOperationDetailPage() {
                       {m.applied_unit_cost === null ? (
                         <NoCost />
                       ) : (
-                        `USD ${m.applied_unit_cost}`
+                        <Money amount={m.applied_unit_cost} precision="cost" />
                       )}
                     </td>
                     <td className="h-11 px-4 text-right">

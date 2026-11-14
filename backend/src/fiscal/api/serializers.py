@@ -522,3 +522,25 @@ class FiscalPaymentFormWrite(StrictSerializer):
 class FiscalActivePreparation(serializers.Serializer[dict[str, Any]]):
     preparation_id = serializers.UUIDField(allow_null=True)
     state = serializers.CharField(allow_null=True)
+
+
+class FiscalPreparationListRow(serializers.Serializer[dict[str, Any]]):
+    id = serializers.UUIDField()
+    entity = serializers.ChoiceField(choices=["COMERCIAL", "ARTESANAL"])
+    fiscal_entity_id = serializers.IntegerField()
+    source_kind = serializers.ChoiceField(choices=["COMMERCIAL", "ARTISAN"])
+    source_id = serializers.IntegerField()
+    state = serializers.ChoiceField(choices=["DRAFT", "PREPARED", "CANCELLED"])
+    number = serializers.CharField(allow_null=True)
+    customer_name = serializers.CharField(allow_null=True)
+    total = serializers.CharField(allow_null=True)
+    source_date = serializers.CharField(allow_null=True)
+    created_at = serializers.CharField()
+
+
+class FiscalPreparationListPage(serializers.Serializer[dict[str, Any]]):
+    count = serializers.IntegerField()
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
+    results = FiscalPreparationListRow(many=True)

@@ -22,7 +22,7 @@ import type {
   VoidPreview,
   OrderFilters,
   OrderInput,
-  OrderListItem,
+  OrderListPage,
   ServiceOption,
   VehicleOption,
 } from './types'
@@ -47,7 +47,7 @@ export function createMaintenanceApi(client: ApiClient) {
     client.request<T>(`${BASE}${path}`, { method, body })
 
   return {
-    list(filters: OrderFilters = {}): Promise<Page<OrderListItem>> {
+    list(filters: OrderFilters = {}): Promise<OrderListPage> {
       return get(
         `/${buildQuery({
           search: filters.search,

@@ -306,16 +306,14 @@ describe('servicios documentados en una operación artesanal', () => {
       ],
     }
     wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
-    expect(
-      screen.getByText('En comprobante ART-SER-000004'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Sin comprobante')).toBeInTheDocument()
+    expect(screen.getByText('En recibo ART-SER-000004')).toBeInTheDocument()
+    expect(screen.getByText('Sin recibo')).toBeInTheDocument()
     expect(screen.getAllByText('SRV-000002')).toHaveLength(2)
     expect(
       screen.queryByRole('button', { name: 'Editar Alineación' }),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText('Bloqueada: incluida en un comprobante'),
+      screen.getByText('Bloqueada: incluida en un recibo'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Editar Balanceo' }),

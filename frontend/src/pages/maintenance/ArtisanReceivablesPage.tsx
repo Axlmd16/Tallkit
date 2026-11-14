@@ -45,7 +45,7 @@ export function ArtisanReceivablesPage() {
             Retenciones por completar
           </Link>
         }
-        description="Saldos de servicios del RUC artesanal; los repuestos se consultan en las cuentas por cobrar comerciales."
+        description="Saldos de servicios; los repuestos se consultan en las cuentas por cobrar de repuestos."
         title="Cuentas por cobrar de servicios"
       />
       <FiscalScopeBadge scope="artesanal" />

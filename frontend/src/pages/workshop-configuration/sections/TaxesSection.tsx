@@ -30,6 +30,7 @@ import {
   useFieldProps,
   useToast,
 } from '@/shared/ui'
+import { formatRate } from '@/shared/ui/business'
 
 export function TaxesSection() {
   const taxes = useAllTaxDefinitions()
@@ -159,7 +160,7 @@ function TaxRow({ definition }: { definition: TaxDefinition }) {
         </span>
       </td>
       <td className={`${sheetTableCell} code tabular-nums`}>
-        {definition.current_rate ? `${definition.current_rate} %` : '—'}
+        {formatRate(definition.current_rate) ?? '—'}
       </td>
       <td className={`${sheetTableCell} text-body`}>
         {definition.starts_on ? (
@@ -177,7 +178,7 @@ function TaxRow({ definition }: { definition: TaxDefinition }) {
         )}
         {upcoming.map((period) => (
           <span className="mt-1 block text-ink-muted" key={period.id}>
-            Luego <span className="code">{Number(period.rate)} %</span> desde{' '}
+            Luego <span className="code">{formatRate(period.rate)}</span> desde{' '}
             <span className="code">{period.starts_on}</span>
           </span>
         ))}
@@ -254,7 +255,7 @@ function ScheduleRateModal({
         <div className="text-body">
           <p className="text-label font-semibold text-ink">Tarifa actual</p>
           <p className="mt-1.5 text-ink">
-            <span className="code">{Number(period.rate)} %</span> · desde{' '}
+            <span className="code">{formatRate(period.rate)}</span> · desde{' '}
             <span className="code">{period.starts_on}</span>
           </p>
         </div>

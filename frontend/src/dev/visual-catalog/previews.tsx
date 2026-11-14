@@ -675,7 +675,7 @@ function PatternsPreview() {
         <div>
           <p className="text-page font-bold">Ventas</p>
           <p className="text-body text-ink-muted">
-            Ventas directas de repuestos del RUC comercial.
+            Ventas directas de repuestos.
           </p>
         </div>
         <Button>Nueva venta</Button>

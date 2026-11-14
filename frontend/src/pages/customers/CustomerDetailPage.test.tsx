@@ -13,6 +13,9 @@ const mocks = vi.hoisted(() => ({
   activate: vi.fn(),
   deactivate: vi.fn(),
   createVehicle: vi.fn(),
+  commercialSales: [] as unknown[],
+  commercialDebt: [] as unknown[],
+  artisanDebt: [] as unknown[],
 }))
 
 vi.mock('@/features/auth/hooks', () => ({
@@ -83,6 +86,58 @@ vi.mock('@/features/maintenance/hooks', () => ({
   }),
 }))
 
+vi.mock('@/features/sales/hooks', () => ({
+  useSales: (filters: unknown) => {
+    mocks.commercialSales.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      data: {
+        results: [
+          {
+            id: 31,
+            internal_number: 'COM-VEN-000031',
+            sale_date: '2026-10-01',
+            grand_total: '40.00',
+          },
+        ],
+      },
+    }
+  },
+  useReceivables: (filters: unknown) => {
+    mocks.commercialDebt.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      data: {
+        receivable_total: '300.00',
+        results: [
+          {
+            id: 31,
+            internal_number: 'COM-VEN-000031',
+            money: { balance: '300.00' },
+          },
+        ],
+      },
+    }
+  },
+}))
+vi.mock('@/features/maintenance/billingHooks', () => ({
+  useArtisanReceivables: (filters: unknown) => {
+    mocks.artisanDebt.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      data: {
+        totals: { balance: '120.00' },
+        results: [
+          { id: 9, internal_number: 'ART-SER-000009', balance: '120.00' },
+        ],
+      },
+    }
+  },
+}))
+
 import { CustomerDetailPage } from './CustomerDetailPage'
 import { ToastProvider } from '@/shared/ui'
 
@@ -127,6 +182,9 @@ beforeEach(() => {
     if (typeof value === 'function' && 'mockReset' in value) value.mockReset()
   })
   mocks.permissions = ['clientes.ver']
+  mocks.commercialSales.length = 0
+  mocks.commercialDebt.length = 0
+  mocks.artisanDebt.length = 0
   mocks.customer = {
     isPending: false,
     isError: false,
@@ -147,7 +205,7 @@ beforeEach(() => {
   }
 })
 
-it('renders customer details and associated vehicles with links', () => {
+it('renders customer details and associated vehicles with links', async () => {
   render(
     <MemoryRouter initialEntries={['/customers/1']}>
       <Routes>
@@ -170,6 +228,9 @@ it('renders customer details and associated vehicles with links', () => {
   expect(screen.getByText('0991234567')).toBeInTheDocument()
   expect(screen.getByText('carlos@example.com')).toBeInTheDocument()
   expect(screen.getByText('Av. 9 de Octubre 100')).toBeInTheDocument()
+  // Dato técnico interno: la versión sigue viajando al editar, pero no se muestra.
+  expect(screen.queryByText(/versión de registro/i)).toBeNull()
+  await userEvent.click(screen.getByRole('tab', { name: 'Vehículos' }))
   expect(screen.getByText(/vehículos asociados/i)).toBeInTheDocument()
   expect(screen.getByText('ABC-1234')).toBeInTheDocument()
   expect(screen.getByText(/Toyota Corolla/)).toBeInTheDocument()
@@ -257,7 +318,7 @@ it('displays empty state when customer has no associated vehicles', () => {
   }
 
   render(
-    <MemoryRouter initialEntries={['/customers/1']}>
+    <MemoryRouter initialEntries={['/customers/1?tab=vehiculos']}>
       <Routes>
         <Route
           element={
@@ -287,7 +348,7 @@ it('takes an authorized user to vehicle registration with the customer preselect
   const user = userEvent.setup()
 
   render(
-    <MemoryRouter initialEntries={['/customers/1']}>
+    <MemoryRouter initialEntries={['/customers/1?tab=vehiculos']}>
       <Routes>
         <Route
           element={
@@ -504,7 +565,7 @@ it('muestra el historial de mantenimientos solo con su permiso', () => {
   mocks.permissions = ['clientes.ver', 'mantenimientos.ver']
   render(
     <ToastProvider>
-      <MemoryRouter initialEntries={['/customers/1']}>
+      <MemoryRouter initialEntries={['/customers/1?tab=compras']}>
         <Routes>
           <Route element={<CustomerDetailPage />} path="/customers/:id" />
         </Routes>
@@ -518,4 +579,76 @@ it('muestra el historial de mantenimientos solo con su permiso', () => {
     'href',
     '/maintenance/7',
   )
+})
+
+function renderAt(path: string) {
+  return render(
+    <ToastProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route element={<CustomerDetailPage />} path="/customers/:id" />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
+  )
+}
+
+it('la deuda se muestra por negocio, cada uno con su total, y nunca se suma', () => {
+  mocks.permissions = [
+    'clientes.ver',
+    'pagos_comerciales.ver',
+    'pagos_artesanales.ver',
+  ]
+  renderAt('/customers/1?tab=deuda')
+
+  const blocks = screen.getAllByRole('region')
+  expect(blocks).toHaveLength(2)
+  expect(within(blocks[0]!).getAllByText('USD 300.00').length).toBeGreaterThan(
+    0,
+  )
+  expect(within(blocks[1]!).getAllByText('USD 120.00').length).toBeGreaterThan(
+    0,
+  )
+  expect(screen.queryByText('USD 420.00')).toBeNull()
+  expect(mocks.commercialDebt.at(-1)).toMatchObject({ customerId: 1 })
+  expect(mocks.artisanDebt.at(-1)).toMatchObject({ customerId: 1 })
+})
+
+it('con permiso de un solo negocio no se ve ni se pide la deuda del otro', () => {
+  mocks.permissions = ['clientes.ver', 'pagos_artesanales.ver']
+  renderAt('/customers/1?tab=deuda')
+
+  expect(screen.getAllByRole('region')).toHaveLength(1)
+  expect(screen.getAllByText('USD 120.00').length).toBeGreaterThan(0)
+  expect(screen.queryByText('USD 300.00')).toBeNull()
+  expect(mocks.commercialDebt).toHaveLength(0)
+  expect(mocks.artisanDebt.length).toBeGreaterThan(0)
+})
+
+it('sin permisos de compras ni de cuentas no aparecen esas pestañas', () => {
+  mocks.permissions = ['clientes.ver']
+  renderAt('/customers/1?tab=deuda')
+
+  expect(screen.queryByRole('tab', { name: 'Compras' })).toBeNull()
+  expect(screen.queryByRole('tab', { name: 'Deuda' })).toBeNull()
+  expect(screen.getByRole('tab', { name: 'Datos' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  expect(mocks.commercialDebt).toHaveLength(0)
+  expect(mocks.artisanDebt).toHaveLength(0)
+})
+
+it('las compras muestran las ventas del cliente solo con permiso de ventas', () => {
+  mocks.permissions = ['clientes.ver', 'ventas.ver']
+  renderAt('/customers/1?tab=compras')
+
+  expect(screen.getByRole('link', { name: 'COM-VEN-000031' })).toHaveAttribute(
+    'href',
+    '/sales/31',
+  )
+  expect(
+    screen.queryByRole('heading', { name: 'Historial de mantenimientos' }),
+  ).toBeNull()
+  expect(mocks.commercialSales.at(-1)).toMatchObject({ customerId: 1 })
 })

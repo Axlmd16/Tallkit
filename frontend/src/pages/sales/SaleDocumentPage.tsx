@@ -15,11 +15,11 @@ export function SaleDocumentPage() {
   const id = Number(useParams().id)
   const query = useSaleDocument(Number.isFinite(id) ? id : null)
   const brand = useSheetBrandReady()
-  if (query.isPending) return <LoadingState label="Cargando comprobante…" />
+  if (query.isPending) return <LoadingState label="Cargando recibo…" />
   if (query.isError || !query.data) {
     return (
-      <InlineNotice title="No se pudo cargar el comprobante" tone="danger">
-        El comprobante solo existe para ventas confirmadas o anuladas.{' '}
+      <InlineNotice title="No se pudo cargar el recibo" tone="danger">
+        El recibo solo existe para ventas confirmadas o anuladas.{' '}
         <Link
           className="font-semibold text-accent hover:underline"
           to={`/sales/${id}`}
@@ -59,7 +59,7 @@ export function SaleDocumentPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="text-label text-ink-muted">Comprobante interno</p>
+          <p className="text-label text-ink-muted">Recibo</p>
           <h1 className="code text-page font-semibold text-ink">
             {doc.number ?? 'Sin número'}
           </h1>
@@ -72,7 +72,7 @@ export function SaleDocumentPage() {
           variant="secondary"
         >
           <Printer aria-hidden="true" size={16} />
-          Imprimir comprobante
+          Imprimir recibo
         </Button>
       </div>
       <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">

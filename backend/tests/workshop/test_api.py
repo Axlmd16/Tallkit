@@ -50,6 +50,10 @@ def test_create_list_and_detail(api, created) -> None:  # type: ignore[no-untype
     assert page["results"][0]["services_total"] == "0.00"
     assert api.get(P, {"state": "OPEN"}).json()["count"] == 1
     assert api.get(P, {"state": "FINALIZED"}).json()["count"] == 0
+    # El contador de cada segmento no depende del segmento elegido.
+    for state in ("OPEN", "FINALIZED", None):
+        counts = api.get(P, {"state": state} if state else {}).json()["status_counts"]
+        assert counts == {"all": 1, "open": 1, "finalized": 0}
     assert api.get(P, {"state": "ABIERTA"}).status_code == 400
     detail = api.get(f"{P}{created['id']}/").json()
     assert detail["allowed_actions"] == [

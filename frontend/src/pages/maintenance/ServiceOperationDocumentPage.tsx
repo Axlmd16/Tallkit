@@ -18,10 +18,10 @@ export function ServiceOperationDocumentPage() {
   const query = useServiceOperationDocument(Number.isFinite(id) ? id : null)
   const brand = useIssuerBrand('ARTESANAL')
   const printable = useSheetBrandReady()
-  if (query.isPending) return <LoadingState label="Cargando comprobante…" />
+  if (query.isPending) return <LoadingState label="Cargando recibo…" />
   if (query.isError || !query.data) {
     return (
-      <InlineNotice title="No se pudo cargar el comprobante" tone="danger">
+      <InlineNotice title="No se pudo cargar el recibo" tone="danger">
         <Link
           className="font-semibold text-accent hover:underline"
           to={`/maintenance/service-operations/${id}`}
@@ -45,9 +45,7 @@ export function ServiceOperationDocumentPage() {
           <ArrowLeft aria-hidden="true" size={18} />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="text-label text-ink-muted">
-            Comprobante interno de servicios
-          </p>
+          <p className="text-label text-ink-muted">Recibo de servicios</p>
           <h1 className="code text-page font-semibold">
             {doc.internal_number}
           </h1>
@@ -60,17 +58,17 @@ export function ServiceOperationDocumentPage() {
           variant="secondary"
         >
           <Printer aria-hidden="true" size={16} />
-          Imprimir comprobante
+          Imprimir recibo
         </Button>
       </div>
       <div className="rounded-panel bg-workspace p-4 max-sm:p-2 print:bg-transparent print:p-0">
         <DocumentSheet
           issuer={{ name: issuer.legal_name, logoUrl: brand.logoUrl }}
-          label={`Comprobante ${doc.internal_number}`}
+          label={`Recibo ${doc.internal_number}`}
           onBrandReady={printable.onBrandReady}
           meta={[
             {
-              label: 'Emisor (RUC artesanal)',
+              label: 'Emisor',
               value: `${issuer.legal_name} · ${issuer.ruc}`,
               wide: true,
             },

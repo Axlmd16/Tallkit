@@ -321,7 +321,7 @@ export function ProductDetailPage() {
                   to={`/inventory/products/${product.id}/kardex`}
                 >
                   <ClockCounterClockwise aria-hidden="true" size={16} />
-                  Ver Kardex del producto
+                  Ver movimientos del producto
                 </Link>
               </div>
             )}

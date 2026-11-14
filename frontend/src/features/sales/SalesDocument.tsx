@@ -57,10 +57,10 @@ export function SalesDocument({
     <DocumentSheet
       busy={updating}
       issuer={{
-        name: data.issuer?.legal_name ?? brand.legalName ?? 'RUC comercial',
+        name: data.issuer?.legal_name ?? brand.legalName ?? 'Repuestos',
         logoUrl: brand.logoUrl,
       }}
-      label="Comprobante de venta"
+      label="Recibo de venta"
       onBrandReady={onBrandReady}
       meta={[
         {

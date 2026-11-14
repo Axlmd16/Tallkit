@@ -25,7 +25,7 @@ describe('MiniBarChart — gráfico breve', () => {
       />,
     )
     const figure = screen.getByRole('group', {
-      name: 'Cobrado en 7 días, RUC artesanal',
+      name: 'Cobrado en 7 días, Servicios',
     })
     expect(within(figure).getByText('Artesanal')).toBeInTheDocument()
     expect(within(figure).getByText('USD 1,355.50')).toBeInTheDocument()

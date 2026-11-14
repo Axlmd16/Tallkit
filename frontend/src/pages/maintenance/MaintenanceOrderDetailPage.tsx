@@ -342,7 +342,7 @@ function GeneralInfo({ order }: { order: MaintenanceOrder }) {
         </dd>
       </div>
       <div className="sm:col-span-2">
-        <dt className="text-label text-ink-muted">RUC artesanal</dt>
+        <dt className="text-label text-ink-muted">Emisor</dt>
         <dd className="mt-1">
           {order.fiscal_entity.legal_name} · {order.fiscal_entity.ruc}
         </dd>

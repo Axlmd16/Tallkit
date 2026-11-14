@@ -44,30 +44,21 @@ Los recursos tipográficos e iconográficos esenciales se sirven desde el paquet
 
 ### 2.2 Navegación principal propuesta
 
-> **En reemplazo (`DP-036`, regla 1):** este diagrama por áreas sigue vigente hasta U4 de `docs/cambios-pendientes.md`, que reorganiza el menú para la usuaria diaria y agrupa lo poco frecuente en «Ajustes». No se dibuja aquí el menú nuevo: lo decide U4.
+Nueve entradas, todas visibles a la vez y sin grupos plegables (`DP-036`, reglas 1 y 3). Una entrada se muestra solo si los permisos del usuario permiten alguna de sus pantallas; Inicio siempre. El servidor sigue decidiendo cada acción.
 
-```mermaid
-flowchart TD
-    INI["Inicio"]
-    OPE["Operación diaria"]
-    CAT["Catálogos"]
-    CON["Control y consultas"]
-    ADM["Administración"]
+| Entrada | Contiene |
+|---|---|
+| Inicio | Resumen de trabajo (sección 3) |
+| Mantenimientos | Lista y ficha de mantenimientos, con los segmentos Todas, Abiertas y Finalizadas y su contador |
+| Ventas | Ventas de repuestos y proformas, en pestañas |
+| Facturas | Preparaciones locales de factura, de solo lectura, por negocio y estado local; ninguna se presenta como autorizada |
+| Clientes | Clientes y vehículos, con la ficha del cliente (Datos, Vehículos, Compras y Deuda por negocio) |
+| Productos | Productos con su existencia (solo con permiso de inventario), entradas e inventario con sus movimientos |
+| Servicios | Catálogo de servicios |
+| Cuentas | Una pestaña por negocio, con «Por cobrar» y «Retenciones» dentro; nunca un total conjunto |
+| Ajustes | Página de entrada con proveedores, marcas, categorías, unidades, usuarios, auditoría, estado técnico y configuración, cada una con su permiso |
 
-    INI --> OPE
-    INI --> CAT
-    INI --> CON
-    INI --> ADM
-
-    OPE --> VTA["Proformas y ventas"]
-    OPE --> TAL["Mantenimientos"]
-    OPE --> ING["Ingresos y pagos"]
-    CAT --> DAT["Clientes, vehículos y catálogos"]
-    CON --> REP["Inventario, reportes y auditoría"]
-    ADM --> CFG["Usuarios y configuración"]
-```
-
-La presentación exacta puede cambiar durante el prototipado, pero debe evitar una navegación separada y duplicada para los dos RUC. La entidad fiscal se deriva del proceso: repuestos corresponden al RUC comercial y servicios al artesanal.
+Vehículos, proformas, entradas e inventario ya no tienen entrada propia, pero sus rutas no cambian. La entidad fiscal se deriva del proceso y se nombra por el nombre del negocio, nunca por su RUC (`RF-REP-006` y `UI-062` se mantienen como pestañas de «Cuentas»). Cobertura: [cobertura-navegacion-y-lenguaje.md](cobertura-navegacion-y-lenguaje.md).
 
 ## 3. Inicio y acceso rápido
 
@@ -86,6 +77,7 @@ Es un resumen de trabajo, no un tablero de reportes. Muestra únicamente lo que 
 - **Acciones rápidas:** nueva venta, nueva proforma, nuevo mantenimiento, registrar entrada y cobrar. Son accesos secundarios con icono; solo abren su pantalla. «Cobrar» conduce a las cuentas por cobrar de la entidad correspondiente, porque un cobro siempre se aplica a una operación concreta (DP-013); quien cobra en las dos entidades tiene un acceso por entidad.
 - **Pendientes:** un solo panel con conteos que conducen a su lista ya filtrada: mantenimientos abiertos, ventas y servicios de contado sin cobrar, proformas que vencen hoy o mañana, retenciones por completar por entidad y borradores de venta y de proforma. El cero se conserva, atenuado. El Administrador ve además el aviso de la calificación artesanal por vencer o vencida.
 - **Por cobrar:** saldo pendiente y clientes con deuda por entidad fiscal, sin total conjunto.
+- **En el taller** y **Falta cobrar:** listas cortas (hasta cinco filas) de los mantenimientos abiertos y de las cuentas con deuda; cada fila lleva su negocio y su saldo, sin total conjunto, y cada lista enlaza a su pantalla completa.
 - **Cobrado en 7 días:** un gráfico breve por entidad fiscal con el dinero cobrado cada día; no incluye retenciones, no resta reembolsos y no es un cierre de caja.
 
 La página no repite el listado de áreas de la navegación. El número de cada indicador coincide con el de su lista de destino.

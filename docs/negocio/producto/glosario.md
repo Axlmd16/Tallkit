@@ -515,9 +515,13 @@ Las pantallas hablan con la usuaria diaria, que no tiene conocimientos contables
 
 | Término del dominio | Se muestra como |
 |---|---|
-| Entidad fiscal (incluidos «RUC comercial» y «RUC artesanal») | El nombre comercial del negocio o, si no lo tiene, su razón social. El RUC sigue visible en facturas, comprobantes y «Ajustes». |
+| Entidad fiscal (incluidos «RUC comercial» y «RUC artesanal») | El nombre comercial del negocio o, si no lo tiene, su razón social. El RUC sigue visible en facturas, recibos y «Ajustes». Mientras se consulta, «Repuestos» o «Servicios». |
+| Orden de mantenimiento | Mantenimiento |
+| Comprobante interno de una operación | Recibo (conserva el aviso de que no es una factura electrónica autorizada) |
+| Importe exigible | Total a pagar |
+| Kardex | Movimientos |
 
-Las demás equivalencias las define U4 de `docs/cambios-pendientes.md`. Aprobado y todavía no implementado: hasta entonces las pantallas siguen mostrando los términos actuales.
+Las equivalencias viven en `frontend/src/shared/ui/terms.ts` y se aplican desde `reorganizar-navegacion-y-lenguaje` (U4). Los importes se muestran con dos decimales y las tarifas sin ceros sobrantes («0 %», «15 %»); solo un costo, visible para quien ya puede verlo, conserva hasta seis decimales.
 
 ## Términos que no deben usarse como sinónimos
 

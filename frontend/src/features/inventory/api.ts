@@ -11,6 +11,7 @@ import type {
   OperationReview,
   StockFilters,
   StockPage,
+  StockQuantity,
   StockRow,
 } from './types'
 
@@ -32,6 +33,13 @@ export function createInventoryApi(client: ApiClient) {
           page_size: filters.pageSize,
         })}`,
       )
+    },
+    /** Existencia de hasta 100 productos; solo identificador y cantidad. */
+    async quantities(productIds: readonly number[]): Promise<StockQuantity[]> {
+      const body = await client.request<{ results: StockQuantity[] }>(
+        `${BASE}/stock/quantities/${buildQuery({ product_ids: productIds.join(',') })}`,
+      )
+      return body.results
     },
     item(productId: number): Promise<StockRow> {
       return client.request(`${BASE}/products/${productId}/`)

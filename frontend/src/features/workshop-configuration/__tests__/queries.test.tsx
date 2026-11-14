@@ -268,3 +268,58 @@ it('executes tax and series mutations and invalidates every affected projection'
     ]),
   )
 })
+
+it('guarda los nombres comerciales opcionales después de inicializar y tolera su fallo', async () => {
+  api.initialize.mockResolvedValue({ installation_id: 1 })
+  api.getEntities.mockResolvedValue([
+    { ...entity, id: 2, entity_type: 'COMERCIAL', version: 1 },
+    { ...entity, id: 3, entity_type: 'ARTESANAL', version: 1 },
+  ])
+  api.updateEntity.mockResolvedValue(entity)
+  const initialize = renderHook(() => useInitializeWorkshop(), { wrapper })
+  const data = {
+    commercial_ruc: '1150696977001',
+    commercial_legal_name: 'Comercial',
+    artisanal_ruc: '1104018559001',
+    artisanal_legal_name: 'Artesanal',
+    warehouse_name: 'Bodega',
+  }
+
+  await act(async () => {
+    await initialize.result.current.mutateAsync({
+      data,
+      idempotencyKey: 'k1',
+      tradeNames: { commercial: ' La Esquina ', artisanal: '' },
+    })
+  })
+  expect(api.updateEntity).toHaveBeenCalledTimes(1)
+  expect(api.updateEntity).toHaveBeenCalledWith(2, {
+    trade_name: 'La Esquina',
+    expected_version: 1,
+  })
+
+  // Sin nombres no se vuelve a consultar ni a editar nada.
+  api.getEntities.mockClear()
+  api.updateEntity.mockClear()
+  await act(async () => {
+    await initialize.result.current.mutateAsync({
+      data,
+      idempotencyKey: 'k2',
+      tradeNames: { commercial: '', artisanal: '  ' },
+    })
+  })
+  expect(api.getEntities).not.toHaveBeenCalled()
+  expect(api.updateEntity).not.toHaveBeenCalled()
+
+  // Si guardar el nombre falla, la inicialización ya hecha no se pierde.
+  api.getEntities.mockRejectedValueOnce(new Error('sin red'))
+  await act(async () => {
+    await expect(
+      initialize.result.current.mutateAsync({
+        data,
+        idempotencyKey: 'k3',
+        tradeNames: { artisanal: 'Taller Jiménez' },
+      }),
+    ).resolves.toEqual({ installation_id: 1 })
+  })
+})

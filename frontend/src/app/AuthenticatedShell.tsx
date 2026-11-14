@@ -1,6 +1,6 @@
 import { List, SignOut } from '@phosphor-icons/react'
-import { useRef, useState, type ReactNode } from 'react'
-import { Link, Outlet, useLocation } from 'react-router'
+import { Fragment, useRef, useState, type ReactNode } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 
 import brandMark from '@/assets/brand/isotipo.svg'
 import { useLogout, useSession } from '@/features/auth/hooks'
@@ -9,6 +9,7 @@ import {
   type Role,
   type Session,
 } from '@/features/auth/types'
+import { useBusinessName } from '@/shared/api/entity-logos'
 import {
   Button,
   FiscalScopeBadge,
@@ -16,24 +17,26 @@ import {
   InlineNotice,
   GaugeMotif,
   NavigationPanel,
+  SectionNav,
   ToastProvider,
 } from '@/shared/ui'
+import { TERMS } from '@/shared/ui/terms'
 
-import { findLocation, groupScopes, visibleGroups } from './navigation'
-import { CompactNavigation, ExpandedNavigation } from './SidebarNavigation'
+import {
+  findLocation,
+  homeEntry,
+  visibleEntries,
+  type NavLocation,
+  type NavScope,
+  type NavSection,
+} from './navigation'
+import { EntryNavigation } from './SidebarNavigation'
 import { useExpandedRail } from './useExpandedRail'
 
 const roleLabels: Record<Role, string> = {
   ADMINISTRADOR: 'Administrador',
   VENDEDOR: 'Vendedor',
   ENCARGADO_TALLER: 'Encargado del taller',
-}
-
-const exactBreadcrumbLabels: Record<string, string> = {
-  '/product-categories': 'Categorías de producto',
-  '/measurement-units': 'Unidades de medida',
-  '/product-brands': 'Marcas de producto',
-  '/sales/receivables': 'Cuentas por cobrar',
 }
 
 const singularLabels: Record<string, string> = {
@@ -45,23 +48,56 @@ const singularLabels: Record<string, string> = {
   Entradas: 'entrada',
   Ventas: 'venta',
   Mantenimientos: 'mantenimiento',
+  Proformas: 'proforma',
 }
 
 /** Sustantivos femeninos: «Nueva entrada», «Nueva venta». */
-const feminineNouns = new Set(['entrada', 'venta'])
+const feminineNouns = new Set(['entrada', 'venta', 'proforma'])
 
 function currentBreadcrumbLabel(pathname: string, itemLabel: string) {
-  const exact = exactBreadcrumbLabels[pathname]
-  if (exact) return exact
   const noun = singularLabels[itemLabel] ?? itemLabel.toLocaleLowerCase('es')
   if (pathname.endsWith('/new'))
     return `${feminineNouns.has(noun) ? 'Nueva' : 'Nuevo'} ${noun}`
   if (pathname.endsWith('/edit')) return `Editar ${noun}`
-  if (pathname.endsWith('/document')) return 'Comprobante'
-  if (pathname.endsWith('/kardex')) return 'Kardex'
+  if (pathname.endsWith('/document')) return TERMS.receipt
+  if (pathname.endsWith('/kardex')) return TERMS.movements
   if (pathname.startsWith('/inventory/operations/'))
     return 'Operación de inventario'
   return `Ficha de ${noun}`
+}
+
+interface Crumb {
+  label: string
+  to: string
+}
+
+/** Ruta de migas: entrada, sección (si aporta), subsección y, en una ficha, su nombre. */
+function buildTrail(
+  location: NavLocation,
+  pathname: string,
+  sectionLabel: (section: NavSection) => string,
+): Crumb[] {
+  const { entry, section, subsection } = location
+  const trail: Crumb[] = []
+  if (entry.id !== homeEntry.id)
+    trail.push({ label: entry.label, to: entry.to })
+  if (
+    section &&
+    (entry.tabs === 'never' ||
+      section.businessTab ||
+      section.label !== entry.label)
+  )
+    trail.push({ label: sectionLabel(section), to: section.to })
+  if (subsection) trail.push({ label: subsection.label, to: subsection.to })
+  if (entry.id === homeEntry.id) return [{ label: entry.label, to: '/' }]
+  const last = trail[trail.length - 1]
+  if (!last) return trail
+  if (pathname !== last.to && pathname !== '/settings')
+    trail.push({
+      label: currentBreadcrumbLabel(pathname, section?.label ?? entry.label),
+      to: pathname,
+    })
+  return trail
 }
 
 export function AuthenticatedShell({
@@ -79,15 +115,28 @@ export function AuthenticatedShell({
   const locked = useRef(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const expandedRail = useExpandedRail()
-  const groups = visibleGroups(new Set(session.permissions))
-  const location = findLocation(groups, pathname)
-  const nestedLocation = location && pathname !== location.item.to
-  const currentLabel =
-    location && nestedLocation
-      ? currentBreadcrumbLabel(pathname, location.item.label)
-      : location?.item.label
-  const scope = location?.group ? groupScopes[location.group.id] : undefined
+  const businessNames: Record<NavScope, string> = {
+    commercial: useBusinessName('commercial'),
+    artesanal: useBusinessName('artesanal'),
+  }
+  const entries = visibleEntries(new Set(session.permissions))
+  const location = findLocation(entries, pathname)
+  const scope = location?.section?.scope
+  const sectionLabel = (section: NavSection) =>
+    section.businessTab && section.scope
+      ? businessNames[section.scope]
+      : section.label
+  const trail = location ? buildTrail(location, pathname, sectionLabel) : []
+  const entry = location?.entry
+  const tabSections =
+    entry && entry.tabs !== 'never'
+      ? entry.sections.length >= (entry.tabs === 'always' ? 1 : 2)
+        ? entry.sections
+        : []
+      : []
+  const activeSection = location?.section ?? null
   const userSummary = `${session.username} · ${session.roles.map((role) => roleLabels[role]).join(' · ')}`
 
   async function logout() {
@@ -147,15 +196,11 @@ export function AuthenticatedShell({
             aria-label="Navegación principal"
             className="min-h-0 flex-1 overflow-y-auto px-3 py-3"
           >
-            {expandedRail ? (
-              <ExpandedNavigation
-                groups={groups}
-                idPrefix="rail"
-                pathname={pathname}
-              />
-            ) : (
-              <CompactNavigation groups={groups} pathname={pathname} />
-            )}
+            <EntryNavigation
+              entries={entries}
+              iconOnly={!expandedRail}
+              location={location}
+            />
           </nav>
           <div
             className="rail-profile mt-auto border-t border-graphite-line"
@@ -196,41 +241,37 @@ export function AuthenticatedShell({
             data-testid="app-topbar"
           >
             <nav aria-label="Ruta" className="min-w-0 flex-1 text-body">
-              {location && (
+              {trail.length > 0 && (
                 <ol className="flex min-w-0 items-center gap-1.5">
-                  {location.group && (
-                    <li className="truncate">
-                      <Link
-                        className="text-ink-muted hover:text-accent hover:underline"
-                        to={location.item.to}
-                      >
-                        {location.group.label}
-                      </Link>
-                    </li>
-                  )}
-                  {location.group && (
-                    <li aria-hidden="true" className="text-line-strong">
-                      /
-                    </li>
-                  )}
-                  {nestedLocation && (
-                    <>
-                      <li className="truncate">
-                        <Link
-                          className="text-ink-muted hover:text-accent hover:underline"
-                          to={location.item.to}
-                        >
-                          {location.item.label}
-                        </Link>
-                      </li>
-                      <li aria-hidden="true" className="text-line-strong">
-                        /
-                      </li>
-                    </>
-                  )}
-                  <li aria-current="page" className="truncate font-semibold">
-                    {currentLabel}
-                  </li>
+                  {trail.map((crumb, index) => {
+                    const current = index === trail.length - 1
+                    return (
+                      <Fragment key={`${crumb.to}-${index}`}>
+                        {index > 0 && (
+                          <li aria-hidden="true" className="text-line-strong">
+                            /
+                          </li>
+                        )}
+                        {current ? (
+                          <li
+                            aria-current="page"
+                            className="truncate font-semibold"
+                          >
+                            {crumb.label}
+                          </li>
+                        ) : (
+                          <li className="truncate">
+                            <Link
+                              className="text-ink-muted hover:text-accent hover:underline"
+                              to={crumb.to}
+                            >
+                              {crumb.label}
+                            </Link>
+                          </li>
+                        )}
+                      </Fragment>
+                    )
+                  })}
                 </ol>
               )}
             </nav>
@@ -241,6 +282,38 @@ export function AuthenticatedShell({
               <InlineNotice title="No se cerró la sesión" tone="danger">
                 Inténtelo nuevamente.
               </InlineNotice>
+            </div>
+          )}
+          {tabSections.length > 0 && entry && (
+            <div className="border-b border-line bg-surface px-2 md:px-4">
+              <SectionNav
+                activeId={activeSection?.id ?? ''}
+                aria-label={`Secciones de ${entry.label}`}
+                items={tabSections.map((section) => ({
+                  id: section.id,
+                  label: sectionLabel(section),
+                  href: section.to,
+                }))}
+                layout="horizontal"
+                onSelect={(id) => {
+                  const target = tabSections.find((item) => item.id === id)
+                  if (target) navigate(target.to)
+                }}
+              />
+              {activeSection?.subsections && (
+                <SectionNav
+                  activeId={location?.subsection?.to ?? ''}
+                  aria-label={`Cuentas de ${sectionLabel(activeSection)}`}
+                  className="border-t border-line"
+                  items={activeSection.subsections.map((item) => ({
+                    id: item.to,
+                    label: item.label,
+                    href: item.to,
+                  }))}
+                  layout="horizontal"
+                  onSelect={(id) => navigate(id)}
+                />
+              )}
             </div>
           )}
           <main className="app-main w-full px-4 py-5 md:px-6">{children}</main>
@@ -254,11 +327,10 @@ export function AuthenticatedShell({
           title="Navegación principal"
         >
           <nav aria-label="Opciones disponibles" className="w-full">
-            <ExpandedNavigation
-              groups={groups}
-              idPrefix="drawer"
+            <EntryNavigation
+              entries={entries}
+              location={location}
               onNavigate={() => setNavigationOpen(false)}
-              pathname={pathname}
             />
             <Button
               className="mt-4 w-full justify-start text-graphite-ink! hover:bg-graphite-raised! hover:text-white!"

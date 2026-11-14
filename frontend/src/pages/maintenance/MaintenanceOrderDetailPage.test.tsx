@@ -239,7 +239,7 @@ it('organiza la ficha en pestañas: trabajo, repuestos, documentos y fotografía
   expect(screen.getByText('Precio aplicado')).toBeInTheDocument()
   expect(screen.getAllByText('Total de servicios de la orden').length).toBe(2)
   expect(
-    screen.queryByLabelText('Resumen económico por RUC'),
+    screen.queryByLabelText('Resumen económico por negocio'),
   ).not.toBeInTheDocument()
   expect(screen.queryByAltText('Golpe')).not.toBeInTheDocument()
   // El resumen lateral y el historial permanecen visibles en todas las pestañas.
@@ -254,12 +254,12 @@ it('organiza la ficha en pestañas: trabajo, repuestos, documentos y fotografía
   ).toBeInTheDocument()
 
   await u.click(within(tabs).getByRole('tab', { name: 'Documentos y cobros' }))
-  const economy = screen.getByLabelText('Resumen económico por RUC')
+  const economy = screen.getByLabelText('Resumen económico por negocio')
   expect(
-    within(economy).getByLabelText('Ámbito fiscal: RUC comercial'),
+    within(economy).getByLabelText('Negocio: Repuestos'),
   ).toBeInTheDocument()
   expect(
-    within(economy).getByLabelText('Ámbito fiscal: RUC artesanal'),
+    within(economy).getByLabelText('Negocio: Servicios'),
   ).toBeInTheDocument()
 
   await u.click(within(tabs).getByRole('tab', { name: /Fotografías/ }))

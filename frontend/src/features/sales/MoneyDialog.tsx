@@ -77,7 +77,7 @@ export function MoneyDialog({
   returnFocusRef?: RefObject<HTMLElement | null>
   children: ReactNode
   extraNotice?: ReactNode
-  /** Objeto de la operación con su número interno; todas son del RUC comercial. */
+  /** Objeto de la operación con su número interno; todas son de ventas de repuestos. */
   subject?: string
 }) {
   const latest = useLatestReview<MoneyReview>()

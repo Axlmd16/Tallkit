@@ -25,6 +25,8 @@ import type {
   FiscalSourceKind,
   NumberingAntecedentWrite,
   PaymentFormOption,
+  PreparationListFilters,
+  PreparationListPage,
   PreparationDefaults,
   PreparationDefaultsWrite,
   WithholdingSettings,
@@ -97,6 +99,18 @@ export function createFiscalApi(client: ApiClient) {
         `${BASE}/preparations/${preparationId}/test-identity/`,
         { method: 'POST', body: {} },
       ),
+    /** Lista de solo lectura de preparaciones locales de los negocios permitidos. */
+    listPreparations: (filters: PreparationListFilters = {}) => {
+      const query = new URLSearchParams()
+      if (filters.entity) query.set('entity', filters.entity)
+      if (filters.state) query.set('state', filters.state)
+      if (filters.page && filters.page > 1)
+        query.set('page', String(filters.page))
+      const search = query.toString()
+      return client.request<PreparationListPage>(
+        `${BASE}/preparations/list/${search ? `?${search}` : ''}`,
+      )
+    },
     listArchive: (entityId?: number, filters: ArchiveFilters = {}) => {
       const query = new URLSearchParams()
       if (entityId) query.set('fiscal_entity_id', String(entityId))

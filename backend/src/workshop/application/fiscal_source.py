@@ -1,6 +1,6 @@
 """Interfaz pública de solo lectura para una operación artesanal de servicios."""
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from types import MappingProxyType
@@ -147,3 +147,29 @@ def lock_fiscal_source(operation_id: int) -> ArtisanFiscalSource:
     if operation is None:
         raise FiscalSourceNotFoundError("Operación artesanal no encontrada.")
     return _project(operation)
+
+
+@dataclass(frozen=True)
+class FiscalSourceSummary:
+    """Lo mínimo que una lista necesita de un origen: número, cliente, total y fecha."""
+
+    source_id: int
+    internal_number: str | None
+    customer_name: str | None
+    grand_total: str | None
+    operational_date: Any
+
+
+def read_fiscal_source_summaries(operation_ids: Iterable[int]) -> dict[int, FiscalSourceSummary]:
+    """Resumen por lote de varias operaciones, sin tocar cobros ni líneas."""
+    operations = ServiceOperation.objects.filter(pk__in=list(operation_ids))
+    return {
+        operation.pk: FiscalSourceSummary(
+            source_id=operation.pk,
+            internal_number=operation.internal_number,
+            customer_name=(operation.customer_snapshot or {}).get("name"),
+            grand_total=str(operation.grand_total),
+            operational_date=operation.operational_date,
+        )
+        for operation in operations
+    }

@@ -231,13 +231,13 @@ function InterventionLines({
                       (line.documented_by ? (
                         <StatusBadge
                           className="ml-2"
-                          label={`En comprobante ${line.documented_by.number}`}
+                          label={`En recibo ${line.documented_by.number}`}
                           tone="success"
                         />
                       ) : (
                         <StatusBadge
                           className="ml-2"
-                          label="Sin comprobante"
+                          label="Sin recibo"
                           tone="neutral"
                         />
                       ))}
@@ -254,7 +254,7 @@ function InterventionLines({
                   </td>
                   {canManage && line.documented_by && (
                     <td className="py-1 text-right text-label text-ink-muted">
-                      Bloqueada: incluida en un comprobante
+                      Bloqueada: incluida en un recibo
                     </td>
                   )}
                   {canManage && !line.documented_by && (

@@ -7,6 +7,7 @@ import type {
   DraftUpdate,
   FiscalSourceKind,
   PreparationDefaultsWrite,
+  PreparationListFilters,
   WithholdingSettingsWrite,
   TaxMappingSuccessorWrite,
 } from './types'
@@ -15,6 +16,8 @@ export const fiscalKeys = {
   all: ['fiscal'] as const,
   origin: (kind: FiscalSourceKind, id: number) =>
     [...fiscalKeys.all, 'origin', kind, id] as const,
+  preparations: (filters: PreparationListFilters) =>
+    [...fiscalKeys.all, 'preparation-list', filters] as const,
   preparation: (id: string) => [...fiscalKeys.all, 'preparation', id] as const,
   archive: (entityId?: number, filters?: ArchiveFilters) =>
     filters
@@ -47,6 +50,14 @@ export function useArchive(entityId?: number, filters: ArchiveFilters = {}) {
   return useQuery({
     queryKey: fiscalKeys.archive(entityId, filters),
     queryFn: () => fiscalApi.listArchive(entityId, filters),
+  })
+}
+
+export function usePreparationList(filters: PreparationListFilters = {}) {
+  return useQuery({
+    queryKey: fiscalKeys.preparations(filters),
+    queryFn: () => fiscalApi.listPreparations(filters),
+    refetchOnWindowFocus: true,
   })
 }
 

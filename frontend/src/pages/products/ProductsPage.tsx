@@ -24,6 +24,7 @@ import { useProductBrandList } from '@/features/product-brands/hooks'
 import { useProductCategoryList } from '@/features/product-categories/hooks'
 import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { productsApi } from '@/features/products/api'
+import { useStockQuantities } from '@/features/inventory/hooks'
 import { presentation } from '@/features/products/format'
 import { useProductMutations, useProducts } from '@/features/products/hooks'
 import type { Product, ProductLabelData } from '@/features/products/types'
@@ -36,6 +37,7 @@ import {
   ConfirmationPanel,
   IconButton,
   Money,
+  StockIndicator,
   Field,
   PageHeader,
   Select,
@@ -50,6 +52,7 @@ export function ProductsPage() {
   const permissions = new Set(useSession().data?.permissions ?? [])
   const canManage = permissions.has('productos.gestionar')
   const canDeactivate = permissions.has('productos.desactivar')
+  const canSeeStock = permissions.has('inventario.ver')
   const tracker = useIntentTracker()
   const mutations = useProductMutations()
 
@@ -99,6 +102,13 @@ export function ProductsPage() {
     vehicleBrandId,
     codeOverLimit: codeOverLimit || undefined,
   })
+  const quantities = useStockQuantities(
+    (query.data?.results ?? []).map((row) => row.id),
+    canSeeStock,
+  )
+  const quantityById = new Map(
+    (quantities.data ?? []).map((row) => [row.product_id, row.quantity]),
+  )
   const categories = useProductCategoryList(PICKER)
   const productBrands = useProductBrandList(PICKER)
   const vehicleBrands = useVehicleBrands({ isActive: null, pageSize: 100 })
@@ -450,6 +460,24 @@ export function ProductsPage() {
                   priority: 'secondary',
                   render: (row) => row.product_brand?.name ?? '—',
                 },
+                ...(canSeeStock
+                  ? [
+                      {
+                        header: 'Existencia',
+                        key: 'id' as const,
+                        priority: 'secondary' as const,
+                        align: 'end' as const,
+                        render: (row: Product) => {
+                          const quantity = quantityById.get(row.id)
+                          return quantity === undefined ? (
+                            '—'
+                          ) : (
+                            <StockIndicator quantity={quantity} />
+                          )
+                        },
+                      },
+                    ]
+                  : []),
                 {
                   header: 'Precio final USD',
                   key: 'sale_price',

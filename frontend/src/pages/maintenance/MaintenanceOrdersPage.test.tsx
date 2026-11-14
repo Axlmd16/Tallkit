@@ -170,3 +170,25 @@ it('«Abiertas» reúne registradas y reabiertas y llega filtrada desde el inici
   expect(mocks.args.at(-1)).toMatchObject({ state: 'OPEN' })
   expect(screen.getByRole('radio', { name: 'Abiertas' })).toBeChecked()
 })
+
+it('los segmentos Todas, Abiertas y Finalizadas muestran el contador del servidor y filtran por estado', async () => {
+  mocks.list = {
+    ...page([item]),
+    data: {
+      ...page([item]).data,
+      status_counts: { all: 9, open: 4, finalized: 5 },
+    },
+  }
+  const user = userEvent.setup()
+  renderPage()
+
+  const segments = screen.getAllByRole('radio')
+  expect(segments).toHaveLength(3)
+  const group = screen.getByRole('radiogroup', { name: 'Estado de la orden' })
+  expect(group).toHaveTextContent('Todas9')
+  expect(group).toHaveTextContent('Abiertas4')
+  expect(group).toHaveTextContent('Finalizadas5')
+
+  await user.click(screen.getByRole('radio', { name: /Finalizadas/ }))
+  expect(screen.getByTestId('where')).toHaveTextContent('state=FINALIZED')
+})

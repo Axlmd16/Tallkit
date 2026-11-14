@@ -179,9 +179,9 @@ export function SaleDetailPage() {
           title={`Venta vinculada a ${sale.origin.order_number}`}
           tone="info"
         >
-          Repuestos de un mantenimiento (RUC comercial). Sus líneas se gestionan
-          desde la orden. Una vez confirmada no puede anularse: sus repuestos se
-          consideran instalados en el vehículo.{' '}
+          Repuestos de un mantenimiento. Sus líneas se gestionan desde la orden.
+          Una vez confirmada no puede anularse: sus repuestos se consideran
+          instalados en el vehículo.{' '}
           <Link
             className="font-semibold hover:underline"
             to={
@@ -490,7 +490,7 @@ export function SaleDetailPage() {
                     to={`/sales/${sale.id}/document`}
                   >
                     <FileText aria-hidden="true" size={16} />
-                    Ver comprobante
+                    Ver recibo
                   </Link>
                 )}
                 {canReturn && (
@@ -523,7 +523,7 @@ export function SaleDetailPage() {
             </div>
             <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-4 py-3 text-body">
               <AmountRow label="Total confirmado" value={sale.grand_total} />
-              <AmountRow label="Exigible vigente" value={money.exigible} />
+              <AmountRow label="Total a pagar vigente" value={money.exigible} />
               <AmountRow label="Cobrado en dinero" value={money.paid_total} />
               {withheld > 0 && (
                 <AmountRow

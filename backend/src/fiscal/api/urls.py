@@ -29,6 +29,7 @@ from fiscal.api.views import (
     PreparationDefaultsView,
     PreparationDetailView,
     PreparationIdentityView,
+    PreparationListView,
     PreparationPrepareView,
     PreparationReviewView,
     TaxMappingCreateView,
@@ -38,6 +39,7 @@ from fiscal.api.views import (
 
 urlpatterns = [
     path("preparations/", PreparationCreateView.as_view(), name="fiscal-preparation-create"),
+    path("preparations/list/", PreparationListView.as_view(), name="fiscal-preparation-list"),
     path(
         "preparations/<uuid:preparation_id>/",
         PreparationDetailView.as_view(),

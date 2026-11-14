@@ -356,6 +356,14 @@ context: |
     sobre repuestos (U6), qué muestra «Facturas» antes del cambio 3 (U4 y U5), si «Cobrar y
     facturar» también finaliza la orden (U6) y el uso de tableta en el taller (U2). No habilita
     la emisión real ni certifica el cumplimiento tributario.
+  - DP-036 aplicada por reorganizar-navegacion-y-lenguaje (U4): el menú tiene nueve entradas planas
+    (Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos, Servicios, Cuentas y Ajustes) y
+    cada negocio se nombra por su nombre comercial. Antes del cambio 3, «Facturas» muestra en solo
+    lectura las preparaciones locales de los negocios que el usuario puede consultar, con su estado
+    local («Borrador», «Preparada, sin enviar», «Cancelada»); ninguna se presenta como enviada,
+    autorizada o emitida, y no habilita la emisión real (DP-034, regla 8). La existencia se ve
+    en Productos solo con el permiso de inventario y sin costos. El estado «cancelado» de un
+    mantenimiento sigue sin implementarse y queda registrado como brecha.
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

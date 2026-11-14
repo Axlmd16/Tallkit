@@ -17,6 +17,7 @@ import {
   useFieldProps,
   useToast,
 } from '@/shared/ui'
+import { formatRate } from '@/shared/ui/business'
 
 import { useCatalog, useFiscalMutations, useTaxMappings } from '../hooks'
 import type { TaxMappingItem } from '../types'
@@ -230,7 +231,8 @@ function MappingModal({
             </p>
             <p className="mt-1.5 text-ink">
               {single.name}
-              {single.current_rate != null && ` · ${single.current_rate} %`}
+              {single.current_rate != null &&
+                ` · ${formatRate(single.current_rate) ?? ''}`}
             </p>
             <p className="mt-1 text-label text-ink-muted">
               Es el único impuesto interno de esta entidad.
@@ -242,7 +244,9 @@ function MappingModal({
               {definitions.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
-                  {item.current_rate != null ? ` · ${item.current_rate} %` : ''}
+                  {item.current_rate != null
+                    ? ` · ${formatRate(item.current_rate) ?? ''}`
+                    : ''}
                 </option>
               ))}
             </Select>

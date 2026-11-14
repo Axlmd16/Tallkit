@@ -116,7 +116,7 @@ it('completa el comprobante con número, fecha y desglose opcional', async () =>
   )
   const dialog = screen.getByRole('dialog')
   expect(
-    within(dialog).getByLabelText('Ámbito fiscal: RUC artesanal'),
+    within(dialog).getByLabelText('Negocio: Servicios'),
   ).toBeInTheDocument()
   const save = within(dialog).getByRole('button', {
     name: 'Guardar comprobante',

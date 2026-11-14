@@ -12,6 +12,12 @@ export interface InitializeWorkshopRequest {
   warehouse_name: string
 }
 
+/** Nombres comerciales opcionales que se guardan justo después de la inicialización. */
+export interface InitialTradeNames {
+  commercial?: string
+  artisanal?: string
+}
+
 export interface InitializeWorkshopResponse {
   installation_id: number
 }

@@ -1,3 +1,4 @@
+import type { Page } from '@/shared/api/catalog-resource'
 import type {
   PaymentState,
   Sale,
@@ -454,6 +455,17 @@ export interface ArtisanReceivableRow {
   withheld?: string
   balance: string
   payment_state: PaymentState
+}
+
+/** Número de mantenimientos de cada segmento con los mismos filtros, sin el de estado. */
+export interface OrderStatusCounts {
+  all: number
+  open: number
+  finalized: number
+}
+
+export interface OrderListPage extends Page<OrderListItem> {
+  status_counts?: OrderStatusCounts
 }
 
 export interface ArtisanReceivablesPage {

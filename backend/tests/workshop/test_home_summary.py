@@ -96,6 +96,56 @@ def test_open_state_gathers_registered_and_reopened(manager, make_order, make_se
     assert home_summary.open_orders(manager) == 4
 
 
+def test_status_counts_ignore_the_state_filter_and_follow_the_other_filters(  # type: ignore[no-untyped-def]
+    manager, make_order, make_service, make_customer
+) -> None:
+    ana = make_customer(name="Ana Pérez")
+    mine_open = make_order(ana)
+    mine_closed = make_order(ana)
+    close(manager, mine_closed, make_service)
+    reopened = make_order(ana)
+    close(manager, reopened, make_service)
+    reopen(manager, reopened["id"], reason="Fuga después del cambio")
+    for _ in range(2):
+        make_order()
+    for _ in range(3):
+        close(manager, make_order(), make_service)
+
+    everything = queries.list_orders(actor=manager)
+    assert everything["status_counts"] == {"all": 8, "open": 4, "finalized": 4}
+    assert everything["status_counts"]["all"] == everything["total_count"]
+
+    # El contador de cada segmento es el total de la lista al elegirlo.
+    for segment, state in (("open", "OPEN"), ("finalized", "FINALIZED")):
+        chosen = queries.list_orders(actor=manager, state=state)
+        assert chosen["total_count"] == chosen["status_counts"][segment]
+        assert chosen["status_counts"] == everything["status_counts"]
+
+    # Con otro filtro, solo se cuentan las órdenes que lo cumplen.
+    only_ana = queries.list_orders(actor=manager, customer_id=ana.pk, state="OPEN")
+    assert only_ana["status_counts"] == {"all": 3, "open": 2, "finalized": 1}
+    assert mine_open["id"] in {row["id"] for row in only_ana["items"]}
+
+    searched = queries.list_orders(actor=manager, search="Ana Pérez")
+    assert searched["status_counts"] == {"all": 3, "open": 2, "finalized": 1}
+
+
+def test_status_counts_respect_the_search_by_plate(  # type: ignore[no-untyped-def]
+    manager, artisan_billing, make_customer, make_vehicle, make_service
+) -> None:
+    customer = make_customer()
+    target = make_vehicle(customer, plate="ZZZ-9999")
+    other = make_vehicle(customer, plate="AAA-1111")
+    closed_one = create(manager, customer_id=customer.pk, vehicle_id=target.pk, odometer_km=5)
+    close(manager, closed_one, make_service)
+    open_one = create(manager, customer_id=customer.pk, vehicle_id=target.pk, odometer_km=6)
+    create(manager, customer_id=customer.pk, vehicle_id=other.pk, odometer_km=7)
+
+    result = queries.list_orders(actor=manager, search="zzz")
+    assert result["status_counts"] == {"all": 2, "open": 1, "finalized": 1}
+    assert open_one["id"] in {row["id"] for row in result["items"]}
+
+
 def test_unknown_order_state_names_open(manager) -> None:  # type: ignore[no-untyped-def]
     error = error_of(lambda: queries.list_orders(actor=manager, state="ABIERTA"))
     assert "OPEN" in error.errors["state"][0]

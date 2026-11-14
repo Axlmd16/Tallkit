@@ -11,6 +11,7 @@ from uuid import UUID
 
 from django.db.models import (
     Case,
+    Count,
     DecimalField,
     ExpressionWrapper,
     F,
@@ -104,12 +105,8 @@ def list_orders(
             | Q(customer_snapshot__identification__icontains=term)
             | Q(vehicle_snapshot__plate__icontains=term)
         )
-    if state == OPEN_FILTER:
-        queryset = open_orders(queryset)
-    elif state:
-        if state not in OrderState.__members__:
-            raise _bad("state", "Use REGISTERED, FINALIZED, REOPENED u OPEN.")
-        queryset = queryset.filter(state=state)
+    if state and state != OPEN_FILTER and state not in OrderState.__members__:
+        raise _bad("state", "Use REGISTERED, FINALIZED, REOPENED u OPEN.")
     if date_from and date_to and date_from > date_to:
         raise _bad("date_from", "La fecha inicial no puede ser posterior a la final.")
     if date_from:
@@ -120,6 +117,16 @@ def list_orders(
         queryset = queryset.filter(customer_id=customer_id)
     if vehicle_id:
         queryset = queryset.filter(vehicle_id=vehicle_id)
+    # Contador de cada segmento: mismos filtros que la lista, salvo el estado, en una consulta.
+    status_counts = queryset.aggregate(
+        all=Count("pk"),
+        open=Count("pk", filter=Q(state__in=[s.value for s in OPEN_STATES])),
+        finalized=Count("pk", filter=Q(state=OrderState.FINALIZED.value)),
+    )
+    if state == OPEN_FILTER:
+        queryset = open_orders(queryset)
+    elif state:
+        queryset = queryset.filter(state=state)
     total = queryset.count()
     subtotal = ExpressionWrapper(
         F("interventions__service_lines__quantity")
@@ -173,7 +180,13 @@ def list_orders(
         }
         for row in rows
     ]
-    return {"items": items, "total_count": total, "page": page, "page_size": page_size}
+    return {
+        "items": items,
+        "total_count": total,
+        "page": page,
+        "page_size": page_size,
+        "status_counts": status_counts,
+    }
 
 
 def get_order(*, actor: User, order_id: int, request_id: UUID | None = None) -> dict[str, Any]:

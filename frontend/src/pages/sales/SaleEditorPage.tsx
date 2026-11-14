@@ -481,7 +481,7 @@ export function SaleEditorPage() {
                 : 'Venta confirmada.',
               {
                 href: `/sales/${sale.id}/document`,
-                linkLabel: 'Ver comprobante',
+                linkLabel: 'Ver recibo',
               },
             )
             navigate(`/sales/${sale.id}`)

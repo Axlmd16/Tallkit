@@ -20,6 +20,9 @@ const mocks = vi.hoisted(() => ({
   receivables: {} as Record<string, unknown>,
   collections: {} as Record<string, unknown>,
   enabled: {} as Record<string, boolean>,
+  orderCalls: [] as unknown[],
+  salesCalls: [] as unknown[],
+  artisanCalls: [] as unknown[],
 }))
 
 vi.mock('@/features/auth/hooks', () => ({
@@ -37,6 +40,70 @@ vi.mock('@/features/home/hooks', () => ({
   useHomeCollections: (enabled: boolean) => {
     mocks.enabled.collections = enabled
     return mocks.collections
+  },
+}))
+
+vi.mock('@/features/maintenance/hooks', () => ({
+  useMaintenanceOrders: (filters: unknown) => {
+    mocks.orderCalls.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+      data: {
+        results: [
+          {
+            id: 7,
+            number: 'ART-OT-000007',
+            opened_on: '2026-10-05',
+            customer: { name: 'Ana Pérez' },
+            vehicle: { plate: 'ABC-1234' },
+          },
+        ],
+      },
+    }
+  },
+}))
+vi.mock('@/features/sales/hooks', () => ({
+  useReceivables: (filters: unknown) => {
+    mocks.salesCalls.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+      data: {
+        results: [
+          {
+            id: 31,
+            internal_number: 'COM-VEN-000031',
+            sale_date: '2026-10-01',
+            customer: { name: 'Luis Mora' },
+            money: { balance: '300.00' },
+          },
+        ],
+      },
+    }
+  },
+}))
+vi.mock('@/features/maintenance/billingHooks', () => ({
+  useArtisanReceivables: (filters: unknown) => {
+    mocks.artisanCalls.push(filters)
+    return {
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+      data: {
+        results: [
+          {
+            id: 9,
+            internal_number: 'ART-SER-000009',
+            customer_name: 'Ana Pérez',
+            operational_date: '2026-10-04',
+            balance: '120.00',
+          },
+        ],
+      },
+    }
   },
 }))
 
@@ -226,22 +293,23 @@ it('cada pendiente muestra su conteo, su ámbito y conduce a su lista filtrada',
     'href',
     '/maintenance?state=OPEN',
   )
-  expect(link('3 Ventas de contado sin cobrar, RUC comercial')).toHaveAttribute(
+  expect(link('3 Ventas de contado sin cobrar, Repuestos')).toHaveAttribute(
     'href',
     '/sales/receivables?condition=CONTADO&only_debt=true',
   )
-  expect(
-    link('1 Servicios de contado sin cobrar, RUC artesanal'),
-  ).toHaveAttribute('href', '/maintenance/receivables?condition=CONTADO')
-  expect(link('2 Proformas por vencer, RUC comercial')).toHaveAttribute(
+  expect(link('1 Servicios de contado sin cobrar, Servicios')).toHaveAttribute(
+    'href',
+    '/maintenance/receivables?condition=CONTADO',
+  )
+  expect(link('2 Proformas por vencer, Repuestos')).toHaveAttribute(
     'href',
     '/proformas?state=VALID&expires_within_days=1',
   )
-  expect(link('1 Ventas en borrador, RUC comercial')).toHaveAttribute(
+  expect(link('1 Ventas en borrador, Repuestos')).toHaveAttribute(
     'href',
     '/sales?state=DRAFT',
   )
-  expect(link('0 Proformas en borrador, RUC comercial')).toHaveAttribute(
+  expect(link('0 Proformas en borrador, Repuestos')).toHaveAttribute(
     'href',
     '/proformas?state=DRAFT',
   )
@@ -253,12 +321,12 @@ it('las retenciones se muestran separadas por entidad, sin total conjunto', () =
   const block = screen.getByRole('region', { name: 'Pendientes' })
   expect(
     within(block).getByRole('link', {
-      name: '2 Retenciones por completar, RUC comercial',
+      name: '2 Retenciones por completar, Repuestos',
     }),
   ).toHaveAttribute('href', '/sales/withholdings')
   expect(
     within(block).getByRole('link', {
-      name: '1 Retenciones por completar, RUC artesanal',
+      name: '1 Retenciones por completar, Servicios',
     }),
   ).toHaveAttribute('href', '/maintenance/withholdings')
   expect(block).not.toHaveTextContent(/3 Retenciones/)
@@ -338,12 +406,12 @@ it('muestra el saldo y los clientes por entidad, sin sumarlos', () => {
   const block = screen.getByRole('region', { name: 'Por cobrar' })
   expect(
     within(block).getByRole('link', {
-      name: 'USD 300.00 Repuestos por cobrar, RUC comercial, 2 clientes',
+      name: 'USD 300.00 Repuestos por cobrar, Repuestos, 2 clientes',
     }),
   ).toHaveAttribute('href', '/sales/receivables')
   expect(
     within(block).getByRole('link', {
-      name: 'USD 120.00 Servicios por cobrar, RUC artesanal, 1 cliente',
+      name: 'USD 120.00 Servicios por cobrar, Servicios, 1 cliente',
     }),
   ).toHaveAttribute('href', '/maintenance/receivables')
   expect(document.body).not.toHaveTextContent('420.00')
@@ -357,7 +425,7 @@ it('sin deuda muestra cero sin énfasis de advertencia', () => {
   const block = screen.getByRole('region', { name: 'Por cobrar' })
   expect(
     within(block).getByRole('link', {
-      name: 'USD 0.00 Repuestos por cobrar, RUC comercial, Sin clientes con deuda',
+      name: 'USD 0.00 Repuestos por cobrar, Repuestos, Sin clientes con deuda',
     }),
   ).toBeVisible()
   expect(block.querySelector('[data-zero="true"]')).not.toBeNull()
@@ -370,10 +438,10 @@ it('muestra un gráfico por entidad con su total y sin total conjunto', () => {
   renderPage()
   const block = screen.getByRole('region', { name: 'Cobrado en 7 días' })
   const commercial = within(block).getByRole('group', {
-    name: 'Cobrado en 7 días, RUC comercial',
+    name: 'Cobrado en 7 días, Repuestos',
   })
   const artisan = within(block).getByRole('group', {
-    name: 'Cobrado en 7 días, RUC artesanal',
+    name: 'Cobrado en 7 días, Servicios',
   })
   expect(commercial).toHaveTextContent('USD 500.00')
   expect(artisan).toHaveTextContent('USD 200.00')
@@ -417,7 +485,7 @@ it('si falla un bloque, solo ese muestra el error y los demás siguen operables'
   ).toHaveLength(5)
   expect(
     screen.getByRole('link', {
-      name: 'USD 300.00 Repuestos por cobrar, RUC comercial, 2 clientes',
+      name: 'USD 300.00 Repuestos por cobrar, Repuestos, 2 clientes',
     }),
   ).toBeVisible()
 })
@@ -511,4 +579,56 @@ it('quien solo administra usuarios no consulta saldos ni cobros', () => {
     collections: false,
   })
   expect(screen.getByRole('region', { name: 'Pendientes' })).toBeVisible()
+})
+
+function renderHome() {
+  return render(
+    <MemoryRouter>
+      <HomePage />
+    </MemoryRouter>,
+  )
+}
+
+it('«En el taller» y «Falta cobrar» listan lo del día, cada fila con su negocio y sin total conjunto', () => {
+  mocks.session.permissions = ADMIN
+  mocks.orderCalls.length = 0
+  mocks.salesCalls.length = 0
+  mocks.artisanCalls.length = 0
+  renderHome()
+
+  const workshop = screen.getByRole('region', { name: 'En el taller' })
+  expect(
+    within(workshop).getByRole('link', { name: 'ART-OT-000007' }),
+  ).toHaveAttribute('href', '/maintenance/7')
+  expect(mocks.orderCalls.at(-1)).toMatchObject({ state: 'OPEN', pageSize: 5 })
+
+  const owed = screen.getByRole('region', { name: 'Falta cobrar' })
+  expect(within(owed).getByText('USD 300.00')).toBeVisible()
+  expect(within(owed).getByText('USD 120.00')).toBeVisible()
+  expect(within(owed).getByText(/Repuestos/)).toBeVisible()
+  expect(within(owed).getByText(/Servicios/)).toBeVisible()
+  expect(within(owed).queryByText('USD 420.00')).toBeNull()
+  expect(mocks.salesCalls.at(-1)).toMatchObject({ onlyDebt: true, pageSize: 5 })
+})
+
+it('un Vendedor sin permiso de mantenimientos no ve «En el taller» ni filas del negocio artesanal', () => {
+  mocks.session.permissions = SELLER
+  mocks.orderCalls.length = 0
+  mocks.salesCalls.length = 0
+  mocks.artisanCalls.length = 0
+  renderHome()
+
+  expect(screen.queryByRole('region', { name: 'En el taller' })).toBeNull()
+  const owed = screen.getByRole('region', { name: 'Falta cobrar' })
+  expect(within(owed).queryByText('ART-SER-000009')).toBeNull()
+  expect(mocks.orderCalls).toHaveLength(0)
+  expect(mocks.artisanCalls).toHaveLength(0)
+  expect(mocks.salesCalls.length).toBeGreaterThan(0)
+})
+
+it('sin permisos de cuentas no aparece «Falta cobrar»', () => {
+  mocks.session.permissions = ['mantenimientos.ver']
+  renderHome()
+  expect(screen.queryByRole('region', { name: 'Falta cobrar' })).toBeNull()
+  expect(screen.getByRole('region', { name: 'En el taller' })).toBeVisible()
 })

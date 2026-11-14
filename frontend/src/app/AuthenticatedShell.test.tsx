@@ -51,41 +51,70 @@ function CurrentPath() {
   return <output data-testid="current-path">{useLocation().pathname}</output>
 }
 
-const cases: Array<[string, Session, boolean]> = [
-  [
-    'Administrador',
-    {
-      authenticated: true,
-      username: 'admin',
-      roles: ['ADMINISTRADOR'],
-      permissions: ['usuarios.ver', 'auditoria.ver', 'operacion.ver_estado'],
-      must_change_password: false,
-    },
-    true,
+const vendedor: Session = {
+  authenticated: true,
+  username: 'venta',
+  roles: ['VENDEDOR'],
+  permissions: [
+    'clientes.ver',
+    'vehiculos.ver',
+    'productos.ver',
+    'servicios.ver',
+    'ventas.ver',
+    'proformas.ver',
+    'pagos_comerciales.ver',
+    'inventario.ver',
+    'ingresos.ver',
+    'fiscal.comercial.ver',
   ],
+  must_change_password: false,
+}
+
+const encargado: Session = {
+  authenticated: true,
+  username: 'taller',
+  roles: ['ENCARGADO_TALLER'],
+  permissions: [
+    'mantenimientos.ver',
+    'inventario.ver',
+    'pagos_artesanales.ver',
+  ],
+  must_change_password: false,
+}
+
+const todoElEquipo: Session = {
+  authenticated: true,
+  username: 'hija',
+  roles: ['ADMINISTRADOR', 'VENDEDOR', 'ENCARGADO_TALLER'],
+  permissions: [
+    ...new Set([
+      ...fullAccess.permissions,
+      ...vendedor.permissions,
+      ...encargado.permissions,
+      'fiscal.artesanal.ver',
+    ]),
+  ],
+  must_change_password: false,
+}
+
+const cases: Array<[string, Session, boolean]> = [
+  ['Administrador', fullAccess, true],
   [
     'Vendedor',
-    {
-      authenticated: true,
-      username: 'venta',
-      roles: ['VENDEDOR'],
-      permissions: ['ventas.ver', 'inventario.ver'],
-      must_change_password: false,
-    },
+    { ...vendedor, permissions: ['ventas.ver', 'inventario.ver'] },
     false,
   ],
-  [
-    'Encargado del taller',
-    {
-      authenticated: true,
-      username: 'taller',
-      roles: ['ENCARGADO_TALLER'],
-      permissions: ['mantenimientos.ver', 'inventario.ver'],
-      must_change_password: false,
-    },
-    false,
-  ],
+  ['Encargado del taller', encargado, false],
 ]
+
+function mainNav() {
+  return within(
+    screen.getAllByRole('navigation', { name: 'Navegación principal' })[0]!,
+  )
+}
+
+const hrefs = (nav: ReturnType<typeof within>) =>
+  nav.getAllByRole('link').map((link: HTMLElement) => link.getAttribute('href'))
 
 it.each(cases)(
   'derives navigation for %s only from session permissions',
@@ -102,32 +131,43 @@ it.each(cases)(
     expect(
       screen.getByRole('button', { name: 'Cerrar sesión' }),
     ).toBeInTheDocument()
-    const adminGroup = screen.queryByRole('button', {
-      name: 'Administración y control',
-    })
-    expect(adminGroup !== null).toBe(isAdmin)
+    expect(mainNav().queryByRole('link', { name: 'Ajustes' }) !== null).toBe(
+      isAdmin,
+    )
   },
 )
 
-it('lists administration options only inside their group for authorized sessions', async () => {
-  const user = userEvent.setup()
-  render(
-    <MemoryRouter>
-      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
-        <p>Contenido</p>
-      </AuthenticatedShell>
-    </MemoryRouter>,
-  )
+it('un usuario con los tres roles ve las nueve entradas a la vez, sin grupos que expandir', () => {
+  renderAt('/', todoElEquipo)
 
-  await user.click(
-    screen.getByRole('button', { name: 'Administración y control' }),
+  const nav = mainNav()
+  expect(nav.queryAllByRole('button')).toHaveLength(0)
+  expect(hrefs(nav)).toEqual([
+    '/',
+    '/maintenance',
+    '/sales',
+    '/invoices',
+    '/customers',
+    '/products',
+    '/services',
+    '/sales/receivables',
+    '/settings',
+  ])
+  expect(nav.getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+    'aria-current',
+    'page',
   )
+})
 
-  expect(screen.getByRole('link', { name: 'Usuarios' })).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Auditoría' })).toBeInTheDocument()
+it('un usuario con un solo rol ve solo las entradas que sus permisos abren', () => {
+  renderAt('/', vendedor)
+  expect(hrefs(mainNav())).not.toContain('/maintenance')
+  expect(hrefs(mainNav())).toContain('/sales')
+
+  renderAt('/', encargado)
   expect(
-    screen.getByRole('link', { name: 'Estado técnico' }),
-  ).toBeInTheDocument()
+    hrefs(mainNav()).filter((href: string | null) => href === '/settings'),
+  ).toHaveLength(1)
 })
 
 it('shows every assigned role but does not infer navigation from role names', () => {
@@ -180,15 +220,10 @@ it('keeps logout available and prevents duplicate submissions', async () => {
 })
 
 it('marks the current location in the authorized navigation', () => {
-  render(
-    <MemoryRouter initialEntries={['/users']}>
-      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
-        <p>Contenido</p>
-      </AuthenticatedShell>
-    </MemoryRouter>,
-  )
+  renderAt('/users')
 
-  expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute(
+  // Una pantalla de Ajustes mantiene resaltada la entrada «Ajustes».
+  expect(mainNav().getByRole('link', { name: 'Ajustes' })).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -215,13 +250,7 @@ it('keeps the brand title constrained and aligns expanded navigation to the rail
 
 it('opens compact navigation and closes it after choosing a route', async () => {
   const user = userEvent.setup()
-  render(
-    <MemoryRouter>
-      <AuthenticatedShell onLogout={vi.fn()} session={cases[0]![1]}>
-        <p>Contenido</p>
-      </AuthenticatedShell>
-    </MemoryRouter>,
-  )
+  renderAt('/', cases[0]![1])
 
   const opener = screen.getByRole('button', { name: 'Abrir navegación' })
   await user.click(opener)
@@ -229,10 +258,7 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   expect(
     within(dialog).getByRole('button', { name: 'Cerrar navegación' }),
   ).toBeEnabled()
-  await user.click(
-    within(dialog).getByRole('button', { name: 'Administración y control' }),
-  )
-  await user.click(within(dialog).getByRole('link', { name: 'Auditoría' }))
+  await user.click(within(dialog).getByRole('link', { name: 'Ajustes' }))
 
   expect(
     screen.queryByRole('dialog', { name: 'Navegación principal' }),
@@ -240,92 +266,103 @@ it('opens compact navigation and closes it after choosing a route', async () => 
   expect(opener).toHaveFocus()
 })
 
-it('shows Clientes navigation when session includes clientes.ver permission', async () => {
-  const user = userEvent.setup()
-  render(
-    <MemoryRouter>
-      <AuthenticatedShell
-        onLogout={vi.fn()}
-        session={{
-          authenticated: true,
-          username: 'vendedor',
-          roles: ['VENDEDOR'],
-          permissions: ['clientes.ver'],
-          must_change_password: false,
-        }}
-      >
-        <p>Contenido</p>
-      </AuthenticatedShell>
-    </MemoryRouter>,
-  )
+it('shows Clientes navigation when session includes clientes.ver permission', () => {
+  renderAt('/', { ...vendedor, permissions: ['clientes.ver'] })
 
-  await user.click(screen.getByRole('button', { name: 'Clientes y vehículos' }))
-
-  expect(screen.getByRole('link', { name: 'Clientes' })).toBeInTheDocument()
+  expect(mainNav().getByRole('link', { name: 'Clientes' })).toBeInTheDocument()
 })
 
-it('shows Inicio as a standalone link above the collapsible groups', () => {
-  renderAt('/')
+it('muestra las pestañas de Clientes y marca la pantalla actual', () => {
+  renderAt('/vehicles', todoElEquipo)
 
-  const nav = screen.getAllByRole('navigation', {
-    name: 'Navegación principal',
-  })[0]!
-  expect(within(nav).getByRole('link', { name: 'Inicio' })).toHaveAttribute(
+  expect(mainNav().getByRole('link', { name: 'Clientes' })).toHaveAttribute(
     'aria-current',
     'page',
   )
-  const groups = [
-    'Clientes y vehículos',
-    'Catálogos',
-    'Operación del taller',
-    'Compras e inventario',
-    'Administración y control',
-  ]
-  for (const name of groups) {
-    expect(within(nav).getByRole('button', { name })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    )
-  }
-  expect(
-    within(nav).queryByRole('link', { name: 'Clientes' }),
-  ).not.toBeInTheDocument()
-})
-
-it('expands and collapses a group with its button', async () => {
-  const user = userEvent.setup()
-  renderAt('/')
-
-  const group = screen.getByRole('button', { name: 'Catálogos' })
-  await user.click(group)
-  expect(group).toHaveAttribute('aria-expanded', 'true')
-  expect(screen.getByRole('link', { name: 'Productos' })).toBeInTheDocument()
-  expect(screen.getByRole('link', { name: 'Servicios' })).toBeInTheDocument()
-
-  await user.click(group)
-  expect(group).toHaveAttribute('aria-expanded', 'false')
-  expect(
-    screen.queryByRole('link', { name: 'Productos' }),
-  ).not.toBeInTheDocument()
-})
-
-it('opens the group of the current route and highlights the option', () => {
-  renderAt('/vehicles')
-
-  expect(
-    screen.getByRole('button', { name: 'Clientes y vehículos' }),
-  ).toHaveAttribute('aria-expanded', 'true')
-  expect(screen.getByRole('link', { name: 'Vehículos' })).toHaveAttribute(
+  const tabs = within(
+    screen.getByRole('navigation', { name: 'Secciones de Clientes' }),
+  )
+  expect(hrefs(tabs)).toEqual(['/customers', '/vehicles'])
+  expect(tabs.getByRole('link', { name: 'Vehículos' })).toHaveAttribute(
     'aria-current',
     'page',
   )
-  expect(screen.getByRole('link', { name: 'Clientes' })).not.toHaveAttribute(
+})
+
+it('Ventas y Productos muestran sus pestañas solo con dos o más secciones permitidas', () => {
+  const { unmount } = renderAt('/sales', todoElEquipo)
+  expect(
+    hrefs(
+      within(screen.getByRole('navigation', { name: 'Secciones de Ventas' })),
+    ),
+  ).toEqual(['/sales', '/proformas'])
+  unmount()
+
+  const only = renderAt('/products', {
+    ...vendedor,
+    permissions: ['productos.ver'],
+  })
+  expect(
+    screen.queryByRole('navigation', { name: 'Secciones de Productos' }),
+  ).toBeNull()
+  only.unmount()
+
+  renderAt('/products', todoElEquipo)
+  expect(
+    hrefs(
+      within(
+        screen.getByRole('navigation', { name: 'Secciones de Productos' }),
+      ),
+    ),
+  ).toEqual(['/products', '/purchases', '/inventory'])
+})
+
+it('Cuentas tiene una pestaña por negocio y un segundo nivel, sin mezclar negocios', () => {
+  const both = renderAt('/sales/receivables', todoElEquipo)
+  const tabs = within(
+    screen.getByRole('navigation', { name: 'Secciones de Cuentas' }),
+  )
+  expect(hrefs(tabs)).toEqual([
+    '/sales/receivables',
+    '/maintenance/receivables',
+  ])
+  expect(tabs.getByRole('link', { name: 'Repuestos' })).toHaveAttribute(
     'aria-current',
+    'page',
   )
-  expect(screen.getByRole('button', { name: 'Catálogos' })).toHaveAttribute(
-    'aria-expanded',
-    'false',
+  const second = within(
+    screen.getByRole('navigation', { name: 'Cuentas de Repuestos' }),
   )
+  expect(hrefs(second)).toEqual(['/sales/receivables', '/sales/withholdings'])
+  both.unmount()
+
+  // Quien solo cobra un negocio ve únicamente su pestaña, nunca la del otro.
+  renderAt('/maintenance/receivables', encargado)
+  const single = within(
+    screen.getByRole('navigation', { name: 'Secciones de Cuentas' }),
+  )
+  expect(hrefs(single)).toEqual(['/maintenance/receivables'])
+  expect(
+    screen.queryByRole('navigation', { name: 'Cuentas de Repuestos' }),
+  ).toBeNull()
+})
+
+it('Ajustes no usa pestañas y sus pantallas hijas conservan la entrada resaltada', () => {
+  renderAt('/suppliers/4', todoElEquipo)
+
+  expect(
+    screen.queryByRole('navigation', { name: 'Secciones de Ajustes' }),
+  ).toBeNull()
+  expect(mainNav().getByRole('link', { name: 'Ajustes' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
+  const trail = screen.getByRole('navigation', { name: 'Ruta' })
+  expect(within(trail).getByRole('link', { name: 'Ajustes' })).toHaveAttribute(
+    'href',
+    '/settings',
+  )
+  expect(within(trail).getByRole('link', { name: 'Proveedores' })).toBeVisible()
 })
 
 it('keeps detail and secondary catalog routes under their navigation option', () => {
@@ -349,9 +386,6 @@ it('makes parent breadcrumbs navigate and names the current nested page', async 
   )
 
   const breadcrumbs = screen.getByRole('navigation', { name: 'Ruta' })
-  expect(
-    within(breadcrumbs).getByRole('link', { name: 'Catálogos' }),
-  ).toHaveAttribute('href', '/products')
   expect(
     within(breadcrumbs).getByRole('link', { name: 'Productos' }),
   ).toHaveAttribute('href', '/products')
@@ -383,81 +417,32 @@ it.each([
   )
 })
 
-it('keeps the active option visible when its group is collapsed', async () => {
-  const user = userEvent.setup()
-  renderAt('/purchases')
+it('omits an entry when the session has no permission for any of its sections', () => {
+  renderAt('/', { ...fullAccess, permissions: ['clientes.ver'] })
 
-  const group = screen.getByRole('button', { name: 'Compras e inventario' })
-  expect(screen.getByRole('link', { name: 'Proveedores' })).toBeInTheDocument()
+  expect(mainNav().getByRole('link', { name: 'Clientes' })).toBeInTheDocument()
+  expect(hrefs(mainNav())).not.toContain('/products')
+})
 
-  await user.click(group)
+it('en tableta muestra la misma lista plana, solo con iconos y nombre accesible', () => {
+  useTabletViewport()
+  renderAt('/services', todoElEquipo)
 
-  expect(group).toHaveAttribute('aria-expanded', 'false')
-  expect(screen.getByRole('link', { name: 'Entradas' })).toHaveAttribute(
+  const nav = mainNav()
+  expect(nav.queryAllByRole('button')).toHaveLength(0)
+  expect(nav.getByRole('link', { name: 'Servicios' })).toHaveAttribute(
     'aria-current',
     'page',
   )
-  expect(
-    screen.queryByRole('link', { name: 'Proveedores' }),
-  ).not.toBeInTheDocument()
-})
-
-it('omits a group when the session has no permission for any of its options', () => {
-  renderAt('/', {
-    ...fullAccess,
-    permissions: ['clientes.ver'],
-  })
-
-  expect(
-    screen.getByRole('button', { name: 'Clientes y vehículos' }),
-  ).toBeInTheDocument()
-  expect(
-    screen.queryByRole('button', { name: 'Catálogos' }),
-  ).not.toBeInTheDocument()
-})
-
-it('uses group icons with a popover on compact viewports', async () => {
-  useTabletViewport()
-  const user = userEvent.setup()
-  renderAt('/purchases')
-
-  const group = screen.getByRole('button', { name: 'Compras e inventario' })
-  expect(group).toHaveAttribute('aria-haspopup', 'true')
-  expect(group).toHaveAttribute('aria-expanded', 'false')
-  expect(
-    screen.queryByRole('link', { name: 'Proveedores' }),
-  ).not.toBeInTheDocument()
-
-  await user.click(group)
-  const popover = screen.getByRole('group', { name: 'Compras e inventario' })
-  expect(group).toHaveAttribute('aria-expanded', 'true')
-  expect(
-    within(popover).getByRole('link', { name: 'Entradas' }),
-  ).toHaveAttribute('aria-current', 'page')
-
-  await user.keyboard('{Escape}')
-  expect(
-    screen.queryByRole('group', { name: 'Compras e inventario' }),
-  ).not.toBeInTheDocument()
-  expect(group).toHaveFocus()
-})
-
-it('marks the active group in the compact rail', () => {
-  useTabletViewport()
-  renderAt('/services')
-
-  expect(screen.getByRole('button', { name: 'Catálogos' })).toHaveAttribute(
-    'data-active',
-    'true',
+  expect(nav.getByRole('link', { name: 'Ajustes' })).toHaveAttribute(
+    'href',
+    '/settings',
   )
-  expect(
-    screen.getByRole('button', { name: 'Operación del taller' }),
-  ).not.toHaveAttribute('data-active')
 })
 
 it('marca la opción activa con fondo grafito elevado y la barra cobre', () => {
   renderAt('/customers')
-  const active = screen.getByRole('link', { name: 'Clientes' })
+  const active = mainNav().getByRole('link', { name: 'Clientes' })
   expect(active).toHaveAttribute('aria-current', 'page')
   expect(active.className).toMatch(/\bbg-graphite-raised\b/)
   expect(active.className).toMatch(/\btext-white\b/)
@@ -466,18 +451,11 @@ it('marca la opción activa con fondo grafito elevado y la barra cobre', () => {
 })
 
 it('muestra la ruta de migas de la pantalla actual en la barra superior', () => {
-  renderAt('/sales/receivables', {
-    ...fullAccess,
-    permissions: [
-      ...fullAccess.permissions,
-      'ventas.ver',
-      'pagos_comerciales.ver',
-    ],
-  })
+  renderAt('/sales/receivables', todoElEquipo)
   const trail = screen.getByRole('navigation', { name: 'Ruta' })
-  expect(trail).toHaveTextContent('Ventas y cobros')
-  expect(trail).toHaveTextContent('Cuentas por cobrar')
-  expect(within(trail).getByText('Cuentas por cobrar')).toHaveAttribute(
+  expect(trail).toHaveTextContent('Cuentas')
+  expect(trail).toHaveTextContent('Repuestos')
+  expect(within(trail).getByText('Por cobrar')).toHaveAttribute(
     'aria-current',
     'page',
   )
@@ -489,11 +467,11 @@ it('identifica el ámbito fiscal solo en las pantallas económicas', () => {
     permissions: [...fullAccess.permissions, 'ventas.ver'],
   })
   expect(
-    screen.getByRole('status', { name: /Ámbito fiscal: RUC comercial/ }),
+    screen.getByRole('status', { name: /Negocio: Repuestos/ }),
   ).toBeInTheDocument()
   sales.unmount()
   renderAt('/users')
-  expect(screen.queryByRole('status', { name: /Ámbito fiscal/ })).toBeNull()
+  expect(screen.queryByRole('status', { name: /Negocio:/ })).toBeNull()
 })
 
 it('no ofrece búsqueda global en la barra superior', () => {

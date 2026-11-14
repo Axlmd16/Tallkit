@@ -83,7 +83,7 @@ export function SalesPage() {
             </Button>
           )
         }
-        description="Ventas de repuestos del RUC comercial. Confirmar descuenta el inventario y no registra ningún cobro."
+        description="Ventas de repuestos. Confirmar descuenta el inventario y no registra ningún cobro."
         title="Ventas"
       />
       <ListStates

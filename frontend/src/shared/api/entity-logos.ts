@@ -1,4 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
+import {
+  QueryClient,
+  QueryClientContext,
+  useQuery,
+} from '@tanstack/react-query'
+import { useContext } from 'react'
 
 import { environment } from '@/shared/config/env'
 
@@ -63,6 +68,9 @@ function useEntityLogosQuery() {
   })
 }
 
+/** Cliente inerte para pantallas montadas sin proveedor de consultas (vistas previas y pruebas). */
+const idleClient = new QueryClient()
+
 function selectIssuerBrand(
   query: ReturnType<typeof useEntityLogosQuery>,
   scope: IssuerScope,
@@ -102,4 +110,39 @@ export function useIssuerBrandStatus(scope: IssuerScope): IssuerBrandStatus {
       void query.refetch()
     },
   }
+}
+
+/** Nombre en pantalla de cada negocio mientras se consulta la configuración. */
+const FALLBACK_NAMES: Record<IssuerScope, string> = {
+  COMERCIAL: 'Repuestos',
+  ARTESANAL: 'Servicios',
+}
+
+export type BusinessNameScope = IssuerScope | 'commercial' | 'artesanal'
+
+function toIssuerScope(scope: BusinessNameScope): IssuerScope {
+  return scope === 'COMERCIAL' || scope === 'commercial'
+    ? 'COMERCIAL'
+    : 'ARTESANAL'
+}
+
+/**
+ * Nombre con el que el usuario reconoce un negocio: el nombre comercial vigente, con reserva a
+ * la razón social. Mientras se consulta, o si la consulta falla, devuelve «Repuestos» o
+ * «Servicios»; nunca el RUC. Sin proveedor de consultas no pide nada y usa esa misma reserva.
+ */
+export function useBusinessName(scope: BusinessNameScope): string {
+  const issuerScope = toIssuerScope(scope)
+  const hasClient = useContext(QueryClientContext) !== undefined
+  const query = useQuery(
+    {
+      queryKey: entityLogoKeys.summary,
+      queryFn: () => fetchEntityLogos(),
+      staleTime: 5 * 60_000,
+      enabled: hasClient,
+    },
+    hasClient ? undefined : idleClient,
+  )
+  const name = query.data?.[issuerScope]?.display_name?.trim()
+  return name ? name : FALLBACK_NAMES[issuerScope]
 }

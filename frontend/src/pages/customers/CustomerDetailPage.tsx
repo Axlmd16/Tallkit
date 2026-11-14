@@ -1,9 +1,13 @@
 import { ArrowLeft, PencilSimple, Plus, Power } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { MaintenanceHistorySection } from '@/features/maintenance/MaintenanceHistorySection'
+import {
+  CustomerDebt,
+  CustomerPurchases,
+  customerAccountAccess,
+} from '@/features/customers/CustomerAccounts'
 import { useCustomer, useCustomerMutations } from '@/features/customers/hooks'
 import { useCustomerVehicles } from '@/features/vehicles/hooks'
 import { ProblemError } from '@/shared/api/client'
@@ -16,6 +20,7 @@ import {
   LoadingState,
   PageHeader,
   StatusBadge,
+  Tabs,
   Toolbar,
   useToast,
 } from '@/shared/ui'
@@ -42,6 +47,7 @@ export function CustomerDetailPage() {
 
   const vehiclesQuery = useCustomerVehicles(customerId)
 
+  const [params, setParams] = useSearchParams()
   const [notice, setNotice] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
   const toast = useToast()
@@ -105,6 +111,19 @@ export function CustomerDetailPage() {
     )
   }
 
+  const access = customerAccountAccess(permissions)
+  const requestedTab = params.get('tab')
+  const available = [
+    'datos',
+    'vehiculos',
+    ...(access.commercialPurchases || access.artisanPurchases
+      ? ['compras']
+      : []),
+    ...(access.commercialDebt || access.artisanDebt ? ['deuda'] : []),
+  ]
+  const activeTab =
+    requestedTab && available.includes(requestedTab) ? requestedTab : 'datos'
+
   return (
     <div className="customer-detail-page space-y-6">
       <div>
@@ -153,119 +172,165 @@ export function CustomerDetailPage() {
         </InlineNotice>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <DetailCard
-          badge={
-            <StatusBadge
-              label={customer.is_active ? 'Activo' : 'Inactivo'}
-              tone={customer.is_active ? 'success' : 'neutral'}
-            />
-          }
-          className="lg:col-span-2"
-          metadata={[
-            {
-              label: 'Tipo de persona',
-              value:
-                customer.person_type === 'JURIDICA'
-                  ? 'Persona jurídica'
-                  : 'Persona natural',
-            },
-            {
-              label: customer.identification_type,
-              value: customer.identification,
-            },
-            { label: 'Teléfono de contacto', value: customer.phone },
-            {
-              label: 'Correo electrónico',
-              value: customer.email || (
-                <span className="text-ink-muted">No registrado</span>
-              ),
-            },
-            {
-              label: 'Dirección',
-              value: customer.address || (
-                <span className="text-ink-muted">No registrada</span>
-              ),
-            },
-            { label: 'Versión de registro', value: String(customer.version) },
-          ]}
-          title="Datos de identificación y contacto"
-        />
-
-        <DetailCard
-          actions={
-            canManageVehicles ? (
-              <Button
-                className="text-label"
-                onClick={() =>
-                  void navigate(
-                    `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
-                  )
+      <Tabs
+        activeId={activeTab}
+        aria-label="Secciones de la ficha del cliente"
+        items={[
+          {
+            id: 'datos',
+            label: 'Datos',
+            content: (
+              <DetailCard
+                badge={
+                  <StatusBadge
+                    label={customer.is_active ? 'Activo' : 'Inactivo'}
+                    tone={customer.is_active ? 'success' : 'neutral'}
+                  />
                 }
-                variant="secondary"
-              >
-                <Plus aria-hidden="true" size={16} />
-                Registrar vehículo
-              </Button>
-            ) : undefined
-          }
-          subtitle="Propiedad actual"
-          title="Vehículos asociados"
-        >
-          {vehiclesQuery.isPending ? (
-            <p className="text-body text-ink-muted">Cargando vehículos…</p>
-          ) : vehiclesQuery.isError ? (
-            <p className="text-body text-danger">
-              No fue posible cargar los vehículos asociados.
-            </p>
-          ) : (vehiclesQuery.data?.results.length ?? 0) === 0 ? (
-            <p className="text-body text-ink-muted">
-              El cliente no tiene vehículos asociados actualmente.
-            </p>
-          ) : (
-            <div className="divide-y divide-surface-muted">
-              {vehiclesQuery.data?.results.map((v) => (
-                <div
-                  key={v.id}
-                  className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                >
-                  <div className="min-w-0 flex-1 pr-3">
-                    <Link
-                      to={`/vehicles/${v.id}`}
-                      className="font-semibold text-accent hover:underline"
+                metadata={[
+                  {
+                    label: 'Tipo de persona',
+                    value:
+                      customer.person_type === 'JURIDICA'
+                        ? 'Persona jurídica'
+                        : 'Persona natural',
+                  },
+                  {
+                    label: customer.identification_type,
+                    value: customer.identification,
+                  },
+                  { label: 'Teléfono de contacto', value: customer.phone },
+                  {
+                    label: 'Correo electrónico',
+                    value: customer.email || (
+                      <span className="text-ink-muted">No registrado</span>
+                    ),
+                  },
+                  {
+                    label: 'Dirección',
+                    value: customer.address || (
+                      <span className="text-ink-muted">No registrada</span>
+                    ),
+                  },
+                ]}
+                title="Datos de identificación y contacto"
+              />
+            ),
+          },
+          {
+            id: 'vehiculos',
+            label: 'Vehículos',
+            content: (
+              <DetailCard
+                actions={
+                  canManageVehicles ? (
+                    <Button
+                      className="text-label"
+                      onClick={() =>
+                        void navigate(
+                          `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
+                        )
+                      }
+                      variant="secondary"
                     >
-                      {v.plate}
-                    </Link>
-                    <p className="text-body text-ink">
-                      {v.brand.name} {v.model}
-                    </p>
-                    {(v.color || v.year) && (
-                      <p className="text-label text-ink-muted">
-                        {[v.color, v.year].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
+                      <Plus aria-hidden="true" size={16} />
+                      Registrar vehículo
+                    </Button>
+                  ) : undefined
+                }
+                subtitle="Propiedad actual"
+                title="Vehículos asociados"
+              >
+                {vehiclesQuery.isPending ? (
+                  <p className="text-body text-ink-muted">
+                    Cargando vehículos…
+                  </p>
+                ) : vehiclesQuery.isError ? (
+                  <p className="text-body text-danger">
+                    No fue posible cargar los vehículos asociados.
+                  </p>
+                ) : (vehiclesQuery.data?.results.length ?? 0) === 0 ? (
+                  <p className="text-body text-ink-muted">
+                    El cliente no tiene vehículos asociados actualmente.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-surface-muted">
+                    {vehiclesQuery.data?.results.map((v) => (
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                      >
+                        <div className="min-w-0 flex-1 pr-3">
+                          <Link
+                            to={`/vehicles/${v.id}`}
+                            className="font-semibold text-accent hover:underline"
+                          >
+                            {v.plate}
+                          </Link>
+                          <p className="text-body text-ink">
+                            {v.brand.name} {v.model}
+                          </p>
+                          {(v.color || v.year) && (
+                            <p className="text-label text-ink-muted">
+                              {[v.color, v.year].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <StatusBadge
+                            label={v.is_active ? 'Activo' : 'Inactivo'}
+                            tone={v.is_active ? 'success' : 'neutral'}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge
-                      label={v.is_active ? 'Activo' : 'Inactivo'}
-                      tone={v.is_active ? 'success' : 'neutral'}
+                )}
+              </DetailCard>
+            ),
+          },
+          ...(access.commercialPurchases || access.artisanPurchases
+            ? [
+                {
+                  id: 'compras',
+                  label: 'Compras',
+                  content: (
+                    <CustomerPurchases
+                      customer={customer}
+                      permissions={permissions}
                     />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </DetailCard>
-      </div>
-
-      {permissions.has('mantenimientos.ver') && (
-        <MaintenanceHistorySection
-          canCreate={
-            customer.is_active && permissions.has('mantenimientos.gestionar')
-          }
-          customer={{ id: customer.id, name: customer.name }}
-        />
-      )}
+                  ),
+                },
+              ]
+            : []),
+          ...(access.commercialDebt || access.artisanDebt
+            ? [
+                {
+                  id: 'deuda',
+                  label: 'Deuda',
+                  content: (
+                    <CustomerDebt
+                      customerId={customer.id}
+                      permissions={permissions}
+                    />
+                  ),
+                },
+              ]
+            : []),
+        ]}
+        onChange={(id) =>
+          setParams(
+            (current) => {
+              const next = new URLSearchParams(current)
+              if (id === 'datos') next.delete('tab')
+              else next.set('tab', id)
+              return next
+            },
+            { replace: true },
+          )
+        }
+        panelClassName="pt-4"
+      />
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

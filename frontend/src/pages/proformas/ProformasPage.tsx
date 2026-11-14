@@ -73,7 +73,7 @@ export function ProformasPage() {
             </Button>
           )
         }
-        description="Cotizaciones de repuestos del RUC comercial. No reservan inventario ni crean deuda."
+        description="Cotizaciones de repuestos. No reservan inventario ni crean deuda."
         title="Proformas"
       />
       <ListStates

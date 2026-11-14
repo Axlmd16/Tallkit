@@ -1,6 +1,6 @@
 """Interfaz pública de solo lectura para preparar una venta confirmada."""
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from types import MappingProxyType
@@ -131,3 +131,29 @@ def lock_fiscal_source(sale_id: int) -> CommercialFiscalSource:
     if sale is None:
         raise FiscalSourceNotFoundError("Venta no encontrada.")
     return _project(sale)
+
+
+@dataclass(frozen=True)
+class FiscalSourceSummary:
+    """Lo mínimo que una lista necesita de un origen: número, cliente, total y fecha."""
+
+    source_id: int
+    internal_number: str | None
+    customer_name: str | None
+    grand_total: str | None
+    operational_date: Any
+
+
+def read_fiscal_source_summaries(sale_ids: Iterable[int]) -> dict[int, FiscalSourceSummary]:
+    """Resumen por lote de varias ventas, sin tocar cobros ni líneas."""
+    sales = Sale.objects.filter(pk__in=list(sale_ids)).select_related("customer")
+    return {
+        sale.pk: FiscalSourceSummary(
+            source_id=sale.pk,
+            internal_number=sale.internal_number,
+            customer_name=(sale.customer_snapshot or {}).get("name") or sale.customer.name,
+            grand_total=_decimal(sale.grand_total),
+            operational_date=sale.operational_date,
+        )
+        for sale in sales
+    }

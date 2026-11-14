@@ -38,7 +38,7 @@ function PaymentBadge({ state }: { state: keyof typeof paymentLabels | null }) {
 }
 
 /**
- * Resumen por RUC: repuestos (comercial) y servicios (artesanal) en bloques separados, con
+ * Resumen por negocio: repuestos (comercial) y servicios (artesanal) en bloques separados, con
  * lo que todavía no tiene comprobante distinguido de lo confirmado. El total combinado es solo
  * informativo: cada documento se cobra por separado con su propia acción.
  */
@@ -91,7 +91,7 @@ export function EconomicSummary({
       description={summary.notice}
       icon={<CurrencyDollar size={17} />}
       id="order-economy-title"
-      title="Resumen económico por RUC"
+      title="Resumen económico por negocio"
     >
       <div className="grid gap-4 p-4 xl:grid-cols-2">
         <section aria-labelledby="economy-commercial" className="space-y-3">
@@ -151,7 +151,7 @@ export function EconomicSummary({
                 variant="soft"
               >
                 <FileText aria-hidden="true" size={16} />
-                Generar comprobante de servicios
+                Generar recibo de servicios
               </Button>
             )}
           </header>
@@ -181,7 +181,7 @@ export function EconomicSummary({
             </>
           ) : (
             <p className="text-body text-ink-muted">
-              Sin permiso para consultar documentos del RUC artesanal.
+              Sin permiso para consultar cobros de servicios.
             </p>
           )}
         </section>
@@ -190,15 +190,15 @@ export function EconomicSummary({
         <div className="mx-4 mb-4 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body">
           <p className="font-semibold">Total combinado (informativo)</p>
           <p className="text-label text-ink-muted">
-            Suma de documentos de dos RUC distintos: no es una deuda única ni
-            una factura y no puede cobrarse en conjunto.
+            Suma de documentos de dos negocios distintos: no es una deuda única
+            ni una factura y no puede cobrarse en conjunto.
           </p>
           <p className="mt-1 flex flex-wrap gap-4">
             <span>
               Confirmado: <Money amount={summary.combined.confirmed_total} />
             </span>
             <span>
-              Sin comprobante: <Money amount={summary.combined.pending_total} />
+              Sin recibo: <Money amount={summary.combined.pending_total} />
             </span>
           </p>
         </div>
@@ -223,9 +223,7 @@ export function EconomicSummary({
       {payingSale !== null && (
         <CommercialPayment
           onClose={() => setPayingSale(null)}
-          onDone={() =>
-            finish('Cobro de repuestos registrado (RUC comercial).')
-          }
+          onDone={() => finish('Cobro de repuestos registrado.')}
           saleId={payingSale}
           userScope={userScope}
         />
@@ -351,7 +349,7 @@ function CommercialRow({
       />
       {doc.allowed_actions.includes('pay') && (
         <Button onClick={onPay} type="button" variant="secondary">
-          Cobrar repuestos (RUC comercial)
+          Cobrar repuestos
         </Button>
       )}
     </article>
@@ -402,7 +400,7 @@ function ArtisanRow({
       />
       {operation.allowed_actions?.includes('pay') && (
         <Button onClick={onPay} type="button" variant="secondary">
-          Cobrar servicios (RUC artesanal)
+          Cobrar servicios
         </Button>
       )}
     </article>

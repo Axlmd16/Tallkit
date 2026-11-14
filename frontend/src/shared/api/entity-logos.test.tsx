@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import {
   fetchEntityLogos,
+  useBusinessName,
   useIssuerBrand,
   type EntityLogoSummary,
 } from './entity-logos'
@@ -78,4 +79,37 @@ it('sin respuesta del servidor deja la hoja con el nombre del emisor', async () 
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('red')))
   const { result } = renderHook(() => useIssuerBrand('COMERCIAL'), { wrapper })
   await waitFor(() => expect(result.current.logoUrl).toBeNull())
+})
+
+it('useBusinessName usa el nombre comercial, la razón social y una reserva mientras carga', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify(SUMMARY), {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    ),
+  )
+  const commercial = renderHook(() => useBusinessName('commercial'), {
+    wrapper,
+  })
+  const artisan = renderHook(() => useBusinessName('ARTESANAL'), { wrapper })
+
+  expect(commercial.result.current).toBe('Repuestos')
+  expect(artisan.result.current).toBe('Servicios')
+  await waitFor(() =>
+    expect(commercial.result.current).toBe('Repuestos La Esquina'),
+  )
+  await waitFor(() => expect(artisan.result.current).toBe('Taller Andino'))
+})
+
+it('useBusinessName no pide nada sin proveedor de consultas', () => {
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  const { result } = renderHook(() => useBusinessName('artesanal'))
+
+  expect(result.current).toBe('Servicios')
+  expect(fetchMock).not.toHaveBeenCalled()
 })

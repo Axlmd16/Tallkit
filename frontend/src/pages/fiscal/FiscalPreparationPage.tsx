@@ -46,6 +46,7 @@ import {
   Surface,
   useToast,
 } from '@/shared/ui'
+import { formatMoney, formatRate } from '@/shared/ui/business'
 
 /** Aviso corto y permanente: hoy ninguna factura se envía al SRI desde esta pantalla. */
 export const NOT_SENT_NOTICE = 'Todavía no se ha enviado al SRI'
@@ -86,7 +87,8 @@ const CONSUMER_FINAL: FiscalReceiverValues = {
 const MAX_NOTES = 12
 
 function money(value: unknown): string {
-  return `USD ${typeof value === 'string' || typeof value === 'number' ? value : '—'}`
+  if (typeof value !== 'string' && typeof value !== 'number') return 'USD —'
+  return formatMoney(String(value)) ?? `USD ${value}`
 }
 
 function record(value: unknown): Record<string, unknown> {
@@ -909,7 +911,8 @@ function PreparedView({ detail }: { detail: FiscalPreparationDetail }) {
                     )}
                   </td>
                   <td className="py-3">
-                    {text(line.display_name) || `${text(line.tax_rate)} %`}
+                    {text(line.display_name) ||
+                      (formatRate(text(line.tax_rate)) ?? '')}
                   </td>
                   <td className="py-3 text-right tabular-nums">
                     {text(line.quantity)}

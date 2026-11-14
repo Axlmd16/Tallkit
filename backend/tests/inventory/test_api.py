@@ -106,6 +106,67 @@ class TestStock:
         assert viewer.get(f"{BASE}products/{product.pk}/?include_valuation=true").status_code == 400
 
 
+class TestQuantities:
+    """Lectura mínima de existencias por producto para las listas de uso diario."""
+
+    URL = f"{BASE}stock/quantities/"
+
+    def test_returns_only_product_and_quantity_without_costs(
+        self, viewer: APIClient, stocked: dict[str, Any], product: Any, make_product: Any
+    ) -> None:
+        other = make_product()
+        response = viewer.get(f"{self.URL}?product_ids={product.pk},{other.pk}")
+        assert response.status_code == 200
+        rows = response.json()["results"]
+        assert rows == [
+            {"product_id": product.pk, "quantity": "8"},
+            {"product_id": other.pk, "quantity": "0"},
+        ]
+        for row in rows:
+            assert set(row) == {"product_id", "quantity"}
+
+    def test_costs_never_travel_even_for_administrators(
+        self, api: APIClient, stocked: dict[str, Any], product: Any
+    ) -> None:
+        body = api.get(f"{self.URL}?product_ids={product.pk}").json()
+        assert "average_cost" not in str(body)
+        assert "inventory_value" not in str(body)
+
+    def test_requires_inventory_view_permission(self, db: None, product: Any) -> None:
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_user(username="sin-inventario", password="x" * 14)
+        client = APIClient()
+        client.force_authenticate(user=user)
+        assert client.get(f"{self.URL}?product_ids={product.pk}").status_code == 403
+
+    def test_does_not_create_positions(self, viewer: APIClient, product: Any) -> None:
+        before = InventoryPosition.objects.count()
+        response = viewer.get(f"{self.URL}?product_ids={product.pk}")
+        assert response.json()["results"] == [{"product_id": product.pk, "quantity": "0"}]
+        assert InventoryPosition.objects.count() == before
+
+    def test_rejects_invalid_identifier_lists(self, viewer: APIClient, product: Any) -> None:
+        too_many = ",".join(str(n) for n in range(1, 102))
+        for query in (
+            "",
+            "product_ids=",
+            "product_ids=abc",
+            "product_ids=1,x",
+            "product_ids=0",
+            "product_ids=-3",
+            f"product_ids={too_many}",
+            f"product_ids={product.pk}&stock=positive",
+        ):
+            assert viewer.get(f"{self.URL}?{query}").status_code == 400, query
+
+    def test_ignores_unknown_products_and_repeated_ids(
+        self, viewer: APIClient, product: Any
+    ) -> None:
+        response = viewer.get(f"{self.URL}?product_ids={product.pk},{product.pk},999999")
+        assert response.json()["results"] == [{"product_id": product.pk, "quantity": "0"}]
+
+
 class TestKardex:
     def test_envelope_and_valuation_visibility(
         self, api: APIClient, viewer: APIClient, stocked: dict[str, Any], product: Any

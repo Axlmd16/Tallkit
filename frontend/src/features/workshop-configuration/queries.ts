@@ -10,6 +10,7 @@ import { workshopConfigApi } from './api'
 import type {
   FiscalEntityUpdateRequest,
   InitializeWorkshopRequest,
+  InitialTradeNames,
   ScheduleSuccessorRequest,
   SeriesCodeUpdateRequest,
   SeriesReplaceRequest,
@@ -48,18 +49,53 @@ export function useWorkshopStatus() {
   })
 }
 
+/**
+ * El nombre comercial es opcional: la inicialización no lo recibe, así que se guarda después
+ * con la edición de entidad que ya existe. Si ese segundo paso falla, el taller queda
+ * inicializado y el nombre se puede completar luego en Ajustes.
+ */
+async function saveInitialTradeNames(names: InitialTradeNames): Promise<void> {
+  const wanted: Array<[string, string | undefined]> = [
+    ['COMERCIAL', names.commercial?.trim()],
+    ['ARTESANAL', names.artisanal?.trim()],
+  ]
+  if (!wanted.some(([, name]) => name)) return
+  const entities = await workshopConfigApi.getEntities()
+  for (const [type, name] of wanted) {
+    const entity = entities.find((item) => item.entity_type === type)
+    if (!name || !entity) continue
+    await workshopConfigApi.updateEntity(entity.id, {
+      trade_name: name,
+      expected_version: entity.version,
+    })
+  }
+}
+
 export function useInitializeWorkshop() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       data,
       idempotencyKey,
+      tradeNames,
     }: {
       data: InitializeWorkshopRequest
       idempotencyKey: string
-    }) => workshopConfigApi.initialize(data, idempotencyKey),
+      tradeNames?: InitialTradeNames
+    }) => {
+      const result = await workshopConfigApi.initialize(data, idempotencyKey)
+      if (tradeNames) {
+        try {
+          await saveInitialTradeNames(tradeNames)
+        } catch {
+          // Opcional: la inicialización ya se registró y el nombre puede completarse después.
+        }
+      }
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workshopKeys.all })
+      queryClient.invalidateQueries({ queryKey: entityLogoKeys.summary })
     },
   })
 }

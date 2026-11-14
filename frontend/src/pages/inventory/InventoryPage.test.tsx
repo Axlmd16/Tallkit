@@ -179,7 +179,7 @@ it('las columnas económicas exigen el permiso de valoración', () => {
   }
   renderPage()
   expect(screen.getAllByText(/Costo promedio/).length).toBeGreaterThan(0)
-  expect(screen.getAllByText('USD 14.000000').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('USD 14.00').length).toBeGreaterThan(0)
 })
 
 it('la interfaz operativa no ofrece ajustes ni muestra dinero', () => {
@@ -332,7 +332,7 @@ it('el Administrador ve el valor del inventario y cuántos productos quedan fuer
   }
   renderPage()
   const summary = screen.getByLabelText('Valor del inventario')
-  expect(summary).toHaveTextContent('USD 40.000000')
+  expect(summary).toHaveTextContent('USD 40.00')
   expect(summary).toHaveTextContent('1 sin costo')
   await userEvent.hover(
     within(summary).getByRole('button', {
@@ -366,7 +366,7 @@ it('sin productos sin costo no se muestra ninguna advertencia', () => {
   }
   renderPage()
   expect(screen.getByLabelText('Valor del inventario')).toHaveTextContent(
-    'USD 14.000000',
+    'USD 14.00',
   )
   expect(screen.queryByText(/sin costo/i)).toBeNull()
 })

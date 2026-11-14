@@ -130,9 +130,7 @@ it('lista solo las retenciones comerciales y permite completar el comprobante', 
   expect(
     screen.getByRole('heading', { name: 'Retenciones por completar' }),
   ).toBeInTheDocument()
-  expect(
-    screen.getByLabelText('Ámbito fiscal: RUC comercial'),
-  ).toBeInTheDocument()
+  expect(screen.getByLabelText('Negocio: Repuestos')).toBeInTheDocument()
   const row = screen.getByRole('listitem', {
     name: 'Retención de COM-VEN-000007',
   })

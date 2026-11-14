@@ -152,12 +152,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {typeof document !== 'undefined' &&
         createPortal(
+          // Bajo la barra superior (arriba en teléfono) para no cubrir el total ni la acción principal.
           // Fuera del árbol de la aplicación y exenta del aislamiento de los modales: una
           // confirmación emitida con un modal abierto («Guardar y crear otro») se anuncia igual.
           <div
             aria-label="Notificaciones"
             aria-live="polite"
-            className="fixed inset-x-3 bottom-3 z-[70] flex flex-col gap-2 sm:right-6 sm:bottom-6 sm:left-auto"
+            className="pointer-events-none fixed inset-x-3 top-[3.75rem] z-[70] flex flex-col gap-2 sm:top-[4.5rem] sm:right-6 sm:left-auto [&>*]:pointer-events-auto"
             data-modal-exempt=""
             role="status"
           >

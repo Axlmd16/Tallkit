@@ -36,6 +36,8 @@ import {
   StatusBadge,
   useToast,
 } from '@/shared/ui'
+import { TERMS } from '@/shared/ui/terms'
+import { formatRate } from '@/shared/ui/business'
 
 const statusLabels = {
   EFFECTIVE: 'Vigente',
@@ -127,11 +129,11 @@ export function ServiceOperationDetailPage() {
             to={`/maintenance/service-operations/${operation.id}/document`}
           >
             <FileText aria-hidden="true" size={16} />
-            Comprobante interno
+            {TERMS.receipt}
           </Link>
           {actions.has('pay') && (
             <Button onClick={(event) => open('pay', event)} type="button">
-              Cobrar servicios (RUC artesanal)
+              Cobrar servicios
             </Button>
           )}
           {actions.has('void') && (
@@ -250,7 +252,7 @@ export function ServiceOperationDetailPage() {
                       </span>
                     )}
                     <span className="block text-label text-ink-muted">
-                      {line.tax_name} · {line.tax_rate} %
+                      {line.tax_name} · {formatRate(line.tax_rate) ?? '—'}
                     </span>
                   </td>
                   <td className="py-2 pr-3 text-right">{line.quantity}</td>

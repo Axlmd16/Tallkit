@@ -6,6 +6,7 @@ from inventory.api import views as v
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path("", v.StockListView.as_view(), name="inventory-stock-list"),
+    path("stock/quantities/", v.StockQuantitiesView.as_view(), name="inventory-stock-quantities"),
     path("products/<int:pk>/", v.StockItemView.as_view(), name="inventory-stock-item"),
     path("products/<int:pk>/kardex/", v.KardexView.as_view(), name="inventory-kardex"),
     path("operations/", v.OperationListCreateView.as_view(), name="inventory-operation-list"),

@@ -129,7 +129,7 @@ it('consulta el inventario por separado y enlaza al Kardex conservando el contex
     'Existencia actual: 12 presentaciones completas.',
   )
   await userEvent.click(
-    screen.getByRole('link', { name: 'Ver Kardex del producto' }),
+    screen.getByRole('link', { name: 'Ver movimientos del producto' }),
   )
   expect(screen.getByTestId('where')).toHaveTextContent(
     '/inventory/products/7/kardex',

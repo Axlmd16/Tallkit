@@ -82,9 +82,7 @@ it('lista un proveedor sin documento ni contacto usando marcadores neutros', () 
   const table = screen.getByRole('table', { name: 'Proveedores' })
   expect(within(table).getByText('Juan Pérez')).toBeInTheDocument()
   expect(within(table).getAllByText('—').length).toBeGreaterThanOrEqual(2)
-  expect(
-    screen.getByLabelText(/ámbito fiscal: ruc comercial/i),
-  ).toBeInTheDocument()
+  expect(screen.getByLabelText(/negocio: repuestos/i)).toBeInTheDocument()
 })
 
 it('al elegir un proveedor abre su ficha, sin panel lateral de vista previa', async () => {

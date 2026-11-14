@@ -232,8 +232,18 @@ class MaintenancePageFields(_Base):
     total_pages = serializers.IntegerField()
 
 
+class MaintenanceStatusCountsSerializer(_Base):
+    all = serializers.IntegerField(help_text="Todas las órdenes que cumplen los demás filtros.")
+    open = serializers.IntegerField(help_text="Registradas o reabiertas.")
+    finalized = serializers.IntegerField()
+
+
 class MaintenanceOrderPageSerializer(MaintenancePageFields):
     results = MaintenanceOrderListItemSerializer(many=True)
+    status_counts = MaintenanceStatusCountsSerializer(
+        required=False,
+        help_text="Contador por segmento con los mismos filtros, sin el de estado.",
+    )
 
 
 class MaintenanceCustomerOptionSerializer(_Base):

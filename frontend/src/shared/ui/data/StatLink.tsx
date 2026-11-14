@@ -1,13 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
+import { useBusinessName } from '@/shared/api/entity-logos'
+
 import { formatMoney, Money } from '../business/Money'
 import { ScopeLabel, type ScopeLabelScope } from '../business/ScopeLabel'
-
-const scopeNames: Record<ScopeLabelScope, string> = {
-  commercial: 'RUC comercial',
-  artesanal: 'RUC artesanal',
-}
 
 export interface StatLinkProps {
   /** Lista o pantalla a la que conduce el indicador. */
@@ -37,11 +34,12 @@ export function StatLink({
   detail,
   icon,
 }: StatLinkProps) {
+  const scopeName = useBusinessName(scope ?? 'commercial')
   const isZero =
     amount === undefined ? (value ?? 0) === 0 : Number(amount) === 0
   const spoken = [
     `${amount === undefined ? (value ?? 0) : (formatMoney(amount) ?? '—')} ${label}`,
-    scope && scopeNames[scope],
+    scope && scopeName,
     detail,
   ]
     .filter(Boolean)

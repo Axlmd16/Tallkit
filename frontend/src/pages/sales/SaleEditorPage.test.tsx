@@ -167,14 +167,14 @@ it('compone dos superficies: editor y visor con una sola copia editable', async 
   expect(form.parentElement).toHaveClass('sale-workspace')
   expect(screen.getAllByLabelText(/Notas/)).toHaveLength(1)
   expect(
-    screen.getAllByRole('article', { name: 'Comprobante de venta' }),
+    screen.getAllByRole('article', { name: 'Recibo de venta' }),
   ).toHaveLength(1)
   expect(sheet).toHaveTextContent('Vista previa')
 })
 
 it('la vista previa del borrador encabeza con el logotipo y la razón social vigentes del RUC comercial', () => {
   renderEditor()
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   const issuer = within(sheet).getByRole('group', { name: 'Emisor' })
   expect(issuer).toHaveTextContent('Repuestos Andinos')
   expect(
@@ -231,7 +231,7 @@ it('el encabezado compacto reúne título, estado y aviso de cambios sin guardar
   expect(
     screen.getByText('Prepare una venta directa de repuestos'),
   ).toBeInTheDocument()
-  expect(screen.queryByText('RUC comercial')).toBeNull()
+  expect(screen.queryByText('Negocio: Repuestos')).toBeNull()
   expect(screen.getByText('Borrador')).toBeInTheDocument()
   expect(screen.queryByText('Cambios sin guardar')).toBeNull()
   await user.type(screen.getByLabelText('Notas'), 'x')
@@ -266,7 +266,7 @@ it('el visor muestra el estado, el zoom y solo acciones que existen', async () =
 
 it('la hoja es un comprobante interno y no muestra campos de descuento', () => {
   renderEditor()
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   expect(sheet).toHaveTextContent('COMPROBANTE INTERNO')
   expect(sheet).toHaveTextContent('Pendiente de confirmación')
   expect(screen.queryByLabelText(/descuento/i)).toBeNull()
@@ -316,7 +316,7 @@ it('descarta una respuesta fuera de orden y conserva la de la captura más recie
   await waitFor(() => expect(mocks.draftPreview).toHaveBeenCalledTimes(2))
   await act(async () => second.resolve(preview('46.00')))
   await act(async () => first.resolve(preview('23.00')))
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   expect(sheet).not.toHaveTextContent('USD 23.00')
 })
 
@@ -332,7 +332,7 @@ it('durante el cálculo anuncia «Actualizando…» y marca los valores como pen
   expect(screen.getByText('Actualizando importes…')).toBeInTheDocument()
   await waitFor(() =>
     expect(
-      screen.getByRole('article', { name: 'Comprobante de venta' }),
+      screen.getByRole('article', { name: 'Recibo de venta' }),
     ).toHaveAttribute('aria-busy', 'true'),
   )
   await act(async () => pending.resolve(preview('23.00')))
@@ -344,7 +344,7 @@ it('ante un fallo o datos incompletos muestra guiones y advertencias, nunca cero
   mocks.draftPreview.mockRejectedValue(new Error('caída'))
   renderEditor()
   await screen.findByText(/No se pudieron calcular los importes/)
-  const sheet = screen.getByRole('article', { name: 'Comprobante de venta' })
+  const sheet = screen.getByRole('article', { name: 'Recibo de venta' })
   expect(sheet).toHaveTextContent('—')
   expect(sheet).not.toHaveTextContent(/USD 0(\.00)?/)
   expect(
@@ -360,7 +360,7 @@ it('los importes son cadenas del servidor y nunca se calculan con coma flotante'
   renderEditor()
   await waitFor(() =>
     expect(
-      screen.getByRole('article', { name: 'Comprobante de venta' }),
+      screen.getByRole('article', { name: 'Recibo de venta' }),
     ).toHaveTextContent('USD 0.30'),
   )
   for (const source of [
@@ -379,7 +379,7 @@ it('la región de estado anuncia con cortesía y no mueve el foco ni relee la ho
   const status = screen.getByRole('status', { name: 'Estado de los importes' })
   expect(status).toHaveAttribute('aria-live', 'polite')
   expect(
-    screen.getByRole('article', { name: 'Comprobante de venta' }),
+    screen.getByRole('article', { name: 'Recibo de venta' }),
   ).not.toHaveAttribute('aria-live')
   const notes = screen.getByLabelText('Notas')
   await user.click(notes)

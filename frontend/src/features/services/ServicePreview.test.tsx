@@ -29,7 +29,7 @@ it('muestra precio referencial, impuesto artesanal, estado y descripción', () =
 
   expect(screen.getByText('USD 25.00')).toBeVisible()
   expect(screen.getByText('IVA15 · IVA 15 % incluido')).toBeVisible()
-  expect(screen.getByLabelText('Ámbito fiscal: RUC artesanal')).toBeVisible()
+  expect(screen.getByLabelText('Negocio: Servicios')).toBeVisible()
   expect(screen.getByText('Activo')).toBeVisible()
   expect(screen.getByText('Sin descripción')).toBeVisible()
 })
