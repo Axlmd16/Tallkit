@@ -1,101 +1,98 @@
 import { House } from '@phosphor-icons/react'
+import { useState } from 'react'
 
 import { useSession } from '@/features/auth/hooks'
-import { roleLabels } from '@/features/auth/types'
-import {
-  useHomeCollections,
-  useHomePending,
-  useHomeReceivables,
-} from '@/features/home/hooks'
-import { visibleQuickActions } from '@/features/home/quickActions'
+import { useHomeCollections, useHomePending } from '@/features/home/hooks'
+import { NewMaintenanceDialog } from '@/features/maintenance/NewMaintenanceDialog'
 import { EmptyState, PageHeader } from '@/shared/ui'
 
-import { CollectionsBlock } from './CollectionsBlock'
-import { PendingBlock } from './PendingBlock'
-import { OwedBlock } from './OwedBlock'
-import { QuickActionsBlock } from './QuickActionsBlock'
-import { ReceivablesBlock } from './ReceivablesBlock'
-import { WorkshopNowBlock } from './WorkshopNowBlock'
+import { CashToday } from './CashToday'
+import { CounterHero } from './CounterHero'
+import { OwedColumn } from './OwedColumn'
+import { QualificationBanner } from './QualificationBanner'
+import { WorkshopColumn } from './WorkshopColumn'
 
-/** Permisos que dan acceso a algún pendiente; el servidor decide cuáles entrega. */
-const PENDING_PERMISSIONS = [
-  'mantenimientos.ver',
-  'pagos_comerciales.ver',
-  'pagos_artesanales.ver',
-  'proformas.ver',
-  'ventas.ver',
-  'parametros.gestionar',
-]
+/** Permisos que dan acceso a algún aviso del servidor; este decide cuáles entrega. */
+const NOTICE_PERMISSIONS = ['parametros.gestionar']
 const MONEY_PERMISSIONS = ['pagos_comerciales.ver', 'pagos_artesanales.ver']
+/** Quien puede ver algo de lo que Inicio muestra; sin esto no hay nada que ofrecer. */
+const ACCESS_PERMISSIONS = [
+  'mantenimientos.ver',
+  'mantenimientos.gestionar',
+  'ventas.ver',
+  'ventas.crear',
+  'parametros.gestionar',
+  ...MONEY_PERMISSIONS,
+]
 
 /**
- * Inicio: resumen de trabajo de la sesión. Accesos a lo más frecuente, pendientes que conducen
- * a su lista, saldos por cobrar y cobros recientes, siempre separados por entidad fiscal. Los
- * valores los calcula el servidor; aquí solo se evita pedir lo que la sesión no puede ver.
+ * Inicio: el mostrador del día. Arriba, la búsqueda y los dos accesos de uso diario con lo
+ * cobrado hoy por negocio; debajo, lo que está en el taller y lo que falta cobrar. Los
+ * importes los calcula el servidor y siempre van separados por negocio, sin total conjunto.
  */
 export function HomePage() {
-  const session = useSession().data
-  const permissions = new Set(session?.permissions ?? [])
-  const roles = (session?.roles ?? []).map((role) => roleLabels[role])
-  const actions = visibleQuickActions(permissions)
-  const showPending = PENDING_PERMISSIONS.some((name) => permissions.has(name))
-  const showMoney = MONEY_PERMISSIONS.some((name) => permissions.has(name))
+  const [newOpen, setNewOpen] = useState(false)
+  const permissions = new Set(useSession().data?.permissions ?? [])
+  const has = (name: string) => permissions.has(name)
 
-  const showWorkshop = permissions.has('mantenimientos.ver')
-  const showOwedCommercial = permissions.has('pagos_comerciales.ver')
-  const showOwedArtisan = permissions.has('pagos_artesanales.ver')
+  const showWorkshop = has('mantenimientos.ver')
+  const showOwedCommercial = has('pagos_comerciales.ver')
+  const showOwedArtisan = has('pagos_artesanales.ver')
+  const showMoney = showOwedCommercial || showOwedArtisan
+  const showNotices = NOTICE_PERMISSIONS.some(has)
+  const hasAccess = ACCESS_PERMISSIONS.some(has)
 
-  const pending = useHomePending(showPending)
-  const receivables = useHomeReceivables(showMoney)
+  const pending = useHomePending(showNotices)
   const collections = useHomeCollections(showMoney)
 
-  return (
-    <div className="space-y-4">
-      <PageHeader
-        icon={<House />}
-        {...(session?.username
-          ? {
-              description: `Sesión de ${session.username}${roles.length > 0 ? ` · ${roles.join(' · ')}` : ''}.`,
-            }
-          : {})}
-        title="Inicio"
-      />
-      {actions.length === 0 && !showPending && !showMoney ? (
+  if (!hasAccess) {
+    return (
+      <div className="space-y-4">
+        <PageHeader icon={<House />} title="Inicio" />
         <EmptyState
           description="Cuando el administrador le asigne un rol, aquí verá sus accesos y pendientes."
           title="Su cuenta todavía no tiene funciones asignadas."
         />
-      ) : (
-        <>
-          <QuickActionsBlock actions={actions} />
-          {showPending && <PendingBlock query={pending} />}
-          {(showWorkshop || showOwedCommercial || showOwedArtisan) && (
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-              {showWorkshop && (
-                <WorkshopNowBlock className="xl:min-w-0 xl:flex-1" />
-              )}
-              {(showOwedCommercial || showOwedArtisan) && (
-                <OwedBlock
-                  artisan={showOwedArtisan}
-                  className="xl:min-w-0 xl:flex-1"
-                  commercial={showOwedCommercial}
-                />
-              )}
-            </div>
+      </div>
+    )
+  }
+
+  const searchTarget = showWorkshop
+    ? '/maintenance'
+    : has('ventas.ver')
+      ? '/sales'
+      : null
+  const onNewMaintenance = has('mantenimientos.gestionar')
+    ? () => setNewOpen(true)
+    : null
+  const quickSaleTo = has('ventas.crear') ? '/sales/quick' : null
+
+  return (
+    <div className="space-y-5">
+      <CounterHero
+        aside={showMoney ? <CashToday query={collections} /> : null}
+        onNewMaintenance={onNewMaintenance}
+        quickSaleTo={quickSaleTo}
+        searchTarget={searchTarget}
+      />
+      {showNotices && <QualificationBanner query={pending} />}
+      {(showWorkshop || showMoney) && (
+        <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(18.75rem,1fr))]">
+          {showWorkshop && (
+            <WorkshopColumn onNewMaintenance={onNewMaintenance} />
           )}
           {showMoney && (
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
-              <ReceivablesBlock
-                className="xl:min-w-0 xl:flex-1"
-                query={receivables}
-              />
-              <CollectionsBlock
-                className="xl:min-w-0 xl:flex-[2]"
-                query={collections}
-              />
-            </div>
+            <OwedColumn
+              artisan={showOwedArtisan}
+              canCollectArtisan={has('pagos_artesanales.registrar')}
+              canCollectCommercial={has('pagos_comerciales.registrar')}
+              commercial={showOwedCommercial}
+            />
           )}
-        </>
+        </div>
+      )}
+      {newOpen && (
+        <NewMaintenanceDialog onClose={() => setNewOpen(false)} open />
       )}
     </div>
   )

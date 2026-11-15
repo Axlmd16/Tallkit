@@ -14,6 +14,14 @@ vi.mock('./hooks', () => ({
   },
 }))
 
+vi.mock('@/features/maintenance/NewMaintenanceDialog', () => ({
+  NewMaintenanceDialog: ({ initialSearch }: { initialSearch?: string }) => (
+    <div role="dialog" aria-label="Nuevo mantenimiento">
+      {initialSearch ?? ''}
+    </div>
+  ),
+}))
+
 import { MaintenanceHistorySection } from './MaintenanceHistorySection'
 
 const item = {
@@ -97,7 +105,7 @@ it('el historial del vehículo filtra por vehículo e incluye a cada cliente', (
   expect(screen.getByText(/Ana Pérez/)).toBeInTheDocument()
 })
 
-it('ofrece crear una orden precargada solo a quien gestiona', async () => {
+it('abre el alta con el cliente de la ficha solo a quien gestiona', async () => {
   const user = userEvent.setup()
   renderSection({
     customer: { id: 3, name: 'Ana' },
@@ -105,9 +113,9 @@ it('ofrece crear una orden precargada solo a quien gestiona', async () => {
     canCreate: true,
   })
   await user.click(screen.getByRole('button', { name: /Nueva orden/ }))
-  expect(screen.getByTestId('where')).toHaveTextContent(
-    '/maintenance/new?customer_id=3&customer_name=Ana&vehicle_id=4',
-  )
+  expect(
+    screen.getByRole('dialog', { name: 'Nuevo mantenimiento' }),
+  ).toHaveTextContent('Ana')
 })
 
 it('muestra un estado vacío', () => {

@@ -30,6 +30,8 @@ import { EntryPage } from '@/pages/purchases/EntryPage'
 import { PurchaseDetailPage } from '@/pages/purchases/PurchaseDetailPage'
 import { PurchasesPage } from '@/pages/purchases/PurchasesPage'
 import { MaintenanceOrderDetailPage } from '@/pages/maintenance/MaintenanceOrderDetailPage'
+import { QuickSalePage } from '@/pages/sales/QuickSalePage'
+import { MaintenanceBillingPage } from '@/pages/maintenance/MaintenanceBillingPage'
 import { ArtisanReceivablesPage } from '@/pages/maintenance/ArtisanReceivablesPage'
 import { CommercialOrderViewPage } from '@/pages/maintenance/CommercialOrderViewPage'
 import { ServiceOperationDetailPage } from '@/pages/maintenance/ServiceOperationDetailPage'
@@ -337,6 +339,14 @@ export const appRoutes: RouteObject[] = [
             ),
           },
           {
+            path: '/sales/quick',
+            element: (
+              <PermissionGuard permission="ventas.crear">
+                <QuickSalePage />
+              </PermissionGuard>
+            ),
+          },
+          {
             path: '/sales/receivables',
             element: (
               <PermissionGuard permission="pagos_comerciales.ver">
@@ -437,6 +447,14 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="mantenimientos.ver">
                 <MaintenanceOrderDetailPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/:id/billing',
+            element: (
+              <PermissionGuard permission="mantenimientos.ver">
+                <MaintenanceBillingPage />
               </PermissionGuard>
             ),
           },

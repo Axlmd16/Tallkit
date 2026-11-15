@@ -215,9 +215,12 @@ Es la que más se usa. Va antes de U5 (búsqueda) y U6 (cobrar y facturar), que 
 | Razón social automática a partir del RUC | No hay consulta al SRI | Diferido |
 | «Repetir la guía inicial» | Depende de 3.2 | Después de la fase 3 |
 | Estado «cancelado» de un mantenimiento | No existe en el código | Brecha registrada en U4 |
+| «Consumidor final» en la venta rápida | Toda venta exige un cliente registrado y las reglas de consumidor final están pendientes (`FUT-001`) | Decisión del titular |
+| «Correo para la factura» en la venta rápida | Es parte de facturar; hoy sale el recibo interno | U6 |
+| «Lo que pide el cliente» como campo propio | La spec de órdenes dice que no existe motivo de ingreso; los chips se guardan en las observaciones | Brecha plan/spec registrada |
 
 ## Avance
 
-- [ ] Fase 1: 1.1, 1.2, 1.3, 1.4
+- [x] Fase 1: 1.1, 1.2, 1.3 (rediseñada con la versión nueva del prototipo, 2026-11-15) y 1.4 (`/sales/quick`)
 - [ ] Fase 2: 2.1 a 2.10
 - [ ] Fase 3: 3.1, 3.2

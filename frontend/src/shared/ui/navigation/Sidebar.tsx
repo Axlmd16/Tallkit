@@ -68,7 +68,7 @@ export function Sidebar({
     <>
       <aside
         className={`flex flex-col bg-graphite text-graphite-ink h-full transition-[width] duration-200 shrink-0 ${
-          collapsed ? 'w-20' : 'w-[264px]'
+          collapsed ? 'w-20' : 'w-[232px]'
         } ${className}`.trim()}
       >
         {header && (

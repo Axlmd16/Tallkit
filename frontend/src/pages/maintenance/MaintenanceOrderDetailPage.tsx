@@ -1,73 +1,53 @@
-import {
-  ArrowCounterClockwise,
-  ArrowLeft,
-  CheckCircle,
-  Info,
-  NotePencil,
-  Stethoscope,
-} from '@phosphor-icons/react'
+import { ArrowCounterClockwise, NotePencil } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
-import {
-  documentDate,
-  kilometers,
-  OrderStateBadge,
-  timestamp,
-} from '@/features/maintenance/format'
 import { useSession } from '@/features/auth/hooks'
-import { EconomicSummary } from '@/features/maintenance/EconomicSummary'
-import { useMaintenanceOrder } from '@/features/maintenance/hooks'
+import { useEconomicSummary } from '@/features/maintenance/billingHooks'
+import {
+  useMaintenanceOrder,
+  useMaintenanceOrders,
+} from '@/features/maintenance/hooks'
+import { sumMoney } from '@/features/maintenance/money'
+import { lifecycleText, OrderBand } from '@/features/maintenance/OrderBand'
+import {
+  ClosingPanel,
+  CobroCard,
+  DiagnosisCard,
+  FinalizeCard,
+  MovesLog,
+  NotesCard,
+} from '@/features/maintenance/OrderPanels'
 import { PartsSection } from '@/features/maintenance/PartsSection'
-import type { MaintenanceOrder } from '@/features/maintenance/types'
-import { OrderSummary } from '@/features/maintenance/OrderSummary'
 import { PhotosSection } from '@/features/maintenance/Photos'
 import { ServiceLinesSection } from '@/features/maintenance/ServiceLines'
 import {
   FinalizeDialog,
   InterventionsSection,
   ReopenDialog,
-  TransitionTimeline,
 } from '@/features/maintenance/Transitions'
-import {
-  Button,
-  InlineNotice,
-  LoadingState,
-  PlateTag,
-  SectionPanel,
-  StatusBadge,
-  Tabs,
-  useToast,
-} from '@/shared/ui'
+import { OrderStateBadge } from '@/features/maintenance/format'
+import { Button, InlineNotice, LoadingState, useToast } from '@/shared/ui'
 
 type Dialogs = 'finalize' | 'reopen' | null
-type OrderTab = 'work' | 'parts' | 'billing' | 'photos'
-const TABS: OrderTab[] = ['work', 'parts', 'billing', 'photos']
 
 /**
- * Ficha de la orden: información general, diagnóstico y observaciones, intervenciones,
- * servicios, fotografías e historial. Las acciones visibles las calcula el servidor según
- * estado y permisos; el servidor vuelve a autorizarlas al ejecutarlas.
+ * Ficha del mantenimiento: la banda del vehículo arriba; a la izquierda el diagnóstico, los
+ * trabajos y los repuestos; a la derecha lo que falta para finalizar, el cobro y las visitas
+ * anteriores. Las acciones visibles las calcula el servidor según estado y permisos; el
+ * servidor vuelve a autorizarlas al ejecutarlas.
  */
 export function MaintenanceOrderDetailPage() {
   const id = Number(useParams().id)
-  const location = useLocation()
   const navigate = useNavigate()
-  const query = useMaintenanceOrder(Number.isFinite(id) ? id : null)
+  const validId = Number.isFinite(id)
+  const query = useMaintenanceOrder(validId ? id : null)
+  const vehicleId = query.data?.vehicle.id
+  const visitsQuery = useMaintenanceOrders({ vehicleId, pageSize: 2 })
   const session = useSession().data
   const permissions = new Set(session?.permissions ?? [])
+  const summaryQuery = useEconomicSummary(validId ? id : 0, validId)
   const [dialog, setDialog] = useState<Dialogs>(null)
-  // La pestaña vive en la URL: se conserva al recargar y al volver desde una venta.
-  const [params, setParams] = useSearchParams()
-  const requested = params.get('tab') as OrderTab | null
-  const tab: OrderTab =
-    requested && TABS.includes(requested) ? requested : 'work'
   const toast = useToast()
   const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -87,6 +67,10 @@ export function MaintenanceOrderDetailPage() {
   }
   const order = query.data
   const actions = new Set(order.allowed_actions)
+  const summary = summaryQuery.data
+  const visits = (visitsQuery.data?.results ?? []).filter(
+    (visit) => visit.id !== order.id,
+  )
   const done = (message: string) => {
     setDialog(null)
     toast.success(message)
@@ -95,164 +79,97 @@ export function MaintenanceOrderDetailPage() {
     returnFocus.current = event.currentTarget
     setDialog(next)
   }
-  const from = (location.state as { from?: string } | null)?.from ?? ''
-  const back = `/maintenance${from.startsWith('?') ? from : ''}`
   const reopened = order.state === 'REOPENED'
 
+  // Los importes son del servidor; el total junta dos negocios solo para informar.
+  const parts = summary?.commercial.visible
+    ? sumMoney(
+        summary.commercial.confirmed_total,
+        summary.commercial.pending?.estimated_total,
+      )
+    : null
+  const amounts = {
+    labor: order.services_total,
+    parts,
+    total: sumMoney(order.services_total, parts),
+  }
+  const showBilling = Boolean(
+    summary && (summary.commercial.visible || summary.artisan.visible),
+  )
+
   return (
-    <div className="catalog-page space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link
-            aria-label="Volver a mantenimientos"
-            className="grid size-10 shrink-0 place-items-center rounded-control border border-line bg-surface text-ink-muted hover:text-ink"
-            title="Volver a mantenimientos"
-            to={back}
-          >
-            <ArrowLeft aria-hidden="true" size={18} />
-          </Link>
-          <div className="min-w-0">
-            <p className="text-label text-ink-muted">Mantenimientos</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="code text-page font-semibold text-ink">
-                {order.number}
-              </h1>
-              <OrderStateBadge state={order.state} />
-            </div>
-          </div>
+    <div className="catalog-page space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3.5">
+        <div className="flex flex-wrap items-center gap-3.5">
+          <h1 className="text-page font-bold tracking-tight">
+            Mantenimiento N.º <span className="code">{order.number}</span>
+          </h1>
+          <OrderStateBadge state={order.state} />
+          <span className="text-label text-ink-muted">
+            {lifecycleText(order)}
+          </span>
         </div>
         <div className="flex flex-wrap gap-2">
           {actions.has('edit') && (
             <Button
               onClick={() => void navigate(`/maintenance/${order.id}/edit`)}
               type="button"
-              variant="secondary"
+              variant="ghost"
             >
               <NotePencil aria-hidden="true" size={16} />
               Editar datos
             </Button>
           )}
-          {actions.has('finalize') && (
-            <Button onClick={(event) => open('finalize', event)} type="button">
-              <CheckCircle aria-hidden="true" size={16} />
-              {reopened ? 'Finalizar corrección' : 'Finalizar'}
-            </Button>
-          )}
           {actions.has('reopen') && (
-            <Button onClick={(event) => open('reopen', event)} type="button">
+            <Button
+              onClick={(event) => open('reopen', event)}
+              type="button"
+              variant="ghost"
+            >
               <ArrowCounterClockwise aria-hidden="true" size={16} />
-              Reabrir
+              Reabrir por un problema
             </Button>
           )}
         </div>
       </div>
 
-      {order.state === 'FINALIZED' && (
-        <InlineNotice title="Orden finalizada" tone="success">
-          Finalizada por {order.last_finalized_by?.name ?? '—'} el{' '}
-          {timestamp(order.last_finalized_at)}. Para modificarla debe reabrirse.
-        </InlineNotice>
-      )}
+      <OrderBand order={order} previous={visits[0]} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="min-w-0 space-y-4">
-          <Tabs
-            activeId={tab}
-            aria-label="Secciones de la orden"
-            items={[
-              {
-                id: 'work',
-                label: 'Trabajo y servicios',
-                content: (
-                  <div className="space-y-4">
-                    {reopened && (
-                      <InterventionsSection onDone={done} order={order} />
-                    )}
-                    <SectionPanel
-                      icon={<Info size={17} />}
-                      id="order-general-title"
-                      title="Información general"
-                    >
-                      <GeneralInfo order={order} />
-                    </SectionPanel>
-                    <SectionPanel
-                      icon={<Stethoscope size={17} />}
-                      id="order-diagnosis-title"
-                      title="Diagnóstico y observaciones"
-                    >
-                      <dl className="grid gap-4 p-4 text-body sm:grid-cols-2">
-                        <div>
-                          <dt className="text-label text-ink-muted">
-                            Diagnóstico
-                          </dt>
-                          <dd className="mt-1 whitespace-pre-line">
-                            {order.diagnosis || (
-                              <span className="text-ink-muted">
-                                Pendiente de registrar.
-                              </span>
-                            )}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="text-label text-ink-muted">
-                            Observaciones
-                          </dt>
-                          <dd className="mt-1 whitespace-pre-line">
-                            {order.notes || (
-                              <span className="text-ink-muted">—</span>
-                            )}
-                          </dd>
-                        </div>
-                      </dl>
-                    </SectionPanel>
-                    {!reopened && (
-                      <InterventionsSection onDone={done} order={order} />
-                    )}
-                    <ServiceLinesSection onDone={done} order={order} />
-                  </div>
-                ),
-              },
-              {
-                id: 'parts',
-                label: 'Repuestos',
-                content: (
-                  <PartsSection
-                    canOpenSales={permissions.has('ventas.ver')}
-                    canSeeKardex={permissions.has('inventario.ver')}
-                    onDone={done}
-                    order={order}
-                  />
-                ),
-              },
-              {
-                id: 'billing',
-                label: 'Documentos y cobros',
-                content: (
-                  <EconomicSummary
-                    onDone={done}
-                    order={order}
-                    userScope={session?.username ?? ''}
-                  />
-                ),
-              },
-              {
-                id: 'photos',
-                label: 'Fotografías',
-                count: order.photos.length,
-                content: <PhotosSection onDone={done} order={order} />,
-              },
-            ]}
-            onChange={(next) => {
-              const nextParams = new URLSearchParams(params)
-              if (next === 'work') nextParams.delete('tab')
-              else nextParams.set('tab', next)
-              setParams(nextParams, { replace: true, state: location.state })
-            }}
+      <div className="flex flex-wrap items-start gap-5">
+        <div className="flex min-w-0 flex-[999_1_37.5rem] flex-col gap-4">
+          {reopened && <InterventionsSection onDone={done} order={order} />}
+          <DiagnosisCard editable={actions.has('edit')} order={order} />
+          <ServiceLinesSection onDone={done} order={order} />
+          <PartsSection
+            canOpenSales={permissions.has('ventas.ver')}
+            canSeeKardex={permissions.has('inventario.ver')}
+            onDone={done}
+            order={order}
           />
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(18.75rem,1fr))]">
+            <NotesCard editable={actions.has('edit')} order={order} />
+            <PhotosSection onDone={done} order={order} />
+          </div>
+          {!reopened && <InterventionsSection onDone={done} order={order} />}
         </div>
-        <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-          <OrderSummary order={order} />
-          <TransitionTimeline order={order} />
+        <aside className="flex min-w-0 flex-[1_1_23rem] flex-col gap-4">
+          <ClosingPanel>
+            {order.state !== 'FINALIZED' && (
+              <FinalizeCard
+                onFinalize={(event) => open('finalize', event)}
+                order={order}
+              />
+            )}
+            {showBilling && summary && (
+              <CobroCard
+                amounts={amounts}
+                billingTo={`/maintenance/${order.id}/billing`}
+                order={order}
+                summary={summary}
+              />
+            )}
+          </ClosingPanel>
+          <MovesLog order={order} />
         </aside>
       </div>
 
@@ -273,80 +190,5 @@ export function MaintenanceOrderDetailPage() {
         />
       )}
     </div>
-  )
-}
-
-function GeneralInfo({ order }: { order: MaintenanceOrder }) {
-  return (
-    <dl className="grid gap-x-6 gap-y-3 text-body sm:grid-cols-2 xl:grid-cols-4 p-4">
-      <div>
-        <dt className="text-label text-ink-muted">Cliente</dt>
-        <dd className="mt-1 font-medium text-ink">
-          <Link
-            className="hover:underline"
-            to={`/customers/${order.customer.id}`}
-          >
-            {order.customer.name}
-          </Link>
-          {!order.customer.is_active && (
-            <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
-          )}
-          <span className="block text-label text-ink-muted">
-            {order.customer.identification_type} {order.customer.identification}
-          </span>
-        </dd>
-      </div>
-      <div>
-        <dt className="text-label text-ink-muted">Vehículo</dt>
-        <dd className="mt-1">
-          <Link
-            aria-label={`Vehículo ${order.vehicle.plate}`}
-            to={`/vehicles/${order.vehicle.id}`}
-          >
-            <PlateTag plate={order.vehicle.plate} />
-          </Link>
-          {!order.vehicle.is_active && (
-            <StatusBadge className="ml-2" label="Inactivo" tone="neutral" />
-          )}
-          <span className="block text-label text-ink-muted">
-            {order.vehicle.brand} {order.vehicle.model}
-          </span>
-        </dd>
-      </div>
-      <div>
-        <dt className="text-label text-ink-muted">Apertura</dt>
-        <dd className="mt-1">{documentDate(order.opened_on)}</dd>
-      </div>
-      <div>
-        <dt className="text-label text-ink-muted">Kilometraje</dt>
-        <dd className="mt-1">
-          {kilometers(order.odometer_km)}
-          {order.odometer_confirmation && (
-            <span className="block text-label text-ink-muted">
-              Menor al último conocido; confirmado por{' '}
-              {order.odometer_confirmation.by.name}
-            </span>
-          )}
-        </dd>
-      </div>
-      <div>
-        <dt className="text-label text-ink-muted">Registrada por</dt>
-        <dd className="mt-1">
-          {order.created_by.name} · {timestamp(order.created_at)}
-        </dd>
-      </div>
-      <div>
-        <dt className="text-label text-ink-muted">Última actualización</dt>
-        <dd className="mt-1">
-          {order.updated_by.name} · {timestamp(order.updated_at)}
-        </dd>
-      </div>
-      <div className="sm:col-span-2">
-        <dt className="text-label text-ink-muted">Emisor</dt>
-        <dd className="mt-1">
-          {order.fiscal_entity.legal_name} · {order.fiscal_entity.ruc}
-        </dd>
-      </div>
-    </dl>
   )
 }

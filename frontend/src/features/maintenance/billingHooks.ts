@@ -121,8 +121,12 @@ export function usePendingArtisanWithholdings(
   })
 }
 
-export function useArtisanReceivables(filters: ArtisanReceivableFilters) {
+export function useArtisanReceivables(
+  filters: ArtisanReceivableFilters,
+  enabled = true,
+) {
   return useQuery({
+    enabled,
     queryKey: billingKeys.receivables(filters),
     queryFn: () => maintenanceApi.artisanReceivables(filters),
     refetchOnWindowFocus: true,
@@ -152,6 +156,15 @@ export function usePartProductPicker(
       })),
     },
   }
+}
+
+/** Repuestos con existencia que coinciden con el texto, para el buscador de la ficha. */
+export function usePartSearch(orderId: number, term: string, enabled = true) {
+  return useQuery({
+    queryKey: billingKeys.partProducts(orderId, term, 1),
+    queryFn: () => maintenanceApi.partProductOptions(orderId, term, 1),
+    enabled: enabled && term !== '',
+  })
 }
 
 interface Versioned {

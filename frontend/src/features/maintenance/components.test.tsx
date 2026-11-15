@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   fireEvent,
   render,
@@ -10,6 +11,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => {
   const mutation = () => ({ mutateAsync: vi.fn(), isPending: false })
@@ -22,22 +24,20 @@ const mocks = vi.hoisted(() => {
     uploadPhoto: mutation(),
     removePhoto: mutation(),
     updateIntervention: mutation(),
-    pickerOptions: [] as Array<{ id: number; label: string; detail: string }>,
   }
 })
 vi.mock('./hooks', () => ({
+  maintenanceKeys: {
+    root: ['maintenance'],
+    detail: (id: number) => ['maintenance', 'detail', id],
+  },
   useMaintenanceMutations: () => mocks,
-  useServicePickerOptions: () => ({
-    isPending: false,
-    isError: false,
-    data: { totalPages: 1, options: mocks.pickerOptions },
-  }),
+  useServiceSearch: () => ({ isPending: false, data: { results: [] } }),
 }))
 
-import { OrderSummary } from './OrderSummary'
 import { PhotosSection } from './Photos'
 import { ServiceLinesSection } from './ServiceLines'
-import { InterventionsSection, TransitionTimeline } from './Transitions'
+import { InterventionsSection } from './Transitions'
 import type { MaintenanceOrder } from './types'
 
 const user = { id: 1, name: 'Encargado' }
@@ -181,72 +181,93 @@ function reopened(): MaintenanceOrder {
 
 const onDone = vi.fn()
 const wrap = (ui: React.ReactElement) =>
-  render(<MemoryRouter>{ui}</MemoryRouter>)
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ToastProvider>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </ToastProvider>
+    </QueryClientProvider>,
+  )
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('servicios de una orden reabierta', () => {
-  it('bloquea la intervención inicial y marca la correctiva sin cargo', () => {
+describe('trabajos de una orden reabierta', () => {
+  it('titula la intervención inicial y marca la correctiva sin cargo', () => {
     wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
     expect(screen.getByText('Intervención inicial')).toBeInTheDocument()
     expect(
       screen.getByText(/Intervención correctiva 1 · sin cargo/),
     ).toBeInTheDocument()
+    // La intervención inicial está cerrada: sus líneas no se editan ni se retiran.
     expect(
-      screen.queryByRole('button', { name: 'Editar Pastillas' }),
+      screen.queryByRole('button', { name: 'Retirar Pastillas' }),
+    ).not.toBeInTheDocument()
+    // Cerrada y sin nota: ni se muestra ni se ofrece agregarla.
+    expect(
+      screen.queryByRole('textbox', { name: /Nota para la factura/ }),
     ).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
+      screen.getByRole('button', { name: 'Retirar Ajuste de frenos' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Sin cargo')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
-    ).toBeInTheDocument()
     expect(screen.getByText('Inactivo en catálogo')).toBeInTheDocument()
+    // El código interno del servicio no se muestra.
+    expect(screen.queryByText('SRV-000002')).not.toBeInTheDocument()
   })
 
-  it('edita la cantidad sin permitir precio en la correctiva', async () => {
+  it('en la correctiva el precio no se edita', () => {
+    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
+    expect(
+      screen.queryByRole('textbox', { name: 'Precio de Ajuste de frenos' }),
+    ).toHaveProperty('tagName', 'SPAN')
+  })
+
+  it('varios clics seguidos en la cantidad se guardan una sola vez, nunca por debajo de uno', async () => {
     const u = userEvent.setup()
     mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
     wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
-    await u.click(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
-    )
-    const dialog = await screen.findByRole('dialog')
     expect(
-      within(dialog).getByLabelText('Precio aplicado a esta orden (USD)'),
+      screen.getByRole('button', { name: 'Uno menos de Ajuste de frenos' }),
     ).toBeDisabled()
-    const quantity = within(dialog).getByLabelText('Cantidad')
-    await u.clear(quantity)
-    await u.type(quantity, '0')
+    const more = screen.getByRole('button', {
+      name: 'Uno más de Ajuste de frenos',
+    })
+    await u.click(more)
+    await u.click(more)
+    await u.click(more)
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledTimes(1),
+    )
+    expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 9,
+        lineId: 11,
+        data: { quantity: 4 },
+        expectedVersion: 7,
+      }),
+    )
+  })
+
+  it('si otra persona cambió la orden, lo dice sin jerga y devuelve la cantidad guardada', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockRejectedValue(
+      new ProblemError('La orden cambió.', 409, 'stale_record'),
+    )
+    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
     await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
+      screen.getByRole('button', { name: 'Uno más de Ajuste de frenos' }),
     )
     expect(
-      within(dialog).getByText(
-        'La cantidad debe ser un entero entre 1 y 9999.',
-      ),
-    ).toBeInTheDocument()
-    await u.clear(quantity)
-    await u.type(quantity, '2')
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 9,
-          lineId: 11,
-          data: { quantity: 2 },
-          expectedVersion: 7,
-        }),
-      ),
-    )
-    expect(onDone).toHaveBeenCalledWith(
-      'Servicio «Ajuste de frenos» actualizado.',
-    )
+      await screen.findByText(/La orden cambió mientras se guardaba/),
+    ).toBeVisible()
+    expect(
+      screen.queryByText(/El registro cambió desde que lo abrió/),
+    ).toBeNull()
+    expect(
+      screen.getByRole('button', { name: 'Uno menos de Ajuste de frenos' }),
+    ).toBeDisabled()
   })
 
   it('retira una línea tras confirmar y muestra errores del servidor', async () => {
@@ -275,13 +296,14 @@ describe('servicios de una orden reabierta', () => {
   })
 })
 
-describe('servicios documentados en una operación artesanal', () => {
-  it('rotula la documentación y bloquea la edición de la línea documentada', () => {
+describe('trabajos documentados en una operación artesanal', () => {
+  function documented(): MaintenanceOrder {
     const base = reopened()
     const initial = base.interventions.find((i) => i.kind === 'INITIAL')!
-    const documented = {
+    return {
       ...base,
       state: 'REGISTERED' as const,
+      allowed_actions: ['manage_services', 'change_price'],
       interventions: [
         {
           ...initial,
@@ -305,19 +327,177 @@ describe('servicios documentados en una operación artesanal', () => {
         },
       ],
     }
-    wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
+  }
+
+  it('rotula la documentación y bloquea la fila documentada', () => {
+    wrap(<ServiceLinesSection onDone={onDone} order={documented()} />)
     expect(screen.getByText('En recibo ART-SER-000004')).toBeInTheDocument()
-    expect(screen.getByText('Sin recibo')).toBeInTheDocument()
-    expect(screen.getAllByText('SRV-000002')).toHaveLength(2)
-    expect(
-      screen.queryByRole('button', { name: 'Editar Alineación' }),
-    ).not.toBeInTheDocument()
     expect(
       screen.getByText('Bloqueada: incluida en un recibo'),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Editar Balanceo' }),
+      screen.queryByRole('button', { name: 'Retirar Alineación' }),
+    ).not.toBeInTheDocument()
+    // Solo la fila editable (Balanceo) ofrece agregar una nota.
+    expect(
+      screen.getAllByRole('button', { name: /nota para la factura/ }),
+    ).toHaveLength(1)
+    expect(
+      screen.getByRole('button', { name: 'Retirar Balanceo' }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('nota y precio de un trabajo', () => {
+  function open(): MaintenanceOrder {
+    const order = reopened()
+    const initial = order.interventions.find((i) => i.kind === 'INITIAL')!
+    order.state = 'REGISTERED'
+    order.allowed_actions = ['manage_services', 'change_price']
+    order.interventions = [
+      {
+        ...initial,
+        is_open: true,
+        lines: [
+          {
+            ...line,
+            service_name: 'Pastillas',
+            detail: 'frenos',
+            applied_price: '20.00',
+            subtotal: '20.00',
+            no_charge: false,
+            service_is_active: true,
+          },
+        ],
+      },
+    ]
+    return order
+  }
+
+  it('la nota se muestra bajo el nombre y se edita con su botón', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(open())
+    wrap(<ServiceLinesSection onDone={onDone} order={open()} />)
+    expect(screen.getByText('frenos')).toBeVisible()
+    expect(
+      screen.queryByRole('textbox', { name: /Nota para la factura/ }),
+    ).not.toBeInTheDocument()
+    await u.click(
+      screen.getByRole('button', {
+        name: 'Cambiar la nota para la factura de Pastillas',
+      }),
+    )
+    const note = screen.getByRole('textbox', {
+      name: 'Nota para la factura de Pastillas',
+    })
+    expect(note).toHaveFocus()
+    expect(note).toHaveValue('frenos')
+    await u.clear(note)
+    await u.type(note, 'frenos y discos')
+    await u.tab()
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lineId: 11,
+          data: { detail: 'frenos y discos' },
+        }),
+      ),
+    )
+  })
+
+  it('una línea sin nota no ocupa espacio; abierta y dejada vacía, se vuelve a cerrar sin guardar', async () => {
+    const u = userEvent.setup()
+    const order = open()
+    order.interventions[0]!.lines[0]!.detail = ''
+    wrap(<ServiceLinesSection onDone={onDone} order={order} />)
+    expect(
+      screen.queryByRole('textbox', { name: /Nota para la factura/ }),
+    ).not.toBeInTheDocument()
+    await u.click(
+      screen.getByRole('button', {
+        name: 'Agregar una nota para la factura de Pastillas',
+      }),
+    )
+    expect(
+      screen.getByRole('textbox', {
+        name: 'Nota para la factura de Pastillas',
+      }),
+    ).toHaveFocus()
+    await u.tab()
+    expect(
+      screen.queryByRole('textbox', { name: /Nota para la factura/ }),
+    ).not.toBeInTheDocument()
+    expect(mocks.updateLine.mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('quita la nota enviándola vacía', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(open())
+    wrap(<ServiceLinesSection onDone={onDone} order={open()} />)
+    await u.click(
+      screen.getByRole('button', {
+        name: 'Cambiar la nota para la factura de Pastillas',
+      }),
+    )
+    await u.clear(
+      screen.getByRole('textbox', {
+        name: 'Nota para la factura de Pastillas',
+      }),
+    )
+    await u.tab()
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { detail: '' } }),
+      ),
+    )
+  })
+
+  it('el precio aplicado se cambia en la fila con quien tiene permiso de precio', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockResolvedValue(open())
+    wrap(<ServiceLinesSection onDone={onDone} order={open()} />)
+    const price = screen.getByRole('textbox', { name: 'Precio de Pastillas' })
+    await u.clear(price)
+    await u.type(price, '30.50')
+    await u.tab()
+    await waitFor(() =>
+      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { applied_price: '30.50' } }),
+      ),
+    )
+  })
+
+  it('sin permiso de precio el importe se ve pero no se edita', () => {
+    const order = open()
+    order.allowed_actions = ['manage_services']
+    wrap(<ServiceLinesSection onDone={onDone} order={order} />)
+    expect(
+      screen.getByRole('textbox', { name: 'Precio de Pastillas' }),
+    ).toHaveProperty('tagName', 'SPAN')
+  })
+
+  it('un cambio rechazado muestra el motivo y devuelve el valor guardado', async () => {
+    const u = userEvent.setup()
+    mocks.updateLine.mutateAsync.mockRejectedValue(
+      new ProblemError('Importe fuera de rango.', 400, 'validation_error'),
+    )
+    wrap(<ServiceLinesSection onDone={onDone} order={open()} />)
+    const price = screen.getByRole('textbox', { name: 'Precio de Pastillas' })
+    await u.clear(price)
+    await u.type(price, '99.00')
+    await u.tab()
+    expect(await screen.findByText('No se guardó el cambio')).toBeVisible()
+    expect(price).toHaveValue('20.00')
+  })
+
+  it('un importe inválido no se envía', async () => {
+    const u = userEvent.setup()
+    wrap(<ServiceLinesSection onDone={onDone} order={open()} />)
+    const price = screen.getByRole('textbox', { name: 'Precio de Pastillas' })
+    await u.clear(price)
+    await u.type(price, 'abc')
+    await u.tab()
+    expect(mocks.updateLine.mutateAsync).not.toHaveBeenCalled()
   })
 })
 
@@ -372,7 +552,7 @@ describe('fotografías', () => {
   })
 })
 
-describe('intervención correctiva e historial', () => {
+describe('intervención correctiva', () => {
   it('guarda el trabajo correctivo y muestra errores', async () => {
     const u = userEvent.setup()
     mocks.updateIntervention.mutateAsync
@@ -431,242 +611,6 @@ describe('intervención correctiva e historial', () => {
     expect(screen.getByText('Sin costo')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Guardar corrección' }),
-    ).not.toBeInTheDocument()
-  })
-
-  it('el historial conserva finalizaciones y reaperturas con su causa', () => {
-    wrap(<TransitionTimeline order={reopened()} />)
-    expect(screen.getByText('Orden registrada')).toBeInTheDocument()
-    expect(screen.getByText('Registrada → Finalizada')).toBeInTheDocument()
-    expect(screen.getByText('Finalizada → Reabierta')).toBeInTheDocument()
-    expect(screen.getByText('Causa: Ruido')).toBeInTheDocument()
-  })
-})
-
-describe('resumen de la orden', () => {
-  it('lista los requisitos de la intervención abierta con su estado', () => {
-    wrap(<OrderSummary order={reopened()} />)
-    const list = screen.getByRole('list', { name: 'Requisitos para finalizar' })
-    expect(
-      within(list).getByText(/Trabajo correctivo registrado/),
-    ).toHaveTextContent('(pendiente)')
-    expect(screen.getByText('USD 120.00')).toBeInTheDocument()
-  })
-
-  it('una orden finalizada muestra quién la cerró en lugar de requisitos', () => {
-    const order = reopened()
-    order.state = 'FINALIZED'
-    order.interventions = order.interventions.map((i) => ({
-      ...i,
-      is_open: false,
-    }))
-    wrap(<OrderSummary order={order} />)
-    expect(
-      screen.queryByRole('list', { name: 'Requisitos para finalizar' }),
-    ).not.toBeInTheDocument()
-    expect(screen.getByText(/Finalizada por Encargado/)).toBeInTheDocument()
-  })
-})
-
-describe('detalle de servicio de una línea', () => {
-  function withDetail(detail: string): MaintenanceOrder {
-    const order = reopened()
-    const corrective = order.interventions.find((i) => i.kind === 'CORRECTIVE')!
-    corrective.lines = [{ ...line, detail }]
-    return order
-  }
-
-  it('muestra el detalle bajo el nombre del servicio y nada si no lo tiene', () => {
-    const { unmount } = wrap(
-      <ServiceLinesSection
-        onDone={onDone}
-        order={withDetail('frenos delanteros')}
-      />,
-    )
-    expect(screen.getByText('frenos delanteros')).toBeInTheDocument()
-    unmount()
-    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('')} />)
-    expect(screen.queryByText('frenos delanteros')).not.toBeInTheDocument()
-  })
-
-  it('precarga el detalle al editar y lo envía solo si cambió', async () => {
-    const u = userEvent.setup()
-    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
-    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
-    await u.click(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    const detail = within(dialog).getByLabelText('Detalle del servicio')
-    expect(detail).toHaveValue('frenos')
-    await u.clear(detail)
-    await u.type(detail, 'frenos y discos')
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          lineId: 11,
-          data: { quantity: 1, detail: 'frenos y discos' },
-        }),
-      ),
-    )
-  })
-
-  it('no envía el detalle cuando solo cambia la cantidad', async () => {
-    const u = userEvent.setup()
-    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
-    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
-    await u.click(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    const quantity = within(dialog).getByLabelText('Cantidad')
-    await u.clear(quantity)
-    await u.type(quantity, '2')
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { quantity: 2 } }),
-      ),
-    )
-  })
-
-  it('quita el detalle enviándolo vacío', async () => {
-    const u = userEvent.setup()
-    mocks.updateLine.mutateAsync.mockResolvedValue(reopened())
-    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('frenos')} />)
-    await u.click(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    await u.clear(within(dialog).getByLabelText('Detalle del servicio'))
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.updateLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { quantity: 1, detail: '' } }),
-      ),
-    )
-  })
-
-  it('limita el detalle a 300 caracteres y muestra el error del servidor junto al campo', async () => {
-    const u = userEvent.setup()
-    mocks.updateLine.mutateAsync.mockRejectedValue(
-      new ProblemError(
-        'La solicitud contiene datos inválidos.',
-        400,
-        'validation_error',
-        undefined,
-        { detail: ['El detalle admite una sola línea.'] },
-      ),
-    )
-    wrap(<ServiceLinesSection onDone={onDone} order={withDetail('')} />)
-    await u.click(
-      screen.getByRole('button', { name: 'Editar Ajuste de frenos' }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    const detail = within(dialog).getByLabelText('Detalle del servicio')
-    expect(detail).toHaveAttribute('maxlength', '300')
-    await u.type(detail, 'texto')
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Guardar servicio' }),
-    )
-    expect(
-      await within(dialog).findByText('El detalle admite una sola línea.'),
-    ).toBeVisible()
-  })
-
-  it('agrega un servicio con su detalle', async () => {
-    const u = userEvent.setup()
-    mocks.pickerOptions = [
-      { id: 2, label: 'Alineación', detail: 'Precio referencial USD 25.00' },
-    ]
-    mocks.addLine.mutateAsync.mockResolvedValue(reopened())
-    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
-    await u.click(
-      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    await u.click(
-      within(dialog).getByRole('combobox', { name: 'Servicio del catálogo' }),
-    )
-    await u.click(await screen.findByRole('option', { name: /Alineación/ }))
-    await u.type(
-      within(dialog).getByLabelText('Detalle del servicio'),
-      'eje delantero',
-    )
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Agregar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.addLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { service_id: 2, quantity: 1, detail: 'eje delantero' },
-        }),
-      ),
-    )
-    mocks.pickerOptions = []
-  })
-
-  it('agrega un servicio sin detalle sin enviar el campo', async () => {
-    const u = userEvent.setup()
-    mocks.pickerOptions = [
-      { id: 2, label: 'Alineación', detail: 'Precio referencial USD 25.00' },
-    ]
-    mocks.addLine.mutateAsync.mockResolvedValue(reopened())
-    wrap(<ServiceLinesSection onDone={onDone} order={reopened()} />)
-    await u.click(
-      screen.getByRole('button', { name: /Agregar servicio sin cargo/ }),
-    )
-    const dialog = await screen.findByRole('dialog')
-    await u.click(
-      within(dialog).getByRole('combobox', { name: 'Servicio del catálogo' }),
-    )
-    await u.click(await screen.findByRole('option', { name: /Alineación/ }))
-    await u.click(
-      within(dialog).getByRole('button', { name: 'Agregar servicio' }),
-    )
-    await waitFor(() =>
-      expect(mocks.addLine.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { service_id: 2, quantity: 1 },
-        }),
-      ),
-    )
-    mocks.pickerOptions = []
-  })
-
-  it('una línea documentada muestra su detalle y no ofrece editarlo', () => {
-    const order = reopened()
-    const initial = order.interventions.find((i) => i.kind === 'INITIAL')!
-    const documented = {
-      ...order,
-      interventions: [
-        {
-          ...initial,
-          is_open: true,
-          lines: [
-            {
-              ...line,
-              id: 20,
-              service_name: 'Alineación',
-              no_charge: false,
-              detail: 'eje delantero',
-              documented_by: { id: 4, number: 'ART-SER-000004' },
-            },
-          ],
-        },
-      ],
-    }
-    wrap(<ServiceLinesSection onDone={onDone} order={documented} />)
-    expect(screen.getByText('eje delantero')).toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Editar Alineación' }),
     ).not.toBeInTheDocument()
   })
 })

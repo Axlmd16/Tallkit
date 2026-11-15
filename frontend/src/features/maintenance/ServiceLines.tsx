@@ -1,33 +1,33 @@
-import { NotePencil, Plus, Toolbox, Trash } from '@phosphor-icons/react'
+import { NotePencil, X } from '@phosphor-icons/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import {
-  Button,
-  Combobox,
-  type ComboboxOption,
-  ConfirmationPanel,
-  Field,
-  FormModal,
-  IconButton,
-  InlineNotice,
-  Input,
-  Money,
-  SectionPanel,
-  StatusBadge,
-} from '@/shared/ui'
+import { ConfirmationPanel, InlineNotice, StatusBadge } from '@/shared/ui'
 
-import { useMaintenanceMutations, useServicePickerOptions } from './hooks'
-import type { Intervention, MaintenanceOrder, ServiceLine } from './types'
+import { InlineField } from './InlineField'
+import { QuantityStepper } from './QuantityStepper'
+import { maintenanceKeys, useMaintenanceMutations } from './hooks'
+import { ServiceAdder } from './WorkSearch'
+import type { MaintenanceOrder, ServiceLine } from './types'
 
 const PRICE = /^\d{1,12}(\.\d{1,2})?$/
 
-type Editing = { line: ServiceLine | null } | null
+/** Número de trabajo dentro de la orden: las líneas de todas las intervenciones, de corrido. */
+function numbered(order: MaintenanceOrder) {
+  let position = 0
+  return order.interventions.map((intervention) => ({
+    intervention,
+    lines: intervention.lines.map((line) => ({ line, n: ++position })),
+  }))
+}
 
 /**
- * Servicios de una intervención. Los precios son los aplicados a esta orden; en una
- * intervención correctiva se registran sin cargo. Solo la intervención abierta es editable.
+ * «Trabajos realizados»: la mano de obra de la orden, una fila por trabajo con su código, su
+ * nota para la factura y su precio, que se editan en la misma fila. Los precios son los
+ * aplicados a esta orden; en una intervención correctiva se registran sin cargo. Solo la
+ * intervención abierta es editable y una línea ya incluida en un recibo queda bloqueada.
  */
 export function ServiceLinesSection({
   order,
@@ -38,13 +38,53 @@ export function ServiceLinesSection({
 }) {
   const canManage = order.allowed_actions.includes('manage_services')
   const canChangePrice = order.allowed_actions.includes('change_price')
-  const [editing, setEditing] = useState<Editing>(null)
   const [removing, setRemoving] = useState<ServiceLine | null>(null)
   const [removeError, setRemoveError] = useState('')
+  const [error, setError] = useState('')
   const returnFocus = useRef<HTMLElement | null>(null)
   const mutations = useMaintenanceMutations()
+  const queryClient = useQueryClient()
   const tracker = useIntentTracker()
   const open = order.interventions.find((i) => i.is_open) ?? null
+  const groups = numbered(order)
+  const lineCount = groups.reduce((n, g) => n + g.lines.length, 0)
+
+  // La versión vigente se lee al guardar, no al dibujar: un guardado que espera a otro
+  // (por ejemplo, varios clics en la cantidad) sale con la versión que dejó el anterior.
+  const version = useRef(order.version)
+  version.current = order.version
+
+  async function save(
+    line: ServiceLine,
+    data: { quantity?: number; applied_price?: string; detail?: string },
+  ) {
+    setError('')
+    try {
+      await tracker.run({ line: line.id, ...data }, (key) =>
+        mutations.updateLine.mutateAsync({
+          id: order.id,
+          lineId: line.id,
+          data,
+          expectedVersion: version.current,
+          key,
+        }),
+      )
+    } catch (failure) {
+      const problem = describeProblem(failure)
+      if (problem.staleRecord) {
+        // Otra persona (u otra pestaña) cambió la orden: se trae la vigente y se avisa sin jerga.
+        void queryClient.invalidateQueries({
+          queryKey: maintenanceKeys.detail(order.id),
+        })
+        setError(
+          'La orden cambió mientras se guardaba. Ya se cargó la versión actual; repita el cambio si hace falta.',
+        )
+      } else {
+        setError(problem.message)
+      }
+      throw failure
+    }
+  }
 
   async function remove(line: ServiceLine) {
     setRemoveError('')
@@ -59,73 +99,69 @@ export function ServiceLinesSection({
       )
       setRemoving(null)
       onDone(`Servicio «${line.service_name}» retirado de la orden.`)
-    } catch (error) {
-      setRemoveError(describeProblem(error).message)
+    } catch (failure) {
+      setRemoveError(describeProblem(failure).message)
     }
   }
 
   return (
-    <SectionPanel
-      actions={
-        canManage &&
-        open && (
-          <Button
-            onClick={(event) => {
-              returnFocus.current = event.currentTarget
-              setEditing({ line: null })
-            }}
-            type="button"
-            variant="soft"
-          >
-            <Plus aria-hidden="true" size={16} />
-            {open.kind === 'CORRECTIVE'
-              ? 'Agregar servicio sin cargo'
-              : 'Agregar servicio'}
-          </Button>
-        )
-      }
-      description="Precios aplicados a esta orden; el catálogo no cambia."
-      icon={<Toolbox size={17} />}
-      id="order-services-title"
-      title="Servicios"
+    <section
+      aria-labelledby="order-services-title"
+      className="rounded-card border border-line bg-surface"
     >
-      <div className="space-y-4 p-4">
-        {order.interventions.map((intervention) => (
-          <InterventionLines
-            canManage={canManage && intervention.is_open}
-            intervention={intervention}
-            key={intervention.id}
-            onEdit={(line, target) => {
-              returnFocus.current = target
-              setEditing({ line })
-            }}
-            onRemove={(line, target) => {
-              returnFocus.current = target
-              setRemoveError('')
-              setRemoving(line)
-            }}
-          />
-        ))}
-        <div className="flex items-center justify-end gap-3 border-t border-line pt-3">
-          <span className="text-body font-semibold text-ink">
-            Total de servicios de la orden
-          </span>
-          <Money
-            amount={order.services_total}
-            className="text-lead font-semibold"
-          />
-        </div>
+      <div className="flex items-baseline justify-between gap-3 px-5 pt-4 pb-2.5">
+        <h2 className="text-block font-bold" id="order-services-title">
+          Trabajos realizados
+        </h2>
+        <span className="text-label text-ink-muted tabular-nums">
+          {lineCount === 1 ? '1 trabajo' : `${lineCount} trabajos`} · mano de
+          obra USD {order.services_total}
+        </span>
       </div>
-      {editing && open && (
-        <ServiceLineDialog
-          canChangePrice={canChangePrice}
-          intervention={open}
-          line={editing.line}
-          onClose={() => setEditing(null)}
-          onDone={onDone}
-          order={order}
-          returnFocusRef={returnFocus}
-        />
+      {error && (
+        <div className="px-5 pb-2">
+          <InlineNotice title="No se guardó el cambio" tone="danger">
+            {error}
+          </InlineNotice>
+        </div>
+      )}
+      {canManage && open && (
+        <ServiceAdder corrective={open.kind === 'CORRECTIVE'} order={order} />
+      )}
+      {groups.map(({ intervention, lines }) => (
+        <div key={intervention.id}>
+          {order.interventions.length > 1 && (
+            <h3 className="border-t border-line px-5 pt-3 text-label font-semibold text-ink-muted">
+              {intervention.kind === 'CORRECTIVE'
+                ? `Intervención correctiva ${intervention.ordinal - 1} · sin cargo`
+                : 'Intervención inicial'}
+            </h3>
+          )}
+          {lines.map(({ line, n }) => (
+            <ServiceRow
+              canManage={canManage && intervention.is_open}
+              canPrice={
+                canChangePrice &&
+                intervention.is_open &&
+                intervention.kind === 'INITIAL'
+              }
+              key={line.id}
+              line={line}
+              n={n}
+              onRemove={(target) => {
+                returnFocus.current = target
+                setRemoveError('')
+                setRemoving(line)
+              }}
+              onSave={(data) => save(line, data)}
+            />
+          ))}
+        </div>
+      ))}
+      {lineCount === 0 && (
+        <p className="border-t border-line px-5 py-3.5 text-body text-ink-muted">
+          Todavía no hay trabajos. Agregue al menos uno para poder finalizar.
+        </p>
       )}
       <ConfirmationPanel
         confirmLabel="Retirar servicio"
@@ -147,337 +183,152 @@ export function ServiceLinesSection({
           </InlineNotice>
         )}
       </ConfirmationPanel>
-    </SectionPanel>
+    </section>
   )
 }
 
-function InterventionLines({
-  intervention,
+function ServiceRow({
+  line,
+  n,
   canManage,
-  onEdit,
+  canPrice,
+  onSave,
   onRemove,
 }: {
-  intervention: Intervention
+  line: ServiceLine
+  n: number
   canManage: boolean
-  onEdit: (line: ServiceLine, target: HTMLElement) => void
-  onRemove: (line: ServiceLine, target: HTMLElement) => void
+  canPrice: boolean
+  onSave: (data: {
+    quantity?: number
+    applied_price?: string
+    detail?: string
+  }) => Promise<void>
+  onRemove: (target: HTMLElement) => void
 }) {
-  const corrective = intervention.kind === 'CORRECTIVE'
+  const locked = Boolean(line.documented_by)
+  const editable = canManage && !locked
+  const [noteOpen, setNoteOpen] = useState(false)
+  const quantityChange = editable
+    ? (quantity: number) => onSave({ quantity })
+    : undefined
   return (
-    <div>
-      <h3 className="mb-2 text-body font-semibold text-ink">
-        {corrective
-          ? `Intervención correctiva ${intervention.ordinal - 1} · sin cargo`
-          : 'Intervención inicial'}
-      </h3>
-      {intervention.lines.length === 0 ? (
-        <p className="text-body text-ink-muted">Sin servicios registrados.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-body">
-            <thead>
-              <tr className="border-b border-line text-left text-label text-ink-muted">
-                <th className="py-2 pr-3 font-semibold">Servicio</th>
-                <th className="py-2 pr-3 text-right font-semibold">
-                  Precio referencial
-                </th>
-                <th className="py-2 pr-3 text-right font-semibold">
-                  Precio aplicado
-                </th>
-                <th className="py-2 pr-3 text-right font-semibold">Cant.</th>
-                <th className="py-2 pr-3 text-right font-semibold">Subtotal</th>
-                {canManage && (
-                  <th className="py-2 font-semibold">
-                    <span className="sr-only">Acciones</span>
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {intervention.lines.map((line) => (
-                <tr
-                  className="border-b border-line last:border-0"
-                  key={line.id}
-                >
-                  <td className="py-2 pr-3">
-                    <span className="font-medium text-ink">
-                      {line.service_name}
-                    </span>
-                    {line.service_code && (
-                      <span className="block code text-label text-ink-muted">
-                        {line.service_code}
-                      </span>
-                    )}
-                    {line.detail && (
-                      <span className="block text-label break-words text-ink-muted">
-                        {line.detail}
-                      </span>
-                    )}
-                    {!line.service_is_active && (
-                      <StatusBadge
-                        className="ml-2"
-                        label="Inactivo en catálogo"
-                        tone="neutral"
-                      />
-                    )}
-                    {line.no_charge && (
-                      <StatusBadge
-                        className="ml-2"
-                        label="Sin cargo"
-                        tone="info"
-                      />
-                    )}
-                    {!line.no_charge &&
-                      (line.documented_by ? (
-                        <StatusBadge
-                          className="ml-2"
-                          label={`En recibo ${line.documented_by.number}`}
-                          tone="success"
-                        />
-                      ) : (
-                        <StatusBadge
-                          className="ml-2"
-                          label="Sin recibo"
-                          tone="neutral"
-                        />
-                      ))}
-                  </td>
-                  <td className="py-2 pr-3 text-right text-ink-muted">
-                    <Money amount={line.reference_price} />
-                  </td>
-                  <td className="py-2 pr-3 text-right">
-                    <Money amount={line.applied_price} />
-                  </td>
-                  <td className="py-2 pr-3 text-right">{line.quantity}</td>
-                  <td className="py-2 pr-3 text-right font-medium">
-                    <Money amount={line.subtotal} />
-                  </td>
-                  {canManage && line.documented_by && (
-                    <td className="py-1 text-right text-label text-ink-muted">
-                      Bloqueada: incluida en un recibo
-                    </td>
-                  )}
-                  {canManage && !line.documented_by && (
-                    <td className="py-1 text-right whitespace-nowrap">
-                      <IconButton
-                        icon={<NotePencil size={16} />}
-                        label={`Editar ${line.service_name}`}
-                        onClick={(event) => onEdit(line, event.currentTarget)}
-                      />
-                      <IconButton
-                        icon={<Trash size={16} />}
-                        label={`Retirar ${line.service_name}`}
-                        onClick={(event) => onRemove(line, event.currentTarget)}
-                      />
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ServiceLineDialog({
-  order,
-  intervention,
-  line,
-  canChangePrice,
-  onClose,
-  onDone,
-  returnFocusRef,
-}: {
-  order: MaintenanceOrder
-  intervention: Intervention
-  line: ServiceLine | null
-  canChangePrice: boolean
-  onClose: () => void
-  onDone: (message: string) => void
-  returnFocusRef: React.RefObject<HTMLElement | null>
-}) {
-  const corrective = intervention.kind === 'CORRECTIVE'
-  const mutations = useMaintenanceMutations()
-  const tracker = useIntentTracker()
-  const [service, setService] = useState<ComboboxOption | null>(null)
-  const [reference, setReference] = useState(line?.reference_price ?? '')
-  const [quantity, setQuantity] = useState(String(line?.quantity ?? 1))
-  const [price, setPrice] = useState(line?.applied_price ?? '')
-  const [detail, setDetail] = useState(line?.detail ?? '')
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const priceEditable = canChangePrice && !corrective
-
-  async function save(): Promise<boolean> {
-    const next: Record<string, string> = {}
-    if (!line && !service)
-      next.service_id = 'Seleccione un servicio del catálogo.'
-    if (
-      !/^\d+$/.test(quantity) ||
-      Number(quantity) < 1 ||
-      Number(quantity) > 9999
-    )
-      next.quantity = 'La cantidad debe ser un entero entre 1 y 9999.'
-    if (priceEditable && price !== '' && !PRICE.test(price))
-      next.applied_price = 'Ingrese un importe en USD con hasta dos decimales.'
-    setErrors(next)
-    if (Object.keys(next).length) return false
-    // El detalle viaja solo si cambió (al editar) o si se escribió (al agregar): ausente no
-    // modifica lo guardado y un texto vacío lo quita.
-    const cleanDetail = detail.trim()
-    const detailChanged = line
-      ? cleanDetail !== (line.detail ?? '')
-      : cleanDetail !== ''
-    const data = {
-      quantity: Number(quantity),
-      ...(priceEditable && price !== '' ? { applied_price: price } : {}),
-      ...(detailChanged ? { detail: cleanDetail } : {}),
-    }
-    try {
-      if (line) {
-        await tracker.run({ line: line.id, ...data }, (key) =>
-          mutations.updateLine.mutateAsync({
-            id: order.id,
-            lineId: line.id,
-            data,
-            expectedVersion: order.version,
-            key,
-          }),
-        )
-        onDone(`Servicio «${line.service_name}» actualizado.`)
-      } else if (service) {
-        const payload = { service_id: service.id, ...data }
-        await tracker.run(payload, (key) =>
-          mutations.addLine.mutateAsync({
-            id: order.id,
-            data: payload,
-            expectedVersion: order.version,
-            key,
-          }),
-        )
-        onDone(`Servicio «${service.label}» agregado a la orden.`)
-      }
-      return true
-    } catch (error) {
-      const problem = describeProblem(error)
-      setErrors(problem.fields)
-      throw new Error(problem.message, { cause: error })
-    }
-  }
-
-  return (
-    <FormModal
-      description={
-        corrective
-          ? 'Intervención correctiva: el servicio se registra sin cargo al cliente.'
-          : 'El precio referencial del catálogo es el valor inicial; el aplicado vale solo para esta orden.'
-      }
-      dirty={
-        Boolean(service) ||
-        quantity !== String(line?.quantity ?? 1) ||
-        detail.trim() !== (line?.detail ?? '')
-      }
-      onClose={onClose}
-      onSave={save}
-      open
-      returnFocusRef={returnFocusRef}
-      saveLabel={line ? 'Guardar servicio' : 'Agregar servicio'}
-      size="wide"
-      title={line ? `Editar ${line.service_name}` : 'Agregar servicio'}
-    >
-      <div className="space-y-4">
-        {!line && (
-          <div className="ui-field">
-            <label
-              className="block text-label font-semibold text-ink"
-              htmlFor="line-service"
-            >
-              Servicio del catálogo
-            </label>
-            <div className="mt-1.5">
-              <Combobox
-                error={errors.service_id}
-                id="line-service"
-                inactiveHelp="Servicio inactivo: no puede agregarse."
-                label="Servicio del catálogo"
-                onSelect={(option) => {
-                  setService(option)
-                  const match = option?.detail?.match(/USD ([\d.]+)/)
-                  setReference(match?.[1] ?? '')
-                  setPrice(match?.[1] ?? '')
-                }}
-                placeholder="Buscar servicio activo"
-                selected={service}
-                useOptions={useServicePickerOptions}
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-line px-5 py-5">
+      <div className="flex min-w-[16rem] flex-1 items-start gap-4">
+        {/* Del alto de la primera línea del nombre: el número queda centrado con ella. */}
+        <span
+          aria-hidden="true"
+          className="flex h-[var(--text-lead--line-height)] shrink-0 items-center"
+        >
+          <span className="grid size-7 place-items-center rounded-full bg-surface-muted text-label font-semibold text-ink-muted tabular-nums">
+            {n}
+          </span>
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="text-lead font-semibold text-ink">
+              {line.service_name}
+            </span>
+            {!line.service_is_active && (
+              <StatusBadge label="Inactivo en catálogo" tone="neutral" />
+            )}
+            {line.no_charge && <StatusBadge label="Sin cargo" tone="info" />}
+            {!line.no_charge && line.documented_by && (
+              <StatusBadge
+                label={`En recibo ${line.documented_by.number}`}
+                tone="success"
               />
-            </div>
-            {service && (
-              <div
-                aria-live="polite"
-                className="mt-2 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body"
-              >
-                <p className="font-semibold break-words text-ink">
-                  {service.label}
-                </p>
-                {reference && (
-                  <p className="mt-0.5 text-label text-ink-muted">
-                    Precio referencial del catálogo: USD {reference}
-                  </p>
-                )}
-              </div>
             )}
           </div>
-        )}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            error={errors.quantity}
-            id="line-quantity"
-            label="Cantidad"
-            required
-          >
-            <Input
-              id="line-quantity"
-              inputMode="numeric"
-              onChange={(event) => setQuantity(event.target.value)}
-              value={quantity}
+          {noteOpen ? (
+            <InlineField
+              autoFocus
+              className="mt-2 border-b border-line-strong py-1.5 text-body text-ink focus:border-ink"
+              label={`Nota para la factura de ${line.service_name}`}
+              onCommit={async (detail) => {
+                await onSave({ detail })
+                setNoteOpen(false)
+              }}
+              onUnchanged={() => setNoteOpen(false)}
+              placeholder="Texto que se imprime junto a este trabajo en la factura"
+              value={line.detail}
             />
-          </Field>
-          <Field
-            error={errors.applied_price}
-            hint={
-              corrective
-                ? 'Sin cargo por corrección atribuible al taller.'
-                : line && reference
-                  ? `Referencial del catálogo: USD ${reference}`
-                  : undefined
-            }
-            id="line-price"
-            label="Precio aplicado a esta orden (USD)"
-          >
-            <Input
-              disabled={!priceEditable}
-              id="line-price"
-              inputMode="decimal"
-              onChange={(event) => setPrice(event.target.value)}
-              value={corrective ? '0.00' : price}
-            />
-          </Field>
+          ) : (
+            line.detail && (
+              <p className="mt-1 text-body text-ink-muted">{line.detail}</p>
+            )
+          )}
+          {canManage && locked && (
+            <p className="mt-1.5 text-label text-ink-muted">
+              Bloqueada: incluida en un recibo
+            </p>
+          )}
         </div>
-        <Field
-          error={errors.detail}
-          hint="Opcional. Precisa el trabajo y se copia a la factura."
-          id="line-detail"
-          label="Detalle del servicio"
-        >
-          <Input
-            id="line-detail"
-            maxLength={300}
-            onChange={(event) => setDetail(event.target.value)}
-            value={detail}
-          />
-        </Field>
       </div>
-    </FormModal>
+      <div className="flex items-end gap-8">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-label font-medium text-ink-muted">
+            Cantidad
+          </span>
+          <QuantityStepper
+            name={line.service_name}
+            onChange={quantityChange}
+            value={line.quantity}
+          />
+        </div>
+        <label className="flex w-28 flex-col gap-1 text-right text-label font-medium text-ink-muted">
+          Precio USD
+          {canPrice && !locked ? (
+            <InlineField
+              align="right"
+              className="h-10 border-b-[1.5px] border-line-strong px-1 text-block font-bold text-ink tabular-nums focus:border-ink"
+              inputMode="decimal"
+              label={`Precio de ${line.service_name}`}
+              onCommit={async (price) => {
+                if (!PRICE.test(price)) throw new Error('Importe inválido.')
+                await onSave({ applied_price: price })
+              }}
+              value={line.applied_price}
+            />
+          ) : (
+            <span
+              aria-label={`Precio de ${line.service_name}`}
+              className="flex h-10 items-center justify-end px-1 text-block font-bold text-ink tabular-nums"
+              role="textbox"
+            >
+              {line.applied_price}
+            </span>
+          )}
+        </label>
+        {editable ? (
+          <span className="flex items-center">
+            <button
+              aria-label={
+                line.detail
+                  ? `Cambiar la nota para la factura de ${line.service_name}`
+                  : `Agregar una nota para la factura de ${line.service_name}`
+              }
+              aria-pressed={noteOpen}
+              className={`grid size-10 place-items-center rounded-full hover:bg-surface-muted hover:text-ink ${line.detail ? 'text-accent' : 'text-ink-muted'}`}
+              onClick={() => setNoteOpen(!noteOpen)}
+              title="Nota para la factura"
+              type="button"
+            >
+              <NotePencil aria-hidden="true" size={17} />
+            </button>
+            <button
+              aria-label={`Retirar ${line.service_name}`}
+              className="grid size-10 place-items-center rounded-full text-ink-muted hover:bg-danger-soft hover:text-danger"
+              onClick={(event) => onRemove(event.currentTarget)}
+              type="button"
+            >
+              <X aria-hidden="true" size={16} />
+            </button>
+          </span>
+        ) : (
+          <span aria-hidden="true" className="w-20" />
+        )}
+      </div>
+    </div>
   )
 }

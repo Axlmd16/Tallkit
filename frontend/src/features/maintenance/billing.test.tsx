@@ -1,9 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProblemError } from '@/shared/api/client'
+import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => {
   const mutation = () => ({ mutateAsync: vi.fn(), isPending: false })
@@ -32,12 +34,19 @@ vi.mock('./billingHooks', () => ({
   useOrderParts: () => mocks.parts,
   useEconomicSummary: () => mocks.summary,
   useBillingMutations: () => mocks.mutations,
-  usePartProductPicker: () => ({
+  usePartSearch: () => ({
     isPending: false,
     isError: false,
     data: {
-      totalPages: 1,
-      options: [{ id: 7, label: 'FO-100 · Filtro', detail: 'disponible 3' }],
+      results: [
+        {
+          id: 7,
+          code: 'FO-100',
+          name: 'Filtro',
+          sale_price: '11.50',
+          available: '3',
+        },
+      ],
     },
   }),
   useVoidPreview: () => ({ isPending: false, data: undefined }),
@@ -93,7 +102,13 @@ function sale(
 }
 
 function renderIn(node: React.ReactNode) {
-  return render(<MemoryRouter>{node}</MemoryRouter>)
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ToastProvider>
+        <MemoryRouter>{node}</MemoryRouter>
+      </ToastProvider>
+    </QueryClientProvider>,
+  )
 }
 
 beforeEach(() => {
@@ -169,31 +184,55 @@ describe('PartsSection', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('conserva la captura y muestra la disponibilidad ante el rechazo', async () => {
-    mocks.mutations.addPart.mutateAsync.mockRejectedValue(
+  it('varios clics en la cantidad se guardan una vez con la cantidad final; un rechazo la devuelve', async () => {
+    mocks.parts.data = [
+      sale('DRAFT', {
+        estimate: {
+          lines: [{ position: 1, unit_price: '11.50', total_amount: '23.00' }],
+          totals: { base: '20.00', tax: '3.00', total: '23.00' },
+          availability: [
+            { product_id: 7, quantity_to_sell: '2', current_quantity: '5' },
+          ],
+        },
+      }),
+    ]
+    mocks.mutations.changePart.mutateAsync.mockRejectedValueOnce(
       new ProblemError(
         'Disponibilidad insuficiente.',
         409,
         'insufficient_availability',
-        undefined,
-        { quantity: ['Disponible: 1.'] },
       ),
     )
     const events = userEvent.setup()
     renderIn(<PartsSection canOpenSales onDone={vi.fn()} order={order()} />)
-    await events.click(screen.getByRole('button', { name: 'Agregar repuesto' }))
-    await events.click(
-      screen.getByRole('combobox', { name: 'Repuesto del catálogo' }),
+    expect(screen.getByText('Hay 5 en existencia')).toBeInTheDocument()
+
+    const more = screen.getByRole('button', { name: 'Uno más de Filtro' })
+    await events.click(more)
+    await events.click(more)
+    await waitFor(() =>
+      expect(mocks.mutations.changePart.mutateAsync).toHaveBeenCalledTimes(1),
     )
-    await events.click(await screen.findByRole('option', { name: /FO-100/ }))
-    const quantity = screen.getByLabelText(/Cantidad/)
-    await events.clear(quantity)
-    await events.type(quantity, '4')
-    await events.click(
-      screen.getByRole('button', { name: 'Reservar repuesto' }),
+    expect(mocks.mutations.changePart.mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 9, lineId: 101, quantity: '4' }),
     )
-    expect(await screen.findByText('Disponible: 1.')).toBeInTheDocument()
-    expect(quantity).toHaveValue('4')
+    expect(
+      await screen.findByText('Disponibilidad insuficiente.'),
+    ).toBeInTheDocument()
+    // La cantidad vuelve a la guardada.
+    expect(screen.getByText('2', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('con una sola unidad no ofrece bajar la cantidad', () => {
+    mocks.parts.data = [
+      sale('DRAFT', {
+        lines: [{ ...sale('DRAFT').lines[0], quantity: '1' }],
+      }),
+    ]
+    renderIn(<PartsSection canOpenSales onDone={vi.fn()} order={order()} />)
+    expect(
+      screen.getByRole('button', { name: 'Uno menos de Filtro' }),
+    ).toBeDisabled()
   })
 })
 

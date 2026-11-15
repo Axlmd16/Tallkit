@@ -19,6 +19,14 @@ vi.mock('@/features/maintenance/hooks', () => ({
   },
 }))
 
+vi.mock('@/features/maintenance/NewMaintenanceDialog', () => ({
+  NewMaintenanceDialog: ({ initialSearch }: { initialSearch?: string }) => (
+    <div role="dialog" aria-label="Nuevo mantenimiento">
+      {initialSearch ?? ''}
+    </div>
+  ),
+}))
+
 import { MaintenanceOrdersPage } from './MaintenanceOrdersPage'
 
 const item = {
@@ -114,11 +122,13 @@ it('filtra por búsqueda, estado y fechas desde la URL', () => {
   })
 })
 
-it('abre el detalle y ofrece crear solo a quien gestiona', async () => {
+it('ofrece abrir el alta solo a quien gestiona', async () => {
   const user = userEvent.setup()
   renderPage()
   await user.click(screen.getByRole('button', { name: /Nueva orden/ }))
-  expect(screen.getByTestId('where')).toHaveTextContent('/maintenance/new')
+  expect(
+    screen.getByRole('dialog', { name: 'Nuevo mantenimiento' }),
+  ).toBeVisible()
 })
 
 it('oculta la creación sin permiso de gestión', () => {

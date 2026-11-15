@@ -480,13 +480,13 @@ it('no ofrece búsqueda global en la barra superior', () => {
   expect(within(banner).queryByRole('searchbox')).toBeNull()
 })
 
-it('el CSS fija barra lateral de 264 px desde 1280 px e iconos de 72 px en tableta', () => {
+it('el CSS fija barra lateral de 232 px desde 1280 px e iconos de 72 px en tableta', () => {
   const css: string = fs.readFileSync('src/shared/styles/index.css', 'utf-8')
   expect(css).toMatch(
     /@media \(min-width: 768px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*72px/,
   )
   expect(css).toMatch(
-    /@media \(min-width: 1280px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*264px/,
+    /@media \(min-width: 1280px\)[^{]*{[\s\S]*?\.app-rail\s*{[^}]*width:\s*232px/,
   )
   expect(css).not.toMatch(/width:\s*80px;\s*\n\s*height: calc\(100dvh - 60px\)/)
 })

@@ -56,6 +56,7 @@ const feminineNouns = new Set(['entrada', 'venta', 'proforma'])
 
 function currentBreadcrumbLabel(pathname: string, itemLabel: string) {
   const noun = singularLabels[itemLabel] ?? itemLabel.toLocaleLowerCase('es')
+  if (pathname.endsWith('/quick')) return 'Venta rápida'
   if (pathname.endsWith('/new'))
     return `${feminineNouns.has(noun) ? 'Nueva' : 'Nuevo'} ${noun}`
   if (pathname.endsWith('/edit')) return `Editar ${noun}`

@@ -21,11 +21,7 @@ import {
 
 import { kilometers, timestamp } from './format'
 import { useMaintenanceMutations } from './hooks'
-import {
-  orderStateLabels,
-  type Intervention,
-  type MaintenanceOrder,
-} from './types'
+import { type Intervention, type MaintenanceOrder } from './types'
 
 /** Resumen antes de finalizar; los requisitos pendientes los calcula el servidor. */
 export function FinalizeDialog({
@@ -517,52 +513,5 @@ function CorrectiveEditor({
         </Button>
       </div>
     </form>
-  )
-}
-
-/** Historial inmutable de registro, finalizaciones y reaperturas, como línea de tiempo. */
-export function TransitionTimeline({ order }: { order: MaintenanceOrder }) {
-  const events = [
-    {
-      key: 'created',
-      title: 'Orden registrada',
-      who: order.created_by.name,
-      when: order.created_at,
-      reason: '',
-      tone: 'bg-primary',
-    },
-    ...order.transitions.map((t) => ({
-      key: String(t.id),
-      title: `${orderStateLabels[t.from_state]} → ${orderStateLabels[t.to_state]}`,
-      who: t.actor.name,
-      when: t.occurred_at,
-      reason: t.reason,
-      tone: t.to_state === 'REOPENED' ? 'bg-scope-artisan' : 'bg-success',
-    })),
-  ]
-  return (
-    <SectionPanel
-      icon={<ClockCounterClockwise size={17} />}
-      id="order-history-title"
-      title="Historial"
-    >
-      <ol className="relative space-y-3 px-4 py-4 before:absolute before:top-6 before:bottom-6 before:left-[20px] before:w-px before:bg-line">
-        {events.map((event) => (
-          <li className="relative flex gap-3 text-body" key={event.key}>
-            <span
-              aria-hidden="true"
-              className={`z-10 mt-1.5 size-2.5 shrink-0 rounded-full ring-4 ring-surface ${event.tone}`}
-            />
-            <div className="min-w-0">
-              <p className="font-medium text-ink">{event.title}</p>
-              <p className="text-label text-ink-muted">
-                {event.who} · {timestamp(event.when)}
-              </p>
-              {event.reason && <p className="mt-0.5">Causa: {event.reason}</p>}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </SectionPanel>
   )
 }

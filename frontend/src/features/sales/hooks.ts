@@ -54,8 +54,9 @@ export function useSales(filters: SaleFilters = {}) {
   })
 }
 
-export function useReceivables(filters: SaleFilters = {}) {
+export function useReceivables(filters: SaleFilters = {}, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: saleKeys.receivables(filters),
     queryFn: () => salesApi.receivables(filters),
     refetchOnWindowFocus: true,

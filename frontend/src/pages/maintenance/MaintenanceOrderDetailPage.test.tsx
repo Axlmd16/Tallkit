@@ -1,10 +1,5 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -47,13 +42,39 @@ const mocks = vi.hoisted(() => {
       uploadPhoto: mutation(),
       removePhoto: mutation(),
       updateIntervention: mutation(),
+      update: mutation(),
     },
   }
 })
 
 vi.mock('@/features/maintenance/hooks', () => ({
+  maintenanceKeys: {
+    root: ['maintenance'],
+    detail: (id: number) => ['maintenance', 'detail', id],
+  },
   useMaintenanceOrder: () => mocks.detail,
   useMaintenanceMutations: () => mocks.mutations,
+  useMaintenanceOrders: () => ({
+    isPending: false,
+    isError: false,
+    data: { results: [], count: 0, page: 1, total_pages: 1 },
+  }),
+  useServiceSearch: (term: string) => ({
+    isPending: false,
+    isError: false,
+    data: {
+      results: term
+        ? [
+            {
+              id: 2,
+              name: 'Alineación',
+              description: '',
+              reference_price: '25.00',
+            },
+          ]
+        : [],
+    },
+  }),
   useServicePickerOptions: () => ({
     isPending: false,
     isError: false,
@@ -94,6 +115,7 @@ vi.mock('@/features/maintenance/billingHooks', () => ({
     correctPayment: mocks.mutations.finalize,
   }),
   usePartProductPicker: () => ({ isPending: false, isError: false }),
+  usePartSearch: () => ({ isPending: false, isError: false, data: undefined }),
   useVoidPreview: () => ({ isPending: false }),
 }))
 
@@ -196,76 +218,154 @@ function order(overrides: Record<string, unknown> = {}) {
 
 function renderDetail() {
   return render(
-    <ToastProvider>
-      <MemoryRouter initialEntries={['/maintenance/9']}>
-        <Routes>
-          <Route
-            element={<MaintenanceOrderDetailPage />}
-            path="/maintenance/:id"
-          />
-        </Routes>
-      </MemoryRouter>
-    </ToastProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <ToastProvider>
+        <MemoryRouter initialEntries={['/maintenance/9']}>
+          <Routes>
+            <Route
+              element={<MaintenanceOrderDetailPage />}
+              path="/maintenance/:id"
+            />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
+    </QueryClientProvider>,
   )
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
+  const empty = {
+    visible: true,
+    documents: [],
+    pending: null,
+    confirmed_total: '0.00',
+    balance_total: '0.00',
+  }
+  mocks.summary = { ...mocks.summary, commercial: empty, artisan: empty }
   mocks.detail = { isPending: false, isError: false, data: order() }
 })
 
-it('organiza la ficha en pestañas: trabajo, repuestos, documentos y fotografías', async () => {
-  const u = userEvent.setup()
+it('organiza la ficha: banda del vehículo, trabajo a la izquierda y estado a la derecha', () => {
   renderDetail()
   expect(
-    screen.getByRole('heading', { name: 'ART-OT-000009' }),
+    screen.getByRole('heading', { level: 1, name: /ART-OT-000009/ }),
   ).toBeInTheDocument()
-  const tabs = screen.getByRole('tablist', { name: 'Secciones de la orden' })
-  expect(
-    within(tabs)
-      .getAllByRole('tab')
-      .map((tab) => tab.textContent),
-  ).toEqual([
-    'Trabajo y servicios',
-    'Repuestos',
-    'Documentos y cobros',
-    'Fotografías1',
-  ])
-  // Pestaña inicial: solo el trabajo; repuestos, dinero y fotos no se amontonan.
-  expect(screen.getByLabelText('Información general')).toHaveTextContent(
-    'Ana Pérez',
+  const band = screen.getByRole('region', { name: 'Vehículo' })
+  expect(within(band).getByText('ABC-1234')).toBeInTheDocument()
+  expect(within(band).getByRole('link', { name: 'Ana Pérez' })).toHaveAttribute(
+    'href',
+    '/customers/3',
   )
-  expect(screen.getByText('Pendiente de registrar.')).toBeInTheDocument()
-  expect(screen.getByText('Precio aplicado')).toBeInTheDocument()
-  expect(screen.getAllByText('Total de servicios de la orden').length).toBe(2)
   expect(
-    screen.queryByLabelText('Resumen económico por negocio'),
-  ).not.toBeInTheDocument()
-  expect(screen.queryByAltText('Golpe')).not.toBeInTheDocument()
-  // El resumen lateral y el historial permanecen visibles en todas las pestañas.
-  expect(
-    screen.getByRole('list', { name: 'Requisitos para finalizar' }),
-  ).toHaveTextContent('Diagnóstico registrado (pendiente)')
-  expect(screen.getByText('Historial')).toBeInTheDocument()
-
-  await u.click(within(tabs).getByRole('tab', { name: 'Repuestos' }))
-  expect(
-    screen.getByRole('heading', { name: 'Repuestos', level: 2 }),
-  ).toBeInTheDocument()
-
-  await u.click(within(tabs).getByRole('tab', { name: 'Documentos y cobros' }))
-  const economy = screen.getByLabelText('Resumen económico por negocio')
-  expect(
-    within(economy).getByLabelText('Negocio: Repuestos'),
+    within(band).getByRole('img', { name: '85.000 kilómetros' }),
   ).toBeInTheDocument()
   expect(
-    within(economy).getByLabelText('Negocio: Servicios'),
+    screen.getByRole('textbox', { name: /Diagnóstico/ }),
   ).toBeInTheDocument()
-
-  await u.click(within(tabs).getByRole('tab', { name: /Fotografías/ }))
+  expect(screen.getByText('Cambio de embrague')).toBeInTheDocument()
+  expect(screen.getByText('Repuestos del almacén')).toBeInTheDocument()
+  expect(
+    screen.getByRole('textbox', { name: 'Observaciones' }),
+  ).toBeInTheDocument()
   expect(screen.getByAltText('Golpe')).toHaveAttribute(
     'src',
     '/api/v1/maintenance-orders/9/photos/5/thumbnail/',
+  )
+  const finalize = screen.getByRole('region', { name: 'Para finalizar' })
+  expect(within(finalize).getByText('2 de 3')).toBeInTheDocument()
+  expect(
+    within(finalize).getByRole('list', { name: 'Requisitos para finalizar' }),
+  ).toHaveTextContent('Diagnóstico escrito (pendiente)')
+  expect(
+    within(finalize).getByRole('button', { name: 'Finalizar mantenimiento' }),
+  ).toBeDisabled()
+  expect(
+    screen.queryByRole('region', { name: 'Visitas anteriores' }),
+  ).not.toBeInTheDocument()
+  // Finalizar y cobro van juntos en la misma tarjeta.
+  expect(finalize.parentElement).toBe(
+    screen.getByRole('region', { name: 'Cobro' }).parentElement,
+  )
+  expect(
+    screen.getByRole('region', { name: 'Movimientos de esta orden' }),
+  ).toBeInTheDocument()
+})
+
+it('el cobro muestra el importe de cada negocio y «Cobrar y facturar» lleva a sus cobros', () => {
+  mocks.summary = {
+    ...mocks.summary,
+    commercial: {
+      visible: true,
+      documents: [],
+      pending: { label: 'Reservado', line_count: 1, estimated_total: '40.00' },
+      confirmed_total: '0.00',
+      balance_total: '0.00',
+    },
+  }
+  renderDetail()
+  const cobro = screen.getByRole('region', { name: 'Cobro' })
+  // Mano de obra 350.00 + repuestos 40.00: el total solo informa, cada negocio se cobra aparte.
+  expect(within(cobro).getByText('USD 390.00')).toBeInTheDocument()
+  expect(within(cobro).getByText('USD 350.00')).toBeInTheDocument()
+  expect(within(cobro).getByText('USD 40.00')).toBeInTheDocument()
+  expect(within(cobro).getByText('Sin cobrar')).toBeInTheDocument()
+  expect(
+    within(cobro).getByRole('link', { name: 'Cobrar y facturar' }),
+  ).toHaveAttribute('href', '/maintenance/9/billing')
+})
+
+it('sin permiso de cobros no se muestra la tarjeta de cobro', () => {
+  mocks.summary = {
+    ...mocks.summary,
+    commercial: { ...(mocks.summary.commercial as object), visible: false },
+    artisan: { ...(mocks.summary.artisan as object), visible: false },
+  }
+  renderDetail()
+  expect(
+    screen.queryByRole('region', { name: 'Cobro' }),
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('link', { name: 'Cobrar y facturar' }),
+  ).not.toBeInTheDocument()
+})
+
+it('agrega un trabajo desde el buscador con cantidad uno', async () => {
+  const u = userEvent.setup()
+  mocks.mutations.addLine.mutateAsync.mockResolvedValue(order())
+  renderDetail()
+  await u.type(screen.getByRole('textbox', { name: 'Agregar trabajo' }), 'alin')
+  await u.click(
+    await screen.findByRole('button', { name: 'Agregar Alineación' }),
+  )
+  await waitFor(() =>
+    expect(mocks.mutations.addLine.mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 9,
+        data: { service_id: 2, quantity: 1 },
+        expectedVersion: 3,
+      }),
+    ),
+  )
+})
+
+it('el diagnóstico se guarda al salir del cuadro y habilita el avance', async () => {
+  const u = userEvent.setup()
+  mocks.mutations.update.mutateAsync.mockResolvedValue(order())
+  renderDetail()
+  await u.type(
+    screen.getByRole('textbox', { name: /Diagnóstico/ }),
+    'Pastillas gastadas',
+  )
+  await u.tab()
+  await waitFor(() =>
+    expect(mocks.mutations.update.mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 9,
+        data: { diagnosis: 'Pastillas gastadas' },
+        expectedVersion: 3,
+      }),
+    ),
   )
 })
 
@@ -282,33 +382,39 @@ it('una orden finalizada solo ofrece reabrir', () => {
     }),
   }
   renderDetail()
-  expect(screen.getByRole('button', { name: /Reabrir/ })).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: /Reabrir por un problema/ }),
+  ).toBeInTheDocument()
   for (const name of [
     /Editar datos/,
     /Finalizar/,
-    /Agregar servicio/,
     /Adjuntar fotografía/,
     /Retirar/,
   ]) {
     expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
   }
-  expect(screen.getByText('Orden finalizada')).toBeInTheDocument()
+  expect(
+    screen.queryByRole('region', { name: 'Para finalizar' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: /Diagnóstico/ })).toHaveAttribute(
+    'readonly',
+  )
+  // Finalizada, el cobro pasa a ser la acción principal.
+  expect(
+    screen.getByRole('link', { name: 'Cobrar y facturar' }),
+  ).toBeInTheDocument()
 })
 
 it('al finalizar muestra el resumen y bloquea con requisitos pendientes', async () => {
   const u = userEvent.setup()
+  mocks.detail = {
+    isPending: false,
+    isError: false,
+    data: order({ diagnosis: 'Listo', pending_requirements: [] }),
+  }
   renderDetail()
-  await u.click(screen.getByRole('button', { name: /Finalizar/ }))
-  const dialog = await screen.findByRole('dialog')
-  expect(
-    within(dialog).getByText('Requisitos pendientes para finalizar'),
-  ).toBeInTheDocument()
-  expect(
-    within(dialog).getByText('Registre el diagnóstico.'),
-  ).toBeInTheDocument()
-  expect(
-    within(dialog).getByRole('button', { name: 'Finalizar orden' }),
-  ).toBeDisabled()
+  await u.click(screen.getByRole('button', { name: 'Finalizar mantenimiento' }))
+  expect(await screen.findByRole('dialog')).toBeInTheDocument()
 })
 
 it('finaliza una orden completa con la versión vigente', async () => {
@@ -322,7 +428,7 @@ it('finaliza una orden completa con la versión vigente', async () => {
     order({ state: 'FINALIZED' }),
   )
   renderDetail()
-  await u.click(screen.getByRole('button', { name: /Finalizar/ }))
+  await u.click(screen.getByRole('button', { name: 'Finalizar mantenimiento' }))
   await u.click(await screen.findByRole('button', { name: 'Finalizar orden' }))
   await waitFor(() =>
     expect(mocks.mutations.finalize.mutateAsync).toHaveBeenCalledWith(
@@ -349,7 +455,7 @@ it('reabrir exige causa y explica la intervención correctiva', async () => {
     order({ state: 'REOPENED' }),
   )
   renderDetail()
-  await u.click(screen.getByRole('button', { name: /Reabrir/ }))
+  await u.click(screen.getByRole('button', { name: /Reabrir por un problema/ }))
   const dialog = await screen.findByRole('dialog')
   expect(within(dialog).getByText('Qué ocurre al reabrir')).toBeInTheDocument()
   await u.click(within(dialog).getByRole('button', { name: 'Reabrir orden' }))
@@ -368,43 +474,6 @@ it('reabrir exige causa y explica la intervención correctiva', async () => {
   )
 })
 
-it('agrega un servicio con precio ajustado', async () => {
-  const u = userEvent.setup()
-  mocks.mutations.addLine.mutateAsync.mockResolvedValue(order())
-  renderDetail()
-  await u.click(screen.getByRole('button', { name: /Agregar servicio/ }))
-  const dialog = await screen.findByRole('dialog')
-  fireEvent.focus(
-    within(dialog).getByRole('combobox', { name: 'Servicio del catálogo' }),
-  )
-  await u.click(await screen.findByRole('option', { name: /Alineación/ }))
-  expect(dialog.className).toContain('max-w-[600px]')
-  expect(
-    within(dialog).getByText('Alineación', { selector: 'p' }),
-  ).toBeVisible()
-  expect(
-    within(dialog).getByText('Precio referencial del catálogo: USD 25.00'),
-  ).toBeInTheDocument()
-  const price = within(dialog).getByLabelText(
-    'Precio aplicado a esta orden (USD)',
-  )
-  expect(price).toHaveValue('25.00')
-  await u.clear(price)
-  await u.type(price, '30.00')
-  await u.click(
-    within(dialog).getByRole('button', { name: 'Agregar servicio' }),
-  )
-  await waitFor(() =>
-    expect(mocks.mutations.addLine.mutateAsync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 9,
-        data: { service_id: 2, quantity: 1, applied_price: '30.00' },
-        expectedVersion: 3,
-      }),
-    ),
-  )
-})
-
 it('una carga rechazada conserva archivo y descripción', async () => {
   const u = userEvent.setup()
   mocks.mutations.uploadPhoto.mutateAsync.mockRejectedValue(
@@ -415,7 +484,6 @@ it('una carga rechazada conserva archivo y descripción', async () => {
   URL.createObjectURL = vi.fn(() => 'blob:preview')
   URL.revokeObjectURL = vi.fn()
   renderDetail()
-  await u.click(screen.getByRole('tab', { name: /Fotografías/ }))
   await u.click(screen.getByRole('button', { name: /Adjuntar fotografía/ }))
   const dialog = await screen.findByRole('dialog')
   const file = new File(['x'], 'foto.jpg', { type: 'image/jpeg' })

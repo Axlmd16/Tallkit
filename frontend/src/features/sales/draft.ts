@@ -22,7 +22,7 @@ export const emptyLine = (): LineDraft => ({
 
 export const emptyDraft = (): SaleDraft => ({
   customer: null,
-  condition: 'CREDITO',
+  condition: 'CONTADO',
   notes: '',
   lines: [emptyLine()],
 })

@@ -109,6 +109,15 @@ export function useServicePickerOptions(
   }
 }
 
+/** Servicios activos que coinciden con el texto, para el buscador de la ficha. */
+export function useServiceSearch(term: string, enabled = true) {
+  return useQuery({
+    queryKey: maintenanceKeys.services(term, 1),
+    queryFn: () => maintenanceApi.serviceOptions(term, 1),
+    enabled: enabled && term !== '',
+  })
+}
+
 interface Versioned {
   id: number
   expectedVersion: number

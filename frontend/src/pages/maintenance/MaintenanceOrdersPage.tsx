@@ -5,6 +5,7 @@ import {
   Plus,
   Wrench,
 } from '@phosphor-icons/react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -16,6 +17,7 @@ import {
   OrderStateBadge,
 } from '@/features/maintenance/format'
 import { useMaintenanceOrders } from '@/features/maintenance/hooks'
+import { NewMaintenanceDialog } from '@/features/maintenance/NewMaintenanceDialog'
 import type {
   OrderListItem,
   OrderStateFilter,
@@ -40,6 +42,7 @@ export function MaintenanceOrdersPage() {
   const filters = useUrlFilters()
   const location = useLocation()
   const navigate = useNavigate()
+  const [newOpen, setNewOpen] = useState(false)
   const canManage = new Set(useSession().data?.permissions ?? []).has(
     'mantenimientos.gestionar',
   )
@@ -62,7 +65,7 @@ export function MaintenanceOrdersPage() {
       <PageHeader
         actions={
           canManage && (
-            <Button onClick={() => navigate('/maintenance/new')} type="button">
+            <Button onClick={() => setNewOpen(true)} type="button">
               <Plus aria-hidden="true" size={16} />
               Nueva orden
             </Button>
@@ -245,6 +248,9 @@ export function MaintenanceOrdersPage() {
           />
         )}
       </ListStates>
+      {newOpen && (
+        <NewMaintenanceDialog onClose={() => setNewOpen(false)} open />
+      )}
     </div>
   )
 }

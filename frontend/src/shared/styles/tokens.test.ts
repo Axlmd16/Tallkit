@@ -80,9 +80,9 @@ describe('tokens Tallkit', () => {
       ['body', '0.875rem'],
       ['lead', '0.9375rem'],
       ['block', '1rem'],
-      ['figure', '1.5rem'],
-      ['page', '1.75rem'],
-      ['display', '2.25rem'],
+      ['figure', '1.25rem'],
+      ['page', '1.5rem'],
+      ['display', '1.875rem'],
     ]
     for (const [name, size] of scale) {
       expect(index).toMatch(new RegExp(`--text-${name}:\\s*${size};`))

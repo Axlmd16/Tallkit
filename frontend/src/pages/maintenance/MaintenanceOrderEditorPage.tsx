@@ -15,26 +15,10 @@ import {
   OrderForm,
   type OrderFormValues,
 } from '@/features/maintenance/OrderForm'
+import { odometerWarningOf } from '@/features/maintenance/odometer'
 import type { OdometerWarning, OrderInput } from '@/features/maintenance/types'
-import { ProblemError } from '@/shared/api/client'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { Button, InlineNotice, LoadingState, useToast } from '@/shared/ui'
-
-function odometerWarningOf(error: unknown): OdometerWarning | null {
-  if (
-    error instanceof ProblemError &&
-    error.code === 'odometer_confirmation_required' &&
-    error.details
-  ) {
-    const d = error.details
-    return {
-      last_known_km: Number(d.last_known_km),
-      order_id: Number(d.order_id),
-      order_number: String(d.order_number ?? ''),
-    }
-  }
-  return null
-}
 
 /**
  * Registro y edición de una orden en estado registrado. Ante un error recuperable conserva
