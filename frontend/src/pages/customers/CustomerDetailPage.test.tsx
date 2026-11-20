@@ -35,6 +35,40 @@ vi.mock('@/features/customers/hooks', () => ({
   }),
 }))
 
+vi.mock('@/features/customers/accounts', () => ({
+  useCustomerAccountSummary: () => ({
+    data: {
+      visits: { count_year: 4, last_on: '2026-11-15' },
+      commercial: {
+        spent_year: '40.00',
+        documents_year: 1,
+        last_on: null,
+        balance: '18.00',
+      },
+      artisan: {
+        spent_year: '60.00',
+        documents_year: 1,
+        last_on: null,
+        balance: '0.00',
+      },
+    },
+  }),
+}))
+vi.mock('@/features/maintenance/NewMaintenanceDialog', () => ({
+  NewMaintenanceDialog: () => (
+    <div role="dialog" aria-label="Nuevo mantenimiento" />
+  ),
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useBusinessName: (scope: string) =>
+    scope === 'commercial' ? 'Repuestos' : 'Servicios',
+  useIssuerBrand: () => ({
+    logoUrl: null,
+    legalName: undefined,
+    displayName: undefined,
+  }),
+}))
+
 vi.mock('@/features/vehicles/hooks', () => ({
   useCustomerVehicles: () => mocks.vehicles,
   useVehicleMutations: () => ({
@@ -224,6 +258,11 @@ it('renders customer details and associated vehicles with links', async () => {
   expect(
     screen.getByRole('heading', { level: 1, name: 'Carlos Vera' }),
   ).toBeInTheDocument()
+  // Los datos de contacto van en la cabecera y el detalle completo, en la pestaña «Datos».
+  expect(
+    screen.getByText(/0912345678 · 0991234567 · carlos@example.com/),
+  ).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('tab', { name: 'Datos' }))
   expect(screen.getByText('0912345678')).toBeInTheDocument()
   expect(screen.getByText('0991234567')).toBeInTheDocument()
   expect(screen.getByText('carlos@example.com')).toBeInTheDocument()
@@ -629,9 +668,9 @@ it('sin permisos de compras ni de cuentas no aparecen esas pestañas', () => {
   mocks.permissions = ['clientes.ver']
   renderAt('/customers/1?tab=deuda')
 
-  expect(screen.queryByRole('tab', { name: 'Compras' })).toBeNull()
+  expect(screen.queryByRole('tab', { name: 'Historial' })).toBeNull()
   expect(screen.queryByRole('tab', { name: 'Deuda' })).toBeNull()
-  expect(screen.getByRole('tab', { name: 'Datos' })).toHaveAttribute(
+  expect(screen.getByRole('tab', { name: 'Vehículos' })).toHaveAttribute(
     'aria-selected',
     'true',
   )

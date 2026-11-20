@@ -18,6 +18,9 @@ const mocks = vi.hoisted(() => ({
   voidArtisan: vi.fn(),
 }))
 
+vi.mock('@/features/accounts/AccountsHeader', () => ({
+  AccountsHeader: () => null,
+}))
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
     data: { username: 'u', permissions: mocks.permissions },
@@ -130,7 +133,6 @@ it('lista solo las retenciones comerciales y permite completar el comprobante', 
   expect(
     screen.getByRole('heading', { name: 'Retenciones por completar' }),
   ).toBeInTheDocument()
-  expect(screen.getByLabelText('Negocio: Repuestos')).toBeInTheDocument()
   const row = screen.getByRole('listitem', {
     name: 'Retención de COM-VEN-000007',
   })

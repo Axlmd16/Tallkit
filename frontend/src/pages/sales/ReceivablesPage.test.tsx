@@ -6,6 +6,9 @@ const mocks = vi.hoisted(() => ({
   data: {} as Record<string, unknown>,
   args: [] as unknown[],
 }))
+vi.mock('@/features/accounts/AccountsHeader', () => ({
+  AccountsHeader: () => null,
+}))
 vi.mock('@/features/sales/hooks', () => ({
   useReceivables: (filters: unknown) => {
     mocks.args.push(filters)
@@ -151,9 +154,6 @@ it('muestra lo retenido por el cliente en su propia columna, sin sumarlo a la de
   expect(screen.getAllByText('Retenido').length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 2.00').length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 98.00').length).toBeGreaterThan(0)
-  expect(
-    screen.getByRole('link', { name: 'Retenciones por completar' }),
-  ).toHaveAttribute('href', '/sales/withholdings')
 })
 
 it('filtra por condición y solo deuda desde la URL, a la vista y con limpieza', async () => {

@@ -226,6 +226,8 @@ export interface SaleSummary {
   grand_total: string | null
   money: SaleMoney
   age_days?: number
+  created_at?: string
+  confirmed_at?: string | null
 }
 
 export interface SaleFilters {

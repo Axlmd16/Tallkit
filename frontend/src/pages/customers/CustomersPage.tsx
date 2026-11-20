@@ -1,551 +1,275 @@
-import {
-  EnvelopeSimple,
-  MagnifyingGlass,
-  MapPin,
-  PencilSimple,
-  Plus,
-  Power,
-  Phone,
-  XCircle,
-  AddressBook,
-} from '@phosphor-icons/react'
+import { AddressBook, Plus } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
-import { useCustomerMutations, useCustomers } from '@/features/customers/hooks'
-import type {
-  CustomerFilters,
-  CustomerSummary,
-} from '@/features/customers/types'
-import { ProblemError } from '@/shared/api/client'
+import { useUrlFilters } from '@/features/catalog-common/filters'
+import { useCustomerDebtors, type Debtor } from '@/features/customers/accounts'
+import { BusinessAmounts, owed } from '@/features/customers/BusinessAmounts'
+import { CustomerPreview } from '@/features/customers/CustomerPreview'
+import { useCustomers } from '@/features/customers/hooks'
+import type { PersonType } from '@/features/customers/types'
+import { NewMaintenanceDialog } from '@/features/maintenance/NewMaintenanceDialog'
 import {
+  Avatar,
   Button,
-  ConfirmationPanel,
-  Modal,
-  ElevatedDataList,
   EmptyState,
-  Field,
-  FilterPanel,
   InlineNotice,
   LoadingState,
+  MasterDetail,
   PageHeader,
   Pagination,
-  RowActions,
   SearchInput,
-  Select,
-  StatusBadge,
-  Toolbar,
-  Avatar,
-  useToast,
+  SegmentedControl,
 } from '@/shared/ui'
 
-type Confirmation = {
-  kind: 'activate' | 'deactivate'
-  customer: CustomerSummary
+/** Fila de la lista: un cliente de la búsqueda o un deudor, con lo que debe en cada negocio. */
+interface Row {
+  id: number
+  name: string
+  identification: string
+  personType: PersonType
+  isActive: boolean
+  artisan: string | null
+  commercial: string | null
 }
 
-const primaryButtonLinkClass =
-  'ui-button inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-primary bg-primary px-4 py-2 text-body font-semibold text-white transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:border-primary-strong hover:bg-primary-strong active:translate-y-px'
+type Segment = '' | 'debt' | 'companies'
 
+/** Letra con que se agrupa: la inicial sin tilde; lo que no empieza con letra va en «#». */
+export function groupLetter(name: string): string {
+  const first = name.trim().charAt(0).toLocaleUpperCase('es')
+  if (first === 'Ñ') return first
+  const plain = first.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  return /^[A-Z]$/.test(plain) ? plain : '#'
+}
+
+function fromDebtor(debtor: Debtor): Row {
+  return {
+    id: debtor.customer_id,
+    name: debtor.name,
+    identification: debtor.identification,
+    personType: debtor.person_type,
+    isActive: true,
+    artisan: owed(debtor.artisan),
+    commercial: owed(debtor.commercial),
+  }
+}
+
+/**
+ * Clientes en maestro y detalle: a la izquierda la lista agrupada por letra, con búsqueda y los
+ * segmentos Todos, Con deuda y Empresas; a la derecha el cliente elegido. La deuda de cada
+ * negocio se muestra por separado y la calcula el servidor.
+ */
 export function CustomersPage() {
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const session = useSession().data
-  const permissions = new Set(session?.permissions ?? [])
+  const filters = useUrlFilters()
+  const permissions = new Set(useSession().data?.permissions ?? [])
   const canManage = permissions.has('clientes.gestionar')
-  const canDeactivate = permissions.has('clientes.desactivar')
+  const canSeeDebt =
+    permissions.has('pagos_comerciales.ver') ||
+    permissions.has('pagos_artesanales.ver')
+  const canOpenMaintenance = permissions.has('mantenimientos.gestionar')
 
-  const searchParam = searchParams.get('search') ?? ''
-  const isActiveParam = searchParams.get('is_active')
-  const pageParam = parseInt(searchParams.get('page') ?? '1', 10) || 1
+  const segment = filters.get('segment') as Segment
+  const [searchInput, setSearchInput] = useState(filters.search)
+  const [maintenanceFor, setMaintenanceFor] = useState<string | null>(null)
 
-  const isActiveFilter: boolean | undefined =
-    isActiveParam === 'true'
-      ? true
-      : isActiveParam === 'false'
-        ? false
-        : undefined
+  const customers = useCustomers({
+    search: filters.search || undefined,
+    personType: segment === 'companies' ? 'JURIDICA' : undefined,
+    page: filters.page,
+  })
+  const debtors = useCustomerDebtors(canSeeDebt)
+  const debtById = new Map(
+    (debtors.data?.items ?? []).map((debtor) => [debtor.customer_id, debtor]),
+  )
+  const debtorCount = (debtors.data?.items ?? []).filter(
+    (debtor) => owed(debtor.artisan) || owed(debtor.commercial),
+  ).length
 
-  const [searchInput, setSearchInput] = useState(searchParam)
-  const [notice, setNotice] = useState<string | null>(null)
-  const toast = useToast()
-  const [confirmation, setConfirmation] = useState<Confirmation | null>(null)
-  const [previewing, setPreviewing] = useState<CustomerSummary | null>(null)
-
-  const filters: CustomerFilters = {
-    search: searchParam || undefined,
-    isActive: isActiveFilter,
-    page: pageParam,
-  }
-
-  const customersQuery = useCustomers(filters)
-  const mutations = useCustomerMutations()
-
-  function updateFilters(updates: {
-    search?: string
-    is_active?: string
-    page?: number
-  }) {
-    const next = new URLSearchParams(searchParams)
-    if (updates.search !== undefined) {
-      if (updates.search.trim()) next.set('search', updates.search.trim())
-      else next.delete('search')
-      next.delete('page')
-    }
-    if (updates.is_active !== undefined) {
-      if (updates.is_active) next.set('is_active', updates.is_active)
-      else next.delete('is_active')
-      next.delete('page')
-    }
-    if (updates.page !== undefined) {
-      if (updates.page > 1) next.set('page', String(updates.page))
-      else next.delete('page')
-    }
-    setSearchParams(next)
-  }
-
-  function clearFilters() {
-    setSearchInput('')
-    setSearchParams(new URLSearchParams())
-  }
-
-  async function runConfirmation() {
-    if (!confirmation) return
-    const { kind, customer } = confirmation
-    setConfirmation(null)
-    setNotice(null)
-    try {
-      if (kind === 'deactivate') {
-        await mutations.deactivate.mutateAsync({
-          id: customer.id,
-          expectedVersion: customer.version,
+  const term = filters.search.trim().toLocaleLowerCase('es')
+  const rows: Row[] =
+    segment === 'debt'
+      ? (debtors.data?.items ?? [])
+          .map(fromDebtor)
+          .filter((row) => row.artisan || row.commercial)
+          .filter(
+            (row) =>
+              !term ||
+              row.name.toLocaleLowerCase('es').includes(term) ||
+              row.identification.includes(term),
+          )
+      : (customers.data?.results ?? []).map((customer) => {
+          const debt = debtById.get(customer.id)
+          return {
+            id: customer.id,
+            name: customer.name,
+            identification: customer.identification,
+            personType: customer.person_type,
+            isActive: customer.is_active,
+            artisan: owed(debt?.artisan),
+            commercial: owed(debt?.commercial),
+          }
         })
-        toast.success(`Cliente «${customer.name}» desactivado.`)
-      } else {
-        await mutations.activate.mutateAsync({
-          id: customer.id,
-          expectedVersion: customer.version,
-        })
-        toast.success(`Cliente «${customer.name}» activado.`)
-      }
-    } catch (caught) {
-      const text =
-        caught instanceof ProblemError
-          ? caught.status === 409 || caught.code === 'stale_record'
-            ? 'La ficha del cliente fue modificada por otro usuario. Recargue la página para ver la versión más reciente.'
-            : caught.message
-          : caught instanceof Error
-            ? caught.message
-            : 'No fue posible cambiar el estado del cliente.'
-      setNotice(text)
-    }
-  }
 
-  const columns = [
-    {
-      header: 'Nombre / Razón social',
-      key: 'name' as const,
-      priority: 'primary' as const,
-      render: (row: CustomerSummary) => (
-        <div className="user-identity">
-          <Avatar
-            className={`person-avatar avatar-${row.id % 4}`}
-            name={row.name}
-            size="36"
-          />
-          <div className="min-w-0">
-            <button
-              className="break-words font-semibold text-accent hover:underline"
-              onClick={() =>
-                void navigate(`/customers/${row.id}`, {
-                  state: { from: window.location.search },
-                })
-              }
-              type="button"
-            >
-              {row.name}
-            </button>
-            <p className="break-words text-body text-ink-muted">
-              {row.person_type === 'JURIDICA'
-                ? 'Persona jurídica'
-                : 'Persona natural'}
-            </p>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: 'Identificación',
-      key: 'identification' as const,
-      priority: 'primary' as const,
-      render: (row: CustomerSummary) => (
-        <div className="space-y-1">
-          <p>{row.identification}</p>
-          <StatusBadge
-            kind="category"
-            label={row.identification_type === 'RUC' ? 'RUC' : 'Cédula'}
-            shape="rectangle"
-            showIcon={false}
-            tone={row.identification_type === 'RUC' ? 'info' : 'neutral'}
-          />
-        </div>
-      ),
-    },
-    {
-      header: 'Teléfono',
-      key: 'phone' as const,
-      priority: 'secondary' as const,
-    },
-    {
-      header: 'Correo',
-      key: 'email' as const,
-      priority: 'secondary' as const,
-      render: (row: CustomerSummary) => (
-        <span className={row.email ? 'user-email' : 'italic text-ink-muted'}>
-          {row.email || 'Sin correo electrónico'}
-        </span>
-      ),
-    },
-    {
-      header: 'Estado',
-      key: 'is_active' as const,
-      priority: 'secondary' as const,
-      render: (row: CustomerSummary) => (
-        <StatusBadge
-          label={row.is_active ? 'Activo' : 'Inactivo'}
-          tone={row.is_active ? 'success' : 'neutral'}
-        />
-      ),
-    },
-  ]
-
-  const hasActiveFilters = Boolean(searchParam || isActiveParam)
-  const results = customersQuery.data?.results ?? []
-  const totalPages = customersQuery.data?.total_pages ?? 1
-  const currentPage = customersQuery.data?.page ?? pageParam
+  const listQuery = segment === 'debt' ? debtors : customers
+  const selectedParam = filters.get('ficha')
+  const selectedKey =
+    selectedParam && rows.some((row) => String(row.id) === selectedParam)
+      ? selectedParam
+      : rows[0]
+        ? String(rows[0].id)
+        : null
+  const totalPages = segment === 'debt' ? 1 : (customers.data?.total_pages ?? 1)
+  const currentPage = customers.data?.page ?? filters.page
 
   return (
-    <section className="customers-page list-page">
+    <section className="customers-page list-page space-y-4">
       <PageHeader
-        icon={<AddressBook />}
         actions={
           canManage ? (
             <Button onClick={() => void navigate('/customers/new')}>
-              <Plus aria-hidden="true" size={20} />
+              <Plus aria-hidden="true" size={18} />
               Nuevo cliente
             </Button>
           ) : undefined
         }
-        description="Registro compartido de clientes y contactos para todas las actividades del taller."
+        description="Elija un cliente para ver sus vehículos, lo que debe y lo último que hizo."
+        icon={<AddressBook />}
+        {...(customers.data && segment === '' && !filters.search
+          ? {
+              eyebrow:
+                customers.data.count === 1
+                  ? '1 cliente'
+                  : `${customers.data.count} clientes`,
+            }
+          : {})}
         title="Clientes"
       />
 
-      {notice && (
-        <InlineNotice title="No se completó la operación" tone="danger">
-          {notice}
-        </InlineNotice>
-      )}
-
-      <FilterPanel label="Filtros de búsqueda de clientes">
-        <form
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
-          onSubmit={(e) => {
-            e.preventDefault()
-            updateFilters({ search: searchInput })
-          }}
-        >
-          <Field id="customer-search-input" label="Buscar cliente">
-            <SearchInput
-              onChange={(e) => setSearchInput(e.target.value)}
-              onClear={() => {
-                setSearchInput('')
-                updateFilters({ search: '' })
-              }}
-              placeholder="Nombre, identificación o teléfono…"
-              value={searchInput}
-            />
-          </Field>
-
-          <Field id="customer-status-filter" label="Estado">
-            <Select
-              onChange={(e) => updateFilters({ is_active: e.target.value })}
-              value={isActiveParam ?? ''}
-            >
-              <option value="">Todos</option>
-              <option value="true">Activos</option>
-              <option value="false">Inactivos</option>
-            </Select>
-          </Field>
-
-          <div className="flex items-end gap-2">
-            <Toolbar label="Acciones de filtro">
-              <Button type="submit" variant="secondary">
-                <MagnifyingGlass aria-hidden="true" size={18} />
-                Buscar
-              </Button>
-              {hasActiveFilters && (
-                <Button onClick={clearFilters} variant="quiet">
-                  <XCircle aria-hidden="true" size={18} />
-                  Limpiar filtros
-                </Button>
-              )}
-            </Toolbar>
-          </div>
-        </form>
-      </FilterPanel>
-
-      {customersQuery.isPending && <LoadingState label="Cargando clientes…" />}
-
-      {customersQuery.isError && (
+      {listQuery.isPending ? (
+        <LoadingState label="Cargando clientes…" />
+      ) : listQuery.isError ? (
         <InlineNotice
           title="No fue posible cargar el listado de clientes."
           tone="danger"
         >
           Inténtelo nuevamente o revise la conexión.
         </InlineNotice>
-      )}
-
-      {customersQuery.isSuccess && results.length === 0 && (
+      ) : rows.length === 0 && segment === '' && !filters.search ? (
         <EmptyState
           action={
-            hasActiveFilters ? (
-              <Button onClick={clearFilters} variant="secondary">
-                Limpiar filtros
-              </Button>
-            ) : canManage ? (
+            canManage ? (
               <Button onClick={() => void navigate('/customers/new')}>
-                <Plus aria-hidden="true" size={20} />
+                <Plus aria-hidden="true" size={18} />
                 Registrar primer cliente
               </Button>
             ) : undefined
           }
-          description={
-            hasActiveFilters
-              ? 'No hay clientes que coincidan con los filtros aplicados.'
-              : 'Aún no se han registrado clientes en el sistema.'
-          }
-          title={
-            hasActiveFilters ? 'Sin resultados' : 'No hay clientes registrados'
+          description="Aún no se han registrado clientes en el sistema."
+          title="No hay clientes registrados"
+        />
+      ) : (
+        <MasterDetail<Row>
+          backLabel="Volver a clientes"
+          detailLabel="Cliente elegido"
+          emptyDetail="Elija un cliente de la lista para ver su detalle."
+          emptyList="No hay clientes que coincidan con la búsqueda."
+          getGroup={(row) => groupLetter(row.name)}
+          getKey={(row) => String(row.id)}
+          items={rows}
+          listLabel="Lista de clientes"
+          onSelect={(key) => filters.set({ ficha: key })}
+          renderDetail={(row) => (
+            <CustomerPreview
+              customerId={row.id}
+              key={row.id}
+              onNewMaintenance={
+                canOpenMaintenance ? (name) => setMaintenanceFor(name) : null
+              }
+            />
+          )}
+          renderItem={(row) => (
+            <span className="flex items-center gap-3">
+              <Avatar name={row.name} size="36" />
+              <span className="min-w-0 flex-1 leading-snug">
+                <span className="block truncate font-semibold">{row.name}</span>
+                <span className="code text-label text-ink-muted">
+                  {row.identification}
+                  {!row.isActive && ' · inactivo'}
+                </span>
+              </span>
+              {(row.artisan || row.commercial) && (
+                <BusinessAmounts
+                  artisan={row.artisan}
+                  className="text-label font-semibold text-danger"
+                  commercial={row.commercial}
+                />
+              )}
+            </span>
+          )}
+          selectedKey={selectedKey}
+          toolbar={
+            <div className="flex flex-col gap-3">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  filters.set({ search: searchInput.trim(), ficha: '' })
+                }}
+                role="search"
+              >
+                <SearchInput
+                  aria-label="Buscar cliente"
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  onClear={() => {
+                    setSearchInput('')
+                    filters.set({ search: '', ficha: '' })
+                  }}
+                  placeholder="Nombre, cédula, RUC o teléfono"
+                  value={searchInput}
+                  variant="underline"
+                />
+              </form>
+              <SegmentedControl
+                aria-label="Filtrar clientes"
+                onChange={(value) => filters.set({ segment: value, ficha: '' })}
+                options={[
+                  { value: '', label: 'Todos' },
+                  ...(canSeeDebt
+                    ? [
+                        {
+                          value: 'debt',
+                          label: 'Con deuda',
+                          ...(debtors.data ? { count: debtorCount } : {}),
+                        },
+                      ]
+                    : []),
+                  { value: 'companies', label: 'Empresas' },
+                ]}
+                value={segment}
+              />
+            </div>
           }
         />
       )}
 
-      {customersQuery.isSuccess && results.length > 0 && (
-        <>
-          <ElevatedDataList
-            actions={(row) => (
-              <RowActions>
-                {canManage && (
-                  <Button
-                    aria-label="Editar"
-                    className="record-action"
-                    onClick={() => void navigate(`/customers/${row.id}/edit`)}
-                    title="Editar"
-                    variant="quiet"
-                  >
-                    <PencilSimple aria-hidden="true" size={18} />
-                    <span>Editar</span>
-                  </Button>
-                )}
-                {canDeactivate && (
-                  <Button
-                    aria-label={row.is_active ? 'Desactivar' : 'Activar'}
-                    className="record-action"
-                    onClick={() =>
-                      setConfirmation({
-                        kind: row.is_active ? 'deactivate' : 'activate',
-                        customer: row,
-                      })
-                    }
-                    title={row.is_active ? 'Desactivar' : 'Activar'}
-                    variant={row.is_active ? 'danger' : 'secondary'}
-                  >
-                    <Power aria-hidden="true" size={18} />
-                    <span>{row.is_active ? 'Desactivar' : 'Activar'}</span>
-                  </Button>
-                )}
-              </RowActions>
-            )}
-            columns={columns}
-            getRowKey={(row) => row.id}
-            label="Clientes"
-            onRowClick={(row) =>
-              void navigate(`/customers/${row.id}`, {
-                state: { from: window.location.search },
-              })
-            }
-            rows={results}
-          />
-
-          <Pagination
-            onNext={() => updateFilters({ page: currentPage + 1 })}
-            onPrevious={() => updateFilters({ page: currentPage - 1 })}
-            page={currentPage}
-            totalPages={totalPages}
-          />
-        </>
+      {segment !== 'debt' && totalPages > 1 && (
+        <Pagination
+          onNext={() => filters.set({ page: currentPage + 1 })}
+          onPrevious={() => filters.set({ page: currentPage - 1 })}
+          page={currentPage}
+          totalPages={totalPages}
+        />
       )}
 
-      <Modal
-        className="customer-preview-drawer"
-        description="Información disponible del cliente seleccionado."
-        onClose={() => setPreviewing(null)}
-        open={previewing !== null}
-        title="Detalle del cliente"
-      >
-        {previewing && (
-          <div className="space-y-7">
-            <div className="flex flex-col items-center text-center">
-              <Avatar
-                className={`person-avatar avatar-${previewing.id % 4}`}
-                name={previewing.name}
-                size="70"
-              />
-              <h3 className="mt-4 text-block font-bold text-ink">
-                {previewing.name}
-              </h3>
-              <p className="mt-1 text-body text-ink-muted">
-                {previewing.person_type === 'JURIDICA'
-                  ? 'Persona jurídica'
-                  : 'Persona natural'}
-              </p>
-              <div className="mt-3">
-                <StatusBadge
-                  label={previewing.is_active ? 'Activo' : 'Inactivo'}
-                  tone={previewing.is_active ? 'success' : 'neutral'}
-                />
-              </div>
-            </div>
-
-            <section aria-labelledby="customer-contact-title">
-              <h3
-                className="text-block font-bold text-ink"
-                id="customer-contact-title"
-              >
-                Información de contacto
-              </h3>
-              <div className="mt-3 divide-y divide-line border-y border-line">
-                <div className="flex items-start gap-3 py-4">
-                  <EnvelopeSimple
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-ink-muted"
-                    size={20}
-                  />
-                  <div className="min-w-0">
-                    <p className="text-label font-semibold text-ink-muted">
-                      Correo electrónico
-                    </p>
-                    <p className="mt-1 break-words text-body text-ink">
-                      {previewing.email || 'No registrado'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 py-4">
-                  <Phone
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-ink-muted"
-                    size={20}
-                  />
-                  <div className="min-w-0">
-                    <p className="text-label font-semibold text-ink-muted">
-                      Teléfono
-                    </p>
-                    <p className="mt-1 text-body text-ink">
-                      {previewing.phone}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 py-4">
-                  <MapPin
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-ink-muted"
-                    size={20}
-                  />
-                  <div className="min-w-0">
-                    <p className="text-label font-semibold text-ink-muted">
-                      Dirección
-                    </p>
-                    <p className="mt-1 break-words text-body text-ink">
-                      {previewing.address || 'No registrada'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section aria-labelledby="customer-identification-title">
-              <h3
-                className="text-block font-bold text-ink"
-                id="customer-identification-title"
-              >
-                Identificación
-              </h3>
-              <div className="mt-3 flex items-center justify-between gap-3 rounded-group bg-surface-subtle p-3">
-                <span className="text-body text-ink">
-                  {previewing.identification}
-                </span>
-                <StatusBadge
-                  kind="category"
-                  label={
-                    previewing.identification_type === 'RUC' ? 'RUC' : 'Cédula'
-                  }
-                  shape="rectangle"
-                  showIcon={false}
-                  tone={
-                    previewing.identification_type === 'RUC'
-                      ? 'info'
-                      : 'neutral'
-                  }
-                />
-              </div>
-            </section>
-
-            <div className="flex flex-wrap gap-2">
-              <Link
-                className={primaryButtonLinkClass}
-                to={`/customers/${previewing.id}`}
-              >
-                Ver ficha completa
-              </Link>
-              {canManage && (
-                <Button
-                  onClick={() =>
-                    void navigate(`/customers/${previewing.id}/edit`)
-                  }
-                  variant="secondary"
-                >
-                  <PencilSimple aria-hidden="true" size={18} />
-                  Editar cliente
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      <ConfirmationPanel
-        cancelLabel="Cancelar"
-        confirmLabel={
-          confirmation?.kind === 'deactivate'
-            ? 'Confirmar desactivación'
-            : 'Confirmar activación'
-        }
-        description={
-          confirmation?.kind === 'deactivate'
-            ? `Al desactivar a «${confirmation.customer.name}», no podrá ser seleccionado como propietario en nuevas operaciones. Su historial y vehículos vigentes se conservarán.`
-            : `Al reactivar a «${confirmation?.customer.name}», volverá a estar disponible para nuevas asociaciones con su misma información.`
-        }
-        onCancel={() => setConfirmation(null)}
-        onConfirm={() => void runConfirmation()}
-        open={confirmation !== null}
-        title={
-          confirmation?.kind === 'deactivate'
-            ? 'Desactivar cliente'
-            : 'Activar cliente'
-        }
-        tone={confirmation?.kind === 'deactivate' ? 'danger' : 'primary'}
-      />
+      {maintenanceFor !== null && (
+        <NewMaintenanceDialog
+          initialSearch={maintenanceFor}
+          onClose={() => setMaintenanceFor(null)}
+          open
+        />
+      )}
     </section>
   )
 }

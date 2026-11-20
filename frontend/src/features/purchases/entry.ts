@@ -1,3 +1,4 @@
+import type { ProductLabelData } from '@/features/products/types'
 import type { ComboboxOption } from '@/shared/ui'
 
 import type { EntryInput } from './types'
@@ -12,6 +13,8 @@ export interface EntryLine {
   quantity: string
   /** Opcional: vacío significa «sin costo registrado», no cero. */
   cost: string
+  /** Para imprimir la etiqueta al guardar; no viaja al servidor. */
+  label?: ProductLabelData
 }
 
 export interface EntryDraft {
@@ -28,6 +31,7 @@ export interface ProductChoice {
   code: string
   name: string
   unit: string
+  label?: ProductLabelData
 }
 
 export const MAX_LINES = 200
@@ -40,7 +44,7 @@ export const emptyDraft = (): EntryDraft => ({
   supplier: null,
   reference: '',
   observation: '',
-  costsOn: false,
+  costsOn: true,
 })
 
 /** Elegir un producto ya presente suma una presentación en lugar de duplicar la línea. */
@@ -65,6 +69,7 @@ export function addProduct(
       unit: product.unit,
       quantity: '1',
       cost: '',
+      ...(product.label ? { label: product.label } : {}),
     },
   ]
 }
@@ -117,6 +122,55 @@ export function summarize(lines: EntryLine[]): {
     products: lines.length,
     units: lines.reduce((sum, line) => sum + toCount(line.quantity), 0),
   }
+}
+
+const COST_SCALE = 1_000_000n
+
+/**
+ * Costo de una línea (cantidad × costo por unidad) en millonésimas de dólar, o `null` si la
+ * línea no tiene cantidad o costo válidos. Es una referencia para quien captura: el servidor
+ * recalcula y fija los importes al revisar la entrada.
+ */
+function lineMicros(line: EntryLine): bigint | null {
+  const quantity = line.quantity.trim()
+  const cost = line.cost.trim()
+  if (!WHOLE.test(quantity) || !COST.test(cost)) return null
+  const [whole = '0', fraction = ''] = cost.split('.')
+  const unit = BigInt(whole) * COST_SCALE + BigInt(fraction.padEnd(6, '0'))
+  return unit * BigInt(quantity)
+}
+
+/** Dólares con dos decimales, redondeando medio hacia arriba, desde millonésimas. */
+function formatMicros(micros: bigint): string {
+  const cents = (micros + 5_000n) / 10_000n
+  const whole = cents / 100n
+  const rest = (cents % 100n).toString().padStart(2, '0')
+  return `${whole}.${rest}`
+}
+
+/** Subtotal de una línea con costo (por ejemplo `46.50`); `null` si no se puede calcular. */
+export function lineSubtotal(line: EntryLine): string | null {
+  const micros = lineMicros(line)
+  return micros === null ? null : formatMicros(micros)
+}
+
+/**
+ * Total a costo de las líneas que tienen costo y cuántas quedan sin costo. Las líneas sin
+ * costo no se cuentan como cero: se avisan aparte.
+ */
+export function costTotal(
+  lines: EntryLine[],
+  costsOn: boolean,
+): { total: string; withoutCost: number } {
+  if (!costsOn) return { total: '0.00', withoutCost: 0 }
+  let micros = 0n
+  let withoutCost = 0
+  for (const line of lines) {
+    const value = lineMicros(line)
+    if (value === null) withoutCost += 1
+    else micros += value
+  }
+  return { total: formatMicros(micros), withoutCost }
 }
 
 /** Errores de campo con las mismas claves que devuelve el servidor (`lines.0.quantity`). */
@@ -173,9 +227,9 @@ export const isDirty = (draft: EntryDraft): boolean =>
   draft.reference.trim() !== '' ||
   draft.observation.trim() !== ''
 
-/** Los detalles opcionales con contenido no deben quedar ocultos al usuario. */
+/**
+ * Proveedor y referencia están siempre a la vista; lo plegado es la observación y el apagado
+ * de los costos, que no deben quedar ocultos si ya tienen contenido.
+ */
 export const hasOptionalDetails = (draft: EntryDraft): boolean =>
-  draft.supplier !== null ||
-  draft.reference.trim() !== '' ||
-  draft.observation.trim() !== '' ||
-  draft.costsOn
+  draft.observation.trim() !== '' || !draft.costsOn

@@ -35,6 +35,12 @@ const page = <T,>(results: T[]) => ({
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
 }))
+vi.mock('@/features/products/ProductsOverview', () => ({
+  ProductsOverview: () => null,
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useBusinessName: () => 'Repuestos',
+}))
 vi.mock('@/features/inventory/hooks', () => ({
   useStockQuantities: (ids: readonly number[], enabled: boolean) => {
     mocks.quantitiesCalls.push({ ids, enabled })
@@ -203,15 +209,15 @@ it('pide confirmación antes de cambiar filtros con selección', async () => {
   renderPage()
   await user.click(screen.getByRole('checkbox', { name: 'Seleccionar fila 5' }))
 
-  await user.selectOptions(screen.getByLabelText('Categoría'), '1')
+  await user.click(screen.getByRole('radio', { name: 'Aceites' }))
   const confirmation = screen.getByRole('dialog', { name: 'Cambiar filtros' })
   await user.click(
     within(confirmation).getByRole('button', { name: 'Cancelar' }),
   )
   expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
-  expect(screen.getByLabelText('Categoría')).toHaveValue('')
+  expect(screen.getByRole('radio', { name: 'Todas' })).toBeChecked()
 
-  await user.selectOptions(screen.getByLabelText('Categoría'), '1')
+  await user.click(screen.getByRole('radio', { name: 'Aceites' }))
   await user.click(
     within(screen.getByRole('dialog', { name: 'Cambiar filtros' })).getByRole(
       'button',
@@ -279,19 +285,16 @@ it('muestra la existencia del inventario sin costos ni valoración', () => {
       .map((cell) => cell.textContent),
   ).toEqual([
     '',
-    'Código interno',
-    'Código del fabricante',
+    'Código',
     'Producto',
-    'Categoría',
-    'Presentación',
     'Marca',
-    'Existencia',
-    'Precio final USD',
-    'Estado',
+    'N.º del fabricante',
+    'Categoría',
+    'Quedan',
+    'Precio',
     'Acciones',
   ])
   expect(within(table).getByText('USD 10.50')).toBeInTheDocument()
-  expect(within(table).getByText('Activo')).toBeInTheDocument()
   expect(table.textContent).not.toMatch(/costo|valor|promedio/i)
   // El ámbito fiscal lo muestra la barra superior del marco; la página no lo duplica.
   expect(screen.queryByLabelText(/ámbito fiscal/i)).toBeNull()
@@ -305,10 +308,10 @@ it('muestra ambos códigos y ofrece búsqueda por ellos', () => {
   renderPage()
   const table = screen.getByRole('table', { name: 'Productos' })
   expect(
-    within(table).getByRole('columnheader', { name: 'Código interno' }),
+    within(table).getByRole('columnheader', { name: 'Código' }),
   ).toBeInTheDocument()
   expect(
-    within(table).getByRole('columnheader', { name: 'Código del fabricante' }),
+    within(table).getByRole('columnheader', { name: 'N.º del fabricante' }),
   ).toBeInTheDocument()
   expect(within(table).getByText('BP-900')).toBeInTheDocument()
   expect(within(table).getByText('ACE-2')).toBeInTheDocument()
@@ -347,7 +350,7 @@ it('cambia filtros reiniciando la página y muestra el estado sin coincidencias'
   renderPage('/products?search=zzz&page=3')
   expect(screen.getByText('Sin coincidencias')).toBeInTheDocument()
   const user = userEvent.setup()
-  await user.selectOptions(screen.getByLabelText('Categoría'), '1')
+  await user.click(screen.getByRole('radio', { name: 'Aceites' }))
   expect(mocks.listArgs.at(-1)).toMatchObject({ categoryId: 1, page: 1 })
 })
 
@@ -499,7 +502,7 @@ it('con permiso de inventario muestra la existencia de la página visible', () =
   mocks.permissions = ['productos.ver', 'inventario.ver']
   renderPage()
 
-  expect(screen.getByRole('columnheader', { name: 'Existencia' })).toBeVisible()
+  expect(screen.getByRole('columnheader', { name: 'Quedan' })).toBeVisible()
   expect(screen.getAllByLabelText('Existencias: 12')[0]).toBeVisible()
   expect(mocks.quantitiesCalls.at(-1)).toEqual({ ids: [5], enabled: true })
 })
@@ -508,7 +511,7 @@ it('sin permiso de inventario no pide ni muestra la existencia', () => {
   mocks.permissions = ['productos.ver']
   renderPage()
 
-  expect(screen.queryByRole('columnheader', { name: 'Existencia' })).toBeNull()
+  expect(screen.queryByRole('columnheader', { name: 'Quedan' })).toBeNull()
   expect(screen.queryByLabelText(/Existencias:/)).toBeNull()
   expect(mocks.quantitiesCalls.every((call) => !call.enabled)).toBe(true)
 })

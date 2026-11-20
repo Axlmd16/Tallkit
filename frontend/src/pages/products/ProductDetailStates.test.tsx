@@ -23,6 +23,14 @@ vi.mock('@/features/products/hooks', () => ({
 }))
 vi.mock('@/features/inventory/hooks', () => ({
   useStockItem: () => mocks.stock,
+  useKardex: () => ({
+    isPending: false,
+    isError: false,
+    data: {
+      results: [],
+      period_totals: { count: 0, quantity_in: '8', quantity_out: '5' },
+    },
+  }),
 }))
 vi.mock('@/features/products/ProductDetails', async (importOriginal) => ({
   ...(await importOriginal<typeof ProductDetailsModule>()),

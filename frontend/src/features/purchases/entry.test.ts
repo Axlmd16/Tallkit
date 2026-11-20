@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   addProduct,
   changeQuantity,
+  costTotal,
+  lineSubtotal,
   emptyDraft,
   hasOptionalDetails,
   isDirty,
@@ -91,7 +93,7 @@ describe('validación', () => {
 
   it('el costo es opcional y solo se valida si se muestra', () => {
     const lines = setCost(addProduct([], oil), 1, '1.1234567')
-    expect(validateDraft(draftWith(lines))).toEqual({})
+    expect(validateDraft(draftWith(lines, { costsOn: false }))).toEqual({})
     expect(
       validateDraft(draftWith(lines, { costsOn: true }))['lines.0.unit_cost'],
     ).toBeTruthy()
@@ -131,7 +133,9 @@ describe('solicitud al servidor', () => {
   })
 
   it('con costos apagados nunca envía un costo escrito antes', () => {
-    const draft = draftWith(setCost(addProduct([], oil), 1, '4.50'))
+    const draft = draftWith(setCost(addProduct([], oil), 1, '4.50'), {
+      costsOn: false,
+    })
     expect(toInput(draft).lines[0]).toEqual({ product_id: 1, quantity: '1' })
   })
 
@@ -156,7 +160,41 @@ describe('estado del formulario', () => {
 
   it('no oculta detalles opcionales que ya tienen contenido', () => {
     expect(hasOptionalDetails(emptyDraft())).toBe(false)
-    expect(hasOptionalDetails({ ...emptyDraft(), reference: 'F-1' })).toBe(true)
-    expect(hasOptionalDetails({ ...emptyDraft(), costsOn: true })).toBe(true)
+    expect(
+      hasOptionalDetails({ ...emptyDraft(), observation: 'Llegó roto' }),
+    ).toBe(true)
+    expect(hasOptionalDetails({ ...emptyDraft(), costsOn: false })).toBe(true)
+  })
+})
+
+describe('costo de la entrada', () => {
+  const costed = (quantity: string, cost: string) => ({
+    ...(addProduct([], oil)[0] as ReturnType<typeof addProduct>[number]),
+    quantity,
+    cost,
+  })
+
+  it('multiplica cantidad por costo sin errores de coma flotante', () => {
+    expect(lineSubtotal(costed('3', '15.50'))).toBe('46.50')
+    expect(lineSubtotal(costed('3', '0.1'))).toBe('0.30')
+    expect(lineSubtotal(costed('7', '1.005'))).toBe('7.04')
+  })
+
+  it('una línea sin cantidad o costo válidos no tiene subtotal', () => {
+    expect(lineSubtotal(costed('2', ''))).toBeNull()
+    expect(lineSubtotal(costed('2', '1,5'))).toBeNull()
+    expect(lineSubtotal(costed('x', '1.00'))).toBeNull()
+  })
+
+  it('el total suma las líneas con costo y cuenta las que no lo tienen, sin tomarlas como cero', () => {
+    const lines = [costed('3', '15.50'), costed('2', '4.25'), costed('5', '')]
+    expect(costTotal(lines, true)).toEqual({ total: '55.00', withoutCost: 1 })
+  })
+
+  it('con los costos apagados no hay total ni líneas por avisar', () => {
+    expect(costTotal([costed('3', '15.50')], false)).toEqual({
+      total: '0.00',
+      withoutCost: 0,
+    })
   })
 })

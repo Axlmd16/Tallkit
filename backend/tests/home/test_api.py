@@ -209,3 +209,33 @@ def test_each_route_stays_within_its_query_budget(
     with CaptureQueriesContext(connection) as captured:
         assert api.get(route).status_code == 200
     assert len(captured) <= limit, [query["sql"][:90] for query in captured]
+
+
+# --- Cuentas de clientes ---------------------------------------------------------------------
+
+
+def test_customer_accounts_routes_follow_the_customer_permission(
+    client_for: Any, admin: Any, nobody: Any
+) -> None:
+    from customer_registry.models import Customer
+
+    customer = Customer.objects.create(
+        person_type="NATURAL",
+        name="Ana Pérez",
+        identification_type="CI",
+        identification="1712345678",
+        phone="0999999999",
+    )
+    debtors = f"{H}customers/debtors/"
+    summary = f"{H}customers/{customer.pk}/summary/"
+
+    assert client_for(nobody).get(debtors).status_code == 403
+    assert client_for(nobody).get(summary).status_code == 403
+    assert APIClient().get(summary).status_code in {401, 403}
+    assert client_for(admin).get(f"{H}customers/999999/summary/").status_code == 404
+    assert client_for(admin).post(summary, {}, format="json").status_code == 405
+
+    body = client_for(admin).get(summary).json()
+    assert body["commercial"]["balance"] == "0.00"
+    assert body["artisan"]["balance"] == "0.00"
+    assert client_for(admin).get(debtors).json()["items"] == []

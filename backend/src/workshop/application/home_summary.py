@@ -10,13 +10,13 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Count, Max, Sum
 
 from identity.application.authorization import has_permission
 from identity.models import User
 from workshop.application import artisan_withholdings, queries
 from workshop.application.support import business_today
-from workshop.models import ArtisanPayment
+from workshop.models import ArtisanPayment, MaintenanceOrder, ServiceOperation
 
 COLLECTION_DAYS = 7
 _ZERO = Decimal("0.00")
@@ -85,3 +85,54 @@ def collections_by_day(actor: User, *, today: date | None = None) -> list[DayCol
         DayCollection(day=day, amount=totals.get(day, _ZERO))
         for day in (start + timedelta(days=offset) for offset in range(COLLECTION_DAYS))
     ]
+
+
+@dataclass(frozen=True)
+class CustomerActivity:
+    spent: Decimal
+    documents: int
+    last_on: date | None
+
+
+@dataclass(frozen=True)
+class CustomerVisits:
+    count: int
+    last_on: date | None
+
+
+def debts_by_customer(actor: User) -> dict[int, Decimal] | None:
+    """Saldo artesanal por cobrar de cada cliente con deuda."""
+    if not has_permission(actor, "pagos_artesanales.ver"):
+        return None
+    rows = (
+        queries.owed_operations()
+        .order_by()
+        .values("customer_id")
+        .annotate(total=Sum("balance_amount"))
+    )
+    return {row["customer_id"]: row["total"] for row in rows}
+
+
+def customer_activity(actor: User, customer_id: int, *, since: date) -> CustomerActivity | None:
+    """Servicios confirmados del cliente desde ``since`` y la fecha del último."""
+    if not has_permission(actor, "servicios_economicos.ver"):
+        return None
+    confirmed = ServiceOperation.objects.filter(customer_id=customer_id, state="CONFIRMED")
+    period = confirmed.filter(operational_date__gte=since).aggregate(
+        total=Sum("grand_total"), documents=Count("pk")
+    )
+    last = confirmed.aggregate(last=Max("operational_date"))["last"]
+    return CustomerActivity(
+        spent=period["total"] or _ZERO, documents=period["documents"], last_on=last
+    )
+
+
+def customer_visits(actor: User, customer_id: int, *, since: date) -> CustomerVisits | None:
+    """Mantenimientos abiertos para el cliente desde ``since`` y la fecha del último."""
+    if not has_permission(actor, "mantenimientos.ver"):
+        return None
+    orders = MaintenanceOrder.objects.filter(customer_id=customer_id)
+    return CustomerVisits(
+        count=orders.filter(opened_on__gte=since).count(),
+        last_on=orders.aggregate(last=Max("opened_on"))["last"],
+    )

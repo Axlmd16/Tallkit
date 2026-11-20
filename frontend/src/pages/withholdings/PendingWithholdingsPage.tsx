@@ -1,7 +1,8 @@
-import { ArrowLeft, SealPercent } from '@phosphor-icons/react'
+import { SealPercent } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
+import { AccountsHeader } from '@/features/accounts/AccountsHeader'
 import { useSession } from '@/features/auth/hooks'
 import {
   useBillingMutations,
@@ -20,7 +21,6 @@ import {
 import {
   Button,
   EmptyState,
-  FiscalScopeBadge,
   InlineNotice,
   LoadingState,
   Money,
@@ -115,20 +115,11 @@ export function PendingWithholdingsPage({
     <div className="catalog-page list-page space-y-4">
       <PageHeader
         icon={<SealPercent />}
-        actions={
-          <Link
-            className="inline-flex items-center gap-2 text-body font-semibold text-accent hover:underline"
-            to={text.back}
-          >
-            <ArrowLeft aria-hidden="true" size={16} />
-            {text.backLabel}
-          </Link>
-        }
         description={text.description}
         title={text.title}
       />
+      <AccountsHeader business={scope} view="withholdings" />
       <div className="flex flex-wrap items-center gap-3">
-        <FiscalScopeBadge scope={scope} />
         {data && (
           <p className="text-body text-ink-muted">
             <span className="font-semibold text-ink">

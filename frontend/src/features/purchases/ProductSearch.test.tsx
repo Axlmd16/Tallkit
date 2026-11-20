@@ -44,12 +44,15 @@ describe('ProductSearch', () => {
     render(<ProductSearch onChoose={onChoose} />)
     await userEvent.type(box(), 'ace-1{Enter}')
     await waitFor(() => expect(onChoose).toHaveBeenCalledTimes(1))
-    expect(onChoose).toHaveBeenCalledWith({
-      id: 1,
-      code: 'ACE-1',
-      name: 'Aceite 20W50',
-      unit: 'Galón',
-    })
+    expect(onChoose).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 1,
+        code: 'ACE-1',
+        name: 'Aceite 20W50',
+        unit: 'Galón',
+        label: expect.objectContaining({ id: 1, code: 'ACE-1' }),
+      }),
+    )
     expect(mocks.list).toHaveBeenCalledWith({
       search: 'ace-1',
       isActive: 'true',

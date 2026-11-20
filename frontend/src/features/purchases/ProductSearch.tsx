@@ -11,6 +11,7 @@ import {
 import { createPortal } from 'react-dom'
 
 import { productsApi } from '@/features/products/api'
+import { toLabelData } from '@/features/products/format'
 import type { Product } from '@/features/products/types'
 import { getControlClasses } from '@/shared/ui'
 
@@ -31,6 +32,7 @@ const choiceOf = (product: Product): ProductChoice => ({
   code: product.code,
   name: product.name,
   unit: product.unit?.name ?? '',
+  label: toLabelData(product),
 })
 
 const same = (a: string | null | undefined, b: string) =>

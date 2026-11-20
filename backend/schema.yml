@@ -203,6 +203,14 @@ paths:
           type: integer
         description: Tamaño de página
       - in: query
+        name: person_type
+        schema:
+          type: string
+          enum:
+          - JURIDICA
+          - NATURAL
+        description: Filtrar por tipo de persona
+      - in: query
         name: search
         schema:
           type: string
@@ -2807,6 +2815,75 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collections'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/home/customers/{customer_id}/summary/:
+    get:
+      operationId: home_customer_summary
+      description: Visitas, gasto del año y deuda de un cliente, cada negocio en su
+        bloque. Un bloque o un importe es nulo cuando el usuario no tiene el permiso
+        que lo muestra.
+      parameters:
+      - in: path
+        name: customer_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSummary'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/home/customers/debtors/:
+    get:
+      operationId: home_customer_debtors
+      description: Clientes con deuda en algún negocio que el usuario puede ver, con
+        el saldo de cada negocio por separado. Nunca se suman.
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debtors'
           description: ''
         '401':
           content:
@@ -12810,6 +12887,29 @@ components:
       - identification_type
       - name
       - phone
+    CustomerBusiness:
+      type: object
+      properties:
+        spent_year:
+          type: string
+          nullable: true
+          description: Vendido o facturado al cliente este año; nulo sin permiso.
+        documents_year:
+          type: integer
+          nullable: true
+        last_on:
+          type: string
+          format: date
+          nullable: true
+        balance:
+          type: string
+          nullable: true
+          description: Saldo por cobrar; nulo sin permiso.
+      required:
+      - balance
+      - documents_year
+      - last_on
+      - spent_year
     CustomerCreate:
       type: object
       properties:
@@ -12963,6 +13063,93 @@ components:
           minimum: 1
       required:
       - expected_version
+    CustomerSummary:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        year:
+          type: integer
+        visits:
+          allOf:
+          - $ref: '#/components/schemas/CustomerVisits'
+          nullable: true
+        commercial:
+          allOf:
+          - $ref: '#/components/schemas/CustomerBusiness'
+          nullable: true
+        artisan:
+          allOf:
+          - $ref: '#/components/schemas/CustomerBusiness'
+          nullable: true
+      required:
+      - artisan
+      - commercial
+      - customer_id
+      - visits
+      - year
+    CustomerVisits:
+      type: object
+      properties:
+        count_year:
+          type: integer
+        last_on:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - count_year
+      - last_on
+    Debtor:
+      type: object
+      properties:
+        customer_id:
+          type: integer
+        name:
+          type: string
+        identification:
+          type: string
+        person_type:
+          $ref: '#/components/schemas/PersonTypeEnum'
+        commercial:
+          type: string
+          nullable: true
+          description: Saldo de repuestos; nulo sin deuda o sin permiso.
+        artisan:
+          type: string
+          nullable: true
+          description: Saldo de servicios; nulo sin deuda o sin permiso.
+      required:
+      - artisan
+      - commercial
+      - customer_id
+      - identification
+      - name
+      - person_type
+    DebtorVisibility:
+      type: object
+      properties:
+        commercial:
+          type: boolean
+        artisan:
+          type: boolean
+      required:
+      - artisan
+      - commercial
+    Debtors:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debtor'
+        visible:
+          allOf:
+          - $ref: '#/components/schemas/DebtorVisibility'
+          description: Negocios cuya deuda puede ver el usuario.
+      required:
+      - items
+      - visible
     Document:
       type: object
       properties:
@@ -15185,6 +15372,37 @@ components:
       required:
       - password
       - username
+    MaintenanceBillingState:
+      type: object
+      properties:
+        state:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceBillingStateStateEnum'
+          description: |-
+            UNDOCUMENTED: hay trabajo de este negocio sin comprobante confirmado.
+
+            * `UNDOCUMENTED` - UNDOCUMENTED
+            * `PENDING` - PENDING
+            * `PARTIAL` - PARTIAL
+            * `PAID` - PAID
+        balance:
+          type: string
+          description: Saldo por cobrar de este negocio en la orden.
+      required:
+      - balance
+      - state
+    MaintenanceBillingStateStateEnum:
+      enum:
+      - UNDOCUMENTED
+      - PENDING
+      - PARTIAL
+      - PAID
+      type: string
+      description: |-
+        * `UNDOCUMENTED` - UNDOCUMENTED
+        * `PENDING` - PENDING
+        * `PARTIAL` - PARTIAL
+        * `PAID` - PAID
     MaintenanceCommandFields:
       type: object
       properties:
@@ -15518,6 +15736,23 @@ components:
       - updated_by
       - vehicle
       - version
+    MaintenanceOrderBilling:
+      type: object
+      properties:
+        commercial:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceBillingState'
+          nullable: true
+          description: Repuestos (RUC comercial). Nulo si la orden no tiene.
+        artisan:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceBillingState'
+          nullable: true
+          description: Servicios (RUC artesanal). Nulo si no tiene o si no ve servicios
+            económicos.
+      required:
+      - artisan
+      - commercial
     MaintenanceOrderCreate:
       type: object
       properties:
@@ -15575,7 +15810,12 @@ components:
           type: string
         service_summary:
           $ref: '#/components/schemas/MaintenanceServiceSummary'
+        billing:
+          allOf:
+          - $ref: '#/components/schemas/MaintenanceOrderBilling'
+          description: Cobro de cada negocio por separado; nunca se suman.
       required:
+      - billing
       - customer
       - id
       - number
@@ -15782,12 +16022,15 @@ components:
         open:
           type: integer
           description: Registradas o reabiertas.
+        reopened:
+          type: integer
         finalized:
           type: integer
       required:
       - all
       - finalized
       - open
+      - reopened
     MaintenanceTransition:
       type: object
       properties:
@@ -16909,6 +17152,14 @@ components:
       - page_size
       - pending_total
       - total_count
+    PersonTypeEnum:
+      enum:
+      - NATURAL
+      - JURIDICA
+      type: string
+      description: |-
+        * `NATURAL` - NATURAL
+        * `JURIDICA` - JURIDICA
     Problem:
       type: object
       properties:

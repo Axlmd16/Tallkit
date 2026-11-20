@@ -64,6 +64,21 @@ export interface OrderListItem {
   vehicle: OrderVehicle
   services_total: string
   service_summary: ServiceSummary
+  /** Cobro de cada negocio por separado; `null` si ese negocio no tiene nada en la orden. */
+  billing?: OrderBilling
+}
+
+/** UNDOCUMENTED: hay trabajo de ese negocio sin comprobante confirmado. */
+export type OrderBillingState = 'UNDOCUMENTED' | 'PENDING' | 'PARTIAL' | 'PAID'
+
+export interface OrderBillingEntry {
+  state: OrderBillingState
+  balance: string
+}
+
+export interface OrderBilling {
+  commercial: OrderBillingEntry | null
+  artisan: OrderBillingEntry | null
 }
 
 export interface ServiceLine {
@@ -461,6 +476,7 @@ export interface ArtisanReceivableRow {
 export interface OrderStatusCounts {
   all: number
   open: number
+  reopened?: number
   finalized: number
 }
 

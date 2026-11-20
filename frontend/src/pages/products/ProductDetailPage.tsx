@@ -15,8 +15,10 @@ import {
   type StateChange,
 } from '@/features/catalog-common/StateChangeDialog'
 import { TaxLine } from '@/features/catalog-common/TaxLine'
-import { useStockItem } from '@/features/inventory/hooks'
+import { useKardex, useStockItem } from '@/features/inventory/hooks'
 import { NoCost } from '@/features/inventory/NoCost'
+import { ProductMovements } from '@/features/inventory/ProductMovements'
+import { businessToday } from '@/features/maintenance/OrderForm'
 import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { useProduct, useProductMutations } from '@/features/products/hooks'
 import { inventoryAmount } from '@/features/products/format'
@@ -28,10 +30,15 @@ import {
   InlineNotice,
   LoadingState,
   Money,
+  GaugeMotif,
   SectionPanel,
   StatusBadge,
+  Tabs,
   useToast,
 } from '@/shared/ui'
+
+/** Días que abarcan «entraron y salieron» y la lista de movimientos de la ficha. */
+const MOVEMENT_DAYS = 30
 
 export function ProductDetailPage() {
   const id = Number(useParams().id)
@@ -51,6 +58,16 @@ export function ProductDetailPage() {
   const canSeeOrders = permissions.has('mantenimientos.ver')
   const canSeeSales = permissions.has('ventas.ver')
   const stock = useStockItem(product?.id ?? null, canSeeStock)
+  const [tab, setTab] = useState<'movimientos' | 'datos'>('movimientos')
+  const kardexFrom = (() => {
+    const date = new Date(`${businessToday()}T12:00:00`)
+    date.setDate(date.getDate() - MOVEMENT_DAYS)
+    return date.toLocaleDateString('en-CA')
+  })()
+  const kardex = useKardex(canSeeStock ? (product?.id ?? null) : null, {
+    dateFrom: kardexFrom,
+    pageSize: 100,
+  })
 
   async function changeState(target: StateChange) {
     await tracker.run({ op: 'state', ...target }, (key) =>
@@ -107,7 +124,10 @@ export function ProductDetailPage() {
         <div className="flex min-w-0 items-center gap-3">
           {backLink}
           <div className="min-w-0">
-            <p className="text-label text-ink-muted">Productos</p>
+            <p className="text-label text-ink-muted">
+              {product.category?.name ?? 'Productos'} · código{' '}
+              <span className="code">{product.code}</span>
+            </p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-page font-semibold break-words text-ink">
                 {product.name}
@@ -129,6 +149,14 @@ export function ProductDetailPage() {
             >
               <Printer aria-hidden="true" size={15} />
               Imprimir etiquetas
+            </Button>
+          )}
+          {permissions.has('ingresos.crear') && (
+            <Button
+              onClick={() => void navigate('/purchases/new')}
+              type="button"
+            >
+              Registrar entrada
             </Button>
           )}
           {permissions.has('productos.gestionar') && (
@@ -161,9 +189,76 @@ export function ProductDetailPage() {
         </div>
       </div>
 
+      {canSeeStock && stock.data && (
+        <section
+          aria-label="Quedan en bodega"
+          className="relative overflow-hidden rounded-card bg-graphite p-5 text-white"
+        >
+          <GaugeMotif
+            className="absolute -right-8 -bottom-6 w-56 opacity-60"
+            variant="card"
+          />
+          <p className="relative text-label text-graphite-ink">
+            Quedan en bodega
+          </p>
+          <p className="relative text-display leading-tight font-bold tabular-nums">
+            {Number(stock.data.quantity)}{' '}
+            <span className="text-block font-medium text-graphite-ink">
+              {product.unit?.name?.toLocaleLowerCase('es') ?? 'unidades'}
+            </span>
+            {exhausted && (
+              <span className="ml-3 align-middle">
+                <StatusBadge label="Agotado" tone="danger" />
+              </span>
+            )}
+          </p>
+          {kardex.data && (
+            <p className="relative text-body text-graphite-ink">
+              En los últimos {MOVEMENT_DAYS} días entraron{' '}
+              <b className="text-white tabular-nums">
+                {Number(kardex.data.period_totals.quantity_in)}
+              </b>{' '}
+              y salieron{' '}
+              <b className="text-white tabular-nums">
+                {Number(kardex.data.period_totals.quantity_out)}
+              </b>
+            </p>
+          )}
+        </section>
+      )}
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
-          <ProductDetails product={product} />
+          {canSeeStock ? (
+            <Tabs
+              activeId={tab}
+              aria-label="Secciones del producto"
+              items={[
+                {
+                  id: 'movimientos',
+                  label: 'Movimientos',
+                  content: (
+                    <ProductMovements
+                      backTo={`/products/${product.id}`}
+                      isError={kardex.isError}
+                      isPending={kardex.isPending}
+                      kardex={kardex.data}
+                      kardexTo={`/inventory/products/${product.id}/kardex`}
+                    />
+                  ),
+                },
+                {
+                  id: 'datos',
+                  label: 'Datos del producto',
+                  content: <ProductDetails product={product} />,
+                },
+              ]}
+              onChange={(id) => setTab(id as 'movimientos' | 'datos')}
+              panelClassName="pt-4"
+            />
+          ) : (
+            <ProductDetails product={product} />
+          )}
         </div>
         <aside className="lg:sticky lg:top-4 lg:self-start">
           <SectionPanel

@@ -213,6 +213,24 @@ class MaintenanceServiceSummarySerializer(_Base):
     line_count = serializers.IntegerField()
 
 
+class MaintenanceBillingStateSerializer(_Base):
+    state = serializers.ChoiceField(
+        choices=["UNDOCUMENTED", "PENDING", "PARTIAL", "PAID"],
+        help_text="UNDOCUMENTED: hay trabajo de este negocio sin comprobante confirmado.",
+    )
+    balance = serializers.CharField(help_text="Saldo por cobrar de este negocio en la orden.")
+
+
+class MaintenanceOrderBillingSerializer(_Base):
+    commercial = MaintenanceBillingStateSerializer(
+        allow_null=True, help_text="Repuestos (RUC comercial). Nulo si la orden no tiene."
+    )
+    artisan = MaintenanceBillingStateSerializer(
+        allow_null=True,
+        help_text="Servicios (RUC artesanal). Nulo si no tiene o si no ve servicios económicos.",
+    )
+
+
 class MaintenanceOrderListItemSerializer(_Base):
     id = serializers.IntegerField()
     number = serializers.CharField()
@@ -223,6 +241,9 @@ class MaintenanceOrderListItemSerializer(_Base):
     vehicle = MaintenanceVehicleSnapshotSerializer()
     services_total = serializers.CharField()
     service_summary = MaintenanceServiceSummarySerializer()
+    billing = MaintenanceOrderBillingSerializer(
+        help_text="Cobro de cada negocio por separado; nunca se suman."
+    )
 
 
 class MaintenancePageFields(_Base):
@@ -235,6 +256,7 @@ class MaintenancePageFields(_Base):
 class MaintenanceStatusCountsSerializer(_Base):
     all = serializers.IntegerField(help_text="Todas las órdenes que cumplen los demás filtros.")
     open = serializers.IntegerField(help_text="Registradas o reabiertas.")
+    reopened = serializers.IntegerField()
     finalized = serializers.IntegerField()
 
 

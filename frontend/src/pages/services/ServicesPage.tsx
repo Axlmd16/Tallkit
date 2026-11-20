@@ -16,12 +16,12 @@ import { useServiceMutations, useServices } from '@/features/services/hooks'
 import { ServiceEditorModal } from '@/features/services/ServiceEditorModal'
 import { ServicePreview } from '@/features/services/ServicePreview'
 import type { Service } from '@/features/services/types'
+import { useBusinessName } from '@/shared/api/entity-logos'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   Button,
   DataTable,
   Drawer,
-  FiscalScopeBadge,
   PageHeader,
   RowActions,
   StatusBadge,
@@ -38,6 +38,7 @@ export function ServicesPage() {
   const [previewId, setPreviewId] = useState<number | null>(null)
   const [change, setChange] = useState<StateChange | null>(null)
   const toast = useToast()
+  const business = useBusinessName('artesanal')
 
   const query = useServices({
     search: filters.search || undefined,
@@ -66,7 +67,8 @@ export function ServicesPage() {
     <div className="catalog-page list-page space-y-6">
       <PageHeader
         icon={<Toolbox />}
-        description="Catálogo de servicios del taller con precio referencial final en USD. No maneja existencias."
+        description="Los trabajos del taller con su código y su precio de lista."
+        eyebrow={business}
         title="Servicios"
         actions={
           canManage && (
@@ -79,7 +81,6 @@ export function ServicesPage() {
           )
         }
       />
-      <FiscalScopeBadge scope="artesanal" />
       <div className="gap-4 lg:flex lg:items-start">
         <div className="min-w-0 flex-1">
           <ListStates
@@ -143,34 +144,41 @@ export function ServicesPage() {
                 }
                 columns={[
                   {
-                    header: 'Nombre',
-                    key: 'name',
-                    priority: 'primary',
-                    render: (row) => (
-                      <span className="flex items-center gap-2.5 font-semibold text-ink">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-warning-soft text-warning">
-                          <Wrench aria-hidden="true" size={17} weight="fill" />
-                        </span>
-                        {row.name}
-                      </span>
-                    ),
-                  },
-                  {
                     header: 'Código',
                     key: 'code',
-                    priority: 'secondary',
+                    priority: 'primary',
                     render: (row) => (
-                      <span className="code text-body text-ink-muted">
+                      <span className="code text-body font-semibold">
                         {row.code}
                       </span>
                     ),
                   },
                   {
-                    header: 'Precio referencial',
+                    header: 'Servicio',
+                    key: 'name',
+                    priority: 'primary',
+                    render: (row) => (
+                      <span className="leading-snug">
+                        <span className="block font-semibold text-ink">
+                          {row.name}
+                        </span>
+                        {row.description && (
+                          <span className="block text-label text-ink-muted">
+                            {row.description}
+                          </span>
+                        )}
+                      </span>
+                    ),
+                  },
+                  {
+                    header: 'Precio de lista',
                     key: 'reference_price',
                     priority: 'secondary',
+                    align: 'end',
                     render: (row) => (
-                      <span className="numeric">USD {row.reference_price}</span>
+                      <span className="numeric font-bold">
+                        USD {row.reference_price}
+                      </span>
                     ),
                   },
                   {

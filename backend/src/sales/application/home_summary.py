@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import Count, Max, Sum
 
 from identity.application.authorization import has_permission
 from identity.models import User
@@ -84,3 +84,39 @@ def collections_by_day(actor: User, *, today: date | None = None) -> list[DayCol
         DayCollection(day=day, amount=totals.get(day, _ZERO))
         for day in (start + timedelta(days=offset) for offset in range(COLLECTION_DAYS))
     ]
+
+
+@dataclass(frozen=True)
+class CustomerActivity:
+    spent: Decimal
+    documents: int
+    last_on: date | None
+
+
+def debts_by_customer(actor: User) -> dict[int, Decimal] | None:
+    """Saldo comercial por cobrar de cada cliente con deuda; el exceso por reembolsar no cuenta."""
+    if not has_permission(actor, "pagos_comerciales.ver"):
+        return None
+    with reads.read_snapshot():
+        rows = (
+            reads.with_debt(reads.annotated_sales())
+            .order_by()
+            .values("customer_id")
+            .annotate(total=Sum("balance"))
+        )
+        return {row["customer_id"]: row["total"] for row in rows}
+
+
+def customer_activity(actor: User, customer_id: int, *, since: date) -> CustomerActivity | None:
+    """Ventas confirmadas del cliente desde ``since`` (neto de devoluciones) y la última venta."""
+    if not has_permission(actor, "ventas.ver"):
+        return None
+    with reads.read_snapshot():
+        confirmed = reads.annotated_sales().filter(customer_id=customer_id, state="CONFIRMED")
+        period = confirmed.filter(sale_date__gte=since).aggregate(
+            total=Sum("exigible"), documents=Count("pk")
+        )
+        last = confirmed.aggregate(last=Max("sale_date"))["last"]
+    return CustomerActivity(
+        spent=period["total"] or _ZERO, documents=period["documents"], last_on=last
+    )

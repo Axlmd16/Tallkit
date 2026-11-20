@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
+import { BillingCell } from '@/features/maintenance/BillingCell'
 import {
   documentDate,
   kilometers,
@@ -22,6 +23,7 @@ import type {
   OrderListItem,
   OrderStateFilter,
 } from '@/features/maintenance/types'
+import { useIssuerBrand } from '@/shared/api/entity-logos'
 import {
   Button,
   DropdownMenu,
@@ -35,9 +37,64 @@ import {
   PlateTag,
   SearchInput,
   SegmentedControl,
+  VehicleTile,
 } from '@/shared/ui'
 
-/** Mantenimientos con segmentos Todas, Abiertas y Finalizadas, búsqueda y filtros en la URL. */
+/** Cuántas tarjetas caben en «En el taller ahora» antes de pedir la lista completa. */
+const OPEN_TILES = 12
+
+function InWorkshopNow({
+  query,
+  onNew,
+}: {
+  query: ReturnType<typeof useMaintenanceOrders>
+  onNew: (() => void) | null
+}) {
+  if (query.isPending || query.isError || !query.data) return null
+  const { results, count } = query.data
+  if (results.length === 0 && !onNew) return null
+  return (
+    <section aria-labelledby="in-workshop-now" className="space-y-3">
+      <div className="flex items-baseline gap-2.5">
+        <h2 className="text-block font-bold" id="in-workshop-now">
+          En el taller ahora
+        </h2>
+        <span className="text-label text-ink-muted">
+          {count === 1 ? '1 abierto' : `${count} abiertos`}
+        </span>
+      </div>
+      <div className="flex gap-3.5 overflow-x-auto pb-1">
+        {results.map((order) => (
+          <VehicleTile
+            className="w-64 shrink-0"
+            corner={`N.º ${order.number}`}
+            footer={`${order.state === 'REOPENED' ? 'Reabierto' : 'Abierto'} · ${documentDate(order.opened_on)}`}
+            footerEnd={<Money amount={order.services_total} />}
+            key={order.id}
+            plate={order.vehicle.plate}
+            subtitle={`${order.vehicle.brand} ${order.vehicle.model}`.trim()}
+            title={order.customer.name}
+            to={`/maintenance/${order.id}`}
+          />
+        ))}
+        {onNew && (
+          <button
+            className="flex min-h-36 w-52 shrink-0 items-center justify-center rounded-card border-[1.5px] border-dashed border-line-dashed text-body font-semibold text-ink-muted hover:text-ink"
+            onClick={onNew}
+            type="button"
+          >
+            + Recibir vehículo
+          </button>
+        )}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * Mantenimientos: los vehículos que están en el taller, segmentos por estado con su contador y
+ * la lista con el cobro de cada negocio por separado. Búsqueda y filtros viven en la URL.
+ */
 export function MaintenanceOrdersPage() {
   const filters = useUrlFilters()
   const location = useLocation()
@@ -47,6 +104,9 @@ export function MaintenanceOrdersPage() {
     'mantenimientos.gestionar',
   )
   const state = filters.get('state') as OrderStateFilter | ''
+  const business = useIssuerBrand('ARTESANAL').displayName
+  // Va antes que la lista: es la misma consulta que usa «En el taller» del inicio.
+  const openNow = useMaintenanceOrders({ state: 'OPEN', pageSize: OPEN_TILES })
   const query = useMaintenanceOrders({
     search: filters.search || undefined,
     state: state || undefined,
@@ -67,13 +127,18 @@ export function MaintenanceOrdersPage() {
           canManage && (
             <Button onClick={() => setNewOpen(true)} type="button">
               <Plus aria-hidden="true" size={16} />
-              Nueva orden
+              Nuevo mantenimiento
             </Button>
           )
         }
         icon={<Wrench />}
-        description="Mantenimientos del taller. El total de servicios es operativo: no es un cobro ni una factura."
+        description="Cada vehículo que entró al taller, con lo cobrado de cada negocio."
+        {...(business ? { eyebrow: business } : {})}
         title="Mantenimientos"
+      />
+      <InWorkshopNow
+        onNew={canManage ? () => setNewOpen(true) : null}
+        query={openNow}
       />
       <ListStates
         toolbar={
@@ -81,11 +146,11 @@ export function MaintenanceOrdersPage() {
             <div className="flex flex-wrap items-center gap-3">
               <div className="min-w-[16rem] flex-1">
                 <SearchInput
-                  aria-label="Buscar órdenes"
+                  aria-label="Buscar mantenimientos"
                   onChange={(event) =>
                     filters.set({ search: event.target.value })
                   }
-                  placeholder="Número, cliente o placa"
+                  placeholder="Placa, cliente o número"
                   value={filters.search}
                   variant="underline"
                 />
@@ -94,11 +159,16 @@ export function MaintenanceOrdersPage() {
                 aria-label="Estado de la orden"
                 onChange={(value) => filters.set({ state: value })}
                 options={[
-                  { value: '', label: 'Todas', ...count(counts?.all) },
-                  { value: 'OPEN', label: 'Abiertas', ...count(counts?.open) },
+                  { value: '', label: 'Todos', ...count(counts?.all) },
+                  { value: 'OPEN', label: 'Abiertos', ...count(counts?.open) },
+                  {
+                    value: 'REOPENED',
+                    label: 'Reabiertos',
+                    ...count(counts?.reopened),
+                  },
                   {
                     value: 'FINALIZED',
-                    label: 'Finalizadas',
+                    label: 'Finalizados',
                     ...count(counts?.finalized),
                   },
                 ]}
@@ -108,7 +178,7 @@ export function MaintenanceOrdersPage() {
             <FilterPanel
               bare
               className="mt-3"
-              label="Filtros de órdenes"
+              label="Filtros de mantenimientos"
               layout="inline"
               {...(filters.filtered
                 ? {
@@ -145,11 +215,11 @@ export function MaintenanceOrdersPage() {
             </FilterPanel>
           </>
         }
-        emptyText="Aún no hay órdenes de mantenimiento registradas."
-        emptyTitle="No hay órdenes"
-        errorText="No fue posible consultar las órdenes. Reintente en unos instantes."
+        emptyText="Aún no hay mantenimientos registrados."
+        emptyTitle="No hay mantenimientos"
+        errorText="No fue posible consultar los mantenimientos. Reintente en unos instantes."
         filtered={filters.filtered}
-        loadingLabel="Cargando órdenes…"
+        loadingLabel="Cargando mantenimientos…"
         onPage={(page) => filters.set({ page })}
         query={query}
       >
@@ -160,7 +230,7 @@ export function MaintenanceOrdersPage() {
                 items={[
                   {
                     id: 'view',
-                    label: 'Ver orden',
+                    label: 'Abrir',
                     icon: <Eye aria-hidden="true" size={16} />,
                     onClick: () =>
                       navigate(`/maintenance/${row.id}`, {
@@ -171,7 +241,7 @@ export function MaintenanceOrdersPage() {
                     ? [
                         {
                           id: 'edit',
-                          label: 'Editar orden',
+                          label: 'Editar',
                           icon: <NotePencil aria-hidden="true" size={16} />,
                           onClick: () =>
                             navigate(`/maintenance/${row.id}/edit`),
@@ -189,39 +259,46 @@ export function MaintenanceOrdersPage() {
             )}
             columns={[
               {
-                header: 'Número',
+                header: 'N.º',
                 key: 'number',
                 priority: 'primary',
                 render: (row) => (
-                  <span className="code font-medium text-ink">
-                    {row.number}
-                  </span>
+                  <span className="code font-bold text-ink">{row.number}</span>
                 ),
-              },
-              {
-                header: 'Apertura',
-                key: 'opened_on',
-                priority: 'secondary',
-                render: (row) => documentDate(row.opened_on),
-              },
-              {
-                header: 'Cliente',
-                key: 'customer',
-                priority: 'secondary',
-                render: (row) => row.customer.name,
               },
               {
                 header: 'Vehículo',
                 key: 'vehicle',
                 priority: 'secondary',
-                render: (row) => <PlateTag plate={row.vehicle.plate} />,
+                render: (row) => (
+                  <span className="flex flex-col items-start gap-1">
+                    <PlateTag plate={row.vehicle.plate} />
+                    <span className="text-label text-ink-muted">
+                      {row.vehicle.brand} {row.vehicle.model}
+                    </span>
+                  </span>
+                ),
               },
               {
-                header: 'Kilometraje',
-                key: 'odometer_km',
+                header: 'Cliente',
+                key: 'customer',
                 priority: 'secondary',
-                align: 'end',
-                render: (row) => kilometers(row.odometer_km),
+                render: (row) => (
+                  <span className="font-semibold">{row.customer.name}</span>
+                ),
+              },
+              {
+                header: 'Abierto',
+                key: 'opened_on',
+                priority: 'secondary',
+                render: (row) => (
+                  <span className="leading-snug">
+                    <span className="block">{documentDate(row.opened_on)}</span>
+                    <span className="text-label text-ink-muted">
+                      {kilometers(row.odometer_km)}
+                    </span>
+                  </span>
+                ),
               },
               {
                 header: 'Estado',
@@ -230,15 +307,23 @@ export function MaintenanceOrdersPage() {
                 render: (row) => <OrderStateBadge state={row.state} />,
               },
               {
-                header: 'Servicios USD',
+                header: 'Cobro',
+                key: 'billing',
+                priority: 'secondary',
+                render: (row) => <BillingCell billing={row.billing} />,
+              },
+              {
+                header: 'Servicios',
                 key: 'services_total',
                 priority: 'secondary',
                 align: 'end',
-                render: (row) => <Money amount={row.services_total} />,
+                render: (row) => (
+                  <Money amount={row.services_total} className="font-bold" />
+                ),
               },
             ]}
             getRowKey={(row) => row.id}
-            label="Órdenes de mantenimiento"
+            label="Mantenimientos"
             onRowClick={(row) =>
               navigate(`/maintenance/${row.id}`, {
                 state: { from: location.search },

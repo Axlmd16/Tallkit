@@ -101,6 +101,12 @@ export {
 export { DataList, type DataListProps } from './data/DataList'
 export { StatGrid, StatLink, type StatLinkProps } from './data/StatLink'
 export {
+  StatTile,
+  StatTiles,
+  type StatTileProps,
+  type StatTileTone,
+} from './data/StatTile'
+export {
   MiniBarChart,
   type MiniBarChartDay,
   type MiniBarChartProps,

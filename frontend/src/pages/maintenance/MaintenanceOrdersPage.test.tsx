@@ -19,6 +19,14 @@ vi.mock('@/features/maintenance/hooks', () => ({
   },
 }))
 
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: (scope: string) => ({
+    logoUrl: null,
+    legalName: undefined,
+    displayName: scope === 'ARTESANAL' ? 'Taller Jiménez' : 'Repuestos Jiménez',
+  }),
+}))
+
 vi.mock('@/features/maintenance/NewMaintenanceDialog', () => ({
   NewMaintenanceDialog: ({ initialSearch }: { initialSearch?: string }) => (
     <div role="dialog" aria-label="Nuevo mantenimiento">
@@ -50,6 +58,10 @@ const item = {
   },
   services_total: '120.00',
   service_summary: { names: ['Alineación'], line_count: 1 },
+  billing: {
+    artisan: { state: 'PAID', balance: '0.00' },
+    commercial: { state: 'PENDING', balance: '40.00' },
+  },
 }
 
 function Where() {
@@ -98,8 +110,17 @@ beforeEach(() => {
   mocks.list = page([item])
 })
 
-it('muestra número, cliente, placa, estado y total de servicios', () => {
+it('muestra número, cliente, placa, estado, cobro por negocio y total de servicios', () => {
   renderPage()
+  // Cada negocio con su propio estado de cobro; nunca un saldo conjunto.
+  expect(
+    screen.getAllByRole('img', { name: 'Taller Jiménez' }).length,
+  ).toBeGreaterThan(0)
+  expect(
+    screen.getAllByRole('img', { name: 'Repuestos Jiménez' }).length,
+  ).toBeGreaterThan(0)
+  expect(screen.getAllByText('Pagado').length).toBeGreaterThan(0)
+  expect(screen.getAllByText(/Debe USD 40\.00/).length).toBeGreaterThan(0)
   expect(screen.getAllByText('ART-OT-000007').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Ana Pérez').length).toBeGreaterThan(0)
   expect(screen.getAllByText('ABC-1234').length).toBeGreaterThan(0)
@@ -125,7 +146,7 @@ it('filtra por búsqueda, estado y fechas desde la URL', () => {
 it('ofrece abrir el alta solo a quien gestiona', async () => {
   const user = userEvent.setup()
   renderPage()
-  await user.click(screen.getByRole('button', { name: /Nueva orden/ }))
+  await user.click(screen.getByRole('button', { name: /Nuevo mantenimiento/ }))
   expect(
     screen.getByRole('dialog', { name: 'Nuevo mantenimiento' }),
   ).toBeVisible()
@@ -135,21 +156,21 @@ it('oculta la creación sin permiso de gestión', () => {
   mocks.permissions = ['mantenimientos.ver']
   renderPage()
   expect(
-    screen.queryByRole('button', { name: /Nueva orden/ }),
+    screen.queryByRole('button', { name: /Nuevo mantenimiento/ }),
   ).not.toBeInTheDocument()
 })
 
 it('muestra un estado vacío explicativo', () => {
   mocks.list = page([])
   renderPage()
-  expect(screen.getByText('No hay órdenes')).toBeInTheDocument()
+  expect(screen.getByText('No hay mantenimientos')).toBeInTheDocument()
 })
 
 it('muestra el error de carga', () => {
   mocks.list = { isPending: false, isError: true, refetch: vi.fn() }
   renderPage()
   expect(
-    screen.getByText(/No fue posible consultar las órdenes/),
+    screen.getByText(/No fue posible consultar los mantenimientos/),
   ).toBeInTheDocument()
 })
 
@@ -160,9 +181,7 @@ it('abre el detalle desde la fila y ofrece editar solo órdenes registradas', as
   await user.click(
     screen.getAllByRole('button', { name: 'Acciones de ART-OT-000007' })[0]!,
   )
-  await user.click(
-    await screen.findByRole('menuitem', { name: /Editar orden/ }),
-  )
+  await user.click(await screen.findByRole('menuitem', { name: /Editar/ }))
   expect(screen.getByTestId('where')).toHaveTextContent('/maintenance/7/edit')
 })
 
@@ -175,30 +194,31 @@ it('cambia filtros de fecha y los limpia', async () => {
   expect(screen.getByTestId('where')).toHaveTextContent(/^\/maintenance$/)
 })
 
-it('«Abiertas» reúne registradas y reabiertas y llega filtrada desde el inicio', () => {
+it('«Abiertos» reúne registrados y reabiertos y llega filtrado desde el inicio', () => {
   renderPage('/maintenance?state=OPEN')
   expect(mocks.args.at(-1)).toMatchObject({ state: 'OPEN' })
-  expect(screen.getByRole('radio', { name: 'Abiertas' })).toBeChecked()
+  expect(screen.getByRole('radio', { name: 'Abiertos' })).toBeChecked()
 })
 
-it('los segmentos Todas, Abiertas y Finalizadas muestran el contador del servidor y filtran por estado', async () => {
+it('los segmentos por estado muestran el contador del servidor y filtran por estado', async () => {
   mocks.list = {
     ...page([item]),
     data: {
       ...page([item]).data,
-      status_counts: { all: 9, open: 4, finalized: 5 },
+      status_counts: { all: 9, open: 4, reopened: 1, finalized: 5 },
     },
   }
   const user = userEvent.setup()
   renderPage()
 
   const segments = screen.getAllByRole('radio')
-  expect(segments).toHaveLength(3)
+  expect(segments).toHaveLength(4)
   const group = screen.getByRole('radiogroup', { name: 'Estado de la orden' })
-  expect(group).toHaveTextContent('Todas9')
-  expect(group).toHaveTextContent('Abiertas4')
-  expect(group).toHaveTextContent('Finalizadas5')
+  expect(group).toHaveTextContent('Todos9')
+  expect(group).toHaveTextContent('Abiertos4')
+  expect(group).toHaveTextContent('Reabiertos1')
+  expect(group).toHaveTextContent('Finalizados5')
 
-  await user.click(screen.getByRole('radio', { name: /Finalizadas/ }))
+  await user.click(screen.getByRole('radio', { name: /Finalizados/ }))
   expect(screen.getByTestId('where')).toHaveTextContent('state=FINALIZED')
 })

@@ -16,8 +16,9 @@ export const inventoryKeys = {
   operation: (id: number | null) => ['inventory', 'operation', id] as const,
 }
 
-export function useStock(filters: StockFilters = {}) {
+export function useStock(filters: StockFilters = {}, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: inventoryKeys.stock(filters),
     queryFn: () => inventoryApi.stock(filters),
     refetchOnWindowFocus: true,

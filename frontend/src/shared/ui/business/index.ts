@@ -23,3 +23,4 @@ export {
 } from './DocumentSheet'
 export { useSheetBrandReady } from './useSheetBrandReady'
 export { ScopeLabel, type ScopeLabelScope } from './ScopeLabel'
+export { VehicleTile, type VehicleTileProps } from './VehicleTile'

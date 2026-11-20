@@ -69,6 +69,11 @@ def test_customer_list_and_search(seller_client: tuple[APIClient, User]) -> None
     assert res_active.json()["count"] == 1
     assert res_active.json()["results"][0]["name"] == "Carlos Mendoza"
 
+    # Filtrar por tipo de persona (segmento «Empresas»)
+    res_companies = client.get("/api/v1/customers/?person_type=JURIDICA")
+    assert [row["name"] for row in res_companies.json()["results"]] == ["Taller Mendoza S.A."]
+    assert client.get("/api/v1/customers/?person_type=OTRA").status_code == 400
+
 
 @pytest.mark.django_db
 def test_customer_list_denied_without_permission(

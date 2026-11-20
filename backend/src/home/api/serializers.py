@@ -54,3 +54,50 @@ class CollectionItemSerializer(serializers.Serializer[dict[str, object]]):
 class CollectionsSerializer(serializers.Serializer[dict[str, object]]):
     timezone = serializers.CharField()
     items = CollectionItemSerializer(many=True)
+
+
+class DebtorSerializer(serializers.Serializer[dict[str, object]]):
+    customer_id = serializers.IntegerField()
+    name = serializers.CharField()
+    identification = serializers.CharField()
+    person_type = serializers.ChoiceField(choices=("NATURAL", "JURIDICA"))
+    commercial = serializers.CharField(
+        allow_null=True, help_text="Saldo de repuestos; nulo sin deuda o sin permiso."
+    )
+    artisan = serializers.CharField(
+        allow_null=True, help_text="Saldo de servicios; nulo sin deuda o sin permiso."
+    )
+
+
+class DebtorVisibilitySerializer(serializers.Serializer[dict[str, object]]):
+    commercial = serializers.BooleanField()
+    artisan = serializers.BooleanField()
+
+
+class DebtorsSerializer(serializers.Serializer[dict[str, object]]):
+    items = DebtorSerializer(many=True)
+    visible = DebtorVisibilitySerializer(help_text="Negocios cuya deuda puede ver el usuario.")
+
+
+class CustomerBusinessSerializer(serializers.Serializer[dict[str, object]]):
+    spent_year = serializers.CharField(
+        allow_null=True, help_text="Vendido o facturado al cliente este año; nulo sin permiso."
+    )
+    documents_year = serializers.IntegerField(allow_null=True)
+    last_on = serializers.DateField(allow_null=True)
+    balance = serializers.CharField(
+        allow_null=True, help_text="Saldo por cobrar; nulo sin permiso."
+    )
+
+
+class CustomerVisitsSerializer(serializers.Serializer[dict[str, object]]):
+    count_year = serializers.IntegerField()
+    last_on = serializers.DateField(allow_null=True)
+
+
+class CustomerSummarySerializer(serializers.Serializer[dict[str, object]]):
+    customer_id = serializers.IntegerField()
+    year = serializers.IntegerField()
+    visits = CustomerVisitsSerializer(allow_null=True)
+    commercial = CustomerBusinessSerializer(allow_null=True)
+    artisan = CustomerBusinessSerializer(allow_null=True)

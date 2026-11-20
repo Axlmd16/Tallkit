@@ -1,4 +1,5 @@
 import { Coins } from '@phosphor-icons/react'
+import { AccountsHeader } from '@/features/accounts/AccountsHeader'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import { documentDate, PaymentStateBadge } from '@/features/sales/format'
@@ -48,17 +49,10 @@ export function ReceivablesPage() {
     <div className="catalog-page list-page space-y-4">
       <PageHeader
         icon={<Coins />}
-        actions={
-          <Link
-            className="text-body font-semibold text-accent hover:underline"
-            to="/sales/withholdings"
-          >
-            Retenciones por completar
-          </Link>
-        }
-        description="Deuda cobrable y reembolsos pendientes de las ventas comerciales confirmadas."
-        title="Cuentas por cobrar"
+        description="Quién debe a cada negocio y las retenciones que te hicieron los clientes."
+        title="Cuentas"
       />
+      <AccountsHeader business="commercial" view="receivables" />
       {totals && (
         <section
           aria-label="Totales de todas las coincidencias"
@@ -298,6 +292,20 @@ export function ReceivablesPage() {
                 render: (row) => (
                   <PaymentStateBadge state={row.money.payment_state} />
                 ),
+              },
+              {
+                header: 'Cobro',
+                key: 'created_at',
+                priority: 'secondary',
+                render: (row) =>
+                  Number(row.money.balance) > 0 ? (
+                    <Link
+                      className="ui-button inline-flex min-h-10 items-center rounded-control border border-ink px-3.5 text-body font-semibold text-ink hover:bg-ink hover:text-white"
+                      to={`/sales/${row.id}`}
+                    >
+                      Registrar pago
+                    </Link>
+                  ) : null,
               },
             ]}
             getRowKey={(row) => row.id}

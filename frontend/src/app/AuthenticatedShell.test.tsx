@@ -317,34 +317,18 @@ it('Ventas y Productos muestran sus pestañas solo con dos o más secciones perm
   ).toEqual(['/products', '/purchases', '/inventory'])
 })
 
-it('Cuentas tiene una pestaña por negocio y un segundo nivel, sin mezclar negocios', () => {
-  const both = renderAt('/sales/receivables', todoElEquipo)
-  const tabs = within(
-    screen.getByRole('navigation', { name: 'Secciones de Cuentas' }),
-  )
-  expect(hrefs(tabs)).toEqual([
-    '/sales/receivables',
-    '/maintenance/receivables',
-  ])
-  expect(tabs.getByRole('link', { name: 'Repuestos' })).toHaveAttribute(
-    'aria-current',
-    'page',
-  )
-  const second = within(
-    screen.getByRole('navigation', { name: 'Cuentas de Repuestos' }),
-  )
-  expect(hrefs(second)).toEqual(['/sales/receivables', '/sales/withholdings'])
-  both.unmount()
-
-  // Quien solo cobra un negocio ve únicamente su pestaña, nunca la del otro.
-  renderAt('/maintenance/receivables', encargado)
-  const single = within(
-    screen.getByRole('navigation', { name: 'Secciones de Cuentas' }),
-  )
-  expect(hrefs(single)).toEqual(['/maintenance/receivables'])
+it('Cuentas no usa pestañas del marco: los negocios se eligen en la propia pantalla', () => {
+  renderAt('/sales/receivables', todoElEquipo)
+  expect(
+    screen.queryByRole('navigation', { name: 'Secciones de Cuentas' }),
+  ).toBeNull()
   expect(
     screen.queryByRole('navigation', { name: 'Cuentas de Repuestos' }),
   ).toBeNull()
+  expect(mainNav().getByRole('link', { name: 'Cuentas' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  )
 })
 
 it('Ajustes no usa pestañas y sus pantallas hijas conservan la entrada resaltada', () => {

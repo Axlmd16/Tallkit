@@ -34,6 +34,9 @@ const mocks = vi.hoisted(() => {
   }
 })
 
+vi.mock('@/features/accounts/AccountsHeader', () => ({
+  AccountsHeader: () => null,
+}))
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({
     data: { username: 'u', permissions: mocks.permissions },
@@ -468,9 +471,6 @@ describe('ArtisanReceivablesPage', () => {
     ).toBeInTheDocument()
     expect(totals).toHaveTextContent('5.00')
     expect(screen.getAllByText('Retenido').length).toBeGreaterThan(0)
-    expect(
-      screen.getByRole('link', { name: 'Retenciones por completar' }),
-    ).toHaveAttribute('href', '/maintenance/withholdings')
   })
 })
 

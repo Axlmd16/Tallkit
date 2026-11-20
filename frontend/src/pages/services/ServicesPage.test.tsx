@@ -58,7 +58,7 @@ beforeEach(() => {
   }
 })
 
-it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
+it('muestra el precio de lista del taller sin stock ni cobros', () => {
   render(
     <MemoryRouter>
       <ToastProvider>
@@ -68,7 +68,6 @@ it('muestra precio referencial y ámbito artesanal sin stock ni cobros', () => {
   )
   const table = screen.getByRole('table', { name: 'Servicios' })
   expect(within(table).getByText('USD 25.00')).toBeInTheDocument()
-  expect(screen.getByLabelText(/negocio: servicios/i)).toBeInTheDocument()
   expect(table.textContent).not.toMatch(/stock|existencia|costo|cobro/i)
 })
 

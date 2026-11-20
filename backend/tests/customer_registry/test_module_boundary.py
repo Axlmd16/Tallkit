@@ -37,6 +37,7 @@ def test_only_published_customer_interfaces_are_imported_by_other_modules() -> N
     src = Path(__file__).resolve().parents[2] / "src"
     published = {
         "customer_registry.application.catalog_references",
+        "customer_registry.application.home_summary",
         "customer_registry.application.sales_references",
         "customer_registry.application.workshop_references",
         "customer_registry.domain.identification",

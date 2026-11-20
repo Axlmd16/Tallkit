@@ -2,7 +2,6 @@ import {
   DotsThreeVertical,
   Eye,
   NotePencil,
-  Plus,
   Receipt,
 } from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router'
@@ -18,6 +17,7 @@ import {
 } from '@/features/sales/format'
 import { useSales } from '@/features/sales/hooks'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
+import { SalesActions, SalesOverview } from '@/features/sales/SalesOverview'
 import {
   conditionLabels,
   paymentStateLabels,
@@ -26,8 +26,8 @@ import {
   type SaleState,
   type SaleSummary,
 } from '@/features/sales/types'
+import { useIssuerBrand } from '@/shared/api/entity-logos'
 import {
-  Button,
   Combobox,
   DropdownMenu,
   ElevatedDataList,
@@ -48,7 +48,39 @@ const SEGMENT_LABELS: Record<SaleState, string> = {
   VOIDED: 'Anuladas',
 }
 
-/** Lista de ventas comerciales con filtros en la URL que se conservan al volver del detalle. */
+const timeFormat = new Intl.DateTimeFormat('es-EC', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'America/Guayaquil',
+})
+
+/** Hora de confirmación de la venta; sin ella, la del borrador. */
+function saleTime(row: SaleSummary): string | null {
+  const stamp = row.confirmed_at ?? row.created_at
+  if (!stamp) return null
+  const date = new Date(stamp)
+  return Number.isNaN(date.getTime()) ? null : timeFormat.format(date)
+}
+
+function PaymentCell({ row }: { row: SaleSummary }) {
+  if (row.state === 'DRAFT' || row.state === 'VOIDED')
+    return <span className="text-ink-muted">—</span>
+  if (row.money.payment_state === 'PAID')
+    return <PaymentStateBadge state={row.money.payment_state} />
+  return (
+    <span className="flex flex-col items-start gap-0.5">
+      <PaymentStateBadge state={row.money.payment_state} />
+      <span className="text-label font-semibold text-danger">
+        Debe <Money amount={row.money.balance} />
+      </span>
+    </span>
+  )
+}
+
+/**
+ * Ventas del negocio de repuestos: indicadores del día, segmentos por estado y la lista con su
+ * forma de pago y su cobro. Los filtros viven en la URL y se conservan al volver del detalle.
+ */
 export function SalesPage() {
   const filters = useUrlFilters()
   const location = useLocation()
@@ -56,6 +88,7 @@ export function SalesPage() {
   const canCreate = new Set(useSession().data?.permissions ?? []).has(
     'ventas.crear',
   )
+  const business = useIssuerBrand('COMERCIAL').displayName
   const state = filters.get('state') as SaleState | ''
   const paymentState = filters.get('payment_state') as PaymentState | ''
   const customerId = filters.getNumber('customer_id')
@@ -75,17 +108,12 @@ export function SalesPage() {
     <div className="catalog-page list-page space-y-4">
       <PageHeader
         icon={<Receipt />}
-        actions={
-          canCreate && (
-            <Button onClick={() => navigate('/sales/new')} type="button">
-              <Plus aria-hidden="true" size={16} />
-              Nueva venta
-            </Button>
-          )
-        }
-        description="Ventas de repuestos. Confirmar descuenta el inventario y no registra ningún cobro."
+        actions={<SalesActions />}
+        description="Lo vendido en mostrador y lo que quedaron debiendo."
+        {...(business ? { eyebrow: business } : {})}
         title="Ventas"
       />
+      <SalesOverview />
       <ListStates
         toolbar={
           <>
@@ -253,38 +281,42 @@ export function SalesPage() {
             )}
             columns={[
               {
-                header: 'Número',
+                header: 'Venta',
                 key: 'internal_number',
                 priority: 'primary',
-                render: (row) =>
-                  row.internal_number ? (
-                    <span className="code font-medium text-ink">
-                      {row.internal_number}
+                render: (row) => (
+                  <span className="leading-snug">
+                    {row.internal_number ? (
+                      <span className="code block font-bold text-ink">
+                        {row.internal_number}
+                      </span>
+                    ) : (
+                      <span className="block text-ink-muted">Borrador</span>
+                    )}
+                    <span className="text-label text-ink-muted">
+                      {documentDate(row.sale_date)}
+                      {saleTime(row) && ` · ${saleTime(row)}`}
                     </span>
-                  ) : (
-                    <span className="text-ink-muted">Sin número</span>
-                  ),
-              },
-              {
-                header: 'Fecha',
-                key: 'sale_date',
-                priority: 'secondary',
-                render: (row) => documentDate(row.sale_date),
-              },
-              {
-                header: 'Origen',
-                key: 'origin',
-                priority: 'secondary',
-                render: (row) => <SaleOriginLabel origin={row.origin} />,
+                  </span>
+                ),
               },
               {
                 header: 'Cliente',
                 key: 'customer',
                 priority: 'secondary',
-                render: (row) => row.customer.name ?? '—',
+                render: (row) => (
+                  <span className="leading-snug">
+                    <span className="block font-semibold">
+                      {row.customer.name ?? '—'}
+                    </span>
+                    <span className="text-label text-ink-muted">
+                      <SaleOriginLabel origin={row.origin} />
+                    </span>
+                  </span>
+                ),
               },
               {
-                header: 'Condición',
+                header: 'Forma de pago',
                 key: 'condition',
                 priority: 'secondary',
                 render: (row) => conditionLabels[row.condition],
@@ -296,23 +328,18 @@ export function SalesPage() {
                 render: (row) => <SaleStateBadge state={row.state} />,
               },
               {
-                header: 'Pago',
+                header: 'Cobro',
                 key: 'money',
                 priority: 'secondary',
-                render: (row) =>
-                  row.state === 'DRAFT' || row.state === 'VOIDED' ? (
-                    <span className="text-ink-muted">—</span>
-                  ) : (
-                    <PaymentStateBadge state={row.money.payment_state} />
-                  ),
+                render: (row) => <PaymentCell row={row} />,
               },
               {
-                header: 'Total USD',
+                header: 'Total',
                 key: 'grand_total',
                 priority: 'secondary',
                 align: 'end',
                 render: (row) => (
-                  <Money amount={row.grand_total} className="font-semibold" />
+                  <Money amount={row.grand_total} className="font-bold" />
                 ),
               },
             ]}

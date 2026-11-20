@@ -2,12 +2,10 @@ import {
   DotsThreeVertical,
   Eye,
   NotePencil,
-  Plus,
   FileText,
 } from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { useSession } from '@/features/auth/hooks'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import { documentDate, ProformaStateBadge } from '@/features/proformas/format'
@@ -16,8 +14,9 @@ import {
   type ProformaState,
   type ProformaSummary,
 } from '@/features/proformas/types'
+import { SalesActions, SalesOverview } from '@/features/sales/SalesOverview'
+import { useIssuerBrand } from '@/shared/api/entity-logos'
 import {
-  Button,
   DropdownMenu,
   ElevatedDataList,
   IconButton,
@@ -45,9 +44,7 @@ export function ProformasPage() {
   const filters = useUrlFilters()
   const location = useLocation()
   const navigate = useNavigate()
-  const canManage = new Set(useSession().data?.permissions ?? []).has(
-    'proformas.gestionar',
-  )
+  const business = useIssuerBrand('COMERCIAL').displayName
   const state = filters.get('state') as ProformaState | ''
   const expiring = filters.get('expires_within_days') !== ''
   const query = useProformas({
@@ -65,17 +62,12 @@ export function ProformasPage() {
     <div className="catalog-page list-page space-y-4">
       <PageHeader
         icon={<FileText />}
-        actions={
-          canManage && (
-            <Button onClick={() => navigate('/proformas/new')} type="button">
-              <Plus aria-hidden="true" size={16} />
-              Nueva proforma
-            </Button>
-          )
-        }
-        description="Cotizaciones de repuestos. No reservan inventario ni crean deuda."
+        actions={<SalesActions />}
+        description="Presupuestos que aún esperan respuesta. No reservan inventario ni crean deuda."
+        {...(business ? { eyebrow: business } : {})}
         title="Proformas"
       />
+      <SalesOverview />
       <ListStates
         emptyText="Aún no hay proformas registradas."
         emptyTitle="No hay proformas"

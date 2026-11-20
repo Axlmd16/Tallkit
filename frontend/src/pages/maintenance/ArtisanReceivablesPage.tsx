@@ -1,6 +1,7 @@
 import { Coins } from '@phosphor-icons/react'
 import { Link } from 'react-router'
 
+import { AccountsHeader } from '@/features/accounts/AccountsHeader'
 import { useUrlFilters } from '@/features/catalog-common/filters'
 import { ListStates } from '@/features/catalog-common/ListStates'
 import { useArtisanReceivables } from '@/features/maintenance/billingHooks'
@@ -11,7 +12,6 @@ import {
   ElevatedDataList,
   Field,
   FilterPanel,
-  FiscalScopeBadge,
   Money,
   PageHeader,
   Select,
@@ -37,18 +37,10 @@ export function ArtisanReceivablesPage() {
     <div className="catalog-page list-page space-y-4">
       <PageHeader
         icon={<Coins />}
-        actions={
-          <Link
-            className="text-body font-semibold text-accent hover:underline"
-            to="/maintenance/withholdings"
-          >
-            Retenciones por completar
-          </Link>
-        }
-        description="Saldos de servicios; los repuestos se consultan en las cuentas por cobrar de repuestos."
-        title="Cuentas por cobrar de servicios"
+        description="Quién debe a cada negocio y las retenciones que te hicieron los clientes."
+        title="Cuentas"
       />
-      <FiscalScopeBadge scope="artesanal" />
+      <AccountsHeader business="artesanal" view="receivables" />
       {totals && (
         <section
           aria-label="Totales de todas las coincidencias"
@@ -199,6 +191,20 @@ export function ArtisanReceivablesPage() {
                 render: (row) => (
                   <PaymentStateBadge state={row.payment_state} />
                 ),
+              },
+              {
+                header: 'Cobro',
+                key: 'order_id',
+                priority: 'secondary',
+                render: (row) =>
+                  Number(row.balance) > 0 ? (
+                    <Link
+                      className="ui-button inline-flex min-h-10 items-center rounded-control border border-ink px-3.5 text-body font-semibold text-ink hover:bg-ink hover:text-white"
+                      to={`/maintenance/service-operations/${row.id}`}
+                    >
+                      Registrar pago
+                    </Link>
+                  ) : null,
               },
             ]}
             getRowKey={(row) => row.id}

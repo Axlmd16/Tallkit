@@ -217,10 +217,21 @@ Es la que más se usa. Va antes de U5 (búsqueda) y U6 (cobrar y facturar), que 
 | Estado «cancelado» de un mantenimiento | No existe en el código | Brecha registrada en U4 |
 | «Consumidor final» en la venta rápida | Toda venta exige un cliente registrado y las reglas de consumidor final están pendientes (`FUT-001`) | Decisión del titular |
 | «Correo para la factura» en la venta rápida | Es parte de facturar; hoy sale el recibo interno | U6 |
+| «Ganancia por unidad» y «Proveedor de la última entrada» en la ficha del producto (2.7) | La ganancia exige el precio sin impuesto y el costo calculados por el servidor; el proveedor vive en Entradas y no en el Kardex | Campo de solo lectura en el servidor |
+| «Ajustar stock» en la ficha del producto (2.7) | No existe una pantalla de ajustes manuales | Cambio de inventario |
+| «Plazo (vence o vencido)» en Cuentas (2.10) | Las ventas y los servicios guardan antigüedad, no fecha de vencimiento | Decisión del titular |
+| «Registrar retención» desde Cuentas (2.10) | Hoy las retenciones se completan desde el cobro y su lista de pendientes | Después de U6 |
 | «Lo que pide el cliente» como campo propio | La spec de órdenes dice que no existe motivo de ingreso; los chips se guardan en las observaciones | Brecha plan/spec registrada |
+
+## Notas de la fase 2
+
+- **2.1** La lista trae el cobro de cada negocio (`billing`: repuestos y servicios por separado, sin total) y `reopened` en `status_counts`.
+- **2.4 y 2.5** Dos lecturas nuevas de solo lectura en `/home/customers/` (clientes con deuda y resumen por cliente), con el permiso de cada negocio. «Este año» es el año calendario del negocio.
+- **2.8** Los costos se capturan por defecto; el subtotal y el total a costo son una referencia y el servidor los recalcula al revisar. «Imprimir etiquetas al guardar» imprime las líneas de la entrada.
+- **2.10** Las pestañas por negocio del marco se reemplazaron por las tarjetas de la pantalla; cada negocio sigue en su propia ruta.
 
 ## Avance
 
 - [x] Fase 1: 1.1, 1.2, 1.3 (rediseñada con la versión nueva del prototipo, 2026-11-15) y 1.4 (`/sales/quick`)
-- [ ] Fase 2: 2.1 a 2.10
+- [x] Fase 2: 2.1 a 2.10 (2026-11-19; lo que no entró está en «Fuera de este plan»)
 - [ ] Fase 3: 3.1, 3.2

@@ -8,6 +8,17 @@ const mocks = vi.hoisted(() => ({
   args: [] as unknown[],
 }))
 
+vi.mock('@/features/sales/SalesOverview', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  SalesOverview: () => null,
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: () => ({
+    logoUrl: null,
+    legalName: undefined,
+    displayName: undefined,
+  }),
+}))
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
 }))

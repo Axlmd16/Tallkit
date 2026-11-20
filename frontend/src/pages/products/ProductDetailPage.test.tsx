@@ -46,6 +46,14 @@ vi.mock('@/features/inventory/hooks', () => ({
     mocks.stockArgs.push([id, enabled])
     return mocks.stock
   },
+  useKardex: () => ({
+    isPending: false,
+    isError: false,
+    data: {
+      results: [],
+      period_totals: { count: 0, quantity_in: '8', quantity_out: '5' },
+    },
+  }),
 }))
 
 import { ProductDetailPage } from './ProductDetailPage'
@@ -184,8 +192,9 @@ it('un fallo de consulta no presenta cero como saldo confirmado', () => {
   )
 })
 
-it('muestra la ficha en paneles con códigos, compatibilidad e impuesto', () => {
+it('muestra la ficha en paneles con códigos, compatibilidad e impuesto', async () => {
   renderPage()
+  await userEvent.click(screen.getByRole('tab', { name: 'Datos del producto' }))
   expect(
     screen.getByRole('region', { name: 'Datos generales' }),
   ).toHaveTextContent('Lubricantes')
@@ -246,4 +255,17 @@ it('un producto sin costo registrado no muestra costo ni valor, ni los presenta 
   expect(stock).toHaveTextContent('Costo promedioSin costo')
   expect(stock).toHaveTextContent('Valor inventariableSin costo')
   expect(stock).not.toHaveTextContent('USD 0')
+})
+
+it('con inventario muestra la tarjeta de existencia y los movimientos del periodo', () => {
+  renderPage()
+  const card = screen.getByRole('region', { name: 'Quedan en bodega' })
+  expect(card).toHaveTextContent('entraron 8 y salieron 5')
+  expect(screen.getByRole('tab', { name: 'Movimientos' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+  expect(
+    screen.getByRole('region', { name: 'Movimientos del producto' }),
+  ).toBeInTheDocument()
 })

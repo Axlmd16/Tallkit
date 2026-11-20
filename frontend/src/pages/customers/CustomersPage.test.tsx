@@ -1,403 +1,238 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   permissions: [] as string[],
   customers: {} as Record<string, unknown>,
-  create: vi.fn(),
-  update: vi.fn(),
-  activate: vi.fn(),
-  deactivate: vi.fn(),
+  debtors: {} as Record<string, unknown>,
+  args: [] as unknown[],
+  debtorsEnabled: [] as boolean[],
 }))
 
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
 }))
-
 vi.mock('@/features/customers/hooks', () => ({
-  useCustomers: () => mocks.customers,
-  useCustomerMutations: () => ({
-    create: { mutateAsync: mocks.create },
-    update: { mutateAsync: mocks.update },
-    activate: { mutateAsync: mocks.activate },
-    deactivate: { mutateAsync: mocks.deactivate },
-  }),
+  useCustomers: (filters: unknown) => {
+    mocks.args.push(filters)
+    return mocks.customers
+  },
+}))
+vi.mock('@/features/customers/accounts', () => ({
+  useCustomerDebtors: (enabled: boolean) => {
+    mocks.debtorsEnabled.push(enabled)
+    return mocks.debtors
+  },
+}))
+vi.mock('@/features/customers/CustomerPreview', () => ({
+  CustomerPreview: ({ customerId }: { customerId: number }) => (
+    <p>Vista del cliente {customerId}</p>
+  ),
+}))
+vi.mock('@/features/maintenance/NewMaintenanceDialog', () => ({
+  NewMaintenanceDialog: () => null,
+}))
+vi.mock('@/features/customers/BusinessAmounts', () => ({
+  owed: (value: string | null | undefined) =>
+    value != null && Number(value) > 0 ? value : null,
+  BusinessAmounts: ({
+    artisan,
+    commercial,
+  }: {
+    artisan: string | null
+    commercial: string | null
+  }) => (
+    <span>
+      {artisan && `Taller ${artisan}`} {commercial && `Repuestos ${commercial}`}
+    </span>
+  ),
 }))
 
-import { CustomersPage } from './CustomersPage'
-import { ToastProvider } from '@/shared/ui'
+import { CustomersPage, groupLetter } from './CustomersPage'
 
-const sampleCustomer = {
-  id: 1,
+const customer = (id: number, name: string, extra = {}) => ({
+  id,
   person_type: 'NATURAL' as const,
   identification_type: 'CI' as const,
-  identification: '0912345678',
-  name: 'Carlos Vera',
+  identification: `09123456${id}`,
+  name,
   phone: '0991234567',
-  email: 'carlos@example.com',
-  address: 'Av. 9 de Octubre',
+  email: null,
+  address: null,
   is_active: true,
   version: 1,
   created_at: '2026-09-13T00:00:00Z',
   updated_at: '2026-09-13T00:00:00Z',
+  ...extra,
+})
+
+function Where() {
+  const location = useLocation()
+  return <p data-testid="where">{location.pathname + location.search}</p>
+}
+
+function renderPage(path = '/customers') {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route
+          element={
+            <>
+              <CustomersPage />
+              <Where />
+            </>
+          }
+          path="/customers"
+        />
+        <Route element={<Where />} path="/customers/new" />
+      </Routes>
+    </MemoryRouter>,
+  )
 }
 
 beforeEach(() => {
-  vi.restoreAllMocks()
-  Object.values(mocks).forEach((value) => {
-    if (typeof value === 'function' && 'mockReset' in value) value.mockReset()
-  })
-  mocks.permissions = ['clientes.ver']
+  mocks.args.length = 0
+  mocks.debtorsEnabled.length = 0
+  mocks.permissions = [
+    'clientes.ver',
+    'clientes.gestionar',
+    'pagos_comerciales.ver',
+    'pagos_artesanales.ver',
+  ]
   mocks.customers = {
     isPending: false,
     isError: false,
-    isSuccess: true,
     data: {
-      count: 1,
-      page: 1,
-      page_size: 20,
-      total_pages: 1,
-      results: [sampleCustomer],
-    },
-  }
-})
-
-it('renders customer list and restricts management actions without permission', () => {
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(screen.getAllByText('Carlos Vera')).not.toHaveLength(0)
-  expect(screen.getAllByText('0912345678')).not.toHaveLength(0)
-  expect(screen.getAllByText('0991234567')).not.toHaveLength(0)
-  expect(screen.getAllByText('carlos@example.com')).not.toHaveLength(0)
-  expect(screen.getAllByLabelText('Categoría: Cédula')).not.toHaveLength(0)
-  expect(screen.getAllByRole('img', { name: 'Carlos Vera' })).not.toHaveLength(
-    0,
-  )
-  expect(document.querySelector('.customers-page')).toHaveClass('list-page')
-  expect(screen.queryAllByRole('link', { name: /ver ficha$/i })).toHaveLength(0)
-
-  // With only clientes.ver, creation and edition are hidden
-  expect(
-    screen.queryByRole('button', { name: /nuevo cliente/i }),
-  ).not.toBeInTheDocument()
-  expect(screen.queryAllByRole('button', { name: /^editar$/i })).toHaveLength(0)
-  expect(
-    screen.queryAllByRole('button', { name: /^desactivar$/i }),
-  ).toHaveLength(0)
-})
-
-it('shows an explicit muted label when a customer has no email', () => {
-  mocks.customers = {
-    isPending: false,
-    isError: false,
-    isSuccess: true,
-    data: {
-      count: 1,
-      page: 1,
-      page_size: 20,
-      total_pages: 1,
-      results: [{ ...sampleCustomer, email: '' }],
-    },
-  }
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(screen.getAllByText('Sin correo electrónico')).not.toHaveLength(0)
-  expect(screen.getAllByText('Sin correo electrónico')[0]).toHaveClass('italic')
-})
-
-it('identifies RUC customers with the reusable category badge', () => {
-  mocks.customers = {
-    isPending: false,
-    isError: false,
-    isSuccess: true,
-    data: {
-      count: 1,
+      count: 3,
       page: 1,
       page_size: 20,
       total_pages: 1,
       results: [
+        customer(1, 'Álvaro Vera'),
+        customer(2, 'Ana Torres'),
+        customer(3, 'Carlos Mendoza'),
+      ],
+    },
+  }
+  mocks.debtors = {
+    data: {
+      visible: { commercial: true, artisan: true },
+      items: [
         {
-          ...sampleCustomer,
-          identification: '0999999999001',
-          identification_type: 'RUC',
+          customer_id: 3,
+          name: 'Carlos Mendoza',
+          identification: '091234563',
+          person_type: 'NATURAL',
+          commercial: '18.00',
+          artisan: '45.00',
+        },
+        {
+          customer_id: 2,
+          name: 'Ana Torres',
+          identification: '091234562',
+          person_type: 'NATURAL',
+          commercial: '0.00',
+          artisan: null,
         },
       ],
     },
   }
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(screen.getAllByLabelText('Categoría: RUC')).not.toHaveLength(0)
 })
 
-it('opens the customer detail page when selecting a row', async () => {
+it('agrupa por letra sin tilde y deja lo demás en «#»', () => {
+  expect(groupLetter('Álvaro')).toBe('A')
+  expect(groupLetter('  ñandú')).toBe('Ñ')
+  expect(groupLetter('9 de Octubre S.A.')).toBe('#')
+})
+
+it('lista los clientes por letra y abre el primero en el detalle', () => {
+  renderPage()
+  const list = screen.getByRole('region', { name: 'Lista de clientes' })
+  expect(within(list).getAllByTestId('master-detail-group')).toHaveLength(2)
+  expect(within(list).getByText('Carlos Mendoza')).toBeInTheDocument()
+  expect(screen.getByText('Vista del cliente 1')).toBeInTheDocument()
+})
+
+it('muestra la deuda de cada negocio por separado y nunca la suma', () => {
+  renderPage()
+  const list = screen.getByRole('region', { name: 'Lista de clientes' })
+  expect(within(list).getByText(/Taller 45\.00/)).toBeInTheDocument()
+  expect(within(list).getByText(/Repuestos 18\.00/)).toBeInTheDocument()
+  expect(list.textContent).not.toMatch(/63\.00/)
+  // Un saldo en cero no es deuda.
+  expect(within(list).queryByText(/Repuestos 0\.00/)).toBeNull()
+})
+
+it('«Con deuda» muestra solo a quienes deben y cuenta solo saldos mayores que cero', async () => {
   const user = userEvent.setup()
+  renderPage('/customers?segment=debt')
+  const group = screen.getByRole('radiogroup', { name: 'Filtrar clientes' })
+  expect(group).toHaveTextContent('Con deuda1')
+  const list = screen.getByRole('region', { name: 'Lista de clientes' })
+  expect(within(list).getByText('Carlos Mendoza')).toBeInTheDocument()
+  expect(within(list).queryByText('Ana Torres')).toBeNull()
 
-  render(
-    <MemoryRouter initialEntries={['/customers?search=Carlos']}>
-      <Routes>
-        <Route
-          path="/customers"
-          element={
-            <ToastProvider>
-              <CustomersPage />
-            </ToastProvider>
-          }
-        />
-        <Route path="/customers/:id" element={<div>Ficha del cliente</div>} />
-      </Routes>
-    </MemoryRouter>,
-  )
-
-  await user.click(screen.getAllByText('Carlos Vera')[0]!)
-
-  expect(screen.getByText('Ficha del cliente')).toBeInTheDocument()
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await user.click(screen.getByRole('radio', { name: /Todos/ }))
+  expect(screen.getByTestId('where')).not.toHaveTextContent('segment=debt')
 })
 
-it('renders an empty state when the catalog has no customers', () => {
+it('«Empresas» pide al servidor solo personas jurídicas', () => {
+  renderPage('/customers?segment=companies')
+  expect(mocks.args.at(-1)).toMatchObject({ personType: 'JURIDICA' })
+})
+
+it('sin permiso de cobros no pide la deuda ni ofrece «Con deuda»', () => {
+  mocks.permissions = ['clientes.ver']
+  mocks.debtors = {}
+  renderPage()
+  expect(mocks.debtorsEnabled.at(-1)).toBe(false)
+  expect(screen.queryByRole('radio', { name: /Con deuda/ })).toBeNull()
+})
+
+it('elegir un cliente lo deja en la dirección', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(screen.getByRole('button', { name: /Carlos Mendoza/ }))
+  expect(screen.getByTestId('where')).toHaveTextContent('ficha=3')
+  expect(screen.getByText('Vista del cliente 3')).toBeInTheDocument()
+})
+
+it('ofrece «Nuevo cliente» solo con permiso de gestión', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(screen.getByRole('button', { name: /Nuevo cliente/ }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/customers/new')
+})
+
+it('sin permiso de gestión no ofrece crear', () => {
+  mocks.permissions = ['clientes.ver']
+  renderPage()
+  expect(screen.queryByRole('button', { name: /Nuevo cliente/ })).toBeNull()
+})
+
+it('explica cuando no hay clientes y cuando la búsqueda no encuentra', () => {
   mocks.customers = {
     isPending: false,
     isError: false,
-    isSuccess: true,
-    data: { count: 0, page: 1, page_size: 20, total_pages: 0, results: [] },
+    data: { count: 0, page: 1, page_size: 20, total_pages: 1, results: [] },
   }
+  const { unmount } = renderPage()
+  expect(screen.getByText('No hay clientes registrados')).toBeInTheDocument()
+  unmount()
+  renderPage('/customers?search=zzz')
+  expect(screen.getByText(/No hay clientes que coincidan/)).toBeInTheDocument()
+})
 
-  render(
-    <MemoryRouter initialEntries={['/customers']}>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
+it('muestra la carga y el error de la lista', () => {
+  mocks.customers = { isPending: true, isError: false }
+  const { unmount } = renderPage()
+  expect(screen.getByText(/Cargando clientes/)).toBeInTheDocument()
+  unmount()
+  mocks.customers = { isPending: false, isError: true }
+  renderPage()
   expect(
-    screen.getByText(/aún no se han registrado clientes en el sistema/i),
-  ).toBeInTheDocument()
-})
-
-it('renders an empty state when filters yield no matches', () => {
-  mocks.customers = {
-    isPending: false,
-    isError: false,
-    isSuccess: true,
-    data: { count: 0, page: 1, page_size: 20, total_pages: 0, results: [] },
-  }
-
-  render(
-    <MemoryRouter initialEntries={['/customers?search=inexistente']}>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(
-    screen.getByText(
-      /no hay clientes que coincidan con los filtros aplicados/i,
-    ),
-  ).toBeInTheDocument()
-})
-
-it('takes an authorized user to the new customer page', async () => {
-  mocks.permissions = ['clientes.ver', 'clientes.gestionar']
-  mocks.create.mockResolvedValue(sampleCustomer)
-  const user = userEvent.setup()
-
-  render(
-    <MemoryRouter initialEntries={['/customers']}>
-      <Routes>
-        <Route
-          path="/customers"
-          element={
-            <ToastProvider>
-              <CustomersPage />
-            </ToastProvider>
-          }
-        />
-        <Route path="/customers/new" element={<div>Editor de cliente</div>} />
-      </Routes>
-    </MemoryRouter>,
-  )
-
-  const newButton = screen.getByRole('button', { name: /nuevo cliente/i })
-  await user.click(newButton)
-
-  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-})
-
-it('allows administrator to deactivate and reactivate customer via dialog', async () => {
-  mocks.permissions = ['clientes.ver', 'clientes.desactivar']
-  mocks.deactivate.mockResolvedValue({ ...sampleCustomer, is_active: false })
-  const user = userEvent.setup()
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  const deactBtn = screen.getAllByRole('button', { name: /^desactivar$/i })[0]!
-  await user.click(deactBtn)
-
-  const dialog = screen.getByRole('dialog', { name: /desactivar cliente/i })
-  expect(dialog).toBeInTheDocument()
-  expect(within(dialog).getByText(/carlos vera/i)).toBeInTheDocument()
-
-  await user.click(
-    within(dialog).getByRole('button', { name: /confirmar desactivación/i }),
-  )
-  expect(mocks.deactivate).toHaveBeenCalledWith({
-    id: 1,
-    expectedVersion: 1,
-  })
-})
-
-it('shows loading state while data is loading', () => {
-  mocks.customers = { isPending: true, isError: false, isSuccess: false }
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(screen.getByRole('status', { name: '' })).toHaveTextContent(
-    'Cargando clientes…',
-  )
-})
-
-it('shows error state on fetch failure', () => {
-  mocks.customers = { isPending: false, isError: true, isSuccess: false }
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(
-    screen.getByText(/No fue posible cargar el listado de clientes/i),
-  ).toBeInTheDocument()
-})
-
-it('takes an authorized user to the customer edit page', async () => {
-  mocks.permissions = ['clientes.ver', 'clientes.gestionar']
-  mocks.update.mockResolvedValue(sampleCustomer)
-  const user = userEvent.setup()
-
-  render(
-    <MemoryRouter initialEntries={['/customers']}>
-      <Routes>
-        <Route
-          path="/customers"
-          element={
-            <ToastProvider>
-              <CustomersPage />
-            </ToastProvider>
-          }
-        />
-        <Route
-          path="/customers/:id/edit"
-          element={<div>Editor de cliente</div>}
-        />
-      </Routes>
-    </MemoryRouter>,
-  )
-
-  const editButtons = screen.getAllByRole('button', { name: /^editar$/i })
-  await user.click(editButtons[0]!)
-
-  expect(screen.getByText('Editor de cliente')).toBeInTheDocument()
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-})
-
-it('allows administrator to activate an inactive customer', async () => {
-  mocks.permissions = ['clientes.ver', 'clientes.desactivar']
-  mocks.customers = {
-    isPending: false,
-    isError: false,
-    isSuccess: true,
-    data: {
-      count: 1,
-      page: 1,
-      page_size: 20,
-      total_pages: 1,
-      results: [{ ...sampleCustomer, is_active: false }],
-    },
-  }
-  mocks.activate.mockResolvedValue({ ...sampleCustomer, is_active: true })
-  const user = userEvent.setup()
-
-  render(
-    <MemoryRouter>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  const actBtn = screen.getAllByRole('button', { name: /^activar$/i })[0]!
-  await user.click(actBtn)
-
-  const dialog = screen.getByRole('dialog', { name: /activar cliente/i })
-  await user.click(
-    within(dialog).getByRole('button', { name: /confirmar activación/i }),
-  )
-  expect(mocks.activate).toHaveBeenCalledWith({ id: 1, expectedVersion: 1 })
-})
-
-it('renders pagination controls when more than one page exists', () => {
-  mocks.customers = {
-    isPending: false,
-    isError: false,
-    isSuccess: true,
-    data: {
-      count: 40,
-      page: 1,
-      page_size: 20,
-      total_pages: 2,
-      results: [sampleCustomer],
-    },
-  }
-
-  render(
-    <MemoryRouter initialEntries={['/customers']}>
-      <ToastProvider>
-        <CustomersPage />
-      </ToastProvider>
-    </MemoryRouter>,
-  )
-
-  expect(
-    screen.getByRole('navigation', { name: /paginación/i }),
+    screen.getByText(/No fue posible cargar el listado de clientes/),
   ).toBeInTheDocument()
 })

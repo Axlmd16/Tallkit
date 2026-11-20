@@ -17,6 +17,37 @@ vi.mock('@/features/fiscal/hooks', () => ({
     mocks.args.push(filters)
     return mocks.list
   },
+  usePreparation: (id: string) => ({
+    isPending: false,
+    data: {
+      working: {
+        receiver: {
+          legal_name: id === 'a1b2' ? 'Luis Mora' : 'Ana Pérez',
+          identification: '1710034065',
+          email: 'cliente@example.com',
+        },
+      },
+      summary: {
+        lines: [
+          {
+            position: 1,
+            description: 'Kit de embrague',
+            quantity: '1',
+            total: '50.00',
+          },
+        ],
+      },
+    },
+  }),
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useBusinessName: (scope: string) =>
+    scope === 'commercial' ? 'Repuestos' : 'Servicios',
+  useIssuerBrand: () => ({
+    logoUrl: null,
+    legalName: undefined,
+    displayName: undefined,
+  }),
 }))
 
 import { InvoicesPage } from './InvoicesPage'
@@ -98,8 +129,8 @@ it('muestra los dos negocios con su estado local, sin ninguna marca de autorizac
   expect(within(table).getByText('ART-SER-000009')).toBeVisible()
   expect(within(table).getByText('Borrador')).toBeVisible()
   expect(within(table).getByText('Preparada, sin enviar')).toBeVisible()
-  expect(within(table).getByText('Repuestos')).toBeVisible()
-  expect(within(table).getByText('Servicios')).toBeVisible()
+  expect(within(table).getByRole('img', { name: 'Repuestos' })).toBeVisible()
+  expect(within(table).getByRole('img', { name: 'Servicios' })).toBeVisible()
   expect(within(table).getByText('USD 50.00')).toBeVisible()
   // La descripción aclara que no hay emisión real; ninguna fila se presenta como autorizada.
   expect(table.textContent).not.toMatch(/autorizad|emitid|enviada al SRI/i)
@@ -130,6 +161,29 @@ it('filtra por estado y por negocio desde la URL', async () => {
 
   await user.click(screen.getByRole('radio', { name: 'Borrador' }))
   expect(screen.getByTestId('where')).toHaveTextContent('state=DRAFT')
+})
+
+it('elegir una fila muestra su detalle sin PDF ni reenvío y conserva la página', async () => {
+  const user = userEvent.setup()
+  renderPage('/invoices?page=2')
+  const preview = screen.getByRole('complementary', {
+    name: 'Detalle de la factura',
+  })
+  expect(within(preview).getByText('Factura de Repuestos')).toBeVisible()
+  expect(within(preview).getByText('Kit de embrague')).toBeVisible()
+
+  await user.click(
+    within(screen.getByRole('table', { name: 'Facturas' })).getByText(
+      /Ana Pérez/,
+    ),
+  )
+  expect(screen.getByTestId('where')).toHaveTextContent('selected=c3d4')
+  expect(screen.getByTestId('where')).toHaveTextContent('page=2')
+  const chosen = screen.getByRole('complementary', {
+    name: 'Detalle de la factura',
+  })
+  expect(within(chosen).getByText('Factura de Servicios')).toBeVisible()
+  expect(chosen.textContent).not.toMatch(/PDF|Reenviar|autorizad/i)
 })
 
 it('quien solo consulta un negocio no ve el filtro de negocio ni puede pedir el otro', () => {

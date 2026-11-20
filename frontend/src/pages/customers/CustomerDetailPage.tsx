@@ -8,7 +8,11 @@ import {
   CustomerPurchases,
   customerAccountAccess,
 } from '@/features/customers/CustomerAccounts'
+import { useCustomerAccountSummary } from '@/features/customers/accounts'
+import { BusinessAmounts, owed } from '@/features/customers/BusinessAmounts'
 import { useCustomer, useCustomerMutations } from '@/features/customers/hooks'
+import { documentDate } from '@/features/maintenance/format'
+import { NewMaintenanceDialog } from '@/features/maintenance/NewMaintenanceDialog'
 import { useCustomerVehicles } from '@/features/vehicles/hooks'
 import { ProblemError } from '@/shared/api/client'
 import {
@@ -19,9 +23,12 @@ import {
   InlineNotice,
   LoadingState,
   PageHeader,
+  StatTile,
+  StatTiles,
   StatusBadge,
   Tabs,
   Toolbar,
+  VehicleTile,
   useToast,
 } from '@/shared/ui'
 
@@ -46,6 +53,8 @@ export function CustomerDetailPage() {
   const mutations = useCustomerMutations()
 
   const vehiclesQuery = useCustomerVehicles(customerId)
+  const accounts = useCustomerAccountSummary(customerId).data
+  const [maintenanceOpen, setMaintenanceOpen] = useState(false)
 
   const [params, setParams] = useSearchParams()
   const [notice, setNotice] = useState<string | null>(null)
@@ -114,15 +123,30 @@ export function CustomerDetailPage() {
   const access = customerAccountAccess(permissions)
   const requestedTab = params.get('tab')
   const available = [
-    'datos',
     'vehiculos',
     ...(access.commercialPurchases || access.artisanPurchases
       ? ['compras']
       : []),
     ...(access.commercialDebt || access.artisanDebt ? ['deuda'] : []),
+    'datos',
   ]
   const activeTab =
-    requestedTab && available.includes(requestedTab) ? requestedTab : 'datos'
+    requestedTab && available.includes(requestedTab)
+      ? requestedTab
+      : 'vehiculos'
+  const debtArtisan = owed(accounts?.artisan?.balance)
+  const debtCommercial = owed(accounts?.commercial?.balance)
+  const canSeeSpent =
+    accounts?.artisan?.spent_year != null ||
+    accounts?.commercial?.spent_year != null
+  const canSeeDebt =
+    accounts?.artisan?.balance != null || accounts?.commercial?.balance != null
+  const lastVisit = accounts?.visits?.last_on
+  const canSell = permissions.has('ventas.crear') && customer.is_active
+  const since = new Date(customer.created_at).toLocaleDateString('es-EC', {
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
     <div className="customer-detail-page space-y-6">
@@ -142,11 +166,31 @@ export function CustomerDetailPage() {
             {canManage && (
               <Button
                 onClick={() => void navigate(`/customers/${customer.id}/edit`)}
+                variant="quiet"
               >
                 <PencilSimple aria-hidden="true" size={18} />
                 Editar cliente
               </Button>
             )}
+            {canSell && (
+              <Button
+                onClick={() =>
+                  void navigate(
+                    `/sales/quick?customer=${encodeURIComponent(customer.identification)}`,
+                  )
+                }
+                variant="secondary"
+              >
+                Venta rápida
+              </Button>
+            )}
+            {permissions.has('mantenimientos.gestionar') &&
+              customer.is_active && (
+                <Button onClick={() => setMaintenanceOpen(true)}>
+                  <Plus aria-hidden="true" size={18} />
+                  Nuevo mantenimiento
+                </Button>
+              )}
             {canDeactivate && (
               <Button
                 onClick={() =>
@@ -162,9 +206,51 @@ export function CustomerDetailPage() {
             )}
           </Toolbar>
         }
-        description={`Ficha compartida · ${customer.person_type === 'JURIDICA' ? 'Persona jurídica' : 'Persona natural'}`}
+        description={[customer.identification, customer.phone, customer.email]
+          .filter(Boolean)
+          .join(' · ')}
+        eyebrow={`Cliente desde ${since}`}
         title={customer.name}
       />
+
+      <StatTiles label="Resumen del cliente">
+        {accounts?.visits && (
+          <StatTile
+            label="Visitas este año"
+            value={accounts.visits.count_year}
+          />
+        )}
+        {canSeeSpent && (
+          <StatTile
+            label="Gastado este año"
+            value={
+              <BusinessAmounts
+                artisan={accounts?.artisan?.spent_year}
+                commercial={accounts?.commercial?.spent_year}
+              />
+            }
+          />
+        )}
+        {accounts?.visits && (
+          <StatTile
+            label="Última visita"
+            value={lastVisit ? documentDate(lastVisit) : 'Nunca'}
+          />
+        )}
+        {canSeeDebt && (
+          <StatTile
+            label="Debe"
+            tone={debtArtisan || debtCommercial ? 'danger' : 'neutral'}
+            value={
+              <BusinessAmounts
+                artisan={debtArtisan}
+                commercial={debtCommercial}
+                empty="Nada"
+              />
+            }
+          />
+        )}
+      </StatTiles>
 
       {notice && (
         <InlineNotice title="No se completó la operación" tone="danger">
@@ -176,6 +262,94 @@ export function CustomerDetailPage() {
         activeId={activeTab}
         aria-label="Secciones de la ficha del cliente"
         items={[
+          {
+            id: 'vehiculos',
+            label: 'Vehículos',
+            content: (
+              <DetailCard
+                actions={
+                  canManageVehicles ? (
+                    <Button
+                      className="text-label"
+                      onClick={() =>
+                        void navigate(
+                          `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
+                        )
+                      }
+                      variant="secondary"
+                    >
+                      <Plus aria-hidden="true" size={16} />
+                      Registrar vehículo
+                    </Button>
+                  ) : undefined
+                }
+                subtitle="Propiedad actual"
+                title="Vehículos asociados"
+              >
+                {vehiclesQuery.isPending ? (
+                  <p className="text-body text-ink-muted">
+                    Cargando vehículos…
+                  </p>
+                ) : vehiclesQuery.isError ? (
+                  <p className="text-body text-danger">
+                    No fue posible cargar los vehículos asociados.
+                  </p>
+                ) : (vehiclesQuery.data?.results.length ?? 0) === 0 ? (
+                  <p className="text-body text-ink-muted">
+                    El cliente no tiene vehículos asociados actualmente.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3.5">
+                    {vehiclesQuery.data?.results.map((v) => (
+                      <VehicleTile
+                        footer={
+                          [v.color, v.year].filter(Boolean).join(' · ') ||
+                          undefined
+                        }
+                        footerEnd={
+                          v.is_active ? undefined : (
+                            <span className="text-label">Inactivo</span>
+                          )
+                        }
+                        key={v.id}
+                        plate={v.plate}
+                        title={`${v.brand.name} ${v.model}`}
+                        to={`/vehicles/${v.id}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </DetailCard>
+            ),
+          },
+          ...(access.commercialPurchases || access.artisanPurchases
+            ? [
+                {
+                  id: 'compras',
+                  label: 'Historial',
+                  content: (
+                    <CustomerPurchases
+                      customer={customer}
+                      permissions={permissions}
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(access.commercialDebt || access.artisanDebt
+            ? [
+                {
+                  id: 'deuda',
+                  label: 'Deuda',
+                  content: (
+                    <CustomerDebt
+                      customerId={customer.id}
+                      permissions={permissions}
+                    />
+                  ),
+                },
+              ]
+            : []),
           {
             id: 'datos',
             label: 'Datos',
@@ -217,112 +391,12 @@ export function CustomerDetailPage() {
               />
             ),
           },
-          {
-            id: 'vehiculos',
-            label: 'Vehículos',
-            content: (
-              <DetailCard
-                actions={
-                  canManageVehicles ? (
-                    <Button
-                      className="text-label"
-                      onClick={() =>
-                        void navigate(
-                          `/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`,
-                        )
-                      }
-                      variant="secondary"
-                    >
-                      <Plus aria-hidden="true" size={16} />
-                      Registrar vehículo
-                    </Button>
-                  ) : undefined
-                }
-                subtitle="Propiedad actual"
-                title="Vehículos asociados"
-              >
-                {vehiclesQuery.isPending ? (
-                  <p className="text-body text-ink-muted">
-                    Cargando vehículos…
-                  </p>
-                ) : vehiclesQuery.isError ? (
-                  <p className="text-body text-danger">
-                    No fue posible cargar los vehículos asociados.
-                  </p>
-                ) : (vehiclesQuery.data?.results.length ?? 0) === 0 ? (
-                  <p className="text-body text-ink-muted">
-                    El cliente no tiene vehículos asociados actualmente.
-                  </p>
-                ) : (
-                  <div className="divide-y divide-surface-muted">
-                    {vehiclesQuery.data?.results.map((v) => (
-                      <div
-                        key={v.id}
-                        className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                      >
-                        <div className="min-w-0 flex-1 pr-3">
-                          <Link
-                            to={`/vehicles/${v.id}`}
-                            className="font-semibold text-accent hover:underline"
-                          >
-                            {v.plate}
-                          </Link>
-                          <p className="text-body text-ink">
-                            {v.brand.name} {v.model}
-                          </p>
-                          {(v.color || v.year) && (
-                            <p className="text-label text-ink-muted">
-                              {[v.color, v.year].filter(Boolean).join(' · ')}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <StatusBadge
-                            label={v.is_active ? 'Activo' : 'Inactivo'}
-                            tone={v.is_active ? 'success' : 'neutral'}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </DetailCard>
-            ),
-          },
-          ...(access.commercialPurchases || access.artisanPurchases
-            ? [
-                {
-                  id: 'compras',
-                  label: 'Compras',
-                  content: (
-                    <CustomerPurchases
-                      customer={customer}
-                      permissions={permissions}
-                    />
-                  ),
-                },
-              ]
-            : []),
-          ...(access.commercialDebt || access.artisanDebt
-            ? [
-                {
-                  id: 'deuda',
-                  label: 'Deuda',
-                  content: (
-                    <CustomerDebt
-                      customerId={customer.id}
-                      permissions={permissions}
-                    />
-                  ),
-                },
-              ]
-            : []),
         ]}
         onChange={(id) =>
           setParams(
             (current) => {
               const next = new URLSearchParams(current)
-              if (id === 'datos') next.delete('tab')
+              if (id === 'vehiculos') next.delete('tab')
               else next.set('tab', id)
               return next
             },
@@ -331,6 +405,14 @@ export function CustomerDetailPage() {
         }
         panelClassName="pt-4"
       />
+
+      {maintenanceOpen && (
+        <NewMaintenanceDialog
+          initialSearch={customer.name}
+          onClose={() => setMaintenanceOpen(false)}
+          open
+        />
+      )}
 
       <ConfirmationPanel
         cancelLabel="Cancelar"

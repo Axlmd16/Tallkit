@@ -9,6 +9,17 @@ const mocks = vi.hoisted(() => ({
   args: [] as unknown[],
 }))
 
+vi.mock('@/features/sales/SalesOverview', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  SalesOverview: () => null,
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useIssuerBrand: () => ({
+    logoUrl: null,
+    legalName: undefined,
+    displayName: 'Repuestos Jiménez',
+  }),
+}))
 vi.mock('@/features/auth/hooks', () => ({
   useSession: () => ({ data: { permissions: mocks.permissions } }),
 }))
@@ -61,6 +72,7 @@ function renderPage(path = '/sales') {
         />
         <Route element={<Where />} path="/sales/:id" />
         <Route element={<Where />} path="/sales/new" />
+        <Route element={<Where />} path="/sales/quick" />
       </Routes>
     </MemoryRouter>,
   )
@@ -93,17 +105,15 @@ it('muestra número, cliente, origen, fecha, total y estados de venta y de pago 
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent),
   ).toEqual([
-    'Número',
-    'Fecha',
-    'Origen',
+    'Venta',
     'Cliente',
-    'Condición',
+    'Forma de pago',
     'Estado',
-    'Pago',
-    'Total USD',
+    'Cobro',
+    'Total',
     'Acciones',
   ])
-  expect(screen.getAllByText('20/09/2026').length).toBeGreaterThan(0)
+  expect(screen.getAllByText(/20\/09\/2026/).length).toBeGreaterThan(0)
   expect(screen.getAllByText('USD 23.00').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Confirmada').length).toBeGreaterThan(0)
   expect(screen.getAllByText('Parcial').length).toBeGreaterThan(0)
@@ -143,7 +153,7 @@ it('conserva los filtros al abrir el detalle', async () => {
 it('solo ofrece crear con el permiso correspondiente', () => {
   mocks.permissions = ['ventas.ver']
   renderPage()
-  expect(screen.queryByRole('button', { name: /nueva venta/i })).toBeNull()
+  expect(screen.queryByRole('button', { name: /venta rápida/i })).toBeNull()
 })
 
 it('presenta estados de carga, error recuperable y vacío sin ventas ficticias', () => {
@@ -198,13 +208,13 @@ it('los filtros escriben en la dirección y «Limpiar» los retira', async () =>
   expect((mocks.args.at(-1) as { state?: string }).state).toBeUndefined()
 })
 
-it('elegir un cliente lo lleva a la dirección y crear abre el editor', async () => {
+it('elegir un cliente lo lleva a la dirección y «Venta rápida» abre el mostrador', async () => {
   renderPage()
   await userEvent.click(screen.getByRole('combobox', { name: 'Cliente' }))
   await userEvent.click(
     await screen.findByRole('option', { name: /Ana Pérez/ }),
   )
   expect((mocks.args.at(-1) as { customerId?: number }).customerId).toBe(3)
-  await userEvent.click(screen.getByRole('button', { name: /nueva venta/i }))
-  expect(screen.getByTestId('where')).toHaveTextContent('/sales/new')
+  await userEvent.click(screen.getByRole('button', { name: /venta rápida/i }))
+  expect(screen.getByTestId('where')).toHaveTextContent('/sales/quick')
 })

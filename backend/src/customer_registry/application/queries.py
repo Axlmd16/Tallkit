@@ -49,12 +49,15 @@ def search_customers(
     actor: User,
     query: str = "",
     is_active: bool | None = None,
+    person_type: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> CustomerPage:
     require_permission(actor=actor, permission="clientes.ver")
     if page < 1 or page_size < 1:
         raise ValueError("La página y su tamaño deben ser positivos.")
+    if person_type not in (None, "NATURAL", "JURIDICA"):
+        raise ValueError("El tipo de persona debe ser NATURAL o JURIDICA.")
 
     qs = Customer.objects.all().order_by("name", "id")
 
@@ -68,6 +71,8 @@ def search_customers(
 
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
+    if person_type:
+        qs = qs.filter(person_type=person_type)
 
     total = qs.count()
     start = (page - 1) * page_size
@@ -129,3 +134,26 @@ def find_matching_customers(
         qs = qs.exclude(id=exclude_customer_id)
 
     return list(qs.order_by("name", "id")[:10])
+
+
+@dataclass(frozen=True)
+class CustomerCard:
+    id: int
+    name: str
+    person_type: str
+    identification: str
+    is_active: bool
+
+
+def customer_cards(customer_ids: set[int]) -> list[CustomerCard]:
+    """Nombre e identificación de varios clientes, por nombre. Lectura para otros módulos."""
+    return [
+        CustomerCard(
+            id=row.pk,
+            name=row.name,
+            person_type=row.person_type,
+            identification=row.identification,
+            is_active=row.is_active,
+        )
+        for row in Customer.objects.filter(pk__in=customer_ids).order_by("name", "id")
+    ]

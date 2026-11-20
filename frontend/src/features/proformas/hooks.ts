@@ -47,8 +47,9 @@ export async function invalidateAfterProformaMutation(
 
 const positive = (id: number | null) => typeof id === 'number' && id > 0
 
-export function useProformas(filters: ProformaFilters = {}) {
+export function useProformas(filters: ProformaFilters = {}, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: proformaKeys.list(filters),
     queryFn: () => proformasApi.list(filters),
     refetchOnWindowFocus: true,

@@ -127,6 +127,12 @@ class CustomerListCreateView(APIView):
                 OpenApiTypes.BOOL,
                 description="Filtrar por estado activo",
             ),
+            OpenApiParameter(
+                "person_type",
+                OpenApiTypes.STR,
+                enum=["NATURAL", "JURIDICA"],
+                description="Filtrar por tipo de persona",
+            ),
             OpenApiParameter("page", OpenApiTypes.INT, description="Número de página"),
             OpenApiParameter("page_size", OpenApiTypes.INT, description="Tamaño de página"),
         ],
@@ -163,6 +169,7 @@ class CustomerListCreateView(APIView):
                 actor=actor,
                 query=search_term,
                 is_active=is_active,
+                person_type=request.query_params.get("person_type") or None,
                 page=page,
                 page_size=page_size,
             )

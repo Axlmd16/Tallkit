@@ -43,6 +43,7 @@ export interface CustomerWrite {
 export interface CustomerFilters {
   search?: string | undefined
   isActive?: boolean | undefined
+  personType?: PersonType | undefined
   page?: number | undefined
 }
 

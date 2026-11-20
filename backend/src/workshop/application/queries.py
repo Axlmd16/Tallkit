@@ -30,8 +30,9 @@ from customer_registry.application.workshop_references import (
     list_customer_options,
     list_vehicle_options,
 )
-from identity.application.authorization import require_permission
+from identity.application.authorization import has_permission, require_permission
 from identity.models import User
+from sales.application.workshop_links import linked_payment_overview
 from workshop.application import projection
 from workshop.application.commands import TARGET_TYPE
 from workshop.application.errors import WorkshopError
@@ -121,6 +122,7 @@ def list_orders(
     status_counts = queryset.aggregate(
         all=Count("pk"),
         open=Count("pk", filter=Q(state__in=[s.value for s in OPEN_STATES])),
+        reopened=Count("pk", filter=Q(state=OrderState.REOPENED.value)),
         finalized=Count("pk", filter=Q(state=OrderState.FINALIZED.value)),
     )
     if state == OPEN_FILTER:
@@ -155,6 +157,7 @@ def list_orders(
     customers, vehicles = get_active_states(
         {row.customer_id for row in rows}, {row.vehicle_id for row in rows}
     )
+    billing = _billing_by_order(actor, ids)
     items = [
         {
             "id": row.pk,
@@ -177,6 +180,7 @@ def list_orders(
             },
             "services_total": projection.money(row.services_total),
             "service_summary": summaries[row.pk],
+            "billing": billing[row.pk],
         }
         for row in rows
     ]
@@ -187,6 +191,72 @@ def list_orders(
         "page_size": page_size,
         "status_counts": status_counts,
     }
+
+
+def _billing_state(
+    *, confirmed: int, balance: Decimal, applied: Decimal, undocumented: bool
+) -> dict[str, str] | None:
+    """Cobro de un negocio en una orden. ``None`` si ese negocio no tiene nada en la orden."""
+    if confirmed == 0:
+        return {"state": "UNDOCUMENTED", "balance": "0.00"} if undocumented else None
+    if balance > 0:
+        state = "PARTIAL" if applied > 0 else "PENDING"
+    else:
+        state = "UNDOCUMENTED" if undocumented else "PAID"
+    return {"state": state, "balance": projection.money(balance)}
+
+
+def _billing_by_order(actor: User, ids: list[int]) -> dict[int, dict[str, Any]]:
+    """Cobro de cada negocio por separado, en dos lecturas por página y sin sumar negocios.
+
+    Como el resumen económico, el bloque comercial lo ve quien ve la orden y el artesanal solo
+    quien ve los servicios económicos.
+    """
+    sales = linked_payment_overview(ids)
+    result: dict[int, dict[str, Any]] = {
+        pk: {
+            "commercial": _billing_state(
+                confirmed=sales.get(pk, {}).get("confirmed", 0),
+                balance=sales.get(pk, {}).get("balance", Decimal("0.00")),
+                applied=sales.get(pk, {}).get("applied", Decimal("0.00")),
+                undocumented=sales.get(pk, {}).get("draft", False),
+            ),
+            "artisan": None,
+        }
+        for pk in ids
+    }
+    if not has_permission(actor, "servicios_economicos.ver"):
+        return result
+    artisan: dict[int, dict[str, Any]] = {}
+    for order_id, balance, paid, withheld in (
+        _receivable_rows()
+        .filter(order_id__in=ids)
+        .values_list("order_id", "balance_amount", "paid_amount", "withheld_amount")
+    ):
+        row = artisan.setdefault(
+            order_id, {"confirmed": 0, "balance": Decimal("0.00"), "applied": Decimal("0.00")}
+        )
+        row["confirmed"] += 1
+        row["balance"] += max(balance, Decimal("0.00"))
+        row["applied"] += paid + withheld
+    undocumented = set(
+        ServiceLine.objects.filter(
+            intervention__order_id__in=ids,
+            intervention__kind="INITIAL",
+            applied_price__gt=0,
+        )
+        .exclude(documentations__is_current=True)
+        .values_list("intervention__order_id", flat=True)
+    )
+    for pk in ids:
+        row = artisan.get(pk, {})
+        result[pk]["artisan"] = _billing_state(
+            confirmed=row.get("confirmed", 0),
+            balance=row.get("balance", Decimal("0.00")),
+            applied=row.get("applied", Decimal("0.00")),
+            undocumented=pk in undocumented,
+        )
+    return result
 
 
 def get_order(*, actor: User, order_id: int, request_id: UUID | None = None) -> dict[str, Any]:

@@ -16,6 +16,7 @@ function query(filters: CustomerFilters): string {
   if (filters.search) params.set('search', filters.search)
   if (filters.isActive !== undefined)
     params.set('is_active', String(filters.isActive))
+  if (filters.personType) params.set('person_type', filters.personType)
   params.set('page', String(filters.page ?? 1))
   const encoded = params.toString()
   return encoded ? `?${encoded}` : ''

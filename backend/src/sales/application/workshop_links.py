@@ -389,3 +389,44 @@ def purge_empty_linked_drafts(*, confirm: bool) -> list[dict[str, Any]]:
             _discard_empty_draft(sale, actor=None)
             deleted.append(row)
     return deleted
+
+
+def linked_payment_overview(order_ids: list[int]) -> dict[int, dict[str, Any]]:
+    """Cobro de las ventas vinculadas de varias órdenes, sin costos ni detalle de líneas.
+
+    Por orden: cuántas ventas confirmadas hay, su saldo, lo aplicado (cobros y retenciones) y si
+    queda un borrador con líneas sin confirmar. Las anuladas no cuentan.
+    """
+    from sales.application.reads import annotated_sales
+
+    overview: dict[int, dict[str, Any]] = {}
+
+    def entry(order_id: int) -> dict[str, Any]:
+        return overview.setdefault(
+            order_id,
+            {
+                "confirmed": 0,
+                "balance": Decimal("0.00"),
+                "applied": Decimal("0.00"),
+                "draft": False,
+            },
+        )
+
+    for order_id, balance, applied in (
+        annotated_sales()
+        .filter(origin_order_id__in=order_ids, state=SaleState.CONFIRMED)
+        .values_list("origin_order_id", "balance", "applied")
+    ):
+        row = entry(order_id)
+        row["confirmed"] += 1
+        row["balance"] += balance
+        row["applied"] += applied
+    for order_id in (
+        Sale.objects.filter(
+            origin_order_id__in=order_ids, state=SaleState.DRAFT, lines__isnull=False
+        )
+        .values_list("origin_order_id", flat=True)
+        .distinct()
+    ):
+        entry(order_id)["draft"] = True
+    return overview

@@ -17,9 +17,11 @@ import {
 import {
   addProduct,
   changeQuantity,
+  costTotal,
   emptyDraft,
   hasOptionalDetails,
   isDirty,
+  lineSubtotal,
   removeLine,
   setCost,
   setQuantity,
@@ -28,12 +30,17 @@ import {
   validateDraft,
   type EntryDraft,
 } from '@/features/purchases/entry'
+import { useSession } from '@/features/auth/hooks'
+import { useStockQuantities } from '@/features/inventory/hooks'
+import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { EntryReviewDialog } from '@/features/purchases/EntryReviewDialog'
 import { usePurchaseMutations } from '@/features/purchases/hooks'
 import { useSupplierOptions } from '@/features/purchases/pickers'
 import { ProductSearch } from '@/features/purchases/ProductSearch'
+import type { ProductLabelData } from '@/features/products/types'
 import type { EntryReview } from '@/features/purchases/types'
 import { ProblemError } from '@/shared/api/client'
+import { useBusinessName } from '@/shared/api/entity-logos'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import { useLatestReview } from '@/shared/api/latest-review'
 import {
@@ -45,6 +52,7 @@ import {
   getControlClasses,
   InlineNotice,
   Input,
+  Money,
   StatusBadge,
   Textarea,
   Tooltip,
@@ -77,9 +85,29 @@ export function EntryPage() {
   const [notice, setNotice] = useState<string | null>(null)
   const [discardOpen, setDiscardOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [printLabels, setPrintLabels] = useState(false)
+  const [labelProducts, setLabelProducts] = useState<ProductLabelData[]>([])
+  const business = useBusinessName('commercial')
+  const canSeeStock = new Set(useSession().data?.permissions ?? []).has(
+    'inventario.ver',
+  )
+  const stockQuery = useStockQuantities(
+    draft.lines.map((line) => line.productId),
+    canSeeStock,
+  )
+  const stockById = new Map(
+    (stockQuery.data ?? []).map((row) => [
+      row.product_id,
+      Number(row.quantity),
+    ]),
+  )
 
   const dirty = isDirty(draft)
   const totals = useMemo(() => summarize(draft.lines), [draft.lines])
+  const cost = useMemo(
+    () => costTotal(draft.lines, draft.costsOn),
+    [draft.lines, draft.costsOn],
+  )
   const hidden = hasOptionalDetails(draft) && !detailsOpen
 
   useEffect(() => {
@@ -162,6 +190,11 @@ export function EntryPage() {
           : 'Entrada registrada.',
         { href: `/purchases/${registered.id}`, linkLabel: 'Ver entrada' },
       )
+      if (printLabels) {
+        setLabelProducts(
+          draft.lines.flatMap((line) => (line.label ? [line.label] : [])),
+        )
+      }
       setDraftState(emptyDraft())
       setErrors({})
       setProblem(null)
@@ -197,8 +230,9 @@ export function EntryPage() {
     <div className="catalog-page sale-screen">
       <header className="sale-topbar">
         <div className="sale-topbar-title">
-          <h1>Nueva entrada</h1>
-          <p>Registre la mercadería que llegó a la bodega</p>
+          {business && <p className="sale-topbar-eyebrow">{business}</p>}
+          <h1>Entrada de mercadería</h1>
+          <p>Pasa cada producto por el lector y escribe cuánto te costó.</p>
         </div>
         <div className="sale-topbar-status">
           <StatusBadge label="Nueva" tone="neutral" />
@@ -217,6 +251,40 @@ export function EntryPage() {
                 {problem.message}
               </InlineNotice>
             )}
+            <section aria-label="Proveedor y factura" className="sale-section">
+              <div className="entry-details-grid">
+                <div className="sale-field">
+                  <label htmlFor="entry-supplier">
+                    Proveedor <span className="text-ink-muted">(opcional)</span>
+                  </label>
+                  <Combobox
+                    clearable
+                    error={errors.supplier_id}
+                    id="entry-supplier"
+                    inactiveHelp="Proveedor inactivo."
+                    label="Proveedor"
+                    onSelect={(supplier) => update({ supplier })}
+                    placeholder="Buscar proveedor"
+                    selected={draft.supplier}
+                    useOptions={useSupplierOptions}
+                  />
+                </div>
+                <Field
+                  error={errors.reference}
+                  id="entry-reference"
+                  label="N.º de su factura (opcional)"
+                >
+                  <Input
+                    className="code"
+                    maxLength={128}
+                    onChange={(event) =>
+                      update({ reference: event.target.value })
+                    }
+                    value={draft.reference}
+                  />
+                </Field>
+              </div>
+            </section>
             <section aria-label="Productos" className="sale-section">
               <div className="sale-section-head">
                 <h2>Productos</h2>
@@ -258,6 +326,11 @@ export function EntryPage() {
                       <th className="qty" scope="col">
                         Cantidad
                       </th>
+                      {draft.costsOn && (
+                        <th className="subtotal" scope="col">
+                          Subtotal
+                        </th>
+                      )}
                       <th className="action" scope="col">
                         <span className="sr-only">Acción</span>
                       </th>
@@ -266,7 +339,7 @@ export function EntryPage() {
                   <tbody>
                     {!hasLines && (
                       <tr className="entry-empty">
-                        <td colSpan={draft.costsOn ? 4 : 3}>
+                        <td colSpan={draft.costsOn ? 5 : 3}>
                           <span className="entry-empty-icon">
                             <Package aria-hidden="true" size={22} />
                           </span>
@@ -299,6 +372,15 @@ export function EntryPage() {
                             <span className="entry-product-name">
                               {line.name}
                             </span>
+                            {stockById.has(line.productId) && (
+                              <span className="entry-product-stock">
+                                Hay {stockById.get(line.productId)} · quedarán{' '}
+                                <b>
+                                  {(stockById.get(line.productId) ?? 0) +
+                                    (Number(line.quantity) || 0)}
+                                </b>
+                              </span>
+                            )}
                           </td>
                           {draft.costsOn && (
                             <td className="cost">
@@ -401,6 +483,15 @@ export function EntryPage() {
                               </p>
                             )}
                           </td>
+                          {draft.costsOn && (
+                            <td className="subtotal">
+                              {lineSubtotal(line) ? (
+                                <Money amount={lineSubtotal(line)} />
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                          )}
                           <td className="action">
                             <Tooltip
                               content={`Quitar ${line.code}`}
@@ -440,9 +531,7 @@ export function EntryPage() {
                 type="button"
               >
                 <span className="entry-details-title">Más detalles</span>
-                <span className="sale-section-hint">
-                  Proveedor, referencia y costos
-                </span>
+                <span className="sale-section-hint">Observación y costos</span>
                 <span className="entry-details-end">
                   {hidden ? (
                     <span className="entry-chip" data-tone="accent">
@@ -460,35 +549,6 @@ export function EntryPage() {
               </button>
               {detailsOpen && (
                 <div className="entry-details-grid" id="entry-details">
-                  <div className="sale-field">
-                    <label htmlFor="entry-supplier">Proveedor</label>
-                    <Combobox
-                      clearable
-                      error={errors.supplier_id}
-                      id="entry-supplier"
-                      inactiveHelp="Proveedor inactivo."
-                      label="Proveedor"
-                      onSelect={(supplier) => update({ supplier })}
-                      placeholder="Buscar por nombre"
-                      selected={draft.supplier}
-                      useOptions={useSupplierOptions}
-                    />
-                  </div>
-                  <Field
-                    error={errors.reference}
-                    hint="Por ejemplo, el número de la factura."
-                    id="entry-reference"
-                    label="Referencia"
-                  >
-                    <Input
-                      className="code"
-                      maxLength={128}
-                      onChange={(event) =>
-                        update({ reference: event.target.value })
-                      }
-                      value={draft.reference}
-                    />
-                  </Field>
                   <div className="span-2">
                     <Field
                       error={errors.observation}
@@ -604,9 +664,29 @@ export function EntryPage() {
               </dd>
             </div>
           </dl>
+          {draft.costsOn && hasLines && (
+            <div className="entry-cost-total">
+              <span>Total a costo</span>
+              <strong>
+                <Money amount={cost.total} />
+              </strong>
+              {cost.withoutCost > 0 && (
+                <small>
+                  {plural(cost.withoutCost, 'producto', 'productos')} sin costo
+                  no se cuentan.
+                </small>
+              )}
+            </div>
+          )}
+          <Checkbox
+            checked={printLabels}
+            label="Imprimir etiquetas al guardar"
+            onChange={(event) => setPrintLabels(event.target.checked)}
+          />
           <p className="entry-hint">
             <Info aria-hidden="true" className="mt-0.5 shrink-0" size={16} />
-            Al confirmar, las unidades se suman a la existencia.
+            Al guardar sube el stock y se recalcula el costo promedio de cada
+            producto.
           </p>
         </aside>
       </div>
@@ -621,6 +701,12 @@ export function EntryPage() {
         pending={busy}
         returnFocusRef={searchRef}
         review={dialogOpen ? latest.review : null}
+      />
+      <ProductLabelPrintModal
+        onClose={() => setLabelProducts([])}
+        open={labelProducts.length > 0}
+        products={labelProducts}
+        returnFocusRef={searchRef}
       />
       <ConfirmationPanel
         cancelLabel="Seguir editando"

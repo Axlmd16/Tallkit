@@ -20,6 +20,18 @@ vi.mock('@/features/purchases/pickers', () => ({
     data: { totalPages: 1, options: [{ id: 3, label: 'Repuestos SA' }] },
   }),
 }))
+vi.mock('@/features/auth/hooks', () => ({
+  useSession: () => ({ data: { permissions: ['ingresos.crear'] } }),
+}))
+vi.mock('@/features/inventory/hooks', () => ({
+  useStockQuantities: () => ({ data: undefined }),
+}))
+vi.mock('@/features/product-labels/ProductLabelPrintModal', () => ({
+  ProductLabelPrintModal: () => null,
+}))
+vi.mock('@/shared/api/entity-logos', () => ({
+  useBusinessName: () => 'Repuestos',
+}))
 vi.mock('@/features/purchases/hooks', () => ({
   usePurchaseMutations: () => ({
     review: { mutateAsync: mocks.review },
@@ -110,8 +122,11 @@ describe('EntryPage: registro sencillo', () => {
     expect(
       screen.getByRole('button', { name: 'Revisar y confirmar' }),
     ).toBeDisabled()
-    expect(screen.queryByText(/impuesto|fecha del documento|total/i)).toBeNull()
-    expect(screen.queryByLabelText('Proveedor')).toBeNull()
+    expect(screen.queryByText(/impuesto|fecha del documento/i)).toBeNull()
+    // Proveedor y factura están siempre a la vista, pero ninguno es obligatorio.
+    expect(
+      screen.getByRole('combobox', { name: 'Proveedor' }),
+    ).toBeInTheDocument()
   })
 
   it('agrega por código con Enter, sube la cantidad al repetir y devuelve el foco', async () => {
@@ -164,21 +179,17 @@ describe('EntryPage: registro sencillo', () => {
     const toggle = screen.getByRole('button', { name: /más detalles/i })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     await userEvent.click(toggle)
-    expect(screen.getByLabelText('Referencia')).toBeInTheDocument()
     expect(screen.getByLabelText('Observación')).toBeInTheDocument()
+    // Los costos se capturan desde el principio; el servidor sigue aceptándolos vacíos.
     expect(
       screen.getByRole('checkbox', { name: 'Registrar costos' }),
-    ).not.toBeChecked()
+    ).toBeChecked()
     expect(screen.queryByLabelText(/Costo de/)).toBeNull()
   })
 
-  it('el campo de costo aparece solo al activarlo, vacío significa sin costo', async () => {
+  it('el campo de costo está a la vista y vacío significa sin costo', async () => {
     renderPage()
     await addByCode('ACE-1')
-    await userEvent.click(screen.getByRole('button', { name: /más detalles/i }))
-    await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Registrar costos' }),
-    )
     const cost = screen.getByLabelText('Costo de ACE-1')
     expect(cost).toHaveAttribute('placeholder', 'Sin costo')
     await userEvent.type(cost, '4.5')
@@ -196,7 +207,7 @@ describe('EntryPage: resumen y estructura', () => {
   it('usa la franja de título del sistema y marca lo que falta confirmar', async () => {
     renderPage()
     expect(
-      screen.getByRole('heading', { name: 'Nueva entrada' }),
+      screen.getByRole('heading', { name: 'Entrada de mercadería' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Nueva')).toBeInTheDocument()
     expect(screen.queryByText('Sin confirmar')).toBeNull()
@@ -210,7 +221,7 @@ describe('EntryPage: resumen y estructura', () => {
       name: 'Resumen de la entrada',
     })
     expect(within(summary).getAllByText('0')).toHaveLength(2)
-    expect(within(summary).getByText('No se registran')).toBeInTheDocument()
+    expect(within(summary).getByText('0 de 0 con costo')).toBeInTheDocument()
     expect(within(summary).getAllByText('Sin indicar')).toHaveLength(2)
     await addByCode('ACE-1')
     await addByCode('FIL-1')
@@ -219,12 +230,8 @@ describe('EntryPage: resumen y estructura', () => {
     )
     expect(within(summary).getByText('2')).toBeInTheDocument()
     expect(within(summary).getByText('3')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /más detalles/i }))
-    await userEvent.type(screen.getByLabelText('Referencia'), 'F-77')
+    await userEvent.type(screen.getByLabelText(/N\.º de su factura/), 'F-77')
     expect(within(summary).getByText('F-77')).toBeInTheDocument()
-    await userEvent.click(
-      screen.getByRole('checkbox', { name: 'Registrar costos' }),
-    )
     expect(within(summary).getByText('0 de 2 con costo')).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Costo de ACE-1'), '4.5')
     await userEvent.type(screen.getByLabelText('Costo de FIL-1'), '1')
@@ -236,7 +243,7 @@ describe('EntryPage: resumen y estructura', () => {
     const toggle = screen.getByRole('button', { name: /más detalles/i })
     expect(within(toggle).getByText('Opcional')).toBeInTheDocument()
     await userEvent.click(toggle)
-    await userEvent.type(screen.getByLabelText('Referencia'), 'F-1')
+    await userEvent.type(screen.getByLabelText('Observación'), 'Llegó roto')
     await userEvent.click(toggle)
     expect(within(toggle).getByText('Con datos')).toBeInTheDocument()
   })

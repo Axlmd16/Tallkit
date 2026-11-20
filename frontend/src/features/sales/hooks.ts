@@ -46,8 +46,9 @@ export async function invalidateAfterSaleMutation(
   ])
 }
 
-export function useSales(filters: SaleFilters = {}) {
+export function useSales(filters: SaleFilters = {}, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: saleKeys.list(filters),
     queryFn: () => salesApi.list(filters),
     refetchOnWindowFocus: true,

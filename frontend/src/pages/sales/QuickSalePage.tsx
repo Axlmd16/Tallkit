@@ -9,7 +9,7 @@ import {
 } from '@phosphor-icons/react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { describeProblem } from '@/features/catalog-common/problem'
@@ -147,8 +147,10 @@ export function QuickSalePage() {
   const mutations = useSaleMutations()
   const productInput = useRef<HTMLDivElement>(null)
 
+  // Desde la ficha de un cliente llega su identificación para buscarlo de inmediato.
+  const [params] = useSearchParams()
   const [customer, setCustomer] = useState<CustomerOption | null>(null)
-  const [customerText, setCustomerText] = useState('')
+  const [customerText, setCustomerText] = useState(params.get('customer') ?? '')
   const [productText, setProductText] = useState('')
   const [lines, setLines] = useState<Line[]>([])
   const [method, setMethod] = useState<QuickPayMethod>('EFECTIVO')

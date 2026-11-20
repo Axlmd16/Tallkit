@@ -8,6 +8,8 @@ from typing import Any
 import pytest
 from tests.workshop.workshop_helpers import (
     add_line,
+    add_part,
+    confirm_linked_sale,
     confirm_services,
     create,
     error_of,
@@ -112,22 +114,27 @@ def test_status_counts_ignore_the_state_filter_and_follow_the_other_filters(  # 
         close(manager, make_order(), make_service)
 
     everything = queries.list_orders(actor=manager)
-    assert everything["status_counts"] == {"all": 8, "open": 4, "finalized": 4}
+    assert everything["status_counts"] == {
+        "all": 8,
+        "open": 4,
+        "reopened": 1,
+        "finalized": 4,
+    }
     assert everything["status_counts"]["all"] == everything["total_count"]
 
     # El contador de cada segmento es el total de la lista al elegirlo.
-    for segment, state in (("open", "OPEN"), ("finalized", "FINALIZED")):
+    for segment, state in (("open", "OPEN"), ("reopened", "REOPENED"), ("finalized", "FINALIZED")):
         chosen = queries.list_orders(actor=manager, state=state)
         assert chosen["total_count"] == chosen["status_counts"][segment]
         assert chosen["status_counts"] == everything["status_counts"]
 
     # Con otro filtro, solo se cuentan las órdenes que lo cumplen.
     only_ana = queries.list_orders(actor=manager, customer_id=ana.pk, state="OPEN")
-    assert only_ana["status_counts"] == {"all": 3, "open": 2, "finalized": 1}
+    assert only_ana["status_counts"] == {"all": 3, "open": 2, "reopened": 1, "finalized": 1}
     assert mine_open["id"] in {row["id"] for row in only_ana["items"]}
 
     searched = queries.list_orders(actor=manager, search="Ana Pérez")
-    assert searched["status_counts"] == {"all": 3, "open": 2, "finalized": 1}
+    assert searched["status_counts"] == {"all": 3, "open": 2, "reopened": 1, "finalized": 1}
 
 
 def test_status_counts_respect_the_search_by_plate(  # type: ignore[no-untyped-def]
@@ -142,8 +149,49 @@ def test_status_counts_respect_the_search_by_plate(  # type: ignore[no-untyped-d
     create(manager, customer_id=customer.pk, vehicle_id=other.pk, odometer_km=7)
 
     result = queries.list_orders(actor=manager, search="zzz")
-    assert result["status_counts"] == {"all": 2, "open": 1, "finalized": 1}
+    assert result["status_counts"] == {"all": 2, "open": 1, "reopened": 0, "finalized": 1}
     assert open_one["id"] in {row["id"] for row in result["items"]}
+
+
+def test_list_shows_the_billing_of_each_business_apart(  # type: ignore[no-untyped-def]
+    manager, seller, commercial, make_order, make_service, stocked
+) -> None:
+    mixed = make_order()
+    add_part(manager, mixed["id"], stocked(5, price="40.00").pk, 1)
+    confirm_linked_sale(seller, mixed["id"], "CREDITO")
+    add_line(manager, mixed["id"], service_id=make_service().pk, applied_price="60.00")
+    operation = confirm_services(manager, mixed["id"], "CONTADO")
+    settle(manager, operation["id"], ("EFECTIVO", "60.00"))
+    services_only = make_order()
+    add_line(manager, services_only["id"], service_id=make_service().pk, applied_price="25.00")
+    empty = make_order()
+
+    rows = {row["id"]: row["billing"] for row in queries.list_orders(actor=manager)["items"]}
+
+    # Cada negocio con su propio saldo: el pago de los servicios no cubre los repuestos.
+    assert rows[mixed["id"]] == {
+        "commercial": {"state": "PENDING", "balance": "40.00"},
+        "artisan": {"state": "PAID", "balance": "0.00"},
+    }
+    assert rows[services_only["id"]] == {
+        "commercial": None,
+        "artisan": {"state": "UNDOCUMENTED", "balance": "0.00"},
+    }
+    assert rows[empty["id"]] == {"commercial": None, "artisan": None}
+
+
+def test_list_hides_the_artisan_billing_without_permission(  # type: ignore[no-untyped-def]
+    manager, make_order, make_service, monkeypatch
+) -> None:
+    order = make_order()
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="25.00")
+    monkeypatch.setattr(
+        queries,
+        "has_permission",
+        lambda actor, permission: permission != "servicios_economicos.ver",
+    )
+    [row] = queries.list_orders(actor=manager)["items"]
+    assert row["billing"]["artisan"] is None
 
 
 def test_unknown_order_state_names_open(manager) -> None:  # type: ignore[no-untyped-def]
@@ -305,3 +353,81 @@ def test_home_routes_show_the_same_numbers_as_the_lists(  # type: ignore[no-unty
 
     [collected] = api.get("/api/v1/home/collections/").json()["items"]
     assert (collected["scope"], collected["total"]) == ("artisan", "25.00")
+
+
+# --- Cuentas de un cliente (lectura del inicio) ----------------------------------------------
+
+
+@pytest.fixture
+def indebted(manager, seller, commercial, make_customer, make_order, make_service, stocked):  # type: ignore[no-untyped-def]
+    """Cliente con repuestos a crédito sin pagar (40) y servicios de contado pagados (60)."""
+    customer = make_customer(name="Carlos Mendoza")
+    order = make_order(customer)
+    add_part(manager, order["id"], stocked(5, price="40.00").pk, 1)
+    confirm_linked_sale(seller, order["id"], "CREDITO")
+    add_line(manager, order["id"], service_id=make_service().pk, applied_price="60.00")
+    operation = confirm_services(manager, order["id"], "CONTADO")
+    settle(manager, operation["id"], ("EFECTIVO", "60.00"))
+    return customer
+
+
+def test_customer_summary_keeps_each_business_apart(admin, indebted) -> None:  # type: ignore[no-untyped-def]
+    from home.application import customers
+
+    body = customers.customer_summary(admin, indebted.pk)
+
+    assert body["visits"] == {"count_year": 1, "last_on": support.business_today().isoformat()}
+    assert body["commercial"]["spent_year"] == "40.00"
+    assert body["commercial"]["balance"] == "40.00"
+    assert body["artisan"]["spent_year"] == "60.00"
+    assert body["artisan"]["balance"] == "0.00"
+    assert "total" not in body
+
+
+def test_customer_summary_shows_only_the_business_the_actor_can_see(manager, indebted) -> None:  # type: ignore[no-untyped-def]
+    from home.application import customers
+
+    body = customers.customer_summary(manager, indebted.pk)
+
+    # El encargado del taller no ve ventas ni cobros de repuestos.
+    assert body["commercial"] is None
+    assert body["artisan"] == {
+        "spent_year": "60.00",
+        "documents_year": 1,
+        "last_on": support.business_today().isoformat(),
+        "balance": "0.00",
+    }
+
+
+def test_debtors_list_each_balance_by_business(admin, manager, indebted, make_customer) -> None:  # type: ignore[no-untyped-def]
+    from home.application import customers
+
+    make_customer(name="Sin deuda")
+    body = customers.debtors(admin)
+    assert body["items"] == [
+        {
+            "customer_id": indebted.pk,
+            "name": "Carlos Mendoza",
+            "identification": indebted.identification,
+            "person_type": "NATURAL",
+            "commercial": "40.00",
+            "artisan": None,
+        }
+    ]
+    # Quien solo ve el taller no recibe la deuda de repuestos ni, por tanto, a este cliente.
+    only_workshop = customers.debtors(manager)
+    assert only_workshop == {"items": [], "visible": {"commercial": False, "artisan": True}}
+
+
+def test_customer_accounts_require_permission_to_see_customers(  # type: ignore[no-untyped-def]
+    indebted, monkeypatch
+) -> None:
+    from django.contrib.auth import get_user_model
+
+    from home.application import customers
+
+    nobody = get_user_model().objects.create_user(username="wk-nobody", password="x" * 14)
+    with pytest.raises(customers.CustomersHiddenError):
+        customers.customer_summary(nobody, indebted.pk)
+    with pytest.raises(customers.CustomersHiddenError):
+        customers.debtors(nobody)

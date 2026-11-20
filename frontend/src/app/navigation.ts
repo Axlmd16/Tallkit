@@ -273,7 +273,7 @@ export const navigationEntries: readonly NavEntry[] = [
     id: 'cuentas',
     icon: Coins,
     label: 'Cuentas',
-    tabs: 'always',
+    tabs: 'never',
     sections: [
       {
         id: 'cuentas-comercial',

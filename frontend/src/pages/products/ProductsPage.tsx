@@ -25,10 +25,12 @@ import { useProductCategoryList } from '@/features/product-categories/hooks'
 import { ProductLabelPrintModal } from '@/features/product-labels/ProductLabelPrintModal'
 import { productsApi } from '@/features/products/api'
 import { useStockQuantities } from '@/features/inventory/hooks'
-import { presentation } from '@/features/products/format'
+import { presentation, toLabelData } from '@/features/products/format'
 import { useProductMutations, useProducts } from '@/features/products/hooks'
+import { ProductsOverview } from '@/features/products/ProductsOverview'
 import type { Product, ProductLabelData } from '@/features/products/types'
 import { useVehicleBrands } from '@/features/vehicle-brands/hooks'
+import { useBusinessName } from '@/shared/api/entity-logos'
 import { useIntentTracker } from '@/shared/api/idempotency'
 import {
   DropdownMenu,
@@ -38,14 +40,17 @@ import {
   IconButton,
   Money,
   StockIndicator,
+  businessInitials,
   Field,
   PageHeader,
+  SegmentedControl,
   Select,
   useToast,
-  StatusBadge,
 } from '@/shared/ui'
 
 const PICKER = { isActive: 'all', pageSize: 100 } as const
+/** Con más categorías que estas los segmentos no caben y se queda el selector. */
+const MAX_SEGMENTS = 8
 
 export function ProductsPage() {
   const filters = useUrlFilters()
@@ -53,6 +58,8 @@ export function ProductsPage() {
   const canManage = permissions.has('productos.gestionar')
   const canDeactivate = permissions.has('productos.desactivar')
   const canSeeStock = permissions.has('inventario.ver')
+  const canEnter = permissions.has('ingresos.crear')
+  const business = useBusinessName('commercial')
   const tracker = useIntentTracker()
   const mutations = useProductMutations()
 
@@ -112,25 +119,11 @@ export function ProductsPage() {
   const categories = useProductCategoryList(PICKER)
   const productBrands = useProductBrandList(PICKER)
   const vehicleBrands = useVehicleBrands({ isActive: null, pageSize: 100 })
+  const categoryList = (categories.data?.results ?? []).filter(
+    (category) => category.is_active,
+  )
   // Precarga de unidades: el formulario las necesita al abrirse.
   useMeasurementUnitList({ isActive: 'true', pageSize: 100 })
-
-  function toLabelData(product: Product): ProductLabelData {
-    return {
-      id: product.id,
-      code: product.code,
-      name: product.name,
-      description: product.description,
-      contentQuantity: product.content_quantity,
-      manufacturerCode: product.manufacturer_code || null,
-      productBrand: product.product_brand
-        ? { id: product.product_brand.id, name: product.product_brand.name }
-        : null,
-      unit: product.unit
-        ? { id: product.unit.id, name: product.unit.name }
-        : null,
-    }
-  }
 
   function rememberTrigger(event: MouseEvent<HTMLButtonElement>) {
     labelTriggerRef.current = event.currentTarget
@@ -249,23 +242,47 @@ export function ProductsPage() {
                 onClick={() => void navigate('/products/new')}
               />
             )}
+            {canEnter && (
+              <Button onClick={() => void navigate('/purchases/new')}>
+                Entrada de mercadería
+              </Button>
+            )}
           </div>
         }
-        description="Repuestos vendibles con código, marca, existencias y precio final en USD."
+        description="Cada repuesto con su código, su marca y el número del fabricante."
+        eyebrow={business}
         title="Productos"
       />
+      <ProductsOverview />
+      {categoryList.length > 0 && categoryList.length <= MAX_SEGMENTS && (
+        <div className="overflow-x-auto">
+          <SegmentedControl
+            aria-label="Categoría"
+            onChange={(value) => guardedFilters.set({ category_id: value })}
+            options={[
+              { value: '', label: 'Todas' },
+              ...categoryList.map((category) => ({
+                value: String(category.id),
+                label: category.name,
+              })),
+            ]}
+            value={categoryId ? String(categoryId) : ''}
+          />
+        </div>
+      )}
       <ListStates
         toolbar={
           <CatalogToolbar
             extraFilters={
               <>
-                {filterSelect(
-                  'product-filter-category',
-                  'Categoría',
-                  'category_id',
-                  categoryId,
-                  categories.data?.results ?? [],
-                )}
+                {categoryList.length > MAX_SEGMENTS &&
+                  filterSelect(
+                    'product-filter-category',
+                    'Categoría',
+                    'category_id',
+                    categoryId,
+                    categories.data?.results ?? [],
+                  )}
                 {filterSelect(
                   'product-filter-brand',
                   'Marca de producto',
@@ -407,12 +424,12 @@ export function ProductsPage() {
               }
               columns={[
                 {
-                  header: 'Código interno',
+                  header: 'Código',
                   key: 'code',
                   priority: 'primary',
                   render: (row) => (
                     <>
-                      <span className="code font-medium">{row.code}</span>
+                      <span className="code font-semibold">{row.code}</span>
                       {row.code_length !== undefined && (
                         <span className="block text-label text-ink-muted">
                           {row.code_length} caracteres
@@ -422,7 +439,42 @@ export function ProductsPage() {
                   ),
                 },
                 {
-                  header: 'Código del fabricante',
+                  header: 'Producto',
+                  key: 'name',
+                  priority: 'primary',
+                  render: (row) => (
+                    <span className="leading-snug">
+                      <span className="block font-medium text-ink">
+                        {row.name}
+                      </span>
+                      <span className="text-label text-ink-muted">
+                        {presentation(row)}
+                        {!row.is_active && ' · inactivo'}
+                      </span>
+                    </span>
+                  ),
+                },
+                {
+                  header: 'Marca',
+                  key: 'product_brand',
+                  priority: 'secondary',
+                  render: (row) =>
+                    row.product_brand ? (
+                      <span className="flex items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className="grid size-6 shrink-0 place-items-center rounded-chip bg-surface-subtle text-micro font-bold text-ink-muted"
+                        >
+                          {businessInitials(row.product_brand.name)}
+                        </span>
+                        {row.product_brand.name}
+                      </span>
+                    ) : (
+                      '—'
+                    ),
+                },
+                {
+                  header: 'N.º del fabricante',
                   key: 'manufacturer_code',
                   priority: 'secondary',
                   render: (row) =>
@@ -435,35 +487,15 @@ export function ProductsPage() {
                     ),
                 },
                 {
-                  header: 'Producto',
-                  key: 'name',
-                  priority: 'primary',
-                  render: (row) => (
-                    <span className="font-medium text-ink">{row.name}</span>
-                  ),
-                },
-                {
                   header: 'Categoría',
                   key: 'category',
                   priority: 'secondary',
                   render: (row) => row.category?.name ?? '—',
                 },
-                {
-                  header: 'Presentación',
-                  key: 'content_quantity',
-                  priority: 'secondary',
-                  render: presentation,
-                },
-                {
-                  header: 'Marca',
-                  key: 'product_brand',
-                  priority: 'secondary',
-                  render: (row) => row.product_brand?.name ?? '—',
-                },
                 ...(canSeeStock
                   ? [
                       {
-                        header: 'Existencia',
+                        header: 'Quedan',
                         key: 'id' as const,
                         priority: 'secondary' as const,
                         align: 'end' as const,
@@ -479,23 +511,12 @@ export function ProductsPage() {
                     ]
                   : []),
                 {
-                  header: 'Precio final USD',
+                  header: 'Precio',
                   key: 'sale_price',
                   priority: 'secondary',
                   align: 'end',
                   render: (row) => (
-                    <Money amount={row.sale_price} className="font-semibold" />
-                  ),
-                },
-                {
-                  header: 'Estado',
-                  key: 'is_active',
-                  priority: 'secondary',
-                  render: (row) => (
-                    <StatusBadge
-                      label={row.is_active ? 'Activo' : 'Inactivo'}
-                      tone={row.is_active ? 'success' : 'neutral'}
-                    />
+                    <Money amount={row.sale_price} className="font-bold" />
                   ),
                 },
               ]}
