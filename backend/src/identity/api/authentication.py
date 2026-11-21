@@ -1,3 +1,4 @@
+import time
 from typing import cast
 
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -111,6 +112,7 @@ class LoginView(APIView):
             )
         login(request, user)
         request.session["authorization_version"] = user.authorization_version
+        request.session["last_activity_ts"] = int(time.time())
         if isinstance(user, User):
             record_audit_event(
                 actor=user,

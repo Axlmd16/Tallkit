@@ -46,6 +46,32 @@ jobs:
       - run: uv run --frozen pytest
       - run: uv run --frozen pip-audit
 
+  backend-windows:
+    runs-on: windows-latest
+    env:
+      DATABASE_URL: postgresql://postgres:ci-only@127.0.0.1:5432/postgres
+      DJANGO_SECRET_KEY: ci-only-not-a-production-secret
+    defaults:
+      run:
+        working-directory: backend
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v6
+      - name: Instalar PostgreSQL para pruebas
+        run: |
+          choco install postgresql17 --yes --params '/Password:ci-only' --no-progress
+          Start-Service postgresql* -ErrorAction SilentlyContinue
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: 0.11.23
+          enable-cache: true
+      - run: uv python install 3.13.14
+      - run: uv sync --frozen
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen mypy src tests/identity tests/customer_registry/test_module_boundary.py
+      - run: uv run --frozen python manage.py check
+      - run: uv run --frozen pytest tests/identity tests/customer_registry/test_module_boundary.py --no-cov
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

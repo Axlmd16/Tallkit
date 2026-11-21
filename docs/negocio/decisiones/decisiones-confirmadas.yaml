@@ -414,7 +414,9 @@ context: |
 
   Decisiones todavía no cerradas:
   - DA-002: límites, almacenamiento y conservación de fotografías.
-  - DA-003: empaquetado, instalación, actualización, respaldo y restauración local.
+  - DA-003: cerrada en `instalar-en-windows-local` (`ADR-0013`, 2026-11-20) con despliegue nativo en
+    Windows 11 Pro (PostgreSQL, Waitress, Caddy y WinSW), actualizaciones vía GitHub Releases y
+    respaldos diarios cifrados en AES-256 hacia disco USB externo y Google Drive.
   - DM-001: cerrada para V1 por DP-029 (estructuras separadas por RUC); una estructura común
     futura requiere una nueva decisión.
   - Validación contable y tributaria de consumos internos y reposiciones sin cargo entre

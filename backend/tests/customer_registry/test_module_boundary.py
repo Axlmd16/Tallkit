@@ -56,7 +56,7 @@ def test_only_published_customer_interfaces_are_imported_by_other_modules() -> N
                 module
                 and module.startswith("customer_registry")
                 and module not in published
-                and (str(relative), module) not in existing
+                and (relative.as_posix(), module) not in existing
             ):
                 offenders.append(f"{relative} importa {module}")
     assert not offenders, offenders

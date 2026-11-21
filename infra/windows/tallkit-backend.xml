@@ -1,0 +1,20 @@
+<service>
+  <id>tallkit-backend</id>
+  <name>Tallkit Backend (Waitress)</name>
+  <description>Servicio WSGI del backend de Tallkit sobre Waitress en 127.0.0.1:8000.</description>
+  <executable>uv</executable>
+  <arguments>run --frozen --no-dev waitress-serve --listen=127.0.0.1:8000 --trusted-proxy=127.0.0.1 --trusted-proxy-headers="x-forwarded-proto x-forwarded-for" config.wsgi:application</arguments>
+  <workingdirectory>C:\Tallkit\app\backend</workingdirectory>
+  <env name="DJANGO_SETTINGS_MODULE" value="config.settings.production" />
+  <env name="PYTHONPATH" value="src" />
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="5 sec" />
+  <onfailure action="restart" delay="15 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+  <logpath>C:\Tallkit\logs\backend</logpath>
+</service>

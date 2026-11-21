@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "identity.middleware.AuthorizationVersionMiddleware",
+    "identity.middleware.SessionInactivityMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -103,6 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_INACTIVITY_TIMEOUT_SECONDS = env.int("DJANGO_SESSION_INACTIVITY_SECONDS", default=3600)
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],

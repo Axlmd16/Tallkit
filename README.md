@@ -162,8 +162,9 @@ periodicidad:
 ## Documentación
 
 - [Arquitectura técnica inicial](docs/tecnico/arquitectura-inicial.md)
+- [Despliegue local en Windows 11 Pro](infra/windows/README.md) y [Plan de instalación en el taller](docs/tecnico/plan-instalacion-taller.md)
 - [Decisiones confirmadas](docs/negocio/decisiones/decisiones-confirmadas.yaml)
-- [ADR](docs/adr/)
+- [ADR](docs/adr/) (incluye [ADR-0013](docs/adr/0013-despliegue-local-windows-y-respaldos.md))
 - [OpenSpec](openspec/config.yaml)
 
 Consulte [AGENTS.md](AGENTS.md) antes de realizar cambios. Los cambios funcionales o arquitectónicos

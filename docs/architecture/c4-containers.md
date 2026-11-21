@@ -7,10 +7,10 @@ C4Container
   Person(personal, "Personal del taller", "Usa computadora, tableta o teléfono")
 
   System_Boundary(system, "Sys-Inventario") {
-    Container(web, "Aplicación web", "React 19, TypeScript 6, Nginx", "Entrega la interfaz responsive y reenvía la API")
-    Container(api, "Monolito modular", "Django 5.2 LTS, DRF, Gunicorn", "Expone API versionada y aplica reglas y autorización")
-    ContainerDb(database, "Base de datos", "PostgreSQL 17", "Fuente persistente de verdad")
-    ContainerDb(files, "Archivos privados", "Volumen local", "Fotografías de mantenimiento sin URL pública")
+    Container(web, "Aplicación web", "React 19, TypeScript 6, Caddy / Nginx", "Entrega la interfaz responsive y reenvía la API")
+    Container(api, "Monolito modular", "Django 5.2 LTS, DRF, Waitress / Gunicorn", "Expone API versionada y aplica reglas y autorización")
+    ContainerDb(database, "Base de datos", "PostgreSQL 17+", "Fuente persistente de verdad")
+    ContainerDb(files, "Archivos privados", "Volumen local / NTFS protegido", "Fotografías de mantenimiento sin URL pública")
   }
 
   Rel(personal, web, "Navega y envía acciones", "HTTPS")

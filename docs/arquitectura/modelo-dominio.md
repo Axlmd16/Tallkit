@@ -231,7 +231,7 @@ Estas recomendaciones no autorizan implementación.
 ### 11.4 Decisiones aplazadas
 
 - `DA-002`: límites, almacenamiento y conservación de fotografías.
-- `DA-003`: instalación, actualización, respaldo y restauración local continúa pendiente en general. ADR-0010 resuelve únicamente el archivo fiscal en PostgreSQL.
+- `DA-003`: cerrada por `ADR-0013` y el cambio `instalar-en-windows-local` (despliegue nativo en Windows 11 Pro, actualizaciones vía GitHub y respaldos diarios cifrados). ADR-0010 cubre además el archivo fiscal en PostgreSQL.
 
 ### 11.5 Información insuficiente o validación externa
 

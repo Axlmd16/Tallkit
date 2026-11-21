@@ -80,7 +80,7 @@ Un rango con puntos suspensivos es inclusivo. La fuente de precedencia es `../de
 | Clasificación | Elementos | Consecuencia documental |
 |---|---|---|
 | Confirmadas | DP-001…004, DP-006…036 (DP-030 sustituye en parte a DP-011 y DP-022…024; DP-034 sustituye en parte a DP-018; DP-036 ajusta DP-035, regla 1, desde U6), CT-001, DM-001 (cerrada por DP-029) y DM-003 V1 | Se aplican como línea base; no deben figurar como preguntas abiertas. Las reglas de `DP-036` rigen al archivar el cambio que las implementa (U3 a U6); hasta entonces siguen las specs vigentes. |
-| Pendientes | DA-002, DA-003 | Se conservan sin inventar una solución técnica. |
+| Pendientes | DA-002 | Se conserva sin inventar una solución técnica. (`DA-003` cerrada por `ADR-0013` / `instalar-en-windows-local`). |
 | Validación externa | tratamiento fiscal de consumos y reposiciones; tarifas, clasificación, redondeo y verificación de las normas de facturación electrónica (matriz de normas) | Debe resolverlo un contador o la normativa ecuatoriana aplicable antes de especificar el comportamiento fiscal. |
 
 ## 5. Capacidades OpenSpec

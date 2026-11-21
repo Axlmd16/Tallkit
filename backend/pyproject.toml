@@ -13,6 +13,7 @@ dependencies = [
   "pillow>=12,<13",
   "psycopg[binary]>=3.3.5,<3.4",
   "structlog>=26.1.0,<27",
+  "waitress>=3.0.2,<4",
   "whitenoise>=6.11.0,<7",
 ]
 

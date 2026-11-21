@@ -1,0 +1,21 @@
+<service>
+  <id>tallkit-caddy</id>
+  <name>Tallkit Proxy HTTPS (Caddy)</name>
+  <description>Proxy inverso HTTPS local y servidor de archivos estáticos de Tallkit.</description>
+  <executable>C:\Tallkit\caddy\caddy.exe</executable>
+  <arguments>run --config C:\Tallkit\caddy\Caddyfile --adapter caddyfile</arguments>
+  <workingdirectory>C:\Tallkit\caddy</workingdirectory>
+  <env name="XDG_DATA_HOME" value="C:\Tallkit\caddy\data" />
+  <env name="XDG_CONFIG_HOME" value="C:\Tallkit\caddy\config" />
+  <depend>tallkit-backend</depend>
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="5 sec" />
+  <onfailure action="restart" delay="15 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+  <logpath>C:\Tallkit\logs\caddy</logpath>
+</service>
