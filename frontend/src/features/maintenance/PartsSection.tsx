@@ -34,12 +34,14 @@ export function PartsSection({
   onDone,
   canOpenSales,
   canSeeKardex = false,
+  defaultExpanded = false,
 }: {
   order: MaintenanceOrder
   onDone: (message: string) => void
   canOpenSales: boolean
   /** Con `inventario.ver`, cada repuesto confirmado enlaza a su Kardex. */
   canSeeKardex?: boolean
+  defaultExpanded?: boolean
 }) {
   const canManage = (order.billing_actions ?? []).includes('manage_parts')
   const query = useOrderParts(order.id)
@@ -117,7 +119,9 @@ export function PartsSection({
     (n, line) => n + Number(line.quantity),
     0,
   )
-  const [expanded, setExpanded] = useState<boolean | null>(null)
+  const [expanded, setExpanded] = useState<boolean | null>(
+    defaultExpanded ? true : null,
+  )
   const show = expanded ?? (pendingLines > 0 || confirmed.length > 0)
   const summary =
     sales.length === 0
@@ -129,36 +133,35 @@ export function PartsSection({
   return (
     <section
       aria-labelledby="order-parts-title"
-      className="rounded-card border-[1.5px] border-dashed border-line-dashed bg-surface-subtle px-5 py-3.5"
+      className="overflow-hidden rounded-card border border-line bg-surface"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-subtle/60 px-5 py-3.5">
+        <div className="flex items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="grid size-[34px] shrink-0 place-items-center rounded-control bg-surface-muted text-ink-muted"
+            className="grid size-8 shrink-0 place-items-center rounded-control bg-surface text-ink-muted ring-1 ring-line"
           >
-            <Package size={17} />
+            <Package size={16} />
           </span>
-          <span className="leading-snug">
-            <h2 className="text-body font-bold" id="order-parts-title">
-              Repuestos del almacén{' '}
-              <span className="font-medium text-ink-muted">· opcional</span>
+          <div className="leading-tight">
+            <h2 className="text-body font-bold text-ink" id="order-parts-title">
+              Repuestos del almacén
             </h2>
-            <span className="text-label text-ink-muted">{summary}</span>
-          </span>
+            <p className="text-micro text-ink-muted">{summary}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {pendingLines > 0 && draft && canOpenSales && (
             <Link
-              className="ui-button inline-flex min-h-10 items-center rounded-control border border-ink px-3.5 text-body font-semibold text-ink hover:bg-ink hover:text-white"
+              className="ui-button inline-flex min-h-9 items-center rounded-control border border-ink px-3.5 text-label font-semibold text-ink hover:bg-ink hover:text-white"
               to={`/sales/${draft.id}`}
             >
               Confirmar repuestos
             </Link>
           )}
-          {order.state !== 'FINALIZED' && (
+          {!defaultExpanded && order.state !== 'FINALIZED' && (
             <button
-              className="ui-button inline-flex min-h-10 items-center rounded-control px-3 text-body font-semibold text-ink-muted hover:bg-surface-muted hover:text-ink"
+              className="ui-button inline-flex min-h-9 items-center rounded-control px-3 text-label font-semibold text-ink-muted hover:bg-surface-muted hover:text-ink"
               onClick={() => setExpanded(!show)}
               type="button"
             >
@@ -172,24 +175,27 @@ export function PartsSection({
         </div>
       </div>
       {order.state === 'REOPENED' && (
-        <div className="mt-2.5">
+        <div className="px-5 pt-3">
           <InlineNotice title="Reapertura por corrección" tone="info">
             El trabajo correctivo no genera cobro: no se agregan repuestos a una
-            venta. La reposición por corrección es una operación futura del
-            Administrador.
+            venta.
           </InlineNotice>
         </div>
       )}
       {show && (
-        <div className="mt-2.5">
-          {canManage && <PartAdder order={order} />}
+        <div>
+          {canManage && (
+            <div className="px-5 pt-2 pb-1">
+              <PartAdder order={order} />
+            </div>
+          )}
           {query.isPending && (
-            <div className="py-2">
+            <div className="px-5 py-3">
               <LoadingState label="Cargando repuestos…" />
             </div>
           )}
           {query.isError && (
-            <div className="py-2">
+            <div className="px-5 py-3">
               <InlineNotice
                 title="No se pudieron cargar los repuestos"
                 tone="danger"
@@ -205,10 +211,20 @@ export function PartsSection({
             </div>
           )}
           {stepError && (
-            <div className="py-2">
+            <div className="px-5 py-2">
               <InlineNotice title="No se cambió la cantidad" tone="danger">
                 {stepError}
               </InlineNotice>
+            </div>
+          )}
+          {(pendingLines > 0 || confirmed.length > 0) && (
+            <div
+              aria-hidden="true"
+              className="hidden items-center gap-4 border-y border-line bg-surface-subtle/40 px-5 py-2 text-micro font-semibold tracking-wider text-ink-muted uppercase sm:grid sm:grid-cols-[minmax(0,1fr)_8.5rem_6.5rem]"
+            >
+              <span>Producto</span>
+              <span className="text-center">Cantidad</span>
+              <span className="text-right">Subtotal</span>
             </div>
           )}
           {draft && draft.lines.length > 0 && (
@@ -232,11 +248,23 @@ export function PartsSection({
               sale={sale}
             />
           ))}
+          {!query.isPending && sales.length === 0 && (
+            <p className="border-t border-line px-5 py-6 text-center text-body text-ink-muted">
+              Sin repuestos del almacén. Use el buscador de arriba para agregar,
+              o anote repuestos propios del cliente en observaciones.
+            </p>
+          )}
         </div>
       )}
-      <p className="mt-2.5 text-label text-ink-muted">
-        Si el cliente trajo sus propios repuestos, anótelo en las observaciones.
-      </p>
+      {sales.length > 0 && (
+        <div className="flex items-center justify-between border-t border-line bg-surface-subtle/50 px-5 py-2.5 text-label">
+          <span className="font-medium text-ink-muted">Total repuestos</span>
+          <Money
+            amount={total ?? '0.00'}
+            className="text-body font-bold text-ink"
+          />
+        </div>
+      )}
       <ConfirmationPanel
         confirmLabel="Retirar repuesto"
         description={
@@ -285,54 +313,60 @@ function DraftSale({
   )
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-2.5">
-        <StatusBadge label="Reservado, pendiente de confirmar" tone="warning" />
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-subtle/30 px-5 py-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge label="Pendiente de confirmar" tone="warning" />
+          <span className="text-micro text-ink-muted">
+            La orden no puede finalizar hasta confirmar.
+          </span>
+        </div>
         {canOpenSales && (
-          <Link className="text-body hover:underline" to={`/sales/${sale.id}`}>
+          <Link
+            className="text-label font-semibold text-accent hover:underline"
+            to={`/sales/${sale.id}`}
+          >
             Abrir venta pendiente
           </Link>
         )}
-        <p className="basis-full text-label text-ink-muted">
-          Reserva la disponibilidad sin descontar inventario ni generar deuda.
-          La salida ocurre cuando el Vendedor o el Administrador confirma la
-          venta; la orden no puede finalizar mientras haya repuestos pendientes.
-        </p>
       </div>
-      {sale.lines.map((line) => {
-        const values = estimate.get(line.position)
-        const name = line.product_name ?? ''
-        return (
-          <PartRow
-            actions={
-              canManage ? (
-                <>
-                  <QuantityStepper
-                    name={name}
-                    onChange={(next) => onQuantity(line, next)}
-                    value={Number(line.quantity)}
-                  />
-                  <button
-                    aria-label={`Retirar ${name}`}
-                    className="grid size-10 place-items-center rounded-full text-ink-muted hover:bg-danger-soft hover:text-danger"
-                    onClick={(event) => onRemove(line, event.currentTarget)}
-                    type="button"
-                  >
-                    <X aria-hidden="true" size={16} />
-                  </button>
-                </>
-              ) : (
-                <span className="text-label text-ink-muted">
-                  × {Number(line.quantity)}
-                </span>
-              )
-            }
-            line={line}
-            stock={stock.get(line.product_id)}
-            total={values?.total_amount ?? null}
-            unit={values?.unit_price ?? null}
-          />
-        )
-      })}
+      <div className="divide-y divide-line">
+        {sale.lines.map((line) => {
+          const values = estimate.get(line.position)
+          const name = line.product_name ?? ''
+          return (
+            <PartRow
+              key={line.id}
+              actions={
+                canManage ? (
+                  <>
+                    <QuantityStepper
+                      name={name}
+                      onChange={(next) => onQuantity(line, next)}
+                      value={Number(line.quantity)}
+                    />
+                    <button
+                      aria-label={`Retirar ${name}`}
+                      className="grid size-10 place-items-center rounded-full text-ink-muted hover:bg-danger-soft hover:text-danger"
+                      onClick={(event) => onRemove(line, event.currentTarget)}
+                      type="button"
+                    >
+                      <X aria-hidden="true" size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-label text-ink-muted">
+                    × {Number(line.quantity)}
+                  </span>
+                )
+              }
+              line={line}
+              stock={stock.get(line.product_id)}
+              total={values?.total_amount ?? null}
+              unit={values?.unit_price ?? null}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -354,18 +388,19 @@ function PartRow({
   kardex?: boolean
 }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1 border-t border-line px-5 py-3.5">
+    <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-surface-subtle/40 sm:grid-cols-[minmax(0,1fr)_8.5rem_6.5rem]">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-semibold text-ink">{line.product_name}</span>
+          <span className="text-body font-semibold text-ink">
+            {line.product_name}
+          </span>
           {stock !== undefined && (
-            <StatusBadge
-              label={`Hay ${Number(stock)} en existencia`}
-              tone="info"
-            />
+            <span className="rounded-chip bg-surface-muted px-2 py-0.5 text-micro font-medium text-ink-muted tabular-nums">
+              Hay {Number(stock)}
+            </span>
           )}
         </div>
-        <p className="text-label text-ink-muted">
+        <p className="mt-0.5 text-micro text-ink-muted">
           {kardex ? (
             <Link
               aria-label={`Movimientos de ${line.product_name ?? ''}`}
@@ -385,8 +420,12 @@ function PartRow({
           )}
         </p>
       </div>
-      <span className="flex items-center gap-2">{actions}</span>
-      <Money amount={total} className="font-bold" />
+      <div className="flex items-center justify-between gap-3 sm:contents">
+        <span className="flex items-center gap-1.5 sm:justify-center">
+          {actions}
+        </span>
+        <Money amount={total} className="text-right text-body font-bold" />
+      </div>
     </div>
   )
 }

@@ -107,7 +107,7 @@ export function ServiceOperationDialog({
 
   return (
     <FormModal
-      description="Genera la operación ART-SER con los servicios pendientes. Comprobante interno: no es una factura electrónica autorizada por el SRI. No descuenta inventario ni registra cobros."
+      description="Genera la operación ART-SER con los servicios pendientes. Recibo: no es una factura electrónica autorizada por el SRI. No descuenta inventario ni registra cobros."
       onClose={onClose}
       onSave={save}
       open

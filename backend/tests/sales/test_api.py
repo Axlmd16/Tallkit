@@ -771,7 +771,8 @@ class TestWithholdingRoutes:
             seller_api, made(seller_api, customer, stocked, quantity="1", condition="CREDITO")
         )
         amount = f"{float(sale['grand_total']) / 2:.2f}"
-        data = {"operation_id": str(uuid.uuid4()), "withholding": {"amount": amount}}
+        withholding: dict[str, Any] = {"amount": amount}
+        data: dict[str, Any] = {"operation_id": str(uuid.uuid4()), "withholding": withholding}
         review = seller_api.post(f"{BASE}{sale['id']}/payments/preview/", data, format="json")
         assert review.json()["can_register"] is False
         assert review.json()["issues"][0]["code"] == "withholding_warning"
@@ -782,7 +783,7 @@ class TestWithholdingRoutes:
         assert rejected.status_code == 409
         assert rejected.json()["code"] == "withholding_warning"
 
-        data["withholding"]["acknowledged"] = True
+        withholding["acknowledged"] = True
         review = seller_api.post(f"{BASE}{sale['id']}/payments/preview/", data, format="json")
         created = seller_api.post(
             f"{BASE}{sale['id']}/payments/",

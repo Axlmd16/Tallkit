@@ -331,10 +331,7 @@ describe('trabajos documentados en una operación artesanal', () => {
 
   it('rotula la documentación y bloquea la fila documentada', () => {
     wrap(<ServiceLinesSection onDone={onDone} order={documented()} />)
-    expect(screen.getByText('En recibo ART-SER-000004')).toBeInTheDocument()
-    expect(
-      screen.getByText('Bloqueada: incluida en un recibo'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Recibo ART-SER-000004')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Retirar Alineación' }),
     ).not.toBeInTheDocument()

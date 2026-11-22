@@ -114,17 +114,30 @@ def test_command_is_idempotent_and_detects_conflicts(
     commercial: FiscalEntity, role_admin: User
 ) -> None:
     key = str(uuid4())
-    kwargs = {"actor": role_admin, "entity_id": commercial.pk, "expected_version": 0}
     first = service.set_withholding_settings(
-        **kwargs, idempotency_key=key, registration_enabled=False
+        actor=role_admin,
+        entity_id=commercial.pk,
+        expected_version=0,
+        idempotency_key=key,
+        registration_enabled=False,
     )
     again = service.set_withholding_settings(
-        **kwargs, idempotency_key=key, registration_enabled=False
+        actor=role_admin,
+        entity_id=commercial.pk,
+        expected_version=0,
+        idempotency_key=key,
+        registration_enabled=False,
     )
     assert first == again
     assert ReceivedWithholdingSetting.objects.get().version == 1
     with pytest.raises(IdempotencyConflictError):
-        service.set_withholding_settings(**kwargs, idempotency_key=key, registration_enabled=True)
+        service.set_withholding_settings(
+            actor=role_admin,
+            entity_id=commercial.pk,
+            expected_version=0,
+            idempotency_key=key,
+            registration_enabled=True,
+        )
 
 
 def test_stale_version_is_rejected(commercial: FiscalEntity, role_admin: User) -> None:

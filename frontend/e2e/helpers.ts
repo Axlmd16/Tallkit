@@ -11,7 +11,10 @@ export async function login(
   await page.getByLabel('Identificación de acceso').fill(username)
   await page.getByLabel('Contraseña').fill(password)
   await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page.getByRole('heading', { name: 'Inicio' })).toBeVisible()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(
+    page.getByRole('main').getByRole('heading', { level: 1 }),
+  ).toBeVisible()
 }
 
 export async function logout(page: Page) {

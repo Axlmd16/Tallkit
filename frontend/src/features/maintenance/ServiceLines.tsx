@@ -1,10 +1,15 @@
-import { NotePencil, X } from '@phosphor-icons/react'
+import { LockSimple, NotePencil, Wrench, X } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 
 import { describeProblem } from '@/features/catalog-common/problem'
 import { useIntentTracker } from '@/shared/api/idempotency'
-import { ConfirmationPanel, InlineNotice, StatusBadge } from '@/shared/ui'
+import {
+  ConfirmationPanel,
+  InlineNotice,
+  Money,
+  StatusBadge,
+} from '@/shared/ui'
 
 import { InlineField } from './InlineField'
 import { QuantityStepper } from './QuantityStepper'
@@ -107,19 +112,38 @@ export function ServiceLinesSection({
   return (
     <section
       aria-labelledby="order-services-title"
-      className="rounded-card border border-line bg-surface"
+      className="overflow-hidden rounded-card border border-line bg-surface"
     >
-      <div className="flex items-baseline justify-between gap-3 px-5 pt-4 pb-2.5">
-        <h2 className="text-block font-bold" id="order-services-title">
-          Trabajos realizados
-        </h2>
-        <span className="text-label text-ink-muted tabular-nums">
-          {lineCount === 1 ? '1 trabajo' : `${lineCount} trabajos`} · mano de
-          obra USD {order.services_total}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-subtle/60 px-5 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden="true"
+            className="grid size-8 shrink-0 place-items-center rounded-control bg-surface text-ink-muted ring-1 ring-line"
+          >
+            <Wrench size={16} />
+          </span>
+          <div className="leading-tight">
+            <h2
+              className="text-body font-bold text-ink"
+              id="order-services-title"
+            >
+              Trabajos realizados
+            </h2>
+            <p className="text-micro text-ink-muted">
+              {lineCount === 1 ? '1 trabajo' : `${lineCount} trabajos`}
+            </p>
+          </div>
+        </div>
+        <div className="text-right leading-tight">
+          <span className="block text-micro text-ink-muted">Mano de obra</span>
+          <Money
+            amount={order.services_total}
+            className="text-lead font-bold text-ink"
+          />
+        </div>
       </div>
       {error && (
-        <div className="px-5 pb-2">
+        <div className="px-5 pt-3">
           <InlineNotice title="No se guardó el cambio" tone="danger">
             {error}
           </InlineNotice>
@@ -128,40 +152,66 @@ export function ServiceLinesSection({
       {canManage && open && (
         <ServiceAdder corrective={open.kind === 'CORRECTIVE'} order={order} />
       )}
-      {groups.map(({ intervention, lines }) => (
-        <div key={intervention.id}>
-          {order.interventions.length > 1 && (
-            <h3 className="border-t border-line px-5 pt-3 text-label font-semibold text-ink-muted">
-              {intervention.kind === 'CORRECTIVE'
-                ? `Intervención correctiva ${intervention.ordinal - 1} · sin cargo`
-                : 'Intervención inicial'}
-            </h3>
-          )}
-          {lines.map(({ line, n }) => (
-            <ServiceRow
-              canManage={canManage && intervention.is_open}
-              canPrice={
-                canChangePrice &&
-                intervention.is_open &&
-                intervention.kind === 'INITIAL'
-              }
-              key={line.id}
-              line={line}
-              n={n}
-              onRemove={(target) => {
-                returnFocus.current = target
-                setRemoveError('')
-                setRemoving(line)
-              }}
-              onSave={(data) => save(line, data)}
-            />
-          ))}
+      {lineCount > 0 && (
+        <div
+          aria-hidden="true"
+          className="hidden items-center gap-4 border-y border-line bg-surface-subtle/40 px-5 py-2 text-micro font-semibold tracking-wider text-ink-muted uppercase sm:grid sm:grid-cols-[1.75rem_minmax(0,1fr)_7.5rem_7rem_4.5rem]"
+        >
+          <span>#</span>
+          <span>Trabajo</span>
+          <span className="text-center">Cantidad</span>
+          <span className="text-right">Precio</span>
+          <span />
         </div>
-      ))}
+      )}
+      {groups.map(({ intervention, lines }) => {
+        if (lines.length === 0) return null
+        return (
+          <div key={intervention.id}>
+            {order.interventions.length > 1 && (
+              <h3 className="border-b border-line bg-surface-subtle/30 px-5 py-1.5 text-micro font-semibold text-ink-muted">
+                {intervention.kind === 'CORRECTIVE'
+                  ? `Intervención correctiva ${intervention.ordinal - 1} · sin cargo`
+                  : 'Intervención inicial'}
+              </h3>
+            )}
+            <div className="divide-y divide-line">
+              {lines.map(({ line, n }) => (
+                <ServiceRow
+                  canManage={canManage && intervention.is_open}
+                  canPrice={
+                    canChangePrice &&
+                    intervention.is_open &&
+                    intervention.kind === 'INITIAL'
+                  }
+                  key={line.id}
+                  line={line}
+                  n={n}
+                  onRemove={(target) => {
+                    returnFocus.current = target
+                    setRemoveError('')
+                    setRemoving(line)
+                  }}
+                  onSave={(data) => save(line, data)}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })}
       {lineCount === 0 && (
-        <p className="border-t border-line px-5 py-3.5 text-body text-ink-muted">
+        <p className="border-t border-line px-5 py-6 text-center text-body text-ink-muted">
           Todavía no hay trabajos. Agregue al menos uno para poder finalizar.
         </p>
+      )}
+      {lineCount > 0 && (
+        <div className="flex items-center justify-between border-t border-line bg-surface-subtle/50 px-5 py-2.5 text-label">
+          <span className="font-medium text-ink-muted">Total mano de obra</span>
+          <Money
+            amount={order.services_total}
+            className="text-body font-bold text-ink"
+          />
+        </div>
       )}
       <ConfirmationPanel
         confirmLabel="Retirar servicio"
@@ -213,75 +263,64 @@ function ServiceRow({
     ? (quantity: number) => onSave({ quantity })
     : undefined
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-line px-5 py-5">
-      <div className="flex min-w-[16rem] flex-1 items-start gap-4">
-        {/* Del alto de la primera línea del nombre: el número queda centrado con ella. */}
-        <span
-          aria-hidden="true"
-          className="flex h-[var(--text-lead--line-height)] shrink-0 items-center"
-        >
-          <span className="grid size-7 place-items-center rounded-full bg-surface-muted text-label font-semibold text-ink-muted tabular-nums">
-            {n}
+    <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2.5 px-5 py-3 transition-colors hover:bg-surface-subtle/40 sm:grid-cols-[1.75rem_minmax(0,1fr)_7.5rem_7rem_4.5rem]">
+      <span
+        aria-hidden="true"
+        className="hidden size-6 place-items-center rounded-full bg-surface-muted text-micro font-bold text-ink-muted tabular-nums sm:grid"
+      >
+        {n}
+      </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-body font-semibold text-ink">
+            {line.service_name}
           </span>
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="text-lead font-semibold text-ink">
-              {line.service_name}
-            </span>
-            {!line.service_is_active && (
-              <StatusBadge label="Inactivo en catálogo" tone="neutral" />
-            )}
-            {line.no_charge && <StatusBadge label="Sin cargo" tone="info" />}
-            {!line.no_charge && line.documented_by && (
-              <StatusBadge
-                label={`En recibo ${line.documented_by.number}`}
-                tone="success"
-              />
-            )}
-          </div>
-          {noteOpen ? (
-            <InlineField
-              autoFocus
-              className="mt-2 border-b border-line-strong py-1.5 text-body text-ink focus:border-ink"
-              label={`Nota para la factura de ${line.service_name}`}
-              onCommit={async (detail) => {
-                await onSave({ detail })
-                setNoteOpen(false)
-              }}
-              onUnchanged={() => setNoteOpen(false)}
-              placeholder="Texto que se imprime junto a este trabajo en la factura"
-              value={line.detail}
-            />
-          ) : (
-            line.detail && (
-              <p className="mt-1 text-body text-ink-muted">{line.detail}</p>
-            )
+          {!line.service_is_active && (
+            <StatusBadge label="Inactivo en catálogo" tone="neutral" />
           )}
-          {canManage && locked && (
-            <p className="mt-1.5 text-label text-ink-muted">
-              Bloqueada: incluida en un recibo
-            </p>
-          )}
+          {line.no_charge && <StatusBadge label="Sin cargo" tone="info" />}
         </div>
+        {noteOpen ? (
+          <InlineField
+            autoFocus
+            className="mt-1.5 border-b border-line-strong py-1 text-label text-ink focus:border-ink"
+            label={`Nota para la factura de ${line.service_name}`}
+            onCommit={async (detail) => {
+              await onSave({ detail })
+              setNoteOpen(false)
+            }}
+            onUnchanged={() => setNoteOpen(false)}
+            placeholder="Nota opcional para la factura"
+            value={line.detail}
+          />
+        ) : (
+          line.detail && (
+            <p className="mt-0.5 text-label text-ink-muted">{line.detail}</p>
+          )
+        )}
+        {!line.no_charge && line.documented_by && (
+          <p
+            className="mt-0.5 inline-flex items-center gap-1 text-micro text-ink-muted"
+            title="Línea bloqueada por estar incluida en un recibo"
+          >
+            <LockSimple aria-hidden="true" size={11} />
+            <span>Recibo {line.documented_by.number}</span>
+          </p>
+        )}
       </div>
-      <div className="flex items-end gap-8">
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-label font-medium text-ink-muted">
-            Cantidad
-          </span>
+      <div className="flex items-center justify-between gap-3 sm:contents">
+        <div className="flex items-center sm:justify-center">
           <QuantityStepper
             name={line.service_name}
             onChange={quantityChange}
             value={line.quantity}
           />
         </div>
-        <label className="flex w-28 flex-col gap-1 text-right text-label font-medium text-ink-muted">
-          Precio USD
+        <div className="flex items-center justify-end">
           {canPrice && !locked ? (
             <InlineField
               align="right"
-              className="h-10 border-b-[1.5px] border-line-strong px-1 text-block font-bold text-ink tabular-nums focus:border-ink"
+              className="h-9 w-24 border-b border-line-strong px-1 text-body font-bold text-ink tabular-nums focus:border-ink"
               inputMode="decimal"
               label={`Precio de ${line.service_name}`}
               onCommit={async (price) => {
@@ -293,41 +332,41 @@ function ServiceRow({
           ) : (
             <span
               aria-label={`Precio de ${line.service_name}`}
-              className="flex h-10 items-center justify-end px-1 text-block font-bold text-ink tabular-nums"
+              className="text-body font-bold text-ink tabular-nums"
               role="textbox"
             >
-              {line.applied_price}
+              USD {line.applied_price}
             </span>
           )}
-        </label>
-        {editable ? (
-          <span className="flex items-center">
-            <button
-              aria-label={
-                line.detail
-                  ? `Cambiar la nota para la factura de ${line.service_name}`
-                  : `Agregar una nota para la factura de ${line.service_name}`
-              }
-              aria-pressed={noteOpen}
-              className={`grid size-10 place-items-center rounded-full hover:bg-surface-muted hover:text-ink ${line.detail ? 'text-accent' : 'text-ink-muted'}`}
-              onClick={() => setNoteOpen(!noteOpen)}
-              title="Nota para la factura"
-              type="button"
-            >
-              <NotePencil aria-hidden="true" size={17} />
-            </button>
-            <button
-              aria-label={`Retirar ${line.service_name}`}
-              className="grid size-10 place-items-center rounded-full text-ink-muted hover:bg-danger-soft hover:text-danger"
-              onClick={(event) => onRemove(event.currentTarget)}
-              type="button"
-            >
-              <X aria-hidden="true" size={16} />
-            </button>
-          </span>
-        ) : (
-          <span aria-hidden="true" className="w-20" />
-        )}
+        </div>
+        <div className="flex items-center justify-end gap-0.5">
+          {editable && (
+            <>
+              <button
+                aria-label={
+                  line.detail
+                    ? `Cambiar la nota para la factura de ${line.service_name}`
+                    : `Agregar una nota para la factura de ${line.service_name}`
+                }
+                aria-pressed={noteOpen}
+                className={`grid size-8 place-items-center rounded-full hover:bg-surface-muted hover:text-ink ${line.detail ? 'text-accent' : 'text-ink-muted'}`}
+                onClick={() => setNoteOpen(!noteOpen)}
+                title="Nota para la factura"
+                type="button"
+              >
+                <NotePencil aria-hidden="true" size={15} />
+              </button>
+              <button
+                aria-label={`Retirar ${line.service_name}`}
+                className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-danger-soft hover:text-danger"
+                onClick={(event) => onRemove(event.currentTarget)}
+                type="button"
+              >
+                <X aria-hidden="true" size={15} />
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

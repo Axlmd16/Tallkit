@@ -128,6 +128,7 @@ def test_cash_operation_is_settled_with_money_plus_withholding(manager, make_ope
     assert withholding["payment_id"] == body["payments"][0]["id"]
     record = ArtisanWithholding.objects.get()
     assert record.customer_id == record.service_operation.customer_id
+    assert record.payment is not None
     assert record.operation_id == record.payment.operation_id
 
 
@@ -388,8 +389,8 @@ def test_void_returns_the_amount_to_the_balance_and_frees_the_number(  # type: i
 
 
 def test_operation_with_active_withholdings_cannot_be_voided(
-    manager, admin, make_operation
-) -> None:  # type: ignore[no-untyped-def]
+    manager: Any, admin: Any, make_operation: Any
+) -> None:
     operation = make_operation(price="100.00")
     settle(manager, operation["id"], withheld="2.00")
     held = {"operation_id": operation["id"], "id": ArtisanWithholding.objects.get().pk}

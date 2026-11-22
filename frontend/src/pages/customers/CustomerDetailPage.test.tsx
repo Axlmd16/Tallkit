@@ -269,7 +269,7 @@ it('renders customer details and associated vehicles with links', async () => {
   expect(screen.getByText('Av. 9 de Octubre 100')).toBeInTheDocument()
   // Dato técnico interno: la versión sigue viajando al editar, pero no se muestra.
   expect(screen.queryByText(/versión de registro/i)).toBeNull()
-  await userEvent.click(screen.getByRole('tab', { name: 'Vehículos' }))
+  await userEvent.click(screen.getByRole('tab', { name: /^Vehículos/ }))
   expect(screen.getByText(/vehículos asociados/i)).toBeInTheDocument()
   expect(screen.getByText('ABC-1234')).toBeInTheDocument()
   expect(screen.getByText(/Toyota Corolla/)).toBeInTheDocument()
@@ -670,7 +670,7 @@ it('sin permisos de compras ni de cuentas no aparecen esas pestañas', () => {
 
   expect(screen.queryByRole('tab', { name: 'Historial' })).toBeNull()
   expect(screen.queryByRole('tab', { name: 'Deuda' })).toBeNull()
-  expect(screen.getByRole('tab', { name: 'Vehículos' })).toHaveAttribute(
+  expect(screen.getByRole('tab', { name: /^Vehículos/ })).toHaveAttribute(
     'aria-selected',
     'true',
   )

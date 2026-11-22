@@ -11,7 +11,7 @@ export function PageHeader({
   title,
 }: {
   actions?: ReactNode
-  description?: string
+  description?: ReactNode
   /** Antetítulo pequeño sobre el título, por ejemplo el grupo del menú. */
   eyebrow?: string
   /** Icono del encabezado, dentro de un cuadro suave. Es decorativo. */

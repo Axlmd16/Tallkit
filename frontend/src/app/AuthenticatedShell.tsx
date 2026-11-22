@@ -164,10 +164,12 @@ export function AuthenticatedShell({
             <span className="text-block font-bold text-ink">Tallkit</span>
           </div>
           <IconButton
+            className="size-[44px] min-w-[44px] min-h-[44px]"
             icon={<List size={24} />}
             label="Abrir navegación"
             onClick={() => setNavigationOpen(true)}
             ref={menuButtonRef}
+            targetSize="touch44"
           />
         </header>
 

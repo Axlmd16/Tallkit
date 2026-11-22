@@ -14,7 +14,11 @@ import {
   type ProformaState,
   type ProformaSummary,
 } from '@/features/proformas/types'
-import { SalesActions, SalesOverview } from '@/features/sales/SalesOverview'
+import {
+  SalesActions,
+  SalesOverview,
+  SalesTabs,
+} from '@/features/sales/SalesOverview'
 import { useIssuerBrand } from '@/shared/api/entity-logos'
 import {
   DropdownMenu,
@@ -68,6 +72,7 @@ export function ProformasPage() {
         title="Proformas"
       />
       <SalesOverview />
+      <SalesTabs active="proformas" />
       <ListStates
         emptyText="Aún no hay proformas registradas."
         emptyTitle="No hay proformas"

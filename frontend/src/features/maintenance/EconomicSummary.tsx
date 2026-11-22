@@ -1,17 +1,17 @@
-import { CurrencyDollar, FileText } from '@phosphor-icons/react'
+import { FileText } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
 import { useSale } from '@/features/sales/hooks'
 import { PaymentDialog } from '@/features/sales/PaymentDialog'
+import { useBusinessName } from '@/shared/api/entity-logos'
 import {
+  Avatar,
   BusinessMark,
   Button,
-  FiscalScopeBadge,
   InlineNotice,
   LoadingState,
   Money,
-  SectionPanel,
   StatusBadge,
 } from '@/shared/ui'
 
@@ -52,6 +52,8 @@ export function EconomicSummary({
   onDone: (message: string) => void
 }) {
   const query = useEconomicSummary(order.id)
+  const artisanName = useBusinessName('artesanal')
+  const commercialName = useBusinessName('commercial')
   const [documenting, setDocumenting] = useState(false)
   const [paying, setPaying] = useState<ServiceOperationSummary | null>(null)
   const [payingSale, setPayingSale] = useState<number | null>(null)
@@ -86,123 +88,242 @@ export function EconomicSummary({
     onDone(message)
   }
 
-  return (
-    <SectionPanel
-      description={summary.notice}
-      icon={<CurrencyDollar size={17} />}
-      id="order-economy-title"
-      title="Resumen económico por negocio"
-    >
-      <div className="grid gap-4 p-4 xl:grid-cols-2">
-        <section aria-labelledby="economy-commercial" className="space-y-3">
-          <header className="flex flex-wrap items-center gap-2">
-            <BusinessMark
-              decorative
-              name="Repuestos"
-              scope="commercial"
-              size="sm"
-            />
-            <h3 className="text-body font-semibold" id="economy-commercial">
-              Repuestos
-            </h3>
-            <FiscalScopeBadge scope="commercial" />
-          </header>
-          <PendingNote pending={summary.commercial.pending} />
-          {summary.commercial.documents.length === 0 &&
-            !summary.commercial.pending && (
-              <p className="text-body text-ink-muted">Sin repuestos.</p>
-            )}
-          {summary.commercial.documents.map((doc) => (
-            <CommercialRow
-              doc={doc}
-              key={doc.id}
-              onPay={(event) => {
-                returnFocus.current = event.currentTarget
-                setPayingSale(doc.id)
-              }}
-            />
-          ))}
-          <Totals
-            balance={summary.commercial.balance_total}
-            confirmed={summary.commercial.confirmed_total}
-          />
-        </section>
+  const payableArtisan =
+    summary.artisan.documents.find((op) =>
+      op.allowed_actions?.includes('pay'),
+    ) ?? null
+  const payableCommercial =
+    summary.commercial.documents.find((doc) =>
+      doc.allowed_actions.includes('pay'),
+    ) ?? null
 
-        <section aria-labelledby="economy-artisan" className="space-y-3">
-          <header className="flex flex-wrap items-center gap-2">
-            <BusinessMark
-              decorative
-              name="Servicios"
-              scope="artesanal"
-              size="sm"
-            />
-            <h3 className="text-body font-semibold" id="economy-artisan">
-              Servicios
-            </h3>
-            <FiscalScopeBadge scope="artesanal" />
-            {canDocument && (
-              <Button
-                className="ml-auto"
-                onClick={(event) => {
-                  returnFocus.current = event.currentTarget
-                  setDocumenting(true)
-                }}
-                type="button"
-                variant="soft"
-              >
-                <FileText aria-hidden="true" size={16} />
-                Generar recibo de servicios
-              </Button>
-            )}
-          </header>
-          {summary.artisan.visible ? (
-            <>
-              <PendingNote pending={summary.artisan.pending} />
-              {summary.artisan.documents.length === 0 &&
-                !summary.artisan.pending && (
-                  <p className="text-body text-ink-muted">
-                    Sin importe de servicios por documentar.
-                  </p>
-                )}
-              {summary.artisan.documents.map((operation) => (
-                <ArtisanRow
-                  key={operation.id}
-                  onPay={(event) => {
-                    returnFocus.current = event.currentTarget
-                    setPaying(operation)
-                  }}
-                  operation={operation}
-                />
-              ))}
+  return (
+    <section
+      aria-label="Resumen económico por negocio"
+      className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]"
+    >
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <section
+            aria-labelledby="economy-artisan"
+            className="flex flex-col overflow-hidden rounded-card border border-line bg-surface"
+          >
+            <header className="flex items-start gap-3 border-b border-line px-5 py-4">
+              <BusinessMark
+                decorative
+                name={artisanName}
+                scope="artesanal"
+                size="md"
+              />
+              <div className="min-w-0 flex-1 leading-snug">
+                <h2 className="truncate font-bold" id="economy-artisan">
+                  {artisanName}
+                </h2>
+                <p className="text-label text-ink-muted">
+                  Recibo de mano de obra
+                </p>
+              </div>
+            </header>
+            <div className="flex-1 space-y-3 px-5 py-4">
+              {summary.artisan.visible ? (
+                <>
+                  <PendingNote pending={summary.artisan.pending} />
+                  {summary.artisan.documents.length === 0 &&
+                    !summary.artisan.pending && (
+                      <p className="text-body text-ink-muted">
+                        Sin importe de servicios por documentar.
+                      </p>
+                    )}
+                  {summary.artisan.documents.map((operation) => (
+                    <ArtisanRow
+                      key={operation.id}
+                      onPay={(event) => {
+                        returnFocus.current = event.currentTarget
+                        setPaying(operation)
+                      }}
+                      operation={operation}
+                    />
+                  ))}
+                  {canDocument && (
+                    <Button
+                      className="w-full"
+                      onClick={(event) => {
+                        returnFocus.current = event.currentTarget
+                        setDocumenting(true)
+                      }}
+                      type="button"
+                      variant="soft"
+                    >
+                      <FileText aria-hidden="true" size={16} />
+                      Generar recibo de servicios
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <p className="text-body text-ink-muted">
+                  Sin permiso para consultar cobros de servicios.
+                </p>
+              )}
+            </div>
+            {summary.artisan.visible && (
               <Totals
                 balance={summary.artisan.balance_total ?? '0.00'}
                 confirmed={summary.artisan.confirmed_total ?? '0.00'}
               />
-            </>
-          ) : (
-            <p className="text-body text-ink-muted">
-              Sin permiso para consultar cobros de servicios.
-            </p>
-          )}
+            )}
+          </section>
+
+          <section
+            aria-labelledby="economy-commercial"
+            className="flex flex-col overflow-hidden rounded-card border border-line bg-surface"
+          >
+            <header className="flex items-start gap-3 border-b border-line px-5 py-4">
+              <BusinessMark
+                decorative
+                name={commercialName}
+                scope="commercial"
+                size="md"
+              />
+              <div className="min-w-0 flex-1 leading-snug">
+                <h2 className="truncate font-bold" id="economy-commercial">
+                  {commercialName}
+                </h2>
+                <p className="text-label text-ink-muted">Venta de repuestos</p>
+              </div>
+            </header>
+            <div className="flex-1 space-y-3 px-5 py-4">
+              <PendingNote pending={summary.commercial.pending} />
+              {summary.commercial.documents.length === 0 &&
+                !summary.commercial.pending && (
+                  <p className="text-body text-ink-muted">Sin repuestos.</p>
+                )}
+              {summary.commercial.documents.map((doc) => (
+                <CommercialRow
+                  doc={doc}
+                  key={doc.id}
+                  onPay={(event) => {
+                    returnFocus.current = event.currentTarget
+                    setPayingSale(doc.id)
+                  }}
+                />
+              ))}
+            </div>
+            <Totals
+              balance={summary.commercial.balance_total}
+              confirmed={summary.commercial.confirmed_total}
+            />
+          </section>
+        </div>
+
+        <section
+          aria-label="Comprobantes a nombre de"
+          className="rounded-card border border-line bg-surface px-5 py-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-block font-bold">Comprobantes a nombre de</h2>
+            <Link
+              className="text-label font-semibold text-accent hover:underline"
+              to={`/customers/${order.customer.id}`}
+            >
+              Ver ficha del cliente
+            </Link>
+          </div>
+          <div className="mt-3 flex items-center gap-3.5">
+            <Avatar name={order.customer.name} size="36" />
+            <div className="min-w-0 leading-snug">
+              <p className="font-bold text-ink">{order.customer.name}</p>
+              <p className="code text-label text-ink-muted">
+                {order.customer.identification_type ?? 'Identificación'}{' '}
+                {order.customer.identification}
+              </p>
+            </div>
+          </div>
         </section>
       </div>
-      {summary.combined && (
-        <div className="mx-4 mb-4 rounded-control border border-line bg-surface-subtle px-3 py-2 text-body">
-          <p className="font-semibold">Total combinado (informativo)</p>
-          <p className="text-label text-ink-muted">
-            Suma de documentos de dos negocios distintos: no es una deuda única
-            ni una factura y no puede cobrarse en conjunto.
-          </p>
-          <p className="mt-1 flex flex-wrap gap-4">
-            <span>
-              Confirmado: <Money amount={summary.combined.confirmed_total} />
-            </span>
-            <span>
-              Sin recibo: <Money amount={summary.combined.pending_total} />
-            </span>
+
+      <aside
+        aria-label="Resumen de cobro"
+        className="space-y-4 rounded-card border border-line bg-surface p-5 lg:sticky lg:top-4"
+      >
+        <div className="space-y-1">
+          <h2 className="text-block font-bold">Resumen de cobro</h2>
+          <p className="text-label text-ink-muted">{summary.notice}</p>
+        </div>
+        <dl className="space-y-2 border-t border-line pt-3 text-body">
+          {summary.artisan.visible && (
+            <div className="flex items-center justify-between gap-2">
+              <dt className="text-ink-muted">Mano de obra</dt>
+              <dd className="font-semibold">
+                <Money amount={summary.artisan.confirmed_total ?? '0.00'} />
+              </dd>
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <dt className="text-ink-muted">Repuestos</dt>
+            <dd className="font-semibold">
+              <Money amount={summary.commercial.confirmed_total} />
+            </dd>
+          </div>
+          {summary.combined && (
+            <div className="border-t border-line pt-2.5">
+              <dt className="text-label text-ink-muted">
+                Total combinado (informativo)
+              </dt>
+              <dd className="text-display leading-tight font-light tracking-tight tabular-nums">
+                <Money amount={summary.combined.confirmed_total} />
+              </dd>
+              {Number(summary.combined.pending_total) > 0 && (
+                <p className="mt-1 text-label text-ink-muted">
+                  Sin recibo: <Money amount={summary.combined.pending_total} />
+                </p>
+              )}
+            </div>
+          )}
+        </dl>
+        <div className="space-y-2 border-t border-line pt-3">
+          {canDocument && (
+            <Button
+              className="w-full"
+              onClick={(event) => {
+                returnFocus.current = event.currentTarget
+                setDocumenting(true)
+              }}
+              type="button"
+            >
+              Generar recibo de servicios
+            </Button>
+          )}
+          {payableArtisan && (
+            <Button
+              className="w-full"
+              onClick={(event) => {
+                returnFocus.current = event.currentTarget
+                setPaying(payableArtisan)
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Cobrar servicios
+            </Button>
+          )}
+          {payableCommercial && (
+            <Button
+              className="w-full"
+              onClick={(event) => {
+                returnFocus.current = event.currentTarget
+                setPayingSale(payableCommercial.id)
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Cobrar repuestos
+            </Button>
+          )}
+          <p className="text-center text-label text-ink-muted">
+            Cada negocio registra su cobro y su comprobante por separado.
           </p>
         </div>
-      )}
+      </aside>
       {documenting && (
         <ServiceOperationDialog
           onClose={() => setDocumenting(false)}
@@ -228,7 +349,7 @@ export function EconomicSummary({
           userScope={userScope}
         />
       )}
-    </SectionPanel>
+    </section>
   )
 }
 
@@ -253,14 +374,19 @@ function Totals({
   balance: string
 }) {
   return (
-    <p className="flex justify-end gap-4 border-t border-line pt-2 text-body">
-      <span>
-        Confirmado: <Money amount={confirmed} />
-      </span>
-      <span className="font-semibold">
-        Saldo: <Money amount={balance} />
-      </span>
-    </p>
+    <div className="flex items-baseline justify-between gap-3 border-t border-line bg-surface-subtle px-5 py-3">
+      <div className="text-label text-ink-muted">
+        Confirmado{' '}
+        <Money amount={confirmed} className="font-semibold text-ink" />
+      </div>
+      <div className="text-right">
+        <span className="mr-2 text-label text-ink-muted">Saldo</span>
+        <Money
+          amount={balance}
+          className="text-figure font-light tracking-tight"
+        />
+      </div>
+    </div>
   )
 }
 

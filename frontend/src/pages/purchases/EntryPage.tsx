@@ -8,7 +8,7 @@ import {
   Trash,
 } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import {
   describeProblem,
@@ -520,6 +520,12 @@ export function EntryPage() {
                   </tbody>
                 </table>
               </div>
+              <Link
+                className="mt-3 flex min-h-11 items-center justify-center rounded-control border-[1.5px] border-dashed border-line-dashed text-body font-semibold text-ink-muted transition-colors hover:border-ink/40 hover:text-ink"
+                to="/products/new"
+              >
+                + Producto que todavía no está registrado
+              </Link>
             </section>
 
             <section aria-label="Detalles opcionales" className="sale-section">

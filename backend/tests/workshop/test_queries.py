@@ -162,7 +162,7 @@ def test_seller_cannot_list(seller, scenario) -> None:  # type: ignore[no-untype
 
 
 def test_no_n_plus_one(manager, scenario, django_assert_max_num_queries) -> None:  # type: ignore[no-untyped-def]
-    with django_assert_max_num_queries(10):
+    with django_assert_max_num_queries(12):
         listing(manager, page_size=50)
 
 

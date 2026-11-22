@@ -27,7 +27,7 @@ import {
   ReopenDialog,
 } from '@/features/maintenance/Transitions'
 import { OrderStateBadge } from '@/features/maintenance/format'
-import { Button, InlineNotice, LoadingState, useToast } from '@/shared/ui'
+import { Button, InlineNotice, LoadingState, Tabs, useToast } from '@/shared/ui'
 
 type Dialogs = 'finalize' | 'reopen' | null
 
@@ -48,6 +48,7 @@ export function MaintenanceOrderDetailPage() {
   const permissions = new Set(session?.permissions ?? [])
   const summaryQuery = useEconomicSummary(validId ? id : 0, validId)
   const [dialog, setDialog] = useState<Dialogs>(null)
+  const [workTab, setWorkTab] = useState<'trabajos' | 'repuestos'>('trabajos')
   const toast = useToast()
   const returnFocus = useRef<HTMLElement | null>(null)
 
@@ -139,12 +140,42 @@ export function MaintenanceOrderDetailPage() {
         <div className="flex min-w-0 flex-[999_1_37.5rem] flex-col gap-4">
           {reopened && <InterventionsSection onDone={done} order={order} />}
           <DiagnosisCard editable={actions.has('edit')} order={order} />
-          <ServiceLinesSection onDone={done} order={order} />
-          <PartsSection
-            canOpenSales={permissions.has('ventas.ver')}
-            canSeeKardex={permissions.has('inventario.ver')}
-            onDone={done}
-            order={order}
+          <Tabs
+            activeId={workTab}
+            aria-label="Trabajos y repuestos"
+            items={[
+              {
+                id: 'trabajos',
+                label: 'Trabajos',
+                count: order.interventions.reduce(
+                  (total, intervention) => total + intervention.lines.length,
+                  0,
+                ),
+                content: <ServiceLinesSection onDone={done} order={order} />,
+              },
+              {
+                id: 'repuestos',
+                label: 'Repuestos',
+                ...(summary?.commercial.visible
+                  ? {
+                      count:
+                        summary.commercial.documents.length +
+                        (summary.commercial.pending?.line_count ?? 0),
+                    }
+                  : {}),
+                content: (
+                  <PartsSection
+                    canOpenSales={permissions.has('ventas.ver')}
+                    canSeeKardex={permissions.has('inventario.ver')}
+                    defaultExpanded
+                    onDone={done}
+                    order={order}
+                  />
+                ),
+              },
+            ]}
+            onChange={(next) => setWorkTab(next as 'trabajos' | 'repuestos')}
+            panelClassName="pt-3"
           />
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(18.75rem,1fr))]">
             <NotesCard editable={actions.has('edit')} order={order} />

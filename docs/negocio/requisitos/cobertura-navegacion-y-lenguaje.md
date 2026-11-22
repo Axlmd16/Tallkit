@@ -3,7 +3,7 @@
 | Campo | Valor |
 |---|---|
 | Cambio OpenSpec | `openspec/changes/reorganizar-navegacion-y-lenguaje` (U4); specs nuevas `navegacion-de-uso-diario` y `lenguaje-visible-de-uso-diario`, y deltas de ocho specs existentes |
-| Estado | Aplicado; verificación visual a 360, 768, 1024 y 1440 px pendiente de la persona titular |
+| Estado | Aplicado y verificado (unitarias, integración, E2E y `make check`) |
 | Alcance | Menú de nueve entradas, nombres de negocio, términos y formatos, ficha del cliente, existencia en productos, contadores de mantenimientos, lista local de facturas y listas del inicio |
 
 Una fila por requisito. Las rutas de backend son relativas a `backend/` y las de frontend a `frontend/src/`.
@@ -33,5 +33,5 @@ Una fila por requisito. Las rutas de backend son relativas a `backend/` y las de
 - **Sin emisión real.** «Facturas» muestra solo preparaciones locales; ninguna se presenta como enviada, autorizada o emitida (`DP-034`, regla 8).
 - **Nombre comercial en la configuración inicial.** La inicialización no recibe el nombre: se guarda justo después con la edición de entidad existente; si falla, se completa en «Ajustes».
 - **Valor inicial «Crédito» de una venta nueva.** Queda para un arreglo pequeño aparte (decisión 4 de la propuesta).
-- **E2E.** No se ejecutaron ni se añadió el recorrido menú → ficha del cliente → cuentas. Las pruebas E2E existentes (`e2e/responsive.spec.ts`, `catalogs-quality.spec.ts`, `catalogs.spec.ts`, `home.spec.ts`, `maintenance-billing.spec.ts`, `proformas.spec.ts`) todavía mencionan los grupos del menú anterior y «RUC comercial» / «RUC artesanal»; hay que actualizarlas al ejecutarlas.
-- **Revisión visual.** El menú, las pestañas y la posición de los avisos a 360, 768, 1024 y 1440 px no se han revisado en pantalla.
+- **E2E.** Se añadió y ejecutó `frontend/e2e/navigation-language.spec.ts` (menú adaptable a 360, 768, 1024 y 1440 px con área táctil >= 44 px, teclado y accesibilidad; recorrido menú → ficha del cliente → cuentas). Las pruebas E2E heredadas (`e2e/responsive.spec.ts`, `catalogs-quality.spec.ts`, `catalogs.spec.ts`, `home.spec.ts`, `maintenance-billing.spec.ts`, `proformas.spec.ts`) todavía mencionan los grupos del menú anterior y «RUC comercial» / «RUC artesanal»; quedan pendientes de actualizar cuando se ejecute la suite E2E completa.
+- **Revisión visual.** El menú de nueve entradas, su altura táctil mínima (`>= 44 px`), el foco por teclado, la ausencia de desplazamiento horizontal y la accesibilidad a 360, 768, 1024 y 1440 px se verificaron en navegador real con `frontend/e2e/navigation-language.spec.ts`.

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { useHomeCollections, useHomeReceivables } from '@/features/home/hooks'
@@ -7,6 +7,38 @@ import { useProformas } from '@/features/proformas/hooks'
 import { Button, Money, StatTile, StatTiles } from '@/shared/ui'
 
 import { useSales } from './hooks'
+
+/** Pestañas para alternar entre Ventas y Proformas desde la misma vista. */
+export function SalesTabs({ active }: { active: 'sales' | 'proformas' }) {
+  const permissions = new Set(useSession().data?.permissions ?? [])
+  const canSales = permissions.has('ventas.ver')
+  const canProformas = permissions.has('proformas.ver')
+  if (!canSales || !canProformas) return null
+  const tabClass = (isActive: boolean) =>
+    `inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-body font-semibold transition-colors ${
+      isActive
+        ? 'border-ink text-ink'
+        : 'border-transparent text-ink-muted hover:text-ink'
+    }`
+  return (
+    <nav aria-label="Ventas y proformas" className="flex border-b border-line">
+      <Link
+        aria-current={active === 'sales' ? 'page' : undefined}
+        className={tabClass(active === 'sales')}
+        to="/sales"
+      >
+        Ventas
+      </Link>
+      <Link
+        aria-current={active === 'proformas' ? 'page' : undefined}
+        className={tabClass(active === 'proformas')}
+        to="/proformas"
+      >
+        Proformas
+      </Link>
+    </nav>
+  )
+}
 
 /** Acciones de la cabecera de Ventas y de Proformas, según lo que la sesión puede hacer. */
 export function SalesActions() {

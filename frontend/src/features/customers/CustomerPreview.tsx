@@ -13,6 +13,7 @@ import { useCustomerVehicles } from '@/features/vehicles/hooks'
 import {
   Avatar,
   Button,
+  GaugeMotif,
   Money,
   PlateTag,
   SkeletonRows,
@@ -103,18 +104,28 @@ export function CustomerPreview({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center gap-4">
-        <Avatar className="size-12 text-block" name={customer.name} size="36" />
-        <div className="min-w-0 flex-1">
-          <p className="text-label text-ink-muted">
+      <div className="relative flex flex-wrap items-center gap-4 overflow-hidden rounded-card bg-graphite p-5 text-white">
+        <GaugeMotif
+          className="absolute -right-8 -bottom-6 w-52 opacity-60"
+          variant="card"
+        />
+        <Avatar
+          className="relative size-12 bg-accent text-block text-white"
+          name={customer.name}
+          size="36"
+        />
+        <div className="relative min-w-0 flex-1">
+          <p className="text-label text-graphite-ink">
             {customer.person_type === 'JURIDICA' ? 'Empresa' : 'Persona'} ·
             cliente desde {since}
             {!customer.is_active && ' · inactivo'}
           </p>
-          <h2 className="text-figure font-bold break-words">{customer.name}</h2>
+          <h2 className="text-figure font-bold break-words text-white">
+            {customer.name}
+          </h2>
         </div>
         <Link
-          className={`${linkButton} border-line-strong text-ink hover:bg-surface-subtle`}
+          className={`${linkButton} relative border-white/20 bg-white text-ink hover:bg-surface-subtle`}
           to={`/customers/${customer.id}`}
         >
           Abrir ficha completa

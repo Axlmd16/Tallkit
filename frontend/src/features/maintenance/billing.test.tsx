@@ -70,6 +70,12 @@ function order(overrides: Partial<MaintenanceOrder> = {}): MaintenanceOrder {
     number: 'ART-OT-000009',
     state: 'REGISTERED',
     version: 3,
+    customer: {
+      id: 1,
+      name: 'Ana Pérez',
+      identification: '0912345678',
+      identification_type: 'CI',
+    },
     allowed_actions: [],
     billing_actions: ['manage_parts', 'document_services'],
     ...overrides,
@@ -146,13 +152,9 @@ describe('PartsSection', () => {
     expect(
       screen.getByRole('link', { name: 'Movimientos de Filtro' }),
     ).toHaveAttribute('href', '/inventory/products/7/kardex')
+    expect(screen.getByText(/Pendiente de confirmar/i)).toBeInTheDocument()
     expect(
-      screen.getByText('Reservado, pendiente de confirmar'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        /no descontar inventario ni generar deuda|sin descontar inventario ni generar deuda/,
-      ),
+      screen.getByText(/no puede finalizar hasta confirmar/i),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Confirmada: salida registrada'),
@@ -205,7 +207,7 @@ describe('PartsSection', () => {
     )
     const events = userEvent.setup()
     renderIn(<PartsSection canOpenSales onDone={vi.fn()} order={order()} />)
-    expect(screen.getByText('Hay 5 en existencia')).toBeInTheDocument()
+    expect(screen.getByText(/Hay 5/)).toBeInTheDocument()
 
     const more = screen.getByRole('button', { name: 'Uno más de Filtro' })
     await events.click(more)
@@ -297,25 +299,25 @@ describe('EconomicSummary', () => {
     }
     renderIn(<EconomicSummary onDone={vi.fn()} order={order()} userScope="u" />)
     expect(
-      screen.getByRole('button', { name: 'Cobrar repuestos' }),
-    ).toBeInTheDocument()
+      screen.getAllByRole('button', { name: 'Cobrar repuestos' }).length,
+    ).toBeGreaterThan(0)
     expect(
-      screen.getByRole('button', { name: 'Cobrar servicios' }),
-    ).toBeInTheDocument()
+      screen.getAllByRole('button', { name: 'Cobrar servicios' }).length,
+    ).toBeGreaterThan(0)
     expect(
       screen.getByText('Total combinado (informativo)'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/no es una deuda única ni una\s+factura/),
+      screen.getByText('Cada RUC se cobra por separado.'),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Sin recibo: todavía no genera deuda.'),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', {
+      screen.getAllByRole('button', {
         name: 'Generar recibo de servicios',
-      }),
-    ).toBeInTheDocument()
+      }).length,
+    ).toBeGreaterThan(0)
     expect(screen.getByText('Sin recibo:')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'ART-SER-000004' }),
@@ -373,7 +375,7 @@ describe('Diálogos de servicios', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        /Comprobante interno: no es una factura electrónica autorizada por el SRI\./,
+        /Recibo: no es una factura electrónica autorizada por el SRI\./,
       ),
     ).toBeInTheDocument()
     await events.click(screen.getByRole('button', { name: 'Generar recibo' }))

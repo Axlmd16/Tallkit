@@ -91,6 +91,7 @@ def test_cash_sale_is_settled_with_money_plus_withholding(seller: Any, confirmed
     assert money["payment_state"] == "PAID"
     assert money["refund_due"] == "0.00"
     withholding = CommercialWithholding.objects.get()
+    assert withholding.payment is not None
     assert withholding.payment_id == CommercialPayment.objects.get().pk
     assert withholding.operation_id == withholding.payment.operation_id
     assert withholding.customer_id == Sale.objects.get(pk=sale["id"]).customer_id

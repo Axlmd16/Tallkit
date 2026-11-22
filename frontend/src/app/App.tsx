@@ -66,6 +66,7 @@ import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { PermissionGuard } from './PermissionGuard'
 import { createAppQueryClient } from './query-client'
 
+import { InitialSetupPage } from '@/pages/workshop-configuration/InitialSetupPage'
 import { WorkshopConfigurationPage } from '@/pages/workshop-configuration/WorkshopConfigurationPage'
 
 export const appRoutes: RouteObject[] = [
@@ -74,6 +75,14 @@ export const appRoutes: RouteObject[] = [
     element: <RemoteSessionGuard />,
     children: [
       { path: '/change-password', element: <ChangePasswordPage /> },
+      {
+        path: '/configuration/setup',
+        element: (
+          <PermissionGuard permission="parametros.gestionar">
+            <InitialSetupPage />
+          </PermissionGuard>
+        ),
+      },
       {
         element: <RemoteAuthenticatedShell />,
         children: [

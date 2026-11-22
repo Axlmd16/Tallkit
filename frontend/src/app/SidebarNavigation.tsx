@@ -8,7 +8,7 @@ import {
 } from './navigation'
 
 const rowBase =
-  'app-rail-nav-item relative flex min-h-11 w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white'
+  'app-rail-nav-item relative flex min-h-[44px] w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white'
 const rowIdle = 'text-graphite-ink hover:bg-graphite-raised/60 hover:text-white'
 /* Entrada activa: fondo elevado, texto blanco y barra cobre a la izquierda. */
 const rowActive =

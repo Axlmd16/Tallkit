@@ -265,6 +265,9 @@ export function CustomerDetailPage() {
           {
             id: 'vehiculos',
             label: 'Vehículos',
+            ...(vehiclesQuery.data
+              ? { count: vehiclesQuery.data.results.length }
+              : {}),
             content: (
               <DetailCard
                 actions={
@@ -317,6 +320,15 @@ export function CustomerDetailPage() {
                         to={`/vehicles/${v.id}`}
                       />
                     ))}
+                    {canManageVehicles && (
+                      <Link
+                        className="flex min-h-36 flex-col items-center justify-center gap-2 rounded-card border-[1.5px] border-dashed border-line-dashed bg-surface-subtle p-4 text-center text-body font-semibold text-ink-muted transition-colors hover:border-ink/40 hover:text-ink"
+                        to={`/vehicles/new?owner_id=${customer.id}&owner_name=${encodeURIComponent(customer.name)}`}
+                      >
+                        <Plus aria-hidden="true" size={20} />
+                        Registrar otro vehículo
+                      </Link>
+                    )}
                   </div>
                 )}
               </DetailCard>

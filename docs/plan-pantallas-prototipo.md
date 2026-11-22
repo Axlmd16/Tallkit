@@ -234,4 +234,4 @@ Es la que más se usa. Va antes de U5 (búsqueda) y U6 (cobrar y facturar), que 
 
 - [x] Fase 1: 1.1, 1.2, 1.3 (rediseñada con la versión nueva del prototipo, 2026-11-15) y 1.4 (`/sales/quick`)
 - [x] Fase 2: 2.1 a 2.10 (2026-11-19; lo que no entró está en «Fuera de este plan»)
-- [ ] Fase 3: 3.1, 3.2
+- [x] Fase 3: 3.1 (`/settings`), 3.2 (`/configuration/setup`) (2026-11-21)

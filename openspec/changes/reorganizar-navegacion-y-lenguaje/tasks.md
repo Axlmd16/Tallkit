@@ -29,7 +29,7 @@
 - [x] 2.6 Crear la ruta `/settings` y `pages/settings/SettingsPage.tsx` como en `docs/prototipo/Ajustes.dc.html` (pantalla 14): página de entrada con las opciones permitidas (proveedores, marcas de vehículo y de producto, categorías, unidades, usuarios, auditoría, estado técnico y configuración), cada una con icono y descripción breve. Mantener «Ajustes» resaltado y la ruta de migas «Ajustes › …» en las pantallas hijas. Prueba al final: cada opción aparece solo con su permiso y una pantalla hija conserva la entrada resaltada.
 - [x] 2.7 Prueba de cobertura de rutas en `app/navigation.test.ts`: toda ruta de lista de `app/App.tsx` pertenece a una sección o a `/settings`; las rutas anteriores (Vehículos, Proformas, Entradas, Inventario, Proveedores, Cobros de servicios) abren su pantalla con la entrada correcta marcada.
 - [x] 2.8 Actualizar las pruebas de rutas existentes que dependen del menú agrupado (`catalog-routes`, `configuration-routes`, `maintenance-routes`, `purchases-inventory-routes`, `sales-routes`, `proformas-routes`, `maintenance-billing-routes`) sin fijar los nombres de las entradas.
-- [ ] 2.9 Cierre del grupo: `cd frontend && npx vitest run src/app && npm run lint && npm run typecheck`; revisión visual del menú a 360, 768, 1024 y 1440 px (táctil de al menos 44 px y teclado).
+- [x] 2.9 Cierre del grupo: `cd frontend && npx vitest run src/app && npm run lint && npm run typecheck`; revisión visual del menú a 360, 768, 1024 y 1440 px (táctil de al menos 44 px y teclado).
 
 ## 3. Ficha del cliente, existencias y contadores
 
@@ -57,5 +57,5 @@
 - [x] 5.3 Registrar en `docs/negocio/decisiones/decisiones-confirmadas.yaml` (`DP-036`) qué muestra «Facturas» antes del cambio 3 y la ubicación del menú; ajustar `docs/arquitectura/modelo-dominio.md` §11.6 solo si cambia su texto.
 - [x] 5.4 Actualizar `DESIGN.md` (menú) y `docs/cambios-pendientes.md` (casillas de U4 y la brecha del estado «cancelado» de mantenimientos).
 - [x] 5.5 Crear `docs/negocio/requisitos/cobertura-navegacion-y-lenguaje.md` con una fila por requisito y su prueba (no por escenario) y la nota de las brechas: sin «Canceladas» y sin emisión real.
-- [ ] 5.6 Prueba E2E del recorrido menú → ficha del cliente → cuentas, solo si el proyecto ya tiene E2E; si no, registrar la ausencia en la cobertura.
-- [ ] 5.7 Verificación final con evidencia reciente: `make check` (formato, lint, tipos, cobertura, build y compose) y `cd backend && uv run python manage.py makemigrations --check --dry-run`; registrar los comandos y sus resultados reales. La suite completa solo si el titular la pide.
+- [x] 5.6 Prueba E2E del recorrido menú → ficha del cliente → cuentas, solo si el proyecto ya tiene E2E; si no, registrar la ausencia en la cobertura.
+- [x] 5.7 Verificación final con evidencia reciente: `make check` (formato, lint, tipos, cobertura, build y compose) y `cd backend && uv run python manage.py makemigrations --check --dry-run`; registrar los comandos y sus resultados reales. La suite completa solo si el titular la pide.

@@ -264,7 +264,7 @@ it('organiza la ficha: banda del vehículo, trabajo a la izquierda y estado a la
     screen.getByRole('textbox', { name: /Diagnóstico/ }),
   ).toBeInTheDocument()
   expect(screen.getByText('Cambio de embrague')).toBeInTheDocument()
-  expect(screen.getByText('Repuestos del almacén')).toBeInTheDocument()
+  expect(screen.getByRole('tab', { name: /^Repuestos/ })).toBeInTheDocument()
   expect(
     screen.getByRole('textbox', { name: 'Observaciones' }),
   ).toBeInTheDocument()

@@ -1,4 +1,4 @@
-import { ArrowLeft } from '@phosphor-icons/react'
+import { ArrowLeft, Receipt } from '@phosphor-icons/react'
 import { Link, useParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
@@ -8,6 +8,7 @@ import {
   Button,
   InlineNotice,
   LoadingState,
+  PageHeader,
   PlateTag,
   useToast,
 } from '@/shared/ui'
@@ -39,26 +40,26 @@ export function MaintenanceBillingPage() {
   const order = query.data
   return (
     <div className="catalog-page space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3.5 border-b border-line pb-5">
-        <div>
-          <p className="text-label text-ink-muted">
-            Mantenimiento N.º <span className="code">{order.number}</span>
-          </p>
-          <h1 className="text-page font-bold tracking-tight">
-            Cobrar y facturar
-          </h1>
-          <p className="mt-1.5 flex items-center gap-2.5 text-lead text-ink-muted">
-            {order.customer.name} <PlateTag plate={order.vehicle.plate} />
-          </p>
-        </div>
-        <Link
-          className="inline-flex items-center gap-2 text-body font-semibold text-accent hover:underline"
-          to={`/maintenance/${order.id}`}
-        >
-          <ArrowLeft aria-hidden="true" size={16} />
-          Volver al mantenimiento
-        </Link>
-      </div>
+      <PageHeader
+        actions={
+          <Link
+            className="inline-flex items-center gap-2 text-body font-semibold text-ink-muted hover:text-ink"
+            to={`/maintenance/${order.id}`}
+          >
+            <ArrowLeft aria-hidden="true" size={16} />
+            Volver al mantenimiento
+          </Link>
+        }
+        description={
+          <span className="inline-flex flex-wrap items-center gap-2.5">
+            <span>{order.customer.name}</span>
+            <PlateTag plate={order.vehicle.plate} />
+          </span>
+        }
+        eyebrow={`Mantenimiento N.º ${order.number}`}
+        icon={<Receipt />}
+        title="Cobrar y facturar"
+      />
       <EconomicSummary
         onDone={(message) => toast.success(message)}
         order={order}

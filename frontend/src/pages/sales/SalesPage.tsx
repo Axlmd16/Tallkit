@@ -17,7 +17,11 @@ import {
 } from '@/features/sales/format'
 import { useSales } from '@/features/sales/hooks'
 import { useCustomerPickerOptions } from '@/features/sales/pickers'
-import { SalesActions, SalesOverview } from '@/features/sales/SalesOverview'
+import {
+  SalesActions,
+  SalesOverview,
+  SalesTabs,
+} from '@/features/sales/SalesOverview'
 import {
   conditionLabels,
   paymentStateLabels,
@@ -114,6 +118,7 @@ export function SalesPage() {
         title="Ventas"
       />
       <SalesOverview />
+      <SalesTabs active="sales" />
       <ListStates
         toolbar={
           <>
