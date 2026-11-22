@@ -324,12 +324,15 @@ function DraftEditor({
     mutations.review.mutate({ preparationId: detail.preparation_id })
   }
 
+  const [saveEmailToCustomer, setSaveEmailToCustomer] = useState(true)
+
   const complete = (token: string) =>
     mutations.prepare.mutate(
       {
         preparationId: detail.preparation_id,
         reviewToken: token,
         attemptKey: crypto.randomUUID(),
+        saveEmailToCustomer: !consumerFinal && saveEmailToCustomer,
       },
       { onSuccess: () => toast.success('Datos de la factura listos.') },
     )
@@ -714,9 +717,21 @@ function DraftEditor({
       {review && review.impediments.length === 0 && review.review_token && (
         <Surface>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-body text-success">
-              <CheckCircle aria-hidden="true" /> Todo está en orden.
-            </p>
+            <div className="space-y-2">
+              <p className="flex items-center gap-2 text-body text-success">
+                <CheckCircle aria-hidden="true" /> Todo está en orden.
+              </p>
+              {!consumerFinal && (
+                <label className="flex items-center gap-2 text-caption text-ink-muted">
+                  <input
+                    checked={saveEmailToCustomer}
+                    onChange={(e) => setSaveEmailToCustomer(e.target.checked)}
+                    type="checkbox"
+                  />
+                  Guardar este correo en la ficha del cliente
+                </label>
+              )}
+            </div>
             <Button
               onClick={() => complete(review.review_token!)}
               pending={mutations.prepare.isPending}

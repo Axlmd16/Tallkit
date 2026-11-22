@@ -424,6 +424,7 @@ export interface CustomerOption {
   identification_type: string
   identification: string
   phone: string
+  email?: string
 }
 
 export interface ProductOption {

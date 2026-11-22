@@ -1,7 +1,12 @@
 import { ApiClient } from '@/shared/api/client'
 import { environment } from '@/shared/config/env'
 
-import type { HomeCollections, HomePending, HomeReceivables } from './types'
+import type {
+  HomeCollections,
+  HomePending,
+  HomeReceivables,
+  HomeUnbilled,
+} from './types'
 
 const BASE = '/home'
 
@@ -19,6 +24,9 @@ export function createHomeApi(client: ApiClient) {
     },
     collections(): Promise<HomeCollections> {
       return client.request(`${BASE}/collections/`)
+    },
+    unbilled(): Promise<HomeUnbilled> {
+      return client.request(`${BASE}/unbilled/`)
     },
   }
 }

@@ -13,26 +13,21 @@ import { Link, useSearchParams } from 'react-router'
 
 import { useSession } from '@/features/auth/hooks'
 import { describeProblem } from '@/features/catalog-common/problem'
+import { checkoutApi } from '@/features/checkout/api'
+import type { CheckoutExecuteResponse } from '@/features/checkout/types'
 import { QuantityStepper } from '@/features/maintenance/QuantityStepper'
 import { salesApi } from '@/features/sales/api'
-import {
-  useCustomerOptions,
-  useProductOptions,
-  useSaleMutations,
-} from '@/features/sales/hooks'
-import {
-  clearIntent,
-  getOrCreateIntent,
-  intentKey,
-} from '@/features/sales/moneyIntent'
-import {
-  runQuickSale,
-  type QuickPayMethod,
-  type QuickSaleResult,
-} from '@/features/sales/quickSale'
+import { useCustomerOptions, useProductOptions } from '@/features/sales/hooks'
+import type { QuickPayMethod } from '@/features/sales/quickSale'
 import type { CustomerOption, ProductOption } from '@/features/sales/types'
 import { useBusinessName } from '@/shared/api/entity-logos'
-import { InlineNotice, Money, StatusBadge, useToast } from '@/shared/ui'
+import {
+  Checkbox,
+  InlineNotice,
+  Money,
+  StatusBadge,
+  useToast,
+} from '@/shared/ui'
 
 interface Line {
   product: ProductOption
@@ -141,22 +136,30 @@ function FloatingSearch({
  */
 export function QuickSalePage() {
   const session = useSession().data
-  const userScope = session?.username ?? ''
+  const canManageCustomer = Boolean(
+    session?.permissions?.includes('clientes.gestionar'),
+  )
   const business = useBusinessName('commercial')
   const toast = useToast()
-  const mutations = useSaleMutations()
   const productInput = useRef<HTMLDivElement>(null)
 
   // Desde la ficha de un cliente llega su identificación para buscarlo de inmediato.
   const [params] = useSearchParams()
   const [customer, setCustomer] = useState<CustomerOption | null>(null)
   const [customerText, setCustomerText] = useState(params.get('customer') ?? '')
+  const [email, setEmail] = useState('')
+  const [saveEmail, setSaveEmail] = useState(true)
   const [productText, setProductText] = useState('')
   const [lines, setLines] = useState<Line[]>([])
   const [method, setMethod] = useState<QuickPayMethod>('EFECTIVO')
   const [running, setRunning] = useState(false)
   const [error, setError] = useState('')
-  const [result, setResult] = useState<QuickSaleResult | null>(null)
+  const [result, setResult] = useState<CheckoutExecuteResponse | null>(null)
+  const [intentKey, setIntentKey] = useState(() => crypto.randomUUID())
+
+  useEffect(() => {
+    setEmail(customer?.email ?? '')
+  }, [customer])
 
   const customerTerm = useDebounced(customerText.trim())
   const productTerm = useDebounced(productText.trim())
@@ -217,39 +220,55 @@ export function QuickSalePage() {
   function reset() {
     setCustomer(null)
     setCustomerText('')
+    setEmail('')
     setProductText('')
     setLines([])
     setMethod('EFECTIVO')
     setError('')
     setResult(null)
+    setIntentKey(crypto.randomUUID())
   }
 
-  async function charge() {
+  async function charge(includeInvoices: boolean) {
     if (!customer || lines.length === 0 || running) return
     setRunning(true)
     setError('')
     try {
-      const outcome = await runQuickSale(
+      const outcome = await checkoutApi.execute(
         {
-          create: (data, key) => mutations.create.mutateAsync({ data, key }),
-          preview: (id) => mutations.preview.mutateAsync(id),
-          confirm: (v) => mutations.confirm.mutateAsync(v),
-          paymentPreview: (id, data) => salesApi.paymentPreview(id, data),
-          registerPayment: (v) => mutations.registerPayment.mutateAsync(v),
-          operationId: (id) =>
-            getOrCreateIntent(intentKey(userScope, id, 'payment')),
-          settled: (id) => clearIntent(intentKey(userScope, id, 'payment')),
-          newKey: () => crypto.randomUUID(),
+          origin_kind: 'QUICK_SALE',
+          customer_id: customer.id,
+          lines: lines.map((line) => ({
+            product_id: line.product.id,
+            quantity: line.quantity,
+          })),
+          payment_mode:
+            method === 'EFECTIVO'
+              ? 'CASH'
+              : method === 'TRANSFERENCIA'
+                ? 'TRANSFER'
+                : 'CREDIT',
+          include_invoices: includeInvoices,
+          receiver_mode: 'CUSTOMER',
+          receiver_email: email.trim(),
+          save_email_to_customer:
+            includeInvoices && saveEmail && canManageCustomer,
+          credit_term_days: method === 'CREDITO' ? 30 : null,
         },
-        { customerId: customer.id, lines: input, method },
+        intentKey,
       )
       setResult(outcome)
-      if (outcome.status === 'paid')
-        toast.success(`Venta ${outcome.sale.internal_number ?? ''} cobrada.`)
-      if (outcome.status === 'credit')
+      setIntentKey(crypto.randomUUID())
+      const number = outcome.commercial.document_number ?? ''
+      if (method === 'CREDITO') {
+        toast.success(`Venta ${number} registrada a crédito.`)
+      } else {
         toast.success(
-          `Venta ${outcome.sale.internal_number ?? ''} registrada a crédito.`,
+          includeInvoices && outcome.commercial.fiscal_state === 'PREPARED'
+            ? `Venta ${number} cobrada y factura local preparada (sin enviar).`
+            : `Venta ${number} cobrada.`,
         )
+      }
     } catch (failure) {
       setError(describeProblem(failure).message)
     } finally {
@@ -257,8 +276,9 @@ export function QuickSalePage() {
     }
   }
 
-  const done = result?.status === 'paid' || result?.status === 'credit'
+  const done = result !== null
   const locked = running || done
+  const missingEmail = email.trim().length === 0
   const blocker = !customer
     ? 'Elija al cliente'
     : lines.length === 0
@@ -521,31 +541,60 @@ export function QuickSalePage() {
               />
               <div>
                 <h2 className="text-figure font-bold" id="quick-done-title">
-                  Venta {result.sale.internal_number ?? ''}{' '}
-                  {result.status === 'paid' ? 'cobrada' : 'a crédito'}
+                  Venta {result.commercial.document_number ?? ''}{' '}
+                  {result.commercial.paid ? 'cobrada' : 'a crédito'}
                 </h2>
                 <p className="text-display font-light tracking-tight tabular-nums">
                   <Money
-                    amount={result.sale.grand_total}
+                    amount={
+                      result.commercial.paid
+                        ? (result.commercial.paid_amount ?? total)
+                        : total
+                    }
                     className="text-left"
                   />
                 </p>
               </div>
-              <StatusBadge
-                label={
-                  result.status === 'paid'
-                    ? 'Cobro registrado'
-                    : 'Queda debiendo'
-                }
-                tone={result.status === 'paid' ? 'success' : 'warning'}
-              />
+              <div className="flex flex-wrap gap-2">
+                <StatusBadge
+                  label={
+                    result.commercial.paid
+                      ? 'Cobro registrado'
+                      : 'Queda debiendo'
+                  }
+                  tone={result.commercial.paid ? 'success' : 'warning'}
+                />
+                <StatusBadge
+                  label={
+                    result.commercial.fiscal_state === 'PREPARED'
+                      ? 'Factura preparada (sin enviar)'
+                      : result.commercial.fiscal_state === 'FAILED'
+                        ? 'Factura pendiente'
+                        : 'Sin factura aún'
+                  }
+                  tone={
+                    result.commercial.fiscal_state === 'PREPARED'
+                      ? 'info'
+                      : 'warning'
+                  }
+                />
+              </div>
+              {result.commercial.fiscal_error && (
+                <InlineNotice title="Factura pendiente" tone="warning">
+                  <p className="text-caption">
+                    {result.commercial.fiscal_error}
+                  </p>
+                </InlineNotice>
+              )}
               <div className="flex flex-wrap gap-2.5">
-                <Link
-                  className="ui-button inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-ink px-4 text-body font-semibold text-ink hover:bg-ink hover:text-white"
-                  to={`/sales/${result.sale.id}/document`}
-                >
-                  Imprimir recibo
-                </Link>
+                {result.commercial.sale_id && (
+                  <Link
+                    className="ui-button inline-flex min-h-12 flex-1 items-center justify-center rounded-control border border-ink px-4 text-body font-semibold text-ink hover:bg-ink hover:text-white"
+                    to={`/sales/${result.commercial.sale_id}/document`}
+                  >
+                    Imprimir recibo
+                  </Link>
+                )}
                 <button
                   className="ui-button min-h-12 flex-1 rounded-control border border-primary bg-primary px-4 text-body font-semibold text-white hover:bg-primary-strong"
                   onClick={reset}
@@ -597,58 +646,64 @@ export function QuickSalePage() {
                   })}
                 </div>
               </div>
-              {result &&
-                (result.status === 'draft' || result.status === 'unpaid') && (
-                  <InlineNotice
-                    title={
-                      result.status === 'draft'
-                        ? 'La venta quedó guardada sin confirmar'
-                        : `La venta ${result.sale.internal_number ?? ''} quedó confirmada, pero sin cobro`
-                    }
-                    tone="warning"
-                  >
-                    <p>{result.message}</p>
-                    <Link
-                      className="font-semibold underline"
-                      to={
-                        result.status === 'draft'
-                          ? `/sales/${result.sale.id}/edit`
-                          : `/sales/${result.sale.id}`
-                      }
-                    >
-                      {result.status === 'draft'
-                        ? 'Revisar el borrador'
-                        : 'Registrar el cobro en la venta'}
-                    </Link>
-                  </InlineNotice>
-                )}
+              {customer && (
+                <div className="space-y-2 border-t border-line pt-3">
+                  <label className="flex flex-col gap-1 text-caption font-medium text-ink-muted">
+                    Correo para la factura
+                    <input
+                      className="h-10 w-full border-0 border-b-[1.5px] border-line-strong bg-transparent text-body text-ink focus:border-ink focus:outline-none"
+                      disabled={running}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="correo@ejemplo.com"
+                      type="email"
+                      value={email}
+                    />
+                  </label>
+                  {canManageCustomer && (
+                    <Checkbox
+                      checked={saveEmail}
+                      disabled={running}
+                      label="Guardar este correo en la ficha del cliente"
+                      onChange={(e) => setSaveEmail(e.target.checked)}
+                    />
+                  )}
+                </div>
+              )}
               {error && (
                 <InlineNotice title="No se registró la venta" tone="danger">
                   {error}
                 </InlineNotice>
               )}
-              {!(
-                result &&
-                result.status !== 'paid' &&
-                result.status !== 'credit'
-              ) && (
+              <button
+                className="ui-button min-h-14 w-full rounded-control border border-primary bg-primary px-4 text-lead font-semibold text-white hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-45"
+                disabled={blocker !== null || running || missingEmail}
+                onClick={() => void charge(true)}
+                type="button"
+              >
+                {running
+                  ? 'Registrando…'
+                  : (blocker ??
+                    (missingEmail
+                      ? 'Escribe el correo para facturar'
+                      : method === 'CREDITO'
+                        ? 'Registrar a crédito y facturar'
+                        : 'Cobrar y facturar'))}
+              </button>
+              {blocker === null && missingEmail && (
                 <button
-                  className="ui-button min-h-14 w-full rounded-control border border-primary bg-primary px-4 text-lead font-semibold text-white hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-45"
-                  disabled={blocker !== null || running}
-                  onClick={() => void charge()}
+                  className="ui-button min-h-11 w-full rounded-control border border-line-strong bg-surface px-4 text-body-sm font-semibold text-ink hover:bg-surface-muted disabled:opacity-45"
+                  disabled={running}
+                  onClick={() => void charge(false)}
                   type="button"
                 >
-                  {running
-                    ? 'Registrando…'
-                    : (blocker ??
-                      (method === 'CREDITO'
-                        ? 'Registrar a crédito'
-                        : 'Cobrar'))}
+                  {method === 'CREDITO'
+                    ? 'Solo registrar a crédito (facturar después)'
+                    : 'Solo cobrar (facturar después)'}
                 </button>
               )}
               <p className="text-center text-label text-ink-muted">
-                Sale el recibo interno del almacén. La factura electrónica llega
-                más adelante.
+                Facturación en modo pruebas: la factura queda preparada
+                localmente (sin enviar al SRI).
               </p>
             </section>
           )}

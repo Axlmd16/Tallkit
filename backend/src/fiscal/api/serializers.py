@@ -34,6 +34,7 @@ class FiscalPreparationCreate(StrictSerializer):
 class FiscalPreparationResult(serializers.Serializer[dict[str, Any]]):
     preparation_id = serializers.UUIDField()
     replayed = serializers.BooleanField()
+    customer_email_updated = serializers.BooleanField(required=False)
 
 
 class FiscalDraftUpdate(StrictSerializer):
@@ -107,6 +108,7 @@ class FiscalReview(serializers.Serializer[dict[str, Any]]):
 
 class FiscalPrepare(StrictSerializer):
     review_token = serializers.CharField()
+    save_email_to_customer = serializers.BooleanField(required=False, default=False)
 
 
 class FiscalCancel(StrictSerializer):

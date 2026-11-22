@@ -13,4 +13,5 @@ urlpatterns: list[URLPattern] = [
         name="home-customer-summary",
     ),
     path("search/", views.GlobalSearchView.as_view(), name="home-search"),
+    path("unbilled/", views.UnbilledView.as_view(), name="home-unbilled"),
 ]

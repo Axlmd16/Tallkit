@@ -8,6 +8,7 @@ import {
 
 import { RemoteSessionGuard } from '@/features/auth/SessionGuard'
 import { ChangePasswordPage } from '@/pages/change-password/ChangePasswordPage'
+import { CheckoutPage } from '@/pages/checkout/CheckoutPage'
 import { AuditPage } from '@/pages/audit/AuditPage'
 import { CustomerDetailPage } from '@/pages/customers/CustomerDetailPage'
 import { CustomerEditorPage } from '@/pages/customers/CustomerEditorPage'
@@ -464,6 +465,22 @@ export const appRoutes: RouteObject[] = [
             element: (
               <PermissionGuard permission="mantenimientos.ver">
                 <MaintenanceBillingPage />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/maintenance/:id/checkout',
+            element: (
+              <PermissionGuard permission="mantenimientos.ver">
+                <CheckoutPage originKind="MAINTENANCE" />
+              </PermissionGuard>
+            ),
+          },
+          {
+            path: '/sales/:id/checkout',
+            element: (
+              <PermissionGuard permission="ventas.ver">
+                <CheckoutPage originKind="SALE" />
               </PermissionGuard>
             ),
           },

@@ -11,6 +11,7 @@ import { CashToday } from './CashToday'
 import { CounterHero } from './CounterHero'
 import { OwedColumn } from './OwedColumn'
 import { QualificationBanner } from './QualificationBanner'
+import { UnbilledColumn } from './UnbilledColumn'
 import { WorkshopColumn } from './WorkshopColumn'
 
 /** Permisos que dan acceso a algún aviso del servidor; este decide cuáles entrega. */
@@ -40,6 +41,8 @@ export function HomePage() {
   const showOwedCommercial = has('pagos_comerciales.ver')
   const showOwedArtisan = has('pagos_artesanales.ver')
   const showMoney = showOwedCommercial || showOwedArtisan
+  const showUnbilled =
+    has('fiscal.comercial.ver') || has('fiscal.artesanal.ver')
   const showNotices = NOTICE_PERMISSIONS.some(has)
   const hasAccess = ACCESS_PERMISSIONS.some(has)
 
@@ -73,7 +76,7 @@ export function HomePage() {
         quickSaleTo={quickSaleTo}
       />
       {showNotices && <QualificationBanner query={pending} />}
-      {(showWorkshop || showMoney) && (
+      {(showWorkshop || showMoney || showUnbilled) && (
         <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(18.75rem,1fr))]">
           {showWorkshop && (
             <WorkshopColumn onNewMaintenance={onNewMaintenance} />
@@ -86,6 +89,7 @@ export function HomePage() {
               commercial={showOwedCommercial}
             />
           )}
+          {showUnbilled && <UnbilledColumn enabled={showUnbilled} />}
         </div>
       )}
       {newOpen && (

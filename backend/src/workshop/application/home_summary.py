@@ -162,3 +162,40 @@ def open_orders_by_vehicles(actor: User, vehicle_ids: list[int]) -> dict[int, Op
         if vehicle_id not in found:
             found[vehicle_id] = OpenOrderRef(id=order_id, number=number, status=state)
     return found
+
+
+
+@dataclass(frozen=True)
+class UnbilledArtisanRow:
+    operation_id: int
+    order_id: int
+    number: str
+    customer_name: str
+    date: date
+    total: Decimal
+
+
+def confirmed_operations_without_ids(
+    actor: User, *, exclude_ids: set[int], limit: int = 8
+) -> tuple[list[UnbilledArtisanRow], int] | None:
+    """Operaciones artesanales confirmadas vigentes excluyendo las ya preparadas fiscalmente."""
+    if not has_permission(actor, "servicios_economicos.ver"):
+        return None
+    qs = (
+        ServiceOperation.objects.filter(state="CONFIRMED")
+        .exclude(pk__in=exclude_ids)
+        .order_by("-operational_date", "-id")
+    )
+    total_count = qs.count()
+    rows = [
+        UnbilledArtisanRow(
+            operation_id=op.pk,
+            order_id=op.order_id,
+            number=op.internal_number or f"#{op.pk}",
+            customer_name=(op.customer_snapshot or {}).get("name") or "",
+            date=op.operational_date,
+            total=op.grand_total or _ZERO,
+        )
+        for op in qs[:limit]
+    ]
+    return rows, total_count

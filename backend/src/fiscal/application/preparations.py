@@ -11,6 +11,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Max
 from django.utils import timezone
 
+from customer_registry.application.customers import update_customer_email
 from fiscal.application.draft_prefill import (
     DRAFT_FORMAT,
     initial_draft,
@@ -133,6 +134,7 @@ class ReviewResult:
 class PreparationCommandResult:
     preparation_id: UUID
     replayed: bool
+    customer_email_updated: bool = False
 
 
 @dataclass(frozen=True)
@@ -673,7 +675,12 @@ def review(*, actor: User, preparation_id: UUID) -> ReviewResult:
 
 
 def prepare(
-    *, actor: User, preparation_id: UUID, review_token: str, idempotency_key: str
+    *,
+    actor: User,
+    preparation_id: UUID,
+    review_token: str,
+    idempotency_key: str,
+    save_email_to_customer: bool = False,
 ) -> PreparationCommandResult:
     """Revalida bajo bloqueo, guarda el snapshot inmutable y pasa a preparada."""
     key = validate_idempotency_key(idempotency_key)
@@ -772,7 +779,108 @@ def prepare(
             result=AuditResult.SUCCESS,
             operation_id=preparation.pk,
         )
-        return PreparationCommandResult(preparation.pk, replayed=False)
+        customer_email_updated = False
+        if save_email_to_customer:
+            receiver_snap = dict(assembled.snapshot.get("receiver") or {})
+            receiver_email = str(receiver_snap.get("email") or "").strip()
+            id_type = str(receiver_snap.get("identification_type") or "")
+            customer_id = getattr(source, "customer_id", None)
+            if (
+                id_type != "07"
+                and receiver_email
+                and customer_id is not None
+                and has_permission(actor=actor, permission="clientes.gestionar")
+            ):
+                email_result = update_customer_email(
+                    actor=actor,
+                    customer_id=int(customer_id),
+                    email=receiver_email,
+                    source_reference=str(getattr(source, "internal_number", "") or ""),
+                )
+                customer_email_updated = email_result.updated
+        return PreparationCommandResult(
+            preparation.pk,
+            replayed=False,
+            customer_email_updated=customer_email_updated,
+        )
+
+
+def prepare_from_checkout(
+    *,
+    actor: User,
+    source_kind: str,
+    source_id: int,
+    idempotency_key: str,
+    receiver_mode: str = "CUSTOMER",
+    receiver_email: str | None = None,
+    credit_term_days: int | None = None,
+    save_email_to_customer: bool = False,
+) -> PreparationCommandResult:
+    """Ejecuta crear/actualizar/revisar/preparar como paso interno de «Cobrar y facturar»."""
+    existing = find_active_preparation(actor=actor, source_kind=source_kind, source_id=source_id)
+    if existing is not None and existing.state == PreparationState.PREPARED:
+        return PreparationCommandResult(
+            existing.preparation_id, replayed=True, customer_email_updated=False
+        )
+
+    if existing is None:
+        created = create_draft(
+            actor=actor,
+            source_kind=source_kind,
+            source_id=source_id,
+            idempotency_key=f"{idempotency_key}:draft",
+        )
+        prep_id = created.preparation_id
+    else:
+        prep_id = existing.preparation_id
+
+    detail = get_preparation(actor=actor, preparation_id=prep_id)
+    draft = dict(detail.draft or {})
+    if receiver_mode == "FINAL_CONSUMER":
+        receiver: dict[str, Any] = {
+            "identification_type": "07",
+            "identification": "9999999999999",
+            "legal_name": "CONSUMIDOR FINAL",
+            "address": "",
+            "email": "",
+            "final_consumer_acknowledged": True,
+        }
+    else:
+        receiver = dict(draft.get("receiver") or {})
+        if receiver_email is not None:
+            receiver["email"] = receiver_email.strip()
+
+    source = (
+        read_commercial_source(source_id)
+        if source_kind == "COMMERCIAL"
+        else read_artisan_source(source_id)
+    )
+    raw_payments = dict(draft.get("payments") or {})
+    payments: dict[str, Any] = {"forms": list(raw_payments.get("forms") or [])}
+    if term_required(source.condition, source.pending_balance):
+        if credit_term_days is not None:
+            payments["term_days"] = credit_term_days
+        elif raw_payments.get("term_days") is not None:
+            payments["term_days"] = raw_payments["term_days"]
+
+    update_draft(
+        actor=actor,
+        preparation_id=prep_id,
+        expected_version=detail.version,
+        receiver=receiver,
+        payments=payments,
+    )
+    reviewed = review(actor=actor, preparation_id=prep_id)
+    if reviewed.impediments or not reviewed.token:
+        raise PreparationImpedimentError(list(reviewed.impediments))
+
+    return prepare(
+        actor=actor,
+        preparation_id=prep_id,
+        review_token=reviewed.token,
+        idempotency_key=f"{idempotency_key}:prepare",
+        save_email_to_customer=save_email_to_customer,
+    )
 
 
 def cancel(

@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
@@ -41,6 +42,70 @@ class DuplicateCustomerError(CustomerApplicationError):
 
 class StaleCustomerRecordError(CustomerApplicationError):
     pass
+
+
+@dataclass(frozen=True)
+class CustomerEmailUpdateResult:
+    updated: bool
+    previous_email: str
+    new_email: str
+
+
+def update_customer_email(
+    *,
+    actor: User,
+    customer_id: int,
+    email: str,
+    source_reference: str = "",
+    request_id: UUID | None = None,
+) -> CustomerEmailUpdateResult:
+    """Actualiza solo el correo del cliente con permiso y auditoría (DP-036 regla 4)."""
+    require_permission(
+        actor=actor,
+        permission="clientes.gestionar",
+        request_id=request_id,
+        denial_action="registry.customer_email_updated",
+        target_type="customer",
+        target_id=str(customer_id),
+    )
+    cleaned = email.strip()
+    if not cleaned:
+        raise CustomerValidationError("El correo electrónico es obligatorio.")
+    parsed_email = validate_email(cleaned)
+
+    with transaction.atomic():
+        try:
+            customer = Customer.objects.select_for_update().get(id=customer_id)
+        except Customer.DoesNotExist as exc:
+            raise CustomerNotFoundError(f"No existe el cliente con ID {customer_id}.") from exc
+
+        previous_email = customer.email or ""
+        if previous_email == parsed_email:
+            return CustomerEmailUpdateResult(
+                updated=False,
+                previous_email=previous_email,
+                new_email=parsed_email,
+            )
+
+        customer.email = parsed_email
+        customer.version += 1
+        customer.save(update_fields=["email", "version", "updated_at"])
+
+        record_audit_event(
+            actor=actor,
+            action="registry.customer_email_updated",
+            target_type="customer",
+            target_id=str(customer.id),
+            result=AuditResult.SUCCESS,
+            reason=source_reference,
+            request_id=request_id,
+            metadata={"changed_fields": ["email"]},
+        )
+        return CustomerEmailUpdateResult(
+            updated=True,
+            previous_email=previous_email,
+            new_email=parsed_email,
+        )
 
 
 def create_customer(

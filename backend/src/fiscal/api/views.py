@@ -452,9 +452,14 @@ class PreparationPrepareView(APIView):
                 preparation_id=preparation_id,
                 review_token=data["review_token"],
                 idempotency_key=_idempotency_key(request),
+                save_email_to_customer=bool(data.get("save_email_to_customer", False)),
             )
             return Response(
-                {"preparation_id": str(result.preparation_id), "replayed": result.replayed}
+                {
+                    "preparation_id": str(result.preparation_id),
+                    "replayed": result.replayed,
+                    "customer_email_updated": result.customer_email_updated,
+                }
             )
 
         return _respond(request, operation)

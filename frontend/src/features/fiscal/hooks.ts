@@ -258,11 +258,19 @@ export function useFiscalMutations() {
         preparationId,
         reviewToken,
         attemptKey,
+        saveEmailToCustomer = false,
       }: {
         preparationId: string
         reviewToken: string
         attemptKey: string
-      }) => fiscalApi.prepare(preparationId, reviewToken, attemptKey),
+        saveEmailToCustomer?: boolean
+      }) =>
+        fiscalApi.prepare(
+          preparationId,
+          reviewToken,
+          attemptKey,
+          saveEmailToCustomer,
+        ),
       onSuccess: (_, variables) => {
         queryClient.invalidateQueries({
           queryKey: fiscalKeys.preparation(variables.preparationId),

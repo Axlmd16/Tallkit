@@ -54,3 +54,25 @@ export interface HomeCollections {
   timezone: string
   items: CollectionItem[]
 }
+
+
+export interface UnbilledItem {
+  entity: 'COMERCIAL' | 'ARTESANAL'
+  source_id: number
+  order_id: number | null
+  number: string
+  customer_name: string
+  date: string
+  total: string
+  fiscal_state: string
+}
+
+export interface UnbilledBusinessGroup {
+  count: number
+  items: UnbilledItem[]
+}
+
+export interface HomeUnbilled {
+  commercial: UnbilledBusinessGroup | null
+  artisan: UnbilledBusinessGroup | null
+}

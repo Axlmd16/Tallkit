@@ -7,13 +7,22 @@ from django.apps import apps
 
 SRC = Path(__file__).resolve().parents[2] / "src"
 PACKAGE = "fiscal"
-OTHER_MODULES = {"identity", "sales", "shared", "workshop", "workshop_configuration"}
+OTHER_MODULES = {
+    "customer_registry",
+    "identity",
+    "sales",
+    "shared",
+    "workshop",
+    "workshop_configuration",
+}
 ALLOWED_CROSS_MODULES = {
+    "customer_registry.application.customers",
     "identity.application.audit",
     "identity.application.authorization",
     "identity.models",
     "sales.application.fiscal_source",
     "shared.command_values",
+    "shared.text",
     "shared.transactions",
     "workshop.application.fiscal_source",
     # Interfaces públicas de configuración que el comando de preparación lee bajo D6.

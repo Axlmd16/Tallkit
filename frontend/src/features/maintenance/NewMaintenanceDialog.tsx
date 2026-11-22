@@ -208,6 +208,14 @@ export function NewMaintenanceDialog({
       )
     : []
 
+  // Si la búsqueda coincide con un único vehículo activo, se preselecciona automáticamente (RNF-USA-013/015).
+  useEffect(() => {
+    const single = list[0]
+    if (selected === null && list.length === 1 && single) {
+      setSelected(single)
+    }
+  }, [list, selected])
+
   async function openMaintenance() {
     if (!selected || !owner || !kmValid) return
     setProblem(null)

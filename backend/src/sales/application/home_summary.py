@@ -120,3 +120,43 @@ def customer_activity(actor: User, customer_id: int, *, since: date) -> Customer
     return CustomerActivity(
         spent=period["total"] or _ZERO, documents=period["documents"], last_on=last
     )
+
+
+
+@dataclass(frozen=True)
+class UnbilledCommercialRow:
+    sale_id: int
+    order_id: int | None
+    number: str
+    customer_name: str
+    date: date
+    total: Decimal
+
+
+def confirmed_sales_without_ids(
+    actor: User, *, exclude_ids: set[int], limit: int = 8
+) -> tuple[list[UnbilledCommercialRow], int] | None:
+    """Ventas comerciales confirmadas vigentes excluyendo las ya preparadas fiscalmente."""
+    if not has_permission(actor, "ventas.ver"):
+        return None
+    with reads.read_snapshot():
+        qs = (
+            reads.annotated_sales()
+            .filter(state="CONFIRMED")
+            .exclude(pk__in=exclude_ids)
+            .select_related("customer")
+            .order_by("-operational_date", "-id")
+        )
+        total_count = qs.count()
+        rows = [
+            UnbilledCommercialRow(
+                sale_id=sale.pk,
+                order_id=sale.origin_order_id,
+                number=sale.internal_number or f"#{sale.pk}",
+                customer_name=(sale.customer_snapshot or {}).get("name") or sale.customer.name,
+                date=sale.operational_date,
+                total=sale.grand_total or _ZERO,
+            )
+            for sale in qs[:limit]
+        ]
+    return rows, total_count

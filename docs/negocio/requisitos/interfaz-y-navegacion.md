@@ -203,7 +203,7 @@ En teléfono se mostrarán primero identificador, nombre o documento, estado, to
 
 Nunca se debe ofrecer un único botón de cobro que reparta silenciosamente dinero entre los dos RUC. Si un mantenimiento tiene servicios y repuestos pendientes, se mostrarán dos operaciones claramente separadas.
 
-**Ajuste (`DP-036`, reglas 2 y 8).** Un botón único de cobro es válido si muestra los dos importes, uno por operación, y registra un pago independiente para cada una (`DP-013`); lo que sigue prohibido es repartir en silencio, o escribir un solo importe para que el sistema lo divida. Un pago parcial se indica por negocio. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`; hasta entonces rige el texto anterior.
+**Ajuste (`DP-036`, reglas 2 y 8; `DP-037`).** Un botón único de cobro es válido si muestra los dos importes, uno por operación, y registra un pago independiente para cada una (`DP-013`); lo que sigue prohibido es repartir en silencio, o escribir un solo importe para que el sistema lo divida. Un pago parcial se indica por negocio. Implementado en `cobrar-y-facturar-en-un-paso` (U6; cobertura en [cobertura-cobrar-y-facturar.md](cobertura-cobrar-y-facturar.md)).
 
 ### 6.7 Mantenimientos
 
@@ -292,7 +292,7 @@ La entrada se registra y se confirma en una sola acción, sin borrador persisten
 - Desactivar usuarios.
 - Restaurar un respaldo.
 
-**Ajuste (`DP-036`, regla 2).** En «Cobrar y facturar» la propia pantalla hace de confirmación de lo que contiene: muestra la entidad fiscal, el efecto y los valores revisados por el servidor de cada operación, y no se pide un diálogo adicional por acción. Pedirlo impediría los objetivos `RNF-USA-013…015`. Quien pulsa cobrar confirma expresamente (`DP-021`) y finalizar no confirma nada. Aprobado y todavía no implementado: U6 de `docs/cambios-pendientes.md`; hasta entonces rige la lista anterior.
+**Ajuste (`DP-036`, regla 2; `DP-037`).** En «Cobrar y facturar» la propia pantalla hace de confirmación de lo que contiene: muestra la entidad fiscal, el efecto y los valores revisados por el servidor de cada operación, y no se pide un diálogo adicional por acción. Quien pulsa cobrar confirma expresamente (`DP-021`) y finalizar no confirma nada. Implementado en `cobrar-y-facturar-en-un-paso` (U6).
 
 La confirmación debe indicar el objeto y su número interno, la entidad fiscal, el efecto principal y el motivo obligatorio cuando aplique, y mostrar los valores revisados por el servidor antes de habilitar la acción. El efecto se explica en el cuerpo del diálogo; el botón usa un texto breve que nombra la acción, por ejemplo `Confirmar venta`, `Registrar cobro` o `Anular venta`, nunca `Aceptar`. Las acciones destructivas usan el tratamiento de peligro y su salida segura nombra lo que se conserva, por ejemplo `Conservar venta`.
 

@@ -466,6 +466,14 @@ export function SaleDetailPage() {
                 <h2 className={panelTitle}>Acciones</h2>
               </div>
               <div className="flex flex-col gap-2 p-4">
+                {sale.state !== 'VOIDED' && (
+                  <Link
+                    className={`${linkButton} border-accent bg-accent text-white hover:bg-accent-hover`}
+                    to={`/sales/${sale.id}/checkout`}
+                  >
+                    Cobrar y facturar
+                  </Link>
+                )}
                 {canPay && (
                   <Button
                     onClick={(e) => open({ kind: 'payment' }, e)}

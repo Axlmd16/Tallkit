@@ -73,13 +73,21 @@ export function createFiscalApi(client: ApiClient) {
         `${BASE}/preparations/${preparationId}/review/`,
         { method: 'POST', body: {} },
       ),
-    prepare: (preparationId: string, reviewToken: string, attemptKey: string) =>
+    prepare: (
+      preparationId: string,
+      reviewToken: string,
+      attemptKey: string,
+      saveEmailToCustomer = false,
+    ) =>
       client.request<PreparationResult>(
         `${BASE}/preparations/${preparationId}/prepare/`,
         {
           method: 'POST',
           headers: attempt(attemptKey),
-          body: { review_token: reviewToken },
+          body: {
+            review_token: reviewToken,
+            save_email_to_customer: saveEmailToCustomer,
+          },
         },
       ),
     cancelPreparation: (

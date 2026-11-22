@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from config.api.errors import ProblemSerializer, problem_response
 from home.api import serializers as sz
-from home.application import customers, search, summary
+from home.application import customers, search, summary, unbilled
 from identity.models import User
 
 _TAG = "Inicio"
@@ -141,3 +141,17 @@ class GlobalSearchView(APIView):
     def get(self, request: Request) -> Response:
         raw_query = request.query_params.get("q", "")
         return Response(search.global_search(_actor(request), raw_query))
+
+
+class UnbilledView(APIView):
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="home_unbilled",
+        responses={200: sz.HomeUnbilledSerializer, **_DENIED},
+        description=(
+            "Operaciones confirmadas vigentes sin preparación fiscal local completada, "
+            "separadas por negocio y filtradas por permisos efectivos."
+        ),
+    )
+    def get(self, request: Request) -> Response:
+        return Response(unbilled.unbilled_summary(_actor(request)))

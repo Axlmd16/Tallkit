@@ -50,6 +50,7 @@ def customer_options(
                 "identification_type": c.identification_type,
                 "identification": c.identification,
                 "phone": c.phone,
+                "email": c.email,
             }
             for c in result.items
         ],

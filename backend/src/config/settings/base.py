@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "sales.apps.SalesConfig",
     "workshop.apps.WorkshopConfig",
     "fiscal.apps.FiscalConfig",
+    "checkout.apps.CheckoutConfig",
     "home.apps.HomeConfig",
 ]
 

@@ -102,3 +102,23 @@ def search_preparations(
                     )
                 )
     return matches, total
+
+
+
+def prepared_source_ids(actor: User) -> tuple[set[int] | None, set[int] | None]:
+    """Devuelve IDs de ventas comerciales y operaciones artesanales con preparación PREPARED."""
+    commercial: set[int] | None = None
+    artisan: set[int] | None = None
+    if has_permission(actor, "fiscal.comercial.ver"):
+        commercial = set(
+            FiscalPreparation.objects.filter(
+                commercial_sale__isnull=False, state="PREPARED"
+            ).values_list("commercial_sale_id", flat=True)
+        )
+    if has_permission(actor, "fiscal.artesanal.ver"):
+        artisan = set(
+            FiscalPreparation.objects.filter(
+                artisan_operation__isnull=False, state="PREPARED"
+            ).values_list("artisan_operation_id", flat=True)
+        )
+    return commercial, artisan

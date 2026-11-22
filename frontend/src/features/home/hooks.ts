@@ -7,6 +7,7 @@ export const homeKeys = {
   pending: ['home', 'pending'] as const,
   receivables: ['home', 'receivables'] as const,
   collections: ['home', 'collections'] as const,
+  unbilled: ['home', 'unbilled'] as const,
 }
 
 /**
@@ -41,5 +42,15 @@ export function useHomeCollections(enabled = true) {
     enabled,
     queryFn: () => homeApi.collections(),
     queryKey: homeKeys.collections,
+  })
+}
+
+
+export function useHomeUnbilled(enabled = true) {
+  return useQuery({
+    ...fresh,
+    enabled,
+    queryFn: () => homeApi.unbilled(),
+    queryKey: homeKeys.unbilled,
   })
 }

@@ -1356,3 +1356,86 @@ def test_business_keeps_invoicing_when_it_moves_from_popular_business_to_entrepr
     # Lo ya preparado conserva su régimen y su tarifa.
     assert before["issuer"]["tax_profile"]["regime"] == "RIMPE_NEGOCIO_POPULAR"
     assert FiscalTaxMapping.objects.filter(tax_definition=sales_tax).count() == 2
+
+
+@pytest.mark.django_db
+def test_prepare_saves_email_to_customer_when_opted_in(
+    admin: Any, seller: Any, customer: Customer, confirmed_sale: Any
+) -> None:
+    from fiscal.application.preparations import create_draft, prepare, review, update_draft
+
+    _setup_commercial_config(admin)
+    customer.email = ""
+    customer.save(update_fields=["email"])
+    sale = confirmed_sale(condition="CONTADO")
+    created = create_draft(
+        actor=seller,
+        source_kind="COMMERCIAL",
+        source_id=sale["id"],
+        idempotency_key="u6-email-01:d",
+    )
+    update_draft(
+        actor=seller,
+        preparation_id=created.preparation_id,
+        expected_version=1,
+        receiver={
+            "identification_type": "05",
+            "identification": customer.identification,
+            "legal_name": customer.name,
+            "address": "Av. 1",
+            "email": "nuevo.correo@example.com",
+        },
+        payments={"forms": [{"payment_code": "01", "amount": "100.00"}]},
+    )
+    reviewed = review(actor=seller, preparation_id=created.preparation_id)
+    assert not reviewed.impediments
+    assert reviewed.token
+
+    result = prepare(
+        actor=seller,
+        preparation_id=created.preparation_id,
+        review_token=reviewed.token,
+        idempotency_key="u6-email-01:p",
+        save_email_to_customer=True,
+    )
+    customer.refresh_from_db()
+    assert result.customer_email_updated is True
+    assert customer.email == "nuevo.correo@example.com"
+
+
+@pytest.mark.django_db
+def test_prepare_from_checkout_completes_and_respects_save_flag(
+    admin: Any, seller: Any, customer: Customer, confirmed_sale: Any
+) -> None:
+    from fiscal.application.preparations import prepare_from_checkout
+
+    _setup_commercial_config(admin)
+    customer.email = ""
+    customer.save(update_fields=["email"])
+    sale = confirmed_sale(condition="CONTADO")
+
+    res = prepare_from_checkout(
+        actor=seller,
+        source_kind="COMMERCIAL",
+        source_id=sale["id"],
+        idempotency_key="u6-checkout:01",
+        receiver_email="checkout@example.com",
+        save_email_to_customer=False,
+    )
+    customer.refresh_from_db()
+    assert res.replayed is False
+    assert res.customer_email_updated is False
+    assert customer.email == ""
+    assert _snapshot(res.preparation_id)["receiver"]["email"] == "checkout@example.com"
+
+    # Segundo llamado sobre la misma operación ya preparada devuelve replayed=True.
+    again = prepare_from_checkout(
+        actor=seller,
+        source_kind="COMMERCIAL",
+        source_id=sale["id"],
+        idempotency_key="u6-checkout:02",
+        receiver_email="otro@example.com",
+        save_email_to_customer=True,
+    )
+    assert again.preparation_id == res.preparation_id
+    assert again.replayed is True

@@ -312,7 +312,7 @@ it('el cobro muestra el importe de cada negocio y «Cobrar y facturar» lleva a 
   expect(within(cobro).getByText('Sin cobrar')).toBeInTheDocument()
   expect(
     within(cobro).getByRole('link', { name: 'Cobrar y facturar' }),
-  ).toHaveAttribute('href', '/maintenance/9/billing')
+  ).toHaveAttribute('href', '/maintenance/9/checkout')
 })
 
 it('sin permiso de cobros no se muestra la tarjeta de cobro', () => {

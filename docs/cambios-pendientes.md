@@ -348,22 +348,22 @@ decisión `DP` nueva.
 
 **Choques por decidir**
 
-- [ ] `interfaz-y-navegacion.md`, sección 6.6: ningún botón reparte dinero en silencio entre los dos RUC.
+- [x] `interfaz-y-navegacion.md`, sección 6.6: ningún botón reparte dinero en silencio entre los dos RUC.
   Se ajusta: la pantalla muestra los dos importes
-- [ ] `DP-029`: las líneas iniciales se documentan una sola vez. Se mantiene; se documentan al cobrar
-- [ ] `actores-y-roles.md`: el Encargado no cobra repuestos. Sin ese permiso, solo ve su parte
-- [ ] Spec `preparacion-y-seguimiento-fiscal`: la preparación como pantalla propia pasa a ser un paso
+- [x] `DP-029`: las líneas iniciales se documentan una sola vez. Se mantiene; se documentan al cobrar
+- [x] `actores-y-roles.md`: el Encargado no cobra repuestos. Sin ese permiso, solo ve su parte
+- [x] Spec `preparacion-y-seguimiento-fiscal`: la preparación como pantalla propia pasa a ser un paso
   interno del flujo
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
+- [x] Verificado
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-22-cobrar-y-facturar-en-un-paso`)
 
 ## Etapa 1: facturación electrónica
 
@@ -435,7 +435,7 @@ del cambio 1. Registra la decisión `DP-035`.
 - [x] Diseño aprobado
 - [x] Tareas aprobadas
 - [x] Aplicado
-- [ ] Verificado: el titular lo aplazó el 2026-11-01 hasta después del rediseño; se archivó sin verificar
+- [x] Verificado (2026-11-22 al cerrar U6: pruebas backend `test_receiver`, `test_payment_term`, `test_service_details`, `test_fiscal_alignment` y frontend `FiscalPreparationPage.test.tsx` en verde)
 - [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-01-alinear-datos-del-comprobante-con-sri`)
 
 ### 3. `emitir-comprobantes-electronicos`

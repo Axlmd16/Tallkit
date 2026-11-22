@@ -364,6 +364,21 @@ context: |
     autorizada o emitida, y no habilita la emisión real (DP-034, regla 8). La existencia se ve
     en Productos solo con el permiso de inventario y sin costos. El estado «cancelado» de un
     mantenimiento sigue sin implementarse y queda registrado como brecha.
+  - DP-037 (cobrar y facturar en un paso, aprobada 2026-11-22 en la propuesta de
+    cobrar-y-facturar-en-un-paso, U6): concreta los puntos aplazados de DP-036 para el flujo único
+    «Cobrar y facturar» desde mantenimiento y desde ventas. Regla 1: la pantalla ofrece una casilla
+    explícita «Cerrar el mantenimiento al cobrar» activada por omisión cuando el usuario tiene
+    mantenimientos.finalizar y la orden cumple diagnóstico y al menos un servicio; el cierre se
+    ejecuta después de confirmar la venta vinculada, manteniendo DP-021 (el botón «Finalizar»
+    nunca confirma ventas). Regla 2: se mantiene DP-003 (solo Efectivo, Transferencia, combinación
+    explícita y condición Crédito; sin Tarjeta) y se ofrece retención recibida opcional desplegable
+    (DP-032). Regla 3: mientras no exista emisión real (DP-034 regla 8), las facturas completadas
+    en el flujo muestran estado local «Factura preparada (sin enviar)» y nunca «autorizada» ni
+    «enviada». Regla 4: cuando falta correo o existe un impedimento fiscal, la acción secundaria
+    «Solo cobrar (facturar después)» permite cobrar sin frenar caja y deja la operación en la
+    columna «Falta facturar» de Inicio. Regla 5: la orquestación ejecuta cada operación en su
+    propia transacción atómica con idempotencia compuesta (ADR-0014), preservando confirmaciones y
+    cobros en firme ante un fallo fiscal (DP-034 regla 5).
   - Pendientes que esta entrega conserva sin decidir: alertas de umbral de existencia
     (RF-INV-011), archivos adjuntos de ingresos y las demás operaciones futuras de inventario.
 

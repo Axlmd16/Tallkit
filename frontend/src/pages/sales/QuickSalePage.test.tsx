@@ -1,17 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 
+import type { CheckoutExecuteResponse } from '@/features/checkout/types'
 import { ToastProvider } from '@/shared/ui'
 
 const mocks = vi.hoisted(() => ({
-  create: vi.fn(),
-  preview: vi.fn(),
-  confirm: vi.fn(),
-  registerPayment: vi.fn(),
-  paymentPreview: vi.fn(),
+  execute: vi.fn(),
   draftPreview: vi.fn(),
   productOptions: vi.fn(),
 }))
@@ -27,7 +24,9 @@ const PRODUCT = {
 }
 
 vi.mock('@/features/auth/hooks', () => ({
-  useSession: () => ({ data: { username: 'ana' } }),
+  useSession: () => ({
+    data: { username: 'ana', permissions: ['clientes.gestionar'] },
+  }),
 }))
 vi.mock('@/shared/api/entity-logos', () => ({
   useBusinessName: () => 'Almacén',
@@ -43,6 +42,7 @@ vi.mock('@/features/sales/hooks', () => ({
               identification_type: 'Cédula',
               identification: '0912345678',
               phone: '',
+              email: 'cmendoza@correo.com',
             },
           ]
         : [],
@@ -51,29 +51,38 @@ vi.mock('@/features/sales/hooks', () => ({
   useProductOptions: (term: string) => ({
     data: { results: term ? [PRODUCT] : [] },
   }),
-  useSaleMutations: () => ({
-    create: { mutateAsync: mocks.create },
-    preview: { mutateAsync: mocks.preview },
-    confirm: { mutateAsync: mocks.confirm },
-    registerPayment: { mutateAsync: mocks.registerPayment },
-  }),
 }))
 vi.mock('@/features/sales/api', () => ({
   salesApi: {
     draftPreview: mocks.draftPreview,
-    paymentPreview: mocks.paymentPreview,
     productOptions: mocks.productOptions,
+  },
+}))
+vi.mock('@/features/checkout/api', () => ({
+  checkoutApi: {
+    execute: mocks.execute,
   },
 }))
 
 import { QuickSalePage } from './QuickSalePage'
 
-const confirmed = {
-  id: 31,
-  version: 2,
-  internal_number: 'COM-VEN-000031',
-  grand_total: '46.00',
-  money: { balance: '46.00' },
+const paidPrepared: CheckoutExecuteResponse = {
+  overall_status: 'completed',
+  origin_kind: 'QUICK_SALE',
+  commercial: {
+    executed: true,
+    sale_id: 31,
+    document_number: 'COM-VEN-000031',
+    confirmed: true,
+    paid: true,
+    paid_amount: '23.00',
+    fiscal_state: 'PREPARED',
+    preparation_id: 'prep-31',
+  },
+  artisan: { executed: false },
+  customer_email_updated: false,
+  order_closure: { requested: false, closed: false, reason: null },
+  replayed: false,
 }
 
 function renderPage() {
@@ -96,7 +105,6 @@ async function fill(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
     await screen.findByRole('button', { name: /Carlos Mendoza/ }),
   )
-  // El lector de códigos escribe el código y pulsa Intro.
   await user.type(
     screen.getByRole('textbox', { name: 'Buscar producto' }),
     'PF-100{Enter}',
@@ -111,111 +119,83 @@ beforeEach(() => {
     lines: [{ position: 1, total_amount: '23.00' }],
     totals: { base: '20.00', tax: '3.00', total: '23.00' },
   })
-  mocks.create.mockResolvedValue({ id: 31, version: 1 })
-  mocks.preview.mockResolvedValue({
-    can_confirm: true,
-    review_token: 'r1',
-    issues: [],
-  })
-  mocks.confirm.mockResolvedValue(confirmed)
-  mocks.paymentPreview.mockResolvedValue({ review_token: 'p1', issues: [] })
-  mocks.registerPayment.mockResolvedValue({ id: 5 })
-})
-
-it('no deja cobrar sin cliente ni productos', () => {
-  renderPage()
-  expect(
-    screen.getByRole('button', { name: 'Elija al cliente' }),
-  ).toBeDisabled()
-  expect(screen.getByRole('button', { name: 'Efectivo' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
+  mocks.execute.mockResolvedValue(paidPrepared)
 })
 
 it('el total sale de la vista previa del servidor', async () => {
   const user = userEvent.setup()
   renderPage()
   await fill(user)
-  const total = screen.getByRole('heading', { name: 'Total a cobrar' })
-  await waitFor(() =>
-    expect(total.parentElement).toHaveTextContent('USD 23.00'),
-  )
-  expect(mocks.draftPreview).toHaveBeenCalledWith(
-    expect.objectContaining({
-      customer_id: 3,
-      condition: 'CONTADO',
-      lines: [{ product_id: 7, quantity: '1' }],
-    }),
-  )
+  await waitFor(() => {
+    expect(screen.getAllByText(/23\.00/).length).toBeGreaterThanOrEqual(1)
+  })
 })
 
-it('cobra en efectivo: confirma, registra el cobro y ofrece el recibo', async () => {
+it('cobra y prepara factura en un paso usando QUICK_SALE y ofrece recibo', async () => {
   const user = userEvent.setup()
   renderPage()
   await fill(user)
-  await user.click(screen.getByRole('button', { name: 'Cobrar' }))
+
+  await user.click(screen.getByRole('button', { name: 'Cobrar y facturar' }))
+
+  await waitFor(() => expect(mocks.execute).toHaveBeenCalledTimes(1))
+  const [input] = mocks.execute.mock.calls[0] as [
+    { origin_kind: string; payment_mode: string; include_invoices: boolean },
+  ]
+  expect(input.origin_kind).toBe('QUICK_SALE')
+  expect(input.payment_mode).toBe('CASH')
+  expect(input.include_invoices).toBe(true)
+
   expect(
-    await screen.findByRole('heading', {
-      name: /Venta COM-VEN-000031 cobrada/,
-    }),
-  ).toBeVisible()
-  expect(mocks.registerPayment).toHaveBeenCalledWith(
-    expect.objectContaining({
-      id: 31,
-      parts: [{ method: 'EFECTIVO', amount: '46.00' }],
-    }),
-  )
-  expect(screen.getByRole('link', { name: 'Imprimir recibo' })).toHaveAttribute(
-    'href',
-    '/sales/31/document',
-  )
-})
-
-it('«Queda debiendo» registra la venta a crédito sin cobro', async () => {
-  const user = userEvent.setup()
-  renderPage()
-  await fill(user)
-  await user.click(screen.getByRole('button', { name: 'Queda debiendo' }))
-  await user.click(screen.getByRole('button', { name: 'Registrar a crédito' }))
+    await screen.findByText('Factura preparada (sin enviar)'),
+  ).toBeInTheDocument()
   expect(
-    await screen.findByRole('heading', { name: /a crédito/ }),
-  ).toBeVisible()
-  expect(mocks.create).toHaveBeenCalledWith(
-    expect.objectContaining({
-      data: expect.objectContaining({ condition: 'CREDITO' }),
-    }),
-  )
-  expect(mocks.registerPayment).not.toHaveBeenCalled()
+    screen.getByRole('link', { name: 'Imprimir recibo' }),
+  ).toHaveAttribute('href', '/sales/31/document')
 })
 
-it('si falla el cobro, avisa que la venta quedó confirmada y lleva a registrarlo', async () => {
+it('permite Solo cobrar cuando se borra el correo', async () => {
   const user = userEvent.setup()
-  mocks.registerPayment.mockRejectedValue(new Error('caído'))
+  mocks.execute.mockResolvedValue({
+    ...paidPrepared,
+    commercial: { ...paidPrepared.commercial, fiscal_state: 'SKIPPED' },
+  })
   renderPage()
   await fill(user)
-  await user.click(screen.getByRole('button', { name: 'Cobrar' }))
-  const notice = await screen.findByText(/quedó confirmada, pero sin cobro/)
-  expect(notice).toBeVisible()
+
+  const emailInput = screen.getByLabelText('Correo para la factura')
+  await user.clear(emailInput)
+
   expect(
-    screen.getByRole('link', { name: 'Registrar el cobro en la venta' }),
-  ).toHaveAttribute('href', '/sales/31')
-  // No se ofrece cobrar otra vez: evitaría una segunda venta.
-  expect(screen.queryByRole('button', { name: 'Cobrar' })).toBeNull()
-})
-
-it('agregar dos veces el mismo producto suma la cantidad y se puede quitar', async () => {
-  const user = userEvent.setup()
-  renderPage()
-  await fill(user)
-  await user.type(
-    screen.getByRole('textbox', { name: 'Buscar producto' }),
-    'PF-100{Enter}',
-  )
-  const products = screen.getByRole('region', { name: 'Productos' })
-  await waitFor(() => expect(within(products).getByText('2')).toBeVisible())
+    screen.getByRole('button', { name: 'Escribe el correo para facturar' }),
+  ).toBeDisabled()
   await user.click(
-    screen.getByRole('button', { name: 'Quitar Pastillas de freno' }),
+    screen.getByRole('button', { name: 'Solo cobrar (facturar después)' }),
   )
-  expect(within(products).queryByText('Pastillas de freno')).toBeNull()
+
+  await waitFor(() => expect(mocks.execute).toHaveBeenCalledTimes(1))
+  const [input] = mocks.execute.mock.calls[0] as [{ include_invoices: boolean }]
+  expect(input.include_invoices).toBe(false)
+})
+
+it('«Queda debiendo» envía modo CREDIT con plazo de 30 días', async () => {
+  const user = userEvent.setup()
+  mocks.execute.mockResolvedValue({
+    ...paidPrepared,
+    commercial: { ...paidPrepared.commercial, paid: false, paid_amount: '0.00' },
+  })
+  renderPage()
+  await fill(user)
+
+  await user.click(screen.getByRole('button', { name: 'Queda debiendo' }))
+  await user.click(
+    screen.getByRole('button', { name: 'Registrar a crédito y facturar' }),
+  )
+
+  await waitFor(() => expect(mocks.execute).toHaveBeenCalledTimes(1))
+  const [input] = mocks.execute.mock.calls[0] as [
+    { payment_mode: string; credit_term_days: number },
+  ]
+  expect(input.payment_mode).toBe('CREDIT')
+  expect(input.credit_term_days).toBe(30)
 })

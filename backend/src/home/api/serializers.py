@@ -170,3 +170,24 @@ class GlobalSearchSerializer(serializers.Serializer[dict[str, object]]):
     customers = SearchCustomersGroupSerializer(allow_null=True)
     invoices = SearchInvoicesGroupSerializer(allow_null=True)
     products = SearchProductsGroupSerializer(allow_null=True)
+
+
+class UnbilledItemSerializer(serializers.Serializer[dict[str, object]]):
+    entity = serializers.ChoiceField(choices=["COMERCIAL", "ARTESANAL"])
+    source_id = serializers.IntegerField()
+    order_id = serializers.IntegerField(allow_null=True)
+    number = serializers.CharField()
+    customer_name = serializers.CharField()
+    date = serializers.CharField()
+    total = serializers.CharField()
+    fiscal_state = serializers.CharField()
+
+
+class UnbilledBusinessGroupSerializer(serializers.Serializer[dict[str, object]]):
+    count = serializers.IntegerField()
+    items = UnbilledItemSerializer(many=True)
+
+
+class HomeUnbilledSerializer(serializers.Serializer[dict[str, object]]):
+    commercial = UnbilledBusinessGroupSerializer(allow_null=True)
+    artisan = UnbilledBusinessGroupSerializer(allow_null=True)

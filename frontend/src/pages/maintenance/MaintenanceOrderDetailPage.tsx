@@ -194,7 +194,7 @@ export function MaintenanceOrderDetailPage() {
             {showBilling && summary && (
               <CobroCard
                 amounts={amounts}
-                billingTo={`/maintenance/${order.id}/billing`}
+                billingTo={`/maintenance/${order.id}/checkout`}
                 order={order}
                 summary={summary}
               />

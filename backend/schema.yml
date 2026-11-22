@@ -182,6 +182,144 @@ paths:
               schema:
                 $ref: '#/components/schemas/Session'
           description: ''
+  /api/v1/checkout/execute/:
+    post:
+      operationId: checkout_execute
+      tags:
+      - Checkout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutExecuteInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutExecuteInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutExecuteInput'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutExecuteResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/checkout/maintenance/{order_id}/:
+    get:
+      operationId: checkout_maintenance_preview
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Checkout
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutPreviewResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/checkout/sales/{sale_id}/:
+    get:
+      operationId: checkout_sale_preview
+      parameters:
+      - in: path
+        name: sale_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Checkout
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutPreviewResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/customers/:
     get:
       operationId: customers_list
@@ -2975,6 +3113,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GlobalSearch'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+  /api/v1/home/unbilled/:
+    get:
+      operationId: home_unbilled
+      description: Operaciones confirmadas vigentes sin preparación fiscal local completada,
+        separadas por negocio y filtradas por permisos efectivos.
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeUnbilled'
           description: ''
         '401':
           content:
@@ -12550,6 +12716,146 @@ components:
         * `quantity` - quantity
         * `unit_price` - unit_price
         * `tax_rate` - tax_rate
+    CheckoutBusinessPayment:
+      type: object
+      properties:
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CheckoutPaymentPart'
+        withholding:
+          allOf:
+          - $ref: '#/components/schemas/CheckoutWithholding'
+          nullable: true
+    CheckoutExecuteInput:
+      type: object
+      properties:
+        origin_kind:
+          $ref: '#/components/schemas/OriginKindEnum'
+        order_id:
+          type: integer
+          minimum: 1
+        sale_id:
+          type: integer
+          minimum: 1
+        customer_id:
+          type: integer
+          minimum: 1
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuickSaleLine'
+        payment_mode:
+          $ref: '#/components/schemas/PaymentModeEnum'
+        partial:
+          type: boolean
+          default: false
+        commercial_payment:
+          allOf:
+          - $ref: '#/components/schemas/CheckoutBusinessPayment'
+          nullable: true
+        artisan_payment:
+          allOf:
+          - $ref: '#/components/schemas/CheckoutBusinessPayment'
+          nullable: true
+        include_invoices:
+          type: boolean
+          default: true
+        receiver_mode:
+          allOf:
+          - $ref: '#/components/schemas/ReceiverModeEnum'
+          default: CUSTOMER
+        receiver_email:
+          type: string
+          default: ''
+          maxLength: 254
+        save_email_to_customer:
+          type: boolean
+          default: true
+        credit_term_days:
+          type: integer
+          maximum: 9999
+          minimum: 1
+          nullable: true
+        close_order:
+          type: boolean
+          default: false
+      required:
+      - origin_kind
+      - payment_mode
+    CheckoutExecuteResponse:
+      type: object
+      properties:
+        overall_status:
+          $ref: '#/components/schemas/OverallStatusEnum'
+        origin_kind:
+          type: string
+        commercial:
+          type: object
+          additionalProperties: {}
+        artisan:
+          type: object
+          additionalProperties: {}
+        customer_email_updated:
+          type: boolean
+        order_closure:
+          type: object
+          additionalProperties: {}
+        replayed:
+          type: boolean
+      required:
+      - artisan
+      - commercial
+      - customer_email_updated
+      - order_closure
+      - origin_kind
+      - overall_status
+      - replayed
+    CheckoutPaymentPart:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/MethodEnum'
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - amount
+      - method
+    CheckoutPreviewResponse:
+      type: object
+      properties:
+        origin:
+          type: object
+          additionalProperties: {}
+        customer:
+          type: object
+          additionalProperties: {}
+        artisan:
+          type: object
+          additionalProperties: {}
+        commercial:
+          type: object
+          additionalProperties: {}
+        closure:
+          type: object
+          additionalProperties: {}
+      required:
+      - artisan
+      - closure
+      - commercial
+      - customer
+      - origin
+    CheckoutWithholding:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - amount
     CollectionDay:
       type: object
       properties:
@@ -14815,6 +15121,8 @@ components:
           format: uuid
         replayed:
           type: boolean
+        customer_email_updated:
+          type: boolean
       required:
       - preparation_id
       - replayed
@@ -14837,6 +15145,9 @@ components:
       properties:
         review_token:
           type: string
+        save_email_to_customer:
+          type: boolean
+          default: false
       required:
       - review_token
     FiscalReadiness:
@@ -15158,6 +15469,20 @@ components:
       - products
       - query
       - vehicles
+    HomeUnbilled:
+      type: object
+      properties:
+        commercial:
+          allOf:
+          - $ref: '#/components/schemas/UnbilledBusinessGroup'
+          nullable: true
+        artisan:
+          allOf:
+          - $ref: '#/components/schemas/UnbilledBusinessGroup'
+          nullable: true
+      required:
+      - artisan
+      - commercial
     IdentificationTypeEnum:
       enum:
       - CI
@@ -16477,6 +16802,24 @@ components:
       - page_size
       - results
       - total_pages
+    OriginKindEnum:
+      enum:
+      - MAINTENANCE
+      - SALE
+      - QUICK_SALE
+      type: string
+      description: |-
+        * `MAINTENANCE` - MAINTENANCE
+        * `SALE` - SALE
+        * `QUICK_SALE` - QUICK_SALE
+    OverallStatusEnum:
+      enum:
+      - completed
+      - partial
+      type: string
+      description: |-
+        * `completed` - completed
+        * `partial` - partial
     OwnershipPeriodPage:
       type: object
       properties:
@@ -17100,6 +17443,18 @@ components:
       - sale_id
       - state
       - withholding
+    PaymentModeEnum:
+      enum:
+      - CASH
+      - TRANSFER
+      - MIXED
+      - CREDIT
+      type: string
+      description: |-
+        * `CASH` - CASH
+        * `TRANSFER` - TRANSFER
+        * `MIXED` - MIXED
+        * `CREDIT` - CREDIT
     PaymentPreview:
       type: object
       properties:
@@ -18054,6 +18409,18 @@ components:
       - entity_id
       - expired
       - expires_on
+    QuickSaleLine:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          minimum: 1
+      required:
+      - product_id
+      - quantity
     ReceivableItem:
       type: object
       properties:
@@ -18107,6 +18474,14 @@ components:
       - refund_due_total
       - results
       - total_pages
+    ReceiverModeEnum:
+      enum:
+      - CUSTOMER
+      - FINAL_CONSUMER
+      type: string
+      description: |-
+        * `CUSTOMER` - CUSTOMER
+        * `FINAL_CONSUMER` - FINAL_CONSUMER
     Ref:
       type: object
       properties:
@@ -19651,6 +20026,47 @@ components:
         * `DIRECT` - DIRECT
         * `MAINTENANCE` - MAINTENANCE
         * `PROFORMA` - PROFORMA
+    UnbilledBusinessGroup:
+      type: object
+      properties:
+        count:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnbilledItem'
+      required:
+      - count
+      - items
+    UnbilledItem:
+      type: object
+      properties:
+        entity:
+          $ref: '#/components/schemas/EntityEnum'
+        source_id:
+          type: integer
+        order_id:
+          type: integer
+          nullable: true
+        number:
+          type: string
+        customer_name:
+          type: string
+        date:
+          type: string
+        total:
+          type: string
+        fiscal_state:
+          type: string
+      required:
+      - customer_name
+      - date
+      - entity
+      - fiscal_state
+      - number
+      - order_id
+      - source_id
+      - total
     Unit:
       type: object
       properties:
