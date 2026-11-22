@@ -304,10 +304,10 @@ las de los archivos tocados.
 
 Va antes de U5 y U6, que se apoyan en la ficha del mantenimiento y en la venta rápida.
 
-- [ ] Fase 1: trabajo diario (Inicio, nuevo mantenimiento, ficha del mantenimiento, venta rápida)
-- [ ] Fase 2: listas y fichas (mantenimientos, ventas, facturas, clientes, productos, entrada,
+- [x] Fase 1: trabajo diario (Inicio, nuevo mantenimiento, ficha del mantenimiento, venta rápida)
+- [x] Fase 2: listas y fichas (mantenimientos, ventas, facturas, clientes, productos, entrada,
   servicios, cuentas)
-- [ ] Fase 3: Ajustes y configuración inicial
+- [x] Fase 3: Ajustes y configuración inicial
 
 ### U5. `buscar-en-todo-el-sistema`
 
@@ -315,15 +315,15 @@ Búsqueda global por placa, cliente, producto o factura, desde cualquier pantall
 
 **Choques por decidir**
 
-- [ ] `interfaz-y-navegacion.md:37`: sin búsqueda global. Se reemplaza (decidido en U1)
-- [ ] Permisos: cada resultado respeta el rol; el backend decide qué se ve
+- [x] `interfaz-y-navegacion.md:37`: sin búsqueda global. Se reemplaza (decidido en U1)
+- [x] Permisos: cada resultado respeta el rol; el backend decide qué se ve
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
 - [ ] Aplicado
 - [ ] Verificado
 - [ ] Archivado y registrado en `master`
