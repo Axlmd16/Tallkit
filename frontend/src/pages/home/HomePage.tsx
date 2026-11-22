@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSession } from '@/features/auth/hooks'
 import { useHomeCollections, useHomePending } from '@/features/home/hooks'
 import { NewMaintenanceDialog } from '@/features/maintenance/NewMaintenanceDialog'
+import { useGlobalSearchModal } from '@/features/search/GlobalSearchContext'
 import { EmptyState, PageHeader } from '@/shared/ui'
 
 import { CashToday } from './CashToday'
@@ -57,11 +58,7 @@ export function HomePage() {
     )
   }
 
-  const searchTarget = showWorkshop
-    ? '/maintenance'
-    : has('ventas.ver')
-      ? '/sales'
-      : null
+  const { openSearch } = useGlobalSearchModal()
   const onNewMaintenance = has('mantenimientos.gestionar')
     ? () => setNewOpen(true)
     : null
@@ -72,8 +69,8 @@ export function HomePage() {
       <CounterHero
         aside={showMoney ? <CashToday query={collections} /> : null}
         onNewMaintenance={onNewMaintenance}
+        onSearch={(term) => openSearch(term)}
         quickSaleTo={quickSaleTo}
-        searchTarget={searchTarget}
       />
       {showNotices && <QualificationBanner query={pending} />}
       {(showWorkshop || showMoney) && (

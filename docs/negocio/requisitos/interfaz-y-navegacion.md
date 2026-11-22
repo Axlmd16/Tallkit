@@ -34,7 +34,7 @@ La aplicación autenticada tendrá:
   - desde 1280 px, barra lateral desplegada de 240 px con iconos y etiquetas;
   - de 768 a 1279 px, barra compacta de iconos de 72 px con nombre accesible y ayuda emergente;
   - por debajo de 768 px, barra superior con menú y un panel temporal de navegación que se cierra al elegir.
-- Barra superior de escritorio con la ruta de migas, sin búsqueda global hasta U5. `DP-036` (regla 5) la incorpora: se buscará por placa, cliente, producto o factura desde cualquier pantalla, y el servidor decidirá qué resultados puede ver cada rol. Aprobado y todavía no implementado: U5 de `docs/cambios-pendientes.md`.
+- Barra superior de escritorio con la ruta de migas y disparador de **búsqueda global** (también disponible en la cabecera móvil, mediante atajo de teclado `Ctrl+K` / `Cmd+K` o `/`, y desde el buscador principal de Inicio). `DP-036` (regla 5), implementada en `buscar-en-todo-el-sistema` (U5): localiza por placa, cliente, producto o factura local desde cualquier pantalla, y el servidor decide qué grupos y campos puede ver cada rol sin mezclar totales entre negocios ni exponer costos. Cobertura: [cobertura-busqueda-global.md](cobertura-busqueda-global.md).
 - Título de página y contexto breve cuando resulte útil.
 - Área principal de contenido, a todo el ancho disponible.
 - Indicador visible de entidad fiscal (nombre, icono y tono propios de cada RUC) en la barra superior cuando la pantalla tenga ámbito económico.

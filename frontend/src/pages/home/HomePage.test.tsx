@@ -23,6 +23,16 @@ const mocks = vi.hoisted(() => ({
   salesCalls: [] as { filters: unknown; enabled: boolean | undefined }[],
   artisanCalls: [] as { filters: unknown; enabled: boolean | undefined }[],
   navigate: vi.fn(),
+  openSearch: vi.fn(),
+}))
+
+vi.mock('@/features/search/GlobalSearchContext', () => ({
+  useGlobalSearchModal: () => ({
+    open: false,
+    initialQuery: '',
+    openSearch: mocks.openSearch,
+    closeSearch: vi.fn(),
+  }),
 }))
 
 vi.mock('react-router', async (importOriginal) => {
@@ -229,6 +239,7 @@ beforeEach(() => {
   mocks.salesCalls.length = 0
   mocks.artisanCalls.length = 0
   mocks.navigate.mockReset()
+  mocks.openSearch.mockReset()
   asSeller()
 })
 afterEach(() => vi.useRealTimers())
@@ -276,18 +287,18 @@ it('quien gestiona mantenimientos tiene «Nuevo mantenimiento» y no «Venta rá
   ).toBeVisible()
 })
 
-it('la búsqueda abre la lista filtrada del taller o, sin permiso, la de ventas', async () => {
+it('la búsqueda del mostrador abre la búsqueda global con el término ingresado', async () => {
   const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
   asAdmin()
   const first = renderPage()
   await user.type(screen.getByRole('searchbox'), 'ABC 12{Enter}')
-  expect(mocks.navigate).toHaveBeenCalledWith('/maintenance?search=ABC%2012')
+  expect(mocks.openSearch).toHaveBeenCalledWith('ABC 12')
   first.unmount()
 
   asSeller()
   renderPage()
   await user.type(screen.getByRole('searchbox'), 'Mora{Enter}')
-  expect(mocks.navigate).toHaveBeenLastCalledWith('/sales?search=Mora')
+  expect(mocks.openSearch).toHaveBeenLastCalledWith('Mora')
 })
 
 // --- Cobrado hoy -------------------------------------------------------------------------

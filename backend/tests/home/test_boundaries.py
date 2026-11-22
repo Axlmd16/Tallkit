@@ -21,8 +21,11 @@ OTHERS = {
     "workshop_configuration",
 }
 ALLOWED_CROSS_MODULE = {
+    "catalog.application.home_summary",
     "customer_registry.application.home_summary",
+    "fiscal.application.home_summary",
     "identity.models",
+    "inventory.application.home_summary",
     "proformas.application.home_summary",
     "sales.application.home_summary",
     "workshop.application.home_summary",

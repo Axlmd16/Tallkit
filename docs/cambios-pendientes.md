@@ -324,9 +324,9 @@ Búsqueda global por placa, cliente, producto o factura, desde cualquier pantall
 - [x] Specs aprobadas
 - [x] Diseño aprobado
 - [x] Tareas aprobadas
-- [ ] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Aplicado
+- [x] Verificado
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-22-buscar-en-todo-el-sistema`)
 
 ### U6. `cobrar-y-facturar-en-un-paso`
 

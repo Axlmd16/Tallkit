@@ -819,8 +819,8 @@ function HomePreview() {
             />
           }
           onNewMaintenance={() => undefined}
+          onSearch={() => undefined}
           quickSaleTo="/sales/new"
-          searchTarget="/maintenance"
         />
         <QualificationBanner
           query={loaded({

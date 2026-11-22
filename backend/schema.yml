@@ -2953,6 +2953,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
           description: ''
+  /api/v1/home/search/:
+    get:
+      operationId: home_search
+      description: Búsqueda global de solo lectura agrupada por vehículos, clientes,
+        facturas locales y productos. El servidor decide cada grupo y campo según
+        los permisos efectivos; nunca mezcla totales entre negocios ni expone costos.
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Texto a buscar (placa, cliente, cédula/RUC, producto o factura).
+      tags:
+      - Inicio
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalSearch'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: ''
   /api/v1/inventory/:
     get:
       operationId: inventory_stock_list
@@ -14745,7 +14780,7 @@ components:
         source_id:
           type: integer
         state:
-          $ref: '#/components/schemas/FiscalPreparationListRowStateEnum'
+          $ref: '#/components/schemas/State6ffEnum'
         number:
           type: string
           nullable: true
@@ -14772,16 +14807,6 @@ components:
       - source_kind
       - state
       - total
-    FiscalPreparationListRowStateEnum:
-      enum:
-      - DRAFT
-      - PREPARED
-      - CANCELLED
-      type: string
-      description: |-
-        * `DRAFT` - DRAFT
-        * `PREPARED` - PREPARED
-        * `CANCELLED` - CANCELLED
     FiscalPreparationResult:
       type: object
       properties:
@@ -15106,6 +15131,33 @@ components:
       description: |-
         * `SIMPLE` - SIMPLE
         * `LEGACY` - LEGACY
+    GlobalSearch:
+      type: object
+      properties:
+        query:
+          type: string
+        vehicles:
+          allOf:
+          - $ref: '#/components/schemas/SearchVehiclesGroup'
+          nullable: true
+        customers:
+          allOf:
+          - $ref: '#/components/schemas/SearchCustomersGroup'
+          nullable: true
+        invoices:
+          allOf:
+          - $ref: '#/components/schemas/SearchInvoicesGroup'
+          nullable: true
+        products:
+          allOf:
+          - $ref: '#/components/schemas/SearchProductsGroup'
+          nullable: true
+      required:
+      - customers
+      - invoices
+      - products
+      - query
+      - vehicles
     IdentificationTypeEnum:
       enum:
       - CI
@@ -18605,6 +18657,164 @@ components:
       description: |-
         * `commercial` - commercial
         * `artisan` - artisan
+    SearchCustomerItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        full_name:
+          type: string
+        identification_type:
+          type: string
+        identification:
+          type: string
+      required:
+      - full_name
+      - id
+      - identification
+      - identification_type
+    SearchCustomersGroup:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchCustomerItem'
+      required:
+      - items
+      - total
+    SearchInvoiceItem:
+      type: object
+      properties:
+        id:
+          type: string
+        entity:
+          $ref: '#/components/schemas/EntityEnum'
+        number:
+          type: string
+          nullable: true
+        customer_name:
+          type: string
+          nullable: true
+        date:
+          type: string
+          nullable: true
+        state:
+          $ref: '#/components/schemas/State6ffEnum'
+        total:
+          type: string
+          nullable: true
+      required:
+      - customer_name
+      - date
+      - entity
+      - id
+      - number
+      - state
+      - total
+    SearchInvoicesGroup:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchInvoiceItem'
+      required:
+      - items
+      - total
+    SearchOpenOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        number:
+          type: string
+        status:
+          type: string
+      required:
+      - id
+      - number
+      - status
+    SearchProductItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        manufacturer_code:
+          type: string
+        name:
+          type: string
+        sale_price:
+          type: string
+        stock:
+          type: string
+          nullable: true
+      required:
+      - code
+      - id
+      - manufacturer_code
+      - name
+      - sale_price
+      - stock
+    SearchProductsGroup:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchProductItem'
+      required:
+      - items
+      - total
+    SearchVehicleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        plate:
+          type: string
+        label:
+          type: string
+        owner_id:
+          type: integer
+          nullable: true
+        owner_name:
+          type: string
+        open_order:
+          allOf:
+          - $ref: '#/components/schemas/SearchOpenOrder'
+          nullable: true
+      required:
+      - id
+      - label
+      - open_order
+      - owner_id
+      - owner_name
+      - plate
+    SearchVehiclesGroup:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchVehicleItem'
+      required:
+      - items
+      - total
     SeriesReplace:
       type: object
       properties:
@@ -18925,6 +19135,16 @@ components:
       description: |-
         * `COMMERCIAL` - COMMERCIAL
         * `ARTISAN` - ARTISAN
+    State6ffEnum:
+      enum:
+      - DRAFT
+      - PREPARED
+      - CANCELLED
+      type: string
+      description: |-
+        * `DRAFT` - DRAFT
+        * `PREPARED` - PREPARED
+        * `CANCELLED` - CANCELLED
     State8d1Enum:
       enum:
       - DRAFT

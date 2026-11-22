@@ -101,3 +101,72 @@ class CustomerSummarySerializer(serializers.Serializer[dict[str, object]]):
     visits = CustomerVisitsSerializer(allow_null=True)
     commercial = CustomerBusinessSerializer(allow_null=True)
     artisan = CustomerBusinessSerializer(allow_null=True)
+
+
+class SearchOpenOrderSerializer(serializers.Serializer[dict[str, object]]):
+    id = serializers.IntegerField()
+    number = serializers.CharField()
+    status = serializers.CharField()
+
+
+class SearchVehicleItemSerializer(serializers.Serializer[dict[str, object]]):
+    id = serializers.IntegerField()
+    plate = serializers.CharField()
+    label = serializers.CharField()  # type: ignore[assignment]
+    owner_id = serializers.IntegerField(allow_null=True)
+    owner_name = serializers.CharField()
+    open_order = SearchOpenOrderSerializer(allow_null=True)
+
+
+class SearchVehiclesGroupSerializer(serializers.Serializer[dict[str, object]]):
+    total = serializers.IntegerField(min_value=0)
+    items = SearchVehicleItemSerializer(many=True)
+
+
+class SearchCustomerItemSerializer(serializers.Serializer[dict[str, object]]):
+    id = serializers.IntegerField()
+    full_name = serializers.CharField()
+    identification_type = serializers.CharField()
+    identification = serializers.CharField()
+
+
+class SearchCustomersGroupSerializer(serializers.Serializer[dict[str, object]]):
+    total = serializers.IntegerField(min_value=0)
+    items = SearchCustomerItemSerializer(many=True)
+
+
+class SearchInvoiceItemSerializer(serializers.Serializer[dict[str, object]]):
+    id = serializers.CharField()
+    entity = serializers.ChoiceField(choices=("COMERCIAL", "ARTESANAL"))
+    number = serializers.CharField(allow_null=True)
+    customer_name = serializers.CharField(allow_null=True)
+    date = serializers.CharField(allow_null=True)
+    state = serializers.ChoiceField(choices=("DRAFT", "PREPARED", "CANCELLED"))
+    total = serializers.CharField(allow_null=True)
+
+
+class SearchInvoicesGroupSerializer(serializers.Serializer[dict[str, object]]):
+    total = serializers.IntegerField(min_value=0)
+    items = SearchInvoiceItemSerializer(many=True)
+
+
+class SearchProductItemSerializer(serializers.Serializer[dict[str, object]]):
+    id = serializers.IntegerField()
+    code = serializers.CharField()
+    manufacturer_code = serializers.CharField()
+    name = serializers.CharField()
+    sale_price = serializers.CharField()
+    stock = serializers.CharField(allow_null=True)
+
+
+class SearchProductsGroupSerializer(serializers.Serializer[dict[str, object]]):
+    total = serializers.IntegerField(min_value=0)
+    items = SearchProductItemSerializer(many=True)
+
+
+class GlobalSearchSerializer(serializers.Serializer[dict[str, object]]):
+    query = serializers.CharField()
+    vehicles = SearchVehiclesGroupSerializer(allow_null=True)
+    customers = SearchCustomersGroupSerializer(allow_null=True)
+    invoices = SearchInvoicesGroupSerializer(allow_null=True)
+    products = SearchProductsGroupSerializer(allow_null=True)

@@ -22,6 +22,7 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   headers?: Record<string, string>
+  signal?: AbortSignal
 }
 
 function cookieValue(name: string): string | undefined {
@@ -89,6 +90,7 @@ export class ApiClient {
         method,
         credentials: 'same-origin',
         headers,
+        ...(options.signal ? { signal: options.signal } : {}),
         ...(options.body === undefined
           ? {}
           : {
@@ -97,7 +99,10 @@ export class ApiClient {
                 : JSON.stringify(options.body),
             }),
       })
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw error
+      }
       throw new ProblemError(
         'No fue posible conectar con el backend.',
         0,
@@ -130,6 +135,7 @@ export class ApiClient {
         method,
         credentials: 'same-origin',
         headers,
+        ...(options.signal ? { signal: options.signal } : {}),
         ...(options.body === undefined
           ? {}
           : {
@@ -138,7 +144,10 @@ export class ApiClient {
                 : JSON.stringify(options.body),
             }),
       })
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw error
+      }
       throw new ProblemError(
         'No fue posible conectar con el backend.',
         0,

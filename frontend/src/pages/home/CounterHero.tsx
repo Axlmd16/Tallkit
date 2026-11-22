@@ -1,6 +1,6 @@
 import { MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 
 import { GaugeMotif } from '@/shared/ui'
 
@@ -20,36 +20,29 @@ const heroButton =
   'ui-button inline-flex min-h-14 items-center justify-center gap-2 rounded-control border px-5 text-lead font-semibold whitespace-nowrap transition-[background-color,border-color,color] duration-150'
 
 /**
- * Banda grafito del mostrador: la fecha, la pregunta del día, la búsqueda y los dos accesos
- * de uso diario. De momento la búsqueda abre la lista ya filtrada; con la búsqueda global
- * (U5) pasará a buscar en todo el sistema. `aside` recibe el recuadro «Cobrado hoy».
+ * Banda grafito del mostrador: la fecha, la pregunta del día, la búsqueda global y los dos
+ * accesos de uso diario. `aside` recibe el recuadro «Cobrado hoy».
  */
 export function CounterHero({
-  searchTarget,
+  onSearch,
   onNewMaintenance,
   quickSaleTo,
   aside,
 }: {
-  /** Lista donde se busca; `null` si la sesión no puede ver ninguna. */
-  searchTarget: string | null
+  /** Abre la búsqueda global con el término ingresado; `null` si la sesión no puede buscar. */
+  onSearch: ((term: string) => void) | null
   /** Abre el alta de un mantenimiento; `null` si la sesión no puede gestionarlos. */
   onNewMaintenance: (() => void) | null
   /** Ruta de la venta rápida; `null` si la sesión no puede vender. */
   quickSaleTo: string | null
   aside?: ReactNode
 }) {
-  const navigate = useNavigate()
   const [term, setTerm] = useState('')
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (!searchTarget) return
-    const text = term.trim()
-    void navigate(
-      text
-        ? `${searchTarget}?search=${encodeURIComponent(text)}`
-        : searchTarget,
-    )
+    if (!onSearch) return
+    onSearch(term.trim())
   }
 
   return (
@@ -71,7 +64,7 @@ export function CounterHero({
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {searchTarget && (
+          {onSearch && (
             <form
               className="flex h-14 min-w-[16rem] max-w-xl flex-1 items-center gap-3 rounded-group bg-surface px-4 text-ink-muted shadow-menu"
               onSubmit={submit}
@@ -82,7 +75,7 @@ export function CounterHero({
                 aria-label="Buscar"
                 className="min-w-0 flex-1 bg-transparent text-lead text-ink outline-none placeholder:text-ink-muted"
                 onChange={(event) => setTerm(event.target.value)}
-                placeholder="Escriba una placa, un cliente o un número"
+                placeholder="Placa, cliente, cédula, producto o factura"
                 type="search"
                 value={term}
               />

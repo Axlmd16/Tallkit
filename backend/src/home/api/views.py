@@ -5,7 +5,7 @@ con sus permisos efectivos, sin registrar denegaciones: abrir el inicio no es un
 acceso.
 """
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from config.api.errors import ProblemSerializer, problem_response
 from home.api import serializers as sz
-from home.application import customers, summary
+from home.application import customers, search, summary
 from identity.models import User
 
 _TAG = "Inicio"
@@ -116,3 +116,28 @@ class CustomerSummaryView(APIView):
                 code="customer_not_found",
                 detail=f"No existe el cliente con ID {customer_id}.",
             )
+
+
+class GlobalSearchView(APIView):
+    @extend_schema(
+        tags=[_TAG],
+        operation_id="home_search",
+        parameters=[
+            OpenApiParameter(
+                name="q",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Texto a buscar (placa, cliente, cédula/RUC, producto o factura).",
+            )
+        ],
+        responses={200: sz.GlobalSearchSerializer, **_DENIED},
+        description=(
+            "Búsqueda global de solo lectura agrupada por vehículos, clientes, facturas locales "
+            "y productos. El servidor decide cada grupo y campo según los permisos efectivos; "
+            "nunca mezcla totales entre negocios ni expone costos."
+        ),
+    )
+    def get(self, request: Request) -> Response:
+        raw_query = request.query_params.get("q", "")
+        return Response(search.global_search(_actor(request), raw_query))

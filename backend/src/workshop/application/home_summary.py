@@ -136,3 +136,29 @@ def customer_visits(actor: User, customer_id: int, *, since: date) -> CustomerVi
         count=orders.filter(opened_on__gte=since).count(),
         last_on=orders.aggregate(last=Max("opened_on"))["last"],
     )
+
+
+@dataclass(frozen=True)
+class OpenOrderRef:
+    id: int
+    number: str
+    status: str
+
+
+def open_orders_by_vehicles(actor: User, vehicle_ids: list[int]) -> dict[int, OpenOrderRef] | None:
+    """Mantenimiento abierto más reciente por vehículo; ``None`` si el actor no ve taller."""
+    if not has_permission(actor, "mantenimientos.ver"):
+        return None
+    if not vehicle_ids:
+        return {}
+    found: dict[int, OpenOrderRef] = {}
+    rows = (
+        queries.open_orders()
+        .filter(vehicle_id__in=vehicle_ids)
+        .order_by("-opened_on", "-id")
+        .values_list("vehicle_id", "id", "number", "state")
+    )
+    for vehicle_id, order_id, number, state in rows:
+        if vehicle_id not in found:
+            found[vehicle_id] = OpenOrderRef(id=order_id, number=number, status=state)
+    return found

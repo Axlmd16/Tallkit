@@ -1,4 +1,4 @@
-import { List, SignOut } from '@phosphor-icons/react'
+import { List, MagnifyingGlass, SignOut } from '@phosphor-icons/react'
 import { Fragment, useRef, useState, type ReactNode } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 
@@ -9,6 +9,12 @@ import {
   type Role,
   type Session,
 } from '@/features/auth/types'
+import {
+  GlobalSearchProvider,
+  useGlobalSearchModal,
+} from '@/features/search/GlobalSearchContext'
+import { GlobalSearchDialog } from '@/features/search/GlobalSearchDialog'
+import { clearRecentSearches } from '@/features/search/recent'
 import { useBusinessName } from '@/shared/api/entity-logos'
 import {
   Button,
@@ -101,7 +107,7 @@ function buildTrail(
   return trail
 }
 
-export function AuthenticatedShell({
+function AuthenticatedShellInner({
   session,
   onLogout,
   children,
@@ -118,6 +124,7 @@ export function AuthenticatedShell({
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const expandedRail = useExpandedRail()
+  const search = useGlobalSearchModal()
   const businessNames: Record<NavScope, string> = {
     commercial: useBusinessName('commercial'),
     artesanal: useBusinessName('artesanal'),
@@ -146,6 +153,7 @@ export function AuthenticatedShell({
     setPending(true)
     setError('')
     try {
+      clearRecentSearches()
       await onLogout()
     } catch {
       setError('No fue posible cerrar la sesión. Inténtelo nuevamente.')
@@ -163,14 +171,23 @@ export function AuthenticatedShell({
             <img alt="" className="app-mobile-brand-logo" src={brandMark} />
             <span className="text-block font-bold text-ink">Tallkit</span>
           </div>
-          <IconButton
-            className="size-[44px] min-w-[44px] min-h-[44px]"
-            icon={<List size={24} />}
-            label="Abrir navegación"
-            onClick={() => setNavigationOpen(true)}
-            ref={menuButtonRef}
-            targetSize="touch44"
-          />
+          <div className="flex items-center gap-1">
+            <IconButton
+              className="size-[44px] min-w-[44px] min-h-[44px]"
+              icon={<MagnifyingGlass size={22} />}
+              label="Buscar en todo el sistema"
+              onClick={() => search.openSearch('')}
+              targetSize="touch44"
+            />
+            <IconButton
+              className="size-[44px] min-w-[44px] min-h-[44px]"
+              icon={<List size={24} />}
+              label="Abrir navegación"
+              onClick={() => setNavigationOpen(true)}
+              ref={menuButtonRef}
+              targetSize="touch44"
+            />
+          </div>
         </header>
 
         <aside className="app-rail sticky top-0 hidden h-screen flex-col overflow-hidden border-r border-graphite-line bg-graphite text-graphite-ink md:flex">
@@ -278,6 +295,18 @@ export function AuthenticatedShell({
                 </ol>
               )}
             </nav>
+            <button
+              aria-label="Buscar en todo el sistema"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-control border border-line bg-canvas px-3 text-body font-medium text-ink-muted transition-colors hover:border-line-strong hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              onClick={() => search.openSearch('')}
+              type="button"
+            >
+              <MagnifyingGlass aria-hidden="true" size={16} weight="bold" />
+              <span>Buscar</span>
+              <kbd className="hidden rounded border border-line bg-surface px-1.5 py-0.5 text-[11px] font-semibold text-ink-muted lg:inline">
+                Ctrl K
+              </kbd>
+            </button>
             {scope && <FiscalScopeBadge scope={scope} />}
           </div>
           {error && (
@@ -347,8 +376,37 @@ export function AuthenticatedShell({
             </Button>
           </nav>
         </NavigationPanel>
+        {search.open && (
+          <GlobalSearchDialog
+            initialQuery={search.initialQuery}
+            onClose={search.closeSearch}
+            open={search.open}
+            username={session.username ?? null}
+          />
+        )}
       </div>
     </ToastProvider>
+  )
+}
+
+export function AuthenticatedShell({
+  session,
+  onLogout,
+  children,
+}: {
+  session: Session
+  onLogout: () => Promise<void>
+  children: ReactNode
+}) {
+  return (
+    <GlobalSearchProvider
+      authenticated={session.authenticated}
+      username={session.username ?? null}
+    >
+      <AuthenticatedShellInner onLogout={onLogout} session={session}>
+        {children}
+      </AuthenticatedShellInner>
+    </GlobalSearchProvider>
   )
 }
 

@@ -1,9 +1,14 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
 
 import type { Session } from '@/features/auth/types'
+import {
+  loadRecentSearches,
+  recordRecentSearch,
+} from '@/features/search/recent'
 import { setViewport, tabletWidth } from '@/test-viewport'
 
 // @ts-expect-error Node fs module used in test runner
@@ -458,10 +463,57 @@ it('identifica el ámbito fiscal solo en las pantallas económicas', () => {
   expect(screen.queryByRole('status', { name: /Negocio:/ })).toBeNull()
 })
 
-it('no ofrece búsqueda global en la barra superior', () => {
-  renderAt('/')
+it('ofrece búsqueda global en la barra superior, por atajo Ctrl+K y limpia recientes al salir', async () => {
+  const user = userEvent.setup()
+  const onLogout = vi.fn().mockResolvedValue(undefined)
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  recordRecentSearch('admin', {
+    key: 'customer:7',
+    kind: 'customer',
+    title: 'José Mendoza',
+    subtitle: 'CI 0912345678',
+    to: '/customers/7',
+  })
+
+  render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/products']}>
+        <AuthenticatedShell onLogout={onLogout} session={fullAccess}>
+          <p>Contenido</p>
+        </AuthenticatedShell>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+
   const banner = screen.getByTestId('app-topbar')
-  expect(within(banner).queryByRole('searchbox')).toBeNull()
+  await user.click(
+    within(banner).getByRole('button', { name: 'Buscar en todo el sistema' }),
+  )
+  expect(
+    screen.getByRole('dialog', { name: 'Búsqueda global' }),
+  ).toBeInTheDocument()
+  await user.keyboard('{Escape}')
+  expect(
+    screen.queryByRole('dialog', { name: 'Búsqueda global' }),
+  ).not.toBeInTheDocument()
+
+  await user.keyboard('{Control>}k{/Control}')
+  expect(
+    screen.getByRole('dialog', { name: 'Búsqueda global' }),
+  ).toBeInTheDocument()
+  await user.keyboard('{Escape}')
+
+  await user.keyboard('/')
+  expect(
+    screen.getByRole('dialog', { name: 'Búsqueda global' }),
+  ).toBeInTheDocument()
+  await user.keyboard('{Escape}')
+
+  await user.click(screen.getAllByRole('button', { name: /Cerrar sesión/ })[0]!)
+  expect(onLogout).toHaveBeenCalled()
+  expect(loadRecentSearches('admin')).toEqual([])
 })
 
 it('el CSS fija barra lateral de 232 px desde 1280 px e iconos de 72 px en tableta', () => {
