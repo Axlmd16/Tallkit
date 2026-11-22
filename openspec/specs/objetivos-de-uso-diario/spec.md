@@ -5,7 +5,7 @@ TBD - created by archiving change reenfocar-tallkit-en-el-uso-diario. Update Pur
 ## Requirements
 ### Requirement: Usuaria diaria como referencia de diseño
 
-Las pantallas y los recorridos de uso diario SHALL diseñarse y evaluarse para la **usuaria diaria**: la persona que atiende cada día en el taller, sin conocimientos contables, con los roles Administrador, Vendedor y Encargado del taller. Esta referencia SHALL NOT crear roles ni permisos: los permisos SHALL seguir derivándose de los roles fijos y acumulables, y el servidor SHALL seguir decidiéndolos. Las opciones de uso poco frecuente SHALL agruparse en «Ajustes» cuando se reorganice la navegación (U4).
+Las pantallas y los recorridos de uso diario SHALL diseñarse y evaluarse para la **usuaria diaria**: la persona que atiende cada día en el taller, sin conocimientos contables, con los roles Administrador, Vendedor y Encargado del taller. Esta referencia SHALL NOT crear roles ni permisos: los permisos SHALL seguir derivándose de los roles fijos y acumulables, y el servidor SHALL seguir decidiéndolos. Las opciones de uso poco frecuente SHALL agruparse en «Ajustes», según `navegacion-de-uso-diario`.
 
 Trazabilidad: `DP-036`, regla 1; `CT-001`; `actores-y-roles.md` §4 y §5; `RNF-SEG-003`; propuesta §A.
 

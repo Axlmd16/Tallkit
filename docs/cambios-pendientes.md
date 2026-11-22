@@ -247,7 +247,7 @@ de letra escritos a mano a tokens.
 
 ### U4. `reorganizar-navegacion-y-lenguaje`
 
-- Aplicado (casillas de la propuesta y de las tareas en `openspec/changes/reorganizar-navegacion-y-lenguaje`). Brechas conocidas: el estado «cancelado» de un mantenimiento no existe en el código (los segmentos son Todas, Abiertas y Finalizadas) y el valor inicial «Crédito» de una venta nueva sigue pendiente como arreglo pequeño aparte.
+- Archivado y registrado en `master` (`openspec/changes/archive/2026-11-22-reorganizar-navegacion-y-lenguaje`). Brechas conocidas: el estado «cancelado» de un mantenimiento no existe en el código (los segmentos son Todas, Abiertas y Finalizadas) y el valor inicial «Crédito» de una venta nueva sigue pendiente como arreglo pequeño aparte.
 
 Menú de 9 entradas siempre visibles (Inicio, Mantenimientos, Ventas, Facturas, Clientes, Productos,
 Servicios, Cuentas y Ajustes); nombre comercial de cada negocio en lugar de «RUC»; ficha del cliente con
@@ -282,13 +282,13 @@ total a pagar, movimientos).
 
 **Pasos**
 
-- [ ] Propuesta aprobada
-- [ ] Specs aprobadas
-- [ ] Diseño aprobado
-- [ ] Tareas aprobadas
-- [ ] Aplicado
-- [ ] Verificado
-- [ ] Archivado y registrado en `master`
+- [x] Propuesta aprobada
+- [x] Specs aprobadas
+- [x] Diseño aprobado
+- [x] Tareas aprobadas
+- [x] Aplicado
+- [x] Verificado
+- [x] Archivado y registrado en `master` (`openspec/changes/archive/2026-11-22-reorganizar-navegacion-y-lenguaje`)
 
 ### U4b. Pantallas del prototipo (sin OpenSpec)
 

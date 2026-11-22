@@ -22,13 +22,13 @@ La aplicación SHALL ser utilizable desde 360 px de ancho hasta pantallas de esc
 
 ### Requirement: Navegación lateral adaptable y autorizada
 La navegación principal SHALL presentarse:
-- **Escritorio, desde 1280 px:** barra lateral grafito de unos 264 px con el logotipo, los grupos de navegación vigentes, cada opción con icono y etiqueta, y la opción activa con fondo destacado y una barra de acento cobre. Al pie SHALL mostrarse el motivo del tacómetro como decoración, sin interferir con las opciones ni anunciarse a las tecnologías de asistencia.
+- **Escritorio, desde 1280 px:** barra lateral grafito de unos 264 px con el logotipo, las nueve entradas de `navegacion-de-uso-diario`, cada una con icono y etiqueta, y la opción activa con fondo destacado y una barra de acento cobre. Al pie SHALL mostrarse el motivo del tacómetro como decoración, sin interferir con las opciones ni anunciarse a las tecnologías de asistencia.
 - **Tableta, de 768 a 1279 px:** barra compacta grafito de iconos con nombre accesible, ayuda emergente y el mismo tratamiento de la opción activa.
 - **Teléfono, por debajo de 768 px:** panel temporal que se abre desde la barra superior.
 
-En todos los tamaños SHALL conservar el logotipo Tallkit, la ruta activa, el acceso a inicio, la identidad del usuario y únicamente las opciones permitidas por sus roles. Las entradas y los grupos del menú SHALL ser los vigentes hasta U4.
+En todos los tamaños SHALL conservar el logotipo Tallkit, la ruta activa, el acceso a inicio, la identidad del usuario y únicamente las opciones permitidas por sus roles. Las entradas SHALL ser las de `navegacion-de-uso-diario`, sin grupos plegables.
 
-**Trazabilidad:** `CT-001`, `RNF-SEG-003`, `RNF-USA-001`, `RNF-USA-007`; `DP-036`, reglas 1 y 6; decisión D3 de la propuesta; `DESIGN.md`, «Marco»; secciones 2 y 10 de `interfaz-y-navegacion.md`.
+**Trazabilidad:** `CT-001`, `RNF-SEG-003`, `RNF-USA-001`, `RNF-USA-007`; `DP-036`, reglas 1 y 6; decisión D3 de la propuesta; `DESIGN.md`, «Marco»; secciones 2 y 10 de `interfaz-y-navegacion.md`; `navegacion-de-uso-diario`.
 
 #### Scenario: Cambio de tamaño con una ruta activa
 - **WHEN** la interfaz cambia entre escritorio, tableta y teléfono mientras una pantalla está abierta
@@ -183,14 +183,14 @@ En escritorio y tableta, las listas operativas SHALL presentarse como una tabla 
 
 ### Requirement: Navegación y densidad en reemplazo
 
-La densidad de esta spec queda resuelta por la dirección «Grafito y cobre» desde este cambio. La navegación agrupada por área de trabajo sigue **en reemplazo** por `DP-036`, regla 5: U4 reorganiza el menú y hasta entonces sigue vigente. Los requisitos de tamaños de pantalla, teclado, controles táctiles, movimiento, modales y permisos de la navegación SHALL seguir vigentes sin cambio.
+La densidad de esta spec queda resuelta por la dirección «Grafito y cobre». La navegación agrupada por área de trabajo queda reemplazada por el menú de nueve entradas de `navegacion-de-uso-diario` (`DP-036`, regla 1). Los requisitos de tamaños de pantalla, teclado, controles táctiles, movimiento, modales y permisos de la navegación SHALL seguir vigentes sin cambio.
 
-Trazabilidad: `DP-036`, reglas 5, 6 y 8; `interfaz-y-navegacion.md` §2.1 y §2.2; `docs/cambios-pendientes.md`, U3 y U4.
+Trazabilidad: `DP-036`, reglas 1, 6 y 8; `interfaz-y-navegacion.md` §2.1 y §2.2; `docs/cambios-pendientes.md`, U3 y U4.
 
-#### Scenario: Menú antes de U4
-- **DADO** U4 sin archivar
-- **CUANDO** un cambio agrega una entrada a la navegación
-- **ENTONCES** SHALL ubicarla en los grupos vigentes y respetar los permisos efectivos.
+#### Scenario: Entrada nueva en el menú
+- **DADO** un cambio posterior que agrega una pantalla a la navegación
+- **CUANDO** se define su ubicación
+- **ENTONCES** SHALL ubicarse dentro de una de las nueve entradas vigentes y respetar los permisos efectivos, salvo que un cambio apruebe una entrada nueva.
 
 #### Scenario: Requisito de accesibilidad
 - **DADO** el requisito de controles táctiles de al menos 44 px o el de operación con teclado
