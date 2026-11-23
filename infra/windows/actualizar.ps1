@@ -80,6 +80,8 @@ try {
     $backendDir = Join-Path $AppDir "backend"
     Push-Location $backendDir
     try {
+        $env:UV_PYTHON_INSTALL_DIR = Join-Path $BaseDir "python"
+        $env:UV_CACHE_DIR = Join-Path $BaseDir "uv-cache"
         $env:DJANGO_SETTINGS_MODULE = "config.settings.production"
         $env:PYTHONPATH = "src"
         uv sync --frozen --no-dev

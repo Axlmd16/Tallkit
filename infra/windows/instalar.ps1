@@ -58,16 +58,16 @@ function Resolve-PgBinPath {
 function Set-RestrictedAcl {
     param(
         [string]$Path,
-        [string[]]$AllowedIdentities
+        [System.Security.Principal.SecurityIdentifier[]]$AllowedSids
     )
     $acl = Get-Acl -Path $Path
     $acl.SetAccessRuleProtection($true, $false)
     foreach ($rule in @($acl.Access)) {
         $acl.RemoveAccessRule($rule) | Out-Null
     }
-    foreach ($id in $AllowedIdentities) {
+    foreach ($sid in $AllowedSids) {
         $rule = [System.Security.AccessControl.FileSystemAccessRule]::new(
-            $id,
+            $sid,
             [System.Security.AccessControl.FileSystemRights]::FullControl,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor [System.Security.AccessControl.InheritanceFlags]::ObjectInherit,
             [System.Security.AccessControl.PropagationFlags]::None,
@@ -168,16 +168,16 @@ if (-not (Get-LocalUser -Name $localAccountName -ErrorAction SilentlyContinue)) 
     New-LocalUser -Name $localAccountName -Password $ServicePassword -PasswordNeverExpires -UserMayNotChangePassword -Description "Cuenta de servicio sin privilegios para Tallkit" | Out-Null
 }
 
-# Permisos NTFS restrictivos (Administradores y SYSTEM en todos; cuenta de servicio sin acceso a respaldos)
-$admins = "BUILTIN\Administrators"
-$system = "NT AUTHORITY\SYSTEM"
-$svcIdentity = "$env:COMPUTERNAME\$localAccountName"
+# Permisos NTFS restrictivos usando SIDs universales (compatibles con Windows en español e inglés)
+$adminsSid = [System.Security.Principal.SecurityIdentifier]::new("S-1-5-32-544")
+$systemSid = [System.Security.Principal.SecurityIdentifier]::new("S-1-5-18")
+$svcSid = (Get-LocalUser -Name $localAccountName).SID
 
-Set-RestrictedAcl -Path $AppDir -AllowedIdentities @($admins, $system, $svcIdentity)
-Set-RestrictedAcl -Path $DataDir -AllowedIdentities @($admins, $system, $svcIdentity)
-Set-RestrictedAcl -Path $CaddyDir -AllowedIdentities @($admins, $system, $svcIdentity)
-Set-RestrictedAcl -Path $LogsDir -AllowedIdentities @($admins, $system, $svcIdentity)
-Set-RestrictedAcl -Path $BackupDir -AllowedIdentities @($admins, $system)
+Set-RestrictedAcl -Path $AppDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+Set-RestrictedAcl -Path $DataDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+Set-RestrictedAcl -Path $CaddyDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+Set-RestrictedAcl -Path $LogsDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+Set-RestrictedAcl -Path $BackupDir -AllowedSids @($adminsSid, $systemSid)
 
 # Generar Caddyfile desde plantilla
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -188,11 +188,21 @@ $caddyTemplate = Get-Content -Path (Join-Path $scriptDir "Caddyfile.template") -
 $caddyContent = $caddyTemplate.Replace("{{IP}}", $Ip)
 Set-Content -Path (Join-Path $CaddyDir "Caddyfile") -Value $caddyContent -Encoding UTF8
 
-# Instalar dependencias y preparar Django en modo producción
+# Instalar Python y dependencias dentro de C:\Tallkit para que el servicio de Windows tenga acceso directo
+$pythonInstallDir = Join-Path $BaseDir "python"
+$uvCacheDir = Join-Path $BaseDir "uv-cache"
+New-Item -ItemType Directory -Path $pythonInstallDir -Force | Out-Null
+New-Item -ItemType Directory -Path $uvCacheDir -Force | Out-Null
+Set-RestrictedAcl -Path $pythonInstallDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+Set-RestrictedAcl -Path $uvCacheDir -AllowedSids @($adminsSid, $systemSid, $svcSid)
+
 Push-Location $backendDir
 try {
+    $env:UV_PYTHON_INSTALL_DIR = $pythonInstallDir
+    $env:UV_CACHE_DIR = $uvCacheDir
     $env:DJANGO_SETTINGS_MODULE = "config.settings.production"
     $env:PYTHONPATH = "src"
+    uv python install 3.13
     uv sync --frozen --no-dev
     uv run --frozen --no-dev python manage.py migrate --noinput
     uv run --frozen --no-dev python manage.py collectstatic --noinput
@@ -202,7 +212,10 @@ finally {
 }
 
 # Copiar descriptores WinSW y registrar servicios
-Copy-Item -Path (Join-Path $scriptDir "tallkit-backend.xml") -Destination (Join-Path $BaseDir "winsw-backend.xml") -Force
+$backendXmlContent = Get-Content -Path (Join-Path $scriptDir "tallkit-backend.xml") -Raw
+$backendXmlContent = $backendXmlContent -replace '<executable>uv</executable>', '<executable>C:\Tallkit\app\backend\.venv\Scripts\waitress-serve.exe</executable>'
+$backendXmlContent = $backendXmlContent -replace 'run --frozen --no-dev waitress-serve ', ''
+Set-Content -Path (Join-Path $BaseDir "winsw-backend.xml") -Value $backendXmlContent -Encoding UTF8
 Copy-Item -Path (Join-Path $scriptDir "tallkit-caddy.xml") -Destination (Join-Path $BaseDir "winsw-caddy.xml") -Force
 
 & $winswBackend uninstall 2>$null | Out-Null
