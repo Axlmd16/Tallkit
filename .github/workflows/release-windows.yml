@@ -39,16 +39,21 @@ jobs:
         run: |
           VERSION="${INPUT_VERSION:-$REF_NAME}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          mkdir -p dist_pkg/backend dist_pkg/web
+          mkdir -p dist_pkg/backend dist_pkg/web dist_pkg/infra/windows
           cp -r frontend/dist/* dist_pkg/web/
           cp backend/pyproject.toml backend/uv.lock backend/manage.py dist_pkg/backend/
           cp -r backend/src dist_pkg/backend/
+          cp -r infra/windows/* dist_pkg/infra/windows/
+          cp infra/windows/.env.windows.example dist_pkg/infra/windows/
           find dist_pkg -name "__pycache__" -type d -exec rm -rf {} +
-          (cd dist_pkg && zip -rq "../tallkit-${VERSION}.zip" backend web)
+          (cd dist_pkg && zip -rq "../tallkit-${VERSION}.zip" backend web infra)
 
       - name: Publicar en GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
-          files: tallkit-${{ env.VERSION }}.zip
+          files: |
+            tallkit-${{ env.VERSION }}.zip
+            infra/windows/instalar.ps1
+            infra/windows/.env.windows.example
           generate_release_notes: true

@@ -65,9 +65,10 @@ try {
     $tempExtract = Join-Path $env:TEMP "tallkit-update-$(Get-Date -Format 'yyyyMMddHHmmss')"
     Expand-Archive -Path $Paquete -DestinationPath $tempExtract -Force
 
-    foreach ($sub in @("backend", "web")) {
+    foreach ($sub in @("backend", "web", "infra")) {
         $srcSub = Join-Path $tempExtract $sub
         if (-not (Test-Path $srcSub)) {
+            if ($sub -eq "infra") { continue }
             throw "El paquete no contiene la carpeta esperada '$sub'."
         }
         $dstSub = Join-Path $AppDir $sub

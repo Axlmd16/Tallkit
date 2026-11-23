@@ -19,6 +19,10 @@ param(
 
     [string]$Paquete = "",
 
+    [string]$Version = "latest",
+
+    [string]$Repo = "Axlmd16/Tallkit",
+
     [string]$ServiceAccount = ".\tallkit-svc",
 
     [SecureString]$ServicePassword,
@@ -103,21 +107,46 @@ if (-not (Test-Path $winswBackend) -or -not (Test-Path $winswCaddy)) {
     throw "Coloque WinSW (winsw-backend.exe y winsw-caddy.exe) en $BaseDir antes de ejecutar instalar.ps1."
 }
 
-if ($Paquete) {
-    if (-not (Test-Path $Paquete)) {
-        throw "No existe el paquete indicado: $Paquete"
-    }
-    $tempExtract = Join-Path $env:TEMP "tallkit-install-$(Get-Date -Format 'yyyyMMddHHmmss')"
-    Expand-Archive -Path $Paquete -DestinationPath $tempExtract -Force
-    foreach ($sub in @("backend", "web")) {
-        $srcSub = Join-Path $tempExtract $sub
-        $dstSub = Join-Path $AppDir $sub
-        if (Test-Path $srcSub) {
-            if (Test-Path $dstSub) { Remove-Item -Path $dstSub -Recurse -Force }
-            Copy-Item -Path $srcSub -Destination $dstSub -Recurse -Force
+$tempDownload = ""
+try {
+    if (-not $Paquete -and -not (Test-Path (Join-Path $AppDir "backend"))) {
+        $apiUrl = if ($Version -eq "latest") {
+            "https://api.github.com/repos/$Repo/releases/latest"
+        } else {
+            "https://api.github.com/repos/$Repo/releases/tags/$Version"
         }
+        Write-Host "Descargando release desde GitHub ($apiUrl)..."
+        $release = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "Tallkit-Installer" }
+        $asset = $release.assets | Where-Object { $_.name -like "tallkit-*.zip" } | Select-Object -First 1
+        if (-not $asset) {
+            throw "No se encontró un archivo tallkit-*.zip en el release $($release.tag_name)."
+        }
+        $tempDownload = Join-Path $env:TEMP $asset.name
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempDownload
+        $Paquete = $tempDownload
     }
-    Remove-Item -Path $tempExtract -Recurse -Force
+
+    if ($Paquete) {
+        if (-not (Test-Path $Paquete)) {
+            throw "No existe el paquete indicado: $Paquete"
+        }
+        $tempExtract = Join-Path $env:TEMP "tallkit-install-$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Expand-Archive -Path $Paquete -DestinationPath $tempExtract -Force
+        foreach ($sub in @("backend", "web", "infra")) {
+            $srcSub = Join-Path $tempExtract $sub
+            $dstSub = Join-Path $AppDir $sub
+            if (Test-Path $srcSub) {
+                if (Test-Path $dstSub) { Remove-Item -Path $dstSub -Recurse -Force }
+                Copy-Item -Path $srcSub -Destination $dstSub -Recurse -Force
+            }
+        }
+        Remove-Item -Path $tempExtract -Recurse -Force
+    }
+}
+finally {
+    if ($tempDownload -and (Test-Path $tempDownload)) {
+        Remove-Item -Path $tempDownload -Force -ErrorAction SilentlyContinue
+    }
 }
 
 $envFile = Join-Path $AppDir ".env"
@@ -152,6 +181,9 @@ Set-RestrictedAcl -Path $BackupDir -AllowedIdentities @($admins, $system)
 
 # Generar Caddyfile desde plantilla
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not (Test-Path (Join-Path $scriptDir "Caddyfile.template"))) {
+    $scriptDir = Join-Path $AppDir "infra\windows"
+}
 $caddyTemplate = Get-Content -Path (Join-Path $scriptDir "Caddyfile.template") -Raw
 $caddyContent = $caddyTemplate.Replace("{{IP}}", $Ip)
 Set-Content -Path (Join-Path $CaddyDir "Caddyfile") -Value $caddyContent -Encoding UTF8
